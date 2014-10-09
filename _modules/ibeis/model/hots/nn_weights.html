@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.nn_weights &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.nn_weights</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool.linalg</span> <span class="kn">as</span> <span class="nn">ltool</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[nnweight]&#39;</span><span class="p">)</span>
+
+
+<span class="n">eps</span> <span class="o">=</span> <span class="mf">1E-8</span>
+
+
+<div class="viewcode-block" id="LNRAT_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.LNRAT_fn">[docs]</a><span class="k">def</span> <span class="nf">LNRAT_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndist</span><span class="p">,</span> <span class="n">vdist</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="RATIO_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.RATIO_fn">[docs]</a><span class="k">def</span> <span class="nf">RATIO_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndist</span><span class="p">,</span> <span class="n">vdist</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="LNBNN_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.LNBNN_fn">[docs]</a><span class="k">def</span> <span class="nf">LNBNN_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span><span class="p">)</span>  <span class="c"># / 1000.0</span>
+
+
+<span class="c"># normweight_fn = LNBNN_fn</span></div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ndist = array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])</span>
+<span class="sd">vdist = array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])</span>
+<span class="sd">vdist1 = vdist[:,0:1]</span>
+<span class="sd">vdist2 = vdist[:,0:2]</span>
+<span class="sd">vdist3 = vdist[:,0:3]</span>
+<span class="sd">vdist4 = vdist[:,0:4]</span>
+<span class="sd">print(LNBNN_fn(vdist1, ndist)) * 1000</span>
+<span class="sd">print(LNBNN_fn(vdist2, ndist)) * 1000</span>
+<span class="sd">print(LNBNN_fn(vdist3, ndist)) * 1000</span>
+<span class="sd">print(LNBNN_fn(vdist4, ndist)) * 1000</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="mark_name_valid_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.mark_name_valid_normalizers">[docs]</a><span class="k">def</span> <span class="nf">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qfx2_normnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">qnid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#columns = qfx2_topnid</span>
+    <span class="c">#matrix = qfx2_normnid</span>
+    <span class="n">Kn</span> <span class="o">=</span> <span class="n">qfx2_normnid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="bp">True</span> <span class="o">-</span> <span class="n">ltool</span><span class="o">.</span><span class="n">compare_matrix_columns</span><span class="p">(</span><span class="n">qfx2_normnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qnid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_normnid</span> <span class="o">!=</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+    <span class="n">qfx2_validlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">normrow</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">normrow</span> <span class="ow">in</span> <span class="n">qfx2_valid</span><span class="p">]</span>
+    <span class="n">qfx2_selnorm</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">poslist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Kn</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">poslist</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span>
+                          <span class="n">poslist</span> <span class="ow">in</span> <span class="n">qfx2_validlist</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qfx2_selnorm</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="c">#import utool</span>
+    <span class="c">#utool.stash_testdata(&#39;qaid2_nns&#39;)</span>
+    <span class="c"># Only valid for vsone</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
+    <span class="n">qaid2_weight</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">)}</span>
+    <span class="n">qaid2_selnorms</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">)}</span>
+    <span class="c"># Database feature index to chip index</span>
+    <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">qfx2_nndist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">rule</span> <span class="o">==</span> <span class="s">&#39;last&#39;</span><span class="p">:</span>
+            <span class="c"># Use the last normalizer</span>
+            <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rule</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span><span class="p">:</span>
+            <span class="c"># Get the top names you do not want your normalizer to be from</span>
+            <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+            <span class="n">nTop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+            <span class="n">qfx2_topidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nTop</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">qfx2_normidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="n">Knorm</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+            <span class="c"># Apply temporary uniquish name</span>
+            <span class="n">qfx2_topaid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_topidx</span><span class="p">)</span>
+            <span class="n">qfx2_normaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_normidx</span><span class="p">)</span>
+            <span class="n">qfx2_topnid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
+            <span class="n">qfx2_normnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_normaid</span><span class="p">)</span>
+            <span class="c"># Inspect the potential normalizers</span>
+            <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qfx2_normnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">qnid</span><span class="p">)</span>
+            <span class="n">qfx2_normk</span> <span class="o">+=</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>  <span class="c"># convert form negative to pos indexes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[nn_weights] no rule=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rule</span><span class="p">)</span>
+        <span class="n">qfx2_normdist</span> <span class="o">=</span> <span class="p">[</span><span class="n">dists</span><span class="p">[</span><span class="n">normk</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">normk</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">qfx2_normk</span><span class="p">)]</span>
+        <span class="n">qfx2_normidx</span>   <span class="o">=</span> <span class="p">[</span><span class="n">idxs</span><span class="p">[</span><span class="n">normk</span><span class="p">]</span>   <span class="k">for</span> <span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">normk</span><span class="p">)</span>   <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span>   <span class="n">qfx2_normk</span><span class="p">)]</span>
+        <span class="c"># build meta</span>
+        <span class="n">qfx2_normmeta</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span> <span class="n">normk</span><span class="p">)</span>
+                                      <span class="k">for</span> <span class="p">(</span><span class="n">normk</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>    <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_normk</span><span class="p">,</span>
+                                                                 <span class="n">qfx2_normidx</span><span class="p">)]</span>
+        <span class="n">qfx2_normdist</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">qfx2_normdist</span><span class="p">)</span>
+        <span class="n">qfx2_normidx</span>  <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">qfx2_normidx</span><span class="p">)</span>
+        <span class="n">qfx2_normmeta</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">qfx2_normmeta</span><span class="p">)</span>
+        <span class="c"># Ensure shapes are valid</span>
+        <span class="n">qfx2_normdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">qfx2_normweight</span> <span class="o">=</span> <span class="n">normweight_fn</span><span class="p">(</span><span class="n">qfx2_nndist</span><span class="p">,</span> <span class="n">qfx2_normdist</span><span class="p">)</span>
+        <span class="c"># Output</span>
+        <span class="n">qaid2_weight</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>   <span class="o">=</span> <span class="n">qfx2_normweight</span>
+        <span class="n">qaid2_selnorms</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qfx2_normmeta</span>
+    <span class="k">return</span> <span class="n">qaid2_weight</span><span class="p">,</span> <span class="n">qaid2_selnorms</span>
+
+
+<div class="viewcode-block" id="nn_ratio_weight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.nn_ratio_weight">[docs]</a><span class="k">def</span> <span class="nf">nn_ratio_weight</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_nn_normalized_weight</span><span class="p">(</span><span class="n">RATIO_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="nn_lnbnn_weight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.nn_lnbnn_weight">[docs]</a><span class="k">def</span> <span class="nf">nn_lnbnn_weight</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_nn_normalized_weight</span><span class="p">(</span><span class="n">LNBNN_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="nn_lnrat_weight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.nn_lnrat_weight">[docs]</a><span class="k">def</span> <span class="nf">nn_lnrat_weight</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_nn_normalized_weight</span><span class="p">(</span><span class="n">LNRAT_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="c"># TODO: Make a more elegant way of mapping weighting parameters to weighting</span>
+<span class="c"># function. A dict is better than eval, but there may be a better way.</span></div>
+<span class="n">NN_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;lnrat&#39;</span><span class="p">:</span>   <span class="n">nn_lnrat_weight</span><span class="p">,</span>
+    <span class="s">&#39;lnbnn&#39;</span><span class="p">:</span>   <span class="n">nn_lnbnn_weight</span><span class="p">,</span>
+    <span class="s">&#39;ratio&#39;</span><span class="p">:</span>   <span class="n">nn_ratio_weight</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

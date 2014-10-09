@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.dev.experiment_harness &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.dev" href="../dev.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" accesskey="U">ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.dev.experiment_harness</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="c"># Scientific</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c"># Tools</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="c"># IBEIS</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_printres</span>
+
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_harn]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">BATCH_MODE</span> <span class="o">=</span> <span class="s">&#39;--nobatch&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">NOMEMORY</span>   <span class="o">=</span> <span class="s">&#39;--nomemory&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">TESTRES_VERBOSITY</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">)</span>
+<span class="n">NOCACHE_TESTRES</span> <span class="o">=</span>  <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-testres&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">TEST_INFO</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">STRICT</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">STRICT</span>
+
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_qx2_bestrank"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.get_qx2_bestrank">[docs]</a><span class="k">def</span> <span class="nf">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">nTotalQueries</span><span class="p">,</span> <span class="n">nPrevQueries</span><span class="p">,</span> <span class="n">cfglbl</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs queries of a specific configuration returns the best rank of each query</span>
+
+<span class="sd">    qaids - query annotation ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_recognition_database_aids</span><span class="p">()</span>
+
+    <span class="c"># NEW STUFF</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="n">gtaids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="p">[[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_best_gt_rank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gtaids</span><span class="p">)]</span>
+                     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">gtaids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gtaids_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">qx2_bestranks</span>
+
+
+<span class="c">#-----------</span>
+<span class="c">#@utool.indent_func(&#39;[harn]&#39;)</span></div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="test_configurations"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.test_configurations">[docs]</a><span class="k">def</span> <span class="nf">test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c"># Test Each configuration</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        [harn]================</span>
+<span class="s">        [harn] experiment_harness.test_configurations()&quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qaid_list</span>
+
+    <span class="c"># Grab list of algorithm configurations to test</span>
+    <span class="c">#cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)</span>
+    <span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">eh</span><span class="o">.</span><span class="n">get_cfg_list_and_lbls</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Testing </span><span class="si">%d</span><span class="s"> different parameters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]         </span><span class="si">%d</span><span class="s"> query annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>
+
+    <span class="c"># Preallocate test result aggregation structures</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">sel_cols</span>  <span class="c"># FIXME</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">sel_rows</span>  <span class="c"># FIXME</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">sel_cols</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">sel_cols</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">sel_rows</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">sel_rows</span>
+
+    <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)</span>   <span class="c"># number of configurations (cols)</span>
+    <span class="n">nQuery</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>  <span class="c"># number of queries (rows)</span>
+
+    <span class="n">mat_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#ibs._init_query_requestor()</span>
+
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="n">testnameid</span> <span class="o">=</span> <span class="n">dbname</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    ---------------------</span>
+<span class="s">    [harn] TEST_CFG </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">: &#39;&#39;&#39;</span> <span class="o">+</span> <span class="n">testnameid</span> <span class="o">+</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">    ---------------------&#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="n">mark_prog</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">simple_progres_func</span><span class="p">(</span><span class="n">TESTRES_VERBOSITY</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="s">&#39;+&#39;</span><span class="p">)</span>
+    <span class="c"># Run each test configuration</span>
+    <span class="c"># Query Config / Col Loop</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_recognition_database_aids</span><span class="p">()</span>
+    <span class="n">nTotalQueries</span>  <span class="o">=</span> <span class="n">nQuery</span> <span class="o">*</span> <span class="n">nCfg</span>  <span class="c"># number of quieries to run in total</span>
+    <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;experiment_harness&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+                <span class="n">mark_prog</span><span class="p">(</span><span class="n">cfgx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+            <span class="n">cfglbl</span> <span class="o">=</span> <span class="n">cfgx2_lbl</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
+            <span class="c"># Set data to the current config</span>
+            <span class="n">nPrevQueries</span> <span class="o">=</span> <span class="n">nQuery</span> <span class="o">*</span> <span class="n">cfgx</span>  <span class="c"># number of pervious queries</span>
+            <span class="c"># Run the test / read cache</span>
+            <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s"> cfg </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span><span class="p">)):</span>
+                <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="n">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">nTotalQueries</span><span class="p">,</span> <span class="n">nPrevQueries</span><span class="p">,</span> <span class="n">cfglbl</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">NOMEMORY</span><span class="p">:</span>
+                <span class="n">mat_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qx2_bestranks</span><span class="p">)</span>
+            <span class="c"># Store the results</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Finished testing parameters&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">NOMEMORY</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ran tests in memory savings mode. exiting&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">experiment_printres</span><span class="o">.</span><span class="n">print_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span>
+                                          <span class="n">mat_list</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">,</span>
+                                          <span class="n">sel_cols</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="o">=</span><span class="n">cfgx2_lbl</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" >ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

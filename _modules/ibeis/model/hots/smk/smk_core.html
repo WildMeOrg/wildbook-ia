@@ -1,0 +1,505 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.smk.smk_core &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots.smk" href="../smk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" accesskey="U">ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.smk.smk_core</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">smk core</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c">#import pandas as pd</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">npl</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.hstypes</span> <span class="kn">import</span> <span class="n">FLOAT_TYPE</span><span class="p">,</span> <span class="n">INDEX_TYPE</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">pandas_helpers</span> <span class="k">as</span> <span class="n">pdh</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_core]&#39;</span><span class="p">)</span>
+
+
+<span class="c">#@profile</span>
+<div class="viewcode-block" id="normalize_vecs_inplace"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.normalize_vecs_inplace">[docs]</a><span class="k">def</span> <span class="nf">normalize_vecs_inplace</span><span class="p">(</span><span class="n">vecs</span><span class="p">):</span>
+    <span class="c"># Normalize residuals</span>
+    <span class="c"># this can easily be sped up by cyth</span>
+    <span class="n">norm_</span> <span class="o">=</span> <span class="n">npl</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">norm_</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">norm_</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">norm_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">norm_</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">vecs</span><span class="p">)</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="aggregate_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.aggregate_rvecs">[docs]</a><span class="k">def</span> <span class="nf">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)</span>
+<span class="sd">        &gt;&gt;&gt; rvecs = (255 * np.random.rand(4, 4)).astype(FLOAT_TYPE)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rvecs</span>
+    <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">rvecs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="c"># Take weighted average of multi-assigned vectors</span>
+    <span class="p">(</span><span class="n">maws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">rvecs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rvecs_agg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c"># Jegou uses mean instead. Sum should be fine because we normalize</span>
+    <span class="c">#rvecs.mean(axis=0, out=rvecs_agg[0])</span>
+    <span class="n">normalize_vecs_inplace</span><span class="p">(</span><span class="n">rvecs_agg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rvecs_agg</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="get_norm_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.get_norm_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_norm_rvecs</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)</span>
+<span class="sd">        &gt;&gt;&gt; word = (255 * np.random.rand(1, 128)).astype(VEC_TYPE)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Compute residuals of assigned vectors</span>
+    <span class="n">rvecs_n</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span> <span class="o">-</span> <span class="n">vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+    <span class="n">normalize_vecs_inplace</span><span class="p">(</span><span class="n">rvecs_n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rvecs_n</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="selectivity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.selectivity_function">[docs]</a><span class="k">def</span> <span class="nf">selectivity_function</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Selectivity function - sigma from SMK paper rscore = residual score &quot;&quot;&quot;</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">scores_iter</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">simmat</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">simmat</span><span class="p">),</span> <span class="n">alpha</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="n">simmat_list</span>
+    <span class="p">]</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">thresh</span><span class="p">))</span>
+                   <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_iter</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scores_list</span>
+
+</div>
+<div class="viewcode-block" id="apply_maws"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.apply_maws">[docs]</a><span class="k">def</span> <span class="nf">apply_maws</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applys multi-assign weights to rvec similarty matrices</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">mawsim_list</span> <span class="o">=</span> <span class="n">simmat_list</span>
+    <span class="k">elif</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat * dmaws.reshape((1, dmaws.size))</span>
+        <span class="n">mawsim_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qmaws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">simmat</span> <span class="o">*</span> <span class="n">dmaws</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+                       <span class="k">for</span> <span class="n">simmat</span><span class="p">,</span> <span class="n">qmaws</span><span class="p">,</span> <span class="n">dmaws</span> <span class="ow">in</span>
+                       <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat</span>
+        <span class="n">mawsim_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qmaws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">simmat</span>
+                       <span class="k">for</span> <span class="n">simmat</span><span class="p">,</span> <span class="n">qmaws</span> <span class="ow">in</span>
+                       <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#mawsim_list = [simmat * dmaws[np.newaxis, :]</span>
+        <span class="c">#               for simmat, dmaws in</span>
+        <span class="c">#               zip(simmat_list, dmaws_list)]</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;cannot just do dmaws&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mawsim_list</span>
+
+</div>
+<div class="viewcode-block" id="similarity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.similarity_function">[docs]</a><span class="k">def</span> <span class="nf">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Phi dot product. Accounts for NaN residual vectors</span>
+<span class="sd">    qrvecs_list list of rvecs for each word</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">simmat_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">qrvecs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">drvecs</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and qrvec&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and drvec&#39;</span>
+    <span class="c"># Rvec is NaN implies it is a cluster center. perfect similarity</span>
+    <span class="k">for</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="n">simmat_list</span><span class="p">:</span>
+        <span class="n">simmat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">simmat</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="n">simmat_list</span>
+
+</div>
+<div class="viewcode-block" id="score_matches"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.score_matches">[docs]</a><span class="k">def</span> <span class="nf">score_matches</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Similarity + Selectivity: M(X_c, Y_c)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qrvecs_list : query vectors for each word</span>
+<span class="sd">        drvecs_list : database vectors for each word</span>
+<span class="sd">        qmaws_list  : multi assigned weights for each query word</span>
+<span class="sd">        dmaws_list  : multi assigned weights for each database word</span>
+<span class="sd">        alpha       : selectivity power</span>
+<span class="sd">        thresh      : selectivity thresh</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        score matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Cosine similarity between normalized residuals</span>
+    <span class="n">simmat_list</span> <span class="o">=</span> <span class="n">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">)</span>
+    <span class="c"># Apply multi assign weights</span>
+    <span class="c"># THIS IS WRONG WHEN AGG=TRUE</span>
+    <span class="c"># QMAWS IS NOT COLLAPSED</span>
+    <span class="n">mawmat_list</span> <span class="o">=</span> <span class="n">apply_maws</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">)</span>
+    <span class="c"># Apply sigma selectivity (power law)</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">selectivity_function</span><span class="p">(</span><span class="n">mawmat_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scores_list</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="sccw_summation"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.sccw_summation">[docs]</a><span class="k">def</span> <span class="nf">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Computes gamma from &quot;To Aggregate or not to aggregate&quot;</span>
+
+<span class="sd">    scc = self consistency criterion</span>
+<span class="sd">    It is a scalar which ensure K(X, X) = 1</span>
+
+<span class="sd">    Math:</span>
+<span class="sd">        \begin{equation}</span>
+<span class="sd">        \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}</span>
+<span class="sd">        \end{equation}</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_core import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; idf_list, rvecs_list, maws_list, alpha, thresh = smk_debug.testsdata_sccw_sum()</span>
+<span class="sd">        &gt;&gt;&gt; qmaws_list = dmaws_list = maws_list</span>
+<span class="sd">        &gt;&gt;&gt; drvecs_list = qrvecs_list = rvecs_list</span>
+<span class="sd">        &gt;&gt;&gt; scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh )</span>
+<span class="sd">        &gt;&gt;&gt; print(scoremat)</span>
+<span class="sd">        0.0384477314197</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        qrvecs_list = drvecs_list = rvecs_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Indexing with asymetric multi-assignment might get you a non 1 self score?</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">score_matches</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">,</span>
+                                <span class="n">maws_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span>
+                                <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="c"># Summation over query features</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">),</span> <span class="s">&#39;bad rvec and score&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_list</span><span class="p">),</span> <span class="s">&#39;bad weight and score&#39;</span>
+    <span class="c"># Apply idf weighting</span>
+    <span class="n">weighted_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">idf_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="c"># Square root inverse</span>
+    <span class="n">sccw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">weighted_total</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sccw</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="match_kernel"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.match_kernel">[docs]</a><span class="k">def</span> <span class="nf">match_kernel</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qmaws</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">query_sccw</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span>
+                 <span class="n">withinfo</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_core import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, invindex, qindex = smk_debug.testdata_match_kernel()</span>
+<span class="sd">        &gt;&gt;&gt; wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex</span>
+<span class="sd">        &gt;&gt;&gt; alpha = ibs.cfg.query_cfg.smk_cfg.alpha</span>
+<span class="sd">        &gt;&gt;&gt; thresh = ibs.cfg.query_cfg.smk_cfg.thresh</span>
+<span class="sd">        &gt;&gt;&gt; withinfo = True  # takes an 11s vs 2s</span>
+<span class="sd">        &gt;&gt;&gt; _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, alpha, thresh)</span>
+<span class="sd">        &gt;&gt;&gt; smk_debug.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; smk_debug.invindex_dbgstr(invindex)</span>
+<span class="sd">        &gt;&gt;&gt; daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#utool.embed()</span>
+    <span class="c">#idx2_daid = invindex.idx2_daid</span>
+    <span class="c">#wx2_idxs   = invindex.wx2_idxs</span>
+    <span class="c">#wx2_maws   = invindex.wx2_maws</span>
+    <span class="n">wx2_drvecs</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>
+    <span class="n">wx2_idf</span>        <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>
+    <span class="n">wx2_daid</span>       <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>
+    <span class="n">daid2_sccw</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>
+
+    <span class="c"># for each word compute the pairwise scores between matches</span>
+    <span class="n">common_wxs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx2_drvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="c">#print(&#39;+==============&#39;)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;[smk_core] query word: &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">common_wxs</span><span class="p">),</span>
+                                        <span class="n">flushfreq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">writefreq</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+                                        <span class="n">with_totaltime</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># Build lists over common word indexes</span>
+    <span class="n">qrvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qrvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="n">drvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_drvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="n">daids_list</span>  <span class="o">=</span> <span class="p">[</span>  <span class="n">wx2_daid</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="n">idf_list</span>    <span class="o">=</span> <span class="p">[</span>   <span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="n">qmaws_list</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">wx2_qmaws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids_list</span><span class="p">)</span>  <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">common_wxs</span><span class="p">)</span>
+        <span class="c"># Slow recursive check</span>
+        <span class="c">#assert utool.depth_profile(utool.depth_profile(qrvecs_list)) == utool.depth_profile(maws_list)</span>
+        <span class="c">#print(utool.get_stats(utool.depth_profile(utool.depth_profile(qrvecs_list))))</span>
+        <span class="c">#print(utool.get_stats(utool.depth_profile(utool.depth_profile(drvecs_list))))</span>
+        <span class="c">#print(utool.get_stats(utool.depth_profile(maws_list)))</span>
+        <span class="c">#print(utool.get_stats(utool.depth_profile(utool.depth_profile(scores_list))))</span>
+
+    <span class="c"># Summation over query features</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">score_matches</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="c"># Apply idf-weights</span>
+    <span class="n">wscores_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idf</span> <span class="o">*</span> <span class="p">(</span><span class="n">scores</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">scores</span><span class="p">,</span> <span class="n">idf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">)]</span>
+    <span class="c"># Accumulate scores over daids (database annotation ids)</span>
+    <span class="n">daid2_aggscore</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="c">### Weirdly iflatten was slower here</span>
+    <span class="k">for</span> <span class="n">wscores</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">wscores_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">wscore</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">wscores</span><span class="p">):</span>
+            <span class="n">daid2_aggscore</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">wscore</span>
+    <span class="n">daid_agg_keys</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">daid2_aggscore</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">daid_agg_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">daid2_aggscore</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="c"># Apply database sccw (self consistency criterion weight )</span>
+    <span class="n">daid_sccw_list</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values_scalar_subset</span><span class="p">(</span><span class="n">daid2_sccw</span><span class="p">,</span> <span class="n">daid_agg_keys</span><span class="p">)</span>
+    <span class="c"># Apply query sccw (self consistency criterion weight )</span>
+    <span class="n">daid_total_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">daid_sccw_list</span><span class="p">,</span> <span class="n">daid_agg_scores</span><span class="p">),</span> <span class="n">query_sccw</span><span class="p">)</span>
+    <span class="c"># Pack scores into a dictionary</span>
+    <span class="n">daid2_totalscore</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">daid_agg_keys</span><span class="p">,</span> <span class="n">daid_total_list</span><span class="p">))</span>
+
+    <span class="c">#assert len(wscore) == len(daids)</span>
+    <span class="c">#print(&#39;L==============&#39;)</span>
+    <span class="k">if</span> <span class="n">withinfo</span><span class="p">:</span>
+        <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">build_daid2_chipmatch2</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">common_wxs</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span>
+                                                 <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">,</span>
+                                                 <span class="n">idf_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span>
+                                                 <span class="n">query_sccw</span><span class="p">,</span> <span class="n">daid2_sccw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">end_</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">daid2_totalscore</span><span class="p">,</span> <span class="n">daid2_chipmatch</span>
+
+</div>
+<div class="viewcode-block" id="mem_arange"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.mem_arange">[docs]</a><span class="k">def</span> <span class="nf">mem_arange</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="n">cache</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">num</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="mem_meshgrid"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.mem_meshgrid">[docs]</a><span class="k">def</span> <span class="nf">mem_meshgrid</span><span class="p">(</span><span class="n">wrange</span><span class="p">,</span> <span class="n">hrange</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">wrange</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">hrange</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">wrange</span><span class="p">,</span> <span class="n">hrange</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="build_daid2_chipmatch2"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_core.build_daid2_chipmatch2">[docs]</a><span class="k">def</span> <span class="nf">build_daid2_chipmatch2</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">common_wxs</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span>
+                           <span class="n">scores_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">query_sccw</span><span class="p">,</span>
+                           <span class="n">daid2_sccw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    this builds the structure that the rest of the pipeline plays nice with</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: move groupby to vtool</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_core] build chipmatch&#39;</span><span class="p">)</span>
+    <span class="n">wx2_dfxs</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>
+    <span class="n">qfxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qfxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="n">dfxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dfxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">daid2_sccw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">daid2_sccw_</span> <span class="o">=</span> <span class="n">daid2_sccw</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daid2_sccw_</span> <span class="o">=</span> <span class="n">daid2_sccw</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+    <span class="n">shapes_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">]</span>  <span class="c"># 51us</span>
+    <span class="n">shape_ranges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">mem_arange</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="n">mem_arange</span><span class="p">(</span><span class="n">h</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">shapes_list</span><span class="p">]</span>  <span class="c"># 230us</span>
+    <span class="n">ijs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">mem_meshgrid</span><span class="p">(</span><span class="n">wrange</span><span class="p">,</span> <span class="n">hrange</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">wrange</span><span class="p">,</span> <span class="n">hrange</span><span class="p">)</span> <span class="ow">in</span> <span class="n">shape_ranges</span><span class="p">]</span>  <span class="c"># 278us</span>
+    <span class="n">norm_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">idf_list</span><span class="p">,</span> <span class="n">query_sccw</span><span class="p">)</span>
+    <span class="c"># Normalize scores for words, nMatches, and query sccw (still need daid sccw)</span>
+    <span class="n">nscores_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">scores</span> <span class="o">*</span> <span class="n">norm</span> <span class="k">for</span> <span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores_list</span><span class="p">,</span> <span class="n">norm_list</span><span class="p">))</span>
+
+    <span class="c">#with utool.Timer(&#39;fsd&#39;):</span>
+    <span class="c"># FIXME: Preflatten all of these lists</span>
+    <span class="k">def</span> <span class="nf">dbstr_qindex</span><span class="p">():</span>
+        <span class="n">qindex</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_localvar_from_stack</span><span class="p">(</span><span class="s">&#39;qindex&#39;</span><span class="p">)</span>
+        <span class="n">qindex</span><span class="o">.</span><span class="n">query_sccw</span>
+        <span class="n">qmaws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qindex</span><span class="o">.</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+        <span class="n">qaids_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">qindex</span><span class="o">.</span><span class="n">wx2_qaids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+        <span class="n">qfxs_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">qindex</span><span class="o">.</span><span class="n">wx2_qfxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+        <span class="n">qrvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qindex</span><span class="o">.</span><span class="n">wx2_qrvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+        <span class="n">qaids_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qaids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">common_wxs</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-- max --&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qaids_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">,</span> <span class="nb">max</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qmaws_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qmaws_list</span><span class="p">,</span> <span class="nb">max</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qfxs_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">,</span> <span class="nb">max</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qrvecs_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="nb">max</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-- min --&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qaids_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">,</span> <span class="nb">min</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qmaws_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qmaws_list</span><span class="p">,</span> <span class="nb">min</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qfxs_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">,</span> <span class="nb">min</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qrvecs_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="nb">min</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-- sig --&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qaids_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qmaws_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qmaws_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qfxs_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;list_depth(qrvecs_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">qmaws_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="n">dbstr_qindex</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out_ijs</span>    <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">_is</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">_js</span><span class="o">.</span><span class="n">flat</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">_is</span><span class="p">,</span> <span class="n">_js</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ijs_list</span><span class="p">]</span>
+            <span class="n">out_qfxs</span>   <span class="o">=</span> <span class="p">[[</span><span class="n">qfxs</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="n">jx</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ijs</span><span class="p">]</span>
+                          <span class="k">for</span> <span class="p">(</span><span class="n">qfxs</span><span class="p">,</span> <span class="n">ijs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfxs_list</span><span class="p">,</span> <span class="n">out_ijs</span><span class="p">)]</span>
+            <span class="n">out_dfxs</span>   <span class="o">=</span> <span class="p">[[</span><span class="n">dfxs</span><span class="p">[</span><span class="n">jx</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="n">jx</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ijs</span><span class="p">]</span>
+                          <span class="k">for</span> <span class="p">(</span><span class="n">dfxs</span><span class="p">,</span> <span class="n">ijs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dfxs_list</span><span class="p">,</span> <span class="n">out_ijs</span><span class="p">)]</span>
+            <span class="n">out_daids</span>  <span class="o">=</span> <span class="p">([</span><span class="n">daids</span><span class="p">[</span><span class="n">jx</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="n">jx</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ijs</span><span class="p">]</span>
+                          <span class="k">for</span> <span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">ijs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">daids_list</span><span class="p">,</span> <span class="n">out_ijs</span><span class="p">))</span>
+            <span class="n">out_scores</span> <span class="o">=</span> <span class="p">([</span><span class="n">nscores</span><span class="p">[</span><span class="n">ijx</span><span class="p">]</span> <span class="k">for</span> <span class="n">ijx</span> <span class="ow">in</span> <span class="n">ijs</span><span class="p">]</span>
+                          <span class="k">for</span> <span class="p">(</span><span class="n">nscores</span><span class="p">,</span> <span class="n">ijs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nscores_iter</span><span class="p">,</span> <span class="n">out_ijs</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="c">#utool.list_depth(dfxs_list, max)</span>
+            <span class="c">#utool.list_depth(dfxs_list, min)</span>
+            <span class="k">raise</span>
+
+    <span class="c"># This code is incomprehensable. I feel ashamed.</span>
+
+    <span class="c"># Number of times to duplicate scores</span>
+    <span class="c">#nested_nmatch_list = [</span>
+    <span class="c">#    [</span>
+    <span class="c">#        qfxs_.size * dfxs_.size</span>
+    <span class="c">#        for qfxs_, dfxs_ in zip(dfxs, qfxs)</span>
+    <span class="c">#    ]</span>
+    <span class="c">#    for dfxs, qfxs in zip(out_dfxs, out_qfxs)</span>
+    <span class="c">#]</span>
+    <span class="c">#test = [[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)]</span>
+    <span class="c">#flatqfxs = utool.flatten([[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)])</span>
+    <span class="n">nested_fm_iter</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">qfxs_</span><span class="p">,</span> <span class="n">dfxs_</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">qfxs_</span><span class="p">,</span> <span class="n">dfxs_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfxs</span><span class="p">,</span> <span class="n">dfxs</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">qfxs</span><span class="p">,</span> <span class="n">dfxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out_qfxs</span><span class="p">,</span> <span class="n">out_dfxs</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">all_fms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">nested_fm_iter</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+    <span class="n">nested_nmatch_list</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fms</span><span class="p">]</span> <span class="k">for</span> <span class="n">fms</span> <span class="ow">in</span> <span class="n">nested_fm_iter</span><span class="p">]</span>
+    <span class="n">nested_daid_iter</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">*</span> <span class="n">nMatch</span>
+            <span class="k">for</span> <span class="n">nMatch</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nMatch_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">nMatch_list</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nested_nmatch_list</span><span class="p">,</span> <span class="n">out_daids</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">nested_score_iter</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">[</span><span class="n">score</span> <span class="o">/</span> <span class="n">nMatch</span><span class="p">]</span> <span class="o">*</span> <span class="n">nMatch</span>
+            <span class="k">for</span> <span class="n">nMatch</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nMatch_list</span><span class="p">,</span> <span class="n">scores</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">nMatch_list</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nested_nmatch_list</span><span class="p">,</span> <span class="n">out_scores</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">all_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">nested_daid_iter</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+    <span class="n">all_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">nested_score_iter</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+    <span class="c">#assert len(all_daids) == len(all_scores)</span>
+    <span class="c">#assert len(all_fms) == len(all_scores)</span>
+
+    <span class="n">daid_keys</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">all_daids</span><span class="p">)</span>
+    <span class="n">fs_list</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">fm_list</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">all_fms</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">daid2_fm</span> <span class="o">=</span> <span class="p">{</span><span class="n">daid</span><span class="p">:</span> <span class="n">fm</span> <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">daid_keys</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">)}</span>
+    <span class="n">daid2_fs</span> <span class="o">=</span> <span class="p">{</span><span class="n">daid</span><span class="p">:</span> <span class="n">fs</span> <span class="o">*</span> <span class="n">daid2_sccw_</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">daid_keys</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)}</span>
+    <span class="n">daid2_fk</span> <span class="o">=</span> <span class="p">{</span><span class="n">daid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">daid_keys</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)}</span>
+    <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="p">(</span><span class="n">daid2_fm</span><span class="p">,</span> <span class="n">daid2_fs</span><span class="p">,</span> <span class="n">daid2_fk</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">daid2_chipmatch</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" >ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

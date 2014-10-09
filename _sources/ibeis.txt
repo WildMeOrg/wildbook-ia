@@ -1,0 +1,67 @@
+ibeis package
+=============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.control
+    ibeis.dev
+    ibeis.gui
+    ibeis.io
+    ibeis.model
+    ibeis.tests
+    ibeis.viz
+
+Submodules
+----------
+
+ibeis.all_imports module
+------------------------
+
+.. automodule:: ibeis.all_imports
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.constants module
+----------------------
+
+.. automodule:: ibeis.constants
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.ibsfuncs module
+---------------------
+
+.. automodule:: ibeis.ibsfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.main_module module
+------------------------
+
+.. automodule:: ibeis.main_module
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.params module
+-------------------
+
+.. automodule:: ibeis.params
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis
+    :members:
+    :undoc-members:
+    :show-inheritance:

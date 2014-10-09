@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.dev.results_all &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.dev" href="../dev.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" accesskey="U">ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.dev.results_all</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[results]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">results_organizer</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">results_analyzer</span>
+
+
+<div class="viewcode-block" id="AllResults"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.AllResults">[docs]</a><span class="k">class</span> <span class="nc">AllResults</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data container for all compiled results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AllResults</span><span class="p">,</span> <span class="n">allres</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid2_qres&#39;</span><span class="p">])</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="AllResults.get_orgtype"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.AllResults.get_orgtype">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgtype</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype</span><span class="p">):</span>
+        <span class="n">orgres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">orgtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">orgres</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_qres"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.AllResults.get_qres">[docs]</a>    <span class="k">def</span> <span class="nf">get_qres</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_orgres_desc_match_dists"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.AllResults.get_orgres_desc_match_dists">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_orgres_annotationmatch_scores"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.AllResults.get_orgres_annotationmatch_scores">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="init_allres"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_all.init_allres">[docs]</a><span class="k">def</span> <span class="nf">init_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">):</span>
+    <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">qreq</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Building allres&#39;</span><span class="p">)</span>
+    <span class="n">allres</span> <span class="o">=</span> <span class="n">AllResults</span><span class="p">()</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">organize_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">allres_cfgstr</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+    <span class="k">return</span> <span class="n">allres</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" >ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

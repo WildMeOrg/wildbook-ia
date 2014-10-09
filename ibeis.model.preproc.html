@@ -1,0 +1,524 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.preproc package &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="index.html" />
+    <link rel="up" title="ibeis.model package" href="ibeis.model.html" />
+    <link rel="next" title="ibeis.tests package" href="ibeis.tests.html" />
+    <link rel="prev" title="ibeis.model.hots.smk package" href="ibeis.model.hots.smk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.tests.html" title="ibeis.tests package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.model.hots.smk.html" title="ibeis.model.hots.smk package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" >ibeis package</a> &raquo;</li>
+          <li><a href="ibeis.model.html" accesskey="U">ibeis.model package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ibeis-model-preproc-package">
+<h1>ibeis.model.preproc package<a class="headerlink" href="#ibeis-model-preproc-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_chip">
+<span id="ibeis-model-preproc-preproc-chip-module"></span><h2>ibeis.model.preproc.preproc_chip module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_chip" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.add_chips_params_gen">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">add_chips_params_gen</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#add_chips_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.add_chips_params_gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes chips if they do not exist.
+generates values for add_chips sqlcommands</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.compute_and_write_chips">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">compute_and_write_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#compute_and_write_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.compute_and_write_chips" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.compute_and_write_chips_lazy">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">compute_and_write_chips_lazy</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#compute_and_write_chips_lazy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.compute_and_write_chips_lazy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will write a chip if it does not exist on disk, regardless of if it exists
+in the SQL database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">compute_or_read_annotation_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#compute_or_read_annotation_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads chips and tries to compute them if they do not exist</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.delete_chips">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">delete_chips</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#delete_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.delete_chips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes chips from disk (not SQL)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.gen_chip">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">gen_chip</tt><big>(</big><em>cfpath</em>, <em>gfpath</em>, <em>bbox</em>, <em>theta</em>, <em>new_size</em>, <em>filter_list=[]</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#gen_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.gen_chip" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel process</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.gen_chip2">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">gen_chip2</tt><big>(</big><em>tup</em><big>)</big><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.gen_chip2" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel generator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.gen_chip2_and_write">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">gen_chip2_and_write</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#gen_chip2_and_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.gen_chip2_and_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel generator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.gen_chip2_no_write">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">gen_chip2_no_write</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#gen_chip2_no_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.gen_chip2_no_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel generator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.gen_chips_async">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">gen_chips_async</tt><big>(</big><em>cfpath_list</em>, <em>gfpath_list</em>, <em>bbox_list</em>, <em>theta_list</em>, <em>newsize_list</em>, <em>filter_list=[]</em>, <em>nChips=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#gen_chips_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.gen_chips_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes chips and yeilds results asynchronously for writing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.get_annot_cfpath_list">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">get_annot_cfpath_list</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>suffix=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#get_annot_cfpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.get_annot_cfpath_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns chip path list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_chip.get_chip_fname_fmt">
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">get_chip_fname_fmt</tt><big>(</big><em>ibs=None</em>, <em>suffix=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#get_chip_fname_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.get_chip_fname_fmt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns format of chip file names</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_detectchip">
+<span id="ibeis-model-preproc-preproc-detectchip-module"></span><h2>ibeis.model.preproc.preproc_detectchip module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_detectchip" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectchip.compute_and_write_detectimg">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectchip.</tt><tt class="descname">compute_and_write_detectimg</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectchip.html#compute_and_write_detectimg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectchip.compute_and_write_detectimg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectchip.compute_and_write_detectimg_lazy">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectchip.</tt><tt class="descname">compute_and_write_detectimg_lazy</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectchip.html#compute_and_write_detectimg_lazy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectchip.compute_and_write_detectimg_lazy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will write a img if it does not exist on disk, regardless of if it exists
+in the SQL database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectchip.gen_detectimg_and_write">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectchip.</tt><tt class="descname">gen_detectimg_and_write</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectchip.html#gen_detectimg_and_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectchip.gen_detectimg_and_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel generator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectchip.gen_detectimg_async">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectchip.</tt><tt class="descname">gen_detectimg_async</tt><big>(</big><em>gid_list</em>, <em>gfpath_list</em>, <em>new_gfpath_list</em>, <em>newsize_list</em>, <em>nImgs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectchip.html#gen_detectimg_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectchip.gen_detectimg_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resizes images and yeilds results asynchronously</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectchip.get_image_detectimg_fpath_list">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectchip.</tt><tt class="descname">get_image_detectimg_fpath_list</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectchip.html#get_image_detectimg_fpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectchip.get_image_detectimg_fpath_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns detectimg path list</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_detectimg">
+<span id="ibeis-model-preproc-preproc-detectimg-module"></span><h2>ibeis.model.preproc.preproc_detectimg module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_detectimg" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectimg.compute_and_write_detectimg">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectimg.</tt><tt class="descname">compute_and_write_detectimg</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectimg.html#compute_and_write_detectimg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectimg.compute_and_write_detectimg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectimg.compute_and_write_detectimg_lazy">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectimg.</tt><tt class="descname">compute_and_write_detectimg_lazy</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectimg.html#compute_and_write_detectimg_lazy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectimg.compute_and_write_detectimg_lazy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will write a img if it does not exist on disk, regardless of if it exists
+in the SQL database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectimg.gen_detectimg_and_write">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectimg.</tt><tt class="descname">gen_detectimg_and_write</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectimg.html#gen_detectimg_and_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectimg.gen_detectimg_and_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker function for parallel generator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectimg.gen_detectimg_async">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectimg.</tt><tt class="descname">gen_detectimg_async</tt><big>(</big><em>gid_list</em>, <em>gfpath_list</em>, <em>new_gfpath_list</em>, <em>newsize_list</em>, <em>nImgs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectimg.html#gen_detectimg_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectimg.gen_detectimg_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resizes images and yeilds results asynchronously</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_detectimg.get_image_detectimg_fpath_list">
+<tt class="descclassname">ibeis.model.preproc.preproc_detectimg.</tt><tt class="descname">get_image_detectimg_fpath_list</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_detectimg.html#get_image_detectimg_fpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_detectimg.get_image_detectimg_fpath_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns detectimg path list</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_encounter">
+<span id="ibeis-model-preproc-preproc-encounter-module"></span><h2>ibeis.model.preproc.preproc_encounter module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_encounter" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.cluster_timespace">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">cluster_timespace</tt><big>(</big><em>X_data</em>, <em>thresh</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.cluster_timespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.haversine">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">haversine</tt><big>(</big><em>lon1</em>, <em>lat1</em>, <em>lon2</em>, <em>lat2</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#haversine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.haversine" title="Permalink to this definition">¶</a></dt>
+<dd><p>#http://gis.stackexchange.com/questions/81551/matching-gps-tracks
+Calculate the great circle distance between two points
+on the earth (specified in decimal degrees)
+<a class="reference external" href="http://en.wikipedia.org/wiki/Haversine_formula">http://en.wikipedia.org/wiki/Haversine_formula</a>
+<a class="reference external" href="http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points">http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">ibeis_compute_encounters</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#ibeis_compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>clusters encounters togethers (by time, not yet space)
+An encounter is a meeting, localized in time and space between a camera and
+a group of animals.  Animals are identified within each encounter.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.plot_annotaiton_gps">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">plot_annotaiton_gps</tt><big>(</big><em>X_Data</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#plot_annotaiton_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.plot_annotaiton_gps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots gps coordinates on a map projection</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.testdata_gps">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">testdata_gps</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#testdata_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.testdata_gps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.timespace_distance">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">timespace_distance</tt><big>(</big><em>pt1</em>, <em>pt2</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#timespace_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.timespace_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_encounter.timespace_pdist">
+<tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">timespace_pdist</tt><big>(</big><em>X_data</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#timespace_pdist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.timespace_pdist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_feat">
+<span id="ibeis-model-preproc-preproc-feat-module"></span><h2>ibeis.model.preproc.preproc_feat module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_feat" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.add_feat_params_gen">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">add_feat_params_gen</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>nInput=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#add_feat_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.add_feat_params_gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes features and yields results asynchronously: TODO: Remove IBEIS from
+this equation. Move the firewall towards the controller</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.gen_feat_openmp">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">gen_feat_openmp</tt><big>(</big><em>cid_list</em>, <em>cfpath_list</em>, <em>dict_args</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#gen_feat_openmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.gen_feat_openmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute features in parallel on the C++ side, return generator here</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.gen_feat_worker">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">gen_feat_worker</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#gen_feat_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.gen_feat_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
+Must take in one argument to be used by multiprocessing.map_async</p>
+<dl class="docutils">
+<dt>Cyth::</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>long cid
+str cpath
+dict dict_args
+np.ndarray[kpts_t, ndims=2] kpts
+np.ndarray[desc_t, ndims=2] desc</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.generate_feats">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">generate_feats</tt><big>(</big><em>cfpath_list</em>, <em>dict_args={}</em>, <em>cid_list=None</em>, <em>nInput=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#generate_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.generate_feats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
+Must take in one argument to be used by multiprocessing.map_async</p>
+<dl class="docutils">
+<dt>Cyth:</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>list cfpath_list
+long nInput
+object cid_list
+dict dict_args
+dict kwargs</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.pytable_test">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">pytable_test</tt><big>(</big><em>cid_list</em>, <em>kpts_list</em>, <em>desc_list</em>, <em>weights_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#pytable_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.pytable_test" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kpts_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">desc_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.test_hdf5">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">test_hdf5</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#test_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.test_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc.preproc_image">
+<span id="ibeis-model-preproc-preproc-image-module"></span><h2>ibeis.model.preproc.preproc_image module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_image" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.add_images_params_gen">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">add_images_params_gen</tt><big>(</big><em>gpath_list</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#add_images_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.add_images_params_gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>generates values for add_images sqlcommands asychronously</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.all_imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;doesnotexist.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">preproc_image</span><span class="o">.</span><span class="n">add_images_params_gen</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Cyth::</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>list gpath_list
+dict kwargs</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.get_image_uuid">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">get_image_uuid</tt><big>(</big><em>pil_img</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#get_image_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.get_image_uuid" title="Permalink to this definition">¶</a></dt>
+<dd><p>DEPRICATE</p>
+<p>Cyth:</p>
+<div class="highlight-python"><div class="highlight"><pre>cdef:
+    UUID uuid_
+    object img_bytes_
+    object bytes_sha1
+    object hashbytes_16
+    object hashbytes_20
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.get_standard_ext">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">get_standard_ext</tt><big>(</big><em>gpath</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#get_standard_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.get_standard_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns standardized image extension</p>
+<dl class="docutils">
+<dt>Cyth::</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>str gpath
+str ext</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.imgparams_worker2">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">imgparams_worker2</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#imgparams_worker2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.imgparams_worker2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.parse_exif">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">parse_exif</tt><big>(</big><em>pil_img</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#parse_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.parse_exif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image EXIF helper</p>
+<dl class="docutils">
+<dt>Cyth::</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>Image pil_img
+dict exif_dict
+long lat
+long lon
+long exiftime</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_image.parse_imageinfo">
+<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">parse_imageinfo</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#parse_imageinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.parse_imageinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Worker function: gpath must be in UNIX-PATH format!</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd>a tuple of arguments (so the function can be parallelized easily)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">if successful returns a tuple of image parameters which are values for
+SQL columns on else returns None</td>
+</tr>
+</tbody>
+</table>
+<p>Cyth:</p>
+<div class="highlight-python"><div class="highlight"><pre>cdef:
+    str gpath
+    Image pil_img
+    str orig_gname
+    str ext
+    long width
+    long height
+    long time
+    long lat
+    long lon
+    str notes
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model.preproc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.model.preproc" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.reload_subs">
+<tt class="descclassname">ibeis.model.preproc.</tt><tt class="descname">reload_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads preproc and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.rrrr">
+<tt class="descclassname">ibeis.model.preproc.</tt><tt class="descname">rrrr</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.model.preproc.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads preproc and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ibeis.model.preproc package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_chip">ibeis.model.preproc.preproc_chip module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_detectchip">ibeis.model.preproc.preproc_detectchip module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_detectimg">ibeis.model.preproc.preproc_detectimg module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_encounter">ibeis.model.preproc.preproc_encounter module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_feat">ibeis.model.preproc.preproc_feat module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_image">ibeis.model.preproc.preproc_image module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ibeis.model.hots.smk.html"
+                        title="previous chapter">ibeis.model.hots.smk package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ibeis.tests.html"
+                        title="next chapter">ibeis.tests package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ibeis.model.preproc.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.tests.html" title="ibeis.tests package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.model.hots.smk.html" title="ibeis.model.hots.smk package"
+             >previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" >ibeis package</a> &raquo;</li>
+          <li><a href="ibeis.model.html" >ibeis.model package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

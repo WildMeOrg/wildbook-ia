@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.detect.randomforest &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.detect" href="../detect.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../detect.html" accesskey="U">ibeis.model.detect</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.detect.randomforest</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to pyrf random forest object detection.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="c">#from os.path import exists, join, split  # UNUSED</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span>
+<span class="c"># UTool</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+<span class="kn">import</span> <span class="nn">pyrf</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[randomforest]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c">#=================</span>
+<span class="c"># IBEIS INTERFACE</span>
+<span class="c">#=================</span>
+
+
+<div class="viewcode-block" id="generate_detection_images"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.generate_detection_images">[docs]</a><span class="k">def</span> <span class="nf">generate_detection_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    detectkw can be: save_detection_images, save_scales, draw_supressed,</span>
+<span class="sd">    detection_width, detection_height, percentage_left, percentage_top,</span>
+<span class="sd">    nms_margin_percentage</span>
+
+<span class="sd">    Yeilds:</span>
+<span class="sd">        tuple: tuples of image ids and bounding boxes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#</span>
+    <span class="c"># Resize to a standard image size prior to detection</span>
+    <span class="n">src_gpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_detectpaths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">dst_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;_result&#39;</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">src_gpath_list</span><span class="p">]</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">close_pool</span><span class="p">()</span>
+
+    <span class="c"># Get sizes of the original and resized images for final scale correction</span>
+    <span class="n">neww_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">src_gpath_list</span><span class="p">]</span>
+    <span class="n">oldw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="k">for</span> <span class="p">(</span><span class="n">oldw</span><span class="p">,</span> <span class="n">oldh</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+    <span class="n">scale_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="o">/</span> <span class="n">neww</span> <span class="k">for</span> <span class="n">oldw</span><span class="p">,</span> <span class="n">neww</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oldw_list</span><span class="p">,</span> <span class="n">neww_list</span><span class="p">)]</span>
+
+    <span class="c"># Detect on scaled images</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ensure_attr</span><span class="p">(</span><span class="s">&#39;detect_use_chunks&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">use_chunks</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_use_chunks</span>
+
+    <span class="n">generator</span> <span class="o">=</span> <span class="n">detect_species_bboxes</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                      <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">detect_tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">scale_list</span><span class="p">,</span> <span class="n">generator</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">bboxes</span><span class="p">,</span> <span class="n">confidences</span><span class="p">,</span> <span class="n">img_conf</span><span class="p">)</span> <span class="o">=</span> <span class="n">detect_tup</span>
+        <span class="c"># Unscale results</span>
+        <span class="n">unscaled_bboxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">_scale_bbox</span><span class="p">(</span><span class="n">bbox_</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="k">for</span> <span class="n">bbox_</span> <span class="ow">in</span> <span class="n">bboxes</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unscaled_bboxes</span><span class="p">)):</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">unscaled_bboxes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">confidence</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">confidences</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="k">yield</span> <span class="n">gid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">img_conf</span>
+
+</div>
+<div class="viewcode-block" id="compute_hough_images"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.compute_hough_images">[docs]</a><span class="k">def</span> <span class="nf">compute_hough_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># Define detect dict</span>
+    <span class="n">detectkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;quick&#39;</span><span class="p">:</span> <span class="n">quick</span><span class="p">,</span>
+        <span class="s">&#39;save_detection_images&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;save_scales&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_compute_hough</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="compute_probability_images"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.compute_probability_images">[docs]</a><span class="k">def</span> <span class="nf">compute_probability_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c"># Define detect dict</span>
+    <span class="n">detectkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;single&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># single is True = probability, False is hough</span>
+        <span class="s">&#39;quick&#39;</span><span class="p">:</span> <span class="n">quick</span><span class="p">,</span>
+        <span class="s">&#39;save_detection_images&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;save_scales&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_compute_hough</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_compute_hough</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst_gpath_list</span><span class="p">)</span>
+    <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">gpath</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">dst_gpath_list</span><span class="p">]</span>
+    <span class="n">dirty_src_gpaths</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="n">dirty_dst_gpaths</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_src_gpaths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[detect.rf] making hough images for </span><span class="si">%d</span><span class="s"> images&#39;</span> <span class="o">%</span> <span class="n">num_dirty</span><span class="p">)</span>
+        <span class="c"># Detect on scaled images</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ensure_attr</span><span class="p">(</span><span class="s">&#39;detect_use_chunks&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">use_chunks</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_use_chunks</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">detect_species_bboxes</span><span class="p">(</span><span class="n">dirty_src_gpaths</span><span class="p">,</span> <span class="n">dirty_dst_gpaths</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                          <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">)</span>
+        <span class="c"># Execute generator</span>
+        <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+
+<span class="c">#=================</span>
+<span class="c"># HELPER FUNCTIONS</span>
+<span class="c">#=================</span>
+
+
+<span class="k">def</span> <span class="nf">_scale_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="n">bbox_scaled</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">bbox</span><span class="p">)</span>
+    <span class="n">bbox_round</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">round</span><span class="p">,</span> <span class="n">bbox_scaled</span><span class="p">))</span>
+    <span class="n">bbox_int</span>   <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span>   <span class="n">bbox_round</span><span class="p">))</span>
+    <span class="n">bbox2</span>      <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bbox_int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bbox2</span>
+
+
+<span class="k">def</span> <span class="nf">_get_detector</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c"># Ensure all models downloaded and accounted for</span>
+    <span class="n">grabmodels</span><span class="o">.</span><span class="n">ensure_models</span><span class="p">()</span>
+    <span class="c"># Create detector</span>
+    <span class="k">if</span> <span class="n">single</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">quick</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;[detect.rf] Running quick (single scale) probability image&quot;</span><span class="p">)</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;scales&#39;</span><span class="p">:</span> <span class="s">&#39;1 1.0&#39;</span><span class="p">,</span>
+                <span class="s">&#39;pos_like&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;pos_like&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">quick</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;scales&#39;</span><span class="p">:</span> <span class="s">&#39;11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">pyrf</span><span class="o">.</span><span class="n">Random_Forest_Detector</span><span class="p">(</span><span class="n">rebuild</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">trees_path</span> <span class="o">=</span> <span class="n">grabmodels</span><span class="o">.</span><span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="c"># Load forest, so we don&#39;t have to reload every time</span>
+    <span class="n">forest</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">trees_path</span><span class="p">,</span> <span class="n">species</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">detector</span><span class="p">,</span> <span class="n">forest</span>
+
+
+<span class="k">def</span> <span class="nf">_get_detect_config</span><span class="p">(</span><span class="o">**</span><span class="n">detectkw</span><span class="p">):</span>
+    <span class="n">detect_config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;percentage_top&#39;</span><span class="p">:</span>    <span class="mf">0.40</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">detect_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">detectkw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">detect_config</span>
+
+
+<span class="c">#=================</span>
+<span class="c"># PYRF INTERFACE</span>
+<span class="c">#=================</span>
+
+
+<div class="viewcode-block" id="detect_species_bboxes"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.detect_species_bboxes">[docs]</a><span class="k">def</span> <span class="nf">detect_species_bboxes</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">single</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_chunks</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">detectkw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates bounding boxes for each source image</span>
+<span class="sd">    For each image yeilds a list of bounding boxes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nImgs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[detect.rf] Begining </span><span class="si">%s</span><span class="s"> detection&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
+    <span class="n">detect_lbl</span> <span class="o">=</span> <span class="s">&#39;detect </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">species</span>
+    <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">progress_func</span><span class="p">(</span><span class="n">nImgs</span><span class="p">,</span> <span class="n">detect_lbl</span><span class="p">,</span> <span class="n">flush_after</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">detect_config</span> <span class="o">=</span> <span class="n">_get_detect_config</span><span class="p">(</span><span class="o">**</span><span class="n">detectkw</span><span class="p">)</span>
+    <span class="n">detector</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">_get_detector</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="n">quick</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="n">single</span><span class="p">)</span>
+    <span class="n">detector</span><span class="o">.</span><span class="n">set_detect_params</span><span class="p">(</span><span class="o">**</span><span class="n">detect_config</span><span class="p">)</span>
+
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">use_chunks_</span> <span class="o">=</span> <span class="n">use_chunks</span> <span class="ow">and</span> <span class="n">nImgs</span> <span class="o">&gt;=</span> <span class="n">chunksize</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">dst_gpath_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_chunks_</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rf] detect in chunks&#39;</span><span class="p">)</span>
+        <span class="n">pathtup_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">ic</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">pathtup_iter</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)):</span>
+            <span class="n">src_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">]</span>
+            <span class="n">dst_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">]</span>
+            <span class="n">mark_prog</span><span class="p">(</span><span class="n">ic</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">)</span>
+            <span class="n">results_list</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect_many</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">results_list</span><span class="p">:</span>
+                <span class="n">bboxes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="p">(</span><span class="n">maxx</span> <span class="o">-</span> <span class="n">minx</span><span class="p">),</span> <span class="p">(</span><span class="n">maxy</span> <span class="o">-</span> <span class="n">miny</span><span class="p">))</span>
+                          <span class="k">for</span> <span class="p">(</span><span class="n">centx</span><span class="p">,</span> <span class="n">centy</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span><span class="p">)</span>
+                          <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+
+                <span class="c">#x_arr = results[:, 2]</span>
+                <span class="c">#y_arr = results[:, 3]</span>
+                <span class="c">#w_arr = results[:, 4] - results[:, 2]</span>
+                <span class="c">#h_arr = results[:, 5] - results[:, 3]</span>
+                <span class="c">#bboxes = np.hstack((x_arr, y_arr, w_arr, h_arr))</span>
+                <span class="c"># Unpack unsupressed bounding boxes</span>
+
+                <span class="n">confidences</span> <span class="o">=</span> <span class="p">[</span><span class="n">confidence</span>
+                               <span class="k">for</span> <span class="p">(</span><span class="n">centx</span><span class="p">,</span> <span class="n">centy</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span><span class="p">)</span>
+                               <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">image_confidence</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">image_confidence</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+                <span class="k">yield</span> <span class="n">bboxes</span><span class="p">,</span> <span class="n">confidences</span><span class="p">,</span> <span class="n">image_confidence</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rf] detect one image at a time&#39;</span><span class="p">)</span>
+        <span class="n">pathtup_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="p">(</span><span class="n">src_gpath</span><span class="p">,</span> <span class="n">dst_gpath</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pathtup_iter</span><span class="p">):</span>
+            <span class="n">mark_prog</span><span class="p">(</span><span class="n">ix</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span> <span class="n">src_gpath</span><span class="p">,</span> <span class="n">dst_gpath</span><span class="p">)</span>
+            <span class="n">bboxes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="p">(</span><span class="n">maxx</span> <span class="o">-</span> <span class="n">minx</span><span class="p">),</span> <span class="p">(</span><span class="n">maxy</span> <span class="o">-</span> <span class="n">miny</span><span class="p">))</span>
+                      <span class="k">for</span> <span class="p">(</span><span class="n">centx</span><span class="p">,</span> <span class="n">centy</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span><span class="p">)</span>
+                      <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">confidences</span> <span class="o">=</span> <span class="p">[</span><span class="n">confidence</span>
+                           <span class="k">for</span> <span class="p">(</span><span class="n">centx</span><span class="p">,</span> <span class="n">centy</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span><span class="p">)</span>
+                           <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">image_confidence</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_confidence</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">yield</span> <span class="n">bboxes</span><span class="p">,</span> <span class="n">confidences</span><span class="p">,</span> <span class="n">image_confidence</span>
+    <span class="n">end_prog</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../detect.html" >ibeis.model.detect</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
