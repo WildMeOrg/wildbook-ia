@@ -21,6 +21,7 @@ VERBOSE = utool.VERBOSE
 VERYVERBOSE = utool.VERYVERBOSE
 QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
 AUTODUMP = utool.get_argflag('--auto-dump')
+COPY_TO_MEMORY = utool.get_argflag('--copy-db-to-memory')
 
 """ If would be really great if we could get a certain set of setters, getters,
 and deleters to be indexed into only with rowids. If we could do this than for
@@ -88,15 +89,16 @@ class SQLDatabaseController(object):
         db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
         db.fpath    = join(db.dir_, db.fname)
+        db.text_factory = text_factory
         if not exists(db.fpath):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         #lite.enable_callback_tracebacks(True)
         #db.fpath = ':memory:'
         db.connection = lite.connect2(db.fpath)
-        db.connection.text_factory = text_factory
+        db.connection.text_factory = db.text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
-        COPY_TO_MEMORY = utool.get_argflag('--copy-db-to-memory')
+        #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
         if COPY_TO_MEMORY:
             db._copy_to_memory()
             db.connection.text_factory = text_factory
@@ -131,6 +133,54 @@ class SQLDatabaseController(object):
         db.connection.cursor().executescript(tempfile.read())
         db.connection.commit()
         db.connection.row_factory = lite.Row
+
+    #@utool.memprof
+    def reboot(db):
+        print('[sql] reboot')
+        db.cur.close()
+        del db.cur
+        db.connection.close()
+        del db.connection
+        db.connection = lite.connect2(db.fpath)
+        db.connection.text_factory = db.text_factory
+        db.cur = db.connection.cursor()
+
+    @default_decorator
+    def optimize(db):
+        # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
+        # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
+        print('[sql] executing sql optimizions')
+        #db.cur.execute('PRAGMA cache_size = 0;')
+        #db.cur.execute('PRAGMA cache_size = 1024;')
+        #db.cur.execute('PRAGMA page_size = 1024;')
+        #db.cur.execute('PRAGMA synchronous = OFF;')
+        #db.cur.execute('PRAGMA count_changes = OFF;')
+        #db.cur.execute('PRAGMA journal_mode = OFF;')
+        #db.cur.execute('PRAGMA max_page_count = 0;')
+        #db.cur.execute('PRAGMA page_size = 512;')
+        #db.cur.execute('PRAGMA parser_trace = OFF;')
+        #db.cur.execute('PRAGMA busy_timeout = 1;')
+        #db.cur.execute('PRAGMA default_cache_size = 0;')
+
+    @default_decorator
+    def shrink_memory(db):
+        print('[sql] shrink_memory')
+        db.connection.commit()
+        db.cur.execute('PRAGMA shrink_memory;')
+        db.connection.commit()
+
+    @default_decorator
+    def vacuum(db):
+        print('[sql] vaccum')
+        db.connection.commit()
+        db.cur.execute('VACUUM;')
+        db.connection.commit()
+
+    @default_decorator
+    def squeeze(db):
+        print('[sql] squeeze')
+        db.shrink_memory()
+        db.vacuum()
 
     #==============
     # API INTERFACE
@@ -223,7 +273,8 @@ class SQLDatabaseController(object):
         return rowid_list
 
     #@getter_sql
-    def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, **kwargs):
+    def get_where(db, tblname, colnames, params_iter, where_clause,
+                  unpack_scalars=True, eager=True, **kwargs):
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -248,7 +299,7 @@ class SQLDatabaseController(object):
             val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                      params_iter=params_iter,
                                                      unpack_scalars=unpack_scalars,
-                                                     **kwargs)
+                                                     eager=eager, **kwargs)
         return val_list
 
     #@getter_sql
@@ -258,9 +309,16 @@ class SQLDatabaseController(object):
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
 
     #@getter_sql
-    def get(db, tblname, colnames, id_iter=None, id_colname='rowid', **kwargs):
-        """ getter """
-        assert isinstance(colnames, tuple)
+    def get(db, tblname, colnames, id_iter=None, id_colname='rowid', eager=True, **kwargs):
+        """ getter
+        Args:
+            tblname (str): table name to get from
+            colnames (tuple of str): column names to grab from
+            id_iter (iterable): iterable of search keys
+            id_colname (str): column to be used as the search key (default: rowid)
+            eager (bool): use eager evaluation
+        """
+        assert isinstance(colnames, tuple), 'must specify column names to get from'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         if id_iter is None:
@@ -270,7 +328,7 @@ class SQLDatabaseController(object):
             where_clause = (id_colname + '=?')
             params_iter = ((_rowid,) for _rowid in id_iter)
 
-        return db.get_where(tblname, colnames, params_iter, where_clause, **kwargs)
+        return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
 
     #@setter_sql
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid', **kwargs):
@@ -350,30 +408,22 @@ class SQLDatabaseController(object):
     #==============
 
     @default_decorator
-    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None, **kwargs):
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None, eager=True, **kwargs):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True, **kwargs)
+        return db.executeone(operation, params, auto_commit=True, eager=eager, **kwargs)
 
     @default_decorator
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
-                                   unpack_scalars=True, **kwargs):
+                                   unpack_scalars=True, eager=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, **kwargs)
+                              auto_commit=True, eager=eager, **kwargs)
 
     #=========
     # SQLDB CORE
     #=========
-
-    @default_decorator
-    def optimize(db):
-        # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
-        print('[sql] executing sql optimizions')
-        #db.cur.execute('PRAGMA cache_size = 1024;')
-        #db.cur.execute('PRAGMA page_size = 1024;')
-        #db.cur.execute('PRAGMA synchronous = OFF;')
 
     @default_decorator
     def add_table(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
@@ -696,7 +746,8 @@ class SQLDatabaseController(object):
         ))
 
     @default_decorator
-    def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):
+    def executeone(db, operation, params=(), auto_commit=True, eager=True,
+                   verbose=VERYVERBOSE):
         with SQLExecutionContext(db, operation, num_params=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
@@ -708,13 +759,23 @@ class SQLDatabaseController(object):
         return result_list
 
     @default_decorator
+    #@utool.memprof
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERYVERBOSE, unpack_scalars=True, num_params=None):
+                    verbose=VERYVERBOSE, unpack_scalars=True, num_params=None,
+                    eager=True):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
-            params_iter = list(params_iter)
-            num_params  = len(params_iter)
+            if isinstance(params_iter, (list, tuple)):
+                num_params = len(params_iter)
+            else:
+                if VERYVERBOSE:
+                    print('[sql!] WARNING: aggressive eval of params_iter because num_params=None')
+                params_iter = list(params_iter)
+                num_params  = len(params_iter)
+        else:
+            if VERYVERBOSE:
+                print('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
         if num_params == 0:
@@ -731,23 +792,46 @@ class SQLDatabaseController(object):
 
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
-            results_iter = list(
-                map(
-                    list,
-                    (context.execute_and_generate_results(params) for params in params_iter)
-                )
-            )  # list of iterators
-            if unpack_scalars:
-                results_iter = list(map(_unpacker, results_iter))  # list of iterators
-            results_list = list(results_iter)  # Eager evaluation
+            if eager:
+                #if utool.DEBUG2:
+                #    print('--------------')
+                #    print('+++ eager eval')
+                #    print(operation)
+                #    print('+++ eager eval')
+                #results_iter = list(
+                    #map(
+                    #    list,
+                    #    (context.execute_and_generate_results(params) for params in params_iter)
+                    #)
+                #)  # list of iterators
+                results_iter = [list(context.execute_and_generate_results(params)) for params in params_iter]
+                if unpack_scalars:
+                    results_iter = list(map(_unpacker, results_iter))  # list of iterators
+                results_list = list(results_iter)  # Eager evaluation
+            else:
+                #if utool.DEBUG2:
+                #    print('--------------')
+                #    print(' +++ lazy eval')
+                #    print(operation)
+                #    print(' +++ lazy eval')
+                def tmpgen(context):
+                    # Temporary hack to turn off eager_evaluation
+                    for params in params_iter:
+                        # Eval results per query yeild per iter
+                        results = list(context.execute_and_generate_results(params))
+                        if unpack_scalars:
+                            yield _unpacker(results)
+                        else:
+                            yield results
+                results_list = tmpgen(context)
             #except Exception as ex:
             #    utool.printex(ex)
             #    raise
         return results_list
 
-    @default_decorator
-    def commit(db):
-        db.connection.commit()
+    #@default_decorator
+    #def commit(db):
+    #    db.connection.commit()
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True, schema_only=False):

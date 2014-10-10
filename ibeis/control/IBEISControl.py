@@ -390,7 +390,12 @@ class IBEISController(object):
 
     @default_decorator
     def get_chip_config_rowid(ibs):
-        """ # FIXME: Configs are still handled poorly """
+        """ # FIXME: Configs are still handled poorly
+
+        This method deviates from the rest of the controller methods because it
+        always returns a scalar instead of a list. I'm still not sure how to
+        make it more ibeisy
+        """
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
         chip_cfg_rowid = ibs.add_config(chip_cfg_suffix)
         return chip_cfg_rowid
@@ -1658,7 +1663,7 @@ class IBEISController(object):
         return gpath_list
 
     @getter_1to1
-    def get_annot_cids(ibs, aid_list, ensure=True, all_configs=False):
+    def get_annot_cids(ibs, aid_list, ensure=True, all_configs=False, eager=True, num_params=None):
         # FIXME:
         if ensure:
             try:
@@ -1669,15 +1674,20 @@ class IBEISController(object):
                 raise
         if all_configs:
             # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-            cid_list = ibs.dbcache.get(CHIP_TABLE, ('chip_rowid',), aid_list, id_colname='annot_rowid')
+            cid_list = ibs.dbcache.get(CHIP_TABLE, ('chip_rowid',), aid_list,
+                                       id_colname='annot_rowid', eager=eager,
+                                       num_params=num_params)
         else:
             chip_config_rowid = ibs.get_chip_config_rowid()
             #print(chip_config_rowid)
             where_clause = 'annot_rowid=? AND config_rowid=?'
             params_iter = ((aid, chip_config_rowid) for aid in aid_list)
-            cid_list = ibs.dbcache.get_where(CHIP_TABLE,  ('chip_rowid',), params_iter, where_clause)
+            cid_list = ibs.dbcache.get_where(CHIP_TABLE,  ('chip_rowid',),
+                                             params_iter, where_clause,
+                                             eager=eager, num_params=num_params)
         if ensure:
             try:
+                cid_list = list(cid_list)
                 utool.assert_all_not_None(cid_list, 'cid_list')
             except AssertionError as ex:
                 valid_cids = ibs.get_valid_cids()  # NOQA
@@ -1742,35 +1752,38 @@ class IBEISController(object):
         return cfpath_list
 
     @getter_1to1
-    def get_annot_fids(ibs, aid_list, ensure=False):
-        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
-        fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
+    def get_annot_fids(ibs, aid_list, ensure=False, eager=True, num_params=None):
+        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
+        fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, num_params=num_params)
         return fid_list
 
     @utool.accepts_numpy
     @getter_1toM
     @cache_getter(ANNOTATION_TABLE, 'kpts')
-    def get_annot_kpts(ibs, aid_list, ensure=True):
+    def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, num_params=None):
         """
         Returns:
             kpts_list (list): chip keypoints """
-        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure)
-        kpts_list = ibs.get_feat_kpts(fid_list)
+        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
+        kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, num_params=num_params)
         return kpts_list
 
     @getter_1toM
-    def get_annot_desc(ibs, aid_list, ensure=True):
+    def get_annot_desc(ibs, aid_list, ensure=True, eager=True, num_params=None):
         """
         Returns:
             desc_list (list): chip descriptors """
-        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure)
-        desc_list = ibs.get_feat_desc(fid_list)
+        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
+        desc_list = ibs.get_feat_desc(fid_list, eager=eager, num_params=num_params)
         return desc_list
 
     @getter_1to1
-    def get_annot_num_feats(ibs, aid_list, ensure=False):
-        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
-        fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
+    def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, num_params=None):
+        """
+        Returns:
+            size_list (list): num descriptors per annotation
+        """
+        fid_list = ibs.get_annot_fids(aid_list, ensure=ensure, num_params=num_params)
         nFeats_list = ibs.get_num_feats(fid_list)
         return nFeats_list
 
@@ -1888,7 +1901,7 @@ class IBEISController(object):
         return chipsz_list
 
     @getter_1to1
-    def get_chip_fids(ibs, cid_list, ensure=True):
+    def get_chip_fids(ibs, cid_list, ensure=True, eager=True, num_params=None):
         if ensure:
             ibs.add_feats(cid_list)
         feat_config_rowid = ibs.get_feat_config_rowid()
@@ -1896,7 +1909,8 @@ class IBEISController(object):
         where_clause = 'chip_rowid=? AND config_rowid=?'
         params_iter = ((cid, feat_config_rowid) for cid in cid_list)
         fid_list = ibs.dbcache.get_where(FEATURE_TABLE, colnames, params_iter,
-                                         where_clause)
+                                         where_clause, eager=eager,
+                                         num_params=num_params)
         return fid_list
 
     @getter_1to1
@@ -1909,29 +1923,29 @@ class IBEISController(object):
 
     @getter_1toM
     #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
-    def get_feat_kpts(ibs, fid_list):
+    def get_feat_kpts(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
             kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_keypoints',), fid_list)
+        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_keypoints',), fid_list, eager=eager, num_params=num_params)
         return kpts_list
 
     @getter_1toM
     #@cache_getter(FEATURE_TABLE, 'feature_sifts')
-    def get_feat_desc(ibs, fid_list):
+    def get_feat_desc(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
             desc_list (list): chip SIFT descriptors """
-        desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list)
+        desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, eager=eager, num_params=num_params)
         return desc_list
 
     @getter_1to1
     #@cache_getter(FEATURE_TABLE, 'feature_num_feats')
-    def get_num_feats(ibs, fid_list):
+    def get_num_feats(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
             nFeats_list (list): the number of keypoint / descriptor pairs """
-        nFeats_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
+        nFeats_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_num_feats',), fid_list, eager=True, num_params=None)
         nFeats_list = [(-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
 

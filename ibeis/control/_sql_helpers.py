@@ -33,10 +33,10 @@ def _results_gen(cur, get_last_id=False):
             raise StopIteration()
         else:
             # Results are always returned wraped in a tuple
-            result = result[0] if len(result) == 1 else result
+            result_ = result[0] if len(result) == 1 else result
             #if get_last_id and result == 0:
             #    result = None
-            yield result
+            yield result_
 
 
 def _unpacker(results_):
@@ -160,9 +160,11 @@ class SQLExecutionContext(object):
             context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
         context.cur = context.db.connection.cursor()  # HACK in a new cursor
+        #context.cur = context.db.cur  # OR USE DB CURSOR??
         if context.start_transaction:
             # http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
-            context.cur.execute('BEGIN', ())
+            #context.cur.execute('BEGIN', ())
+            context.cur.execute('BEGIN')
         if context.verbose or PRINT_SQL:
             print(context.operation_lbl)
             if context.verbose:
@@ -176,17 +178,20 @@ class SQLExecutionContext(object):
     # --- with SQLExecutionContext: statment code happens here ---
 
     def execute_and_generate_results(context, params):
-        """ HELPER FOR CONTEXT STATMENT """
+        """ helper for context statment """
         try:
             context.cur.execute(context.operation, params)
         except lite.Error as ex:
-            print('[sql.Error] %r' % (type(ex),))
-            print('[sql.Error] params=<%r>' % (params,))
+            utool.printex(ex, 'sql.Error', keys=['params'])
+            #print('[sql.Error] %r' % (type(ex),))
+            #print('[sql.Error] params=<%r>' % (params,))
             raise
         is_insert = context.operation_type.startswith('INSERT')
         return _results_gen(context.cur, get_last_id=is_insert)
 
     def __exit__(context, type_, value, trace):
+        """ Finalization of an SQLController call """
+        #print('exit context')
         if __debug__:
             if NOT_QUIET and (PRINT_SQL or context.verbose):
                 utool.toc(context.tt)
@@ -200,8 +205,16 @@ class SQLExecutionContext(object):
         else:
             # Commit the transaction
             if context.auto_commit:
+                #print('commit %r' % context.operation_lbl)
                 context.db.connection.commit()
+                #if context.start_transaction:
+                #    context.cur.execute('COMMIT')
+            else:
+                print('no commit %r' % context.operation_lbl)
                 #context.db.commit(verbose=False)
+                #context.cur.commit()
+            #context.cur.close()
+            context.cur.close()
 
 
 def get_operation_type(operation):

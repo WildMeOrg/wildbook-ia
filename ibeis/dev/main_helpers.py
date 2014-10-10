@@ -43,8 +43,8 @@ def ensure_flatlistlike(input_):
 @utool.indent_func
 @profile
 def get_test_qaids(ibs):
-#def get_allowed_qaids(ibs):
     """ Gets test annot_rowids based on command line arguments """
+    #def get_allowed_qaids(ibs):
     available_qaids = []
 
     # Currently the only avaialable query annots are ones specified on the

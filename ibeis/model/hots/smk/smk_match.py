@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 #import six
+from six.moves import zip, range, map  # NOQA
 import utool
 import numpy as np
 from ibeis.model.hots.smk import smk_index
@@ -58,6 +59,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 
 
 @utool.indent_func('[smk_query]')
+#@utool.memprof
 def selective_match_kernel(qreq_):
     """
     ibeis query interface
@@ -75,6 +77,7 @@ def selective_match_kernel(qreq_):
         qres = qaid2_qres_[qaids[0]]
         fig = qres.show_top(ibs)
     """
+    memtrack = utool.MemoryTracker('selective_match_kernel')
     daids = qreq_.get_external_daids()
     qaids = qreq_.get_external_qaids()
     ibs   = qreq_.ibs
@@ -84,7 +87,8 @@ def selective_match_kernel(qreq_):
     alpha     = qreq_.qparams.alpha
     thresh    = qreq_.qparams.thresh
     nAssign   = qreq_.qparams.nAssign
-    # Build Pandas dataframe (or maybe not)
+    # Build ~~Pandas~~ dataframe (or maybe not)
+    memtrack.report()
     annots_df = smk_index.make_annot_df(ibs)  # .3%
     if hasattr(qreq_, 'words'):
         # Hack
@@ -95,8 +99,11 @@ def selective_match_kernel(qreq_):
         # Load vocabulary
         taids = ibs.get_valid_aids()  # exemplar
         words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        memtrack.report('learned visual words')
+        #utool.embed()
         # Index database annotations
         invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate)
+        memtrack.report('indexed database annotations')
         print('L___ FINISHED LOADING VOCAB ___\n')
     withinfo = True
     # Progress
@@ -106,9 +113,8 @@ def selective_match_kernel(qreq_):
     # Output
     qaid2_chipmatch = {}
     qaid2_scores    = {}
-
-    #available_bytes = utool.available_memory()
-    #print(utool.byte_str2(available_bytes))
+    #return {}, {}
+    memtrack.report('SMK Init')
 
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
@@ -119,6 +125,7 @@ def selective_match_kernel(qreq_):
                                                             thresh, nAssign)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
+        memtrack.report('Query')
     end_()
     return qaid2_scores, qaid2_chipmatch
 

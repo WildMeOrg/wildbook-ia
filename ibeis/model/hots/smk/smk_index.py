@@ -114,7 +114,19 @@ def make_annot_df(ibs):
     return annots_df
 
 
+def __get_train_vecs(ibs, taids):
+    """  Try keeping this memory in a separate stack frame """
+    train_vecs_list = ibs.get_annot_desc(taids, eager=True)
+    train_vecs = np.vstack(train_vecs_list)
+    # SAD FACE!!! WHY WONT TRAIN_VECS_LIST DEALLOCATE!?!?
+    for ix in range(len(train_vecs_list)):
+        train_vecs_list[ix] = None
+    del train_vecs_list
+    return train_vecs
+
+
 #@profile
+#@utool.memprof
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     """
     Computes and caches visual words
@@ -128,16 +140,21 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
         >>> print(words.shape)
         (8000, 128)
     """
+    #memtrack = utool.MemoryTracker('learn_visual_words')
     max_iters = 200
     flann_params = {}
     #train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
-    train_vecs_list = annots_df['vecs'][taids]
-    train_vecs = np.vstack(train_vecs_list)
+    #train_vecs_list = annots_df['vecs'][taids]
+    train_vecs = __get_train_vecs(annots_df.ibs, taids)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
     kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
                 flann_params=flann_params)
     words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
+    #annots_df.ibs.dbcache.squeeze()
+    #annots_df.ibs.dbcache.reboot()
+    del train_vecs
+    #del train_vecs_list
     return words
 
 

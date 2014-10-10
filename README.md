@@ -525,4 +525,9 @@ python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --index 
 
 python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30 --va
 python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION
+
+python -m memory_profiler dev.py -t smk2 --allgt --db PZ_Mothers --index 0
+
+python -m memory_profiler dev.py -t smk --allgt --db PZ_Master_PRE_DETECTION --index 0 --nocache-query --nogui 
+
 ```
