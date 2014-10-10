@@ -40,7 +40,10 @@ The IBEIS module itself:
 ```bash
 # The following install script install ibeis and all dependencies. 
 # If it doesnt you can look at the older instructions which follow
-# and try to figure it out
+# and try to figure it out. After running this you should have a code
+# directory with all of the above repos. 
+
+# NOTE: IBEIS DEPENDS ON PYTHON 2.7. Unfortunately we are having problems moving to 3.
 
 # Navigate to your code directory
 export CODE_DIR=~/code
@@ -58,15 +61,24 @@ cd ibeis
 # Run the prereq install script (installs prereq libraries)
 ./_scripts/__install_prereqs__.sh
 
+# Python repositories come with a standard setup.py script to help you install them
+# Because IBEIS has several python repos, we created a super_setup script to help 
+# you run the same command accross all IBIES repositories.
+
 # Use super_setup.py to pull the latest and greatest from all the respos. 
+# This will clone any dependency repos that do not exist.
 ./super_setup.py --pull
 
 # Switch to current development branch
-./super_setup.py --build --checkout pyqt5 
+./super_setup.py --checkout pyqt5 
 
 # Run super_setup to build and install ibeis modules in development mode
-# Usually this needs to be run twice. Either way it wont hurt
+# (the build flag builds any c++ files, and the develop flag installs a 
+#  python module as a symbolic link to python's site-packages)
 ./super_setup.py --build --develop
+
+# Usually this needs to be run twice because super_setup often needs to
+# configure itself on the first run. (Either running it twice wont hurt)
 ./super_setup.py --build --develop
 
 # Optional: download a test dataset
