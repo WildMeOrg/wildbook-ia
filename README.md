@@ -67,7 +67,6 @@ cd ibeis
 # Usually this needs to be run twice. Either way it wont hurt
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
-
 ```
 
 # Pep8 Guidelines
@@ -90,6 +89,8 @@ flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E50 ~/cod
 
 
 # Updating Documentation
+```bash
+# utool script to run sphinx-apidoc
 autogen_sphinx_docs.py
 cp -r _doc/_build/html/* _page
 git add _page/.nojekyll
@@ -97,8 +98,7 @@ git add _page/*
 git add _page
 git commit -m "updated docs"
 git subtree push --prefix _page origin gh-pages
-
-
+```
 
 ###
 
