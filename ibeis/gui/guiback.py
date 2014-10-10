@@ -946,6 +946,7 @@ class MainWindowBackend(QtCore.QObject):
         return guitool.user_option(parent=back.front, **kwargs)
 
     def are_you_sure(back):
+        """ Prompt user for conformation before changing something """
         ans = back.user_option(msg='Are you sure?', title='Confirmation',
                                options=['No', 'Yes'], use_cache=False)
         return ans == 'Yes'
