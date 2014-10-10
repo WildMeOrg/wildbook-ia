@@ -77,7 +77,7 @@ def refresh(ibs):
 
 
 def export_to_xml(ibs):
-    count = 2523
+    count = 1
     target_size = 900
     information = {
         'database_name' : 'IBEIS',
