@@ -106,6 +106,10 @@ def selective_match_kernel(qreq_):
     # Output
     qaid2_chipmatch = {}
     qaid2_scores    = {}
+
+    #available_bytes = utool.available_memory()
+    #print(utool.byte_str2(available_bytes))
+
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
         mark(count)

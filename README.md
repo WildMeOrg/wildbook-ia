@@ -488,5 +488,5 @@ python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --in
 python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --index 0:20
 
 python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30 --va
-python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION --index 0:5
+python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION
 ```

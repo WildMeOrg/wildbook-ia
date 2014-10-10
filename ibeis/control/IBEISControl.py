@@ -173,6 +173,7 @@ class IBEISController(object):
         if ensure:
             print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
+            print(dbdir)
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
