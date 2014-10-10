@@ -8,17 +8,22 @@ Documentation: http://erotemic.github.io/ibeis
 Erotemic's IBEIS module dependencies 
 
 * https://github.com/Erotemic/utool
-  Documentation: http://erotemic.github.io/utool
+  docs: http://erotemic.github.io/utool
 * https://github.com/Erotemic/plottool
+  docs: http://erotemic.github.io/plottool
 * https://github.com/Erotemic/vtool
+  docs: http://erotemic.github.io/vtool
 * https://github.com/Erotemic/hesaff
+  docs: http://erotemic.github.io/hesaff
 * https://github.com/Erotemic/guitool
+  docs: http://erotemic.github.io/guitool
 
 
 bluemellophone's IBEIS modules
 
 * https://github.com/bluemellophone/detecttools
 * https://github.com/bluemellophone/pyrf
+  docs: http://bluemellophone.github.io/pyrf
 
 
 hjweide's IBEIS modules
@@ -74,26 +79,25 @@ git clone git@github.com:Erotemic/utool.github.io.git
 
 TODO: Create custom name https://help.github.com/articles/adding-a-cname-file-to-your-repository/
 
-ib
+ib/ut/vt/pt/gt/hes...
+
+autogen_sphinx_docs.py
 mkdir _page
+touch _page/.nojekyll
 cp -r _doc/_build/html/* _page
 git add _page
-touch _page/.nojekyll
+git commit -am "Added docs"
 git add _page/.nojekyll
 git add _page/*
-git commit -am "Added docs"
 git push
 git subtree push --prefix _page origin gh-pages
 
-ut
-mkdir _page
+
+# Update Documentation
+autogen_sphinx_docs.py
 cp -r _doc/_build/html/* _page
 git add _page
-git commit -am "Added docs"
-touch _page/.nojekyll
-git add _page/.nojekyll
-git add _page/*
-git push
+git commit -m "updated docs"
 git subtree push --prefix _page origin gh-pages
 
 

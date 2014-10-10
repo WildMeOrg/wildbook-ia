@@ -36,6 +36,22 @@ ibeis.control.SQLDatabaseControl module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.__SQLITE3__ module
+--------------------------------
+
+.. automodule:: ibeis.control.__SQLITE3__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._sql_helpers module
+---------------------------------
+
+.. automodule:: ibeis.control._sql_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control.accessor_decors module
 ------------------------------------
 

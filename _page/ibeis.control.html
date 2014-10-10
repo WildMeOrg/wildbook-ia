@@ -3458,6 +3458,66 @@ a condition</p>
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.control.__SQLITE3__">
+<span id="ibeis-control-sqlite3-module"></span><h2>ibeis.control.__SQLITE3__ module<a class="headerlink" href="#module-ibeis.control.__SQLITE3__" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.control.__SQLITE3__.connect2">
+<tt class="descclassname">ibeis.control.__SQLITE3__.</tt><tt class="descname">connect2</tt><big>(</big><em>fpath</em>, <em>text_factory=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/__SQLITE3__.html#connect2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.__SQLITE3__.connect2" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper around lite.connect</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.control._sql_helpers">
+<span id="ibeis-control-sql-helpers-module"></span><h2>ibeis.control._sql_helpers module<a class="headerlink" href="#module-ibeis.control._sql_helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.control._sql_helpers.SQLExecutionContext">
+<em class="property">class </em><tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">SQLExecutionContext</tt><big>(</big><em>context</em>, <em>db</em>, <em>operation</em>, <em>num_params=None</em>, <em>auto_commit=True</em>, <em>start_transaction=False</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#SQLExecutionContext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.SQLExecutionContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A good with context to use around direct sql calls</p>
+<dl class="method">
+<dt id="ibeis.control._sql_helpers.SQLExecutionContext.__enter__">
+<tt class="descname">__enter__</tt><big>(</big><em>context</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#SQLExecutionContext.__enter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.SQLExecutionContext.__enter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if the operating will change the database</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results">
+<tt class="descname">execute_and_generate_results</tt><big>(</big><em>context</em>, <em>params</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#SQLExecutionContext.execute_and_generate_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>HELPER FOR CONTEXT STATMENT</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control._sql_helpers.compare_string_versions">
+<tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">compare_string_versions</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#compare_string_versions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.compare_string_versions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control._sql_helpers.ensure_correct_version">
+<tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">ensure_correct_version</tt><big>(</big><em>ibs</em>, <em>db</em>, <em>version_expected</em>, <em>db_versions</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#ensure_correct_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.ensure_correct_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control._sql_helpers.get_operation_type">
+<tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">get_operation_type</tt><big>(</big><em>operation</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#get_operation_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.get_operation_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the operation_type from an SQL operation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control._sql_helpers.sanatize_sql">
+<tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">sanatize_sql</tt><big>(</big><em>db</em>, <em>tablename</em>, <em>columns=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#sanatize_sql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.sanatize_sql" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sanatizes an sql tablename and column. Use sparingly</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control._sql_helpers.update_schema_version">
+<tt class="descclassname">ibeis.control._sql_helpers.</tt><tt class="descname">update_schema_version</tt><big>(</big><em>ibs</em>, <em>db_fpath</em>, <em>db_versions</em>, <em>version</em>, <em>version_target</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#update_schema_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.update_schema_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.control.accessor_decors">
 <span id="ibeis-control-accessor-decors-module"></span><h2>ibeis.control.accessor_decors module<a class="headerlink" href="#module-ibeis.control.accessor_decors" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -3582,6 +3642,8 @@ list and returns a homogenous list of values</p>
 <li><a class="reference internal" href="#module-ibeis.control.DB_SCHEMA">ibeis.control.DB_SCHEMA module</a></li>
 <li><a class="reference internal" href="#module-ibeis.control.IBEISControl">ibeis.control.IBEISControl module</a></li>
 <li><a class="reference internal" href="#module-ibeis.control.SQLDatabaseControl">ibeis.control.SQLDatabaseControl module</a></li>
+<li><a class="reference internal" href="#module-ibeis.control.__SQLITE3__">ibeis.control.__SQLITE3__ module</a></li>
+<li><a class="reference internal" href="#module-ibeis.control._sql_helpers">ibeis.control._sql_helpers module</a></li>
 <li><a class="reference internal" href="#module-ibeis.control.accessor_decors">ibeis.control.accessor_decors module</a></li>
 <li><a class="reference internal" href="#module-ibeis.control">Module contents</a></li>
 </ul>
