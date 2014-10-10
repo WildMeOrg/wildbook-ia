@@ -69,7 +69,7 @@ cd ibeis
 # This will clone any dependency repos that do not exist.
 ./super_setup.py --pull
 
-# Switch to current development branch
+# Switch to current development branch (NOTICE: WE WILL SOON CHANGE THE DEV BRANCH TO NEXT)
 ./super_setup.py --checkout pyqt5 
 
 # Run super_setup to build and install ibeis modules in development mode
