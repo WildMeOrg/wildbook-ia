@@ -35,28 +35,10 @@ The IBEIS module itself:
 
 * https://github.com/Erotemic/ibeis
 
-# Pep8 Guidelines
-
-DISABLE THESE ERRORS 
-* 'E127', # continuation line over-indented for visual indent
-* 'E201', # whitespace after '('
-* 'E202', # whitespace before ']'
-* 'E203', # whitespace before ', '
-* 'E221', # multiple spaces before operator
-* 'E222', # multiple spaces after operator
-* 'E241', # multiple spaces after ,
-* 'E265', # block comment should start with "# "
-* 'E271', # multiple spaces after keyword 
-* 'E272', # multiple spaces before keyword
-* 'E301', # expected 1 blank line, found 0
-* 'E501', # > 79
-
-flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E50 ~/code/ibeis
-
-# Environment Setup:
+# IBEIS Development Environment Setup 
 
 ```bash
-# The following install script instal ibeis and all dependencies. 
+# The following install script install ibeis and all dependencies. 
 # If it doesnt you can look at the older instructions which follow
 # and try to figure it out
 
@@ -88,32 +70,30 @@ cd ibeis
 
 ```
 
-# Github IO Documentation:
-code
-git clone git@github.com:Erotemic/ibeis.github.io
+# Pep8 Guidelines
 
-git clone git@github.com:Erotemic/ibeis.github.io.git
-git clone git@github.com:Erotemic/utool.github.io.git
+DISABLE THESE ERRORS 
+* 'E127', # continuation line over-indented for visual indent
+* 'E201', # whitespace after '('
+* 'E202', # whitespace before ']'
+* 'E203', # whitespace before ', '
+* 'E221', # multiple spaces before operator
+* 'E222', # multiple spaces after operator
+* 'E241', # multiple spaces after ,
+* 'E265', # block comment should start with "# "
+* 'E271', # multiple spaces after keyword 
+* 'E272', # multiple spaces before keyword
+* 'E301', # expected 1 blank line, found 0
+* 'E501', # > 79
 
-TODO: Create custom name https://help.github.com/articles/adding-a-cname-file-to-your-repository/
+flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E50 ~/code/ibeis
 
-ib/ut/vt/pt/gt/hes...
 
+# Updating Documentation
 autogen_sphinx_docs.py
-mkdir _page
-touch _page/.nojekyll
 cp -r _doc/_build/html/* _page
-git add _page
-git commit -am "Added docs"
 git add _page/.nojekyll
 git add _page/*
-git push
-git subtree push --prefix _page origin gh-pages
-
-
-# Update Documentation
-autogen_sphinx_docs.py
-cp -r _doc/_build/html/* _page
 git add _page
 git commit -m "updated docs"
 git subtree push --prefix _page origin gh-pages
@@ -129,13 +109,14 @@ git subtree push --prefix _page origin gh-pages
 export CODE_DIR=~/code
 cd $CODE_DIR
 
-# First clone the IBEIS repos
+# Clone the IBEIS repositories 
 git clone https://github.com/Erotemic/utool.git
 git clone https://github.com/Erotemic/vtool.git
 git clone https://github.com/Erotemic/plottool.git
 git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/ibeis.git
+#
 # Set the previous repos up for development by running
 #
 # > sudo python setup.py develop
