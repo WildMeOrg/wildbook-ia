@@ -3,6 +3,18 @@
 
 =====
 
+IBEIS is python module and standalone program for the storage and management of
+images and derived data for use in compute vision algorithms. It aims to compute
+who an animal is, what species an animal is, and where an animal is with the
+ultimate goal being to ask important why biological questions. 
+
+Currently the system is build around and SQLite database, a PyQt4 GUI, and
+matplotlib visualizations. Algorithms employed are: random forest species
+detection and localization, hessian-affine keypoint detection, SIFT keypoint
+description, LNBNN identification using approximate nearest neighbors.
+Algorithms in development are SMK (selective match kernel) for identifiaction
+and deep neural networks for detection and localization. 
+
 Documentation: http://erotemic.github.io/ibeis
 
 Erotemic's IBEIS module dependencies 
