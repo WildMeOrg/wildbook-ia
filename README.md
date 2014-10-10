@@ -51,13 +51,14 @@ cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
 
-# Generate the prereq install script
+# Generate the prereq install script (does not install anything)
+# 
 ./_scripts/bootstrap.py
 
-# Run the prereq install script
+# Run the prereq install script (installs prereq libraries)
 ./_scripts/__install_prereqs__.sh
 
-# Be sure to pull the latest and greatest.
+# Use super_setup.py to pull the latest and greatest from all the respos. 
 ./super_setup.py --pull
 
 # Switch to current development branch
@@ -67,9 +68,17 @@ cd ibeis
 # Usually this needs to be run twice. Either way it wont hurt
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
+
+# Optional: download a test dataset
+./dev.py -t mtest 
+
 ```
 
-# Pep8 Guidelines
+# Code Sytle Guidelines
+
+For Python try to conform to pep8. 
+You should set up your prefered editor to use flake8 as linter.
+If using vim I recomend syntastic.
 
 DISABLE THESE ERRORS 
 * 'E127', # continuation line over-indented for visual indent
@@ -85,7 +94,10 @@ DISABLE THESE ERRORS
 * 'E301', # expected 1 blank line, found 0
 * 'E501', # > 79
 
-flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E50 ~/code/ibeis
+flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
+
+For C++ code use astyle to format your code:
+atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
 
 
 # Updating Documentation
