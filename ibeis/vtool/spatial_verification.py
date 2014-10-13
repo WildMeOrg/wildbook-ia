@@ -1,5 +1,5 @@
 """
-python -c "import vtool, doctest; print(doctest.testmod(vtool.spatial_verification))"
+ython -c "import vtool, doctest; print(doctest.testmod(vtool.spatial_verification))"
 
 Spatial verification of keypoint matches
 
@@ -41,7 +41,6 @@ SV_DTYPE = np.float64
 TAU = 2 * np.pi  # tauday.org
 
 
-#@profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
@@ -55,17 +54,18 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> print(utool.hashstr(Mx9))
         f@2l62+2!ppow8yw
 
-    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=2] xy1_mn
-        np.ndarray[np.float64_t, ndim=2] xy2_mn
-        np.ndarray[np.float64_t, ndim=1] x1_mn, y1_mn,  x2_mn, y2_mn
-        np.ndarray[np.float64_t, ndim=2] Mx9
-    cdef:
-        Py_ssize_t num_pts
-        Py_ssize_t ix
-    #endif
+    Cyth:
+        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
+        #if CYTH
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=2] xy1_mn
+            np.ndarray[np.float64_t, ndim=2] xy2_mn
+            np.ndarray[np.float64_t, ndim=1] x1_mn, y1_mn,  x2_mn, y2_mn
+            np.ndarray[np.float64_t, ndim=2] Mx9
+        cdef:
+            Py_ssize_t num_pts
+            Py_ssize_t ix
+        #endif
     """
     x1_mn = xy1_mn[0]
     y1_mn = xy1_mn[1]
@@ -106,7 +106,6 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     return Mx9
 
 
-#@profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
@@ -124,14 +123,15 @@ def compute_homog(xy1_mn, xy2_mn):
         >>> print(utool.hashstr(output))
         xosv18ps9u78@o0u
 
-    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=2] xy1_mn
-        np.ndarray[np.float64_t, ndim=2] xy2_mn
-    #if CYTH
-    cdef:
-        np.ndarray[np.float64_t, ndim=2] Mx9
-    #endif
+    Cyth:
+        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=2] xy1_mn
+            np.ndarray[np.float64_t, ndim=2] xy2_mn
+        #if CYTH
+        cdef:
+            np.ndarray[np.float64_t, ndim=2] Mx9
+        #endif
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)  # NOQA
@@ -151,42 +151,16 @@ def compute_homog(xy1_mn, xy2_mn):
     # Rearange the nullspace into a homography
     #h = V[-1]  # v = V.H
     h = V[8]  # Hack for Cython.wraparound(False)
+    # FIXME: THERE IS A BUG HERE, sometimes len(V) = 6. why???
     H = np.vstack((h[0:3], h[3:6], h[6:9]))
     return H
 
-# Total time: 6.39448 s
-#
-# Line #      Hits         Time  Per Hit   % Time  Line Contents
-#==============================================================
-# 80                                           @profile
-# 81                                           def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
-# 82                                                                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
-# 83                                               # Map keypoints from image 1 onto image 2
-# 84     18581      1380010     74.3      6.6      invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
-# 85                                               # Get projection components
-# 86     18581       899671     48.4      4.3      _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-# 87     18581      7374378    396.9     35.2      _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-# 88     18581      3133362    168.6     15.0      _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
-# 89                                               # Check for projection errors
-# 90                                               #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-# 91     18581      2434911    131.0     11.6      xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-# 92     18581      1999379    107.6      9.5      scale_err = ltool.det_distance(_det1_mt, det2_m)
-# 93     18581      1786259     96.1      8.5      ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
-# 94                                               # Mark keypoints which are inliers to this hypothosis
-# 95     18581       231433     12.5      1.1      xy_inliers_flag    = xy_err    < xy_thresh_sqrd
-# 96     18581       278045     15.0      1.3      scale_inliers_flag = scale_err < scale_thresh_sqrd
-# 97     18581       217338     11.7      1.0      ori_inliers_flag   = ori_err   < ori_thresh
-# 98                                               # TODO Add uniqueness of matches constraint
-# 99     18581       840893     45.3      4.0      hypo_inliers_flag = ltool.and_lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
-#100     18581        55803      3.0      0.3      hypo_errors = (xy_err, ori_err, scale_err)
-#101     18581       249742     13.4      1.2      hypo_inliers = np.where(hypo_inliers_flag)[0]
-#102     18581        58484      3.1      0.3      return hypo_inliers, hypo_errors
 
-
-#@profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
+    Critical section code. Inner loop of _test_hypothesis_inliers
+
     Example:
         >>> from vtool.spatial_verification import *  # NOQA
         >>> from vtool.spatial_verification import _test_hypothesis_inliers  # NOQA
@@ -217,37 +191,42 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> print(utool.hashstr(output))
         v1!dq3v3cu6fhz%r
 
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=2] Aff
-        np.ndarray[np.float64_t, ndim=3] invVR1s_m
-        np.ndarray[np.float64_t, ndim=2] xy2_m
-        np.ndarray[np.float64_t, ndim=1] det2_m
-        np.ndarray[np.float64_t, ndim=1] ori2_m
-        np.float64_t xy_thresh_sqrd
-        np.float64_t scale_thresh_sqrd
-        np.float64_t ori_thresh
-    cdef:
-        np.ndarray[np.float64_t, ndim=3] invVR1s_mt
-        np.ndarray[np.float64_t, ndim=2] _xy1_mt
-        np.ndarray[np.float64_t, ndim=1] _det1_mt
-        np.ndarray[np.float64_t, ndim=1] _ori1_mt
-        np.ndarray[np.float64_t, ndim=1] xy_err
-        np.ndarray[np.float64_t, ndim=1] scale_err
-        np.ndarray[np.uint8_t, ndim=1, cast=True] xy_inliers_flag
-        np.ndarray[np.uint8_t, ndim=1, cast=True] scale_inliers_flag
-        np.ndarray[np.uint8_t, ndim=1, cast=True] ori_inliers_flag
-        np.ndarray[np.uint8_t, ndim=1, cast=True] hypo_inliers_flag
-        tuple hypo_errors
-        np.ndarray[np.int_t, ndim=1] hypo_inliers
-    #endif
+    Cyth:
+        #if CYTH
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=2] Aff
+            np.ndarray[np.float64_t, ndim=3] invVR1s_m
+            np.ndarray[np.float64_t, ndim=2] xy2_m
+            np.ndarray[np.float64_t, ndim=1] det2_m
+            np.ndarray[np.float64_t, ndim=1] ori2_m
+            np.float64_t xy_thresh_sqrd
+            np.float64_t scale_thresh_sqrd
+            np.float64_t ori_thresh
+        cdef:
+            np.ndarray[np.float64_t, ndim=3] invVR1s_mt
+            np.ndarray[np.float64_t, ndim=2] _xy1_mt
+            np.ndarray[np.float64_t, ndim=1] _det1_mt
+            np.ndarray[np.float64_t, ndim=1] _ori1_mt
+            np.ndarray[np.float64_t, ndim=1] xy_err
+            np.ndarray[np.float64_t, ndim=1] scale_err
+            np.ndarray[np.uint8_t, ndim=1, cast=True] xy_inliers_flag
+            np.ndarray[np.uint8_t, ndim=1, cast=True] scale_inliers_flag
+            np.ndarray[np.uint8_t, ndim=1, cast=True] ori_inliers_flag
+            np.ndarray[np.uint8_t, ndim=1, cast=True] hypo_inliers_flag
+            tuple hypo_errors
+            np.ndarray[np.int_t, ndim=1] hypo_inliers
+        #endif
+
+    Timeit:
+        %timeit xy_err < xy_thresh_sqrd
+        %timeit np.less(xy_err, xy_thresh_sqrd)
     """
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
     # Get projection components
-    _xy1_mt   = ktool.get_invVR_mats_xys_cyth(invVR1s_mt)
+    _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale_cyth(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
-    _ori1_mt  = ktool.get_invVR_mats_oris_cyth(invVR1s_mt)
+    _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     # Check for projection errors
     xy_err    = ltool.L2_sqrd_cyth(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
     scale_err = ltool.det_distance_cyth(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
@@ -260,26 +239,36 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     #scale_err = ltool.det_distance(_det1_mt, det2_m)
     #ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
     # Mark keypoints which are inliers to this hypothosis
-    xy_inliers_flag    = xy_err    < xy_thresh_sqrd
-    scale_inliers_flag = scale_err < scale_thresh_sqrd
-    ori_inliers_flag   = ori_err   < ori_thresh
+    xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
+    scale_inliers_flag = np.less(scale_err, scale_thresh_sqrd)
+    np.logical_and(xy_inliers_flag, scale_inliers_flag)
+    ori_inliers_flag   = np.less(ori_err, ori_thresh)
     # TODO Add uniqueness of matches constraint
-    hypo_inliers_flag = ltool.and_3lists_cyth(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    #hypo_inliers_flag = np.empty(xy_inliers_flag.size, dtype=np.bool)
+    hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
+    np.logical_and(hypo_inliers_flag, ori_inliers_flag, out=hypo_inliers_flag)
+    np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
     #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
     hypo_errors = (xy_err, ori_err, scale_err)
     hypo_inliers = np.where(hypo_inliers_flag)[0]
     return hypo_inliers, hypo_errors
 
 
-#@profile
 def get_affine_inliers(kpts1, kpts2, fm,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
                         ori_thresh):
-    """ Estimates inliers deterministically using elliptical shapes
+    """
+    Estimates inliers deterministically using elliptical shapes
+
     Compute all transforms from kpts1 to kpts2 (enumerate all hypothesis)
     We transform from chip1 -> chip2
     The determinants are squared keypoint scales
+
+    FROM PERDOCH 2009::
+        H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
+        H = inv(Aj).dot(Ai)
+        The input invVs = perdoch.invA's
 
     Example:
         >>> from vtool.spatial_verification import *  # NOQA
@@ -295,65 +284,89 @@ def get_affine_inliers(kpts1, kpts2, fm,
         kfvy0iej+56akeb6
 
 
-    FROM PERDOCH 2009::
-        H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
-        H = inv(Aj).dot(Ai)
-        The input invVs = perdoch.invA's
+    Cyth:
+        #if CYTH
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=2] kpts1
+            np.ndarray[np.float64_t, ndim=2] kpts2
+            np.ndarray[np.int64_t, ndim=2] fm
+            np.float64_t xy_thresh_sqrd
+            np.float64_t scale_thresh_sqrd
+            np.float64_t ori_thresh
+        cdef:
+            np.ndarray[np.float64_t, ndim=2] kpts1_m
+            np.ndarray[np.float64_t, ndim=2] kpts2_m
+            np.ndarray[np.float64_t, ndim=3] invVR1s_m
+            np.ndarray[np.float64_t, ndim=3] V1s_m
+            np.ndarray[np.float64_t, ndim=3] invVR2s_m
+            np.ndarray[np.float64_t, ndim=3] Aff_mats
+            np.ndarray[np.float64_t, ndim=2] xy2_m
+            np.ndarray[np.float64_t, ndim=1] det2_m
+            np.ndarray[np.float64_t, ndim=1] ori2_m
+            np.ndarray[np.float64_t, ndim=2] Aff
+            tuple tup
+            list inliers_and_errors_list
+            list errors_list
+        #endif
 
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=2] kpts1
-        np.ndarray[np.float64_t, ndim=2] kpts2
-        np.ndarray[np.int64_t, ndim=2] fm
-        np.float64_t xy_thresh_sqrd
-        np.float64_t scale_thresh_sqrd
-        np.float64_t ori_thresh
-    cdef:
-        np.ndarray[np.float64_t, ndim=2] kpts1_m
-        np.ndarray[np.float64_t, ndim=2] kpts2_m
-        np.ndarray[np.float64_t, ndim=3] invVR1s_m
-        np.ndarray[np.float64_t, ndim=3] V1s_m
-        np.ndarray[np.float64_t, ndim=3] invVR2s_m
-        np.ndarray[np.float64_t, ndim=3] Aff_mats
-        np.ndarray[np.float64_t, ndim=2] xy2_m
-        np.ndarray[np.float64_t, ndim=1] det2_m
-        np.ndarray[np.float64_t, ndim=1] ori2_m
-        np.ndarray[np.float64_t, ndim=2] Aff
-        tuple tup
-        list inliers_and_errors_list
-        list errors_list
-    #endif
+
+    Ignore::
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> import vtool.keypoint as ktool
+        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
+        >>> a = kpts1[fm.T[0]]
+        >>> b = kpts1.take(fm.T[0])
+
+        align = fm.dtype.itemsize * fm.shape[1]
+        align2 = [fm.dtype.itemsize, fm.dtype.itemsize]
+        viewtype1 = np.dtype(np.void, align)
+        viewtype2 = np.dtype(np.int64, align2)
+        c = np.ascontiguousarray(fm).view(viewtype1)
+        fm_view = np.ascontiguousarray(fm).view(viewtype1)
+        qfx = fm.view(np.dtype(np.int64, np.int64.itemsize))
+        dfx = fm.view(np.dtype(np.int64, np.int64.itemsize))
+        d = np.ascontiguousarray(c).view(viewtype2)
+
+        fm.view(np.dtype(np.void, align))
+        np.ascontiguousarray(fm).view(np.dtype((np.void, Z.dtype.itemsize * Z.shape[1])))
     """
-    kpts1_m = kpts1[fm.T[0]]
-    kpts2_m = kpts2[fm.T[1]]
+    #http://ipython-books.github.io/featured-01/
+    kpts1_m = kpts1.take(fm.T[0], axis=0)
+    kpts2_m = kpts2.take(fm.T[1], axis=0)
 
     # Get keypoints to project in matrix form
-    invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
-    V1s_m = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
     invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
-    # The transform from kp1 to kp2 is given as:
+    invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
+    V1s_m     = ktool.invert_invV_mats(invVR1s_m)  # 539 us
+    # BUILD ALL HYPOTHESIS TRANSFORMS: The transform from kp1 to kp2 is:
     Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
     # Get components to test projects against
-    xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
+    xy2_m  = ktool.get_xys(kpts2_m)
     det2_m = ktool.get_sqrd_scales(kpts2_m)
-    ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
+    ori2_m = ktool.get_oris(kpts2_m)
+    # SLOWER EQUIVALENT
+    # V1s_m    = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)  # 5.2 ms
+    # xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
+    # ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
+    # assert np.all(ktool.get_oris(kpts2_m) == ktool.get_invVR_mats_oris(invVR2s_m))
+    # assert np.all(ktool.get_xys(kpts2_m) == ktool.get_invVR_mats_xys(invVR2s_m))
 
     # The previous versions of this function were all roughly comparable.
     # The for loop one was the slowest. I'm deciding to go with the one
     # where there is no internal function definition. It was moderately faster,
     # and it gives us access to profile that function
     inliers_and_errors_list = [_test_hypothesis_inliers(Aff, invVR1s_m, xy2_m,
-                                                             det2_m, ori2_m,
-                                                             xy_thresh_sqrd,
-                                                             scale_thresh_sqrd,
-                                                             ori_thresh)
+                                                        det2_m, ori2_m,
+                                                        xy_thresh_sqrd,
+                                                        scale_thresh_sqrd,
+                                                        ori_thresh)
                                for Aff in Aff_mats]
     inliers_list = [tup[0] for tup in inliers_and_errors_list]
     errors_list  = [tup[1] for tup in inliers_and_errors_list]
     return inliers_list, errors_list, Aff_mats
 
 
-#@profile
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
@@ -381,7 +394,6 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     return aff_inliers, Aff
 
 
-#@profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     """ Currently this function just uses the number of inliers as a metric
     """
@@ -395,17 +407,48 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     return aff_inliers, Aff
 
 
-#@profile
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
+
+    %timeit kpts1.take(fm.T[0].astype(np.int32), axis=0)
+    %timeit kpts1[fm.T[0]]
+
+    Example:
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> import vtool.keypoint as ktool
+        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
+        >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
+
+    Timeit::
+        %timeit kpts1[fm.T[0]]
+        %timeit kpts2[fm.T[1]]
+        4.23 us per loop
+
+        %timeit kpts1[fm.take(0, axis=1)]
+        %timeit kpts2[fm.take(1, axis=1)]
+        5.32 us per loop
+
+        INDEX_TYPE = np.int32
+        %timeit kpts1.take(fm.take(0, axis=1), axis=0)
+        %timeit kpts2.take(fm.take(1, axis=1), axis=0)
+        2.77 us per loop
+
+        %timeit kpts1.take(fm.T[0], axis=0)
+        %timeit kpts2.take(fm.T[1], axis=0)
+        1.48 us per loop
     """
     fm_affine = fm[aff_inliers]
-    kpts1_m = kpts1[fm.T[0]]
-    kpts2_m = kpts2[fm.T[1]]
+
+    kpts1_m = kpts1.take(fm.T[0], axis=0)
+    kpts2_m = kpts2.take(fm.T[1], axis=0)
+
     # Get corresponding points and shapes
     kpts1_ma = kpts1[fm_affine.T[0]]
     kpts2_ma = kpts2[fm_affine.T[1]]
+    #kpts1_ma = kpts1.take(fm_affine.T[0], axis=0)
+    #kpts2_ma = kpts2.take(fm_affine.T[1], axis=0)
     # Normalize affine inliers xy locations
     xy1_ma = ktool.get_xys(kpts1_ma)
     xy2_ma = ktool.get_xys(kpts2_ma)
@@ -431,19 +474,49 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     return homog_inliers, H
 
 
-#@profile
 def spatial_verification(kpts1, kpts2, fm,
                          xy_thresh,
                          scale_thresh,
                          ori_thresh,
                          dlen_sqrd2=None,
-                         min_num_inliers=4):
+                         min_num_inliers=4,
+                         returnAff=False):
     """
     Driver function
     Spatially validates feature matches
 
     Returns:
         (homog_inliers, H, aff_inliers, Aff) if sucess else None
+
+    Example:
+        >>> from vtool.spatial_verification import *
+        >>> import ibeis
+        >>> import pyflann
+        >>> from ibeis.model.hots import query_request
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid = 1
+        >>> daid = ibs.get_annot_groundtruth(qaid)[0]
+        >>> kpts1 = ibs.get_annot_kpts(qaid)
+        >>> kpts2 = ibs.get_annot_kpts(daid)
+        >>> qvecs = ibs.get_annot_desc(qaid)
+        >>> dvecs = ibs.get_annot_desc(daid)
+        >>> # Simple ratio-test matching
+        >>> flann = pyflann.FLANN()
+        >>> flann.build_index(dvecs)
+        >>> qfx2_dfx, qfx2_dist = flann.nn_index(qvecs, 2)
+        >>> ratio = (qfx2_dist.T[1] / qfx2_dist.T[0])
+        >>> valid = ratio < 1.2
+        >>> valid_qfx = np.where(valid)[0]
+        >>> valid_dfx = qfx2_dfx.T[0][valid]
+        >>> fm = np.vstack((valid_qfx, valid_dfx)).T
+        >>> fs = ratio[valid]
+        >>> fk = np.ones(fs.size)
+        >>> xy_thresh = .01
+        >>> dlen_sqrd2 = 447271.015
+        >>> min_nInliers = 4
+        >>> returnAff = False
+        >>> ori_thresh = 1.57
+        >>> scale_thresh = 2.0
 
     """
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
@@ -476,7 +549,10 @@ def spatial_verification(kpts1, kpts2, fm,
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
-    return homog_inliers, H, aff_inliers, Aff
+    if returnAff:
+        return homog_inliers, H, aff_inliers, Aff
+    else:
+        return homog_inliers, H, None, None
 
 
 import cyth
@@ -485,6 +561,5 @@ if cyth.DYNAMIC:
 else:
     # <AUTOGEN_CYTH>
     # Regen command: python -c "import vtool.linalg" --cyth-write
-    pass
     # </AUTOGEN_CYTH>
     pass

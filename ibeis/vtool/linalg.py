@@ -256,23 +256,56 @@ def ori_distance(ori1, ori2):
     """ Returns how far off determinants are from one another
     >>> from vtool.linalg import *  # NOQA
     >>> np.random.seed(53)
-    >>> ori1 = (np.random.rand(1000) * TAU) - np.pi
-    >>> ori2 = (np.random.rand(1000) * TAU) - np.pi
+    >>> ori1 = (np.random.rand(10) * TAU) - np.pi
+    >>> ori2 = (np.random.rand(10) * TAU) - np.pi
     >>> output = utool.hashstr(utool.hashstr(ori_distance(ori1, ori2)))
     >>> print(utool.hashstr(output))
     !755pt!alrfgshiu
 
-    #if CYTH
-    #CYTH_INLINE
-    #CYTH_PARAM_TYPES:
-        np.ndarray ori1
-        np.ndarray ori2
-    #endif
+    Cyth:
+        #if CYTH
+        #CYTH_INLINE
+        #CYTH_PARAM_TYPES:
+            np.ndarray ori1
+            np.ndarray ori2
+        #endif
+
+    Timeit:
+        >>> import utool
+        >>> setup = utool.codeblock(
+        ...     '''
+                import numpy as np
+                TAU = np.pi * 2
+                np.random.seed(53)
+                ori1 = (np.random.rand(100000) * TAU) - np.pi
+                ori2 = (np.random.rand(100000) * TAU) - np.pi
+
+                def func_outvars():
+                    ori_dist = np.abs(ori1 - ori2)
+                    np.mod(ori_dist, TAU, out=ori_dist)
+                    np.minimum(ori_dist, np.subtract(TAU, ori_dist), out=ori_dist)
+                    return ori_dist
+
+                def func_orig():
+                    ori_dist = np.abs(ori1 - ori2) % TAU
+                    ori_dist = np.minimum(ori_dist, TAU - ori_dist)
+                    return ori_dist
+                ''')
+        >>> stmt_list = utool.codeblock(
+        ...     '''
+                func_outvars()
+                func_orig()
+                '''
+        ... ).split('\n')
+        >>> utool.util_dev.rrr()
+        >>> utool.util_dev.timeit_compare(stmt_list, setup, int(1E3))
+
     """
     # TODO: Cython
-    ori_dist = np.abs(ori1 - ori2) % TAU
-    ori_dist = np.minimum(ori_dist, TAU - ori_dist)
-    #np.minimum(ori_dist, TAU - ori_dist, ori_dist)
+    # TODO: Outvariable
+    ori_dist = np.abs(ori1 - ori2)
+    np.mod(ori_dist, TAU, out=ori_dist)
+    np.minimum(ori_dist, np.subtract(TAU, ori_dist), out=ori_dist)
     return ori_dist
 
 

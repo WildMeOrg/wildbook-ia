@@ -1,23 +1,31 @@
 """
 python -c "import vtool, doctest; print(doctest.testmod(vtool.keypoint))"
 
-
 Keypoints are stored in the invA format by default.
 Unfortunately many places in the code reference this as A instead of invA
 because I was confused when I first started writing this.
 
 to rectify this I am changing terminology.
 
-invV - maps from ucircle onto an ellipse (perdoch.invA)
-   V - maps from ellipse to ucircle      (perdoch.A)
-   Z - the conic matrix                  (perdoch.E)
+Variables:
+    invV : maps from ucircle onto an ellipse (perdoch.invA)
+       V : maps from ellipse to ucircle      (perdoch.A)
+       Z : the conic matrix                  (perdoch.E)
 
+Representation:
+    kpts (ndarray) : [x, y, iv11, iv21, iv22, ori]
+    invV (ndarray): [(iv11, iv12, x),
+                     (iv21, iv22, y),
+                     (   0,    0, 1),]
 
-Data formats:
-kpts = [x, y, iv11, iv21, iv22, ori]
-invV = ((iv11, iv12, x),
-        (iv21, iv22, y),
-        (   0,    0, 1))
+Efficiency Notes:
+    single index indexing is very fast
+
+    slicing seems to be very fast.
+
+    fancy indexing with __getitem__ is very slow
+    using np.take is a better idea, but its a bit harder
+    to use with multidimensional arrays
 """
 from __future__ import absolute_import, division, print_function
 # Python
@@ -104,9 +112,16 @@ def get_invVs(kpts):
 
 
 def get_oris(kpts):
-    """ Keypoint orientations
+    """ Extracts keypoint orientations for kpts array
+
     (in isotropic guassian space relative to the gravity vector)
     (in simpler words: the orientation is is taken from keypoints warped to the unit circle)
+
+    Args:
+        kpts (ndarray): (N x 6) [x, y, a, c, d, theta]
+
+    Returns:
+        (ndarray) theta
     """
     if kpts.shape[1] == 5:
         _oris = np.zeros(len(kpts), dtype=kpts.dtype)
@@ -122,7 +137,7 @@ def get_oris(kpts):
 def get_sqrd_scales(kpts):
     """ gets average squared scale (does not take into account elliptical shape """
     _iv11s, _iv21s, _iv22s = get_invVs(kpts)
-    _scales_sqrd = _iv11s * _iv22s
+    _scales_sqrd = np.multiply(_iv11s, _iv22s)
     return _scales_sqrd
 
 
@@ -166,17 +181,34 @@ def get_invV_mats2x2(kpts, with_ori=False):
 
 #@profile
 def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, ascontiguous=False):
-    """ packs keypoint shapes into affine invV matrixes
-        (default is just the 2x2 shape. But translation, orientation,
-        homogonous, and contiguous flags can be set.)
+    """
+    packs keypoint shapes into affine invV matrixes
+    (default is just the 2x2 shape. But translation, orientation,
+    homogonous, and contiguous flags can be set.)
+
+    Example:
+        >>> from vtool.keypoint import *  # NOQA
+        >>> kpts = np.array([[10, 20, 1, 2, 3, 0]])
+        >>> with_trans=True
+        >>> with_ori=True
+        >>> ashomog=True
+        >>> ascontiguous=False
+        >>> innVR_mats = get_invV_mats(kpts, with_trans, with_ori, ashomog, ascontiguous)
+        array([[[  1.,   0.,  10.],
+                [  2.,   3.,  20.],
+                [  0.,   0.,   1.]]])
     """
     nKpts = len(kpts)
     invV_mats = get_invV_mats2x2(kpts, with_ori=with_ori)
     if with_trans or ashomog:
-        _iv11s = invV_mats[:, 0, 0]
-        _iv12s = invV_mats[:, 0, 1]
-        _iv21s = invV_mats[:, 1, 0]
-        _iv22s = invV_mats[:, 1, 1]
+        #_iv11s = invV_mats[:, 0, 0]
+        #_iv12s = invV_mats[:, 0, 1]
+        #_iv21s = invV_mats[:, 1, 0]
+        #_iv22s = invV_mats[:, 1, 1]
+        _iv11s = invV_mats.T[0, 0]
+        _iv12s = invV_mats.T[1, 0]
+        _iv21s = invV_mats.T[0, 1]
+        _iv22s = invV_mats.T[1, 1]
         # Use homogenous coordinates
         _zeros = zeros(nKpts)
         _ones = ones(nKpts)
@@ -184,10 +216,9 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
             _iv13s, _iv23s = get_xys(kpts)
         else:
             _iv13s = _iv23s = _zeros
-        invV_tups = ((_iv11s, _iv12s, _iv13s),
-                     (_iv21s, _iv22s, _iv23s),
-                     (_zeros, _zeros,  _ones))
-        invV_arrs = array(invV_tups)        # R x C x N
+        invV_arrs =  array(((_iv11s, _iv12s, _iv13s),
+                            (_iv21s, _iv22s, _iv23s),
+                            (_zeros, _zeros,  _ones)))  # R x C x N
         invV_mats = rollaxis(invV_arrs, 2)  # N x R x C
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
@@ -333,21 +364,59 @@ def get_invVR_mats_shape(invVR_mats):
 
 #@profile
 def get_invVR_mats_xys(invVR_mats):
-    """ extracts xys from matrix encoding
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=3] invVR_mats
-    cdef:
-        np.ndarray[np.float64_t, ndim=2] _xys
-    #endif
+    r"""
+    extracts locations
+    extracts xys from matrix encoding
+
+    Args:
+        invVR_mats (ndarray) : list of matrices mapping ucircles to ellipses
+
+    Returns:
+        ndarray: the xy location
+
+    Cyth:
+        #if CYTH
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=3] invVR_mats
+        cdef:
+            np.ndarray[np.float64_t, ndim=2] _xys
+        #endif
+
+    Timeit:
+        >>> import utool
+        >>> setup = utool.codeblock(
+        ...     '''
+                import numpy as np
+                np.random.seed(0)
+                invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+                ''')
+        >>> stmt_list = utool.codeblock(
+        ...     '''
+                invVR_mats[:, 0:2, 2].T
+                invVR_mats.T[2, 0:2]
+                invVR_mats.T.take(2, axis=0).take([0, 1], axis=0)
+                invVR_mats.T.take(2, axis=0)[0:2]
+                '''
+        ... ).split('\n')
+        >>> utool.util_dev.timeit_compare(stmt_list, setup, int(1E5))
+        #>>> utool.util_dev.rrr()
+
+    Example:
+        >>> from vtool.keypoint import *  # NOQA
+        >>> np.random.seed(0)
+        >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+        >>> invVR_mats.T[2, 0:2]
     """
-    _xys = invVR_mats[:, 0:2, 2].T
+    # ORIG NUMPY
+    #_xys = invVR_mats[:, 0:2, 2].T
+    # BETTER NUMPY
+    _xys = invVR_mats.T[2, 0:2]
     return _xys
 
 
 #@profile
 def get_invVR_mats_oris(invVR_mats):
-    """ extracts orientation from matrix encoding
+    r""" extracts orientation from matrix encoding
 
     >>> from vtool.keypoint import *  # NOQA
     >>> np.random.seed(0)
@@ -356,27 +425,47 @@ def get_invVR_mats_oris(invVR_mats):
     >>> print(utool.hashstr(output))
     mcoxq8!3ml5bj9rx
 
-    #CYTH_INLINE
-    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
-    #CYTH_PARAMS:
-        np.ndarray[np.float64_t, ndim=3] invVR_mats
-    #if CYTH
-    cdef:
-        np.ndarray[np.float64_t, ndim=1] _oris
-        np.ndarray[np.float64_t, ndim=1] _iv12s
-        np.ndarray[np.float64_t, ndim=1] _iv11s
+    Cyth:
+        #CYTH_INLINE
+        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
+        #CYTH_PARAMS:
+            np.ndarray[np.float64_t, ndim=3] invVR_mats
+        #if CYTH
+        cdef:
+            np.ndarray[np.float64_t, ndim=1] _oris
+            np.ndarray[np.float64_t, ndim=1] _iv12s
+            np.ndarray[np.float64_t, ndim=1] _iv11s
 
-    _iv11s = invVR_mats[:, 0, 0]
-    _iv12s = invVR_mats[:, 0, 1]
-    _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
-    _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
-    _oris = (-_oris) % TAU
-    return _oris
-    #else
+        _iv11s = invVR_mats[:, 0, 0]
+        _iv12s = invVR_mats[:, 0, 1]
+        _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
+        _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
+        _oris = (-_oris) % TAU
+        return _oris
+        #else
+
+    Timeit:
+        >>> import utool
+        >>> setup = utool.codeblock(
+        ...     '''
+                import numpy as np
+                np.random.seed(0)
+                invVR_mats = np.random.rand(10000, 2, 2).astype(np.float64)
+                ''')
+        >>> stmt_list = utool.codeblock(
+        ...     '''
+                invVR_mats[:, 0, 1]
+                invVR_mats.T[1, 0]
+                '''
+        ... ).split('\n')
+        >>> utool.util_dev.rrr()
+        >>> utool.util_dev.timeit_compare(stmt_list, setup, int(1E3))
     """
     # Extract only the needed shape components
-    _iv11s = invVR_mats[:, 0, 0]
-    _iv12s = invVR_mats[:, 0, 1]
+    #_iv11s = invVR_mats[:, 0, 0]
+    #_iv12s = invVR_mats[:, 0, 1]
+    _iv11s = invVR_mats.T[0, 0]
+    _iv12s = invVR_mats.T[1, 0]
     # Solve for orientations. Adjust gravity vector pointing down
     _oris = (-trig.atan2(_iv12s, _iv11s)) % TAU
     return _oris
@@ -452,6 +541,10 @@ def flatten_invV_mats_to_kpts(invV_mats):
 
 #@profile
 def get_V_mats(kpts, **kwargs):
+    """
+    Returns:
+        V_mats (ndarray) : sequence of matrices that transform an ellipse to unit circle
+    """
     invV_mats = get_invV_mats(kpts, **kwargs)
     V_mats = invert_invV_mats(invV_mats)
     return V_mats
@@ -460,8 +553,11 @@ def get_V_mats(kpts, **kwargs):
 #@profile
 def get_Z_mats(V_mats):
     """
-        transform into conic matrix Z
-        Z = (V.T).dot(V)
+    transform into conic matrix Z
+    Z = (V.T).dot(V)
+
+    Returns:
+        Z_mats (ndarray): Z is a conic representation of an ellipse
     """
     Vt_mats = array(list(map(np.transpose, V_mats)))
     Z_mats = matrix_multiply(Vt_mats, V_mats)
