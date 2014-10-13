@@ -133,30 +133,27 @@ def prepare_figure_for_save(fnum):
     return fig, fnum
 
 
-def sanatize_img_fname(fname, defaultext=None):
+def sanatize_img_fname(fname):
+    """ Removes bad characters from images fnames """
+    # Replace bad chars
+    fname_clean = fname.replace('/', 'slash')
+    search_replace_list = [(' ', '_'), ('\n', '--'), ('\\', ''), ('/', '')]
+    for old, new in search_replace_list:
+        fname_clean = fname_clean.replace(old, new)
+    return fname_clean
+
+
+def sanatize_img_ext(ext, defaultext=None):
+    # Find good ext
     if defaultext is None:
         if mpl.get_backend().lower() == 'pdf':
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
-    fname_clean = fname
-    search_replace_list = [(' ', '_'), ('\n', '--'), ('\\', ''), ('/', '')]
-    for old, new in search_replace_list:
-        fname_clean = fname_clean.replace(old, new)
-    fname_noext, ext = splitext(fname_clean)
-    fname_clean = fname_noext + ext.lower()
-    # Check for correct extensions
-    if not ext.lower() in utool.IMG_EXTENSIONS and ext.lower() != '.pdf':
-        fname_clean += defaultext
-    return fname_clean
-
-
-def sanatize_img_fpath(fpath, defaultext):
-    [dpath, fname] = split(fpath)
-    fname_clean = sanatize_img_fname(fname, defaultext)
-    fpath_clean = join(dpath, fname_clean.replace('/', 'slash'))
-    fpath_clean = utool.truepath(fpath_clean)
-    return fpath_clean
+    ext = ext.lower()
+    if ext not in utool.IMG_EXTENSIONS and ext != '.pdf':
+        ext += defaultext
+    return ext
 
 
 def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
@@ -166,17 +163,33 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
     elif usetitle:
         title = sanatize_img_fname(fig.canvas.get_window_title())
         fpath = join(fpath, title)
+    # Split into dpath, fname, and extension
+    dpath, fname_ = split(fpath)
+    fname, ext = splitext(fname_)
+    # Add the extension back if it wasnt a real extension
+    if ext not in utool.IMG_EXTENSIONS and ext != '.pdf':
+        fname += ext
+        ext = ''
     # Add in DPI information
-    fpath_noext, ext = splitext(fpath)
-    size_suffix = '_DPI=%r_FIGSIZE=%d,%d' % (DPI, FIGSIZE[0], FIGSIZE[1])
-    fpath = fpath_noext + size_suffix + ext
-    # Sanatize the filename
-    fpath_clean = sanatize_img_fpath(fpath, defaultext)
+    size_suffix = 'DPI=%r_WH=%d,%d' % (DPI, FIGSIZE[0], FIGSIZE[1])
+    # Sanatize
+    fname = sanatize_img_fname(fname)
+    ext = sanatize_img_ext(ext, defaultext)
+    # Format safely
+    fname_fmt = '{fname}_{size_suffix}{ext}'
+    fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
+    fname_clean = utool.long_fname_format(fname_fmt, fmt_dict, ['size_suffix'], max_len=255, hashlen=4)
+    # Normalize extension
+    fpath_clean = join(dpath, fname_clean)
     return fpath_clean
 
 
 def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
                 defaultext=None, verbose=2):
+    """
+    Helper to save the figure image to disk. Tries to be smart about filename
+    lengths, extensions, overwrites, etc...
+    """
     if defaultext is None:
         if mpl.get_backend().lower() == 'pdf':
             defaultext = '.pdf'
