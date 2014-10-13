@@ -34,11 +34,13 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 2:20 --va --vf
         python dev.py -t smk2 --allgt --db GZ_ALL --index 2:20 --vf --va
 
+        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10
+        python dev.py -t smk3 --allgt --db GZ_ALL
         python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va --trunc-uuids
 
         python dev.py -t smk3 --allgt --db PZ_Master_PRE_DETECTION --index 2:10 --vf --va
 
-        python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION
+        python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION && python dev.py -t smk3 --allgt --db PZ_Master_PRE_DETECTION
         python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
 
     """
@@ -142,7 +144,7 @@ def selective_match_kernel(qreq_):
 
     print('[MEM] invindex is using ' + utool.get_object_size_str(invindex))
     print('[MEM] qreq_ is using ' + utool.get_object_size_str(qreq_))
-    utool.embed()
+    #utool.embed()
 
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
