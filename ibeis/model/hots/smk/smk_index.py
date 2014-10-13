@@ -180,25 +180,24 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     if utool.VERBOSE:
         print('[smk_index] index_data_annots')
     flann_params = {}
-    _words = words
+    #_words = words
     #_words = pdh.ensure_values(words)
     #_daids = pdh.ensure_values(daids)
     #_vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
     #_label_list = pdh.ensure_values(annots_df['labels'][_daids])
-    wordflann = nntool.flann_cache(_words, flann_params=flann_params,
+    wordflann = nntool.flann_cache(words, flann_params=flann_params,
                                    appname='smk')
-    _daids = daids
-    _vecs_list = annots_df['vecs'][_daids]
-    _label_list = annots_df['labels'][_daids]
-    _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
+    _vecs_list = annots_df['vecs'][daids]
+    _label_list = annots_df['labels'][daids]
+    idx2_dvec, idx2_daid, idx2_dfx = nntool.invertable_stack(_vecs_list, daids)
 
-    idx2_dfx   = _idx2_dfx
-    idx2_daid  = _idx2_daid
-    idx2_dvec  = _idx2_dvec
-    daid2_label = dict(zip(_daids, _label_list))
+    daid2_label = dict(zip(daids, _label_list))
 
     invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx,
                              daids, daid2_label)
+    # Decrement reference count so memory can be cleared in the next function
+    del words, idx2_dvec, idx2_daid, idx2_dfx, daids, daid2_label
+    del _vecs_list, _label_list
     if with_internals:
         compute_data_internals_(invindex, aggregate, alpha, thresh)  # 99%
     return invindex
@@ -233,6 +232,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     words     = invindex.words
     wx_series = np.arange(len(words))
     memtrack.track_obj(idx2_vec, 'idx2_vec')
+    memtrack.track_obj(words, 'words')
     if utool.VERBOSE:
         print('[smk_index] compute_data_internals_')
         print('[smk_index] * len(daids) = %r' % (len(daids),))
@@ -260,7 +260,11 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
         is_database=True)
+    #memtrack.track_obj(wx2_drvecs, 'wx2_drvecs')
+    #memtrack.track_obj(wx2_maws, 'wx2_maws')
     # Try to save some memory
+    del _wx2_maws
+
     #invindex.idx2_dvec
     #gc.get_referents(idx2_vec)
     if utool.REPORT:  # __debug__
@@ -275,7 +279,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
     memtrack.report('[DATA INTERNALS3]')
     print('--')
-    print('id(locals()) = %r' % (id(locals())))
+    #print('id(locals()) = %r' % (id(locals())))
     invindex.idx2_dvec = None
     del idx2_vec
     #utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
@@ -631,6 +635,8 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
     vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
     rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
                   for vecs, word in zip(vecs_list, words_list)]  # 103 ms
+    # TODO: Report object size
+    # TODO: Residuals shoud be using uint8 vectors probably.
     if aggregate:
         (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = _aggregate_residuals(
             rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws)
