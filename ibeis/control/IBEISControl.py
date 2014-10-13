@@ -13,6 +13,7 @@ import six
 import atexit
 import requests
 import uuid
+import weakref
 from six.moves import zip, map, range
 from functools import partial
 from os.path import join, split
@@ -115,10 +116,16 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
         ibsfuncs.inject_ibeis(ibs)
-        __ALL_CONTROLLERS__.append(ibs)
+        ibs_weakref = weakref.ref(ibs)
+        __ALL_CONTROLLERS__.append(ibs_weakref)
 
-    def __del__(ibs):
-        print('[ibs.__del__] Observers (if any) notified [controller killed]')
+    # We should probably not implement __del__
+    # see: https://docs.python.org/2/reference/datamodel.html#object.__del__
+    #def __del__(ibs):
+    #    ibs.cleanup()
+
+    def cleanup(ibs):
+        print('[ibs.cleanup] Observers (if any) notified [controller killed]')
         for observer in ibs.observers:
             observer.notify_controller_killed()
 

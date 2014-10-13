@@ -1,4 +1,8 @@
 #!/usr/bin/env python2.7
+"""
+python ibeis/tests/test_ibs_getters.py
+
+"""
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 # Python
@@ -42,7 +46,7 @@ def TEST_IBS_GETTERS(ibs=None):
     fid_list  = ibs.get_annot_fids(aid_list, eager=True)
     assert isinstance(fid_list, list), 'should be a list'
     utool.DEBUG2 = True
-    fid_gen  = ibs.get_annot_fids(aid_list, eager=False)
+    fid_gen = ibs.get_annot_fids(aid_list, eager=False)
     utool.DEBUG2 = False
     import types
     assert isinstance(fid_gen, types.GeneratorType)

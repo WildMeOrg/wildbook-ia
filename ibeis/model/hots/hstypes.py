@@ -30,8 +30,18 @@ import numpy as np
 
 #FLOAT_TYPE = np.float32
 #INTEGER_TYPE = np.int32
-FLOAT_TYPE = np.float64
-INTEGER_TYPE = np.int64
 INDEX_TYPE = np.int32
 VEC_TYPE = np.uint8
 VEC_DIM = 128
+
+#INTEGER_TYPE = np.int64
+INTEGER_TYPE = np.int32
+FLOAT_TYPE = np.float64
+
+
+# Feature Match datatype
+FM_DTYPE  = INTEGER_TYPE
+# Feature Score datatype
+FS_DTYPE  = FLOAT_TYPE
+# Feature Rank datatype
+FK_DTYPE  = np.int16

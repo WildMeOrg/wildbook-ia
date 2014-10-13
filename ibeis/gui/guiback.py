@@ -112,7 +112,10 @@ class MainWindowBackend(QtCore.QObject):
         if back.ibs is not None:
             back.ibs.register_observer(back)
 
-    def __del__(back):
+    #def __del__(back):
+    #    back.cleanup()
+
+    def cleanup(back):
         if back.ibs is not None:
             back.ibs.remove_observer(back)
 
@@ -157,7 +160,9 @@ class MainWindowBackend(QtCore.QObject):
         from ibeis.gui import inspect_gui
         qaid2_qres = {qres.qaid: qres}
         backend_callback = back.front.update_tables
-        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres, callback=backend_callback, ranks_lt=kwargs['top_aids'], )
+        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
+                                                        callback=backend_callback,
+                                                        ranks_lt=kwargs['top_aids'],)
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
         pass

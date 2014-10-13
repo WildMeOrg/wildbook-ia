@@ -11,10 +11,6 @@ import os
 import numpy as np
 from ibeis.model.hots import exceptions as hsexcept
 
-FM_DTYPE  = np.uint32   # Feature Match datatype
-FS_DTYPE  = np.float32  # Feature Score datatype
-FK_DTYPE  = np.int16    # Feature Position datatype
-
 
 #FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
 MAX_FNAME_LEN = 64 if utool.WIN32 else 200
@@ -155,7 +151,6 @@ class QueryResult(__OBJECT_BASE__):
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
         try:
-            #if __debug__:
             if force_miss:
                 raise hsexcept.HotsCacheMissError('force miss')
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -206,7 +201,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.qaid = qaid_good
 
     def __eq__(self, other):
-        """ For testing """
+        """ For testing. Do not use"""
         return all([
             self.qaid == other.qaid,
             self.cfgstr == other.cfgstr,
@@ -228,6 +223,7 @@ class QueryResult(__OBJECT_BASE__):
         return query_result_fname(qres.qaid, qres.qauuid, qres.cfgstr, **kwargs)
 
     def save(qres, qresdir):
+        """ saves query result to directory """
         fpath = qres.get_fpath(qresdir)
         if utool.NOT_QUIET:  # and utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))

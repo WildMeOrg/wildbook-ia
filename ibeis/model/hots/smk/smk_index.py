@@ -11,16 +11,17 @@ TODO::
 from __future__ import absolute_import, division, print_function
 #import six
 import utool
+import weakref
 import numpy as np
 #import pandas as pd
 from six.moves import zip, map  # NOQA
 from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
+from ibeis.model.hots.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk import smk_core
 from ibeis.model.hots.smk import smk_speed
 #from ibeis.model.hots.smk import smk_match
 from ibeis.model.hots.smk import pandas_helpers as pdh
-from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 #from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
@@ -154,6 +155,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     #annots_df.ibs.dbcache.squeeze()
     #annots_df.ibs.dbcache.reboot()
     del train_vecs
+    del kwds
     #del train_vecs_list
     return words
 
@@ -202,7 +204,7 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     return invindex
 
 
-@profile
+#@profile
 def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     """
     Builds each of the inverted index internals.
@@ -221,6 +223,8 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         wx2_maws = _wx2_maws  # NOQA
     """
     # Get information
+    memtrack = utool.MemoryTracker('[DATA INTERNALS ENTRY]')
+    memtrack.report('[DATA INTERNALS1]')
     idx2_vec  = invindex.idx2_dvec
     idx2_dfx  = invindex.idx2_dfx
     idx2_daid = invindex.idx2_daid
@@ -228,6 +232,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wordflann = invindex.wordflann
     words     = invindex.words
     wx_series = np.arange(len(words))
+    memtrack.track_obj(idx2_vec, 'idx2_vec')
     if utool.VERBOSE:
         print('[smk_index] compute_data_internals_')
         print('[smk_index] * len(daids) = %r' % (len(daids),))
@@ -256,8 +261,26 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
         is_database=True)
     # Try to save some memory
+    #invindex.idx2_dvec
+    #gc.get_referents(idx2_vec)
+    if utool.REPORT:  # __debug__
+        utool.report_memsize(idx2_vec, 'idx2_vec')
+    memtrack.report('[DATA INTERNALS2]')
+    #print('[smk_index] vecs are using: ' + utool.get_object_size_str(idx2_vec))
+    #import gc
+    #obj = invindex.idx2_dvec
+    if utool.REPORT:  # __debug__
+        idx2_vec_ref = weakref.ref(idx2_vec)
+        utool.report_memsize(invindex.idx2_dvec, 'invindex.idx2_dvec')
+        utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
+    memtrack.report('[DATA INTERNALS3]')
+    print('--')
+    print('id(locals()) = %r' % (id(locals())))
     invindex.idx2_dvec = None
     del idx2_vec
+    #utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
+    #utool.embed()
+    memtrack.report('[DATA INTERNALS4]')
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
     daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh)
@@ -270,6 +293,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.wx2_fxs     = wx2_fxs   # needed for asmk
     invindex.wx2_maws    = wx2_maws  # needed for awx2_mawssmk
     invindex.daid2_sccw  = daid2_sccw
+    memtrack.report('[DATA INTERNALS5]')
 
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug

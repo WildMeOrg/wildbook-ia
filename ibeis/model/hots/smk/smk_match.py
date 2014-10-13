@@ -6,7 +6,7 @@ import numpy as np
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_core
 #from six.moves import zip
-#from ibeis.model.hots.smk.hstypes import INTEGER_TYPE
+#from ibeis.model.hots.hstypes import INTEGER_TYPE
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_match]')
 
 
@@ -25,6 +25,16 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
         >>> withinfo = True
         >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+
+    Dev::
+        python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict
+
+        python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30
+
+        python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 0:20
+        python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION
+        python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
+
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
@@ -77,7 +87,7 @@ def selective_match_kernel(qreq_):
         qres = qaid2_qres_[qaids[0]]
         fig = qres.show_top(ibs)
     """
-    memtrack = utool.MemoryTracker('selective_match_kernel')
+    memtrack = utool.MemoryTracker('[SMK ENTRY]')
     daids = qreq_.get_external_daids()
     qaids = qreq_.get_external_qaids()
     ibs   = qreq_.ibs
@@ -88,7 +98,7 @@ def selective_match_kernel(qreq_):
     thresh    = qreq_.qparams.thresh
     nAssign   = qreq_.qparams.nAssign
     # Build ~~Pandas~~ dataframe (or maybe not)
-    memtrack.report()
+    memtrack.report('[SMK PREINIT]')
     annots_df = smk_index.make_annot_df(ibs)  # .3%
     if hasattr(qreq_, 'words'):
         # Hack
@@ -99,11 +109,11 @@ def selective_match_kernel(qreq_):
         # Load vocabulary
         taids = ibs.get_valid_aids()  # exemplar
         words = smk_index.learn_visual_words(annots_df, taids, nWords)
-        memtrack.report('learned visual words')
+        memtrack.report('[SMK LEARN VWORDS]')
         #utool.embed()
         # Index database annotations
         invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate)
-        memtrack.report('indexed database annotations')
+        memtrack.report('[SMK INDEX ANNOTS]')
         print('L___ FINISHED LOADING VOCAB ___\n')
     withinfo = True
     # Progress
@@ -114,7 +124,7 @@ def selective_match_kernel(qreq_):
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     #return {}, {}
-    memtrack.report('SMK Init')
+    memtrack.report('[SMK INITIALIZED]')
 
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
@@ -125,8 +135,10 @@ def selective_match_kernel(qreq_):
                                                             thresh, nAssign)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
-        memtrack.report('Query')
+        memtrack.report('[SMK SINGLE QUERY]')
     end_()
+
+    memtrack.report('[SMK FINISHED]')
     return qaid2_scores, qaid2_chipmatch
 
 

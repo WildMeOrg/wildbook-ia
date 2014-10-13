@@ -214,7 +214,6 @@ class SQLExecutionContext(object):
                 #context.db.commit(verbose=False)
                 #context.cur.commit()
             #context.cur.close()
-            context.cur.close()
 
 
 def get_operation_type(operation):

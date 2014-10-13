@@ -8,7 +8,7 @@ import numpy as np
 #import pandas as pd
 import utool
 import numpy.linalg as npl
-from ibeis.model.hots.smk.hstypes import FLOAT_TYPE, INDEX_TYPE
+from ibeis.model.hots.hstypes import FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from itertools import product
 from vtool import clustering2 as clustertool
