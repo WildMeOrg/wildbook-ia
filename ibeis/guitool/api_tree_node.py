@@ -13,27 +13,22 @@ TREE_NODE_BASE = QtCore.QObject
 
 class TreeNode(TREE_NODE_BASE):
     """
-    
-    cdef:
-        long id_, level
-        list child_nodes
-        TreeNode parent_node
-    
+    Cyth:
+        cdef:
+            long id_, level
+            list child_nodes
+            TreeNode parent_node
     """
     #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
-        """
-        
-        
-        """
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
         self.level = level
 
-    def __del__(self):
-        if utool.VERBOSE:
-            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+    #def __del__(self):
+    #    if utool.VERBOSE:
+    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
         """
@@ -55,7 +50,7 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns=long>
         cdef TreeNode child_node
-        
+
         """
         self.lazy_checks()
         return self.child_nodes.index(child_node)
@@ -82,7 +77,7 @@ class TreeNode(TREE_NODE_BASE):
 
     def get_num_children(self):
         """ <CYTH returns=long>
-            
+
             """
         self.lazy_checks()
         return len(self.child_nodes)
@@ -94,10 +89,10 @@ class TreeNode(TREE_NODE_BASE):
 
     def get_row(self):
         """ Returns the row_index of this node w.r.t its parent.
-        
+
         cdef list sibling_nodes
         cdef long row
-        
+
         """
         sibling_nodes = self.parent_node.child_nodes
         row = sibling_nodes.index(self)
@@ -156,7 +151,6 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         list node_list
         list new_node_lists
         list new_ids_lists
-    
     """
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
@@ -188,14 +182,15 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
-    <CYTH returns="TreeNode">
-    cdef:
-        size_t ix
-        long id_
-        list child_nodes
-        TreeNode next_node
-        list next_ids
-    
+
+    Cyth:
+        <CYTH returns="TreeNode">
+        cdef:
+            size_t ix
+            long id_
+            list child_nodes
+            TreeNode next_node
+            list next_ids
     """
     if level == num_levels - 1:
         child_nodes = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -215,14 +210,14 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
 def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
-    <CYTH returns="TreeNode">
-    cdef:
-        size_t ix
-        long id_
-        list child_nodes
-        TreeNode next_node
-        list next_ids
-    
+    Cyth:
+        <CYTH returns="TreeNode">
+        cdef:
+            size_t ix
+            long id_
+            list child_nodes
+            TreeNode next_node
+            list next_ids
     """
     if level == num_levels - 1:
         child_nodes_iter = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -241,8 +236,8 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
 @profile
 def build_internal_structure(model):
     """
-    <CYTH returns="TreeNode">
-    
+    Cyth:
+        <CYTH returns="TreeNode">
     """
     #from guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
