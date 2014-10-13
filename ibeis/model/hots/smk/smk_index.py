@@ -11,7 +11,7 @@ TODO::
 from __future__ import absolute_import, division, print_function
 #import six
 import utool
-import weakref
+#import weakref
 import numpy as np
 #import pandas as pd
 from six.moves import zip, map  # NOQA
@@ -115,20 +115,9 @@ def make_annot_df(ibs):
     return annots_df
 
 
-def __get_train_vecs(ibs, taids):
-    """  Try keeping this memory in a separate stack frame """
-    train_vecs_list = ibs.get_annot_desc(taids, eager=True)
-    train_vecs = np.vstack(train_vecs_list)
-    # SAD FACE!!! WHY WONT TRAIN_VECS_LIST DEALLOCATE!?!?
-    for ix in range(len(train_vecs_list)):
-        train_vecs_list[ix] = None
-    del train_vecs_list
-    return train_vecs
-
-
 #@profile
-#@utool.memprof
-def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
+@utool.memprof
+def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memtrack=None):
     """
     Computes and caches visual words
 
@@ -141,12 +130,19 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
         >>> print(words.shape)
         (8000, 128)
     """
-    #memtrack = utool.MemoryTracker('learn_visual_words')
+    if memtrack is None:
+        memtrack = utool.MemoryTracker('[learn_visual_words]')
     max_iters = 200
     flann_params = {}
     #train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
     #train_vecs_list = annots_df['vecs'][taids]
-    train_vecs = __get_train_vecs(annots_df.ibs, taids)
+    train_vecs_list = annots_df.ibs.get_annot_desc(taids, eager=True)
+    memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
+    memtrack.report('loaded trainvecs')
+    train_vecs = np.vstack(train_vecs_list)
+    memtrack.track_obj(train_vecs, 'train_vecs')
+    memtrack.report('stacked trainvecs')
+    del train_vecs_list
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
     kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
@@ -156,12 +152,13 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     #annots_df.ibs.dbcache.reboot()
     del train_vecs
     del kwds
+    memtrack.report('returning words')
     #del train_vecs_list
     return words
 
 
 def index_data_annots(annots_df, daids, words, with_internals=True,
-                      aggregate=False, alpha=3, thresh=0):
+                      aggregate=False, alpha=3, thresh=0, memtrack=None):
     """
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
@@ -199,12 +196,12 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     del words, idx2_dvec, idx2_daid, idx2_dfx, daids, daid2_label
     del _vecs_list, _label_list
     if with_internals:
-        compute_data_internals_(invindex, aggregate, alpha, thresh)  # 99%
+        compute_data_internals_(invindex, aggregate, alpha, thresh, memtrack=memtrack)  # 99%
     return invindex
 
 
 #@profile
-def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
+def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0, memtrack=None):
     """
     Builds each of the inverted index internals.
 
@@ -222,7 +219,8 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         wx2_maws = _wx2_maws  # NOQA
     """
     # Get information
-    memtrack = utool.MemoryTracker('[DATA INTERNALS ENTRY]')
+    if memtrack is None:
+        memtrack = utool.MemoryTracker('[DATA INTERNALS ENTRY]')
     memtrack.report('[DATA INTERNALS1]')
     idx2_vec  = invindex.idx2_dvec
     idx2_dfx  = invindex.idx2_dfx
@@ -232,7 +230,6 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     words     = invindex.words
     wx_series = np.arange(len(words))
     memtrack.track_obj(idx2_vec, 'idx2_vec')
-    memtrack.track_obj(words, 'words')
     if utool.VERBOSE:
         print('[smk_index] compute_data_internals_')
         print('[smk_index] * len(daids) = %r' % (len(daids),))
@@ -260,31 +257,16 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
         is_database=True)
-    #memtrack.track_obj(wx2_drvecs, 'wx2_drvecs')
-    #memtrack.track_obj(wx2_maws, 'wx2_maws')
     # Try to save some memory
     del _wx2_maws
-
-    #invindex.idx2_dvec
-    #gc.get_referents(idx2_vec)
-    if utool.REPORT:  # __debug__
-        utool.report_memsize(idx2_vec, 'idx2_vec')
-    memtrack.report('[DATA INTERNALS2]')
-    #print('[smk_index] vecs are using: ' + utool.get_object_size_str(idx2_vec))
-    #import gc
-    #obj = invindex.idx2_dvec
-    if utool.REPORT:  # __debug__
-        idx2_vec_ref = weakref.ref(idx2_vec)
-        utool.report_memsize(invindex.idx2_dvec, 'invindex.idx2_dvec')
-        utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
-    memtrack.report('[DATA INTERNALS3]')
+    memtrack.report('[DATA INTERNALS1]')
     print('--')
     #print('id(locals()) = %r' % (id(locals())))
     invindex.idx2_dvec = None
     del idx2_vec
     #utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
     #utool.embed()
-    memtrack.report('[DATA INTERNALS4]')
+    memtrack.report('[DATA INTERNALS2]')
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
     daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh)
@@ -297,7 +279,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.wx2_fxs     = wx2_fxs   # needed for asmk
     invindex.wx2_maws    = wx2_maws  # needed for awx2_mawssmk
     invindex.daid2_sccw  = daid2_sccw
-    memtrack.report('[DATA INTERNALS5]')
+    memtrack.report('[DATA INTERNALS3]')
 
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug

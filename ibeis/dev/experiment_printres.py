@@ -284,6 +284,9 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
 
 
 def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list):
+    """
+    Visualizes results from experiments
+    """
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -291,16 +294,17 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     if len(sel_cols) > 0 and len(sel_rows) == 0:
         sel_rows = list(range(len(qaids)))
     if utool.get_argflag(('--view-all', '--va')):
-        from ibeis.model.hots import match_chips4 as mc4
-        # It is very inefficient to turn off caching when view_all is true
-        if mc4.USE_CACHE is False:
-            print('WARNING: view_all specified with USE_CACHE == False')
-            mc4.USE_CACHE = True
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag('--view-hard'):
         sel_rows = new_hard_qx_list
         sel_cols = list(range(len(cfg_list)))
+
+    from ibeis.model.hots import match_chips4 as mc4
+    # It is very inefficient to turn off caching when view_all is true
+    if not mc4.USE_CACHE:
+        print('WARNING: view_all specified with USE_CACHE == False')
+        mc4.USE_CACHE = True
 
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
@@ -310,16 +314,18 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     skip_list = []
     cp_src_list = []
     cp_dst_list = []
-    def append_copy_task(fpath_clean):
-        import os
-        from os.path import dirname, split
-        fname_clean = os.path.basename(fpath_clean)
-        outdir = dirname(fpath_clean)
+    def append_copy_task(fpath_orig):
+        from os.path import dirname, split, basename, splitext
+        fname_orig, ext = splitext(basename(fpath_orig))
+        outdir = dirname(fpath_orig)
         fdir_clean, cfgdir = split(outdir)
         #aug = cfgdir[0:min(len(cfgdir), 10)]
         aug = cfgdir
-        fdst_clean = join(fdir_clean, aug  + '_' + fname_clean)
-        cp_src_list.append(fpath_clean)
+        fname_fmt = '{aug}_{fname_orig}{ext}'
+        fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
+        fname_clean = utool.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
+        fdst_clean = join(fdir_clean, fname_clean)
+        cp_src_list.append(fpath_orig)
         cp_dst_list.append(fdst_clean)
 
     def load_qres(ibs, qaid, daids, query_cfg):
@@ -330,9 +336,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     #DELETE              = False
     USE_FIGCACHE        = False
-    DUMP_QANNOT         = True
-    DUMP_QANNOT_DUMP_GT = True
-    DUMP_TOP_CONTEXT    = True
+    DUMP_QANNOT         = False  # True
+    DUMP_QANNOT_DUMP_GT = False  # True
+    DUMP_TOP_CONTEXT    = False  # True
 
     figdir = join(ibs.get_fig_dir(), 'query_analysis')
     utool.ensuredir(ibs.get_fig_dir())
@@ -385,7 +391,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             'subdir'    : subdir,
             'quality'   : False,
             'overwrite' : True,
-            'verbose'   : 0
+            'verbose'   : 0,
         }
 
         if not SAVE_FIGURES:
@@ -398,11 +404,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         show_kwargs = {'N': 3,
                        'ori': True,
                        'ell_alpha': .9, }
+        # try to shorten query labels a bit
+        query_lbl = query_lbl.replace(' ', '').replace('\'', '')
         qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
         # Adjust subplots
         df2.adjust_subplots_safe()
-        fpath_clean = ph.dump_figure(figdir, **dumpkw)
-        append_copy_task(fpath_clean)
+        fpath_orig = ph.dump_figure(figdir, **dumpkw)
+        append_copy_task(fpath_orig)
 
         if DUMP_QANNOT:
             _show_chip(qres.qaid, 'QUERY_', **dumpkw)

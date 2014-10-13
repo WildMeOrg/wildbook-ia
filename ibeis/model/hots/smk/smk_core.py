@@ -73,8 +73,10 @@ def selectivity_function(simmat_list, alpha, thresh):
         np.multiply(np.sign(simmat), np.power(np.abs(simmat), alpha))
         for simmat in simmat_list
     ]
-    scores_list = [np.multiply(scores, np.greater(scores, thresh))
-                   for scores in scores_iter]
+    scores_list = [
+        np.multiply(scores, np.greater(scores, thresh))
+        for scores in scores_iter
+    ]
     if utool.DEBUG2:
         assert len(scores_list) == len(simmat_list)
     return scores_list
@@ -84,19 +86,38 @@ def apply_maws(simmat_list, qmaws_list, dmaws_list):
     """
     Applys multi-assign weights to rvec similarty matrices
 
+    Accounts for rvecs being stored as int8's
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
+        >>> qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+        >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
     """
     if dmaws_list is None and qmaws_list is None:
         mawsim_list = simmat_list
+        mawsim_list = [
+            simmat / hstypes.RVEC_MAX
+            for simmat in simmat_list
+        ]
     elif dmaws_list is not None and qmaws_list is not None:
         #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat * dmaws.reshape((1, dmaws.size))
-        mawsim_list = [qmaws[:, np.newaxis] * simmat * dmaws[np.newaxis, :]
-                       for simmat, qmaws, dmaws in
-                       zip(simmat_list, qmaws_list, dmaws_list)]
+        mawsim_list = [
+            np.divide(np.multiply(np.multiply(qmaws[:, np.newaxis], simmat), dmaws[np.newaxis, :]), hstypes.RVEC_MAX)
+            #qmaws[:, np.newaxis] * simmat * dmaws[np.newaxis, :] / hstypes.RVEC_MAX
+            for simmat, qmaws, dmaws in
+            zip(simmat_list, qmaws_list, dmaws_list)
+        ]
     elif qmaws_list is not None and dmaws_list is None:
         #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat
-        mawsim_list = [qmaws[:, np.newaxis] * simmat
-                       for simmat, qmaws in
-                       zip(simmat_list, qmaws_list)]
+        mawsim_list = [
+            qmaws[:, np.newaxis] * simmat / hstypes.RVEC_MAX
+            for simmat, qmaws in
+            zip(simmat_list, qmaws_list)
+        ]
     else:
         #mawsim_list = [simmat * dmaws[np.newaxis, :]
         #               for simmat, dmaws in
@@ -108,6 +129,13 @@ def apply_maws(simmat_list, qmaws_list, dmaws_list):
 def similarity_function(qrvecs_list, drvecs_list):
     """ Phi dot product. Accounts for NaN residual vectors
     qrvecs_list list of rvecs for each word
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
     """
     simmat_list = [
         qrvecs.dot(drvecs.T)
@@ -118,7 +146,7 @@ def similarity_function(qrvecs_list, drvecs_list):
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
     # Rvec is NaN implies it is a cluster center. perfect similarity
     for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = 1.0
+        simmat[np.isnan(simmat)] = hstypes.RVEC_MAX  # 1.0
     return simmat_list
 
 
@@ -135,6 +163,16 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, alpha, thres
 
     Returns:
         score matrix
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+        >>> qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+        >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
+        >>> alpha = 3
+        >>> thresh = 0
     """
     # Cosine similarity between normalized residuals
     simmat_list = similarity_function(qrvecs_list, drvecs_list)

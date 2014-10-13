@@ -14,6 +14,7 @@ from ibeis.model.hots import exceptions as hsexcept
 
 #FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
 MAX_FNAME_LEN = 64 if utool.WIN32 else 200
+TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids'))
 
 #=========================
 # Query Result Class
@@ -72,14 +73,16 @@ def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
     """
     #fname_fmt = 'res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}'
     fname_fmt = 'qaid={qaid}_res_{cfgstr}_qauuid={quuid}{ext}'
-    fname = fname_fmt.format(
-        cfgstr=cfgstr, qaid=qaid, quuid=str(qauuid), ext=ext)
+    quuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
+    fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext=ext)
+    #fname = fname_fmt.format(**fmt_dict)
+    fname = utool.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN)
     # condence the filename if it is too long (grumble grumble windows)
     #if (not FORCE_LONGNAME) and len(fname) > 64:
-    if len(fname) > MAX_FNAME_LEN:
-        hash_id = utool.hashstr(cfgstr)
-        fname = fname_fmt.format(
-            cfgstr=hash_id, qaid=qaid, quuid=str(qauuid), ext=ext)
+    #if len(fname) > MAX_FNAME_LEN:
+    #    hash_id = utool.hashstr(cfgstr)
+    #    fname = fname_fmt.format(
+    #        cfgstr=hash_id, qaid=qaid, quuid=quuid_str, ext=ext)
     return fname
 
 

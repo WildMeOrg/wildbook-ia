@@ -298,7 +298,7 @@ class QueryParams(object):
         if pipeline_root == 'smk':
             nAssign     = cfg.smk_cfg.nAssign
             aggregate   = cfg.smk_cfg.aggregate
-            thresh      = cfg.smk_cfg.thresh
+            smk_thresh  = cfg.smk_cfg.smk_thresh
             alpha       = cfg.smk_cfg.alpha
             indexer_key = cfg.smk_cfg.indexer_key
             nWords      = cfg.smk_cfg.nWords

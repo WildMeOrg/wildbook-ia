@@ -304,12 +304,12 @@ class SMKConfig(ConfigBase):
     def __init__(smkcfg, **kwargs):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
         smkcfg.nAssign = 10  # MultiAssignment
-        smkcfg.thresh = 0  # tau in the paper
+        smkcfg.smk_thresh = 0.0  # tau in the paper
         smkcfg.alpha = 3
         smkcfg.aggregate = False  #
         # TODO Separate into vocab config
         smkcfg.indexer_key = 'default'  # Vocab
-        smkcfg.nWords = 8E3  #
+        smkcfg.nWords = int(8E3)  #
         # Multiassign parameters
         smkcfg.assign_alpha = 1.2
         smkcfg.assign_sigma = 80
@@ -318,10 +318,10 @@ class SMKConfig(ConfigBase):
         smk_cfgstr = [
             '_SMK(',
             'agg=', str(smkcfg.aggregate),
-            ',t=', str(smkcfg.thresh),
+            ',t=', str(smkcfg.smk_thresh),
             ',a=', str(smkcfg.alpha),
             ')_Vocab(',
-            'sz=', str(smkcfg.nWords),
+            'sz=%d' % int(smkcfg.nWords),
             ',K=', str(smkcfg.nAssign),
             ',a=', str(smkcfg.assign_alpha),
             ',s=', str(smkcfg.assign_sigma),

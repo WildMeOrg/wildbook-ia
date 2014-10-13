@@ -845,6 +845,20 @@ def main():
     return locals()
 
 
+def get_test_rvecs(num=1000):
+    from ibeis.model.hots import hstypes
+    dtype = hstypes.RVEC_TYPE
+    dim = hstypes.VEC_DIM
+    dtype_info = np.iinfo(dtype)
+    rvecs = (dtype_info.max * np.random.rand(num, dim)).astype(dtype)
+    return rvecs
+
+
+def get_test_maws(rvecs):
+    from ibeis.model.hots import hstypes
+    return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+
+
 if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing

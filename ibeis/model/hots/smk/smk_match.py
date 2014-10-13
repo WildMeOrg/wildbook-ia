@@ -27,11 +27,17 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
 
     Dev::
-        python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict
+        python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict --va
 
         python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30
 
-        python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 0:20
+        python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 2:20 --va --vf
+        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:20 --vf --va
+
+        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va --trunc-uuids
+
+        python dev.py -t smk3 --allgt --db PZ_Master_PRE_DETECTION --index 2:10 --vf --va
+
         python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION
         python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
 
@@ -68,6 +74,25 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     return daid2_totalscore, daid2_chipmatch
 
 
+@utool.memprof
+def prepare_qreq(qreq_, annots_df, memtrack):
+    """ Called if pipeline did not setup qreq correctly """
+    print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
+    # Load vocabulary
+    aggregate = qreq_.qparams.aggregate
+    nWords    = qreq_.qparams.nWords
+    ibs   = qreq_.ibs
+    daids = qreq_.get_external_daids()
+    taids = ibs.get_valid_aids()  # exemplar
+    words = smk_index.learn_visual_words(annots_df, taids, nWords, memtrack=memtrack)
+    memtrack.report('[SMK LEARN VWORDS]')
+    # Index database annotations
+    invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate, memtrack=memtrack)
+    memtrack.report('[SMK INDEX ANNOTS]')
+    print('L___ FINISHED LOADING VOCAB ___\n')
+    return words, invindex
+
+
 @utool.indent_func('[smk_query]')
 #@utool.memprof
 def selective_match_kernel(qreq_):
@@ -88,14 +113,12 @@ def selective_match_kernel(qreq_):
         fig = qres.show_top(ibs)
     """
     memtrack = utool.MemoryTracker('[SMK ENTRY]')
-    daids = qreq_.get_external_daids()
     qaids = qreq_.get_external_qaids()
     ibs   = qreq_.ibs
     # Params
-    nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
     alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
+    thresh    = qreq_.qparams.smk_thresh
     nAssign   = qreq_.qparams.nAssign
     # Build ~~Pandas~~ dataframe (or maybe not)
     memtrack.report('[SMK PREINIT]')
@@ -105,16 +128,7 @@ def selective_match_kernel(qreq_):
         words = qreq_.words
         invindex = qreq_.invindex
     else:
-        print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
-        # Load vocabulary
-        taids = ibs.get_valid_aids()  # exemplar
-        words = smk_index.learn_visual_words(annots_df, taids, nWords)
-        memtrack.report('[SMK LEARN VWORDS]')
-        #utool.embed()
-        # Index database annotations
-        invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate)
-        memtrack.report('[SMK INDEX ANNOTS]')
-        print('L___ FINISHED LOADING VOCAB ___\n')
+        words, invindex = prepare_qreq(qreq_, annots_df, memtrack)
     withinfo = True
     # Progress
     lbl = 'asmk query: ' if aggregate else 'smk query: '
@@ -124,7 +138,11 @@ def selective_match_kernel(qreq_):
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     #return {}, {}
-    memtrack.report('[SMK INITIALIZED]')
+    memtrack.report('[SMK QREQ INITIALIZED]')
+
+    print('[MEM] invindex is using ' + utool.get_object_size_str(invindex))
+    print('[MEM] qreq_ is using ' + utool.get_object_size_str(qreq_))
+    utool.embed()
 
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
@@ -135,10 +153,10 @@ def selective_match_kernel(qreq_):
                                                             thresh, nAssign)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
-        memtrack.report('[SMK SINGLE QUERY]')
+        #memtrack.report('[SMK SINGLE QUERY]')
     end_()
 
-    memtrack.report('[SMK FINISHED]')
+    memtrack.report('[SMK QREQ FINISHED]')
     return qaid2_scores, qaid2_chipmatch
 
 
