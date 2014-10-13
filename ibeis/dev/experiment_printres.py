@@ -291,6 +291,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     if len(sel_cols) > 0 and len(sel_rows) == 0:
         sel_rows = list(range(len(qaids)))
     if utool.get_argflag(('--view-all', '--va')):
+        from ibeis.model.hots import match_chips4 as mc4
+        # It is very inefficient to turn off caching when view_all is true
+        if mc4.USE_CACHE is False:
+            print('WARNING: view_all specified with USE_CACHE == False')
+            mc4.USE_CACHE = True
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag('--view-hard'):
