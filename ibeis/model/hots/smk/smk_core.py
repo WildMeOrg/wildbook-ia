@@ -8,7 +8,7 @@ import numpy as np
 #import pandas as pd
 import utool
 import numpy.linalg as npl
-from ibeis.model.hots.hstypes import FLOAT_TYPE, INDEX_TYPE
+from ibeis.model.hots import hstypes
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from itertools import product
 from vtool import clustering2 as clustertool
@@ -28,18 +28,21 @@ def normalize_vecs_inplace(vecs):
 def aggregate_rvecs(rvecs, maws):
     """
     Example:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-        >>> rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)
-        >>> rvecs = (255 * np.random.rand(4, 4)).astype(FLOAT_TYPE)
+        #>>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 128)).astype(hstypes.RVEC_TYPE)
+        >>> maws  = (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
     """
     if rvecs.shape[0] == 1:
         return rvecs
-    rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=rvecs.dtype)
+    # Prealloc sum output
+    rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=hstypes.FLOAT_TYPE)
     # Take weighted average of multi-assigned vectors
     (maws[:, np.newaxis] * rvecs).sum(axis=0, out=rvecs_agg[0])
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
     normalize_vecs_inplace(rvecs_agg)
+    rvecs_agg = hstypes.cast_float_to_rvec_type(rvecs_agg)
     return rvecs_agg
 
 
@@ -47,13 +50,17 @@ def aggregate_rvecs(rvecs, maws):
 def get_norm_rvecs(vecs, word):
     """
     Example:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-        >>> vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)
-        >>> word = (255 * np.random.rand(1, 128)).astype(VEC_TYPE)
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
+        >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
     """
     # Compute residuals of assigned vectors
-    rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
+    #rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
+    rvecs_n = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
+    # Faster, but doesnt work with np.norm
+    #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
     normalize_vecs_inplace(rvecs_n)
+    rvecs_n = hstypes.cast_float_to_rvec_type(rvecs_n)
     return rvecs_n
 
 
@@ -270,12 +277,14 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
 
 
 def mem_arange(num, cache={}):
+    # TODO: weakref cache
     if num not in cache:
         cache[num] = np.arange(num)
     return cache[num]
 
 
 def mem_meshgrid(wrange, hrange, cache={}):
+    # TODO: weakref cache
     key = (id(wrange), id(hrange))
     if key not in cache:
         cache[key] = np.meshgrid(wrange, hrange, indexing='ij')
@@ -373,7 +382,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         ]
         for qfxs, dfxs in zip(out_qfxs, out_dfxs)
     ]
-    all_fms = np.array(list(utool.iflatten(utool.iflatten(nested_fm_iter))), dtype=INDEX_TYPE)
+    all_fms = np.array(list(utool.iflatten(utool.iflatten(nested_fm_iter))), dtype=hstypes.FM_DTYPE)
     nested_nmatch_list = [[len(fm) for fm in fms] for fms in nested_fm_iter]
     nested_daid_iter = (
         [
@@ -389,8 +398,8 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         ]
         for nMatch_list, scores in zip(nested_nmatch_list, out_scores)
     )
-    all_daids = np.array(list(utool.iflatten(utool.iflatten(nested_daid_iter))), dtype=INDEX_TYPE)
-    all_scores = np.array(list(utool.iflatten(utool.iflatten(nested_score_iter))), dtype=FLOAT_TYPE)
+    all_daids = np.array(list(utool.iflatten(utool.iflatten(nested_daid_iter))), dtype=hstypes.INDEX_TYPE)
+    all_scores = np.array(list(utool.iflatten(utool.iflatten(nested_score_iter))), dtype=hstypes.FS_DTYPE)
     #assert len(all_daids) == len(all_scores)
     #assert len(all_fms) == len(all_scores)
 
@@ -399,7 +408,8 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     fm_list = clustertool.apply_grouping(all_fms, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_sccw_[daid] for daid, fs in zip(daid_keys, fs_list)}
-    daid2_fk = {daid: np.ones(fs.size) for daid, fs in zip(daid_keys, fs_list)}
+    # FIXME: generalize to when nAssign > 1
+    daid2_fk = {daid: np.ones(fs.size, dtype=hstypes.FK_DTYPE) for daid, fs in zip(daid_keys, fs_list)}
     daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
 
     return daid2_chipmatch

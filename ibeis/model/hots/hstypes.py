@@ -31,13 +31,21 @@ import numpy as np
 #FLOAT_TYPE = np.float32
 #INTEGER_TYPE = np.int32
 INDEX_TYPE = np.int32
-VEC_TYPE = np.uint8
-VEC_DIM = 128
 
 #INTEGER_TYPE = np.int64
 INTEGER_TYPE = np.int32
 FLOAT_TYPE = np.float64
 
+VEC_DIM = 128
+
+VEC_TYPE = np.uint8
+RVEC_TYPE = np.int8
+
+VEC_MAX = 255
+VEC_MIN = 0
+
+RVEC_MAX = 128
+RVEC_MIN = -128
 
 # Feature Match datatype
 FM_DTYPE  = INTEGER_TYPE
@@ -45,3 +53,10 @@ FM_DTYPE  = INTEGER_TYPE
 FS_DTYPE  = FLOAT_TYPE
 # Feature Rank datatype
 FK_DTYPE  = np.int16
+
+
+def cast_float_to_rvec_type(rvec_float):
+    """
+    Args:
+        rvec_float (ndarray): residual vector of type float in range -1 to 1
+    return (rvec_float * RVEC_MAX).astype(RVEC_TYPE)
