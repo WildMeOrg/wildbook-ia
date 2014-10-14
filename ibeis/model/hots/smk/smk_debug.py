@@ -226,7 +226,7 @@ def testdata_internals_full(**kwargs):
     return ibs, annots_df, daids, qaids, invindex
 
 
-def testdata_match_kernel(**kwargs):
+def testdata_match_kernel_L2(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -234,7 +234,7 @@ def testdata_match_kernel(**kwargs):
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
     ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full(**kwargs)
-    print('[smk_debug] testdata_match_kernel')
+    print('[smk_debug] testdata_match_kernel_L2')
     qaid = qaids[0]
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
@@ -759,6 +759,36 @@ def query_smk_test(annots_df, invindex, qreq_):
     return qaid2_qres_
 
 
+def dbstr_qindex():
+    qindex = utool.get_localvar_from_stack('qindex')
+    common_wxs = utool.get_localvar_from_stack('common_wxs')
+    wx2_qaids = utool.get_localvar_from_stack('wx2_qaids')
+    qindex.query_sccw
+    qmaws_list  = [qindex.wx2_maws[wx] for wx in common_wxs]
+    qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
+    qfxs_list   = [qindex.wx2_qfxs[wx] for wx in common_wxs]
+    qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
+    qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
+    print('-- max --')
+    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, max))
+    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, max))
+    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, max))
+    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, max))
+    print('-- min --')
+    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, min))
+    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, min))
+    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, min))
+    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, min))
+    print('-- sig --')
+    print('list_depth(qaids_list) = %r' % utool.depth_profile(qaids_list))
+    print('list_depth(qmaws_list) = %r' % utool.depth_profile(qmaws_list))
+    print('list_depth(qfxs_list) = %r' % utool.depth_profile(qfxs_list))
+    print('list_depth(qrvecs_list) = %r' % utool.depth_profile(utool.depth_profile(qrvecs_list)))
+    print(qfxs_list[0:3])
+    print(qaids_list[0:3])
+    print(qmaws_list[0:3])
+
+
 def main():
     """
     Example:
@@ -797,7 +827,7 @@ def main():
     print('+------------')
     print('SMK_DEBUG MATCH KERNEL')
     print('+------------')
-    qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
+    qaid2_scores, qaid2_chipmatch_SMK = smk_match.execute_smk_L5(qreq_)
     SVER = utool.get_argflag('--sver')
     if SVER:
         print('+------------')

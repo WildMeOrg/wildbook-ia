@@ -132,14 +132,14 @@ smk = {
 
 smk2 = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'sv_on':         [True],  # True, False],
+    'sv_on':         [False, True],  # True, False],
     'nWords':        [64000],  # True, False],
 }
 
 smk3 = {
     'pipeline_root': ['smk', 'asmk'],
-    'smk_thresh':    [0.0, 0.001],  # True, False],
-    'nWords':    [64000],  # True, False],
+    #'smk_thresh':    [0.0, 0.001],  # True, False],
+    'nWords':        [64000],  # True, False],
 }
 
 

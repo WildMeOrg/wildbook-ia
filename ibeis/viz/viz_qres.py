@@ -7,7 +7,7 @@ from . import viz_chip
 from . import viz_matches
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[viz_qres]', DEBUG=False)
+    __name__, '[viz_qres]')
 
 
 @utool.indent_func
@@ -70,12 +70,19 @@ def show_qres_analysis(ibs, qres, **kwargs):
     showgt_aids = []
     if show_gt:
         # Get the missed groundtruth annotations
-        # FIXME: Get only the ones that "should have matched"
-        # This could be something complex or simple like (was able to be matched)
-        showgt_aids = np.setdiff1d(ibs.get_annot_groundtruth(qres.qaid), top_aids)
-        if len(showgt_aids) > 4:
-            # Hack to not show too much
-            showgt_aids = showgt_aids[0:4]
+        #matchable_aids = ibs.get_recognition_database_aids()
+        matchable_aids = list(qres.aid2_fm.keys())
+        _gtaids = ibs.get_annot_groundtruth(qres.qaid)
+        _gtaids = np.intersect1d(_gtaids, matchable_aids)
+        _gtaids = np.setdiff1d(_gtaids, top_aids)
+        if len(_gtaids) > 4:
+            # FIXME: Get only the ones that "should have matched"
+            # This could be something complex or simple like (was able to be matched)
+            # Hack to not show too many unmatched groundtruths
+            _isexmp = ibs.get_annot_exemplar_flag(_gtaids)
+            _gtaids, = utool.sortedby(_gtaids, _isexmp, reverse=True)
+            _gtaids = _gtaids[0:4]
+        showgt_aids = _gtaids
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
                      figtitle=figtitle, show_query=show_query, **kwargs)
@@ -141,9 +148,9 @@ def show_qres(ibs, qres, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG = True
+    DEBUG_SHOW_QRES = False
 
-    if DEBUG:
+    if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(qres.qaid)
         nSelGt = len(gt_aids)
         nAllGt = len(allgt_aids)
@@ -210,7 +217,7 @@ def show_qres(ibs, qres, **kwargs):
                 viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
                 viz_matches.annotate_matches(ibs, qres, aid, show_query=not show_query)
 
-        if DEBUG:
+        if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
@@ -225,10 +232,10 @@ def show_qres(ibs, qres, **kwargs):
             if len(oranks) == 0:
                 orank = -1
                 _show_matches_fn(aid, orank, pnum)
-                #if DEBUG:
+                #if DEBUG_SHOW_QRES:
                 #    print('skipping pnum=%r' % (pnum,))
                 continue
-            if DEBUG:
+            if DEBUG_SHOW_QRES:
                 print('pnum=%r' % (pnum,))
             orank = oranks[0] + 1
             _show_matches_fn(aid, orank, pnum)

@@ -108,13 +108,15 @@ class IBEISController(object):
         if verbose and utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.table_cache = init_tablecache()
-        #ibs.qreq = None  # query requestor object
-        ibs.ibschanged_callback = None
-        ibs.observers = []  # keep track of the guibacks connected to this controller
+        # observers keeps track of the guibacks connected to this controller
+        ibs.observers = []
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
-        ibs._init_wb(wbaddr)  # this will do nothing if no wildbook address is specified
+        # _init_wb will do nothing if no wildbook address is specified
+        ibs._init_wb(wbaddr)
         ibs._init_sql()
         ibs._init_config()
+        # an dict to hack in temporary state
+        ibs.temporary_state = {}
         ibsfuncs.inject_ibeis(ibs)
         ibs_weakref = weakref.ref(ibs)
         __ALL_CONTROLLERS__.append(ibs_weakref)
@@ -2538,12 +2540,15 @@ class IBEISController(object):
     @default_decorator
     def get_recognition_database_aids(ibs):
         """
-        DEPRECATE
+        DEPRECATE or refactor
 
         Returns:
-            daid_list (list):  persistent recognition database annotations """
+            daid_list (list): testing recognition database annotations """
         # TODO: Depricate, use exemplars instead
-        daid_list = ibs.get_valid_aids()
+        if 'daid_list' in ibs.temporary_state:
+            daid_list = ibs.temporary_state['daid_list']
+        else:
+            daid_list = ibs.get_valid_aids()
         return daid_list
 
     #@default_decorator

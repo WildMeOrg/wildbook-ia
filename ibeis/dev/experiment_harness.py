@@ -12,25 +12,30 @@ from ibeis.dev import experiment_helpers as eh
 from ibeis.dev import experiment_printres
 
 print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[expt_harn]', DEBUG=False)
+    __name__, '[expt_harn]')
 
 BATCH_MODE = '--nobatch' not in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * utool.QUIET)
 NOCACHE_TESTRES =  utool.get_argflag('--nocache-testres', False)
 TEST_INFO = True
-STRICT = utool.STRICT
 
 
 @profile
-def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
+def get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl):
     """
+    Helper function.
+
     Runs queries of a specific configuration returns the best rank of each query
 
-    qaids - query annotation ids
+    Args:
+        ibs : IBEIS Controller
+        qaids (list) : query annotation ids
+        daids (list) : database annotation ids
+        nTotalQueries (int) : current count
+        nPrevQueries (int) : current count
+        cfglbl (str) : current count
     """
-    daids = ibs.get_recognition_database_aids()
-
     # NEW STUFF
     qaid2_qres = ibs._query_chips(qaids, daids)
     gtaids_list = ibs.get_annot_groundtruth(qaids)
@@ -43,6 +48,9 @@ def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
 #@utool.indent_func('[harn]')
 @profile
 def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
+    """
+    Test harness driver function
+    """
     # Test Each configuration
     if not utool.QUIET:
         print(textwrap.dedent("""
@@ -93,7 +101,7 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
             nPrevQueries = nQuery * cfgx  # number of pervious queries
             # Run the test / read cache
             with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-                qx2_bestranks = get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl)
+                qx2_bestranks = get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl)
             if not NOMEMORY:
                 mat_list.append(qx2_bestranks)
             # Store the results
@@ -103,5 +111,5 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
         print('ran tests in memory savings mode. exiting')
         return
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
-                                          mat_list, testnameid, sel_rows,
-                                          sel_cols, cfgx2_lbl=cfgx2_lbl)
+                                      mat_list, testnameid, sel_rows,
+                                      sel_cols, cfgx2_lbl=cfgx2_lbl)

@@ -92,3 +92,13 @@ def get_test_qaids(ibs):
     #print('available_qaids = %r' % available_qaids)
     available_qaids = utool.unique_keep_order2(available_qaids)
     return available_qaids
+
+
+@utool.indent_func
+@profile
+def get_test_daids(ibs):
+    """ Gets database annot_rowids based on command line arguments """
+    available_daids = ibs.get_valid_aids()
+    if params.args.daid_exclude is not None:
+        available_daids = list(set(available_daids) - set(params.args.daid_exclude))
+    return available_daids

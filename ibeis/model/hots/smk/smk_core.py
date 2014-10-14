@@ -339,13 +339,13 @@ def accumulate_scores(dscores_list, daids_list):
 
 
 @profile
-def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                 withinfo=True, smk_alpha=3, smk_thresh=0):
+def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
+                    withinfo=True, smk_alpha=3, smk_thresh=0):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
+        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel_L2()
         >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
         >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
@@ -353,7 +353,7 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
         >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
         >>> smk_debug.rrr()
         >>> smk_debug.invindex_dbgstr(invindex)
-        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
+        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(*_args)
     """
     # Pack
     args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
@@ -363,8 +363,10 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
     # Unpack
     (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list,
      daid_agg_keys,)  = ret_L1
-
     if withinfo:
+        # Build up chipmatch if requested
+        # TODO: Only build for a shortlist
+        # TODO: Use a sparse matrices
         daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs,
                                                  wx2_qaids, wx2_qfxs,
                                                  scores_list, idf_list,
@@ -394,7 +396,28 @@ def mem_meshgrid(wrange, hrange, cache={}):
 def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                            scores_list, idf_list, daids_list, query_sccw):
     """
-    this builds the structure that the rest of the pipeline plays nice with
+    Builds explicit chipmatches that the rest of the pipeline plays nice with
+
+    An explicit chipmatch is a tuple (fm, fs, fk) feature_matches,
+    feature_scores, and feature_ranks.
+
+    Let N be the number of matches
+
+    A feature match, fm{shape=(N, 2), dtype=int32}, is an array where the first
+    column corresponds to query_feature_indexes (qfx) and the second column
+    corresponds to database_feature_indexes (dfx).
+
+    A feature score, fs{shape=(N,), dtype=float64} is an array of scores
+
+    A feature rank, fk{shape=(N,), dtype=int16} is an array of ranks
+
+
+    Returns:
+        daid2_chipmatch (dict) : (daid2_fm, daid2_fs, daid2_fk)
+        Return Format::
+            daid2_fm (dict): {daid: fm, ...}
+            daid2_fs (dict): {daid: fs, ...}
+            daid2_fk (dict): {daid: fk, ...}
     """
     # FIXME: move groupby to vtool
     if utool.VERBOSE:
@@ -413,56 +436,41 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     shapes_list  = [scores.shape for scores in scores_list]  # 51us
     shape_ranges = [(mem_arange(w), mem_arange(h)) for (w, h) in shapes_list]  # 230us
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
-    norm_list = np.multiply(idf_list, query_sccw)
     # Normalize scores for words, nMatches, and query sccw (still need daid sccw)
-    nscores_iter = (scores * norm for (scores, norm) in zip(scores_list, norm_list))
+    nscores_iter = (scores * query_sccw in scores_list)
 
-    #with utool.Timer('fsd'):
-    # FIXME: Preflatten all of these lists
-    def dbstr_qindex():
-        qindex = utool.get_localvar_from_stack('qindex')
-        qindex.query_sccw
-        qmaws_list = [qindex.wx2_maws[wx] for wx in common_wxs]
-        qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
-        qfxs_list   = [qindex.wx2_qfxs[wx] for wx in common_wxs]
-        qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
-        qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
-        print('-- max --')
-        print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, max))
-        print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, max))
-        print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, max))
-        print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, max))
-        print('-- min --')
-        print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, min))
-        print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, min))
-        print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, min))
-        print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, min))
-        print('-- sig --')
-        print('list_depth(qaids_list) = %r' % utool.depth_profile(qaids_list))
-        print('list_depth(qmaws_list) = %r' % utool.depth_profile(qmaws_list))
-        print('list_depth(qfxs_list) = %r' % utool.depth_profile(qfxs_list))
-        print('list_depth(qrvecs_list) = %r' % utool.depth_profile(utool.depth_profile(qrvecs_list)))
-        print(qfxs_list[0:3])
-        print(qaids_list[0:3])
-        print(qmaws_list[0:3])
     if utool.DEBUG2:
-        dbstr_qindex()
-    with utool.EmbedOnException():
-        try:
-            out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
-            out_qfxs   = [[qfxs[ix] for (ix, jx) in ijs]
-                          for (qfxs, ijs) in zip(qfxs_list, out_ijs)]
-            out_dfxs   = [[dfxs[jx] for (ix, jx) in ijs]
-                          for (dfxs, ijs) in zip(dfxs_list, out_ijs)]
-            out_daids  = ([daids[jx] for (ix, jx) in ijs]
-                          for (daids, ijs) in zip(daids_list, out_ijs))
-            out_scores = ([nscores[ijx] for ijx in ijs]
-                          for (nscores, ijs) in zip(nscores_iter, out_ijs))
-        except Exception as ex:
-            utool.printex(ex)
-            #utool.list_depth(dfxs_list, max)
-            #utool.list_depth(dfxs_list, min)
-            raise
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.dbstr_qindex()
+
+    # FIXME: Preflatten all of these lists
+    out_ijs    = [
+        list(zip(_is.flat, _js.flat))
+        for (_is, _js) in ijs_list
+    ]
+    out_qfxs   = [
+        [qfxs[ix] for (ix, jx) in ijs]
+        for (qfxs, ijs) in zip(qfxs_list, out_ijs)
+    ]
+    out_dfxs   = [
+        [dfxs[jx] for (ix, jx) in ijs]
+        for (dfxs, ijs) in zip(dfxs_list, out_ijs)
+    ]
+    out_daids  = (
+        [daids[jx] for (ix, jx) in ijs]
+        for (daids, ijs) in zip(daids_list, out_ijs)
+    )
+    out_scores = (
+        [nscores[ijx] for ijx in ijs]
+        for (nscores, ijs) in zip(nscores_iter, out_ijs)
+    )
+    #with utool.EmbedOnException():
+    #    try:
+    #    except Exception as ex:
+    #        utool.printex(ex)
+    #        #utool.list_depth(dfxs_list, max)
+    #        #utool.list_depth(dfxs_list, min)
+    #        raise
 
     # This code is incomprehensable. I feel ashamed.
 

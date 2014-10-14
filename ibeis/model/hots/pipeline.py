@@ -100,7 +100,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         from ibeis.model.hots.smk import smk_match
         # Alternative to naive bayes matching:
         # Selective match kernel
-        qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.selective_match_kernel(qreq_)
+        qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
         filt2_meta_ = {}
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
