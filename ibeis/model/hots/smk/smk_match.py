@@ -12,7 +12,7 @@ from ibeis.model.hots.smk import smk_core
 
 @utool.indent_func('[smk_query]')
 #@utool.memprof
-def selective_match_kernel(qreq_):
+def execute_smk_L5(qreq_):
     """
     ibeis query interface
 
@@ -44,7 +44,7 @@ def selective_match_kernel(qreq_):
         python dev.py -t smk2 --allgt --db PZ_Master0 && python dev.py -t smk3 --allgt --db PZ_Master0
         python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
 
-        python dev.py -t smk5 --allgt --db PZ_Master0 ; python dev.py -t smk5 --allgt --db GZ_ALL
+        python dev.py -t smk5 --allgt --db PZ_Master0 --noqcache ; python dev.py -t smk5 --allgt --db GZ_ALL --noqcache
 
     Dev::
         qres = qaid2_qres_[qaids[0]]
@@ -182,7 +182,7 @@ if __name__ == '__main__':
         ibs, taids, daids, qaids = smk_debug.testdata_ibeis2()
         qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
         qreq_.ibs = ibs
-        qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(qreq_)
+        qaid2_scores, qaid2_chipmatch = smk_match.execute_smk_L5(qreq_)
         filt2_meta = {}
         qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
         qres = qaid2_qres_[qaids[0]]
