@@ -305,7 +305,7 @@ class SMKConfig(ConfigBase):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
         smkcfg.nAssign = 10  # MultiAssignment
         smkcfg.smk_thresh = 0.0  # tau in the paper
-        smkcfg.alpha = 3
+        smkcfg.smk_alpha = 3
         smkcfg.aggregate = False  #
         # TODO Separate into vocab config
         smkcfg.indexer_key = 'default'  # Vocab
@@ -319,7 +319,7 @@ class SMKConfig(ConfigBase):
             '_SMK(',
             'agg=', str(smkcfg.aggregate),
             ',t=', str(smkcfg.smk_thresh),
-            ',a=', str(smkcfg.alpha),
+            ',a=', str(smkcfg.smk_alpha),
             ')_Vocab(',
             'sz=%d' % int(smkcfg.nWords),
             ',K=', str(smkcfg.nAssign),

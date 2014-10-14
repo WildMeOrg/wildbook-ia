@@ -12,7 +12,7 @@ from ibeis.model.hots.smk import smk_core
 
 @profile
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
-                         aggregate=False, alpha=3, thresh=0, nAssign=1,
+                         aggregate=False, smk_alpha=3, smk_thresh=0, nAssign=1,
                          can_match_self=False):
     """
     Example:
@@ -21,10 +21,10 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
         >>> qaid = qaids[0]
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-        >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> smk_alpha     = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> withinfo = True
-        >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+        >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, smk_alpha, smk_thresh)
 
     Dev::
         python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict --va
@@ -34,11 +34,13 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 2:20 --va --vf
         python dev.py -t smk2 --allgt --db GZ_ALL --index 2:20 --vf --va
 
-        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10
-        python dev.py -t smk3 --allgt --db GZ_ALL
-        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va --trunc-uuids
+        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va
+        python dev.py -t smk2 --allgt --db GZ_ALL
 
-        python dev.py -t smk3 --allgt --db PZ_Master_PRE_DETECTION --index 2:10 --vf --va
+        python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION --index 2:10 --va
+        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:10 --vf --va
+
+        python dev.py -t smk2 --db PZ_Master_PRE_DETECTION --qaid 7199 --va
 
         python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION && python dev.py -t smk3 --allgt --db PZ_Master_PRE_DETECTION
         python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
@@ -46,8 +48,8 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
-                                  thresh, nAssign)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, smk_alpha,
+                                  smk_thresh, nAssign)
     (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
@@ -58,7 +60,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
     # Compute match kernel for all database aids
     kernel_args = (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma,
-                   invindex, withinfo, alpha, thresh)
+                   invindex, withinfo, smk_alpha, smk_thresh)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
     #can_match_self = not utool.get_argflag('--noself')
@@ -119,8 +121,8 @@ def selective_match_kernel(qreq_):
     ibs   = qreq_.ibs
     # Params
     aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.smk_thresh
+    smk_alpha  = qreq_.qparams.smk_alpha
+    smk_thresh = qreq_.qparams.smk_thresh
     nAssign   = qreq_.qparams.nAssign
     # Build ~~Pandas~~ dataframe (or maybe not)
     memtrack.report('[SMK PREINIT]')
@@ -151,8 +153,8 @@ def selective_match_kernel(qreq_):
         mark(count)
         daid2_score, daid2_chipmatch = query_inverted_index(annots_df, qaid,
                                                             invindex, withinfo,
-                                                            aggregate, alpha,
-                                                            thresh, nAssign)
+                                                            aggregate, smk_alpha,
+                                                            smk_thresh, nAssign)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
         #memtrack.report('[SMK SINGLE QUERY]')

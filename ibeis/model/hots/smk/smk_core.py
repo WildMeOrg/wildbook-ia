@@ -9,10 +9,20 @@ import numpy as np
 import utool
 import numpy.linalg as npl
 from ibeis.model.hots import hstypes
-from ibeis.model.hots.smk import pandas_helpers as pdh
+#from ibeis.model.hots.smk import pandas_helpers as pdh
 from itertools import product
 from vtool import clustering2 as clustertool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
+
+
+def cast_float_to_rvec_dtype(rvec_float):
+    """
+    Args:
+        rvec_float (ndarray): residual vector of type float in range -1 to 1
+    Returns:
+        (ndarray): residual vector of type int8 in range -128 to 128
+    """
+    return (rvec_float * hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
 
 
 #@profile
@@ -42,7 +52,7 @@ def aggregate_rvecs(rvecs, maws):
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
     normalize_vecs_inplace(rvecs_agg)
-    rvecs_agg = hstypes.cast_float_to_rvec_type(rvecs_agg)
+    rvecs_agg = cast_float_to_rvec_dtype(rvecs_agg)
     return rvecs_agg
 
 
@@ -60,7 +70,7 @@ def get_norm_rvecs(vecs, word):
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
     normalize_vecs_inplace(rvecs_n)
-    rvecs_n = hstypes.cast_float_to_rvec_type(rvecs_n)
+    rvecs_n = cast_float_to_rvec_dtype(rvecs_n)
     return rvecs_n
 
 
@@ -99,26 +109,26 @@ def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
         >>> idf_list = [1.0 for _ in qrvecs_list]
     """
     RVEC_MAX_SQRD = hstypes.FLOAT_TYPE(hstypes.RVEC_MAX) ** 2
-    idf_list_ = (idf_list / RVEC_MAX_SQRD)
+    idf_list_ = np.divide(idf_list, RVEC_MAX_SQRD)
     if dmaws_list is None and qmaws_list is None:
         mawsim_list = [
-            (simmat * idf)
+            (idf * simmat)
             for simmat, idf in zip(simmat_list, idf_list_)
         ]
     elif dmaws_list is not None and qmaws_list is not None:
         mawsim_list = [
-            ((qmaws[:, np.newaxis] * simmat) * (dmaws[np.newaxis, :] * (idf)))
+            (((idf * qmaws[:, np.newaxis]) * simmat) * dmaws[np.newaxis, :])
             for simmat, qmaws, dmaws, idf in
             zip(simmat_list, qmaws_list, dmaws_list, idf_list_)
         ]
-    #elif qmaws_list is not None and dmaws_list is None:
-    #    mawsim_list = [
-    #        ((qmaws[:, np.newaxis] * simmat) * (idf / hstypes.RVEC_MAX))
-    #        for simmat, qmaws, idf in
-    #        zip(simmat_list, qmaws_list, idf_list, idf)
-    #    ]
-    #else:
-    #    raise NotImplementedError('cannot just do dmaws')
+    elif qmaws_list is not None and dmaws_list is None:
+        mawsim_list = [
+            ((idf * qmaws[:, np.newaxis]) * simmat)
+            for simmat, qmaws, idf in
+            zip(simmat_list, qmaws_list, idf_list)
+        ]
+    else:
+        raise NotImplementedError('cannot just do dmaws')
     return mawsim_list
 
 
@@ -181,77 +191,24 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
     return scores_list
 
 
-def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                    withinfo=True, smk_alpha=3, smk_thresh=0):
-    """ function """
-    wx2_drvecs     = invindex.wx2_drvecs
-    wx2_idf        = invindex.wx2_idf
-    wx2_daid       = invindex.wx2_aids
-    daid2_sccw     = invindex.daid2_sccw
-    #utool.embed()
-    #idx2_daid = invindex.idx2_daid
-    #wx2_idxs   = invindex.wx2_idxs
-    #wx2_maws   = invindex.wx2_maws
-
-    # for each word compute the pairwise scores between matches
-    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
-    # Build lists over common word indexes
-    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
-    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
-    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
-    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
-    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
-    dmaws_list  = None
-    #print('+==============')
-    if utool.VERBOSE:
-        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
-                                        flushfreq=100, writefreq=25,
-                                        with_totaltime=True)
-        tup = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
-                              smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw, common_wxs)
-    if utool.VERBOSE:
-        end_()
-    return tup
-
-
-def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
-                    smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw, common_wxs):
-    """
-    Computes smk kernels
-    """
-    # Summation over query features
-    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)
-    # Accumulate scores over daids (database annotation ids)
-    daid_agg_keys, daid_agg_scores = accumulate_scores(scores_list, daids_list)
-    # Apply database-side sccw (self consistency criterion weight)
-    daid_sccw_list = [daid2_sccw[daid] for daid in daid_agg_keys]
-    # Apply query-side sccw (self consistency criterion weight )
-    daid_total_list = np.multiply(np.multiply(daid_sccw_list, daid_agg_scores), query_sccw)
-    # Group scores by daid using a dictionary
-    daid2_totalscore = dict(zip(daid_agg_keys, daid_total_list))
-    tup = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys, daid2_sccw,)
-    return tup
-
-
-def accumulate_scores(wscores_list, daids_list):
-    """ helper """
-    daid2_aggscore = utool.ddict(lambda: 0)
-    ### Weirdly iflatten was slower here
-    for wscores, daids in zip(wscores_list, daids_list):
-        for daid, wscore in zip(daids, wscores):
-            daid2_aggscore[daid] += wscore
-    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
-    daid_agg_scores = np.array(list(daid2_aggscore.values()))
-    return daid_agg_keys, daid_agg_scores
-
-
 #@profile
 def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     r"""
-    Computes gamma from "To Aggregate or not to aggregate"
+    Computes gamma from "To Aggregate or not to aggregate". Every component in
+    each list is with repsect to a different word.
 
     scc = self consistency criterion
     It is a scalar which ensure K(X, X) = 1
+
+    Args:
+        rvecs_list (list of ndarrays): residual vectors for every word
+        idf_list (list of floats): idf weight for each word
+        maws_list (list of ndarrays): multi-assign weights for each word for each residual vector
+        smk_alpha (float): selectivity power
+        smk_thresh (float): selectivity threshold
+
+    Returns:
+        float: sccw self-consistency-criterion weight
 
     Math:
         \begin{equation}
@@ -264,25 +221,121 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
         >>> idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh = smk_debug.testsdata_sccw_sum()
         >>> qmaws_list = dmaws_list = maws_list
         >>> drvecs_list = qrvecs_list = rvecs_list
-        >>> scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh )
+        >>> scoremat = sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh )
         >>> print(scoremat)
+        0.0201041835751
+
         0.0384477314197
 
     Ignore:
         qrvecs_list = drvecs_list = rvecs_list
     """
+    if utool.DEBUG2:
+        assert len(maws_list) == len(rvecs_list)
+        assert len(maws_list) == len(idf_list)
+        assert list(map(len, maws_list)) == list(map(len, rvecs_list))
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
+    # List of scores for every word.
     scores_list = score_matches(rvecs_list, rvecs_list,
                                 maws_list, maws_list,
                                 smk_alpha, smk_thresh, idf_list)
-    # Summation over query features
-    score_list = np.array([scores.sum() for scores in scores_list])
     if utool.DEBUG2:
         assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
-        assert len(idf_list) == len(score_list), 'bad weight and score'
+        assert len(idf_list) == len(scores_list), 'bad weight and score'
+    # Summation over all residual vector scores
+    _count = sum((scores.size for scores in  scores_list))
+    _iter  = utool.iflatten(scores.ravel() for scores in scores_list)
+    total  = np.fromiter(_iter, np.float64, _count).sum()
     # Square root inverse
-    sccw = np.reciprocal(np.sqrt(score_list))
+    sccw = np.reciprocal(np.sqrt(total))
     return sccw
+
+
+def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
+                    withinfo=True, smk_alpha=3, smk_thresh=0):
+    """ function """
+    wx2_drvecs     = invindex.wx2_drvecs
+    wx2_idf        = invindex.wx2_idf
+    wx2_daid       = invindex.wx2_aids
+    daid2_sccw     = invindex.daid2_sccw
+
+    # for each word compute the pairwise scores between matches
+    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
+    # Build lists over common word indexes
+    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
+    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
+    dmaws_list  = None
+    if utool.VERBOSE:
+        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
+                                        flushfreq=100, writefreq=25,
+                                        with_totaltime=True)
+    #--------
+    ret_L0 = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list,
+                             smk_alpha, smk_thresh, idf_list, daids_list,
+                             daid2_sccw, query_sccw)
+    (daid2_totalscore, scores_list, daid_agg_keys,) = ret_L0
+
+    ret_L1 = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list,
+              daid_agg_keys,)
+    #--------
+    if utool.VERBOSE:
+        end_()
+    return ret_L1
+
+
+def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
+                    smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw):
+    """
+    Computes smk kernels
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> smk_debug.rrr()
+        >>> core1, core2, extra = smk_debug.testdata_match_kernel_L0()
+        >>> smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw = core1
+        >>> qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list = core2
+        >>> qaid2_sccw, qaids_list = extra
+        >>> ret_L0 = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw)
+        >>> # Test Asymetric Matching
+        >>> (daid2_totalscore, scores_list, daid_agg_keys,) = ret_L0
+        >>> print(daid2_totalscore[5])
+        0.336434201301
+        >>> # Test Self Consistency
+        >>> qret = match_kernel_L0(qrvecs_list, qrvecs_list, qmaws_list, qmaws_list, smk_alpha, smk_thresh, idf_list, qaids_list, qaid2_sccw, query_sccw)
+        >>> (qaid2_totalscore, qscores_list, qaid_agg_keys,) = qret
+        >>> print(qaid2_totalscore[42])
+        1.0000000000000007
+    """
+    # Residual vector scores
+    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)
+    # Summation over query features (resulting in scores over daids)
+    dscores_list = [scores.sum(axis=0) for scores in scores_list]
+    # Accumulate scores over daids (database annotation ids)
+    daid_agg_keys, daid_agg_scores = accumulate_scores(dscores_list, daids_list)
+    # Apply database-side sccw (self consistency criterion weight)
+    daid_sccw_list = [daid2_sccw[daid] for daid in daid_agg_keys]
+    # Apply query-side sccw (self consistency criterion weight )
+    daid_total_list = np.multiply(np.multiply(daid_sccw_list, daid_agg_scores), query_sccw)
+    # Group scores by daid using a dictionary
+    daid2_totalscore = dict(zip(daid_agg_keys, daid_total_list))
+    ret_L0 = (daid2_totalscore, scores_list, daid_agg_keys,)
+    return ret_L0
+
+
+def accumulate_scores(dscores_list, daids_list):
+    """ helper """
+    daid2_aggscore = utool.ddict(lambda: 0)
+    ### Weirdly iflatten was slower here
+    for dscores, daids in zip(dscores_list, daids_list):
+        for daid, score in zip(daids, dscores):
+            daid2_aggscore[daid] += score
+    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
+    daid_agg_scores = np.array(list(daid2_aggscore.values()))
+    return daid_agg_keys, daid_agg_scores
 
 
 @profile
@@ -302,105 +355,20 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
         >>> smk_debug.invindex_dbgstr(invindex)
         >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
     """
-    #utool.embed()
-    #idx2_daid = invindex.idx2_daid
-    #wx2_idxs   = invindex.wx2_idxs
-    #wx2_maws   = invindex.wx2_maws
-    wx2_drvecs     = invindex.wx2_drvecs
-    wx2_idf        = invindex.wx2_idf
-    wx2_daid       = invindex.wx2_aids
-    daid2_sccw     = invindex.daid2_sccw
+    # Pack
+    args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
+            withinfo, smk_alpha, smk_thresh)
+    # Call match kernel logic
+    ret_L1 =  match_kernel_L1(*args)
+    # Unpack
+    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list,
+     daid_agg_keys,)  = ret_L1
 
-    # for each word compute the pairwise scores between matches
-    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
-    #print('+==============')
-    if utool.VERBOSE:
-        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
-                                        flushfreq=100, writefreq=25,
-                                        with_totaltime=True)
-    # Build lists over common word indexes
-    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
-    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
-    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
-    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
-    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
-    if utool.DEBUG2:
-        assert len(qrvecs_list) == len(drvecs_list)
-        assert len(daids_list)  == len(drvecs_list)
-        assert len(idf_list) == len(drvecs_list)
-        assert len(idf_list) == len(common_wxs)
-        # Slow recursive check
-        #assert utool.depth_profile(utool.depth_profile(qrvecs_list)) == utool.depth_profile(maws_list)
-        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(qrvecs_list))))
-        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(drvecs_list))))
-        #print(utool.get_stats(utool.depth_profile(maws_list)))
-        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(scores_list))))
-
-    # Summation over query features
-    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, None, smk_alpha, smk_thresh)
-    # Apply idf-weights
-    wscores_list = [idf * (scores).sum(axis=0)
-                    for scores, idf in zip(scores_list, idf_list)]
-    # Accumulate scores over daids (database annotation ids)
-    daid2_aggscore = utool.ddict(lambda: 0)
-    ### Weirdly iflatten was slower here
-    for wscores, daids in zip(wscores_list, daids_list):
-        for daid, wscore in zip(daids, wscores):
-            daid2_aggscore[daid] += wscore
-    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
-    daid_agg_scores = np.array(list(daid2_aggscore.values()))
-    # Apply database sccw (self consistency criterion weight )
-    daid_sccw_list = pdh.ensure_values_scalar_subset(daid2_sccw, daid_agg_keys)
-    # Apply query sccw (self consistency criterion weight )
-    daid_total_list = np.multiply(np.multiply(daid_sccw_list, daid_agg_scores), query_sccw)
-    # Pack scores into a dictionary
-    daid2_totalscore = dict(zip(daid_agg_keys, daid_total_list))
-
-    #assert len(wscore) == len(daids)
-    #print('L==============')
-    if withinfo:
-        daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids,
-                                                 wx2_qfxs, scores_list,
-                                                 idf_list, daids_list,
-                                                 query_sccw, daid2_sccw)
-    else:
-        daid2_chipmatch = None
-
-    if utool.VERBOSE:
-        end_()
-
-    return daid2_totalscore, daid2_chipmatch
-
-
-@profile
-def match_kernel_alt(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                     withinfo=True, smk_alpha=3, smk_thresh=0):
-    """
-    Example:
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
-        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
-        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-        >>> withinfo = True  # takes an 11s vs 2s
-        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
-        >>> smk_debug.rrr()
-        >>> smk_debug.invindex_dbgstr(invindex)
-        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
-    """
-    tup = match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs,
-                          query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
-    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys, daid2_sccw,) = tup
-
-    #assert len(wscore) == len(daids)
-    #print('L==============')
     if withinfo:
         daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs,
                                                  wx2_qaids, wx2_qfxs,
                                                  scores_list, idf_list,
-                                                 daids_list, query_sccw,
-                                                 daid2_sccw)
+                                                 daids_list, query_sccw)
     else:
         daid2_chipmatch = None
 
@@ -424,15 +392,17 @@ def mem_meshgrid(wrange, hrange, cache={}):
 
 @profile
 def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
-                           scores_list, idf_list, daids_list, query_sccw,
-                           daid2_sccw):
+                           scores_list, idf_list, daids_list, query_sccw):
     """
     this builds the structure that the rest of the pipeline plays nice with
     """
     # FIXME: move groupby to vtool
     if utool.VERBOSE:
         print('[smk_core] build chipmatch')
+
     wx2_dfxs  = invindex.wx2_fxs
+    daid2_sccw     = invindex.daid2_sccw
+
     qfxs_list = [wx2_qfxs[wx] for wx in common_wxs]
     dfxs_list = [wx2_dfxs[wx] for wx in common_wxs]
     if isinstance(daid2_sccw, dict):

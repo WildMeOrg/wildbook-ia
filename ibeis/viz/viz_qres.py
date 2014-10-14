@@ -69,11 +69,16 @@ def show_qres_analysis(ibs, qres, **kwargs):
     # Get any groundtruth if you are showing it
     showgt_aids = []
     if show_gt:
-        showgt_aids = ibs.get_annot_groundtruth(qres.qaid)
-        showgt_aids = np.setdiff1d(showgt_aids, top_aids)
+        # Get the missed groundtruth annotations
+        # FIXME: Get only the ones that "should have matched"
+        # This could be something complex or simple like (was able to be matched)
+        showgt_aids = np.setdiff1d(ibs.get_annot_groundtruth(qres.qaid), top_aids)
+        if len(showgt_aids) > 4:
+            # Hack to not show too much
+            showgt_aids = showgt_aids[0:4]
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
-                        figtitle=figtitle, show_query=show_query, **kwargs)
+                     figtitle=figtitle, show_query=show_query, **kwargs)
 
 
 @utool.indent_func
@@ -98,38 +103,67 @@ def show_qres(ibs, qres, **kwargs):
     if isinstance(top_aids, int):
         top_aids = qres.get_top_aids(num=top_aids)
 
-    #all_gts = ibs.get_annot_groundtruth(qres.qaid)
     nTop   = len(top_aids)
-    #nSelGt = len(gt_aids)
-    #nAllGt = len(all_gts)
 
     max_nCols = 5
     if nTop in [6, 7]:
         max_nCols = 3
     if nTop in [8]:
         max_nCols = 4
-    #printDBG('[show_qres]========================')
-    #printDBG('[show_qres]----------------')
-    #printDBG('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
-    #printDBG('[show_qres] * fnum=%r' % (fnum,))
-    #printDBG('[show_qres] * figtitle=%r' % (figtitle,))
-    #printDBG('[show_qres] * max_nCols=%r' % (max_nCols,))
-    #printDBG('[show_qres] * show_query=%r' % (show_query,))
-    #printDBG('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
+
+    try:
+        assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, 'gts should be missed.  not in top'
+    except AssertionError as ex:
+        utool.printex(ex, keys=['top_aids', 'gt_aids'])
+        raise
+
     printDBG(qres.get_inspect_str())
     ranked_aids = qres.get_top_aids()
-    # Build a subplot grid
+    #--------------------------------------------------
+    # Get grid / cell information to build subplot grid
+    #--------------------------------------------------
+    # Show query or not
     nQuerySubplts = 1 if show_query else 0
+    # The top row is given slots for ground truths and querys
+    # all aids in gt_aids should not be in top aids
     nGtSubplts    = nQuerySubplts + (0 if gt_aids is None else len(gt_aids))
+    # The bottom rows are for the top results
     nTopNSubplts  = nTop
     nTopNCols     = min(max_nCols, nTopNSubplts)
     nGTCols       = min(max_nCols, nGtSubplts)
     nGTCols       = max(nGTCols, nTopNCols)
     nTopNCols     = nGTCols
+    # Get number of rows to show groundtruth
     nGtRows       = 0 if nGTCols   == 0 else int(np.ceil(nGtSubplts   / nGTCols))
+    # Get number of rows to show results
     nTopNRows     = 0 if nTopNCols == 0 else int(np.ceil(nTopNSubplts / nTopNCols))
     nGtCells      = nGtRows * nGTCols
+    # Total number of rows
     nRows         = nTopNRows + nGtRows
+
+    DEBUG = True
+
+    if DEBUG:
+        allgt_aids = ibs.get_annot_groundtruth(qres.qaid)
+        nSelGt = len(gt_aids)
+        nAllGt = len(allgt_aids)
+        print('[show_qres]========================')
+        print('[show_qres]----------------')
+        print('[show_qres] * annote_mode=%r' % (annote_mode,))
+        print('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
+        print('[show_qres] * -----')
+        print('[show_qres] * nRows=%r' % (nRows,))
+        print('[show_qres] * nGtSubplts=%r' % (nGtSubplts,))
+        print('[show_qres] * nTopNSubplts=%r' % (nTopNSubplts,))
+        print('[show_qres] * nQuerySubplts=%r' % (nQuerySubplts,))
+        print('[show_qres] * -----')
+        print('[show_qres] * nGTCols=%r' % (nGTCols,))
+        print('[show_qres] * -----')
+        print('[show_qres] * fnum=%r' % (fnum,))
+        print('[show_qres] * figtitle=%r' % (figtitle,))
+        print('[show_qres] * max_nCols=%r' % (max_nCols,))
+        print('[show_qres] * show_query=%r' % (show_query,))
+        print('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
 
     # HACK:
     _color_list = df2.distinct_colors(nTop)
@@ -176,7 +210,8 @@ def show_qres(ibs, qres, **kwargs):
                 viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
                 viz_matches.annotate_matches(ibs, qres, aid, show_query=not show_query)
 
-        printDBG('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
+        if DEBUG:
+            print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
         # Do lazy load before show
@@ -186,9 +221,15 @@ def show_qres(ibs, qres, **kwargs):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)
             oranks = np.where(ranked_aids == aid)[0]
+            # This pair has no matches between them.
             if len(oranks) == 0:
                 orank = -1
+                _show_matches_fn(aid, orank, pnum)
+                #if DEBUG:
+                #    print('skipping pnum=%r' % (pnum,))
                 continue
+            if DEBUG:
+                print('pnum=%r' % (pnum,))
             orank = oranks[0] + 1
             _show_matches_fn(aid, orank, pnum)
 

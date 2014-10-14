@@ -45,8 +45,8 @@ def testdata_ibeis(**kwargs):
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
     ibs.cfg.query_cfg.smk_cfg.nWords = nWords
-    ibs.cfg.query_cfg.smk_cfg.alpha = 3
-    ibs.cfg.query_cfg.smk_cfg.thresh = 0
+    ibs.cfg.query_cfg.smk_cfg.smk_alpha = 3
+    ibs.cfg.query_cfg.smk_cfg.smk_thresh = 0
     ibs.cfg.query_cfg.smk_cfg.nAssign = nAssign
     return ibs
 
@@ -170,8 +170,8 @@ def testsdata_sccw_sum():
 
     ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+    smk_alpha     = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
@@ -189,12 +189,12 @@ def testsdata_sccw_sum():
         words, _wx2_qfxs, wx2_maws, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query sccw
     if utool.VERBOSE:
-        print('[smk_index] Query TF alpha=%r, thresh=%r' % (alpha, thresh))
+        print('[smk_index] Query TF smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
     wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=smk_index.INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
-    return idf_list, rvecs_list, maws_list, alpha, thresh
+    return idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh
 
 
 def testdata_internals_full(**kwargs):
@@ -208,11 +208,11 @@ def testdata_internals_full(**kwargs):
     print('[smk_debug] testdata_internals_full')
     with_internals = True
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     #if True:
-    #    _args1 = (annots_df, daids, words, with_internals, True, alpha, thresh)
-    #    _args2 = (annots_df, daids, words, with_internals, False, alpha, thresh)
+    #    _args1 = (annots_df, daids, words, with_internals, True, smk_alpha, smk_thresh)
+    #    _args2 = (annots_df, daids, words, with_internals, False, smk_alpha, smk_thresh)
     #    invindex1 = smk_index.index_data_annots(*_args1)
     #    invindex2 = smk_index.index_data_annots(*_args2)
     #    #utool.flatten(invindex1.wx2_aids.values.tolist())
@@ -221,7 +221,7 @@ def testdata_internals_full(**kwargs):
     #    invindex = invindex2
     #    smk_debug.invindex_dbgstr(invindex)
     #else:
-    _args = (annots_df, daids, words, with_internals, aggregate, alpha, thresh)
+    _args = (annots_df, daids, words, with_internals, aggregate, smk_alpha, smk_thresh)
     invindex = smk_index.index_data_annots(*_args)
     return ibs, annots_df, daids, qaids, invindex
 
@@ -237,16 +237,16 @@ def testdata_match_kernel(**kwargs):
     print('[smk_debug] testdata_match_kernel')
     qaid = qaids[0]
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
     print('+------------')
     print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] alpha = %r' % (alpha,))
-    print('[smk_debug] thresh = %r' % (thresh,))
+    print('[smk_debug] smk_alpha = %r' % (smk_alpha,))
+    print('[smk_debug] smk_thresh = %r' % (smk_thresh,))
     print('L------------')
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
-                                  thresh, nAssign)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, smk_alpha,
+                                  smk_thresh, nAssign)
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     return ibs, invindex, qindex
 
@@ -440,7 +440,7 @@ def check_data_smksumm(aididf_list, aidrvecs_list):
     try:
         for count, (idf_list, rvecs_list) in enumerate(zip(aididf_list, aidrvecs_list)):
             assert len(idf_list) == len(rvecs_list), 'one list for each word'
-            #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
+            #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, smk_alpha, smk_thresh)
     except Exception as ex:
         utool.printex(ex)
         #utool.embed()
@@ -735,8 +735,8 @@ def query_smk_test(annots_df, invindex, qreq_):
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
+    smk_alpha     = qreq_.qparams.smk_alpha
+    smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
     mark, end_ = utool.log_progress(lbl, len(qaids), flushfreq=1,
                                     writefreq=1, with_totaltime=True,
@@ -745,7 +745,7 @@ def query_smk_test(annots_df, invindex, qreq_):
     for count, qaid in enumerate(qaids):
         mark(count)
         daid2_score, daid2_chipmatch = smk_match.query_inverted_index(
-            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+            annots_df, qaid, invindex, withinfo, aggregate, smk_alpha, smk_thresh)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
     end_()
@@ -774,24 +774,24 @@ def main():
     qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
+    smk_alpha     = qreq_.qparams.smk_alpha
+    smk_thresh    = qreq_.qparams.smk_thresh
     nAssign   = qreq_.qparams.nAssign
     #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    #alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    #thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    #smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    #smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     print('+------------')
     print('SMK_DEBUG PARAMS')
     print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] alpha   = %r' % (alpha,))
-    print('[smk_debug] thresh  = %r' % (thresh,))
+    print('[smk_debug] smk_alpha   = %r' % (smk_alpha,))
+    print('[smk_debug] smk_thresh  = %r' % (smk_thresh,))
     print('[smk_debug] nWords  = %r' % (nWords,))
     print('[smk_debug] nAssign = %r' % (nAssign,))
     print('L------------')
     # Learn vocabulary
     #words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
     # Index a database of annotations
-    #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, alpha, thresh)
+    #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, smk_alpha, smk_thresh)
     qreq_.ibs = ibs
     # Smk Mach
     print('+------------')
@@ -846,18 +846,46 @@ def main():
     return locals()
 
 
-def get_test_rvecs(num=1000):
+def get_test_rvecs(num=1000, dim=None):
     from ibeis.model.hots import hstypes
     dtype = hstypes.RVEC_TYPE
-    dim = hstypes.VEC_DIM
+    if dim is None:
+        dim = hstypes.VEC_DIM
     dtype_info = np.iinfo(dtype)
-    rvecs = (dtype_info.max * np.random.rand(num, dim)).astype(dtype)
+    dtype_range = dtype_info.max - dtype_info.min
+    rvecs = (dtype_range * np.random.rand(num, dim) - dtype_info.min).astype(dtype)
+    rvecs = (dtype_range * np.random.normal(size=(num, dim)) - dtype_info.min).astype(dtype)
     return rvecs
 
 
 def get_test_maws(rvecs):
     from ibeis.model.hots import hstypes
     return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+
+
+def testdata_match_kernel_L0():
+    from ibeis.model.hots.smk import smk_core
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    np.random.seed(0)
+    smk_alpha = 3.0
+    smk_thresh = 0.0
+    num_qrvecs_per_word = [0, 1, 3, 4, 5]
+    num_drvecs_per_word = [0, 1, 2, 4, 6]
+    qrvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_qrvecs_per_word]
+    drvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_drvecs_per_word]
+    daids_list  = [list(range(len(rvecs))) for rvecs in drvecs_list]
+    qaids_list  = [[42] * len(rvecs) for rvecs in qrvecs_list]
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in drvecs_list]
+    idf_list = [1.0 for _ in qrvecs_list]
+    daid2_sccw  = {daid: 1.0 for daid in range(10)}
+    query_sccw = smk_core.sccw_summation(qrvecs_list, idf_list, qmaws_list, smk_alpha, smk_thresh)
+    qaid2_sccw  = {42: query_sccw}
+    core1 = smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw
+    core2 = qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list
+    extra = qaid2_sccw, qaids_list
+    return core1, core2, extra
 
 
 if __name__ == '__main__':

@@ -158,7 +158,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
 
 
 def index_data_annots(annots_df, daids, words, with_internals=True,
-                      aggregate=False, alpha=3, thresh=0, memtrack=None):
+                      aggregate=False, smk_alpha=3, smk_thresh=0, memtrack=None):
     """
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
@@ -196,12 +196,12 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     del words, idx2_dvec, idx2_daid, idx2_dfx, daids, daid2_label
     del _vecs_list, _label_list
     if with_internals:
-        compute_data_internals_(invindex, aggregate, alpha, thresh, memtrack=memtrack)  # 99%
+        compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh, memtrack=memtrack)  # 99%
     return invindex
 
 
 #@profile
-def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0, memtrack=None):
+def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0, memtrack=None):
     """
     Builds each of the inverted index internals.
 
@@ -210,9 +210,9 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0, memtra
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-        >>> compute_data_internals_(invindex, aggregate, alpha, thresh)
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+        >>> compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh)
 
     Ignore:
         idx2_vec = idx2_dvec
@@ -236,8 +236,8 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0, memtra
         print('[smk_index] * len(words) = %r' % (len(words),))
         print('[smk_index] * len(idx2_vec) = %r' % (len(idx2_vec),))
         print('[smk_index] * aggregate = %r' % (aggregate,))
-        print('[smk_index] * alpha = %r' % (alpha,))
-        print('[smk_index] * thresh = %r' % (thresh,))
+        print('[smk_index] * smk_alpha = %r' % (smk_alpha,))
+        print('[smk_index] * smk_thresh = %r' % (smk_thresh,))
     # Database word assignments (perform single assignment on database side)
     wx2_idxs, _wx2_maws, idx2_wxs = assign_to_words_(wordflann, words, idx2_vec, nAssign=1)
     if utool.DEBUG2:
@@ -269,7 +269,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0, memtra
     memtrack.report('[DATA INTERNALS2]')
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
-    daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh)
+    daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh)
     # Store information
     invindex.idx2_wxs    = idx2_wxs   # stacked index -> word indexes
     invindex.wx2_idxs    = wx2_idxs
@@ -314,7 +314,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
         print('[smk_index] +--- Start Assign vecs to words.')
         print('[smk_index] * nAssign=%r' % nAssign)
         print('[smk_index] * sigma=%r' % massign_sigma)
-        print('[smk_index] * alpha=%r' % massign_alpha)
+        print('[smk_index] * smk_alpha=%r' % massign_alpha)
     # Assign each vector to the nearest visual words
     assert nAssign > 0, 'cannot assign to 0 neighbors'
     _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, nAssign)
@@ -347,8 +347,8 @@ def _compute_multiassign_weights(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massi
     References:
         http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
     """
-    thresh  = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
-    invalid = np.greater_equal(_idx2_wdist, thresh)
+    smk_thresh  = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
+    invalid = np.greater_equal(_idx2_wdist, smk_thresh)
     # Weighting as in Lost in Quantization
     gauss_numer = -_idx2_wdist.astype(np.float64)
     gauss_denom = 2 * (massign_sigma ** 2)
@@ -371,7 +371,7 @@ def _compute_multiassign_weights(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massi
             print(_idx2_wx[x])
             print(masked_wxs[x])
             print(masked_maw[x])
-            print(thresh[x])
+            print(smk_thresh[x])
             print(_idx2_wdist[x])
         #all([utool.almost_eq(x, 1) for x in checksum])
         assert all([utool.almost_eq(val, 1) for val in checksum]), 'weights did not break evenly'
@@ -655,7 +655,7 @@ def _aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, 
 
 #@utool.cached_func('sccw', appname='smk', key_argx=[1, 2])
 @profile
-def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh):
+def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh):
     """
     Computes sccw normalization scalar for the database annotations.
     This is gamma from the SMK paper.
@@ -666,8 +666,8 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = smk_debug.testdata_raw_internals2()
-        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> idx2_daid  = invindex.idx2_daid
         >>> wx2_idf = wx2_idf
         >>> daids      = invindex.daids
@@ -681,7 +681,7 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
     wx_sublist = np.array(wx2_rvecs.keys())
     if utool.VERBOSE:
         print('\n[smk_index] +--- Start Compute Data Self Consistency Weight')
-        print('[smk_index] Compute SCCW alpha=%r, thresh=%r: ' % (alpha, thresh))
+        print('[smk_index] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
         mark1, end1_ = utool.log_progress(
             '[smk_index] SCCW group (by present words): ', len(wx_sublist),
             flushfreq=100, writefreq=50, with_totaltime=WITH_TOTALTIME)
@@ -717,8 +717,8 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
         from ibeis.model.hots.smk import smk_debug
         smk_debug.check_data_smksumm(aididf_list, aidrvecs_list)
     # TODO: implement database side soft-assign
-    sccw_list = [smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
-                     for idf_list, rvecs_list in zip(aididf_list, aidrvecs_list)]
+    sccw_list = [smk_core.sccw_summation(rvecs_list, idf_list, None, smk_alpha, smk_thresh)
+                 for idf_list, rvecs_list in zip(aididf_list, aidrvecs_list)]
 
     daid2_sccw = dict(zip(aid_list, sccw_list))
     if utool.VERBOSE:
@@ -729,8 +729,8 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
 
 
 @profile
-def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
-                       thresh=0, nAssign=1):
+def new_qindex(annots_df, qaid, invindex, aggregate=False, smk_alpha=3,
+                       smk_thresh=0, nAssign=1):
     """
     Gets query read for computations
 
@@ -739,10 +739,10 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-        >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
-        >>> _args = (annots_df, qaid, invindex, aggregate, alpha, thresh, nAssign)
+        >>> _args = (annots_df, qaid, invindex, aggregate, smk_alpha, smk_thresh, nAssign)
         >>> qindex = new_qindex(*_args)
         >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex
         >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
@@ -774,16 +774,18 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     # each value in wx2_ dicts is a list with len equal to the number of rvecs
     # Compute query sccw
     if utool.VERBOSE:
-        print('[smk_index] Query SCCW alpha=%r, thresh=%r' % (alpha, thresh))
+        print('[smk_index] Query SCCW smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
     wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
-    query_sccw = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh)
+    query_sccw = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh)
     try:
         assert query_sccw > 0, 'query_sccw=%r is not positive!' % (query_sccw,)
-    except AssertionError as ex:
+    except Exception as ex:
         utool.printex(ex)
+        utool.embed()
+        raise
     # Build query representationm class/tuple
     qindex = QueryIndex(wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_sccw)
     return qindex

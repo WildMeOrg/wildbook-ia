@@ -53,13 +53,3 @@ FM_DTYPE  = INTEGER_TYPE
 FS_DTYPE  = FLOAT_TYPE
 # Feature Rank datatype
 FK_DTYPE  = np.int16
-
-
-def cast_float_to_rvec_type(rvec_float):
-    """
-    Args:
-        rvec_float (ndarray): residual vector of type float in range -1 to 1
-    Returns:
-        (ndarray): residual vector of type int8 in range -128 to 128
-    """
-    return (rvec_float * RVEC_MAX).astype(RVEC_TYPE)

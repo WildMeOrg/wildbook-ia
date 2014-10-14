@@ -299,7 +299,7 @@ class QueryParams(object):
             nAssign     = cfg.smk_cfg.nAssign
             aggregate   = cfg.smk_cfg.aggregate
             smk_thresh  = cfg.smk_cfg.smk_thresh
-            alpha       = cfg.smk_cfg.alpha
+            smk_alpha   = cfg.smk_cfg.smk_alpha
             indexer_key = cfg.smk_cfg.indexer_key
             nWords      = cfg.smk_cfg.nWords
             assign_alpha  = cfg.smk_cfg.assign_alpha
