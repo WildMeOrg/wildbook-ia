@@ -41,11 +41,10 @@ def selective_match_kernel(qreq_):
 
         python dev.py -t smk2 --db PZ_Master0 --qaid 7199 --va --quality
 
-        python dev.py -t smk2 --allgt --db GZ_ALL
-
         python dev.py -t smk2 --allgt --db PZ_Master0 && python dev.py -t smk3 --allgt --db PZ_Master0
         python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
 
+        python dev.py -t smk5 --allgt --db PZ_Master0 ; python dev.py -t smk5 --allgt --db GZ_ALL
 
     Dev::
         qres = qaid2_qres_[qaids[0]]

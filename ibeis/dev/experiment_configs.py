@@ -142,6 +142,14 @@ smk3 = {
     'nWords':        [64000],  # True, False],
 }
 
+smk5 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [False, True],
+    'smk_thresh':    [0.0, 0.001],
+    'smk_alpha':     [3],
+    'nWords':        [8000, 64000, 128000],
+}
+
 
 gv_test = vsmany_best.copy()
 gv_test.update({

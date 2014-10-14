@@ -574,6 +574,84 @@ def display_info(ibs, invindex, annots_df):
     #################
 
 
+def vector_normal_stats(vectors):
+    import numpy.linalg as npl
+    norm_list = npl.norm(vectors, axis=1)
+    #norm_list2 = np.sqrt((vectors ** 2).sum(axis=1))
+    #assert np.all(norm_list == norm_list2)
+    norm_stats = utool.get_stats(norm_list)
+    print('normal_stats:' + utool.dict_str(norm_stats, newlines=False))
+
+
+def vector_stats(vectors, name):
+    print('-- Vector Stats --')
+    print(' * vectors = %r' % name)
+    key_list = utool.codeblock(
+        '''
+        vectors.shape
+        vectors.dtype
+        vectors.max()
+        vectors.min()
+        '''
+    ).split('\n')
+    utool.print_keys(key_list)
+    vector_normal_stats(vectors)
+
+
+def sift_stats():
+    import ibeis
+    ibs = ibeis.opendb('PZ_Mothers')
+    aid_list = ibs.get_valid_aids()
+    stacked_sift = np.vstack(ibs.get_annot_desc(aid_list))
+    vector_stats(stacked_sift, 'sift')
+    # We see that SIFT vectors are actually normalized
+    # Between 0 and 512 and clamped to uint8
+    vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
+
+
+def view_vocabs():
+    """
+    looks in vocab cachedir and prints info / vizualizes the vocabs
+    """
+    from vtool import clustering2 as clustertool
+    from os.path import join
+    import parse
+    import numpy as np
+    # Parse some of the training data from fname
+    parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
+    smkdir = utool.get_app_resource_dir('smk')
+    fname_list = utool.glob(smkdir, 'akmeans*')
+    fpath_list = [join(smkdir, fname) for fname in fname_list]
+    result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
+    nCent_list = [int(res['num_cent']) for res in result_list]
+    nDpts_list = [int(res['num_dpts']) for res in result_list]
+    key_list = zip(nCent_list, nDpts_list)
+    fpath_sorted = utool.sortedby(fpath_list, key_list, reverse=True)
+
+    num_pca_dims = 2  # 3
+    whiten       = False
+    kwd = dict(num_pca_dims=num_pca_dims,
+               whiten=whiten,)
+
+    def view_vocab(fpath):
+        # QUANTIZED AND FLOATING POINT STATS
+        centroids = utool.load_cPkl(fpath)
+        print('viewing vocat fpath=%r' % (fpath,))
+        vector_stats(centroids, 'centroids')
+        #centroids_float = centroids.astype(np.float64) / 255.0
+        centroids_float = centroids.astype(np.float64) / 512.0
+        vector_stats(centroids_float, 'centroids_float')
+
+        fig = clustertool.plot_centroids(centroids, centroids, labels='centroids',
+                                         fnum=1, prefix='centroid vecs\n', **kwd)
+        fig.show()
+
+    for count, fpath in enumerate(fpath_sorted):
+        if count > 0:
+            break
+        view_vocab(fpath)
+
+
 def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
     ## Concatenate into full fmfsfk reprs
     #def concat_chipmatch(cmtup):
@@ -876,6 +954,16 @@ def main():
     return locals()
 
 
+def get_test_float_norm_rvecs(num=1000, dim=None):
+    import numpy.linalg as npl
+    from ibeis.model.hots import hstypes
+    if dim is None:
+        dim = hstypes.VEC_DIM
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs_norm_float = rvecs_float / npl.norm(rvecs_float, axis=1)[:, None]
+    return rvecs_norm_float
+
+
 def get_test_rvecs(num=1000, dim=None):
     from ibeis.model.hots import hstypes
     dtype = hstypes.RVEC_TYPE
@@ -883,8 +971,9 @@ def get_test_rvecs(num=1000, dim=None):
         dim = hstypes.VEC_DIM
     dtype_info = np.iinfo(dtype)
     dtype_range = dtype_info.max - dtype_info.min
-    rvecs = (dtype_range * np.random.rand(num, dim) - dtype_info.min).astype(dtype)
-    rvecs = (dtype_range * np.random.normal(size=(num, dim)) - dtype_info.min).astype(dtype)
+    #rvecs = (dtype_range * np.random.rand(num, dim) - dtype_info.min).astype(dtype)
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs = ((dtype_range * rvecs_float) - dtype_info.min).astype(dtype)
     return rvecs
 
 
@@ -922,12 +1011,15 @@ if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing
     from plottool import draw_func2 as df2
-    np.set_printoptions(precision=2)
-    pd.set_option('display.max_rows', 7)
-    pd.set_option('display.max_columns', 7)
-    pd.set_option('isplay.notebook_repr_html', True)
-    multiprocessing.freeze_support()  # for win32
-    main_locals = main()
-    main_execstr = utool.execstr_dict(main_locals, 'main_locals')
-    exec(main_execstr)
+    if True or utool.get_argflag('--view-vocabs'):
+        view_vocabs()
+    else:
+        np.set_printoptions(precision=2)
+        pd.set_option('display.max_rows', 7)
+        pd.set_option('display.max_columns', 7)
+        pd.set_option('isplay.notebook_repr_html', True)
+        multiprocessing.freeze_support()  # for win32
+        main_locals = main()
+        main_execstr = utool.execstr_dict(main_locals, 'main_locals')
+        exec(main_execstr)
     exec(df2.present())

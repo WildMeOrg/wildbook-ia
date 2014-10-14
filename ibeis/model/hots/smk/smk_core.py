@@ -15,14 +15,42 @@ from vtool import clustering2 as clustertool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
-def cast_float_to_rvec_dtype(rvec_float):
+RVEC_TYPE = hstypes.RVEC_TYPE
+RVEC_MAX = hstypes.RVEC_MAX
+RVEC_MIN = hstypes.RVEC_MIN
+RVEC_MAX_SQRD = hstypes.FLOAT_TYPE(RVEC_MAX) ** 2
+
+
+def quantize_normvec_to_int8(arr_float):
     """
+    compresses 8 or 4 bytes of information into 1 byte
+
+    Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
+    compresses them into 1 byte. Takes advantage of the fact that
+    rarely will a component of a vector be greater than 64, so we can extend the
+    range to double what normally would be allowed. This does mean there is a
+    slight (but hopefully negligable) information loss. It will be negligable
+    when nDims=128, when it is lower, you may want to use a different function.
+
     Args:
-        rvec_float (ndarray): residual vector of type float in range -1 to 1
+        arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
     Returns:
         (ndarray): residual vector of type int8 in range -128 to 128
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> np.random.seed(0)
+        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
+        >>> normalize_vecs_inplace(arr_float)
+        >>> arr_int8 = quantize_normvec_to_int8(arr_float)
+        >>> print(arr_int8)
+        [[ 126   28   70 -128 -128]
+         [-128 -128  -26  -18   73]]
     """
-    return (rvec_float * hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
+    # Trick / hack: use 2 * max, and clip because most components will be less
+    # than 2 * max. This will reduce quantization error
+    return np.clip((arr_float * (RVEC_MAX * 2)), RVEC_MIN, RVEC_MAX).astype(RVEC_TYPE)
 
 
 #@profile
@@ -52,7 +80,7 @@ def aggregate_rvecs(rvecs, maws):
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
     normalize_vecs_inplace(rvecs_agg)
-    rvecs_agg = cast_float_to_rvec_dtype(rvecs_agg)
+    rvecs_agg = quantize_normvec_to_int8(rvecs_agg)
     return rvecs_agg
 
 
@@ -70,7 +98,7 @@ def get_norm_rvecs(vecs, word):
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
     normalize_vecs_inplace(rvecs_n)
-    rvecs_n = cast_float_to_rvec_dtype(rvecs_n)
+    rvecs_n = quantize_normvec_to_int8(rvecs_n)
     return rvecs_n
 
 
@@ -108,7 +136,6 @@ def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
         >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
         >>> idf_list = [1.0 for _ in qrvecs_list]
     """
-    RVEC_MAX_SQRD = hstypes.FLOAT_TYPE(hstypes.RVEC_MAX) ** 2
     idf_list_ = np.divide(idf_list, RVEC_MAX_SQRD)
     if dmaws_list is None and qmaws_list is None:
         mawsim_list = [
@@ -152,7 +179,7 @@ def similarity_function(qrvecs_list, drvecs_list):
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
     # Rvec is NaN implies it is a cluster center. perfect similarity
     for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = 1.0  # hstypes.RVEC_MAX  # 1.0
+        simmat[np.isnan(simmat)] = 1.0
     return simmat_list
 
 
