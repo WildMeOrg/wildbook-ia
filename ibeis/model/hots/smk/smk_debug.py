@@ -176,7 +176,8 @@ def testsdata_sccw_sum():
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
     wordflann = invindex.wordflann
-    qfx2_vec  = annots_df['vecs'][qaid].values
+    #qfx2_vec  = annots_df['vecs'][qaid].values
+    qfx2_vec  = annots_df['vecs'][qaid]
     # Assign query to (multiple) words
     _wx2_qfxs, wx2_maws, qfx2_wxs = smk_index.assign_to_words_(
         wordflann, words, qfx2_vec, nAssign=nAssign)

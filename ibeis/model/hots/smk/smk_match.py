@@ -76,7 +76,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     return daid2_totalscore, daid2_chipmatch
 
 
-@utool.memprof
+#@utool.memprof
 def prepare_qreq(qreq_, annots_df, memtrack):
     """ Called if pipeline did not setup qreq correctly """
     print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')

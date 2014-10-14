@@ -116,7 +116,7 @@ def make_annot_df(ibs):
 
 
 #@profile
-@utool.memprof
+#@utool.memprof
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memtrack=None):
     """
     Computes and caches visual words
@@ -780,7 +780,10 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
     query_sccw = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh)
-    assert query_sccw > 0, 'query sccw is not positive!'
+    try:
+        assert query_sccw > 0, 'query_sccw=%r is not positive!' % (query_sccw,)
+    except AssertionError as ex:
+        utool.printex(ex)
     # Build query representationm class/tuple
     qindex = QueryIndex(wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_sccw)
     return qindex

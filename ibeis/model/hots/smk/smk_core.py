@@ -65,16 +65,16 @@ def get_norm_rvecs(vecs, word):
 
 
 #@profile
-def selectivity_function(simmat_list, alpha, thresh):
+def selectivity_function(simmat_list, smk_alpha, smk_thresh):
     """ Selectivity function - sigma from SMK paper rscore = residual score """
-    alpha = 3
-    thresh = 0
+    smk_alpha = 3
+    smk_thresh = 0
     scores_iter = [
-        np.multiply(np.sign(simmat), np.power(np.abs(simmat), alpha))
+        np.multiply(np.sign(simmat), np.power(np.abs(simmat), smk_alpha))
         for simmat in simmat_list
     ]
     scores_list = [
-        np.multiply(scores, np.greater(scores, thresh))
+        np.multiply(scores, np.greater(scores, smk_thresh))
         for scores in scores_iter
     ]
     if utool.DEBUG2:
@@ -82,7 +82,7 @@ def selectivity_function(simmat_list, alpha, thresh):
     return scores_list
 
 
-def apply_maws(simmat_list, qmaws_list, dmaws_list):
+def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
     """
     Applys multi-assign weights to rvec similarty matrices
 
@@ -96,33 +96,29 @@ def apply_maws(simmat_list, qmaws_list, dmaws_list):
         >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
         >>> qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
         >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
+        >>> idf_list = [1.0 for _ in qrvecs_list]
     """
+    RVEC_MAX_SQRD = hstypes.FLOAT_TYPE(hstypes.RVEC_MAX) ** 2
+    idf_list_ = (idf_list / RVEC_MAX_SQRD)
     if dmaws_list is None and qmaws_list is None:
-        mawsim_list = simmat_list
         mawsim_list = [
-            simmat / hstypes.RVEC_MAX
-            for simmat in simmat_list
+            (simmat * idf)
+            for simmat, idf in zip(simmat_list, idf_list_)
         ]
     elif dmaws_list is not None and qmaws_list is not None:
-        #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat * dmaws.reshape((1, dmaws.size))
         mawsim_list = [
-            np.divide(np.multiply(np.multiply(qmaws[:, np.newaxis], simmat), dmaws[np.newaxis, :]), hstypes.RVEC_MAX)
-            #qmaws[:, np.newaxis] * simmat * dmaws[np.newaxis, :] / hstypes.RVEC_MAX
-            for simmat, qmaws, dmaws in
-            zip(simmat_list, qmaws_list, dmaws_list)
+            ((qmaws[:, np.newaxis] * simmat) * (dmaws[np.newaxis, :] * (idf)))
+            for simmat, qmaws, dmaws, idf in
+            zip(simmat_list, qmaws_list, dmaws_list, idf_list_)
         ]
-    elif qmaws_list is not None and dmaws_list is None:
-        #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat
-        mawsim_list = [
-            qmaws[:, np.newaxis] * simmat / hstypes.RVEC_MAX
-            for simmat, qmaws in
-            zip(simmat_list, qmaws_list)
-        ]
-    else:
-        #mawsim_list = [simmat * dmaws[np.newaxis, :]
-        #               for simmat, dmaws in
-        #               zip(simmat_list, dmaws_list)]
-        raise NotImplementedError('cannot just do dmaws')
+    #elif qmaws_list is not None and dmaws_list is None:
+    #    mawsim_list = [
+    #        ((qmaws[:, np.newaxis] * simmat) * (idf / hstypes.RVEC_MAX))
+    #        for simmat, qmaws, idf in
+    #        zip(simmat_list, qmaws_list, idf_list, idf)
+    #    ]
+    #else:
+    #    raise NotImplementedError('cannot just do dmaws')
     return mawsim_list
 
 
@@ -138,7 +134,7 @@ def similarity_function(qrvecs_list, drvecs_list):
         >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
     """
     simmat_list = [
-        qrvecs.dot(drvecs.T)
+        qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32))
         for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
     ]
     if utool.DEBUG2:
@@ -146,11 +142,12 @@ def similarity_function(qrvecs_list, drvecs_list):
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
     # Rvec is NaN implies it is a cluster center. perfect similarity
     for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = hstypes.RVEC_MAX  # 1.0
+        simmat[np.isnan(simmat)] = 1.0  # hstypes.RVEC_MAX  # 1.0
     return simmat_list
 
 
-def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, alpha, thresh):
+def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
+                  smk_thresh, idf_list=None):
     """ Similarity + Selectivity: M(X_c, Y_c)
 
     Args:
@@ -158,8 +155,8 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, alpha, thres
         drvecs_list : database vectors for each word
         qmaws_list  : multi assigned weights for each query word
         dmaws_list  : multi assigned weights for each database word
-        alpha       : selectivity power
-        thresh      : selectivity thresh
+        smk_alpha       : selectivity power
+        smk_thresh      : selectivity smk_thresh
 
     Returns:
         score matrix
@@ -171,22 +168,85 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, alpha, thres
         >>> drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
         >>> qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
         >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
-        >>> alpha = 3
-        >>> thresh = 0
+        >>> idf_list = [1 for _ in qrvecs_list]
+        >>> smk_alpha = 3
+        >>> smk_thresh = 0
     """
     # Cosine similarity between normalized residuals
     simmat_list = similarity_function(qrvecs_list, drvecs_list)
-    # Apply multi assign weights
-    # THIS IS WRONG WHEN AGG=TRUE
-    # QMAWS IS NOT COLLAPSED
-    mawmat_list = apply_maws(simmat_list, qmaws_list, dmaws_list)
+    # Apply Weights
+    mawmat_list = apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
     # Apply sigma selectivity (power law)
-    scores_list = selectivity_function(mawmat_list, alpha, thresh)
+    scores_list = selectivity_function(mawmat_list, smk_alpha, smk_thresh)
     return scores_list
 
 
+def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
+                    withinfo=True, smk_alpha=3, smk_thresh=0):
+    """ function """
+    wx2_drvecs     = invindex.wx2_drvecs
+    wx2_idf        = invindex.wx2_idf
+    wx2_daid       = invindex.wx2_aids
+    daid2_sccw     = invindex.daid2_sccw
+    #utool.embed()
+    #idx2_daid = invindex.idx2_daid
+    #wx2_idxs   = invindex.wx2_idxs
+    #wx2_maws   = invindex.wx2_maws
+
+    # for each word compute the pairwise scores between matches
+    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
+    # Build lists over common word indexes
+    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
+    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
+    dmaws_list  = None
+    #print('+==============')
+    if utool.VERBOSE:
+        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
+                                        flushfreq=100, writefreq=25,
+                                        with_totaltime=True)
+        tup = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
+                              smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw, common_wxs)
+    if utool.VERBOSE:
+        end_()
+    return tup
+
+
+def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
+                    smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw, common_wxs):
+    """
+    Computes smk kernels
+    """
+    # Summation over query features
+    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)
+    # Accumulate scores over daids (database annotation ids)
+    daid_agg_keys, daid_agg_scores = accumulate_scores(scores_list, daids_list)
+    # Apply database-side sccw (self consistency criterion weight)
+    daid_sccw_list = [daid2_sccw[daid] for daid in daid_agg_keys]
+    # Apply query-side sccw (self consistency criterion weight )
+    daid_total_list = np.multiply(np.multiply(daid_sccw_list, daid_agg_scores), query_sccw)
+    # Group scores by daid using a dictionary
+    daid2_totalscore = dict(zip(daid_agg_keys, daid_total_list))
+    tup = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys, daid2_sccw,)
+    return tup
+
+
+def accumulate_scores(wscores_list, daids_list):
+    """ helper """
+    daid2_aggscore = utool.ddict(lambda: 0)
+    ### Weirdly iflatten was slower here
+    for wscores, daids in zip(wscores_list, daids_list):
+        for daid, wscore in zip(daids, wscores):
+            daid2_aggscore[daid] += wscore
+    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
+    daid_agg_scores = np.array(list(daid2_aggscore.values()))
+    return daid_agg_keys, daid_agg_scores
+
+
 #@profile
-def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
+def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     r"""
     Computes gamma from "To Aggregate or not to aggregate"
 
@@ -201,10 +261,10 @@ def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> idf_list, rvecs_list, maws_list, alpha, thresh = smk_debug.testsdata_sccw_sum()
+        >>> idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh = smk_debug.testsdata_sccw_sum()
         >>> qmaws_list = dmaws_list = maws_list
         >>> drvecs_list = qrvecs_list = rvecs_list
-        >>> scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh )
+        >>> scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh )
         >>> print(scoremat)
         0.0384477314197
 
@@ -214,32 +274,30 @@ def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
     scores_list = score_matches(rvecs_list, rvecs_list,
                                 maws_list, maws_list,
-                                alpha, thresh)
+                                smk_alpha, smk_thresh, idf_list)
     # Summation over query features
-    score_list = [scores.sum() for scores in scores_list]
+    score_list = np.array([scores.sum() for scores in scores_list])
     if utool.DEBUG2:
         assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
         assert len(idf_list) == len(score_list), 'bad weight and score'
-    # Apply idf weighting
-    weighted_total = np.multiply(idf_list, score_list).sum()
     # Square root inverse
-    sccw = np.reciprocal(np.sqrt(weighted_total))
+    sccw = np.reciprocal(np.sqrt(score_list))
     return sccw
 
 
 @profile
 def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                 withinfo=True, alpha=3, thresh=0):
+                 withinfo=True, smk_alpha=3, smk_thresh=0):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
         >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
-        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> withinfo = True  # takes an 11s vs 2s
-        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, alpha, thresh)
+        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
         >>> smk_debug.rrr()
         >>> smk_debug.invindex_dbgstr(invindex)
         >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
@@ -279,7 +337,7 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
         #print(utool.get_stats(utool.depth_profile(utool.depth_profile(scores_list))))
 
     # Summation over query features
-    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, None, alpha, thresh)
+    scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, None, smk_alpha, smk_thresh)
     # Apply idf-weights
     wscores_list = [idf * (scores).sum(axis=0)
                     for scores, idf in zip(scores_list, idf_list)]
@@ -310,6 +368,41 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
 
     if utool.VERBOSE:
         end_()
+
+    return daid2_totalscore, daid2_chipmatch
+
+
+@profile
+def match_kernel_alt(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
+                     withinfo=True, smk_alpha=3, smk_thresh=0):
+    """
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
+        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+        >>> withinfo = True  # takes an 11s vs 2s
+        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+        >>> smk_debug.rrr()
+        >>> smk_debug.invindex_dbgstr(invindex)
+        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
+    """
+    tup = match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs,
+                          query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys, daid2_sccw,) = tup
+
+    #assert len(wscore) == len(daids)
+    #print('L==============')
+    if withinfo:
+        daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs,
+                                                 wx2_qaids, wx2_qfxs,
+                                                 scores_list, idf_list,
+                                                 daids_list, query_sccw,
+                                                 daid2_sccw)
+    else:
+        daid2_chipmatch = None
 
     return daid2_totalscore, daid2_chipmatch
 
