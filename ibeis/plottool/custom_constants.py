@@ -84,6 +84,7 @@ def golden_wh(x):
 #DPI = 80
 DPI = 60
 #DPI = 160
+#DPI = 360
 #FIGSIZE = (24) # default windows fullscreen
 FIGSIZE_MED = (12, 6)
 FIGSIZE_SQUARE = (12, 12)

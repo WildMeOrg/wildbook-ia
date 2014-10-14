@@ -19,10 +19,15 @@ def draw():
 def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2):
     """ Dumps figure to disk based on the figurename """
     if quality is True:
-        custom_figure.FIGSIZE = df2.golden_wh2(12)
+        custom_figure.FIGSIZE = df2.golden_wh2(14)
         custom_figure.DPI = 120
+        #custom_figure.FIGSIZE = df2.golden_wh2(12)
+        #custom_figure.DPI = 120
         custom_figure.FONTS.figtitle = df2.FONTS.small
     elif quality is False:
+        #custom_figure.FIGSIZE = df2.golden_wh2(8)
+        #custom_figure.FIGSIZE = df2.golden_wh2(14)
+        #custom_figure.DPI = 100
         custom_figure.FIGSIZE = df2.golden_wh2(8)
         custom_figure.DPI = 90
         custom_figure.FONTS.figtitle = df2.FONTS.smaller
