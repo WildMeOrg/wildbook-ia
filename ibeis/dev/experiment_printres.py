@@ -1,15 +1,19 @@
+"""
+displays results from experiment_harness
+"""
 from __future__ import absolute_import, division, print_function
 import itertools
-import six
-from os.path import join
-from itertools import chain
-from six.moves import map, range
-import utool
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
 import numpy as np
+import six
+import utool
 from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
+from ibeis.model.hots import match_chips4 as mc4
+from itertools import chain
+from os.path import join, dirname, split, basename, splitext
+from plottool import draw_func2 as df2
+from plottool import plot_helpers as ph
+from six.moves import map, range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
@@ -310,8 +314,6 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
     """
-    from ibeis.model.hots import match_chips4 as mc4
-    from os.path import dirname, split, basename, splitext
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -328,7 +330,8 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     # It is very inefficient to turn off caching when view_all is true
     if not mc4.USE_CACHE:
         print('WARNING: view_all specified with USE_CACHE == False')
-        mc4.USE_CACHE = True
+        print('WARNING: we will try to turn cache on when reloading results')
+        #mc4.USE_CACHE = True
 
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
@@ -356,7 +359,10 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
         ibs.set_query_cfg(query_cfg)
-        qres = ibs._query_chips([qaid], daids)[qaid]
+        # Force program to use cache here
+        qres = ibs._query_chips([qaid], daids,
+                                use_cache=True,
+                                use_bigcache=False)[qaid]
         return qres
 
     #DELETE              = False

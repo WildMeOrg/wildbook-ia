@@ -46,6 +46,11 @@ VEC_MIN = 0
 
 RVEC_MAX = 128
 RVEC_MIN = -128
+# Psuedo max values is used for a quantization tricks where you pack more data
+# into a smaller space than would normally be allowed. We are able to do this
+# because values will hardly ever be close to the true max.
+RVEC_PSEUDO_MAX = RVEC_MAX * 2
+RVEC_PSEUDO_MAX_SQRD = float(RVEC_PSEUDO_MAX ** 2)
 
 # Feature Match datatype
 FM_DTYPE  = INTEGER_TYPE

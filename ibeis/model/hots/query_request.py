@@ -262,6 +262,7 @@ class QueryRequest(object):
         qreq_.ibs = ibs  # HACK
         if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
             qreq_.load_indexer(ibs)
+            # FIXME: not sure if this is even used
             qreq_.load_query_vectors(ibs)
             qreq_.load_query_keypoints(ibs)
 
@@ -302,6 +303,7 @@ class QueryParams(object):
             smk_alpha   = cfg.smk_cfg.smk_alpha
             indexer_key = cfg.smk_cfg.indexer_key
             nWords      = cfg.smk_cfg.nWords
+            vocab_weighting = cfg.smk_cfg.vocab_weighting
             assign_alpha  = cfg.smk_cfg.assign_alpha
             assign_sigma  = cfg.smk_cfg.assign_sigma
         K                  = cfg.nn_cfg.K

@@ -148,6 +148,12 @@ smk2 = {
     'nWords':        [64000],  # True, False],
 }
 
+smkd = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [False, True],  # True, False],
+    'nWords':        [8000],  # True, False],
+}
+
 smk3 = {
     'pipeline_root': ['smk', 'asmk'],
     #'smk_thresh':    [0.0, 0.001],  # True, False],
@@ -159,7 +165,7 @@ smk5 = {
     'sv_on':         [False, True],
     'smk_thresh':    [0.0, 0.001],
     'smk_alpha':     [3],
-    'nWords':        [8000, 64000, 128000],
+    'nWords':        [128000, 64000, 8000],
 }
 
 

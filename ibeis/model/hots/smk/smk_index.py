@@ -158,7 +158,8 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
 
 
 def index_data_annots(annots_df, daids, words, with_internals=True,
-                      aggregate=False, smk_alpha=3, smk_thresh=0, memtrack=None):
+                      aggregate=False, smk_alpha=3, smk_thresh=0,
+                      vocab_weighting='idf', memtrack=None):
     """
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
@@ -196,12 +197,14 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     del words, idx2_dvec, idx2_daid, idx2_dfx, daids, daid2_label
     del _vecs_list, _label_list
     if with_internals:
-        compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh, memtrack=memtrack)  # 99%
+        compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh,
+                                vocab_weighting, memtrack=memtrack)  # 99%
     return invindex
 
 
 #@profile
-def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0, memtrack=None):
+def compute_data_internals_(invindex, aggregate=False, smk_alpha=3,
+                            smk_thresh=0, vocab_weighting='idf', memtrack=None):
     """
     Builds each of the inverted index internals.
 
@@ -212,6 +215,7 @@ def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
         >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+        >>> vocab_weighting = ibs.cfg.query_cfg.smk_cfg.vocab_weighting
         >>> compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh)
 
     Ignore:
@@ -228,6 +232,7 @@ def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0
     daids     = invindex.daids
     wordflann = invindex.wordflann
     words     = invindex.words
+    daid2_label = invindex.daid2_label
     wx_series = np.arange(len(words))
     #memtrack.track_obj(idx2_vec, 'idx2_vec')
     if not utool.QUIET:
@@ -251,7 +256,7 @@ def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0
             utool.printex(ex, iswarning=True)
     # Database word inverse-document-frequency (idf weights)
     wx2_idf = compute_word_idf_(
-        wx_series, wx2_idxs, idx2_daid, daids)
+        wx_series, wx2_idxs, idx2_daid, daids, daid2_label, vocab_weighting)
     if utool.DEBUG2:
         assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute (normalized) residual vectors and inverse mappings
@@ -311,7 +316,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
         >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
     if not utool.QUIET:
-        print('[smk_index] assign_to_words_')
+        print('[smk_index] assign_to_words_. len(idx2_vec) = %r' % len(idx2_vec))
     if utool.VERBOSE:
         print('[smk_index] * nAssign=%r' % nAssign)
         print('[smk_index] * sigma=%r' % massign_sigma)
@@ -381,9 +386,10 @@ def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massi
     return idx2_wxs, idx2_maws
 
 
-@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3], key_kwds=['daid2_label'])
+#@utool.cached_func('smk_idf', appname='smk', key_argx=[1, 2, 3], key_kwds=['daid2_label'])
 @profile
-def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
+def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
+                      vocab_weighting='idf'):
     """
     Computes the inverse-document-frequency weighting for each word
 
@@ -418,10 +424,13 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
                  else np.empty(0, dtype=INDEX_TYPE)
                  for idxs in idxs_list]
     # TODO: Integrate different idf measures
-    if daid2_label is not None:
+    if vocab_weighting == 'idf':
+        idf_list = compute_idf_orig(aids_list, daids)
+    elif vocab_weighting == 'negentropy':
+        assert daid2_label is not None
         idf_list = compute_idf_label1(aids_list, daid2_label)
     else:
-        idf_list = compute_idf_orig(aids_list, daids)
+        raise AssertionError('unknown option vocab_weighting=%r' % vocab_weighting)
     if utool.VERBOSE:
         end_()
         print('[smk_index] L___ End Compute IDF')
@@ -431,7 +440,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
 
 def compute_idf_orig(aids_list, daids):
     """
-    The standard idf measure
+    The standard tried and true idf measure
     """
     nTotalDocs = len(daids)
     # idf denominator
@@ -443,56 +452,9 @@ def compute_idf_orig(aids_list, daids):
     return idf_list
 
 
-def compute_idf_label1(aids_list, daid2_label):
-    """
-    One of our idf extensions
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
-    >>> wx_series = np.arange(len(invindex.words))
-    >>> idx2_aid = invindex.idx2_daid
-    >>> daid2_label = invindex.daid2_label
-    >>> idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
-    >>>              if wx in wx2_idxs
-    >>>              else np.empty(0, dtype=INDEX_TYPE)
-    >>>              for wx in wx_series]
-    >>> # aids for each word
-    >>> aids_list = [idx2_aid.take(idxs)
-    >>>              if len(idxs) > 0
-    >>>              else np.empty(0, dtype=INDEX_TYPE)
-    >>>              for idxs in idxs_list]
-    >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
-    """
-    nWords = len(aids_list)
-    # Computes our novel label idf weight
-    lblindex_list = np.array(utool.tuples_to_unique_scalars(daid2_label.values()))
-    #daid2_lblindex = dict(zip(daid_list, lblindex_list))
-    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
-    daid_list = np.array(daid2_label.keys())
-    daids_list = [daid_list.take(xs) for xs in groupxs]
-    daid2_wxs = utool.ddict(list)
-    for wx, daids in enumerate(aids_list):
-        for daid in daids:
-            daid2_wxs[daid].append(wx)
-    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
-    nLabels = len(unique_lblindexes)
-    pcntLblsWithWord = np.zeros(nWords, np.float64)
-    # Get num times word appears for eachlabel
-    for lblindex, daids in lblindex2_daids:
-        nWordsWithLabel = np.zeros(nWords)
-        for daid in daids:
-            wxs = daid2_wxs[daid]
-            nWordsWithLabel[wxs] += 1
-        pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
-
-    # Labels for each word
-    idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
-                                dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
-    return idf_list
-
-
 def compute_negentropy_names(aids_list, daid2_label):
     r"""
+    One of our idf extensions
     Word weighting based on the negative entropy over all names of p(n_i | word)
 
     Math::
@@ -557,6 +519,10 @@ def compute_negentropy_names(aids_list, daid2_label):
     # (nNames, nWords)
     # add a little wiggle room
     eps = 1E-9
+    # http://stackoverflow.com/questions/872544/precision-of-floating-point
+    #epsilon = 2^(E-52)    % For a 64-bit float (double precision)
+    #epsilon = 2^(E-23)    % For a 32-bit float (single precision)
+    #epsilon = 2^(E-10)    % For a 16-bit float (half precision)
     probNameGivenWord = eps + (1.0 - eps) * np.array([probLabelGivenWord_arr.take(xs, axis=0).sum(axis=0) for xs in groupxs_])
     logProbNameGivenWord = np.log(probNameGivenWord)
     wordNameEntropy = -(probNameGivenWord * logProbNameGivenWord).sum(0)
@@ -566,7 +532,55 @@ def compute_negentropy_names(aids_list, daid2_label):
     return negentropy_list
 
 
-@utool.cached_func('residuals_', appname='smk')
+def compute_idf_label1(aids_list, daid2_label):
+    """
+    One of our idf extensions
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    >>> wx_series = np.arange(len(invindex.words))
+    >>> idx2_aid = invindex.idx2_daid
+    >>> daid2_label = invindex.daid2_label
+    >>> idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
+    >>>              if wx in wx2_idxs
+    >>>              else np.empty(0, dtype=INDEX_TYPE)
+    >>>              for wx in wx_series]
+    >>> # aids for each word
+    >>> aids_list = [idx2_aid.take(idxs)
+    >>>              if len(idxs) > 0
+    >>>              else np.empty(0, dtype=INDEX_TYPE)
+    >>>              for idxs in idxs_list]
+    >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+    """
+    nWords = len(aids_list)
+    # Computes our novel label idf weight
+    lblindex_list = np.array(utool.tuples_to_unique_scalars(daid2_label.values()))
+    #daid2_lblindex = dict(zip(daid_list, lblindex_list))
+    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+    daid_list = np.array(daid2_label.keys())
+    daids_list = [daid_list.take(xs) for xs in groupxs]
+    daid2_wxs = utool.ddict(list)
+    for wx, daids in enumerate(aids_list):
+        for daid in daids:
+            daid2_wxs[daid].append(wx)
+    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
+    nLabels = len(unique_lblindexes)
+    pcntLblsWithWord = np.zeros(nWords, np.float64)
+    # Get num times word appears for eachlabel
+    for lblindex, daids in lblindex2_daids:
+        nWordsWithLabel = np.zeros(nWords)
+        for daid in daids:
+            wxs = daid2_wxs[daid]
+            nWordsWithLabel[wxs] += 1
+        pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
+
+    # Labels for each word
+    idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
+                                dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    return idf_list
+
+
+#@utool.cached_func('smk_rvecs_', appname='smk')
 @profile
 def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
                        aggregate, is_database=False):

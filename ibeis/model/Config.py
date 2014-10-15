@@ -310,6 +310,8 @@ class SMKConfig(ConfigBase):
         # TODO Separate into vocab config
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.nWords = int(8E3)  #
+        # options: ['idf', 'negentropy']
+        smkcfg.vocab_weighting = 'idf'
         # Multiassign parameters
         smkcfg.assign_alpha = 1.2
         smkcfg.assign_sigma = 80
@@ -323,6 +325,7 @@ class SMKConfig(ConfigBase):
             ')_Vocab(',
             'sz=%d' % int(smkcfg.nWords),
             ',K=', str(smkcfg.nAssign),
+            ',%s' % smkcfg.vocab_weighting,
             ',a=', str(smkcfg.assign_alpha),
             ',s=', str(smkcfg.assign_sigma),
             ')',

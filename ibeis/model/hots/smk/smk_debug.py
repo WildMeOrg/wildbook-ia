@@ -1022,6 +1022,35 @@ def testdata_match_kernel_L0():
     return core1, core2, extra
 
 
+def testdata_similarity_function():
+    from ibeis.model.hots.smk import smk_debug
+    qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    return qrvecs_list, drvecs_list
+
+
+def testdata_apply_weights():
+    from ibeis.model.hots.smk import smk_internal
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
+    simmat_list = smk_internal.similarity_function(qrvecs_list, drvecs_list)
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
+    idf_list = [1 for _ in qrvecs_list]
+    return simmat_list, qmaws_list, dmaws_list, idf_list
+
+
+def testdata_selectivity_function():
+    from ibeis.model.hots.smk import smk_internal
+    from ibeis.model.hots.smk import smk_debug
+    smk_alpha = 3
+    smk_thresh = 0
+    simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()
+    wsim_list = smk_internal.apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
+    return wsim_list, smk_alpha, smk_thresh
+
+
 if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing
