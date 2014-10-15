@@ -143,7 +143,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     memtrack.track_obj(train_vecs, 'train_vecs')
     memtrack.report('stacked trainvecs')
     del train_vecs_list
-    print('Training %d word vocabulary with %d annots and %d descriptors' %
+    print('[smk_index] Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
     kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
                 flann_params=flann_params)
@@ -174,7 +174,7 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
         #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
         #v8+i5i8+55j0swio
     """
-    if utool.VERBOSE:
+    if not utool.QUIET:
         print('[smk_index] index_data_annots')
     flann_params = {}
     #_words = words
@@ -229,9 +229,10 @@ def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0
     wordflann = invindex.wordflann
     words     = invindex.words
     wx_series = np.arange(len(words))
-    memtrack.track_obj(idx2_vec, 'idx2_vec')
-    if utool.VERBOSE:
+    #memtrack.track_obj(idx2_vec, 'idx2_vec')
+    if not utool.QUIET:
         print('[smk_index] compute_data_internals_')
+    if utool.VERBOSE:
         print('[smk_index] * len(daids) = %r' % (len(daids),))
         print('[smk_index] * len(words) = %r' % (len(words),))
         print('[smk_index] * len(idx2_vec) = %r' % (len(idx2_vec),))
@@ -258,14 +259,13 @@ def compute_data_internals_(invindex, aggregate=False, smk_alpha=3, smk_thresh=0
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
         is_database=True)
     # Try to save some memory
+    if not utool.QUIET:
+        print('[smk_index] unloading idx2_vec')
     del _wx2_maws
-    memtrack.report('[DATA INTERNALS1]')
-    print('--')
-    #print('id(locals()) = %r' % (id(locals())))
+    #memtrack.report('[DATA INTERNALS1]')
     invindex.idx2_dvec = None
     del idx2_vec
     #utool.report_memsize(idx2_vec_ref, 'idx2_vec_ref')
-    #utool.embed()
     memtrack.report('[DATA INTERNALS2]')
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
@@ -310,8 +310,9 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
         >>> _dbargs = (wordflann, words, idx2_vec,  nAssign)
         >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
+    if not utool.QUIET:
+        print('[smk_index] assign_to_words_')
     if utool.VERBOSE:
-        print('[smk_index] +--- Start Assign vecs to words.')
         print('[smk_index] * nAssign=%r' % nAssign)
         print('[smk_index] * sigma=%r' % massign_sigma)
         print('[smk_index] * smk_alpha=%r' % massign_alpha)
@@ -321,7 +322,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
     _idx2_wx.shape    = (idx2_vec.shape[0], nAssign)
     _idx2_wdist.shape = (idx2_vec.shape[0], nAssign)
     if nAssign > 1:
-        idx2_wxs, idx2_maws = _compute_multiassign_weights(
+        idx2_wxs, idx2_maws = compute_multiassign_weights_(
             _idx2_wx, _idx2_wdist, massign_alpha, massign_sigma)
     else:
         idx2_wxs = _idx2_wx.tolist()
@@ -340,14 +341,16 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
     return wx2_idxs, wx2_maws, idx2_wxs
 
 
-def _compute_multiassign_weights(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massign_sigma=80):
+def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massign_sigma=80):
     """
     Multi Assignment Filtering from Improving Bag of Features
 
     References:
         http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
     """
-    smk_thresh  = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
+    if not utool.QUIET:
+        print('[smk_index] compute_multiassign_weights_')
+    smk_thresh = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
     invalid = np.greater_equal(_idx2_wdist, smk_thresh)
     # Weighting as in Lost in Quantization
     gauss_numer = -_idx2_wdist.astype(np.float64)
@@ -378,7 +381,7 @@ def _compute_multiassign_weights(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massi
     return idx2_wxs, idx2_maws
 
 
-#@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3])
+@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3], key_kwds=['daid2_label'])
 @profile
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
     """
@@ -398,8 +401,9 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
     Ignore:
         #>>> wx2_idxs = invindex.wx2_idxs
     """
-    if utool.VERBOSE:
+    if not utool.QUIET:
         print('[smk_index] +--- Start Compute IDF')
+    if utool.VERBOSE:
         mark, end_ = utool.log_progress('[smk_index] Word IDFs: ',
                                         len(wx_series), flushfreq=500,
                                         writefreq=50, with_totaltime=WITH_TOTALTIME)
@@ -413,6 +417,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
                  if len(idxs) > 0
                  else np.empty(0, dtype=INDEX_TYPE)
                  for idxs in idxs_list]
+    # TODO: Integrate different idf measures
     if daid2_label is not None:
         idf_list = compute_idf_label1(aids_list, daid2_label)
     else:
@@ -561,7 +566,7 @@ def compute_negentropy_names(aids_list, daid2_label):
     return negentropy_list
 
 
-#@utool.cached_func('residuals', appname='smk')
+@utool.cached_func('residuals_', appname='smk')
 @profile
 def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
                        aggregate, is_database=False):
@@ -593,6 +598,9 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
         >>> wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
     """
+    if not utool.QUIET:
+        print('[smk_index] +--- Start Compute Residuals')
+
     wx_sublist = np.array(wx2_idxs.keys())  # pdh.ensure_index(wx2_idxs)
     # Build lists w.r.t. words
 
@@ -605,12 +613,12 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
         assert idx2_vec.shape[0] == idx2_aid.shape[0]
     # Prealloc output
     if utool.VERBOSE:
-        from ibeis.model.hots.smk import smk_debug
-        print('[smk_index] +--- Start Compute Residuals')
         print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
               (len(wx2_idxs), aggregate,))
         #if is_database:
         # There is usually a problem if the database doesn't index into any words
+    if utool.DEBUG2:
+        from ibeis.model.hots.smk import smk_debug
         smk_debug.check_wx2_idxs(wx2_idxs, len(words))
     # Nonaggregated residuals
     words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
@@ -679,8 +687,9 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_al
         smk_debug.check_wx2(wx2_rvecs=wx2_rvecs, wx2_aids=wx2_aids)
 
     wx_sublist = np.array(wx2_rvecs.keys())
-    if utool.VERBOSE:
+    if not utool.QUIET:
         print('\n[smk_index] +--- Start Compute Data Self Consistency Weight')
+    if utool.VERBOSE:
         print('[smk_index] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
         mark1, end1_ = utool.log_progress(
             '[smk_index] SCCW group (by present words): ', len(wx_sublist),
@@ -755,7 +764,7 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, smk_alpha=3,
         wx2_idxs = _wx2_qfxs
         wx2_maws = _wx2_maws
     """
-    if utool.VERBOSE:
+    if not utool.QUIET:
         print('[smk_index] Query Repr qaid=%r' % (qaid,))
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words

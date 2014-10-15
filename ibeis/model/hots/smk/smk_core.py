@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 #import six
 from six.moves import zip
 import numpy as np
+import scipy.sparse as spsparse
 #import pandas as pd
 import utool
 import numpy.linalg as npl
@@ -180,6 +181,12 @@ def similarity_function(qrvecs_list, drvecs_list):
     # Rvec is NaN implies it is a cluster center. perfect similarity
     for simmat in simmat_list:
         simmat[np.isnan(simmat)] = 1.0
+
+    #return sklearn.preprocessing.normalize(csr_mat, norm='l2', axis=1, copy=False)
+    #csr_vec = spsparse.csr_matrix(vec, copy=False)
+    #csr_vec.shape = (1, csr_vec.size)
+    #sparse_stack = [row.multiply(csr_vec) for row in csr_mat]
+    #return spsparse.vstack(sparse_stack, format='csr')
     return simmat_list
 
 
@@ -445,13 +452,29 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
             daid2_fm (dict): {daid: fm, ...}
             daid2_fs (dict): {daid: fs, ...}
             daid2_fk (dict): {daid: fk, ...}
+
+    CommandLine::
+        python dev.py -t smk0 --allgt --db GZ_ALL --index 2:5
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel_L2()
+        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
+        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+        >>> withinfo = True  # takes an 11s vs 2s
+        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+        >>> smk_debug.rrr()
+        >>> smk_debug.invindex_dbgstr(invindex)
+        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(*_args)
     """
     # FIXME: move groupby to vtool
     if utool.VERBOSE:
         print('[smk_core] build chipmatch')
 
     wx2_dfxs  = invindex.wx2_fxs
-    daid2_sccw     = invindex.daid2_sccw
+    daid2_sccw = invindex.daid2_sccw
 
     qfxs_list = [wx2_qfxs[wx] for wx in common_wxs]
     dfxs_list = [wx2_dfxs[wx] for wx in common_wxs]
@@ -464,7 +487,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     shape_ranges = [(mem_arange(w), mem_arange(h)) for (w, h) in shapes_list]  # 230us
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
     # Normalize scores for words, nMatches, and query sccw (still need daid sccw)
-    nscores_iter = (scores * query_sccw in scores_list)
+    nscores_iter = (scores * query_sccw for scores in scores_list)
 
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug

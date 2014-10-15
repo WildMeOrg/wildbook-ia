@@ -703,7 +703,12 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         if chipmatch is not None:
-            aid2_fm, aid2_fs, aid2_fk = chipmatch
+            try:
+                aid2_fm, aid2_fs, aid2_fk = chipmatch
+            except Exception as ex:
+                utool.printex(ex, 'error converting chipmatch',
+                              keys=['chipmatch'])
+                raise
             qres.aid2_fm = aid2_fm
             qres.aid2_fs = aid2_fs
             qres.aid2_fk = aid2_fk

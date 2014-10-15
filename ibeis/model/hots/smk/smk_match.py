@@ -25,7 +25,7 @@ def execute_smk_L5(qreq_):
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
         >>> qaid2_qres_ = smk_match.execute_smk_L5(qreq_)
 
-    ComandLine::
+    CommandLine::
         python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict --va
 
         python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30
@@ -73,6 +73,9 @@ def execute_smk_L5(qreq_):
                                                    smk_alpha, smk_thresh,
                                                    withinfo)
     memtrack.report('[SMK QREQ FINISHED]')
+    if True or utool.DEBUG2:
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.check_qaid2_chipmatch(qaid2_chipmatch, qaids)
     return qaid2_scores, qaid2_chipmatch
 
 

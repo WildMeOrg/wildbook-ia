@@ -652,6 +652,21 @@ def view_vocabs():
         view_vocab(fpath)
 
 
+def check_qaid2_chipmatch(qaid2_chipmatch, qaids, verbose=True):
+    try:
+        assert isinstance(qaid2_chipmatch, dict), 'type(qaid2_chipmatch) = %r' % type(qaid2_chipmatch)
+        qaid_list = list(qaid2_chipmatch.keys())
+        _qaids = set(qaids)
+        assert _qaids == set(qaid_list), 'something is wrong'
+        print('has correct key. (len(keys) = %r)' % len(_qaids))
+        chipmatch_list = list(qaid2_chipmatch.values())
+        for count, daid2_chipmatch in enumerate(chipmatch_list):
+            check_daid2_chipmatch(daid2_chipmatch)
+    except Exception as ex:
+        utool.printex(ex, keys=['qaid2_chipmatch', 'daid2_chipmatch', 'count'])
+        raise
+
+
 def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
     ## Concatenate into full fmfsfk reprs
     #def concat_chipmatch(cmtup):

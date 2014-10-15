@@ -130,6 +130,18 @@ smk = {
     'sv_on':         [False],  # True, False],
 }
 
+smk0 = {
+    'pipeline_root': ['asmk'],
+    'sv_on':         [False],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+smk1 = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [False],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
 smk2 = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
     'sv_on':         [False, True],  # True, False],
