@@ -323,7 +323,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     if utool.get_argflag(('--view-all', '--va')):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
-    if utool.get_argflag('--view-hard'):
+    if utool.get_argflag(('--view-hard', '--vh')):
         sel_rows = new_hard_qx_list
         sel_cols = list(range(len(cfg_list)))
 

@@ -14,7 +14,8 @@ from ibeis.model.hots import exceptions as hsexcept
 
 #FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
 MAX_FNAME_LEN = 64 if utool.WIN32 else 200
-TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids'))
+TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
+    utool.is_developer() and not utool.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
 
 #=========================
 # Query Result Class
@@ -50,12 +51,6 @@ def remove_corrupted_queries(qresdir, qres, dryrun=True):
 
 
 def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
-    """
-    cdef:
-        long qaid
-        object qauuid
-        str cfgstr, qres_dir, fpath, hash_id, fname
-    """
     fname = query_result_fname(qaid, qauuid, cfgstr)
     fpath = join(qresdir, fname)
     return fpath
@@ -72,7 +67,7 @@ def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
         ext (str): filetype extension
     """
     #fname_fmt = 'res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}'
-    fname_fmt = 'qaid={qaid}_res_{cfgstr}_qauuid={quuid}{ext}'
+    fname_fmt = 'qaid={qaid}_res_{cfgstr}_quuid={quuid}{ext}'
     quuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
     fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext=ext)
     #fname = fname_fmt.format(**fmt_dict)
@@ -416,6 +411,7 @@ class QueryResult(__OBJECT_BASE__):
         pos_aids = top_aids[0:1]
         return pos_aids
 
+    #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_top(ibs, qres, *args, **kwargs)

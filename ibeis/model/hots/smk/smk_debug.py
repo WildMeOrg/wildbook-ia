@@ -5,6 +5,7 @@ import numpy as np
 import six
 import ibeis
 import pandas as pd
+from ibeis.model.hots import hstypes
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_match
 from ibeis.model.hots.smk import pandas_helpers as pdh
@@ -23,7 +24,10 @@ def testdata_printops(**kwargs):
 
 
 def testdata_ibeis(**kwargs):
-    """ builds ibs for testing
+    """
+    Step 1
+
+    builds ibs for testing
 
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -52,6 +56,12 @@ def testdata_ibeis(**kwargs):
 
 
 def testdata_ibeis2(**kwargs):
+    """
+    Step 2
+
+    selects training and test set
+
+    """
     from ibeis.model.hots.smk import smk_debug
     print('[smk_debug] testdata_ibeis2')
     ibs = smk_debug.testdata_ibeis(**kwargs)
@@ -66,30 +76,32 @@ def testdata_ibeis2(**kwargs):
     #qaids = [37]  # NOQA new test case for PZ_MTEST
     #qaids = [valid_aids[0], valid_aids[4]]
     qaids = [valid_aids[0]]
-    return ibs, taids, daids, qaids
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    qreq_.ibs = ibs  # Hack
+    return ibs, taids, daids, qaids, qreq_
 
 
 def testdata_dataframe(**kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, taids, daids, qaids = smk_debug.testdata_ibeis2(**kwargs)
+    ibs, taids, daids, qaids, qreq_ = smk_debug.testdata_ibeis2(**kwargs)
     print('[smk_debug] testdata_dataframe')
     # Pandas Annotation Dataframe
     annots_df = smk_index.make_annot_df(ibs)
-    nWords = ibs.cfg.query_cfg.smk_cfg.nWords
-    return ibs, annots_df, taids, daids, qaids, nWords
+    nWords = qreq_.qparams.nWords
+    return ibs, annots_df, taids, daids, qaids, qreq_, nWords
 
 
 def testdata_words(**kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe(**kwargs)
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe(**kwargs)
     print('[smk_debug] testdata_words')
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
-    return ibs, annots_df, daids, qaids, words
+    return ibs, annots_df, daids, qaids, qreq_, words
 
 
 def testdata_raw_internals0():
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words()
+    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()
     print('[smk_debug] testdata_raw_internals0')
     with_internals = False
     invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
@@ -104,8 +116,13 @@ def testdata_raw_internals1():
     words  = invindex.words
     wordflann = invindex.wordflann
     idx2_vec  = invindex.idx2_dvec
-    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    _dbargs = (wordflann, words, idx2_vec, nAssign)
+    nAssign = 1  # 1 for database
+    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
+    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
+    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
+    # TODO: Extract args from function via inspect
+    _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha,
+               massign_sigma, massign_equal_weights)
     (wx2_idxs, wx2_maws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
     invindex.wx2_idxs = wx2_idxs
     invindex.wx2_maws = wx2_maws
@@ -172,6 +189,11 @@ def testsdata_sccw_sum():
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     smk_alpha     = ibs.cfg.query_cfg.smk_cfg.smk_alpha
     smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+
+    nAssign =  ibs.cfg.query_cfg.smk_cfg.nAssign
+    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
+    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
+    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
     nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
@@ -180,7 +202,7 @@ def testsdata_sccw_sum():
     qfx2_vec  = annots_df['vecs'][qaid]
     # Assign query to (multiple) words
     _wx2_qfxs, wx2_maws, qfx2_wxs = smk_index.assign_to_words_(
-        wordflann, words, qfx2_vec, nAssign=nAssign)
+        wordflann, words, qfx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
     # Hack to make implementing asmk easier, very redundant
     qfx2_aid = np.array([qaid] * len(qfx2_wxs), dtype=smk_index.INTEGER_TYPE)
     qfx2_qfx = np.arange(len(qfx2_vec))
@@ -190,7 +212,7 @@ def testsdata_sccw_sum():
     # Compute query sccw
     if utool.VERBOSE:
         print('[smk_index] Query TF smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
-    wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=smk_index.INDEX_TYPE)
+    wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=hstypes.INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
@@ -201,29 +223,17 @@ def testdata_internals_full(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> kwargs = {}
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words(**kwargs)
+    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words(**kwargs)
     print('[smk_debug] testdata_internals_full')
     with_internals = True
-    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-    #if True:
-    #    _args1 = (annots_df, daids, words, with_internals, True, smk_alpha, smk_thresh)
-    #    _args2 = (annots_df, daids, words, with_internals, False, smk_alpha, smk_thresh)
-    #    invindex1 = smk_index.index_data_annots(*_args1)
-    #    invindex2 = smk_index.index_data_annots(*_args2)
-    #    #utool.flatten(invindex1.wx2_aids.values.tolist())
-    #    invindex = invindex1
-    #    smk_debug.invindex_dbgstr(invindex)
-    #    invindex = invindex2
-    #    smk_debug.invindex_dbgstr(invindex)
-    #else:
-    _args = (annots_df, daids, words, with_internals, aggregate, smk_alpha, smk_thresh)
+    qparams = qreq_.qparams
+    _args = (annots_df, daids, words, qparams, with_internals)
     invindex = smk_index.index_data_annots(*_args)
-    return ibs, annots_df, daids, qaids, invindex
+    return ibs, annots_df, daids, qaids, invindex, qreq_
 
 
 def testdata_match_kernel_L2(**kwargs):
@@ -233,21 +243,11 @@ def testdata_match_kernel_L2(**kwargs):
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full(**kwargs)
+    ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full(**kwargs)
     print('[smk_debug] testdata_match_kernel_L2')
+    qparams = qreq_.qparams
     qaid = qaids[0]
-    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    print('+------------')
-    print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] smk_alpha = %r' % (smk_alpha,))
-    print('[smk_debug] smk_thresh = %r' % (smk_thresh,))
-    print('L------------')
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, smk_alpha,
-                                  smk_thresh, nAssign)
-    #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, qparams)
     return ibs, invindex, qindex
 
 
@@ -280,10 +280,12 @@ def wx_len_stats(wx2_xxx):
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> qparams = qreq_.qparams
         >>> invindex = index_data_annots(annots_df, daids, words)
         >>> qaid = qaids[0]
-        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex)
+        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex, qparams)
         >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
     import utool
@@ -450,11 +452,11 @@ def check_data_smksumm(aididf_list, aidrvecs_list):
 def check_invindex(invindex, verbose=True):
     """
     Example:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_index
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-        >>> words = learn_visual_words(annots_df, taids, nWords)
-        >>> invindex = index_data_annots(annots_df, daids, words)
+        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
+        >>> words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        >>> invindex = smk_index.index_data_annots(annots_df, daids, words)
     """
     daids = invindex.daids
     daid2_sccw = invindex.daid2_sccw
@@ -474,23 +476,27 @@ def check_daid2_sccw(daid2_sccw, verbose=True):
 
 
 def test_sccw_cache():
-    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
+    smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     with_internals = True
     invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
     idx2_daid  = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
-    wx2_idf = invindex.wx2_idf
+    wx2_idf    = invindex.wx2_idf
+    wx2_aids   = invindex.wx2_aids
+    wx2_maws   = invindex.wx2_maws
     daids      = invindex.daids
-    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=True)
-    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=False)
-    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=True)
+    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_maws, smk_alpha,
+                                               smk_thresh, use_cache=True)
+    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_maws, smk_alpha,
+                                               smk_thresh, use_cache=False)
+    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                                wx2_idf, wx2_maws, smk_alpha,
+                                                smk_thresh, use_cache=True)
     check_daid2_sccw(daid2_sccw1)
     check_daid2_sccw(daid2_sccw2)
     check_daid2_sccw(daid2_sccw3)
@@ -809,12 +815,9 @@ def query_smk_test(annots_df, invindex, qreq_):
     """
     ibeis interface
     Example:
-        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-        >>> from ibeis.model.hots import query_request  # NOQA
-        >>> from ibeis.model.hots.smk import smk_match  # NOQA
+        >>> from ibeis.model.hots.smk import smk_match
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
-        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()
         >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
 
     Dev::
@@ -891,10 +894,9 @@ def main():
     print('SMK_DEBUG MAIN')
     print('+------------')
     from ibeis.model.hots import pipeline
-    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
     # Query using SMK
     #qaid = qaids[0]
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
     smk_alpha     = qreq_.qparams.smk_alpha

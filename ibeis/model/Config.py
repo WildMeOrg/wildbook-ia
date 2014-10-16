@@ -305,16 +305,17 @@ class SMKConfig(ConfigBase):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
         smkcfg.nAssign = 10  # MultiAssignment
         smkcfg.smk_thresh = 0.0  # tau in the paper
-        smkcfg.smk_alpha = 3
-        smkcfg.aggregate = False  #
+        smkcfg.smk_alpha = 3.0
+        smkcfg.aggregate = False
         # TODO Separate into vocab config
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.nWords = int(8E3)  #
-        # options: ['idf', 'negentropy']
+        smkcfg._valid_vocab_weighting = ['idf', 'negentropy']
         smkcfg.vocab_weighting = 'idf'
         # Multiassign parameters
-        smkcfg.assign_alpha = 1.2
-        smkcfg.assign_sigma = 80
+        smkcfg.massign_equal_weights = True
+        smkcfg.massign_alpha = 1.2
+        smkcfg.massign_sigma = 80.0
 
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = [
@@ -322,12 +323,14 @@ class SMKConfig(ConfigBase):
             'agg=', str(smkcfg.aggregate),
             ',t=', str(smkcfg.smk_thresh),
             ',a=', str(smkcfg.smk_alpha),
-            ')_Vocab(',
+            ')',
+            '_Vocab(',
             'sz=%d' % int(smkcfg.nWords),
             ',K=', str(smkcfg.nAssign),
             ',%s' % smkcfg.vocab_weighting,
-            ',a=', str(smkcfg.assign_alpha),
-            ',s=', str(smkcfg.assign_sigma),
+            ',a=', str(smkcfg.massign_alpha),
+            ',s=', str(smkcfg.massign_sigma),
+            ',eqw=T' if smkcfg.massign_equal_weights else ',eqw=F',
             ')',
         ]
         return smk_cfgstr
@@ -422,10 +425,16 @@ def make_feasible(query_cfg):
     filt_cfg = query_cfg.filt_cfg
     nn_cfg   = query_cfg.nn_cfg
     feat_cfg = query_cfg._feat_cfg
+    smk_cfg = query_cfg.smk_cfg
 
     if query_cfg.pipeline_root == 'asmk':
         query_cfg.pipeline_root = 'smk'
-        query_cfg.smk_cfg.aggregate = True
+        smk_cfg.aggregate = True
+
+    hasvalid_weighting = any([
+        smk_cfg.vocab_weighting == x
+        for x in smk_cfg._valid_vocab_weighting])
+    assert hasvalid_weighting, 'invalid vocab weighting %r' % smk_cfg.vocab_weighting
 
     hasvalid_root = any([
         query_cfg.pipeline_root == root

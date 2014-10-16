@@ -168,6 +168,52 @@ smk5 = {
     'nWords':        [128000, 64000, 8000],
 }
 
+# Things to try:
+# * negentropy
+# * lower nAssign
+# * more nWords
+# * no multi assign weights
+# * no cliphack
+# * float32 rvecs
+
+# Things to fix:
+# * batched queries (possibly intermintent reporting)
+
+
+smk_best = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [True],
+    'smk_thresh':    [0.0],
+    'smk_alpha':     [3],
+    'vocab_weighting': ['idf'],
+    'nAssign': [10],
+}
+
+smk_8k = smk_best.copy()
+smk_8k.update({
+    'nWords':        [8000],
+})
+
+smk_64k = smk_best.copy()
+smk_64k.update({
+    'nWords':        [64000],
+})
+
+smk_128k = smk_best.copy()
+smk_128k.update({
+    'nWords':        [128000],
+})
+
+
+# ---
+
+
+smk_8k_compare = smk_8k.copy()
+smk_8k_compare.update({
+    'pipeline_root': ['smk', 'asmk',  'vsmany'],
+})
+
+# --- -------------------------------
 
 gv_test = vsmany_best.copy()
 gv_test.update({

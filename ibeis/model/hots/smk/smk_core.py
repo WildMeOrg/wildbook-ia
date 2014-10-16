@@ -167,13 +167,16 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     return sccw
 
 
-def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                    withinfo=True, smk_alpha=3, smk_thresh=0):
+def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
+                    invindex, qparams):
     """ Builds up information and does verbosity before going to L0 """
     wx2_drvecs     = invindex.wx2_drvecs
     wx2_idf        = invindex.wx2_idf
     wx2_daid       = invindex.wx2_aids
     daid2_sccw     = invindex.daid2_sccw
+
+    smk_alpha  = qparams.smk_alpha
+    smk_thresh = qparams.smk_thresh
 
     # for each word compute the pairwise scores between matches
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
@@ -255,8 +258,8 @@ def accumulate_scores(dscores_list, daids_list):
 
 
 @profile
-def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-                    withinfo=True, smk_alpha=3, smk_thresh=0):
+def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
+                    invindex, qparams, withinfo=True):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
@@ -272,8 +275,7 @@ def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invi
         >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(*argsL2)
     """
     # Pack
-    argsL1 = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
-              withinfo, smk_alpha, smk_thresh)
+    argsL1 = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, qparams)
     # Call match kernel logic
     retL1 =  match_kernel_L1(*argsL1)
     # Unpack
