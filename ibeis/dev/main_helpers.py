@@ -9,16 +9,20 @@ from ibeis import params
 
 
 def register_utool_aliases():
+    """
+    registers commmon class names with utool so they are printed nicely
+    """
     #print('REGISTER UTOOL ALIASES')
     import utool
     import matplotlib as mpl
-    from ibeis.control import IBEISControl
+    from ibeis.control import IBEISControl, SQLDatabaseControl
     from ibeis.gui import guiback
-    from ibeis.gui import guifront
+    #from ibeis.gui import guifront
     utool.extend_global_aliases([
+        (SQLDatabaseControl.SQLDatabaseController, 'sqldb'),
         (IBEISControl.IBEISController, 'ibs'),
         (guiback.MainWindowBackend, 'back'),
-        (guifront.MainWindowFrontend, 'front'),
+        #(guifront.MainWindowFrontend, 'front'),
         (mpl.figure.Figure, 'fig')
     ])
 

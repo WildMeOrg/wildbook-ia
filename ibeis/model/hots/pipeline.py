@@ -575,7 +575,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
             try:
                 sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
                                                    xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
-                                                   min_nInliers, returnAff=False)
+                                                   min_nInliers, returnAff=dbginfo)
             except Exception as ex:
                 utool.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',

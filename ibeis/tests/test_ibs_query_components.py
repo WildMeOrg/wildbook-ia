@@ -70,6 +70,6 @@ if __name__ == '__main__':
     ibs = main_locals['ibs']
     test_locals = utool.run_test(TEST_QUERY_COMP, ibs)
     if '--noshow' not in sys.argv:
-        df2.present()
+        exec(df2.present())
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

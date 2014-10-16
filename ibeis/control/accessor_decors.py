@@ -6,6 +6,10 @@ from functools import wraps
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
+
+DEBUG_SETTERS = utool.get_argflag('--debug-setters')
+DEBUG_GETTERS = utool.get_argflag('--debug-getters')
+
 #
 #-----------------
 # IBEIS DECORATORS
@@ -171,13 +175,19 @@ def setter_general(func):
 #@decorator.decorator
 def setter(func):
     func_ = default_decorator(func)
-    @utool.accepts_scalar_input2(argx_list=range(0, 2))
+    @utool.accepts_scalar_input2(argx_list=range(0, 1))
+    #@utool.accepts_scalar_input2(argx_list=range(0, 2))
+    #@utool.accepts_scalar_input2(argx_list=range(1, 2))
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_setter(*args, **kwargs):
-        if not utool.QUIET and utool.VERYVERBOSE:
+        if DEBUG_SETTERS or (not utool.QUIET and utool.VERYVERBOSE):
+            print('+------')
             print('[SET]: ' + get_funcname(func))
-            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            print('\n' + funccall_str + '\n')
+            print('L------')
+            #builtins.print('\n' + funccall_str + '\n')
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func_(*args, **kwargs)
     wrp_setter = utool.preserve_sig(wrp_setter, func)
@@ -201,6 +211,12 @@ def getter(func):
         #if utool.DEBUG:
         #    print('[IN GETTER] args=%r' % (args,))
         #    print('[IN GETTER] kwargs=%r' % (kwargs,))
+        if DEBUG_GETTERS or (not utool.QUIET and utool.VERYVERBOSE):
+            print('+------')
+            print('[GET]: ' + get_funcname(func))
+            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            print('\n' + funccall_str + '\n')
+            print('L------')
         return func_(*args, **kwargs)
     wrp_getter = utool.preserve_sig(wrp_getter, func)
     return wrp_getter
