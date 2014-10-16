@@ -3387,6 +3387,16 @@ class IBEISController(object):
 
     @default_decorator
     def get_lblannot_aids(ibs, lblannot_rowid_list):
+        """
+        Get annotation rowids of labels. There may be more than one annotation
+        per label.
+
+        Args:
+            lblannot_rowid_list (list): of lblannot (labels of annotations) rowids
+
+        Returns:
+            aids_list (list): of lists annotation rowids
+        """
         #verbose = len(lblannot_rowid_list) > 20
         # TODO: Optimize IF POSSIBLE
         # FIXME: SLOW

@@ -21,10 +21,13 @@ def get_dbinfo(ibs, verbose=True):
     returning locals
 
     >>> from ibeis.dev.dbinfo import *  # NOQA
+    >>> from ibeis.dev import dbinfo
     >>> import ibeis
     >>> verbose = True
     >>> ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
-    >>> output = get_dbinfo(ibs, verbose=False)
+    >>> ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
+    >>> #ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
+    >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
     >>> print(utool.dict_str(output))
     >>> print(output['info_str'])
     66w+mdzw!n%3+i6h
@@ -48,32 +51,64 @@ def get_dbinfo(ibs, verbose=True):
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
-    name_aids_list = ibs.get_name_aids(valid_nids)
-    nx2_aids = np.array(name_aids_list)
+    nx2_aids = np.array(ibs.get_name_aids(valid_nids))
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
     # TODO: total image coverage of annotation
     # TODO: total annotation overlap
+    """
+    ax2_unknown = ibs.is_aid_unknown(valid_aids)
+    ax2_nid = ibs.get_annot_nids(valid_aids)
+    assert all([nid < 0 if unknown else nid > 0 for nid, unknown in
+                zip(ax2_nid, ax2_unknown)]), 'bad annot nid'
+    """
+    #
     unknown_aids = utool.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
     species_list = ibs.get_annot_species(valid_aids)
     species2_aids = utool.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
 
-    nx2_nRois = np.asarray(list(map(len, nx2_aids)))
+    nx2_nAnnots = np.array(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
-    multiton_nids  = np.where(nx2_nRois > 1)[0]
-    singleton_nids = np.where(nx2_nRois == 1)[0]
-    valid_nids      = np.hstack([multiton_nids, singleton_nids])
-    num_names_with_gt = len(multiton_nids)
+    multiton_nxs  = np.where(nx2_nAnnots > 1)[0]
+    singleton_nxs = np.where(nx2_nAnnots == 1)[0]
+    assert len(np.intersect1d(singleton_nxs, multiton_nxs)) == 0, 'intersecting names'
+    valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
+    num_names_with_gt = len(multiton_nxs)
 
-    # Chip Info
-    multiton_aids_list = nx2_aids[multiton_nids]
+    # DEBUGGING CODE
+    try:
+        from ibeis import ibsfuncs
+        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
+        assert all(map(utool.list_allsame, _nids_list))
+    except Exception as ex:
+        # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
+        #name_annots = [ibs.get_annot_nids(aids) for aids in nx2_aids]
+        bad = 0
+        good = 0
+        huh = 0
+        for nx, aids in enumerate(nx2_aids):
+            nids = ibs.get_annot_nids(aids)
+            if np.all(np.array(nids) > 0):
+                print(nids)
+                if utool.list_allsame(nids):
+                    good += 1
+                else:
+                    huh += 1
+            else:
+                bad += 1
+        utool.printex(ex, keys=['good', 'bad', 'huh'])
+
+    # Annot Info
+    multiton_aids_list = nx2_aids[multiton_nxs]
+    assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
         multiton_aids = np.array([], dtype=np.int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
-    singleton_aids = nx2_aids[singleton_nids]
+        assert len(set(multiton_aids)) == len(multiton_aids), 'duplicate annot'
+    singleton_aids = nx2_aids[singleton_nxs]
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
 
     # Image size stats
@@ -119,6 +154,23 @@ def get_dbinfo(ibs, verbose=True):
     imgdir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_imgdir()))
     cachedir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_cachedir()))
 
+    # Summarize stats
+    num_names = len(valid_nids)
+    num_names_singleton = len(singleton_nxs)
+    num_names_multiton =  len(multiton_nxs)
+
+    num_multiton_annots = len(multiton_aids)
+    num_unknown_annots = len(unknown_aids)
+    num_annots = len(valid_aids)
+
+    try:
+        bad_aids = np.intersect1d(multiton_aids, unknown_aids)
+        assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
+        assert num_names_singleton + num_names_multiton == num_names, 'inconsistent num names'
+        assert num_unknown_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
+    except Exception as ex:
+        utool.printex(ex)
+
     # print
     info_str = '\n'.join([
         ('+============================'),
@@ -132,14 +184,17 @@ def get_dbinfo(ibs, verbose=True):
         (' |  |  +-imgdir nBytes:   ' + imgdir_space),
         (' |  |  +-cachedir nBytes: ' + cachedir_space),
         (' * #Img   = %d' % len(valid_gids)),
-        (' * #Annots = %d' % len(valid_aids)),
-        (' * #Names = %d' % len(valid_nids)),
-        (' * #Names  (singleton)  = %d' % len(singleton_nids)),
-        (' * #Names  (multiton)   = %d' % len(multiton_nids)),
-        (' * #Unknown Annots      = %d' % len(unknown_aids)),
-        (' * #Annots (multiton)   = %d' % len(multiton_aids)),
+        (' * #Annots = %d' % num_annots),
+        (' *  -- -- --'),
+        (' * #Names = %d' % num_names),
+        (' * #Names  (singleton)  = %d' % num_names_singleton),
+        (' * #Names  (multiton)   = %d' % num_names_multiton),
+        (' *  -- -- --'),
+        (' * #Unknown Annots      = %d' % num_unknown_annots),
+        (' * #Annots (multiton)   = %d' % num_multiton_annots),
         (' * #Annots per Name (multiton) = %s' % (multiton_stats,)),
         (' * #Annots per Image    = %s' % (gx2_nAnnots_stats,)),
+        (' *  -- -- --'),
         (' * #Img reviewed        = %d/%d' % (sum(image_reviewed_list), len(valid_gids))),
         (' * #Img with gps        = %d/%d' % (len(gps_list), len(valid_gids))),
         (' * #Img with timestamp  = %d/%d' % (len(unixtime_list), len(valid_gids))),
@@ -192,8 +247,8 @@ def dbstats(ibs):
     # num_images = dbinfo_locals['num_images']
     # num_annots = dbinfo_locals['num_annots']
     num_names = len(dbinfo_locals['valid_nids'])
-    num_singlenames = len(dbinfo_locals['singleton_nids'])
-    num_multinames = len(dbinfo_locals['multiton_nids'])
+    num_singlenames = len(dbinfo_locals['singleton_nxs'])
+    num_multinames = len(dbinfo_locals['multiton_nxs'])
     num_multiannots = len(dbinfo_locals['multiton_aids'])
     multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
 
