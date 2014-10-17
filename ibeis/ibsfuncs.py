@@ -17,7 +17,11 @@ import ibeis
 from ibeis import constants
 from ibeis.dev import sysres
 from ibeis.io import export_hsdb
-from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+try:
+    from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+except ImportError as ex:
+    utool.printex('COMMIT TO DETECTTOOLS')
+    pass
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
 from vtool import linalg, geometry, image

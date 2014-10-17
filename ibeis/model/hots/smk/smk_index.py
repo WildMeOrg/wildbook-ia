@@ -90,6 +90,15 @@ def new_qindex(annots_df, qaid, invindex, qparams):
 
     Gets query read for computations
 
+    Args:
+        annots_df ():
+        qaid ():
+        invindex ():
+        qparams ():
+
+    Returns:
+        qindex
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -106,6 +115,12 @@ def new_qindex(annots_df, qaid, invindex, qparams):
         idx2_fx  = qfx2_qfx
         wx2_idxs = _wx2_qfxs
         wx2_maws = _wx2_maws
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        utool.rrrr()
+        print(utool.make_default_docstr(smk_index.new_qindex))
     """
     # TODO: Precompute and lookup residuals and assignments
     if not utool.QUIET:
@@ -164,6 +179,17 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
 
+    Args:
+        annots_df ():
+        daids ():
+        words ():
+        qparams ():
+        with_internals ():
+        memtrack ():
+
+    Returns:
+        invindex
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -175,6 +201,12 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
     Ignore:
         #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
         #v8+i5i8+55j0swio
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        utool.rrrr()
+        print(utool.make_default_docstr(smk_index.index_data_annots))
     """
     if not utool.QUIET:
         print('[smk_index] index_data_annots')
@@ -210,6 +242,14 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
 
     Builds each of the inverted index internals.
 
+    Args:
+        invindex ():
+        qparams ():
+        memtrack ():
+
+    Returns:
+        None
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -223,6 +263,12 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
     Ignore:
         idx2_vec = idx2_dvec
         wx2_maws = _wx2_maws  # NOQA
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        utool.rrrr()
+        print(utool.make_default_docstr(smk_index.compute_data_internals_))
     """
     # Get information
     #if memtrack is None:
@@ -314,6 +360,12 @@ def make_annot_df(ibs):
     """
     Creates a pandas like DataFrame interface to an IBEISController
 
+    Args:
+        ibs ():
+
+    Returns:
+        annots_df
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -325,6 +377,12 @@ def make_annot_df(ibs):
     #>>> from ibeis.model.hots.smk import smk_debug
     #>>> smk_debug.rrr()
     #>>> smk_debug.check_dtype(annots_df)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        argdoc = utool.make_default_docstr(smk_index.make_annot_df)
+        print(argdoc)
     """
     #aid_list = ibs.get_valid_aids()  # 80us
     annots_df = pdh.DataFrameProxy(ibs)
@@ -347,6 +405,16 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     """
     Computes and caches visual words
 
+    Args:
+        annots_df ():
+        taids ():
+        nWords ():
+        use_cache ():
+        memtrack ():
+
+    Returns:
+        words
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -355,6 +423,12 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
         >>> words = learn_visual_words(annots_df, taids, nWords)
         >>> print(words.shape)
         (8000, 128)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        argdoc = utool.make_default_docstr(smk_index.learn_visual_words)
+        print(argdoc)
     """
     #if memtrack is None:
     #    memtrack = utool.MemoryTracker('[learn_visual_words]')
@@ -453,8 +527,26 @@ def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
     """
     Multi Assignment Filtering from Improving Bag of Features
 
+    Args:
+        _idx2_wx ():
+        _idx2_wdist ():
+        massign_alpha ():
+        massign_sigma ():
+        massign_equal_weights ():
+
+    Returns:
+        tuple : (idx2_wxs, idx2_maws)
+
     References:
         http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool
+        utool.rrrr()
+        func = smk_index.compute_multiassign_weights_
+        argdoc = utool.make_default_docstr(smk_index.compute_multiassign_weights_)
+        print(argdoc)
     """
     if not utool.QUIET:
         print('[smk_index] compute_multiassign_weights_')
@@ -505,6 +597,17 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
     """
     Computes the inverse-document-frequency weighting for each word
 
+    Args:
+        wx_series ():
+        wx2_idxs ():
+        idx2_aid ():
+        daids ():
+        daid2_label ():
+        vocab_weighting ():
+
+    Returns:
+        wx2_idf
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -518,6 +621,12 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
 
     Ignore:
         #>>> wx2_idxs = invindex.wx2_idxs
+
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool; print(utool.make_default_docstr(smk_index.compute_word_idf_))
+
     """
     if not utool.QUIET:
         print('[smk_index] +--- Start Compute IDF')
@@ -569,6 +678,13 @@ def compute_negentropy_names(aids_list, daid2_label):
     One of our idf extensions
     Word weighting based on the negative entropy over all names of p(n_i | word)
 
+    Args:
+        aids_list ():
+        daid2_label ():
+
+    Returns:
+        negentropy_list
+
     Math::
         p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)
 
@@ -582,6 +698,11 @@ def compute_negentropy_names(aids_list, daid2_label):
         h(n_i | word) = -\sum_{i=1}^N p(n_i | \word) \log p(n_i | \word)
 
         word_weight = log(N) - h(n | word)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool; print(utool.make_default_docstr(smk_index.compute_negentropy_names))
+
     """
     nWords = len(aids_list)
     # --- LABEL MEMBERS w.r.t daids ---
@@ -700,8 +821,17 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
     Computes residual vectors based on worwx2_fxs d assignments
     returns mapping from word index to a set of residual vectors
 
+    Args:
+        words ():
+        wx2_idxs ():
+        wx2_maws ():
+        idx2_vec ():
+        idx2_aid ():
+        idx2_fx ():
+        aggregate ():
+
     Returns:
-        tuple : (wx2_rvecs, wx2_aids, wx2_fxs) formatted as::
+        tuple : (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) formatted as::
             * wx2_rvecs - [ ... [ rvec_i1, ...,  rvec_Mi ]_i ... ]
             * wx2_aids  - [ ... [  aid_i1, ...,   aid_Mi ]_i ... ]
             * wx2_fxs   - [ ... [[fxs]_i1, ..., [fxs]_Mi ]_i ... ]
@@ -723,6 +853,11 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         >>> idx2_vec  = invindex.idx2_dvec
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
         >>> wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool; print(utool.make_default_docstr(smk_index.compute_residuals_))
+
     """
     if not utool.QUIET:
         print('[smk_index] +--- Start Compute Residuals')
@@ -771,7 +906,9 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
 
 
 def _aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
-    """ helper function: Aggregate over words of the same aid """
+    """
+    helper function: Aggregate over words of the same aid
+    """
     maws_list = [wx2_maws[wx] for wx in wx_sublist]
     tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
     (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list) = tup
@@ -794,6 +931,18 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_al
     sccw is a self consistency critiron weight --- a scalar which ensures
     the score of K(X, X) = 1
 
+    Args:
+        idx2_daid ():
+        wx2_rvecs ():
+        wx2_aids ():
+        wx2_idf ():
+        wx2_maws ():
+        smk_alpha ():
+        smk_thresh ():
+
+    Returns:
+        daid2_sccw
+
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -804,6 +953,10 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_al
         >>> wx2_idf    = wx2_idf
         >>> daids      = invindex.daids
         >>> daid2_sccw = compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_index
+        import utool; print(utool.make_default_docstr(smk_index.compute_data_sccw_))
     """
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
