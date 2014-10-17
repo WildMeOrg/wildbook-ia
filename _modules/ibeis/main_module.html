@@ -315,7 +315,7 @@
 <span class="k">def</span> <span class="nf">_preload</span><span class="p">(</span><span class="n">mpl</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">logging</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Sets up python environment &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span>
-    <span class="c">#from ibeis.dev import main_helpers</span>
+    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_helpers</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="k">if</span>  <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;MainProcess&#39;</span><span class="p">:</span>
         <span class="k">return</span>
@@ -335,7 +335,7 @@
     <span class="c"># inject colored exceptions</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">util_inject</span><span class="o">.</span><span class="n">inject_colored_exceptions</span><span class="p">()</span>
     <span class="c"># register type aliases for debugging</span>
-    <span class="c">#main_helpers.register_utool_aliases()</span>
+    <span class="n">main_helpers</span><span class="o">.</span><span class="n">register_utool_aliases</span><span class="p">()</span>
     <span class="c">#return params.args</span>
 
 

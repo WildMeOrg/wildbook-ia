@@ -380,10 +380,17 @@ Selects things</p>
 </div>
 <div class="section" id="module-ibeis.tests.test_ibs_getters">
 <span id="ibeis-tests-test-ibs-getters-module"></span><h2>ibeis.tests.test_ibs_getters module<a class="headerlink" href="#module-ibeis.tests.test_ibs_getters" title="Permalink to this headline">¶</a></h2>
+<p>python ibeis/tests/test_ibs_getters.py</p>
 <dl class="function">
 <dt id="ibeis.tests.test_ibs_getters.TEST_IBS_GETTERS">
 <tt class="descclassname">ibeis.tests.test_ibs_getters.</tt><tt class="descname">TEST_IBS_GETTERS</tt><big>(</big><em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/test_ibs_getters.html#TEST_IBS_GETTERS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_getters.TEST_IBS_GETTERS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_IBS_GETTERS</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.tests.test_ibs_info">

@@ -130,7 +130,7 @@ theta - angle of rotation for a chip</p>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.add_annots">
-<tt class="descname">add_annots</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>bbox_list=None</em>, <em>theta_list=None</em>, <em>species_list=None</em>, <em>nid_list=None</em>, <em>name_list=None</em>, <em>detect_confidence_list=None</em>, <em>notes_list=None</em>, <em>vert_list=None</em>, <em>annotation_uuid_list=None</em>, <em>viewpoint_list=None</em>, <em>import_override=False</em>, <em>silent_delete_thumbs=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.add_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.add_annots" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add_annots</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>bbox_list=None</em>, <em>theta_list=None</em>, <em>species_list=None</em>, <em>nid_list=None</em>, <em>name_list=None</em>, <em>detect_confidence_list=None</em>, <em>notes_list=None</em>, <em>vert_list=None</em>, <em>annotation_uuid_list=None</em>, <em>viewpoint_list=None</em>, <em>quiet_delete_thumbs=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.add_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.add_annots" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds an annotation to images</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -233,10 +233,21 @@ us process images asychronously.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>gid_list</strong> &#8211;
-gids are image rowids</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gpath_list</strong> (<em>list</em>) &#8211; list of image paths to add</li>
+<li><strong>params_list</strong> (<em>list</em>) &#8211; metadata list for corresponding images that can either be
+specified outright or can be parsed from the image data directly if None</li>
+<li><strong>as_annots</strong> (<em>bool</em>) &#8211; if True, an annotation is automatically added for the entire
+image</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of rowids</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>gid_list</strong> &#8211;
+gids are image rowids</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of rowids</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -335,6 +346,11 @@ species rowids</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.control.IBEISControl.IBEISController.cleanup">
+<tt class="descname">cleanup</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.clone_handle">
 <tt class="descname">clone_handle</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.clone_handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.clone_handle" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -347,7 +363,7 @@ species rowids</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.delete_annot_chip_thumbs">
-<tt class="descname">delete_annot_chip_thumbs</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>silent=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.delete_annot_chip_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.delete_annot_chip_thumbs" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">delete_annot_chip_thumbs</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>quiet=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.delete_annot_chip_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.delete_annot_chip_thumbs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes chip thumbnails from disk</p>
 </dd></dl>
 
@@ -425,7 +441,7 @@ species rowids</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.delete_image_thumbs">
-<tt class="descname">delete_image_thumbs</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>silent=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.delete_image_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.delete_image_thumbs" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">delete_image_thumbs</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>quiet=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.delete_image_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.delete_image_thumbs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes image thumbnails from disk</p>
 </dd></dl>
 
@@ -465,6 +481,11 @@ TO USE THIS ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE)</p>
 <tt class="descname">ensure_config_rowid_from_suffix</tt><big>(</big><em>ibs</em>, <em>cfgsuffix_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.ensure_config_rowid_from_suffix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.ensure_config_rowid_from_suffix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for adder</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control.IBEISControl.IBEISController.ensure_encounter_configs_populated">
+<tt class="descname">ensure_encounter_configs_populated</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.ensure_encounter_configs_populated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.ensure_encounter_configs_populated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.export_to_wildbook">
@@ -646,7 +667,7 @@ the imagesizes of computed annotation chips</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_annot_cids">
-<tt class="descname">get_annot_cids</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>all_configs=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_cids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_cids" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_annot_cids</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>all_configs=False</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_cids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_cids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -680,7 +701,7 @@ cpaths defined by ANNOTATIONs</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_annot_desc">
-<tt class="descname">get_annot_desc</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_desc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_desc" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_annot_desc</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_desc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_desc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -717,7 +738,7 @@ a list confidences that the annotations is a valid detection</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_annot_fids">
-<tt class="descname">get_annot_fids</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_fids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_fids" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_annot_fids</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=False</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_fids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_fids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -955,8 +976,19 @@ a list of annotation notes</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_annot_num_feats">
-<tt class="descname">get_annot_num_feats</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_num_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_num_feats" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descname">get_annot_num_feats</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=False</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_annot_num_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_annot_num_feats" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>size_list</strong> &#8211;
+num descriptors per annotation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_annot_num_groundtruth">
@@ -1145,6 +1177,9 @@ database directory of all cached files</td>
 <dt id="ibeis.control.IBEISControl.IBEISController.get_chip_config_rowid">
 <tt class="descname">get_chip_config_rowid</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_chip_config_rowid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_chip_config_rowid" title="Permalink to this definition">¶</a></dt>
 <dd><p># FIXME: Configs are still handled poorly</p>
+<p>This method deviates from the rest of the controller methods because it
+always returns a scalar instead of a list. I&#8217;m still not sure how to
+make it more ibeisy</p>
 </dd></dl>
 
 <dl class="method">
@@ -1170,7 +1205,7 @@ a list of image paths resized to a constant area for detection</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_chip_fids">
-<tt class="descname">get_chip_fids</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_chip_fids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_chip_fids" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_chip_fids</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>ensure=True</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_chip_fids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_chip_fids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1716,7 +1751,7 @@ encounter_uuid of each eid in eid_list</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_feat_desc">
-<tt class="descname">get_feat_desc</tt><big>(</big><em>ibs</em>, <em>fid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_feat_desc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_feat_desc" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_feat_desc</tt><big>(</big><em>ibs</em>, <em>fid_list</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_feat_desc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_feat_desc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1732,7 +1767,7 @@ chip SIFT descriptors</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_feat_kpts">
-<tt class="descname">get_feat_kpts</tt><big>(</big><em>ibs</em>, <em>fid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_feat_kpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_feat_kpts" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_feat_kpts</tt><big>(</big><em>ibs</em>, <em>fid_list</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_feat_kpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_feat_kpts" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2339,7 +2374,22 @@ all names without any animals (does not include unknown names)</td>
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_lblannot_aids">
 <tt class="descname">get_lblannot_aids</tt><big>(</big><em>ibs</em>, <em>lblannot_rowid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_lblannot_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_lblannot_aids" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get annotation rowids of labels. There may be more than one annotation
+per label.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lblannot_rowid_list</strong> (<em>list</em>) &#8211; of lblannot (labels of annotations) rowids</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>aids_list</strong> &#8211;
+of lists annotation rowids</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_lblannot_lbltypes_rowids">
@@ -2368,25 +2418,10 @@ lblannot_rowid_list from the superkey (lbltype, value)</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.control.IBEISControl.IBEISController.get_lblannot_rowid_from_typevaltup">
-<tt class="descname">get_lblannot_rowid_from_typevaltup</tt><big>(</big><em>ibs</em>, <em>lbltype_rowid_list</em>, <em>value_list</em><big>)</big><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_lblannot_rowid_from_typevaltup" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>list_</strong> &#8211;
-lblannot_rowid_list from the superkey (lbltype, value)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_lblannot_rowid_from_uuid">
 <tt class="descname">get_lblannot_rowid_from_uuid</tt><big>(</big><em>ibs</em>, <em>lblannot_uuid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_lblannot_rowid_from_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_lblannot_rowid_from_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>UNSAFE</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -2670,7 +2705,7 @@ text names</td>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_num_feats">
-<tt class="descname">get_num_feats</tt><big>(</big><em>ibs</em>, <em>fid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_num_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_num_feats" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_num_feats</tt><big>(</big><em>ibs</em>, <em>fid_list</em>, <em>eager=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_num_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_num_feats" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2721,13 +2756,13 @@ database directory where query results are stored</td>
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_recognition_database_aids">
 <tt class="descname">get_recognition_database_aids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_recognition_database_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_recognition_database_aids" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATE</p>
+<dd><p>DEPRECATE or refactor</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>daid_list</strong> &#8211;
-persistent recognition database annotations</td>
+testing recognition database annotations</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -3045,11 +3080,6 @@ Convenience function for set_annot_lblannot_from_rowid</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.control.IBEISControl.IBEISController.set_encounter_config_unassigned">
-<tt class="descname">set_encounter_config_unassigned</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.set_encounter_config_unassigned"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.set_encounter_config_unassigned" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.set_encounter_enctext">
 <tt class="descname">set_encounter_enctext</tt><big>(</big><em>ibs</em>, <em>eid_list</em>, <em>names_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.set_encounter_enctext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.set_encounter_enctext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets names of encounters (groups of animals)</p>
@@ -3202,11 +3232,6 @@ the first item of params_iter must be a superkey (like a uuid),</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.commit">
-<tt class="descname">commit</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.commit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.commit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.delete">
 <tt class="descname">delete</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>id_list</em>, <em>id_colname='rowid'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>deleter. USE delete_rowids instead</p>
@@ -3267,18 +3292,33 @@ the first item of params_iter must be a superkey (like a uuid),</p>
 
 <dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany">
-<tt class="descname">executemany</tt><big>(</big><em>db</em>, <em>operation</em>, <em>params_iter</em>, <em>auto_commit=True</em>, <em>verbose=False</em>, <em>unpack_scalars=True</em>, <em>num_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.executemany"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">executemany</tt><big>(</big><em>db</em>, <em>operation</em>, <em>params_iter</em>, <em>auto_commit=True</em>, <em>verbose=False</em>, <em>unpack_scalars=True</em>, <em>num_params=None</em>, <em>eager=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.executemany"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">
-<tt class="descname">executeone</tt><big>(</big><em>db</em>, <em>operation</em>, <em>params=()</em>, <em>auto_commit=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.executeone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">executeone</tt><big>(</big><em>db</em>, <em>operation</em>, <em>params=()</em>, <em>auto_commit=True</em>, <em>eager=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.executeone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.get">
-<tt class="descname">get</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>colnames</em>, <em>id_iter=None</em>, <em>id_colname='rowid'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>getter</p>
+<tt class="descname">get</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>colnames</em>, <em>id_iter=None</em>, <em>id_colname='rowid'</em>, <em>eager=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>getter
+:param tblname: table name to get from
+:type tblname: str
+:param colnames: column names to grab from
+:type colnames: tuple of str
+:param id_iter: iterable of search keys
+:type id_iter: iterable
+:param id_colname: column to be used as the search key (default: rowid)
+:type id_colname: str
+:param eager: use eager evaluation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3363,7 +3403,7 @@ a condition</p>
 
 <dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_where">
-<tt class="descname">get_where</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>colnames</em>, <em>params_iter</em>, <em>where_clause</em>, <em>unpack_scalars=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.get_where"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_where" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_where</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>colnames</em>, <em>params_iter</em>, <em>where_clause</em>, <em>unpack_scalars=True</em>, <em>eager=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.get_where"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_where" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -3371,7 +3411,10 @@ a condition</p>
 <tt class="descname">modify_table</tt><big>(</big><em>db</em>, <em>tablename</em>, <em>colmap_list</em>, <em>table_constraints=None</em>, <em>docstr=None</em>, <em>superkey_colnames=None</em>, <em>tablename_new=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.modify_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.modify_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">contributor_location_zip_map</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
 <span class="gp">... </span><span class="c">#  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new</span>
 <span class="gp">... </span><span class="c">#   [None to append, int for index]  [&#39;&#39; for same, None to delete]    [&#39;&#39; for same]    [None to use data unmodified]</span>
 <span class="gp">... </span>   <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span>             <span class="s">&#39;&#39;</span><span class="p">,</span>                              <span class="s">&#39;&#39;</span><span class="p">,</span>               <span class="bp">None</span><span class="p">),</span> <span class="c"># a non-needed, but correct mapping (identity function)</span>
@@ -3400,6 +3443,11 @@ a condition</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.reboot">
+<tt class="descname">reboot</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.reboot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.reboot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.rename_column">
 <tt class="descname">rename_column</tt><big>(</big><em>db</em>, <em>tablename</em>, <em>colname_old</em>, <em>colname_new</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.rename_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.rename_column" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3419,6 +3467,21 @@ a condition</p>
 <tt class="descname">set</tt><big>(</big><em>db</em>, <em>tblname</em>, <em>colnames</em>, <em>val_iter</em>, <em>id_iter</em>, <em>id_colname='rowid'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.set" title="Permalink to this definition">¶</a></dt>
 <dd><p>setter</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.shrink_memory">
+<tt class="descname">shrink_memory</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.shrink_memory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.shrink_memory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.squeeze">
+<tt class="descname">squeeze</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.squeeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.squeeze" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control.SQLDatabaseControl.SQLDatabaseController.vacuum">
+<tt class="descname">vacuum</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/SQLDatabaseControl.html#SQLDatabaseController.vacuum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.SQLDatabaseControl.SQLDatabaseController.vacuum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -3481,9 +3544,15 @@ a condition</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.control._sql_helpers.SQLExecutionContext.__exit__">
+<tt class="descname">__exit__</tt><big>(</big><em>context</em>, <em>type_</em>, <em>value</em>, <em>trace</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#SQLExecutionContext.__exit__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.SQLExecutionContext.__exit__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalization of an SQLController call</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results">
 <tt class="descname">execute_and_generate_results</tt><big>(</big><em>context</em>, <em>params</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/_sql_helpers.html#SQLExecutionContext.execute_and_generate_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>HELPER FOR CONTEXT STATMENT</p>
+<dd><p>helper for context statment</p>
 </dd></dl>
 
 </dd></dl>

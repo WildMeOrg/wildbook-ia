@@ -27,6 +27,14 @@ ibeis.model.hots.hots_query_result module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.hstypes module
+-------------------------------
+
+.. automodule:: ibeis.model.hots.hstypes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.match_chips4 module
 ------------------------------------
 

@@ -355,27 +355,33 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">smkcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SMKConfig</span><span class="p">,</span> <span class="n">smkcfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;smkcfg&#39;</span><span class="p">)</span>
         <span class="n">smkcfg</span><span class="o">.</span><span class="n">nAssign</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c"># MultiAssignment</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">thresh</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># tau in the paper</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">aggregate</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c">#</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">smk_thresh</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c"># tau in the paper</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">smk_alpha</span> <span class="o">=</span> <span class="mf">3.0</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">aggregate</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c"># TODO Separate into vocab config</span>
         <span class="n">smkcfg</span><span class="o">.</span><span class="n">indexer_key</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>  <span class="c"># Vocab</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">nWords</span> <span class="o">=</span> <span class="mf">8E3</span>  <span class="c">#</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">nWords</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">8E3</span><span class="p">)</span>  <span class="c">#</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">_valid_vocab_weighting</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="s">&#39;negentropy&#39;</span><span class="p">]</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">vocab_weighting</span> <span class="o">=</span> <span class="s">&#39;idf&#39;</span>
         <span class="c"># Multiassign parameters</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">assign_alpha</span> <span class="o">=</span> <span class="mf">1.2</span>
-        <span class="n">smkcfg</span><span class="o">.</span><span class="n">assign_sigma</span> <span class="o">=</span> <span class="mi">80</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_alpha</span> <span class="o">=</span> <span class="mf">1.2</span>
+        <span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_sigma</span> <span class="o">=</span> <span class="mf">80.0</span>
 
 <div class="viewcode-block" id="SMKConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.SMKConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">smkcfg</span><span class="p">):</span>
         <span class="n">smk_cfgstr</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s">&#39;_SMK(&#39;</span><span class="p">,</span>
             <span class="s">&#39;agg=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">aggregate</span><span class="p">),</span>
-            <span class="s">&#39;,t=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">thresh</span><span class="p">),</span>
-            <span class="s">&#39;,a=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">alpha</span><span class="p">),</span>
-            <span class="s">&#39;)_Vocab(&#39;</span><span class="p">,</span>
-            <span class="s">&#39;sz=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">nWords</span><span class="p">),</span>
+            <span class="s">&#39;,t=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">smk_thresh</span><span class="p">),</span>
+            <span class="s">&#39;,a=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">smk_alpha</span><span class="p">),</span>
+            <span class="s">&#39;)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;_Vocab(&#39;</span><span class="p">,</span>
+            <span class="s">&#39;sz=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">nWords</span><span class="p">),</span>
             <span class="s">&#39;,K=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">nAssign</span><span class="p">),</span>
-            <span class="s">&#39;,a=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">assign_alpha</span><span class="p">),</span>
-            <span class="s">&#39;,s=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">assign_sigma</span><span class="p">),</span>
+            <span class="s">&#39;,</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">smkcfg</span><span class="o">.</span><span class="n">vocab_weighting</span><span class="p">,</span>
+            <span class="s">&#39;,a=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_alpha</span><span class="p">),</span>
+            <span class="s">&#39;,s=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_sigma</span><span class="p">),</span>
+            <span class="s">&#39;,eqw=T&#39;</span> <span class="k">if</span> <span class="n">smkcfg</span><span class="o">.</span><span class="n">massign_equal_weights</span> <span class="k">else</span> <span class="s">&#39;,eqw=F&#39;</span><span class="p">,</span>
             <span class="s">&#39;)&#39;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">smk_cfgstr</span>
@@ -470,10 +476,16 @@
     <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span>
     <span class="n">nn_cfg</span>   <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span>
     <span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
+    <span class="n">smk_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span>
 
     <span class="k">if</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;asmk&#39;</span><span class="p">:</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;smk&#39;</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">hasvalid_weighting</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span>
+        <span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span> <span class="o">==</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">smk_cfg</span><span class="o">.</span><span class="n">_valid_vocab_weighting</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">hasvalid_weighting</span><span class="p">,</span> <span class="s">&#39;invalid vocab weighting </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span>
 
     <span class="n">hasvalid_root</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="n">root</span>

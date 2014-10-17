@@ -61,9 +61,10 @@
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[mc4]&#39;</span><span class="p">)</span>
 
 
-<span class="n">USE_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">)</span>
-<span class="n">SAVE_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-save&#39;</span><span class="p">)</span>
-<span class="n">USE_BIGCACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-big&#39;</span><span class="p">,</span> <span class="s">&#39;--no-bigcache-query&#39;</span><span class="p">))</span>
+<span class="c"># TODO: Move to params</span>
+<span class="n">USE_CACHE</span>    <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">))</span>
+<span class="n">USE_BIGCACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-big&#39;</span><span class="p">,</span> <span class="s">&#39;--no-bigcache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">))</span>
+<span class="n">SAVE_CACHE</span>   <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-save&#39;</span><span class="p">)</span>
 <span class="n">MIN_BIGCACHE_BUNDLE</span> <span class="o">=</span> <span class="mi">20</span>
 
 

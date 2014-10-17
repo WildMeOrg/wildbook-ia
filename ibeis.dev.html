@@ -79,10 +79,12 @@
 Infostr is a string summary of all the stats. Prints infostr in addition to
 returning locals</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">dbinfo</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)  </span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Mothers&#39;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
 <span class="go">66w+mdzw!n%3+i6h</span>
@@ -95,6 +97,17 @@ returning locals</p>
 <dt id="ibeis.dev.dbinfo.get_keypoint_stats">
 <tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_keypoint_stats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_keypoint_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_keypoint_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.test_name_consistency">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">test_name_consistency</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#test_name_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.test_name_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master&#39;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)  </span>
+</pre></div>
+</div>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.dev.duct_tape">
@@ -123,15 +136,32 @@ returning locals</p>
 <span id="ibeis-dev-experiment-harness-module"></span><h2>ibeis.dev.experiment_harness module<a class="headerlink" href="#module-ibeis.dev.experiment_harness" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.dev.experiment_harness.get_qx2_bestrank">
-<tt class="descclassname">ibeis.dev.experiment_harness.</tt><tt class="descname">get_qx2_bestrank</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>nTotalQueries</em>, <em>nPrevQueries</em>, <em>cfglbl</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_harness.html#get_qx2_bestrank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_harness.get_qx2_bestrank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs queries of a specific configuration returns the best rank of each query</p>
-<p>qaids - query annotation ids</p>
+<tt class="descclassname">ibeis.dev.experiment_harness.</tt><tt class="descname">get_qx2_bestrank</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>nTotalQueries</em>, <em>nPrevQueries</em>, <em>cfglbl</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_harness.html#get_qx2_bestrank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_harness.get_qx2_bestrank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function.</p>
+<p>Runs queries of a specific configuration returns the best rank of each query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> &#8211; IBEIS Controller</li>
+<li><strong>qaids</strong> (<em>list</em>) &#8211; query annotation ids</li>
+<li><strong>daids</strong> (<em>list</em>) &#8211; database annotation ids</li>
+<li><strong>nTotalQueries</strong> (<em>int</em>) &#8211; current count</li>
+<li><strong>nPrevQueries</strong> (<em>int</em>) &#8211; current count</li>
+<li><strong>cfglbl</strong> (<em>str</em>) &#8211; current count</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.experiment_harness.test_configurations">
 <tt class="descclassname">ibeis.dev.experiment_harness.</tt><tt class="descname">test_configurations</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>test_cfg_name_list</em>, <em>fnum=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_harness.html#test_configurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_harness.test_configurations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Test harness driver function</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.dev.experiment_helpers">
@@ -176,10 +206,14 @@ IBEIS</p>
 </div>
 <div class="section" id="module-ibeis.dev.experiment_printres">
 <span id="ibeis-dev-experiment-printres-module"></span><h2>ibeis.dev.experiment_printres module<a class="headerlink" href="#module-ibeis.dev.experiment_printres" title="Permalink to this headline">¶</a></h2>
+<p>displays results from experiment_harness</p>
 <dl class="function">
 <dt id="ibeis.dev.experiment_printres.draw_results">
 <tt class="descclassname">ibeis.dev.experiment_printres.</tt><tt class="descname">draw_results</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>sel_rows</em>, <em>sel_cols</em>, <em>cfg_list</em>, <em>cfgx2_lbl</em>, <em>new_hard_qx_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_printres.html#draw_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_printres.draw_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Draws results from an experiment harness run.
+Rows store different qaids (query annotation ids)
+Cols store different configurations (algorithm parameters)</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.experiment_printres.get_diffmat_str">
@@ -189,7 +223,10 @@ IBEIS</p>
 <dl class="function">
 <dt id="ibeis.dev.experiment_printres.print_results">
 <tt class="descclassname">ibeis.dev.experiment_printres.</tt><tt class="descname">print_results</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>cfg_list</em>, <em>mat_list</em>, <em>testnameid</em>, <em>sel_rows</em>, <em>sel_cols</em>, <em>cfgx2_lbl=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_printres.html#print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_printres.print_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Prints results from an experiment harness run.
+Rows store different qaids (query annotation ids)
+Cols store different configurations (algorithm parameters)</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.dev.main_commands">
@@ -254,6 +291,12 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.dev.main_helpers.get_test_daids">
+<tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_daids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets database annot_rowids based on command line arguments</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.dev.main_helpers.get_test_qaids">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_qaids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets test annot_rowids based on command line arguments</p>
@@ -262,7 +305,8 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <dl class="function">
 <dt id="ibeis.dev.main_helpers.register_utool_aliases">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">register_utool_aliases</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#register_utool_aliases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.register_utool_aliases" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>registers commmon class names with utool so they are printed nicely</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.dev.results_all">

@@ -63,11 +63,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="ibeis.model.hots.smk.html">ibeis.model.hots.smk package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.hstypes">ibeis.model.hots.smk.hstypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#ibeis-model-hots-smk-grave-module">ibeis.model.hots.smk._grave module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.pandas_helpers">ibeis.model.hots.smk.pandas_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_internal">ibeis.model.hots.smk.smk_internal module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_speed">ibeis.model.hots.smk.smk_speed module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk">Module contents</a></li>
@@ -114,7 +115,7 @@
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><p>For testing</p>
+<dd><p>For testing. Do not use</p>
 </dd></dl>
 
 <dl class="method">
@@ -221,7 +222,8 @@
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.save">
 <tt class="descname">save</tt><big>(</big><em>qres</em>, <em>qresdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.save" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>saves query result to directory</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.show">
@@ -283,19 +285,40 @@
 <dl class="function">
 <dt id="ibeis.model.hots.hots_query_result.query_result_fpath">
 <tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">query_result_fpath</tt><big>(</big><em>qresdir</em>, <em>qaid</em>, <em>qauuid</em>, <em>cfgstr</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#query_result_fpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.query_result_fpath" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>cdef:</dt>
-<dd>long qaid
-object qauuid
-str cfgstr, qres_dir, fpath, hash_id, fname</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.hots_query_result.remove_corrupted_queries">
 <tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">remove_corrupted_queries</tt><big>(</big><em>qresdir</em>, <em>qres</em>, <em>dryrun=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#remove_corrupted_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.remove_corrupted_queries" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</div>
+<div class="section" id="module-ibeis.model.hots.hstypes">
+<span id="ibeis-model-hots-hstypes-module"></span><h2>ibeis.model.hots.hstypes module<a class="headerlink" href="#module-ibeis.model.hots.hstypes" title="Permalink to this headline">¶</a></h2>
+<p>hstypes
+Todo:
+* SIFT: Root_SIFT -&gt; L2 normalized -&gt; Centering.
+# <a class="reference external" href="http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf">http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf</a>
+The devil is in the deatails
+<a class="reference external" href="http://www.robots.ox.ac.uk/~vilem/bmvc2011.pdf">http://www.robots.ox.ac.uk/~vilem/bmvc2011.pdf</a>
+This says dont clip, do rootsift instead
+# <a class="reference external" href="http://hal.archives-ouvertes.fr/docs/00/68/81/69/PDF/hal_v1.pdf">http://hal.archives-ouvertes.fr/docs/00/68/81/69/PDF/hal_v1.pdf</a>
+* Quantization of residual vectors
+* Burstiness normalization for N-SMK
+* Implemented A-SMK
+* Incorporate Spatial Verification
+* Implement correct cfgstrs based on algorithm input
+for cached computations.
+* Go pandas all the way
+* Color by word
+* Profile on hyrule
+* Train vocab on paris
+* Remove self matches.
+* New SIFT parameters for pyhesaff (root, powerlaw, meanwhatever, output_dtype)</p>
+<p>Issues:
+* 10GB are in use when performing query on Oxford 5K
+* errors when there is a word without any database vectors.
+currently a weight of zero is hacked in</p>
 </div>
 <div class="section" id="module-ibeis.model.hots.match_chips4">
 <span id="ibeis-model-hots-match-chips4-module"></span><h2>ibeis.model.hots.match_chips4 module<a class="headerlink" href="#module-ibeis.model.hots.match_chips4" title="Permalink to this headline">¶</a></h2>
@@ -805,6 +828,13 @@ annotation, and K is the number of approximate nearest neighbors.</td>
 <dt id="ibeis.model.hots.pipeline.new_fmfsfk">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">new_fmfsfk</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#new_fmfsfk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.new_fmfsfk" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.precompute_topx2_dlen_sqrd">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">precompute_topx2_dlen_sqrd</tt><big>(</big><em>qreq_</em>, <em>aid2_fm</em>, <em>topx2_aid</em>, <em>topx2_kpts</em>, <em>nRerank</em>, <em>use_chip_extent</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#precompute_topx2_dlen_sqrd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.precompute_topx2_dlen_sqrd" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper for spatial verification, computes the squared diagonal length of
+matching chips</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.request_ibeis_query_L0">
@@ -1322,6 +1352,7 @@ the source annotation) of the kth approximate nearest data vector</td>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.hots.neighbor_index">ibeis.model.hots.neighbor_index module</a></li>

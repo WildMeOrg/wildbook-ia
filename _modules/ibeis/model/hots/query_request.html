@@ -314,6 +314,7 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>  <span class="c"># HACK</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="c"># FIXME: not sure if this is even used</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_vectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_keypoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 </div>
@@ -345,17 +346,21 @@
 
 </div></div>
 <div class="viewcode-block" id="QueryParams"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryParams">[docs]</a><span class="k">class</span> <span class="nc">QueryParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c"># TODO: Use setattr to dynamically set all of these via config names</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
         <span class="n">pipeline_root</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
         <span class="k">if</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
             <span class="n">nAssign</span>     <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nAssign</span>
             <span class="n">aggregate</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span>
-            <span class="n">thresh</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">thresh</span>
-            <span class="n">alpha</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">alpha</span>
+            <span class="n">smk_thresh</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_thresh</span>
+            <span class="n">smk_alpha</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_alpha</span>
             <span class="n">indexer_key</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">indexer_key</span>
             <span class="n">nWords</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nWords</span>
-            <span class="n">assign_alpha</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">assign_alpha</span>
-            <span class="n">assign_sigma</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">assign_sigma</span>
+            <span class="n">vocab_weighting</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span>
+            <span class="n">massign_alpha</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_alpha</span>
+            <span class="n">massign_sigma</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_sigma</span>
+            <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_equal_weights</span>
         <span class="n">K</span>                  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
         <span class="n">Knorm</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
         <span class="n">checks</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span>
@@ -363,6 +368,7 @@
         <span class="n">Krecip</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">Krecip</span>
         <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_sameimg</span>
         <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_samename</span>
+        <span class="n">can_match_self</span>     <span class="o">=</span> <span class="bp">False</span>
         <span class="n">filt_on</span>            <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">filt_on</span>
         <span class="n">gravity_weighting</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">gravity_weighting</span>
         <span class="n">active_filter_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_active_filters</span><span class="p">()</span>
@@ -391,10 +397,10 @@
         <span class="n">flann_params</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
 
         <span class="c"># cfgstrs</span>
-        <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-        <span class="n">nn_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-        <span class="n">filt_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-        <span class="n">sv_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">nn_cfgstr</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">filt_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">sv_cfgstr</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 
