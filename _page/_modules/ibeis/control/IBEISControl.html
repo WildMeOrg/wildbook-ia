@@ -64,6 +64,7 @@
 <span class="kn">import</span> <span class="nn">atexit</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span>
@@ -158,21 +159,29 @@
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">init_tablecache</span><span class="p">()</span>
-        <span class="c">#ibs.qreq = None  # query requestor object</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">ibschanged_callback</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># keep track of the guibacks connected to this controller</span>
+        <span class="c"># observers keeps track of the guibacks connected to this controller</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_dirs</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_wb</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>  <span class="c"># this will do nothing if no wildbook address is specified</span>
+        <span class="c"># _init_wb will do nothing if no wildbook address is specified</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_wb</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sql</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_config</span><span class="p">()</span>
+        <span class="c"># an dict to hack in temporary state</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">inject_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.__del__] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
+    <span class="c"># We should probably not implement __del__</span>
+    <span class="c"># see: https://docs.python.org/2/reference/datamodel.html#object.__del__</span>
+    <span class="c">#def __del__(ibs):</span>
+    <span class="c">#    ibs.cleanup()</span>
+
+<div class="viewcode-block" id="IBEISController.cleanup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span><span class="p">:</span>
             <span class="n">observer</span><span class="o">.</span><span class="n">notify_controller_killed</span><span class="p">()</span>
-
+</div>
 <div class="viewcode-block" id="IBEISController.rrr"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.rrr">[docs]</a>    <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="k">global</span> <span class="n">__ALL_CONTROLLERS__</span>
         <span class="k">try</span><span class="p">:</span>
@@ -224,6 +233,7 @@
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs._init_dirs] ibs.dbdir = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
             <span class="n">workdir</span><span class="p">,</span> <span class="n">dbname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">dbname</span>
@@ -440,7 +450,12 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.get_chip_config_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_chip_config_rowid">[docs]</a>    <span class="k">def</span> <span class="nf">get_chip_config_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; # FIXME: Configs are still handled poorly &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; # FIXME: Configs are still handled poorly</span>
+
+<span class="sd">        This method deviates from the rest of the controller methods because it</span>
+<span class="sd">        always returns a scalar instead of a list. I&#39;m still not sure how to</span>
+<span class="sd">        make it more ibeisy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">chip_cfg_suffix</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">chip_cfg_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_config</span><span class="p">(</span><span class="n">chip_cfg_suffix</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">chip_cfg_rowid</span>
@@ -779,6 +794,13 @@
 <span class="sd">        Later we change the uri, but keeping it the same here lets</span>
 <span class="sd">        us process images asychronously.</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">            gpath_list (list): list of image paths to add</span>
+<span class="sd">            params_list (list): metadata list for corresponding images that can either be</span>
+<span class="sd">                specified outright or can be parsed from the image data directly if None</span>
+<span class="sd">            as_annots (bool): if True, an annotation is automatically added for the entire</span>
+<span class="sd">                image</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            gid_list (list of rowids): gids are image rowids</span>
 
@@ -867,7 +889,7 @@
                         <span class="n">species_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                         <span class="n">detect_confidence_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                         <span class="n">vert_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annotation_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                        <span class="n">import_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">silent_delete_thumbs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                        <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds an annotation to images</span>
 
@@ -885,9 +907,7 @@
         <span class="c"># Prepare the SQL input</span>
         <span class="k">assert</span> <span class="n">name_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cannot specify both names and nids&#39;</span>
         <span class="c"># For import only, we can specify both by setting import_override to True</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">import_override</span><span class="p">:</span>
-            <span class="c"># xor bbox or vert is None</span>
-            <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">vert_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span> <span class="s">&#39;must specify exactly one of bbox_list or vert_list&#39;</span>
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">vert_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span> <span class="s">&#39;must specify exactly one of bbox_list or vert_list&#39;</span>
 
         <span class="k">if</span> <span class="n">theta_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
@@ -960,8 +980,8 @@
             <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annot_relationship</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
             <span class="k">del</span> <span class="n">alrid_list</span>
         <span class="c">#print(&#39;alrid_list = %r&#39; % (alrid_list,))</span>
-        <span class="c"># Invalidate image thumbnails, silent_delete_thumbs causes no output on deletion from utool</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="n">silent_delete_thumbs</span><span class="p">)</span>
+        <span class="c"># Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from utool</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">quiet_delete_thumbs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">aid_list</span>
 
     <span class="c">#@adder</span>
@@ -1096,7 +1116,7 @@
         <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">contrib_rowid</span><span class="p">])</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="IBEISController.set_encounter_config_unassigned"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.set_encounter_config_unassigned">[docs]</a>    <span class="k">def</span> <span class="nf">set_encounter_config_unassigned</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.ensure_encounter_configs_populated"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.ensure_encounter_configs_populated">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_encounter_configs_populated</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
         <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_config</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
         <span class="n">unassigned_eid_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1708,7 +1728,7 @@
         <span class="k">return</span> <span class="n">gpath_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="IBEISController.get_annot_cids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_cids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_cids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">all_configs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_annot_cids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_cids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_cids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">all_configs</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="c"># FIXME:</span>
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1719,15 +1739,20 @@
                 <span class="k">raise</span>
         <span class="k">if</span> <span class="n">all_configs</span><span class="p">:</span>
             <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-            <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">)</span>
+            <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span>
+                                       <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+                                       <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">chip_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_config_rowid</span><span class="p">()</span>
             <span class="c">#print(chip_config_rowid)</span>
             <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;annot_rowid=? AND config_rowid=?&#39;</span>
             <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">chip_config_rowid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
-            <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">CHIP_TABLE</span><span class="p">,</span>  <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
+            <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">CHIP_TABLE</span><span class="p">,</span>  <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,),</span>
+                                             <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span>
+                                             <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">cid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
                 <span class="n">utool</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">valid_cids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_cids</span><span class="p">()</span>  <span class="c"># NOQA</span>
@@ -1792,35 +1817,38 @@
         <span class="k">return</span> <span class="n">cfpath_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="IBEISController.get_annot_fids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_fids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_fids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_cids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-        <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+<div class="viewcode-block" id="IBEISController.get_annot_fids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_fids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_fids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_cids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
+        <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fid_list</span>
 </div>
     <span class="nd">@utool.accepts_numpy</span>
     <span class="nd">@getter_1toM</span>
     <span class="nd">@cache_getter</span><span class="p">(</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="s">&#39;kpts&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="IBEISController.get_annot_kpts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_annot_kpts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            kpts_list (list): chip keypoints &quot;&quot;&quot;</span>
-        <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_kpts</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
+        <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
+        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_kpts</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">kpts_list</span>
 </div>
     <span class="nd">@getter_1toM</span>
-<div class="viewcode-block" id="IBEISController.get_annot_desc"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_desc">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_desc</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_annot_desc"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_desc">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_desc</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            desc_list (list): chip descriptors &quot;&quot;&quot;</span>
-        <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-        <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_desc</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
+        <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
+        <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_desc</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">desc_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="IBEISController.get_annot_num_feats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_num_feats">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_cids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-        <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+<div class="viewcode-block" id="IBEISController.get_annot_num_feats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_annot_num_feats">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            size_list (list): num descriptors per annotation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_num_feats</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">nFeats_list</span>
 </div>
@@ -1938,7 +1966,7 @@
         <span class="k">return</span> <span class="n">chipsz_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="IBEISController.get_chip_fids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_chip_fids">[docs]</a>    <span class="k">def</span> <span class="nf">get_chip_fids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_chip_fids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_chip_fids">[docs]</a>    <span class="k">def</span> <span class="nf">get_chip_fids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">add_feats</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
         <span class="n">feat_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">()</span>
@@ -1946,7 +1974,8 @@
         <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;chip_rowid=? AND config_rowid=?&#39;</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">cid</span><span class="p">,</span> <span class="n">feat_config_rowid</span><span class="p">)</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">cid_list</span><span class="p">)</span>
         <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                         <span class="n">where_clause</span><span class="p">)</span>
+                                         <span class="n">where_clause</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+                                         <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fid_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
@@ -1959,29 +1988,29 @@
 </div>
     <span class="nd">@getter_1toM</span>
     <span class="c">#@cache_getter(FEATURE_TABLE, &#39;feature_keypoints&#39;)</span>
-<div class="viewcode-block" id="IBEISController.get_feat_kpts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_feat_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_feat_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_feat_kpts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_feat_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_feat_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format &quot;&quot;&quot;</span>
-        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_keypoints&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">)</span>
+        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_keypoints&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">kpts_list</span>
 </div>
     <span class="nd">@getter_1toM</span>
     <span class="c">#@cache_getter(FEATURE_TABLE, &#39;feature_sifts&#39;)</span>
-<div class="viewcode-block" id="IBEISController.get_feat_desc"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_feat_desc">[docs]</a>    <span class="k">def</span> <span class="nf">get_feat_desc</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_feat_desc"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_feat_desc">[docs]</a>    <span class="k">def</span> <span class="nf">get_feat_desc</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            desc_list (list): chip SIFT descriptors &quot;&quot;&quot;</span>
-        <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">)</span>
+        <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="n">num_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">desc_list</span>
 </div>
     <span class="nd">@getter_1to1</span>
     <span class="c">#@cache_getter(FEATURE_TABLE, &#39;feature_num_feats&#39;)</span>
-<div class="viewcode-block" id="IBEISController.get_num_feats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_num_feats">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.get_num_feats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_num_feats">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            nFeats_list (list): the number of keypoint / descriptor pairs &quot;&quot;&quot;</span>
-        <span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_num_feats&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">)</span>
+        <span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_num_feats&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
         <span class="n">nFeats_list</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">nFeats</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nFeats</span><span class="p">)</span> <span class="k">for</span> <span class="n">nFeats</span> <span class="ow">in</span> <span class="n">nFeats_list</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">nFeats_list</span>
 
@@ -2397,17 +2426,17 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chip_thumbs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 </div>
     <span class="nd">@deleter</span>
-<div class="viewcode-block" id="IBEISController.delete_image_thumbs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.delete_image_thumbs">[docs]</a>    <span class="k">def</span> <span class="nf">delete_image_thumbs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.delete_image_thumbs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.delete_image_thumbs">[docs]</a>    <span class="k">def</span> <span class="nf">delete_image_thumbs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Removes image thumbnails from disk &quot;&quot;&quot;</span>
         <span class="c"># print(&#39;gid_list = %r&#39; % (gid_list,))</span>
         <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">remove_file_list</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="n">silent</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">remove_file_list</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
 </div>
     <span class="nd">@deleter</span>
-<div class="viewcode-block" id="IBEISController.delete_annot_chip_thumbs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.delete_annot_chip_thumbs">[docs]</a>    <span class="k">def</span> <span class="nf">delete_annot_chip_thumbs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.delete_annot_chip_thumbs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.delete_annot_chip_thumbs">[docs]</a>    <span class="k">def</span> <span class="nf">delete_annot_chip_thumbs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Removes chip thumbnails from disk &quot;&quot;&quot;</span>
         <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_thumbpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">remove_file_list</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="n">silent</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">remove_file_list</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
 </div>
     <span class="nd">@deleter</span>
     <span class="nd">@cache_invalidator</span><span class="p">(</span><span class="n">CHIP_TABLE</span><span class="p">)</span>
@@ -2567,12 +2596,15 @@
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.get_recognition_database_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_recognition_database_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_recognition_database_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        DEPRECATE</span>
+<span class="sd">        DEPRECATE or refactor</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            daid_list (list):  persistent recognition database annotations &quot;&quot;&quot;</span>
+<span class="sd">            daid_list (list): testing recognition database annotations &quot;&quot;&quot;</span>
         <span class="c"># TODO: Depricate, use exemplars instead</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s">&#39;daid_list&#39;</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">[</span><span class="s">&#39;daid_list&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">daid_list</span>
 
     <span class="c">#@default_decorator</span>
@@ -3369,14 +3401,15 @@
         <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lblannot_rowid_list</span>
 </div>
-    <span class="n">get_lblannot_rowid_from_typevaltup</span> <span class="o">=</span> <span class="n">get_lblannot_rowid_from_superkey</span>
-
     <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="IBEISController.get_lblannot_rowid_from_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_lblannot_rowid_from_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">get_lblannot_rowid_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_uuid_list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        UNSAFE</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            lblannot_rowid_list from the superkey (lbltype, value)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey&quot;</span>
         <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="n">lblannot_uuid_list</span>
         <span class="n">id_colname</span> <span class="o">=</span> <span class="s">&#39;lblannot_uuid&#39;</span>
@@ -3411,6 +3444,16 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.get_lblannot_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_lblannot_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_lblannot_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get annotation rowids of labels. There may be more than one annotation</span>
+<span class="sd">        per label.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lblannot_rowid_list (list): of lblannot (labels of annotations) rowids</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            aids_list (list): of lists annotation rowids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#verbose = len(lblannot_rowid_list) &gt; 20</span>
         <span class="c"># TODO: Optimize IF POSSIBLE</span>
         <span class="c"># FIXME: SLOW</span>

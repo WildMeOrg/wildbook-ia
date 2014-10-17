@@ -58,7 +58,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_matches</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_qres]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_qres]&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@utool.indent_func</span>
@@ -120,11 +120,23 @@
     <span class="c"># Get any groundtruth if you are showing it</span>
     <span class="n">showgt_aids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">show_gt</span><span class="p">:</span>
-        <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
-        <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">showgt_aids</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>
+        <span class="c"># Get the missed groundtruth annotations</span>
+        <span class="c">#matchable_aids = ibs.get_recognition_database_aids()</span>
+        <span class="n">matchable_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">matchable_aids</span><span class="p">)</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="c"># FIXME: Get only the ones that &quot;should have matched&quot;</span>
+            <span class="c"># This could be something complex or simple like (was able to be matched)</span>
+            <span class="c"># Hack to not show too many unmatched groundtruths</span>
+            <span class="n">_isexmp</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flag</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
+            <span class="n">_gtaids</span><span class="p">,</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_isexmp</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">_gtaids</span>
 
     <span class="k">return</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">showgt_aids</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span>
-                        <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="n">show_query</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                     <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="n">show_query</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
 <span class="nd">@utool.indent_func</span>
@@ -149,38 +161,67 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="n">top_aids</span><span class="p">)</span>
 
-    <span class="c">#all_gts = ibs.get_annot_groundtruth(qres.qaid)</span>
     <span class="n">nTop</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
-    <span class="c">#nSelGt = len(gt_aids)</span>
-    <span class="c">#nAllGt = len(all_gts)</span>
 
     <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
         <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
         <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="c">#printDBG(&#39;[show_qres]========================&#39;)</span>
-    <span class="c">#printDBG(&#39;[show_qres]----------------&#39;)</span>
-    <span class="c">#printDBG(&#39;[show_qres] #nTop=%r #missed_gts=%r/%r&#39; % (nTop, nSelGt, nAllGt))</span>
-    <span class="c">#printDBG(&#39;[show_qres] * fnum=%r&#39; % (fnum,))</span>
-    <span class="c">#printDBG(&#39;[show_qres] * figtitle=%r&#39; % (figtitle,))</span>
-    <span class="c">#printDBG(&#39;[show_qres] * max_nCols=%r&#39; % (max_nCols,))</span>
-    <span class="c">#printDBG(&#39;[show_qres] * show_query=%r&#39; % (show_query,))</span>
-    <span class="c">#printDBG(&#39;[show_qres] * kwargs=%s&#39; % (utool.dict_str(kwargs),))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;gts should be missed.  not in top&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="s">&#39;gt_aids&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
     <span class="n">printDBG</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
     <span class="n">ranked_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
-    <span class="c"># Build a subplot grid</span>
+    <span class="c">#--------------------------------------------------</span>
+    <span class="c"># Get grid / cell information to build subplot grid</span>
+    <span class="c">#--------------------------------------------------</span>
+    <span class="c"># Show query or not</span>
     <span class="n">nQuerySubplts</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">show_query</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c"># The top row is given slots for ground truths and querys</span>
+    <span class="c"># all aids in gt_aids should not be in top aids</span>
     <span class="n">nGtSubplts</span>    <span class="o">=</span> <span class="n">nQuerySubplts</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">gt_aids</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))</span>
+    <span class="c"># The bottom rows are for the top results</span>
     <span class="n">nTopNSubplts</span>  <span class="o">=</span> <span class="n">nTop</span>
     <span class="n">nTopNCols</span>     <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_nCols</span><span class="p">,</span> <span class="n">nTopNSubplts</span><span class="p">)</span>
     <span class="n">nGTCols</span>       <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_nCols</span><span class="p">,</span> <span class="n">nGtSubplts</span><span class="p">)</span>
     <span class="n">nGTCols</span>       <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nGTCols</span><span class="p">,</span> <span class="n">nTopNCols</span><span class="p">)</span>
     <span class="n">nTopNCols</span>     <span class="o">=</span> <span class="n">nGTCols</span>
+    <span class="c"># Get number of rows to show groundtruth</span>
     <span class="n">nGtRows</span>       <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">nGTCols</span>   <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nGtSubplts</span>   <span class="o">/</span> <span class="n">nGTCols</span><span class="p">))</span>
+    <span class="c"># Get number of rows to show results</span>
     <span class="n">nTopNRows</span>     <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">nTopNCols</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nTopNSubplts</span> <span class="o">/</span> <span class="n">nTopNCols</span><span class="p">))</span>
     <span class="n">nGtCells</span>      <span class="o">=</span> <span class="n">nGtRows</span> <span class="o">*</span> <span class="n">nGTCols</span>
+    <span class="c"># Total number of rows</span>
     <span class="n">nRows</span>         <span class="o">=</span> <span class="n">nTopNRows</span> <span class="o">+</span> <span class="n">nGtRows</span>
+
+    <span class="n">DEBUG_SHOW_QRES</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+        <span class="n">allgt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">nSelGt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span>
+        <span class="n">nAllGt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">allgt_aids</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres]========================&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres]----------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * annote_mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annote_mode</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] #nTop=</span><span class="si">%r</span><span class="s"> #missed_gts=</span><span class="si">%r</span><span class="s">/</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTop</span><span class="p">,</span> <span class="n">nSelGt</span><span class="p">,</span> <span class="n">nAllGt</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * nRows=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * nGtSubplts=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nGtSubplts</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * nTopNSubplts=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTopNSubplts</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * nQuerySubplts=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nQuerySubplts</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * nGTCols=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nGTCols</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * -----&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * fnum=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fnum</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * figtitle=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">figtitle</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * max_nCols=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_nCols</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * show_query=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">show_query</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres] * kwargs=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),))</span>
 
     <span class="c"># HACK:</span>
     <span class="n">_color_list</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">nTop</span><span class="p">)</span>
@@ -227,7 +268,8 @@
                 <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
                 <span class="n">viz_matches</span><span class="o">.</span><span class="n">annotate_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="ow">not</span> <span class="n">show_query</span><span class="p">)</span>
 
-        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[show_qres()] Plotting Chips </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres()] Plotting Chips </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="c"># Do lazy load before show</span>
@@ -237,9 +279,15 @@
             <span class="n">plotx</span> <span class="o">=</span> <span class="n">ox</span> <span class="o">+</span> <span class="n">plotx_shift</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowcols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rowcols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">plotx</span><span class="p">)</span>
             <span class="n">oranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ranked_aids</span> <span class="o">==</span> <span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c"># This pair has no matches between them.</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">oranks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">orank</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">_show_matches_fn</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">orank</span><span class="p">,</span> <span class="n">pnum</span><span class="p">)</span>
+                <span class="c">#if DEBUG_SHOW_QRES:</span>
+                <span class="c">#    print(&#39;skipping pnum=%r&#39; % (pnum,))</span>
                 <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;pnum=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,))</span>
             <span class="n">orank</span> <span class="o">=</span> <span class="n">oranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">_show_matches_fn</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">orank</span><span class="p">,</span> <span class="n">pnum</span><span class="p">)</span>
 

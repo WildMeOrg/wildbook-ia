@@ -84,10 +84,10 @@
             <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># Results are always returned wraped in a tuple</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">result</span>
+            <span class="n">result_</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">result</span>
             <span class="c">#if get_last_id and result == 0:</span>
             <span class="c">#    result = None</span>
-            <span class="k">yield</span> <span class="n">result</span>
+            <span class="k">yield</span> <span class="n">result_</span>
 
 
 <span class="k">def</span> <span class="nf">_unpacker</span><span class="p">(</span><span class="n">results_</span><span class="p">):</span>
@@ -211,9 +211,11 @@
             <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="s">&#39;[sql] executeone optype=</span><span class="si">%s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">)</span>
         <span class="c"># Start SQL Transaction</span>
         <span class="n">context</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>  <span class="c"># HACK in a new cursor</span>
+        <span class="c">#context.cur = context.db.cur  # OR USE DB CURSOR??</span>
         <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">start_transaction</span><span class="p">:</span>
             <span class="c"># http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;BEGIN&#39;</span><span class="p">,</span> <span class="p">())</span>
+            <span class="c">#context.cur.execute(&#39;BEGIN&#39;, ())</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;BEGIN&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">or</span> <span class="n">PRINT_SQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
@@ -227,17 +229,20 @@
     <span class="c"># --- with SQLExecutionContext: statment code happens here ---</span>
 </div>
 <div class="viewcode-block" id="SQLExecutionContext.execute_and_generate_results"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results">[docs]</a>    <span class="k">def</span> <span class="nf">execute_and_generate_results</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; HELPER FOR CONTEXT STATMENT &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; helper for context statment &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">lite</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.Error] </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.Error] params=&lt;</span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">params</span><span class="p">,))</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;sql.Error&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">])</span>
+            <span class="c">#print(&#39;[sql.Error] %r&#39; % (type(ex),))</span>
+            <span class="c">#print(&#39;[sql.Error] params=&lt;%r&gt;&#39; % (params,))</span>
             <span class="k">raise</span>
         <span class="n">is_insert</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;INSERT&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_results_gen</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="p">,</span> <span class="n">get_last_id</span><span class="o">=</span><span class="n">is_insert</span><span class="p">)</span>
 </div>
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLExecutionContext.__exit__"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Finalization of an SQLController call &quot;&quot;&quot;</span>
+        <span class="c">#print(&#39;exit context&#39;)</span>
         <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">PRINT_SQL</span> <span class="ow">or</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">):</span>
                 <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">tt</span><span class="p">)</span>
@@ -251,10 +256,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># Commit the transaction</span>
             <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">auto_commit</span><span class="p">:</span>
+                <span class="c">#print(&#39;commit %r&#39; % context.operation_lbl)</span>
                 <span class="n">context</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="c">#if context.start_transaction:</span>
+                <span class="c">#    context.cur.execute(&#39;COMMIT&#39;)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;no commit </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span><span class="p">)</span>
                 <span class="c">#context.db.commit(verbose=False)</span>
+                <span class="c">#context.cur.commit()</span>
+            <span class="c">#context.cur.close()</span>
 
-</div>
+</div></div>
 <div class="viewcode-block" id="get_operation_type"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.get_operation_type">[docs]</a><span class="k">def</span> <span class="nf">get_operation_type</span><span class="p">(</span><span class="n">operation</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses the operation_type from an SQL operation</span>

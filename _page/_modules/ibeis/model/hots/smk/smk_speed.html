@@ -55,7 +55,7 @@
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_core</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.hstypes</span> <span class="kn">import</span> <span class="n">FLOAT_TYPE</span><span class="p">,</span> <span class="n">VEC_DIM</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.hstypes</span> <span class="kn">import</span> <span class="n">FLOAT_TYPE</span><span class="p">,</span> <span class="n">VEC_DIM</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_speed]&#39;</span><span class="p">)</span>
@@ -170,10 +170,6 @@
 <span class="sd">    VERY SLOW. DEBUG USE ONLY</span>
 
 <span class="sd">    Ignore:</span>
-<span class="sd">        pico  = ps = 1E-12</span>
-<span class="sd">        nano  = ns = 1E-9</span>
-<span class="sd">        micro = us = 1E-6</span>
-<span class="sd">        mili  = ns = 1E-3</span>
 <span class="sd">        words = words.values</span>
 <span class="sd">        wxlist = [wx]</span>
 <span class="sd">        ### index test</span>

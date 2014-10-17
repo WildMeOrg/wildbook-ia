@@ -72,6 +72,7 @@
 <span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
 <span class="n">AUTODUMP</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
+<span class="n">COPY_TO_MEMORY</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--copy-db-to-memory&#39;</span><span class="p">)</span>
 
 <span class="sd">&quot;&quot;&quot; If would be really great if we could get a certain set of setters, getters,</span>
 <span class="sd">and deleters to be indexed into only with rowids. If we could do this than for</span>
@@ -139,15 +140,16 @@
         <span class="n">db</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">sqldb_fname</span>
         <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">dir_</span><span class="p">),</span> <span class="s">&#39;[sql] db.dir_=</span><span class="si">%r</span><span class="s"> does not exist!&#39;</span> <span class="o">%</span> <span class="n">db</span><span class="o">.</span><span class="n">dir_</span>
         <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">dir_</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="n">text_factory</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">fpath</span><span class="p">):</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Initializing new database&#39;</span><span class="p">)</span>
         <span class="c"># Open the SQL database connection with support for custom types</span>
         <span class="c">#lite.enable_callback_tracebacks(True)</span>
         <span class="c">#db.fpath = &#39;:memory:&#39;</span>
         <span class="n">db</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">connect2</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="n">text_factory</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">text_factory</span>
         <span class="c">#db.connection.isolation_level = None  # turns sqlite3 autocommit off</span>
-        <span class="n">COPY_TO_MEMORY</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--copy-db-to-memory&#39;</span><span class="p">)</span>
+        <span class="c">#db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off</span>
         <span class="k">if</span> <span class="n">COPY_TO_MEMORY</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">_copy_to_memory</span><span class="p">()</span>
             <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="n">text_factory</span>
@@ -183,11 +185,59 @@
         <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">Row</span>
 
+    <span class="c">#@utool.memprof</span>
+<div class="viewcode-block" id="SQLDatabaseController.reboot"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.reboot">[docs]</a>    <span class="k">def</span> <span class="nf">reboot</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] reboot&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">db</span><span class="o">.</span><span class="n">cur</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">db</span><span class="o">.</span><span class="n">connection</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">connect2</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">text_factory</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+</div>
+    <span class="nd">@default_decorator</span>
+<div class="viewcode-block" id="SQLDatabaseController.optimize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size</span>
+        <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] executing sql optimizions&#39;</span><span class="p">)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 0;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 1024;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA page_size = 1024;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA synchronous = OFF;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA count_changes = OFF;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA journal_mode = OFF;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA max_page_count = 0;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA page_size = 512;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA parser_trace = OFF;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA busy_timeout = 1;&#39;)</span>
+        <span class="c">#db.cur.execute(&#39;PRAGMA default_cache_size = 0;&#39;)</span>
+</div>
+    <span class="nd">@default_decorator</span>
+<div class="viewcode-block" id="SQLDatabaseController.shrink_memory"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.shrink_memory">[docs]</a>    <span class="k">def</span> <span class="nf">shrink_memory</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] shrink_memory&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;PRAGMA shrink_memory;&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+    <span class="nd">@default_decorator</span>
+<div class="viewcode-block" id="SQLDatabaseController.vacuum"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.vacuum">[docs]</a>    <span class="k">def</span> <span class="nf">vacuum</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] vaccum&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;VACUUM;&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+    <span class="nd">@default_decorator</span>
+<div class="viewcode-block" id="SQLDatabaseController.squeeze"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.squeeze">[docs]</a>    <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] squeeze&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">shrink_memory</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">vacuum</span><span class="p">()</span>
+
     <span class="c">#==============</span>
     <span class="c"># API INTERFACE</span>
     <span class="c">#==============</span>
 
-    <span class="c">#@ider_sql</span>
+    <span class="c">#@ider_sql</span></div>
 <div class="viewcode-block" id="SQLDatabaseController.get_all_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_all_rowids">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_rowids</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; returns a list of all rowids from a table in ascending order &quot;&quot;&quot;</span>
         <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tblname&#39;</span><span class="p">:</span> <span class="n">tblname</span><span class="p">,</span> <span class="p">}</span>
@@ -274,7 +324,8 @@
         <span class="k">return</span> <span class="n">rowid_list</span>
 
     <span class="c">#@getter_sql</span></div>
-<div class="viewcode-block" id="SQLDatabaseController.get_where"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_where">[docs]</a>    <span class="k">def</span> <span class="nf">get_where</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLDatabaseController.get_where"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_where">[docs]</a>    <span class="k">def</span> <span class="nf">get_where</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span>
+                  <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
         <span class="c">#if isinstance(colnames, six.string_types):</span>
         <span class="c">#    colnames = (colnames,)</span>
@@ -299,7 +350,7 @@
             <span class="n">val_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">_executemany_operation_fmt</span><span class="p">(</span><span class="n">operation_fmt</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">,</span>
                                                      <span class="n">params_iter</span><span class="o">=</span><span class="n">params_iter</span><span class="p">,</span>
                                                      <span class="n">unpack_scalars</span><span class="o">=</span><span class="n">unpack_scalars</span><span class="p">,</span>
-                                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                                                     <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">val_list</span>
 
     <span class="c">#@getter_sql</span></div>
@@ -309,9 +360,16 @@
         <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#@getter_sql</span></div>
-<div class="viewcode-block" id="SQLDatabaseController.get"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; getter &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+<div class="viewcode-block" id="SQLDatabaseController.get"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; getter</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tblname (str): table name to get from</span>
+<span class="sd">            colnames (tuple of str): column names to grab from</span>
+<span class="sd">            id_iter (iterable): iterable of search keys</span>
+<span class="sd">            id_colname (str): column to be used as the search key (default: rowid)</span>
+<span class="sd">            eager (bool): use eager evaluation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;must specify column names to get from&#39;</span>
         <span class="c">#if isinstance(colnames, six.string_types):</span>
         <span class="c">#    colnames = (colnames,)</span>
         <span class="k">if</span> <span class="n">id_iter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -321,7 +379,7 @@
             <span class="n">where_clause</span> <span class="o">=</span> <span class="p">(</span><span class="n">id_colname</span> <span class="o">+</span> <span class="s">&#39;=?&#39;</span><span class="p">)</span>
             <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">_rowid</span> <span class="ow">in</span> <span class="n">id_iter</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#@setter_sql</span></div>
 <div class="viewcode-block" id="SQLDatabaseController.set"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -331,6 +389,8 @@
         <span class="c">#    colnames = (colnames,)</span>
         <span class="n">val_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">val_iter</span><span class="p">)</span>  <span class="c"># eager evaluation</span>
         <span class="n">id_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">id_iter</span><span class="p">)</span>  <span class="c"># eager evaluation</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span> <span class="s">&quot;Passing a not-unique list of ids&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span> <span class="ow">and</span> <span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] SETTER: &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">())</span>
@@ -401,31 +461,23 @@
     <span class="c">#==============</span>
 </div>
     <span class="nd">@default_decorator</span>
-    <span class="k">def</span> <span class="nf">_executeone_operation_fmt</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation_fmt</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_executeone_operation_fmt</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation_fmt</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">operation</span> <span class="o">=</span> <span class="n">operation_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@default_decorator</span>
     <span class="k">def</span> <span class="nf">_executemany_operation_fmt</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation_fmt</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
-                                   <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                                   <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">operation</span> <span class="o">=</span> <span class="n">operation_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="n">unpack_scalars</span><span class="p">,</span>
-                              <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                              <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#=========</span>
     <span class="c"># SQLDB CORE</span>
     <span class="c">#=========</span>
 
-    <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.optimize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-        <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] executing sql optimizions&#39;</span><span class="p">)</span>
-        <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 1024;&#39;)</span>
-        <span class="c">#db.cur.execute(&#39;PRAGMA page_size = 1024;&#39;)</span>
-        <span class="c">#db.cur.execute(&#39;PRAGMA synchronous = OFF;&#39;)</span>
-</div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.add_table"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.add_table">[docs]</a>    <span class="k">def</span> <span class="nf">add_table</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">,</span> <span class="n">table_constraints</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[sql] schema ensuring tablename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">tablename</span><span class="p">)</span>
@@ -503,6 +555,9 @@
 <span class="sd">        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated</span>
 
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; def contributor_location_zip_map(x):</span>
+<span class="sd">            ...     return x</span>
+<span class="sd">            &gt;&gt;&gt; ibs = None</span>
 <span class="sd">            &gt;&gt;&gt; ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (</span>
 <span class="sd">            ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new</span>
 <span class="sd">            ... #   [None to append, int for index]  [&#39;&#39; for same, None to delete]    [&#39;&#39; for same]    [None to use data unmodified]</span>
@@ -747,7 +802,8 @@
         <span class="p">))</span>
 </div>
     <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.executeone"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">[docs]</a>    <span class="k">def</span> <span class="nf">executeone</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLDatabaseController.executeone"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">[docs]</a>    <span class="k">def</span> <span class="nf">executeone</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">result_iter</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -759,13 +815,23 @@
         <span class="k">return</span> <span class="n">result_list</span>
 </div>
     <span class="nd">@default_decorator</span>
+    <span class="c">#@utool.memprof</span>
 <div class="viewcode-block" id="SQLDatabaseController.executemany"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c"># --- ARGS PREPROC ---</span>
         <span class="c"># Aggresively compute iterator if the num_params is not given</span>
         <span class="k">if</span> <span class="n">num_params</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
-            <span class="n">num_params</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="n">num_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: aggressive eval of params_iter because num_params=None&#39;</span><span class="p">)</span>
+                <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+                <span class="n">num_params</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Taking params_iter as iterator&#39;</span><span class="p">)</span>
 
         <span class="c"># Do not compute executemany without params</span>
         <span class="k">if</span> <span class="n">num_params</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -782,23 +848,46 @@
 
         <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="o">**</span><span class="n">contextkw</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
             <span class="c">#try:</span>
-            <span class="n">results_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-                <span class="nb">map</span><span class="p">(</span>
-                    <span class="nb">list</span><span class="p">,</span>
-                    <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_iter</span><span class="p">)</span>
-                <span class="p">)</span>
-            <span class="p">)</span>  <span class="c"># list of iterators</span>
-            <span class="k">if</span> <span class="n">unpack_scalars</span><span class="p">:</span>
-                <span class="n">results_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_unpacker</span><span class="p">,</span> <span class="n">results_iter</span><span class="p">))</span>  <span class="c"># list of iterators</span>
-            <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_iter</span><span class="p">)</span>  <span class="c"># Eager evaluation</span>
+            <span class="k">if</span> <span class="n">eager</span><span class="p">:</span>
+                <span class="c">#if utool.DEBUG2:</span>
+                <span class="c">#    print(&#39;--------------&#39;)</span>
+                <span class="c">#    print(&#39;+++ eager eval&#39;)</span>
+                <span class="c">#    print(operation)</span>
+                <span class="c">#    print(&#39;+++ eager eval&#39;)</span>
+                <span class="c">#results_iter = list(</span>
+                    <span class="c">#map(</span>
+                    <span class="c">#    list,</span>
+                    <span class="c">#    (context.execute_and_generate_results(params) for params in params_iter)</span>
+                    <span class="c">#)</span>
+                <span class="c">#)  # list of iterators</span>
+                <span class="n">results_iter</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_iter</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">unpack_scalars</span><span class="p">:</span>
+                    <span class="n">results_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_unpacker</span><span class="p">,</span> <span class="n">results_iter</span><span class="p">))</span>  <span class="c"># list of iterators</span>
+                <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_iter</span><span class="p">)</span>  <span class="c"># Eager evaluation</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#if utool.DEBUG2:</span>
+                <span class="c">#    print(&#39;--------------&#39;)</span>
+                <span class="c">#    print(&#39; +++ lazy eval&#39;)</span>
+                <span class="c">#    print(operation)</span>
+                <span class="c">#    print(&#39; +++ lazy eval&#39;)</span>
+                <span class="k">def</span> <span class="nf">tmpgen</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+                    <span class="c"># Temporary hack to turn off eager_evaluation</span>
+                    <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_iter</span><span class="p">:</span>
+                        <span class="c"># Eval results per query yeild per iter</span>
+                        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">unpack_scalars</span><span class="p">:</span>
+                            <span class="k">yield</span> <span class="n">_unpacker</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">yield</span> <span class="n">results</span>
+                <span class="n">results_list</span> <span class="o">=</span> <span class="n">tmpgen</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
             <span class="c">#except Exception as ex:</span>
             <span class="c">#    utool.printex(ex)</span>
             <span class="c">#    raise</span>
         <span class="k">return</span> <span class="n">results_list</span>
-</div>
-    <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.commit"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c">#@default_decorator</span>
+    <span class="c">#def commit(db):</span>
+    <span class="c">#    db.connection.commit()</span>
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.dump_to_file"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">dump_to_file</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">schema_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>

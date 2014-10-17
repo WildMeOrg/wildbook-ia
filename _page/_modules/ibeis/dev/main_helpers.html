@@ -60,16 +60,20 @@
 
 
 <div class="viewcode-block" id="register_utool_aliases"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.register_utool_aliases">[docs]</a><span class="k">def</span> <span class="nf">register_utool_aliases</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    registers commmon class names with utool so they are printed nicely</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#print(&#39;REGISTER UTOOL ALIASES&#39;)</span>
     <span class="kn">import</span> <span class="nn">utool</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
-    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span><span class="p">,</span> <span class="n">SQLDatabaseControl</span>
     <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guiback</span>
-    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guifront</span>
+    <span class="c">#from ibeis.gui import guifront</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">extend_global_aliases</span><span class="p">([</span>
+        <span class="p">(</span><span class="n">SQLDatabaseControl</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">,</span> <span class="s">&#39;sqldb&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">,</span> <span class="s">&#39;ibs&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="n">guiback</span><span class="o">.</span><span class="n">MainWindowBackend</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="n">guifront</span><span class="o">.</span><span class="n">MainWindowFrontend</span><span class="p">,</span> <span class="s">&#39;front&#39;</span><span class="p">),</span>
+        <span class="c">#(guifront.MainWindowFrontend, &#39;front&#39;),</span>
         <span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="s">&#39;fig&#39;</span><span class="p">)</span>
     <span class="p">])</span>
 
@@ -94,8 +98,8 @@
 <span class="nd">@utool.indent_func</span>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="get_test_qaids"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.get_test_qaids">[docs]</a><span class="k">def</span> <span class="nf">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-<span class="c">#def get_allowed_qaids(ibs):</span>
     <span class="sd">&quot;&quot;&quot; Gets test annot_rowids based on command line arguments &quot;&quot;&quot;</span>
+    <span class="c">#def get_allowed_qaids(ibs):</span>
     <span class="n">available_qaids</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c"># Currently the only avaialable query annots are ones specified on the</span>
@@ -142,7 +146,17 @@
 
     <span class="c">#print(&#39;available_qaids = %r&#39; % available_qaids)</span>
     <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">available_qaids</span></div>
+    <span class="k">return</span> <span class="n">available_qaids</span>
+
+</div>
+<span class="nd">@utool.indent_func</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_test_daids"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.get_test_daids">[docs]</a><span class="k">def</span> <span class="nf">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets database annot_rowids based on command line arguments &quot;&quot;&quot;</span>
+    <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">daid_exclude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">daid_exclude</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">available_daids</span></div>
 </pre></div>
 
           </div>

@@ -67,7 +67,11 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="kn">from</span> <span class="nn">ibeis.io</span> <span class="kn">import</span> <span class="n">export_hsdb</span>
-<span class="kn">from</span> <span class="nn">detecttools.pypascalxml</span> <span class="kn">import</span> <span class="n">PascalVOC_XML_Annotation</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">detecttools.pypascalmarkup</span> <span class="kn">import</span> <span class="n">PascalVOC_Markup_Annotation</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="s">&#39;COMMIT TO DETECTTOOLS&#39;</span><span class="p">)</span>
+    <span class="k">pass</span>
 <span class="c">#from ibeis import constants</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="n">getter_1to1</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">linalg</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">image</span>
@@ -127,11 +131,10 @@
 
 </div>
 <div class="viewcode-block" id="export_to_xml"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.export_to_xml">[docs]</a><span class="k">def</span> <span class="nf">export_to_xml</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="mi">2523</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">9921</span>
     <span class="n">target_size</span> <span class="o">=</span> <span class="mi">900</span>
     <span class="n">information</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;database_name&#39;</span> <span class="p">:</span> <span class="s">&#39;IBEIS&#39;</span><span class="p">,</span>
-        <span class="s">&#39;source&#39;</span> <span class="p">:</span> <span class="s">&#39;olpajeta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;database_name&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
     <span class="p">}</span>
     <span class="n">datadir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">+</span> <span class="s">&quot;/LearningData/&quot;</span>
     <span class="n">imagedir</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">+</span> <span class="s">&#39;JPEGImages/&#39;</span>
@@ -142,16 +145,17 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-        <span class="n">image_uri</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_uri</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">fulldir</span> <span class="o">=</span> <span class="n">image_uri</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">fulldir</span> <span class="o">=</span> <span class="n">image_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">fulldir</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
             <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">out_name</span> <span class="o">=</span> <span class="s">&quot;2014_</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">count</span>
-            <span class="n">out_img</span> <span class="o">=</span> <span class="n">out_name</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span> <span class="o">+</span> <span class="n">extension</span>
+            <span class="n">out_name</span> <span class="o">=</span> <span class="s">&quot;2014_</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">offset</span>
+            <span class="n">out_img</span> <span class="o">=</span> <span class="n">out_name</span> <span class="o">+</span> <span class="s">&quot;.jpg&quot;</span>
             <span class="n">folder</span> <span class="o">=</span> <span class="s">&quot;IBEIS&quot;</span>
 
-            <span class="n">_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_uri</span><span class="p">)</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
             <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">_image</span><span class="o">.</span><span class="n">shape</span>
             <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span><span class="p">:</span>
                 <span class="n">ratio</span> <span class="o">=</span> <span class="n">height</span> <span class="o">/</span> <span class="n">width</span>
@@ -167,9 +171,9 @@
             <span class="n">dst_img</span> <span class="o">=</span> <span class="n">imagedir</span> <span class="o">+</span> <span class="n">out_img</span>
             <span class="n">_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
             <span class="n">image</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_uri</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="p">))</span>
 
-            <span class="n">annotation</span> <span class="o">=</span> <span class="n">PascalVOC_XML_Annotation</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">out_img</span><span class="p">,</span> <span class="o">**</span><span class="n">information</span><span class="p">)</span>
+            <span class="n">annotation</span> <span class="o">=</span> <span class="n">PascalVOC_Markup_Annotation</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">out_img</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">image_uri</span><span class="p">,</span> <span class="o">**</span><span class="n">information</span><span class="p">)</span>
             <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">):</span>
@@ -196,9 +200,9 @@
             <span class="n">xml_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dst_annot</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
             <span class="n">xml_data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">annotation</span><span class="o">.</span><span class="n">xml</span><span class="p">())</span>
             <span class="n">xml_data</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Skipping:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_uri</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Skipping:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="p">))</span>
 
 </div>
 <span class="nd">@__injectable</span>

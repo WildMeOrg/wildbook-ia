@@ -63,13 +63,11 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">hsexcept</span>
 
-<span class="n">FM_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span>   <span class="c"># Feature Match datatype</span>
-<span class="n">FS_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>  <span class="c"># Feature Score datatype</span>
-<span class="n">FK_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span>    <span class="c"># Feature Position datatype</span>
-
 
 <span class="c">#FORCE_LONGNAME = utool.get_argflag(&#39;--longname&#39;) or (not utool.WIN32 and not utool.get_argflag(&#39;--nolongname&#39;))</span>
 <span class="n">MAX_FNAME_LEN</span> <span class="o">=</span> <span class="mi">64</span> <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">WIN32</span> <span class="k">else</span> <span class="mi">200</span>
+<span class="n">TRUNCATE_UUIDS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--truncate-uuids&#39;</span><span class="p">,</span> <span class="s">&#39;--trunc-uuids&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--notruncate-uuids&#39;</span><span class="p">,</span> <span class="s">&#39;--notrunc-uuids&#39;</span><span class="p">)))</span>
 
 <span class="c">#=========================</span>
 <span class="c"># Query Result Class</span>
@@ -105,12 +103,6 @@
 
 </div>
 <div class="viewcode-block" id="query_result_fpath"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.query_result_fpath">[docs]</a><span class="k">def</span> <span class="nf">query_result_fpath</span><span class="p">(</span><span class="n">qresdir</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    cdef:</span>
-<span class="sd">        long qaid</span>
-<span class="sd">        object qauuid</span>
-<span class="sd">        str cfgstr, qres_dir, fpath, hash_id, fname</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">fname</span> <span class="o">=</span> <span class="n">query_result_fname</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
     <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">qresdir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fpath</span>
@@ -127,15 +119,17 @@
 <span class="sd">        ext (str): filetype extension</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#fname_fmt = &#39;res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}&#39;</span>
-    <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;qaid={qaid}_res_{cfgstr}_qauuid={quuid}{ext}&#39;</span>
-    <span class="n">fname</span> <span class="o">=</span> <span class="n">fname_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">quuid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">qauuid</span><span class="p">),</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+    <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;qaid={qaid}_res_{cfgstr}_quuid={quuid}{ext}&#39;</span>
+    <span class="n">quuid_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qauuid</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="k">if</span> <span class="n">TRUNCATE_UUIDS</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">qauuid</span><span class="p">)</span>
+    <span class="n">fmt_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">quuid</span><span class="o">=</span><span class="n">quuid_str</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+    <span class="c">#fname = fname_fmt.format(**fmt_dict)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cfgstr&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="n">MAX_FNAME_LEN</span><span class="p">)</span>
     <span class="c"># condence the filename if it is too long (grumble grumble windows)</span>
     <span class="c">#if (not FORCE_LONGNAME) and len(fname) &gt; 64:</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_FNAME_LEN</span><span class="p">:</span>
-        <span class="n">hash_id</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
-        <span class="n">fname</span> <span class="o">=</span> <span class="n">fname_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">cfgstr</span><span class="o">=</span><span class="n">hash_id</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">quuid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">qauuid</span><span class="p">),</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+    <span class="c">#if len(fname) &gt; MAX_FNAME_LEN:</span>
+    <span class="c">#    hash_id = utool.hashstr(cfgstr)</span>
+    <span class="c">#    fname = fname_fmt.format(</span>
+    <span class="c">#        cfgstr=hash_id, qaid=qaid, quuid=quuid_str, ext=ext)</span>
     <span class="k">return</span> <span class="n">fname</span>
 
 </div>
@@ -200,6 +194,7 @@
         <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fk</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># feat_rank_list</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># annotation score</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">filt2_meta</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># messy</span>
+        <span class="c">#qres.daid_list = None  # matchable daids</span>
 
 <div class="viewcode-block" id="QueryResult.load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Loads the result from the given database &quot;&quot;&quot;</span>
@@ -207,7 +202,6 @@
         <span class="n">qaid_good</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span>
         <span class="n">qauuid_good</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c">#if __debug__:</span>
             <span class="k">if</span> <span class="n">force_miss</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">hsexcept</span><span class="o">.</span><span class="n">HotsCacheMissError</span><span class="p">(</span><span class="s">&#39;force miss&#39;</span><span class="p">)</span>
             <span class="c">#print(&#39;[qr] qres.load() fpath=%r&#39; % (split(fpath)[1],))</span>
@@ -258,7 +252,7 @@
         <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_good</span>
 </div>
 <div class="viewcode-block" id="QueryResult.__eq__"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; For testing &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; For testing. Do not use&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">([</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">,</span>
@@ -280,6 +274,7 @@
         <span class="k">return</span> <span class="n">query_result_fname</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.save"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; saves query result to directory &quot;&quot;&quot;</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>  <span class="c"># and utool.VERBOSE:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qr] cache save: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">],))</span>
@@ -467,7 +462,8 @@
         <span class="n">top_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">())</span>
         <span class="n">pos_aids</span> <span class="o">=</span> <span class="n">top_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">pos_aids</span>
-</div>
+
+    <span class="c">#TODO?: @utool.augment_signature(viz_qres.show_qres_top)</span></div>
 <div class="viewcode-block" id="QueryResult.show_top"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.show_top">[docs]</a>    <span class="k">def</span> <span class="nf">show_top</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_qres</span>
         <span class="k">return</span> <span class="n">viz_qres</span><span class="o">.</span><span class="n">show_qres_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

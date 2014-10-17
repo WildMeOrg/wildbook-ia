@@ -162,14 +162,17 @@
         <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">register_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+    <span class="c">#def __del__(back):</span>
+    <span class="c">#    back.cleanup()</span>
+
+<div class="viewcode-block" id="MainWindowBackend.cleanup"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">remove_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
 
     <span class="c">#------------------------</span>
     <span class="c"># Draw Functions</span>
     <span class="c">#------------------------</span>
-
+</div>
 <div class="viewcode-block" id="MainWindowBackend.show"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </div>
@@ -207,7 +210,9 @@
         <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
         <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">:</span> <span class="n">qres</span><span class="p">}</span>
         <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">qres_wgt1</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">QueryResultsWidget</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;top_aids&#39;</span><span class="p">],</span> <span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">qres_wgt1</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">QueryResultsWidget</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span>
+                                                        <span class="n">callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">,</span>
+                                                        <span class="n">ranks_lt</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;top_aids&#39;</span><span class="p">],)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">qres_wgt1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">qres_wgt1</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
         <span class="k">pass</span>
@@ -996,6 +1001,7 @@
         <span class="k">return</span> <span class="n">guitool</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MainWindowBackend.are_you_sure"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.are_you_sure">[docs]</a>    <span class="k">def</span> <span class="nf">are_you_sure</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Prompt user for conformation before changing something &quot;&quot;&quot;</span>
         <span class="n">ans</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s">&#39;Are you sure?&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Confirmation&#39;</span><span class="p">,</span>
                                <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;No&#39;</span><span class="p">,</span> <span class="s">&#39;Yes&#39;</span><span class="p">],</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ans</span> <span class="o">==</span> <span class="s">&#39;Yes&#39;</span>

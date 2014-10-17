@@ -90,9 +90,14 @@
 
 <span class="k">def</span> <span class="nf">REGISTER_SQLITE3_TYPES</span><span class="p">():</span>
     <span class="k">def</span> <span class="nf">_read_numpy_from_sqlite3</span><span class="p">(</span><span class="n">blob</span><span class="p">):</span>
+        <span class="c"># INVESTIGATE: Is memory freed up correctly here?</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="c">#return np.load(out)</span>
+        <span class="c"># Is this better?</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">arr</span>
 
     <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">_write_numpy_to_sqlite3</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>

@@ -99,7 +99,7 @@
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData">
 <em class="property">class </em><tt class="descclassname">ibeis.io.export_subset.</tt><tt class="descname">ANNOTATION_TransferData</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
-<p>ANNOTATION_TransferData(annot_parent_INDEX_list, annot_uuid_list, annot_bbox_list, annot_theta_list, annot_verts_list, annot_viewpoint_list, annot_detection_confidence_list, annot_exemplar_flag_list, annot_note_list, lblannot_td_list)</p>
+<p>ANNOTATION_TransferData(annot_parent_INDEX_list, annot_uuid_list, annot_theta_list, annot_verts_list, annot_viewpoint_list, annot_detection_confidence_list, annot_exemplar_flag_list, annot_note_list, lblannot_td_list)</p>
 <dl class="method">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.__getnewargs__">
 <tt class="descname">__getnewargs__</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
@@ -119,27 +119,21 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_bbox_list">
-<tt class="descname">annot_bbox_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_bbox_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_detection_confidence_list">
 <tt class="descname">annot_detection_confidence_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_detection_confidence_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 6</p>
+<dd><p>Alias for field number 5</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_exemplar_flag_list">
 <tt class="descname">annot_exemplar_flag_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_exemplar_flag_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 7</p>
+<dd><p>Alias for field number 6</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_note_list">
 <tt class="descname">annot_note_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_note_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 8</p>
+<dd><p>Alias for field number 7</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -151,7 +145,7 @@
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_theta_list">
 <tt class="descname">annot_theta_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_theta_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
+<dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -163,19 +157,19 @@
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_verts_list">
 <tt class="descname">annot_verts_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_verts_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
+<dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.annot_viewpoint_list">
 <tt class="descname">annot_viewpoint_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.annot_viewpoint_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
+<dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ibeis.io.export_subset.ANNOTATION_TransferData.lblannot_td_list">
 <tt class="descname">lblannot_td_list</tt><a class="headerlink" href="#ibeis.io.export_subset.ANNOTATION_TransferData.lblannot_td_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 9</p>
+<dd><p>Alias for field number 8</p>
 </dd></dl>
 
 </dd></dl>
@@ -695,7 +689,9 @@
 <dl class="function">
 <dt id="ibeis.io.export_subset.export_image_transfer_data">
 <tt class="descclassname">ibeis.io.export_subset.</tt><tt class="descname">export_image_transfer_data</tt><big>(</big><em>ibs_src</em>, <em>gid_list</em>, <em>config_rowid_list</em>, <em>eid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/io/export_subset.html#export_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.io.export_subset.export_image_transfer_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>builds transfer data for seleted image ids in ibs_src.
+NOTE: gid_list, config_rowid_list and eid_list do not correspond</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.io.export_subset.export_lblannot_transfer_data">
@@ -721,7 +717,7 @@ info the transfer_data named tuple.</p>
 
 <dl class="function">
 <dt id="ibeis.io.export_subset.import_annot_transfer_data">
-<tt class="descclassname">ibeis.io.export_subset.</tt><tt class="descname">import_annot_transfer_data</tt><big>(</big><em>ibs_dst</em>, <em>annot_td</em>, <em>gid</em>, <em>config_rowid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/io/export_subset.html#import_annot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.io.export_subset.import_annot_transfer_data" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.io.export_subset.</tt><tt class="descname">import_annot_transfer_data</tt><big>(</big><em>ibs_dst</em>, <em>annot_td</em>, <em>parent_gid</em>, <em>config_rowid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/io/export_subset.html#import_annot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.io.export_subset.import_annot_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -785,7 +781,7 @@ WARNING - this may cause near-duplicate information due to duplicate
 detections, duplicate manual annotations from different
 contributors.  Images and lblimages will not be duplicated.
 WARNING - this will only keep the meta data for an image, annotation
-from the source database (image_height, annotation_bbox, etc.)
+from the source database (image_height, annotation_verts, etc.)
 WARNING - this may cause an exception to be raised
 +&#8212;</li>
 </ul>
@@ -794,8 +790,17 @@ WARNING - this may cause an exception to be raised
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;[dbdir]&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.io</span> <span class="kn">import</span> <span class="n">export_subset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src2</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_dst = ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src2</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
 </pre></div>
 </div>
 </dd></dl>
