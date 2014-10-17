@@ -15,6 +15,33 @@ from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 
+def test_name_consistency(ibs):
+    """
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
+        >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
+
+    """
+    from ibeis import ibsfuncs
+    max_ = -1
+    #max_ = 10
+    valid_aids = ibs.get_valid_aids()[0:max_]
+    valid_nids = ibs.get_valid_nids()[0:max_]
+    ax2_nid = ibs.get_annot_nids(valid_aids)
+    nx2_aids = ibs.get_name_aids(valid_nids)
+
+    print('len(valid_aids) = %r' % (len(valid_aids),))
+    print('len(valid_nids) = %r' % (len(valid_nids),))
+    print('len(ax2_nid) = %r' % (len(ax2_nid),))
+    print('len(nx2_aids) = %r' % (len(nx2_aids),))
+
+    # annots are grouped by names, so mapping aid back to nid should
+    # result in each list having the same value
+    _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
+    assert all(map(utool.list_allsame, _nids_list))
+
+
 def get_dbinfo(ibs, verbose=True):
     """ Returns dictionary of digestable database information
     Infostr is a string summary of all the stats. Prints infostr in addition to
@@ -24,9 +51,8 @@ def get_dbinfo(ibs, verbose=True):
     >>> from ibeis.dev import dbinfo
     >>> import ibeis
     >>> verbose = True
+    >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
     >>> ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
-    >>> ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
-    >>> #ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
     >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
     >>> print(utool.dict_str(output))
     >>> print(output['info_str'])
