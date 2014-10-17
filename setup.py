@@ -33,6 +33,8 @@ CLUTTER_DIRS = [
     'dist/',
     'ibeis/export',
     'ibeis/ingest',
+    'ibeis/injest',
+    'testsuite',
     '__pycache__/',
 ]
 

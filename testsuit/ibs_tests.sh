@@ -1,9 +1,0 @@
-python ibeis/tests/test_ibs.py
-python ibeis/tests/test_ibs_add_images.py
-python ibeis/tests/test_ibs_encounters.py
-python ibeis/tests/test_ibs_chip_compute.py
-python ibeis/tests/test_ibs_feat_compute.py
-python ibeis/tests/test_ibs_detectimg_compute.py
-python ibeis/tests/test_ibs_query.py
-python ibeis/tests/test_ibs_query_components.py
-python ibeis/tests/test_ibs_getters.py
