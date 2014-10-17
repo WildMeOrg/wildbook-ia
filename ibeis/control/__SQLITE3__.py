@@ -39,9 +39,14 @@ if not TRY_NEW_SQLITE3:
 
 def REGISTER_SQLITE3_TYPES():
     def _read_numpy_from_sqlite3(blob):
+        # INVESTIGATE: Is memory freed up correctly here?
         out = io.BytesIO(blob)
         out.seek(0)
-        return np.load(out)
+        #return np.load(out)
+        # Is this better?
+        arr = np.load(out)
+        out.close()
+        return arr
 
     if six.PY2:
         def _write_numpy_to_sqlite3(arr):

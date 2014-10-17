@@ -1,6 +1,5 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-from . import hstypes
 from . import pandas_helpers
 from . import smk_core
 from . import smk_debug
@@ -13,7 +12,6 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[smk]')
 def reload_subs():
     """ Reloads smk and submodules """
     rrr()
-    getattr(hstypes, 'rrr', lambda: None)()
     getattr(pandas_helpers, 'rrr', lambda: None)()
     getattr(smk_core, 'rrr', lambda: None)()
     getattr(smk_debug, 'rrr', lambda: None)()

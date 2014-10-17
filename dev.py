@@ -565,8 +565,12 @@ def run_dev(main_locals):
     if ibs is not None:
         # Get aids marked as test cases
         qaid_list = main_helpers.get_test_qaids(ibs)
-        print('[run_dev] test_qaids = %r' % qaid_list)
-        print('[run_dev] len(test_qaids) = %d' % len(qaid_list))
+        daid_list = main_helpers.get_test_daids(ibs)
+        print('[run_def] Test Annotations:')
+        print('[run_dev] * qaid_list = %s' % utool.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
+        print('[run_dev] * len(daid_list) = %d' % len(daid_list))
+        ibs.temporary_state['daid_list'] = daid_list
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'

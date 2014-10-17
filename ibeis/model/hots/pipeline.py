@@ -39,6 +39,7 @@ from vtool import keypoint as ktool
 from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import hots_query_result
+from ibeis.model.hots import hstypes
 #from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import voting_rules2 as vr2
@@ -99,7 +100,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         from ibeis.model.hots.smk import smk_match
         # Alternative to naive bayes matching:
         # Selective match kernel
-        qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.selective_match_kernel(qreq_)
+        qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
         filt2_meta_ = {}
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
@@ -232,7 +233,7 @@ def _weight_neighbors(qaid2_nns, qreq_):
 
 @profile
 def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
-    qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hots_query_result.FS_DTYPE)
+    qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in six.iteritems(filt2_weights):
@@ -344,7 +345,7 @@ def identity_filter(qaid2_nns, qreq_):
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         (qfx2_idx, _) = qaid2_nns[qaid]
         qfx2_nnidx = qfx2_idx[:, 0:K]
-        qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hots_query_result.FS_DTYPE)
+        qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
         qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
         # Check that you are not matching yourself
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
@@ -363,9 +364,9 @@ def identity_filter(qaid2_nns, qreq_):
 def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
     minMatches = 2  # TODO: paramaterize
     # Convert to numpy
-    fm_dtype = hots_query_result.FM_DTYPE
-    fs_dtype = hots_query_result.FS_DTYPE
-    fk_dtype = hots_query_result.FK_DTYPE
+    fm_dtype = hstypes.FM_DTYPE
+    fs_dtype = hstypes.FS_DTYPE
+    fk_dtype = hstypes.FK_DTYPE
     # FIXME: This is slow
     aid2_fm_ = {aid: np.array(fm, fm_dtype)
                 for aid, fm in six.iteritems(aid2_fm)
@@ -435,6 +436,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         qfx2_nnidx = qfx2_idx[:, 0:K]
         qfx2_aid  = qreq_.indexer.get_nn_aids(qfx2_nnidx)
         qfx2_fx   = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
+        # FIXME: Can probably get away without using tile here
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
@@ -492,6 +494,32 @@ def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
 def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     """
     make only spatially valid features survive
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *
+        >>> import ibeis
+        >>> import pyflann
+        >>> from ibeis.model.hots import query_request
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid = 1
+        >>> daid = ibs.get_annot_groundtruth(qaid)[0]
+        >>> qvecs = ibs.get_annot_desc(qaid)
+        >>> dvecs = ibs.get_annot_desc(daid)
+        >>> # Simple ratio-test matching
+        >>> flann = pyflann.FLANN()
+        >>> flann.build_index(dvecs)
+        >>> qfx2_dfx, qfx2_dist = flann.nn_index(qvecs, 2)
+        >>> ratio = (qfx2_dist.T[1] / qfx2_dist.T[0])
+        >>> valid = ratio < 1.2
+        >>> valid_qfx = np.where(valid)[0]
+        >>> valid_dfx = qfx2_dfx.T[0][valid]
+        >>> fm = np.vstack((valid_qfx, valid_dfx)).T
+        >>> fs = ratio[valid]
+        >>> fk = np.ones(fs.size)
+        >>> qaid2_chipmatch = {qaid: ({daid: fm}, {daid: fs}, {daid: fk})}
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, [qaid], [daid])
+        >>> qreq_.ibs = ibs
+        >>> dbginfo = False
     """
     # spatial verification
     print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
@@ -505,7 +533,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     qaid2_chipmatchSV = {}
     nFeatSVTotal = 0
     nFeatMatchSV = 0
-    nFeatMatchSVAff = 0
+    #nFeatMatchSVAff = 0
     if dbginfo:
         qaid2_svtups = {}  # dbg info (can remove if there is a speed issue)
     def print_(msg, count=0):
@@ -530,7 +558,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         kpts1 = qreq_.get_annot_kpts(qaid)
         topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
         # Check the diaglen sizes before doing the homography
-        topx2_dlen_sqrd = _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid,
+        topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid,
                                                       topx2_kpts, nRerank,
                                                       use_chip_extent)
         # spatially verify the top __NUM_RERANK__ results
@@ -547,7 +575,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
             try:
                 sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
                                                    xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
-                                                   min_nInliers)
+                                                   min_nInliers, returnAff=dbginfo)
             except Exception as ex:
                 utool.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
@@ -558,7 +586,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
                 #    raise
             nFeatSVTotal += len(fm)
             if sv_tup is None:
-                    print_('o')  # sv failure
+                print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
                 homog_inliers, H, aff_inliers, Aff = sv_tup
@@ -568,7 +596,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
                 aid2_fs_V[aid] = fs[homog_inliers]
                 aid2_fk_V[aid] = fk[homog_inliers]
                 nFeatMatchSV += len(homog_inliers)
-                nFeatMatchSVAff += len(aff_inliers)
+                #nFeatMatchSVAff += len(aff_inliers)
                 if NOT_QUIET:
                     #print(inliers)
                     print_('.')  # verified something
@@ -579,7 +607,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         qaid2_chipmatchSV[qaid] = chipmatchSV
     print_('\n')
     if NOT_QUIET:
-        print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
+        #print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
         print('[hs] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
     if dbginfo:
         return qaid2_chipmatchSV, qaid2_svtups
@@ -587,7 +615,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         return qaid2_chipmatchSV
 
 
-def _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
+def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
                                 nRerank, use_chip_extent):
     """ helper for spatial verification, computes the squared diagonal length of
     matching chips """
@@ -675,7 +703,12 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         if chipmatch is not None:
-            aid2_fm, aid2_fs, aid2_fk = chipmatch
+            try:
+                aid2_fm, aid2_fs, aid2_fk = chipmatch
+            except Exception as ex:
+                utool.printex(ex, 'error converting chipmatch',
+                              keys=['chipmatch'])
+                raise
             qres.aid2_fm = aid2_fm
             qres.aid2_fs = aid2_fs
             qres.aid2_fk = aid2_fk

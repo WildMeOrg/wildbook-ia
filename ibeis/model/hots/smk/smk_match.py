@@ -1,36 +1,164 @@
 from __future__ import absolute_import, division, print_function
 #import six
+from six.moves import zip, range, map  # NOQA
 import utool
 import numpy as np
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_core
 #from six.moves import zip
-#from ibeis.model.hots.smk.hstypes import INTEGER_TYPE
+#from ibeis.model.hots.hstypes import INTEGER_TYPE
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_match]')
 
 
-@profile
-def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
-                         aggregate=False, alpha=3, thresh=0, nAssign=1,
-                         can_match_self=False):
+DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
+
+
+@utool.indent_func('[smk_query]')
+#@utool.memprof
+def execute_smk_L5(qreq_):
     """
+    ibeis query interface
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_match
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()
+        >>> qaid2_scores, qaid2_chipmatch = smk_match.execute_smk_L5(qreq_)
+
+    Dev::
+        from ibeis.model.hots import pipeline
+        filt2_meta = {}
+        # Get both spatial verified and not
+        qaid2_chipmatch_FILT_ = qaid2_chipmatch
+        qaid2_chipmatch_SVER_ = pipeline.spatial_verification(qaid2_chipmatch_FILT_, qreq_)
+        qaid2_qres_FILT_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT_, filt2_meta, qreq_)
+        qaid2_qres_SVER_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER_, filt2_meta, qreq_)
+        qres_FILT = qaid2_qres_FILT_[qaids[0]]
+        qres_SVER = qaid2_qres_SVER_[qaids[0]]
+        fig1 = qres_FILT.show_top(ibs, fnum=1, figtitle='filt')
+        fig2 = qres_SVER.show_top(ibs, fnum=2, figtitle='sver')
+        fig1.show()
+        fig2.show()
+
+    CommandLine::
+        python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0
+        python dev.py -t smk2 --allgt --db GZ_ALL
+        python dev.py -t smk2 --allgt --db GZ_ALL
+        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:10 --vf --va
+        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:10 --vf --va --print-cfgstr
+        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:20 --vf --va
+        python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 2:20 --va --vf
+        python dev.py -t smk2 --allgt --db PZ_Master0 && python dev.py -t smk3 --allgt --db PZ_Master0
+        python dev.py -t smk2 --allgt --db PZ_Master0 --index 2:10 --va
+        python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30
+        python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict --va
+        python dev.py -t smk2 --db PZ_Master0 --qaid 7199 --va --quality --vf --noqcache
+        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va
+        python dev.py -t smk5 --allgt --db PZ_Master0 --noqcache ; python dev.py -t smk5 --allgt --db GZ_ALL --noqcache
+        python dev.py -t smkd --allgt --db PZ_Mothers --index 1:3 --va --quality --vf --noqcache
+
+        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --va --vf
+        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --echo-hardcase
+        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --vh
+        python dev.py -t smk_8k_compare --allgt --db PZ_Mothers --index 20:30 --view-hard
+    """
+    memtrack = utool.MemoryTracker('[SMK ENTRY]')
+    qaids = qreq_.get_external_qaids()
+    ibs   = qreq_.ibs
+    # Params
+    qparams = qreq_.qparams
+    memtrack.report('[SMK PREINIT]')
+    # Build ~~Pandas~~ dataframe (or maybe not)
+    annots_df = smk_index.make_annot_df(ibs)
+    words, invindex = prepare_qreq(qreq_, annots_df, memtrack)
+    withinfo = True
+
+    # Execute smk for each query
+    memtrack.report('[SMK QREQ INITIALIZED]')
+    print('[SMK_MEM] invindex is using ' + utool.get_object_size_str(invindex))
+    print('[SMK_MEM] qreq_ is using ' + utool.get_object_size_str(qreq_))
+    qaid2_scores, qaid2_chipmatch = execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo)
+    memtrack.report('[SMK QREQ FINISHED]')
+    return qaid2_scores, qaid2_chipmatch
+
+
+#@utool.memprof
+def prepare_qreq(qreq_, annots_df, memtrack):
+    """ Called if pipeline did not setup qreq correctly """
+    print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
+    if hasattr(qreq_, 'words'):
+        # Hack
+        raise NotImplementedError('pipeline still isnt fully ready for smk')
+        words = qreq_.words
+        invindex = qreq_.invindex
+    else:
+        # Load vocabulary
+        qparams = qreq_.qparams
+        nWords = qreq_.qparams.nWords
+        ibs   = qreq_.ibs
+        daids = qreq_.get_external_daids()
+        # TODO: Incorporated taids (vocab training ids) into qreq
+        taids = ibs.get_valid_aids()  # exemplar
+        words = smk_index.learn_visual_words(annots_df, taids, nWords, memtrack=memtrack)
+        memtrack.report('[SMK LEARN VWORDS]')
+        # Index database annotations
+        with_internals = True
+        invindex = smk_index.index_data_annots(annots_df, daids, words, qparams,
+                                               with_internals, memtrack)
+        memtrack.report('[SMK INDEX ANNOTS]')
+        print('L___ FINISHED LOADING VOCAB ___\n')
+    return words, invindex
+
+
+def execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo):
+    """
+    Loop over execute_smk_L3
+
+    CommandLine:
+        python dev.py -t smk --allgt --db PZ_Mothers --index 1:3 --noqcache --va --vf
+    """
+    # Progress
+    lbl = 'ASMK query: ' if qparams.aggregate else 'SMK query: '
+    logkw = dict(flushfreq=1, writefreq=1, with_totaltime=True, backspace=False)
+    mark, end_ = utool.log_progress(lbl, len(qaids), **logkw)
+    # Output
+    qaid2_chipmatch = {}
+    qaid2_scores    = {}
+    # Foreach query annotation
+    for count, qaid in enumerate(qaids):
+        mark(count)
+        tup = execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo)
+        daid2_score, daid2_chipmatch = tup
+        qaid2_scores[qaid]    = daid2_score
+        qaid2_chipmatch[qaid] = daid2_chipmatch
+        #memtrack.report('[SMK SINGLE QUERY]')
+    end_()
+    if DEBUG_SMK:
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.check_qaid2_chipmatch(qaid2_chipmatch, qaids)
+    return qaid2_scores, qaid2_chipmatch
+
+
+@profile
+def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
+    """
+    Executes a single smk query
+
     Example:
         >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()
         >>> qaid = qaids[0]
-        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-        >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-        >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> qparams = qreq_.qparams
         >>> withinfo = True
-        >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+        >>> daid2_totalscore, daid2_chipmatch = execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo)
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
-                                  thresh, nAssign)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, qparams)
     (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
-    if utool.DEBUG2:
+    if DEBUG_SMK:
         from ibeis.model.hots.smk import smk_debug
         qfx2_vec = annots_df['vecs'][qaid]
         smk_debug.invindex_dbgstr(invindex)
@@ -39,8 +167,8 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
     # Compute match kernel for all database aids
     kernel_args = (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma,
-                   invindex, withinfo, alpha, thresh)
-    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
+                   invindex, qparams, withinfo)
+    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(*kernel_args)  # 54 %
     # Prevent self matches
     #can_match_self = not utool.get_argflag('--noself')
     can_match_self = utool.get_argflag('--self-match')
@@ -51,84 +179,19 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
         daid2_chipmatch[1][qaid] = np.empty((0), dtype=np.float32)
         daid2_chipmatch[2][qaid] = np.empty((0), dtype=np.int32)
     # Build chipmatches if daid2_wx2_scoremat is not None
-    if utool.DEBUG2:
+    if DEBUG_SMK:
         from ibeis.model.hots.smk import smk_debug
         smk_debug.check_daid2_chipmatch(daid2_chipmatch)
     return daid2_totalscore, daid2_chipmatch
-
-
-@utool.indent_func('[smk_query]')
-def selective_match_kernel(qreq_):
-    """
-    ibeis query interface
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_match
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> from ibeis.model.hots import query_request
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
-        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-        >>> qaid2_qres_ = smk_match.selective_match_kernel(qreq_)
-
-    Dev::
-        qres = qaid2_qres_[qaids[0]]
-        fig = qres.show_top(ibs)
-    """
-    daids = qreq_.get_external_daids()
-    qaids = qreq_.get_external_qaids()
-    ibs   = qreq_.ibs
-    # Params
-    nWords    = qreq_.qparams.nWords
-    aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
-    nAssign   = qreq_.qparams.nAssign
-    # Build Pandas dataframe (or maybe not)
-    annots_df = smk_index.make_annot_df(ibs)  # .3%
-    if hasattr(qreq_, 'words'):
-        # Hack
-        words = qreq_.words
-        invindex = qreq_.invindex
-    else:
-        print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
-        # Load vocabulary
-        taids = ibs.get_valid_aids()  # exemplar
-        words = smk_index.learn_visual_words(annots_df, taids, nWords)
-        # Index database annotations
-        invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate)
-        print('L___ FINISHED LOADING VOCAB ___\n')
-    withinfo = True
-    # Progress
-    lbl = 'asmk query: ' if aggregate else 'smk query: '
-    logkw = dict(flushfreq=1, writefreq=1, with_totaltime=True, backspace=False)
-    mark, end_ = utool.log_progress(lbl, len(qaids), **logkw)
-    # Output
-    qaid2_chipmatch = {}
-    qaid2_scores    = {}
-    # Foreach query annotation
-    for count, qaid in enumerate(qaids):
-        mark(count)
-        daid2_score, daid2_chipmatch = query_inverted_index(annots_df, qaid,
-                                                            invindex, withinfo,
-                                                            aggregate, alpha,
-                                                            thresh, nAssign)
-        qaid2_scores[qaid]    = daid2_score
-        qaid2_chipmatch[qaid] = daid2_chipmatch
-    end_()
-    return qaid2_scores, qaid2_chipmatch
 
 
 if __name__ == '__main__':
     def main():
         from ibeis.model.hots.smk import smk_debug
         from ibeis.model.hots.smk import smk_match
-        from ibeis.model.hots import query_request
         from ibeis.model.hots import pipeline
-        ibs, taids, daids, qaids = smk_debug.testdata_ibeis2()
-        qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-        qreq_.ibs = ibs
-        qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(qreq_)
+        ibs, taids, daids, qaids, qreq_ = smk_debug.testdata_ibeis2()
+        qaid2_scores, qaid2_chipmatch = smk_match.execute_smk_L5(qreq_)
         filt2_meta = {}
         qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
         qres = qaid2_qres_[qaids[0]]

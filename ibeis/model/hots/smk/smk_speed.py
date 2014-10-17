@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from ibeis.model.hots.smk import smk_core
-from ibeis.model.hots.smk.hstypes import FLOAT_TYPE, VEC_DIM
+from ibeis.model.hots.hstypes import FLOAT_TYPE, VEC_DIM
 from vtool import clustering2 as clustertool
 from six.moves import zip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_speed]')
@@ -117,10 +117,6 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     VERY SLOW. DEBUG USE ONLY
 
     Ignore:
-        pico  = ps = 1E-12
-        nano  = ns = 1E-9
-        micro = us = 1E-6
-        mili  = ns = 1E-3
         words = words.values
         wxlist = [wx]
         ### index test

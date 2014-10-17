@@ -11,13 +11,11 @@ import os
 import numpy as np
 from ibeis.model.hots import exceptions as hsexcept
 
-FM_DTYPE  = np.uint32   # Feature Match datatype
-FS_DTYPE  = np.float32  # Feature Score datatype
-FK_DTYPE  = np.int16    # Feature Position datatype
-
 
 #FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
 MAX_FNAME_LEN = 64 if utool.WIN32 else 200
+TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
+    utool.is_developer() and not utool.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
 
 #=========================
 # Query Result Class
@@ -53,12 +51,6 @@ def remove_corrupted_queries(qresdir, qres, dryrun=True):
 
 
 def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
-    """
-    cdef:
-        long qaid
-        object qauuid
-        str cfgstr, qres_dir, fpath, hash_id, fname
-    """
     fname = query_result_fname(qaid, qauuid, cfgstr)
     fpath = join(qresdir, fname)
     return fpath
@@ -75,15 +67,17 @@ def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
         ext (str): filetype extension
     """
     #fname_fmt = 'res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}'
-    fname_fmt = 'qaid={qaid}_res_{cfgstr}_qauuid={quuid}{ext}'
-    fname = fname_fmt.format(
-        cfgstr=cfgstr, qaid=qaid, quuid=str(qauuid), ext=ext)
+    fname_fmt = 'qaid={qaid}_res_{cfgstr}_quuid={quuid}{ext}'
+    quuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
+    fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext=ext)
+    #fname = fname_fmt.format(**fmt_dict)
+    fname = utool.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN)
     # condence the filename if it is too long (grumble grumble windows)
     #if (not FORCE_LONGNAME) and len(fname) > 64:
-    if len(fname) > MAX_FNAME_LEN:
-        hash_id = utool.hashstr(cfgstr)
-        fname = fname_fmt.format(
-            cfgstr=hash_id, qaid=qaid, quuid=str(qauuid), ext=ext)
+    #if len(fname) > MAX_FNAME_LEN:
+    #    hash_id = utool.hashstr(cfgstr)
+    #    fname = fname_fmt.format(
+    #        cfgstr=hash_id, qaid=qaid, quuid=quuid_str, ext=ext)
     return fname
 
 
@@ -148,6 +142,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fk = None  # feat_rank_list
         qres.aid2_score = None  # annotation score
         qres.filt2_meta = None  # messy
+        #qres.daid_list = None  # matchable daids
 
     def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
         """ Loads the result from the given database """
@@ -155,7 +150,6 @@ class QueryResult(__OBJECT_BASE__):
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
         try:
-            #if __debug__:
             if force_miss:
                 raise hsexcept.HotsCacheMissError('force miss')
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -206,7 +200,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.qaid = qaid_good
 
     def __eq__(self, other):
-        """ For testing """
+        """ For testing. Do not use"""
         return all([
             self.qaid == other.qaid,
             self.cfgstr == other.cfgstr,
@@ -228,6 +222,7 @@ class QueryResult(__OBJECT_BASE__):
         return query_result_fname(qres.qaid, qres.qauuid, qres.cfgstr, **kwargs)
 
     def save(qres, qresdir):
+        """ saves query result to directory """
         fpath = qres.get_fpath(qresdir)
         if utool.NOT_QUIET:  # and utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
@@ -416,6 +411,7 @@ class QueryResult(__OBJECT_BASE__):
         pos_aids = top_aids[0:1]
         return pos_aids
 
+    #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_top(ibs, qres, *args, **kwargs)

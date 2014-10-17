@@ -16,8 +16,8 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     aid1 = qres.qaid
-    fm = qres.aid2_fm[aid2]
-    fs = qres.aid2_fs[aid2]
+    fm = qres.aid2_fm.get(aid2, [])
+    fs = qres.aid2_fs.get(aid2, [])
     # Read query and result info (chips, names, ...)
     rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], **kwargs)
     if draw_fmatches:

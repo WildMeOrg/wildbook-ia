@@ -3,7 +3,7 @@ import utool
 import pandas as pd
 import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[pdh]')
-from ibeis.model.hots.smk.hstypes import VEC_DIM, INTEGER_TYPE
+from ibeis.model.hots.hstypes import VEC_DIM, INTEGER_TYPE
 
 
 class LazyGetter(object):

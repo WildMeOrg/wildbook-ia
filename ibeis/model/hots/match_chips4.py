@@ -9,9 +9,10 @@ from ibeis.model.hots import pipeline as hspipe
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
 
 
-USE_CACHE = not utool.get_argflag('--nocache-query')
-SAVE_CACHE = not utool.get_argflag('--nocache-save')
-USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query'))
+# TODO: Move to params
+USE_CACHE    = not utool.get_argflag(('--nocache-query', '--noqcache'))
+USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache'))
+SAVE_CACHE   = not utool.get_argflag('--nocache-save')
 MIN_BIGCACHE_BUNDLE = 20
 
 

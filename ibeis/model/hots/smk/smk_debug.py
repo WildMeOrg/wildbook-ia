@@ -5,6 +5,7 @@ import numpy as np
 import six
 import ibeis
 import pandas as pd
+from ibeis.model.hots import hstypes
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_match
 from ibeis.model.hots.smk import pandas_helpers as pdh
@@ -23,7 +24,10 @@ def testdata_printops(**kwargs):
 
 
 def testdata_ibeis(**kwargs):
-    """ builds ibs for testing
+    """
+    Step 1
+
+    builds ibs for testing
 
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -45,13 +49,19 @@ def testdata_ibeis(**kwargs):
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
     ibs.cfg.query_cfg.smk_cfg.nWords = nWords
-    ibs.cfg.query_cfg.smk_cfg.alpha = 3
-    ibs.cfg.query_cfg.smk_cfg.thresh = 0
+    ibs.cfg.query_cfg.smk_cfg.smk_alpha = 3
+    ibs.cfg.query_cfg.smk_cfg.smk_thresh = 0
     ibs.cfg.query_cfg.smk_cfg.nAssign = nAssign
     return ibs
 
 
 def testdata_ibeis2(**kwargs):
+    """
+    Step 2
+
+    selects training and test set
+
+    """
     from ibeis.model.hots.smk import smk_debug
     print('[smk_debug] testdata_ibeis2')
     ibs = smk_debug.testdata_ibeis(**kwargs)
@@ -66,30 +76,32 @@ def testdata_ibeis2(**kwargs):
     #qaids = [37]  # NOQA new test case for PZ_MTEST
     #qaids = [valid_aids[0], valid_aids[4]]
     qaids = [valid_aids[0]]
-    return ibs, taids, daids, qaids
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    qreq_.ibs = ibs  # Hack
+    return ibs, taids, daids, qaids, qreq_
 
 
 def testdata_dataframe(**kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, taids, daids, qaids = smk_debug.testdata_ibeis2(**kwargs)
+    ibs, taids, daids, qaids, qreq_ = smk_debug.testdata_ibeis2(**kwargs)
     print('[smk_debug] testdata_dataframe')
     # Pandas Annotation Dataframe
     annots_df = smk_index.make_annot_df(ibs)
-    nWords = ibs.cfg.query_cfg.smk_cfg.nWords
-    return ibs, annots_df, taids, daids, qaids, nWords
+    nWords = qreq_.qparams.nWords
+    return ibs, annots_df, taids, daids, qaids, qreq_, nWords
 
 
 def testdata_words(**kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe(**kwargs)
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe(**kwargs)
     print('[smk_debug] testdata_words')
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
-    return ibs, annots_df, daids, qaids, words
+    return ibs, annots_df, daids, qaids, qreq_, words
 
 
 def testdata_raw_internals0():
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words()
+    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()
     print('[smk_debug] testdata_raw_internals0')
     with_internals = False
     invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
@@ -104,8 +116,13 @@ def testdata_raw_internals1():
     words  = invindex.words
     wordflann = invindex.wordflann
     idx2_vec  = invindex.idx2_dvec
-    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    _dbargs = (wordflann, words, idx2_vec, nAssign)
+    nAssign = 1  # 1 for database
+    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
+    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
+    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
+    # TODO: Extract args from function via inspect
+    _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha,
+               massign_sigma, massign_equal_weights)
     (wx2_idxs, wx2_maws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
     invindex.wx2_idxs = wx2_idxs
     invindex.wx2_maws = wx2_maws
@@ -170,16 +187,22 @@ def testsdata_sccw_sum():
 
     ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+    smk_alpha     = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+
+    nAssign =  ibs.cfg.query_cfg.smk_cfg.nAssign
+    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
+    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
+    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
     nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
     wordflann = invindex.wordflann
-    qfx2_vec  = annots_df['vecs'][qaid].values
+    #qfx2_vec  = annots_df['vecs'][qaid].values
+    qfx2_vec  = annots_df['vecs'][qaid]
     # Assign query to (multiple) words
     _wx2_qfxs, wx2_maws, qfx2_wxs = smk_index.assign_to_words_(
-        wordflann, words, qfx2_vec, nAssign=nAssign)
+        wordflann, words, qfx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
     # Hack to make implementing asmk easier, very redundant
     qfx2_aid = np.array([qaid] * len(qfx2_wxs), dtype=smk_index.INTEGER_TYPE)
     qfx2_qfx = np.arange(len(qfx2_vec))
@@ -188,65 +211,43 @@ def testsdata_sccw_sum():
         words, _wx2_qfxs, wx2_maws, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query sccw
     if utool.VERBOSE:
-        print('[smk_index] Query TF alpha=%r, thresh=%r' % (alpha, thresh))
-    wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=smk_index.INDEX_TYPE)
+        print('[smk_index] Query TF smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
+    wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=hstypes.INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
-    return idf_list, rvecs_list, maws_list, alpha, thresh
+    return idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh
 
 
 def testdata_internals_full(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> kwargs = {}
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words(**kwargs)
+    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words(**kwargs)
     print('[smk_debug] testdata_internals_full')
     with_internals = True
-    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    #if True:
-    #    _args1 = (annots_df, daids, words, with_internals, True, alpha, thresh)
-    #    _args2 = (annots_df, daids, words, with_internals, False, alpha, thresh)
-    #    invindex1 = smk_index.index_data_annots(*_args1)
-    #    invindex2 = smk_index.index_data_annots(*_args2)
-    #    #utool.flatten(invindex1.wx2_aids.values.tolist())
-    #    invindex = invindex1
-    #    smk_debug.invindex_dbgstr(invindex)
-    #    invindex = invindex2
-    #    smk_debug.invindex_dbgstr(invindex)
-    #else:
-    _args = (annots_df, daids, words, with_internals, aggregate, alpha, thresh)
+    qparams = qreq_.qparams
+    _args = (annots_df, daids, words, qparams, with_internals)
     invindex = smk_index.index_data_annots(*_args)
-    return ibs, annots_df, daids, qaids, invindex
+    return ibs, annots_df, daids, qaids, invindex, qreq_
 
 
-def testdata_match_kernel(**kwargs):
+def testdata_match_kernel_L2(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full(**kwargs)
-    print('[smk_debug] testdata_match_kernel')
+    ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full(**kwargs)
+    print('[smk_debug] testdata_match_kernel_L2')
+    qparams = qreq_.qparams
     qaid = qaids[0]
-    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    print('+------------')
-    print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] alpha = %r' % (alpha,))
-    print('[smk_debug] thresh = %r' % (thresh,))
-    print('L------------')
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
-                                  thresh, nAssign)
-    #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, qparams)
     return ibs, invindex, qindex
 
 
@@ -279,10 +280,12 @@ def wx_len_stats(wx2_xxx):
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> qparams = qreq_.qparams
         >>> invindex = index_data_annots(annots_df, daids, words)
         >>> qaid = qaids[0]
-        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex)
+        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex, qparams)
         >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
     import utool
@@ -439,7 +442,7 @@ def check_data_smksumm(aididf_list, aidrvecs_list):
     try:
         for count, (idf_list, rvecs_list) in enumerate(zip(aididf_list, aidrvecs_list)):
             assert len(idf_list) == len(rvecs_list), 'one list for each word'
-            #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
+            #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, smk_alpha, smk_thresh)
     except Exception as ex:
         utool.printex(ex)
         #utool.embed()
@@ -449,11 +452,11 @@ def check_data_smksumm(aididf_list, aidrvecs_list):
 def check_invindex(invindex, verbose=True):
     """
     Example:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_index
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-        >>> words = learn_visual_words(annots_df, taids, nWords)
-        >>> invindex = index_data_annots(annots_df, daids, words)
+        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
+        >>> words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        >>> invindex = smk_index.index_data_annots(annots_df, daids, words)
     """
     daids = invindex.daids
     daid2_sccw = invindex.daid2_sccw
@@ -473,23 +476,27 @@ def check_daid2_sccw(daid2_sccw, verbose=True):
 
 
 def test_sccw_cache():
-    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
+    smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     with_internals = True
     invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
     idx2_daid  = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
-    wx2_idf = invindex.wx2_idf
+    wx2_idf    = invindex.wx2_idf
+    wx2_aids   = invindex.wx2_aids
+    wx2_maws   = invindex.wx2_maws
     daids      = invindex.daids
-    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=True)
-    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=False)
-    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs,
-                                                       wx2_idf, daids,
-                                                       use_cache=True)
+    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_maws, smk_alpha,
+                                               smk_thresh, use_cache=True)
+    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_maws, smk_alpha,
+                                               smk_thresh, use_cache=False)
+    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                                wx2_idf, wx2_maws, smk_alpha,
+                                                smk_thresh, use_cache=True)
     check_daid2_sccw(daid2_sccw1)
     check_daid2_sccw(daid2_sccw2)
     check_daid2_sccw(daid2_sccw3)
@@ -571,6 +578,99 @@ def display_info(ibs, invindex, annots_df):
     #makeplot_(4, 'database vecs', invindex.idx2_dvec)
     #makeplot_(5, 'query vecs', qfx2_vec)
     #################
+
+
+def vector_normal_stats(vectors):
+    import numpy.linalg as npl
+    norm_list = npl.norm(vectors, axis=1)
+    #norm_list2 = np.sqrt((vectors ** 2).sum(axis=1))
+    #assert np.all(norm_list == norm_list2)
+    norm_stats = utool.get_stats(norm_list)
+    print('normal_stats:' + utool.dict_str(norm_stats, newlines=False))
+
+
+def vector_stats(vectors, name):
+    print('-- Vector Stats --')
+    print(' * vectors = %r' % name)
+    key_list = utool.codeblock(
+        '''
+        vectors.shape
+        vectors.dtype
+        vectors.max()
+        vectors.min()
+        '''
+    ).split('\n')
+    utool.print_keys(key_list)
+    vector_normal_stats(vectors)
+
+
+def sift_stats():
+    import ibeis
+    ibs = ibeis.opendb('PZ_Mothers')
+    aid_list = ibs.get_valid_aids()
+    stacked_sift = np.vstack(ibs.get_annot_desc(aid_list))
+    vector_stats(stacked_sift, 'sift')
+    # We see that SIFT vectors are actually normalized
+    # Between 0 and 512 and clamped to uint8
+    vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
+
+
+def view_vocabs():
+    """
+    looks in vocab cachedir and prints info / vizualizes the vocabs
+    """
+    from vtool import clustering2 as clustertool
+    from os.path import join
+    import parse
+    import numpy as np
+    # Parse some of the training data from fname
+    parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
+    smkdir = utool.get_app_resource_dir('smk')
+    fname_list = utool.glob(smkdir, 'akmeans*')
+    fpath_list = [join(smkdir, fname) for fname in fname_list]
+    result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
+    nCent_list = [int(res['num_cent']) for res in result_list]
+    nDpts_list = [int(res['num_dpts']) for res in result_list]
+    key_list = zip(nCent_list, nDpts_list)
+    fpath_sorted = utool.sortedby(fpath_list, key_list, reverse=True)
+
+    num_pca_dims = 2  # 3
+    whiten       = False
+    kwd = dict(num_pca_dims=num_pca_dims,
+               whiten=whiten,)
+
+    def view_vocab(fpath):
+        # QUANTIZED AND FLOATING POINT STATS
+        centroids = utool.load_cPkl(fpath)
+        print('viewing vocat fpath=%r' % (fpath,))
+        vector_stats(centroids, 'centroids')
+        #centroids_float = centroids.astype(np.float64) / 255.0
+        centroids_float = centroids.astype(np.float64) / 512.0
+        vector_stats(centroids_float, 'centroids_float')
+
+        fig = clustertool.plot_centroids(centroids, centroids, labels='centroids',
+                                         fnum=1, prefix='centroid vecs\n', **kwd)
+        fig.show()
+
+    for count, fpath in enumerate(fpath_sorted):
+        if count > 0:
+            break
+        view_vocab(fpath)
+
+
+def check_qaid2_chipmatch(qaid2_chipmatch, qaids, verbose=True):
+    try:
+        assert isinstance(qaid2_chipmatch, dict), 'type(qaid2_chipmatch) = %r' % type(qaid2_chipmatch)
+        qaid_list = list(qaid2_chipmatch.keys())
+        _qaids = set(qaids)
+        assert _qaids == set(qaid_list), 'something is wrong'
+        print('has correct key. (len(keys) = %r)' % len(_qaids))
+        chipmatch_list = list(qaid2_chipmatch.values())
+        for count, daid2_chipmatch in enumerate(chipmatch_list):
+            check_daid2_chipmatch(daid2_chipmatch)
+    except Exception as ex:
+        utool.printex(ex, keys=['qaid2_chipmatch', 'daid2_chipmatch', 'count'])
+        raise
 
 
 def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
@@ -715,12 +815,9 @@ def query_smk_test(annots_df, invindex, qreq_):
     """
     ibeis interface
     Example:
-        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-        >>> from ibeis.model.hots import query_request  # NOQA
-        >>> from ibeis.model.hots.smk import smk_match  # NOQA
+        >>> from ibeis.model.hots.smk import smk_match
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
-        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()
         >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
 
     Dev::
@@ -734,8 +831,8 @@ def query_smk_test(annots_df, invindex, qreq_):
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
+    smk_alpha     = qreq_.qparams.smk_alpha
+    smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
     mark, end_ = utool.log_progress(lbl, len(qaids), flushfreq=1,
                                     writefreq=1, with_totaltime=True,
@@ -744,7 +841,7 @@ def query_smk_test(annots_df, invindex, qreq_):
     for count, qaid in enumerate(qaids):
         mark(count)
         daid2_score, daid2_chipmatch = smk_match.query_inverted_index(
-            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+            annots_df, qaid, invindex, withinfo, aggregate, smk_alpha, smk_thresh)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
     end_()
@@ -758,6 +855,36 @@ def query_smk_test(annots_df, invindex, qreq_):
     return qaid2_qres_
 
 
+def dbstr_qindex():
+    qindex = utool.get_localvar_from_stack('qindex')
+    common_wxs = utool.get_localvar_from_stack('common_wxs')
+    wx2_qaids = utool.get_localvar_from_stack('wx2_qaids')
+    qindex.query_sccw
+    qmaws_list  = [qindex.wx2_maws[wx] for wx in common_wxs]
+    qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
+    qfxs_list   = [qindex.wx2_qfxs[wx] for wx in common_wxs]
+    qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
+    qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
+    print('-- max --')
+    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, max))
+    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, max))
+    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, max))
+    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, max))
+    print('-- min --')
+    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, min))
+    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, min))
+    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, min))
+    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, min))
+    print('-- sig --')
+    print('list_depth(qaids_list) = %r' % utool.depth_profile(qaids_list))
+    print('list_depth(qmaws_list) = %r' % utool.depth_profile(qmaws_list))
+    print('list_depth(qfxs_list) = %r' % utool.depth_profile(qfxs_list))
+    print('list_depth(qrvecs_list) = %r' % utool.depth_profile(utool.depth_profile(qrvecs_list)))
+    print(qfxs_list[0:3])
+    print(qaids_list[0:3])
+    print(qmaws_list[0:3])
+
+
 def main():
     """
     Example:
@@ -767,36 +894,35 @@ def main():
     print('SMK_DEBUG MAIN')
     print('+------------')
     from ibeis.model.hots import pipeline
-    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
     # Query using SMK
     #qaid = qaids[0]
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
+    smk_alpha     = qreq_.qparams.smk_alpha
+    smk_thresh    = qreq_.qparams.smk_thresh
     nAssign   = qreq_.qparams.nAssign
     #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    #alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    #thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    #smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    #smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
     print('+------------')
     print('SMK_DEBUG PARAMS')
     print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] alpha   = %r' % (alpha,))
-    print('[smk_debug] thresh  = %r' % (thresh,))
+    print('[smk_debug] smk_alpha   = %r' % (smk_alpha,))
+    print('[smk_debug] smk_thresh  = %r' % (smk_thresh,))
     print('[smk_debug] nWords  = %r' % (nWords,))
     print('[smk_debug] nAssign = %r' % (nAssign,))
     print('L------------')
     # Learn vocabulary
     #words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
     # Index a database of annotations
-    #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, alpha, thresh)
+    #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, smk_alpha, smk_thresh)
     qreq_.ibs = ibs
     # Smk Mach
     print('+------------')
     print('SMK_DEBUG MATCH KERNEL')
     print('+------------')
-    qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
+    qaid2_scores, qaid2_chipmatch_SMK = smk_match.execute_smk_L5(qreq_)
     SVER = utool.get_argflag('--sver')
     if SVER:
         print('+------------')
@@ -845,16 +971,101 @@ def main():
     return locals()
 
 
+def get_test_float_norm_rvecs(num=1000, dim=None):
+    import numpy.linalg as npl
+    from ibeis.model.hots import hstypes
+    if dim is None:
+        dim = hstypes.VEC_DIM
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs_norm_float = rvecs_float / npl.norm(rvecs_float, axis=1)[:, None]
+    return rvecs_norm_float
+
+
+def get_test_rvecs(num=1000, dim=None):
+    from ibeis.model.hots import hstypes
+    dtype = hstypes.RVEC_TYPE
+    if dim is None:
+        dim = hstypes.VEC_DIM
+    dtype_info = np.iinfo(dtype)
+    dtype_range = dtype_info.max - dtype_info.min
+    #rvecs = (dtype_range * np.random.rand(num, dim) - dtype_info.min).astype(dtype)
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs = ((dtype_range * rvecs_float) - dtype_info.min).astype(dtype)
+    return rvecs
+
+
+def get_test_maws(rvecs):
+    from ibeis.model.hots import hstypes
+    return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+
+
+def testdata_match_kernel_L0():
+    from ibeis.model.hots.smk import smk_core
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    np.random.seed(0)
+    smk_alpha = 3.0
+    smk_thresh = 0.0
+    num_qrvecs_per_word = [0, 1, 3, 4, 5]
+    num_drvecs_per_word = [0, 1, 2, 4, 6]
+    qrvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_qrvecs_per_word]
+    drvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_drvecs_per_word]
+    daids_list  = [list(range(len(rvecs))) for rvecs in drvecs_list]
+    qaids_list  = [[42] * len(rvecs) for rvecs in qrvecs_list]
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in drvecs_list]
+    idf_list = [1.0 for _ in qrvecs_list]
+    daid2_sccw  = {daid: 1.0 for daid in range(10)}
+    query_sccw = smk_core.sccw_summation(qrvecs_list, idf_list, qmaws_list, smk_alpha, smk_thresh)
+    qaid2_sccw  = {42: query_sccw}
+    core1 = smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw
+    core2 = qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list
+    extra = qaid2_sccw, qaids_list
+    return core1, core2, extra
+
+
+def testdata_similarity_function():
+    from ibeis.model.hots.smk import smk_debug
+    qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    return qrvecs_list, drvecs_list
+
+
+def testdata_apply_weights():
+    from ibeis.model.hots.smk import smk_internal
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
+    simmat_list = smk_internal.similarity_function(qrvecs_list, drvecs_list)
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
+    idf_list = [1 for _ in qrvecs_list]
+    return simmat_list, qmaws_list, dmaws_list, idf_list
+
+
+def testdata_selectivity_function():
+    from ibeis.model.hots.smk import smk_internal
+    from ibeis.model.hots.smk import smk_debug
+    smk_alpha = 3
+    smk_thresh = 0
+    simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()
+    wsim_list = smk_internal.apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
+    return wsim_list, smk_alpha, smk_thresh
+
+
 if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing
     from plottool import draw_func2 as df2
-    np.set_printoptions(precision=2)
-    pd.set_option('display.max_rows', 7)
-    pd.set_option('display.max_columns', 7)
-    pd.set_option('isplay.notebook_repr_html', True)
-    multiprocessing.freeze_support()  # for win32
-    main_locals = main()
-    main_execstr = utool.execstr_dict(main_locals, 'main_locals')
-    exec(main_execstr)
+    if True or utool.get_argflag('--view-vocabs'):
+        view_vocabs()
+    else:
+        np.set_printoptions(precision=2)
+        pd.set_option('display.max_rows', 7)
+        pd.set_option('display.max_columns', 7)
+        pd.set_option('isplay.notebook_repr_html', True)
+        multiprocessing.freeze_support()  # for win32
+        main_locals = main()
+        main_execstr = utool.execstr_dict(main_locals, 'main_locals')
+        exec(main_execstr)
     exec(df2.present())

@@ -3,6 +3,18 @@
 
 =====
 
+IBEIS is python module and standalone program for the storage and management of
+images and derived data for use in compute vision algorithms. It aims to compute
+who an animal is, what species an animal is, and where an animal is with the
+ultimate goal being to ask important why biological questions. 
+
+Currently the system is build around and SQLite database, a PyQt4 GUI, and
+matplotlib visualizations. Algorithms employed are: random forest species
+detection and localization, hessian-affine keypoint detection, SIFT keypoint
+description, LNBNN identification using approximate nearest neighbors.
+Algorithms in development are SMK (selective match kernel) for identifiaction
+and deep neural networks for detection and localization. 
+
 Documentation: http://erotemic.github.io/ibeis
 
 Erotemic's IBEIS module dependencies 
@@ -35,12 +47,15 @@ The IBEIS module itself:
 
 * https://github.com/Erotemic/ibeis
 
-# Environment Setup:
+# IBEIS Development Environment Setup 
 
 ```bash
-# The following install script instal ibeis and all dependencies. 
+# The following install script install ibeis and all dependencies. 
 # If it doesnt you can look at the older instructions which follow
-# and try to figure it out
+# and try to figure it out. After running this you should have a code
+# directory with all of the above repos. 
+
+# NOTE: IBEIS DEPENDS ON PYTHON 2.7. Unfortunately we are having problems moving to 3.
 
 # Navigate to your code directory
 export CODE_DIR=~/code
@@ -51,56 +66,76 @@ cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
 
-# Generate the prereq install script
+# Generate the prereq install script (does not install anything)
+# 
 ./_scripts/bootstrap.py
 
-# Run the prereq install script
+# Run the prereq install script (installs prereq libraries)
 ./_scripts/__install_prereqs__.sh
 
-# Be sure to pull the latest and greatest.
+# Python repositories come with a standard setup.py script to help you install them
+# Because IBEIS has several python repos, we created a super_setup script to help 
+# you run the same command accross all IBIES repositories.
+
+# Use super_setup.py to pull the latest and greatest from all the respos. 
+# This will clone any dependency repos that do not exist.
 ./super_setup.py --pull
 
 # Switch to current development branch
-./super_setup.py --build --checkout pyqt5 
+# (NOTICE: WE WILL SOON CHANGE THE DEV BRANCH TO NEXT)
+./super_setup.py --checkout pyqt5 
 
 # Run super_setup to build and install ibeis modules in development mode
-# Usually this needs to be run twice. Either way it wont hurt
+# (the build flag builds any c++ files, and the develop flag installs a 
+#  python module as a symbolic link to python's site-packages)
 ./super_setup.py --build --develop
+
+# Usually this needs to be run twice because super_setup often needs to
+# configure itself on the first run. (Either running it twice wont hurt)
 ./super_setup.py --build --develop
+
+# Optional: download a test dataset
+./dev.py -t mtest 
 
 ```
 
-# Github IO Documentation:
-code
-git clone git@github.com:Erotemic/ibeis.github.io
+# Code Sytle Guidelines
 
-git clone git@github.com:Erotemic/ibeis.github.io.git
-git clone git@github.com:Erotemic/utool.github.io.git
+For Python try to conform to pep8. 
+You should set up your prefered editor to use flake8 as linter.
+If using vim I recomend syntastic.
 
-TODO: Create custom name https://help.github.com/articles/adding-a-cname-file-to-your-repository/
+DISABLE THESE ERRORS 
+* 'E127', # continuation line over-indented for visual indent
+* 'E201', # whitespace after '('
+* 'E202', # whitespace before ']'
+* 'E203', # whitespace before ', '
+* 'E221', # multiple spaces before operator
+* 'E222', # multiple spaces after operator
+* 'E241', # multiple spaces after ,
+* 'E265', # block comment should start with "# "
+* 'E271', # multiple spaces after keyword 
+* 'E272', # multiple spaces before keyword
+* 'E301', # expected 1 blank line, found 0
+* 'E501', # > 79
 
-ib/ut/vt/pt/gt/hes...
+flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
 
+For C++ code use astyle to format your code:
+atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
+
+
+# Updating Documentation
+```bash
+# utool script to run sphinx-apidoc
 autogen_sphinx_docs.py
-mkdir _page
-touch _page/.nojekyll
 cp -r _doc/_build/html/* _page
-git add _page
-git commit -am "Added docs"
 git add _page/.nojekyll
 git add _page/*
-git push
-git subtree push --prefix _page origin gh-pages
-
-
-# Update Documentation
-autogen_sphinx_docs.py
-cp -r _doc/_build/html/* _page
 git add _page
 git commit -m "updated docs"
 git subtree push --prefix _page origin gh-pages
-
-
+```
 
 ###
 
@@ -111,13 +146,14 @@ git subtree push --prefix _page origin gh-pages
 export CODE_DIR=~/code
 cd $CODE_DIR
 
-# First clone the IBEIS repos
+# Clone the IBEIS repositories 
 git clone https://github.com/Erotemic/utool.git
 git clone https://github.com/Erotemic/vtool.git
 git clone https://github.com/Erotemic/plottool.git
 git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/ibeis.git
+#
 # Set the previous repos up for development by running
 #
 # > sudo python setup.py develop
@@ -488,5 +524,13 @@ python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --in
 python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --index 0:20
 
 python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30 --va
-python dev.py -t smk2 --allgt --db PZ_Master_PRE_DETECTION --index 0:5
+python dev.py -t smk2 --allgt --db PZ_Master0
+
+python -m memory_profiler dev.py -t smk2 --allgt --db PZ_Mothers --index 0
+
+python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --index 0 --nocache-query --nogui 
+
+python dev.py -t smk_64k --allgt --db PZ_Master0
+python dev.py -t smk_128k --allgt --db PZ_Master0
+
 ```

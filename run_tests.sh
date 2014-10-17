@@ -27,6 +27,11 @@ else
 fi
 # </CORRECT_PYTHON>
 
+
+PRINT_DELIMETER(){
+    printf "\n#\n#\n#>>>>>>>>>>> next_test\n\n"
+}
+
 export PYHESAFF_DIR=$($PYEXE -c "import os, pyhesaff; print(str(os.path.dirname(pyhesaff.__file__)))")
 export VTOOL_DIR=$($PYEXE -c "import os, vtool; print(str(os.path.dirname(vtool.__file__)))")
 echo $VTOOL_DIR
@@ -69,12 +74,6 @@ case $i in --testgui)
     ;;
 esac
 done
-
-
-
-PRINT_DELIMETER(){
-    printf "\n#\n#\n#>>>>>>>>>>> next_test\n\n"
-}
 
 
 BEGIN_TESTS()

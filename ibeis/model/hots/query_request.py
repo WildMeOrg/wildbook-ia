@@ -262,6 +262,7 @@ class QueryRequest(object):
         qreq_.ibs = ibs  # HACK
         if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
             qreq_.load_indexer(ibs)
+            # FIXME: not sure if this is even used
             qreq_.load_query_vectors(ibs)
             qreq_.load_query_keypoints(ibs)
 
@@ -293,17 +294,21 @@ class QueryRequest(object):
 
 
 class QueryParams(object):
+    # TODO: Use setattr to dynamically set all of these via config names
+
     def __init__(qparams, cfg):
         pipeline_root      = cfg.pipeline_root
         if pipeline_root == 'smk':
             nAssign     = cfg.smk_cfg.nAssign
             aggregate   = cfg.smk_cfg.aggregate
-            thresh      = cfg.smk_cfg.thresh
-            alpha       = cfg.smk_cfg.alpha
+            smk_thresh  = cfg.smk_cfg.smk_thresh
+            smk_alpha   = cfg.smk_cfg.smk_alpha
             indexer_key = cfg.smk_cfg.indexer_key
             nWords      = cfg.smk_cfg.nWords
-            assign_alpha  = cfg.smk_cfg.assign_alpha
-            assign_sigma  = cfg.smk_cfg.assign_sigma
+            vocab_weighting = cfg.smk_cfg.vocab_weighting
+            massign_alpha  = cfg.smk_cfg.massign_alpha
+            massign_sigma  = cfg.smk_cfg.massign_sigma
+            massign_equal_weights = cfg.smk_cfg.massign_equal_weights
         K                  = cfg.nn_cfg.K
         Knorm              = cfg.nn_cfg.Knorm
         checks             = cfg.nn_cfg.checks
@@ -311,6 +316,7 @@ class QueryParams(object):
         Krecip             = cfg.filt_cfg.Krecip
         can_match_sameimg  = cfg.filt_cfg.can_match_sameimg
         can_match_samename = cfg.filt_cfg.can_match_samename
+        can_match_self     = False
         filt_on            = cfg.filt_cfg.filt_on
         gravity_weighting  = cfg.filt_cfg.gravity_weighting
         active_filter_list = cfg.filt_cfg.get_active_filters()
@@ -339,10 +345,10 @@ class QueryParams(object):
         flann_params       = cfg.flann_cfg.get_dict_args()
 
         # cfgstrs
-        feat_cfgstr = cfg._feat_cfg.get_cfgstr()
-        nn_cfgstr = cfg.nn_cfg.get_cfgstr()
-        filt_cfgstr = cfg.filt_cfg.get_cfgstr()
-        sv_cfgstr = cfg.sv_cfg.get_cfgstr()
+        feat_cfgstr  = cfg._feat_cfg.get_cfgstr()
+        nn_cfgstr    = cfg.nn_cfg.get_cfgstr()
+        filt_cfgstr  = cfg.filt_cfg.get_cfgstr()
+        sv_cfgstr    = cfg.sv_cfg.get_cfgstr()
         flann_cfgstr = cfg.flann_cfg.get_cfgstr()
         query_cfgstr = cfg.get_cfgstr()
 

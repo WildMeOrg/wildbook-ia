@@ -9,16 +9,20 @@ from ibeis import params
 
 
 def register_utool_aliases():
+    """
+    registers commmon class names with utool so they are printed nicely
+    """
     #print('REGISTER UTOOL ALIASES')
     import utool
     import matplotlib as mpl
-    from ibeis.control import IBEISControl
+    from ibeis.control import IBEISControl, SQLDatabaseControl
     from ibeis.gui import guiback
-    from ibeis.gui import guifront
+    #from ibeis.gui import guifront
     utool.extend_global_aliases([
+        (SQLDatabaseControl.SQLDatabaseController, 'sqldb'),
         (IBEISControl.IBEISController, 'ibs'),
         (guiback.MainWindowBackend, 'back'),
-        (guifront.MainWindowFrontend, 'front'),
+        #(guifront.MainWindowFrontend, 'front'),
         (mpl.figure.Figure, 'fig')
     ])
 
@@ -43,8 +47,8 @@ def ensure_flatlistlike(input_):
 @utool.indent_func
 @profile
 def get_test_qaids(ibs):
-#def get_allowed_qaids(ibs):
     """ Gets test annot_rowids based on command line arguments """
+    #def get_allowed_qaids(ibs):
     available_qaids = []
 
     # Currently the only avaialable query annots are ones specified on the
@@ -92,3 +96,13 @@ def get_test_qaids(ibs):
     #print('available_qaids = %r' % available_qaids)
     available_qaids = utool.unique_keep_order2(available_qaids)
     return available_qaids
+
+
+@utool.indent_func
+@profile
+def get_test_daids(ibs):
+    """ Gets database annot_rowids based on command line arguments """
+    available_daids = ibs.get_valid_aids()
+    if params.args.daid_exclude is not None:
+        available_daids = list(set(available_daids) - set(params.args.daid_exclude))
+    return available_daids

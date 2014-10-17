@@ -1,15 +1,19 @@
+"""
+displays results from experiment_harness
+"""
 from __future__ import absolute_import, division, print_function
 import itertools
-import six
-from os.path import join
-from itertools import chain
-from six.moves import map, range
-import utool
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
 import numpy as np
+import six
+import utool
 from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
+from ibeis.model.hots import match_chips4 as mc4
+from itertools import chain
+from os.path import join, dirname, split, basename, splitext
+from plottool import draw_func2 as df2
+from plottool import plot_helpers as ph
+from six.moves import map, range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
@@ -34,6 +38,11 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
 
 def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
                   sel_rows, sel_cols, cfgx2_lbl=None):
+    """
+    Prints results from an experiment harness run.
+    Rows store different qaids (query annotation ids)
+    Cols store different configurations (algorithm parameters)
+    """
     nCfg = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
@@ -54,14 +63,14 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         qx2_lbl.append(lbl)
     qx2_lbl = np.array(qx2_lbl)
     #------------
-    # Build col lbls
-    if cfgx2_lbl is None:
-        cfgx2_lbl = []
-        for cfgx in range(nCfg):
-            test_cfgstr  = cfg_list[cfgx].get_cfgstr()
-            cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
-            cfgx2_lbl.append(cfg_lbl)
-        cfgx2_lbl = np.array(cfgx2_lbl)
+    # Build col lbls (this info is passed in)
+    #if cfgx2_lbl is None:
+    #    cfgx2_lbl = []
+    #    for cfgx in range(nCfg):
+    #        test_cfgstr  = cfg_list[cfgx].get_cfgstr()
+    #        cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
+    #        cfgx2_lbl.append(cfg_lbl)
+    #    cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
     indent = utool.indent
 
@@ -81,9 +90,25 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('=====================')
         print('[harn] Col/Config Labels: %s' % testnameid)
         print('=====================')
-        print('[harn] configs:\n%s' % '\n'.join(cfgx2_lbl))
+        enum_cfgx2_lbl = ['%2d) %s' % (count, cfglbl)
+                            for count, cfglbl in enumerate(cfgx2_lbl)]
+        print('[harn] cfglbl:\n%s' % '\n'.join(enum_cfgx2_lbl))
         print('--- /Col/Config Labels ---')
     print_collbl()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_cfgstr():
+        print('=====================')
+        print('[harn] Config Strings: %s' % testnameid)
+        print('=====================')
+        cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
+        enum_cfgstr_list = ['%2d) %s' % (count, cfgstr)
+                            for count, cfgstr in enumerate(cfgstr_list)]
+        print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
+        print('--- /Config Strings ---')
+    print_cfgstr()
 
     #------------
     # Build Colscore and hard cases
@@ -233,9 +258,9 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
             bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
             best_rankscore += eh.rankscore_str(X, max_LessX, nQuery)
-            cfgstr_list = cfgx2_lbl[bestCFG_X]
+            cfglbl_list = cfgx2_lbl[bestCFG_X]
 
-            best_rankcfg = eh.format_cfgstr_list(cfgstr_list)
+            best_rankcfg = eh.format_cfgstr_list(cfglbl_list)
             #indent('\n'.join(cfgstr_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
@@ -284,6 +309,11 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
 
 
 def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list):
+    """
+    Draws results from an experiment harness run.
+    Rows store different qaids (query annotation ids)
+    Cols store different configurations (algorithm parameters)
+    """
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -293,9 +323,15 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     if utool.get_argflag(('--view-all', '--va')):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
-    if utool.get_argflag('--view-hard'):
+    if utool.get_argflag(('--view-hard', '--vh')):
         sel_rows = new_hard_qx_list
         sel_cols = list(range(len(cfg_list)))
+
+    # It is very inefficient to turn off caching when view_all is true
+    if not mc4.USE_CACHE:
+        print('WARNING: view_all specified with USE_CACHE == False')
+        print('WARNING: we will try to turn cache on when reloading results')
+        #mc4.USE_CACHE = True
 
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
@@ -305,29 +341,36 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     skip_list = []
     cp_src_list = []
     cp_dst_list = []
-    def append_copy_task(fpath_clean):
-        import os
-        from os.path import dirname, split
-        fname_clean = os.path.basename(fpath_clean)
-        outdir = dirname(fpath_clean)
+
+    def append_copy_task(fpath_orig):
+        """ helper which copies a summary figure to root dir """
+        fname_orig, ext = splitext(basename(fpath_orig))
+        outdir = dirname(fpath_orig)
         fdir_clean, cfgdir = split(outdir)
         #aug = cfgdir[0:min(len(cfgdir), 10)]
         aug = cfgdir
-        fdst_clean = join(fdir_clean, aug  + '_' + fname_clean)
-        cp_src_list.append(fpath_clean)
+        fname_fmt = '{aug}_{fname_orig}{ext}'
+        fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
+        fname_clean = utool.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
+        fdst_clean = join(fdir_clean, fname_clean)
+        cp_src_list.append(fpath_orig)
         cp_dst_list.append(fdst_clean)
 
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
         ibs.set_query_cfg(query_cfg)
-        qres = ibs._query_chips([qaid], daids)[qaid]
+        # Force program to use cache here
+        qres = ibs._query_chips([qaid], daids,
+                                use_cache=True,
+                                use_bigcache=False)[qaid]
         return qres
 
     #DELETE              = False
-    USE_FIGCACHE        = False
-    DUMP_QANNOT         = True
-    DUMP_QANNOT_DUMP_GT = True
-    DUMP_TOP_CONTEXT    = True
+    USE_FIGCACHE = False
+    DUMP_EXTRA   = utool.get_argflag('--dump-extra')
+    DUMP_QANNOT         = DUMP_EXTRA and True
+    DUMP_QANNOT_DUMP_GT = DUMP_EXTRA and True
+    DUMP_TOP_CONTEXT    = DUMP_EXTRA and True
 
     figdir = join(ibs.get_fig_dir(), 'query_analysis')
     utool.ensuredir(ibs.get_fig_dir())
@@ -378,9 +421,14 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         # Draw Result
         dumpkw = {
             'subdir'    : subdir,
-            'quality'   : False,
+            'quality'   : utool.get_argflag('--quality'),
             'overwrite' : True,
-            'verbose'   : 0
+            'verbose'   : 0,
+        }
+        show_kwargs = {
+            'N': 3,
+            'ori': True,
+            'ell_alpha': .9,
         }
 
         if not SAVE_FIGURES:
@@ -390,14 +438,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             continue
 
         # Show Figure
-        show_kwargs = {'N': 3,
-                       'ori': True,
-                       'ell_alpha': .9, }
+        # try to shorten query labels a bit
+        query_lbl = query_lbl.replace(' ', '').replace('\'', '')
         qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
         # Adjust subplots
         df2.adjust_subplots_safe()
-        fpath_clean = ph.dump_figure(figdir, **dumpkw)
-        append_copy_task(fpath_clean)
+        fpath_orig = ph.dump_figure(figdir, **dumpkw)
+        append_copy_task(fpath_orig)
 
         if DUMP_QANNOT:
             _show_chip(qres.qaid, 'QUERY_', **dumpkw)

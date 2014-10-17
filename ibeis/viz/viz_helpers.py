@@ -204,10 +204,17 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
         truth_str = '*%s*' % get_truth_text(ibs, truth)
         text_list.append(truth_str)
     if kwargs.get('show_rank', True):
-        rank_str = 'rank=%s' % str(qres.get_aid_ranks([aid2])[0] + 1)
+        try:
+            aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+            aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
+            rank_str = 'rank=%s' % str(aid2_rank)
+        except Exception as ex:
+            utool.printex(ex)
+            #utool.embed()
+            raise
         text_list.append(rank_str)
     if kwargs.get('show_score', True):
-        score = qres.aid2_score[aid2]
+        score = qres.aid2_score.get(aid2, None)
         score_str = ('score=' + utool.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str

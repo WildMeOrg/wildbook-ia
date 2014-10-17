@@ -21,7 +21,7 @@ def get_vary_dicts(test_cfg_name_list):
         raise Exception('Choose a valid testcfg:\n' + valid_cfg_names)
     for dict_ in vary_dicts:
         for key, val in six.iteritems(dict_):
-            assert not isinstance(val, str), 'val should be list not string: not %r' % (type(val),)
+            assert not isinstance(val, six.string_types), 'val should be list not string: not %r' % (type(val),)
             #assert not isinstance(val, (list, tuple)), 'val should be list or tuple: not %r' % (type(val),)
     return vary_dicts
 
