@@ -19,11 +19,12 @@ def test_name_consistency(ibs):
     """
     Example:
         >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
+        >>> ibs = ibeis.opendb(db='PZ_Master')  #doctest: +ELLIPSIS
         >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
 
     """
     from ibeis import ibsfuncs
+    import utool
     max_ = -1
     #max_ = 10
     valid_aids = ibs.get_valid_aids()[0:max_]
@@ -39,6 +40,8 @@ def test_name_consistency(ibs):
     # annots are grouped by names, so mapping aid back to nid should
     # result in each list having the same value
     _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
+    print(_nids_list[-20:])
+    print(nx2_aids[-20:])
     assert all(map(utool.list_allsame, _nids_list))
 
 
@@ -237,7 +240,7 @@ def get_dbinfo(ibs, verbose=True):
 
 
 def get_keypoint_stats(ibs):
-    from utool import util_latex
+    # from utool import util_latex
     #from hsdev import dev_consistency
     #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats

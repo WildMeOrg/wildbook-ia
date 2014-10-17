@@ -743,6 +743,13 @@ class IBEISController(object):
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
 
+        Args:
+            gpath_list (list): list of image paths to add
+            params_list (list): metadata list for corresponding images that can either be
+                specified outright or can be parsed from the image data directly if None
+            as_annots (bool): if True, an annotation is automatically added for the entire
+                image
+
         Returns:
             gid_list (list of rowids): gids are image rowids
 
@@ -831,7 +838,7 @@ class IBEISController(object):
                         species_list=None, nid_list=None, name_list=None,
                         detect_confidence_list=None, notes_list=None,
                         vert_list=None, annotation_uuid_list=None, viewpoint_list=None,
-                        import_override=False, silent_delete_thumbs=False):
+                        quiet_delete_thumbs=False):
         """
         Adds an annotation to images
 
@@ -849,9 +856,7 @@ class IBEISController(object):
         # Prepare the SQL input
         assert name_list is None or nid_list is None, 'cannot specify both names and nids'
         # For import only, we can specify both by setting import_override to True
-        if not import_override:
-            # xor bbox or vert is None
-            assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
+        assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
 
         if theta_list is None:
             theta_list = [0.0 for _ in range(len(gid_list))]
@@ -924,8 +929,8 @@ class IBEISController(object):
             alrid_list = ibs.add_annot_relationship(aid_list, nid_list)
             del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
-        # Invalidate image thumbnails, silent_delete_thumbs causes no output on deletion from utool
-        ibs.delete_image_thumbs(gid_list, silent=silent_delete_thumbs)
+        # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from utool
+        ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs)
         return aid_list
 
     #@adder
@@ -1060,7 +1065,7 @@ class IBEISController(object):
         contrib_rowid_list = list([contrib_rowid]) * len(unassigned_gid_list)
         ibs.set_image_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
 
-    def set_encounter_config_unassigned(ibs):
+    def ensure_encounter_configs_populated(ibs):
         eid_list = ibs.get_valid_eids()
         config_rowid_list = ibs.get_encounter_config(eid_list)
         unassigned_eid_list = [
@@ -2370,17 +2375,17 @@ class IBEISController(object):
         ibs.delete_annot_chip_thumbs(aid_list)
 
     @deleter
-    def delete_image_thumbs(ibs, gid_list, silent=False):
+    def delete_image_thumbs(ibs, gid_list, quiet=False):
         """ Removes image thumbnails from disk """
         # print('gid_list = %r' % (gid_list,))
         thumbpath_list = ibs.get_image_thumbpath(gid_list)
-        utool.remove_file_list(thumbpath_list, silent=silent)
+        utool.remove_file_list(thumbpath_list, quiet=quiet)
 
     @deleter
-    def delete_annot_chip_thumbs(ibs, aid_list, silent=False):
+    def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
         """ Removes chip thumbnails from disk """
         thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-        utool.remove_file_list(thumbpath_list, silent=silent)
+        utool.remove_file_list(thumbpath_list, quiet=quiet)
 
     @deleter
     @cache_invalidator(CHIP_TABLE)
@@ -3345,14 +3350,15 @@ class IBEISController(object):
         lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
         return lblannot_rowid_list
 
-    get_lblannot_rowid_from_typevaltup = get_lblannot_rowid_from_superkey
-
     @getter_1to1
     def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
         """
+        UNSAFE
+
         Returns:
             lblannot_rowid_list from the superkey (lbltype, value)
         """
+        assert False, "CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey"
         colnames = ('lblannot_rowid',)
         params_iter = lblannot_uuid_list
         id_colname = 'lblannot_uuid'

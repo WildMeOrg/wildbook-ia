@@ -6,7 +6,7 @@ from functools import wraps
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
-
+DEBUG_ADDERS  = utool.get_argflag('--debug-adders')
 DEBUG_SETTERS = utool.get_argflag('--debug-setters')
 DEBUG_GETTERS = utool.get_argflag('--debug-getters')
 
@@ -139,6 +139,12 @@ def adder(func):
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_adder(*args, **kwargs):
+        if DEBUG_ADDERS or (not utool.QUIET and utool.VERYVERBOSE):
+            print('+------')
+            print('[ADD]: ' + get_funcname(func))
+            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            print('\n' + funccall_str + '\n')
+            print('L------')
         if not utool.QUIET and utool.VERYVERBOSE:
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')

@@ -339,6 +339,8 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
+        assert len(id_list) == len(set(id_list)), "Passing a not-unique list of ids"
+
         if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
@@ -502,6 +504,9 @@ class SQLDatabaseController(object):
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
         Example:
+            >>> def contributor_location_zip_map(x):
+            ...     return x
+            >>> ibs = None
             >>> ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
             ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new
             ... #   [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]

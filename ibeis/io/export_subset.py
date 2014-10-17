@@ -84,7 +84,6 @@ ANNOTATION_TransferData = namedtuple(
     'ANNOTATION_TransferData', (
         'annot_parent_INDEX_list',
         'annot_uuid_list',
-        'annot_bbox_list',
         'annot_theta_list',
         'annot_verts_list',
         'annot_viewpoint_list',
@@ -203,7 +202,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
         print('[collect_transfer_data] New contributor\'s contrib_rowid: %s' % (contrib_rowid,))
         ibs.set_config_contributor_unassigned(contrib_rowid)
         ibs.set_image_contributor_unassigned(contrib_rowid)
-        ibs.set_encounter_config_unassigned()
+        ibs.ensure_encounter_configs_populated()
     return ibs.get_valid_contrib_rowids()
 
 
@@ -292,6 +291,10 @@ def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
 
 
 def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list):
+    """
+    builds transfer data for seleted image ids in ibs_src.
+    NOTE: gid_list, config_rowid_list and eid_list do not correspond
+    """
     if gid_list is None or len(gid_list) == 0:
         return None
     # Get image data
@@ -326,7 +329,7 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list):
         [size[1] for size in image_size_list],
         ibs_src.get_image_unixtime(gid_list),
         [gps[0] for gps in image_gps_list],
-        [gps[0] for gps in image_gps_list],
+        [gps[1] for gps in image_gps_list],
         ibs_src.get_image_enabled(gid_list),
         ibs_src.get_image_reviewed(gid_list),
         ibs_src.get_image_notes(gid_list),
@@ -356,7 +359,6 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
     annot_td = ANNOTATION_TransferData(
         annot_parent_INDEX_list,
         ibs_src.get_annot_uuids(aid_list),
-        ibs_src.get_annot_bboxes(aid_list),
         ibs_src.get_annot_thetas(aid_list),
         ibs_src.get_annot_verts(aid_list),
         ibs_src.get_annot_viewpoints(aid_list),
@@ -377,14 +379,13 @@ def export_lblimage_transfer_data(ibs_src, glrid_list, config_rowid_list):
         for glrid in glrid_list
     ]
     lblimage_rowid_list = ibs_src.get_glr_lblimage_rowids(glrid_list)
-    lbltypes_rowid_list = ibs_src.get_lblannot_lbltypes_rowids(lblimage_rowid_list)
-    lbltype_text_list = ibs_src.get_lbltype_text(lbltypes_rowid_list)
+    lbltypes_rowid_list = ibs_src.get_lblimage_lbltypes_rowids(lblimage_rowid_list)
     # Create Lblimage TransferData
     lblimage_td = LBLIMAGE_TransferData(
         config_INDEX_list,
         ibs_src.get_glr_confidence(glrid_list),
         ibs_src.get_lblimage_uuids(lblimage_rowid_list),
-        lbltype_text_list,
+        ibs_src.get_lbltype_text(lbltypes_rowid_list),
         ibs_src.get_lblimage_values(lblimage_rowid_list),
         ibs_src.get_lblimage_notes(lblimage_rowid_list)
     )
@@ -401,13 +402,12 @@ def export_lblannot_transfer_data(ibs_src, alrid_list, config_rowid_list):
     ]
     lblannot_rowid_list = ibs_src.get_alr_lblannot_rowids(alrid_list)
     lbltypes_rowid_list = ibs_src.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
-    lbltype_text_list = ibs_src.get_lbltype_text(lbltypes_rowid_list)
     # Create Lblannot TransferData
     lblannot_td = LBLANNOT_TransferData(
         config_INDEX_list,
         ibs_src.get_alr_confidence(alrid_list),
         ibs_src.get_lblannot_uuids(lblannot_rowid_list),
-        lbltype_text_list,
+        ibs_src.get_lbltype_text(lbltypes_rowid_list),
         ibs_src.get_lblannot_values(lblannot_rowid_list),
         ibs_src.get_lblannot_notes(lblannot_rowid_list)
     )
@@ -445,8 +445,7 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
 def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_resolution='merge'):
     print("[import_transfer_data] Import Contributor: %r" % (contributor_td.contributor_uuid,))
     # Find conflicts
-    contributor_rowid = ibs_dst.get_contributor_rowid_from_uuid([contributor_td.contributor_uuid])
-    contributor_rowid = contributor_rowid[0]
+    contributor_rowid = ibs_dst.get_contributor_rowid_from_uuid([contributor_td.contributor_uuid])[0]
     if contributor_rowid is not None:
         # Resolve conflict
         if bulk_conflict_resolution == 'replace':
@@ -471,8 +470,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_reso
         loc_country_list=[contributor_td.contributor_location_country],
         loc_zip_list=[contributor_td.contributor_location_zip],
         notes_list=[contributor_td.contributor_note]
-    )
-    contributor_rowid = contributor_rowid[0]
+    )[0]
     # Import configs
     if contributor_td.config_td is not None:
         if utool.VERBOSE:
@@ -559,8 +557,8 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid, bulk_conf
             # TODO: do a more sophisticated config merge
     # Add configs
     config_rowid_list = ibs_dst.add_config(
-        config_td.config_suffixes_list,
-        contrib_rowid_list=[contributor_rowid] * len(config_td.config_suffixes_list)
+        config_suffixes_list,
+        contrib_rowid_list=[contributor_rowid] * len(config_suffixes_list)
     )
     return config_rowid_list
 
@@ -601,12 +599,12 @@ def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list, bul
                 print("[import_transfer_data]     Conflict Resolution - Merging %i encounters..." % (len(invalid_eid_list), ))
             # TODO: do a more sophisticated encounter merge
     # Add encounters
-    config_rowid_list_ = [ config_rowid_list[i] for i in encounter_td.config_INDEX_list ]
+    config_rowid_list_ = [ config_rowid_list[i] for i in config_INDEX_list ]
     eid_list = ibs_dst.add_encounters(
-        encounter_td.encounter_text_list,
-        encounter_uuid_list=encounter_td.encounter_uuid_list,
+        encounter_text_list,
+        encounter_uuid_list=encounter_uuid_list,
         config_rowid_list=config_rowid_list_,
-        notes_list=encounter_td.encoutner_note_list,
+        notes_list=encoutner_note_list,
     )
     return eid_list
 
@@ -671,6 +669,8 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
             print("IMAGE MERGING HAS NOT BEEN IMPLEMENTED, USE IGNORE OR REPLACE RESOLUTIONS FOR NOW")
             raise
 
+    # Sanity Check
+    assert len(image_uuid_list) == len(set(image_uuid_list)), "Not unique images"
     # Add images
     params_list = zip(image_uuid_list, image_path_list,
                       image_original_name_list, image_ext_list, image_width_list,
@@ -697,7 +697,12 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     glrid_total = 0
     for gid, lblimage_td in zip(gid_list, lblimage_td_list):
         if lblimage_td is not None:
-            glrid_list = import_lblimage_transfer_data(ibs_dst, lblimage_td, gid, config_rowid_list)
+            glrid_list = import_lblimage_transfer_data(
+                ibs_dst,
+                lblimage_td,
+                gid,
+                config_rowid_list
+            )
             glrid_total += len(glrid_list)
     print("[import_transfer_data]     ...imported %i lblimages" % (glrid_total,))
     # Add annotations
@@ -722,22 +727,22 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     return gid_list
 
 
-def import_annot_transfer_data(ibs_dst, annot_td, gid, config_rowid_list):
-    gid_list = [gid] * len(annot_td.annot_uuid_list)
+def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list):
+    parent_gid_list = [parent_gid] * len(annot_td.annot_uuid_list)
     aid_list = ibs_dst.add_annots(
-        gid_list,
-        bbox_list=annot_td.annot_bbox_list,
+        parent_gid_list,
         theta_list=annot_td.annot_theta_list,
         detect_confidence_list=annot_td.annot_detection_confidence_list,
         notes_list=annot_td.annot_note_list,
         vert_list=annot_td.annot_verts_list,
         annotation_uuid_list=annot_td.annot_uuid_list,
         viewpoint_list=annot_td.annot_viewpoint_list,
-        import_override=True,  # This allows us to specify bounding boxes and vertices,
-        silent_delete_thumbs=True  # Turns off thumbnail deletion print statements
+        quiet_delete_thumbs=True  # Turns off thumbnail deletion print statements
     )
     if utool.VERBOSE:
         print("[import_transfer_data]       Setting the annotation's parent and exemplar bits...")
+    # Adding parent rowids that come from the aid_list (only can come from this list because
+    # aid parent rowids cannot span across images)
     for aid, annot_parent_INDEX in zip(aid_list, annot_td.annot_parent_INDEX_list):
         if annot_parent_INDEX is not None and 0 <= annot_parent_INDEX and annot_parent_INDEX < len(aid_list):
             parent_aid = aid_list[annot_parent_INDEX]
@@ -812,12 +817,15 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
         if valid
     ]
     alr_confidence_list = utool.filter_items(lblannot_td.alr_confidence_list, valid_list)
+    from ibeis.control import accessor_decors
+    accessor_decors.DEBUG_ADDERS = True
     alrid_list = ibs_dst.add_annot_relationship(
         aid_list,
         lblannot_rowid_list,
         config_rowid_list=config_rowid_list,
         alr_confidence_list=alr_confidence_list,
     )
+    accessor_decors.DEBUG_ADDERS = False
     return alrid_list
 
 
@@ -851,12 +859,21 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             detections, duplicate manual annotations from different
             contributors.  Images and lblimages will not be duplicated.
             WARNING - this will only keep the meta data for an image, annotation
-            from the source database (image_height, annotation_bbox, etc.)
+            from the source database (image_height, annotation_verts, etc.)
             WARNING - this may cause an exception to be raised
             +---
     Example:
-        >>> ibs_src = ibeis.opendb(dbdir='[dbdir]')
-        >>> merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
+        >>> import ibeis
+        >>> from ibeis.io import export_subset
+        >>> ibs_src = ibeis.opendb(dbdir='testdb1')
+        >>> ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
+        >>> print(ibs_src.get_infostr())
+        >>> print(ibs_src2.get_infostr())
+        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=True)
+        >>> #ibs_dst = ibs
+        >>> export_subset.merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
+        >>> export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
+        >>> print(ibs_dst.get_infostr())
     """
     # Export source database
     td = export_transfer_data(ibs_src, user_prompt=user_prompt)
