@@ -24,11 +24,32 @@ def get_akmeans_cfgstr(data, nCentroids, max_iters=5, flann_params={},
     return akmeans_cfgstr
 
 
+def assert_centroids(centroids, data, nCentroids, clip_centroids):
+    dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
+    try:
+        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+    except Exception as ex:
+        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+        if not clip_centroids:
+            raise
+    try:
+        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+    except Exception as ex:
+        utool.printex(ex, keys=dbgkeys)
+        raise
+
+
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cache_dir='default', force_recomp=False, use_data_hash=True,
                    cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
-                   appname='vtool'):
+                   appname='vtool',  clip_centroids=True):
     """ precompute aproximate kmeans with builtin caching """
+    if data.shape[0] < nCentroids:
+        dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
+        ex = AssertionError('less data than centroids')
+        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+        if not clip_centroids:
+            raise ex
     print('+--- START CACHED AKMEANS')
     # filename prefix constants
     if cache_dir == 'default':
@@ -50,8 +71,17 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                                        flann_params=flann_params,
                                        cache_dir=cache_dir,
                                        akmeans_cfgstr=akmeans_cfgstr)
-        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+        try:
+            assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+        except Exception as ex:
+            utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+            if not clip_centroids:
+                raise
+        try:
+            assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+        except Exception as ex:
+            utool.printex(ex, keys=dbgkeys)
+            raise
         print('L___ END CACHED AKMEANS')
         return centroids
     except IOError as ex:
@@ -61,10 +91,9 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     # First time computation
     print('[akmeans.precompute] pre_akmeans(): calling akmeans')
     centroids = akmeans(data, nCentroids, max_iters, flann_params)
+    assert_centroids(centroids, data, nCentroids)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-    assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
     print('L___ END CACHED AKMEANS')
     return centroids
 
