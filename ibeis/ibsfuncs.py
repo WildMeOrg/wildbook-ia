@@ -17,7 +17,7 @@ import ibeis
 from ibeis import constants
 from ibeis.dev import sysres
 from ibeis.io import export_hsdb
-from detecttools.pypascalxml import PascalVOC_XML_Annotation
+from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
 from vtool import linalg, geometry, image
@@ -77,11 +77,10 @@ def refresh(ibs):
 
 
 def export_to_xml(ibs):
-    count = 1
+    offset = 9921
     target_size = 900
     information = {
-        'database_name' : 'IBEIS',
-        'source' : 'olpajeta',
+        'database_name' : ibs.get_dbname()
     }
     datadir = ibs._ibsdb + "/LearningData/"
     imagedir = datadir + 'JPEGImages/'
@@ -92,16 +91,17 @@ def export_to_xml(ibs):
     gid_list = ibs.get_valid_gids()
     for gid in gid_list:
         aid_list = ibs.get_image_aids(gid)
-        image_uri = ibs.get_image_paths(gid)
+        image_uri = ibs.get_image_uris(gid)
+        image_path = ibs.get_image_paths(gid)
         if len(aid_list) > 0:
-            fulldir = image_uri.split('/')
+            fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]
-            out_name = "2014_%06d" % count
-            out_img = out_name + "." + extension
+            out_name = "2014_%06d" % offset
+            out_img = out_name + ".jpg"
             folder = "IBEIS"
 
-            _image = image.imread(image_uri)
+            _image = image.imread(image_path)
             height, width, channels = _image.shape
             if width > height:
                 ratio = height / width
@@ -117,9 +117,9 @@ def export_to_xml(ibs):
             dst_img = imagedir + out_img
             _image = image.resize(_image, (width, height))
             image.imwrite(dst_img, _image)
-            print("Copying:\n%r\n%r\n%r\n\n" % (image_uri, dst_img, (width, height), ))
+            print("Copying:\n%r\n%r\n%r\n\n" % (image_path, dst_img, (width, height), ))
 
-            annotation = PascalVOC_XML_Annotation(dst_img, folder, out_img, **information)
+            annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img, source=image_uri, **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
             for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
@@ -146,9 +146,9 @@ def export_to_xml(ibs):
             xml_data = open(dst_annot, 'w')
             xml_data.write(annotation.xml())
             xml_data.close()
-            count += 1
+            offset += 1
         else:
-            print("Skipping:\n%r\n\n" % (image_uri, ))
+            print("Skipping:\n%r\n\n" % (image_path, ))
 
 
 @__injectable
