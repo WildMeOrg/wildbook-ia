@@ -3110,6 +3110,12 @@ class IBEISController(object):
             assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
                 ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
                  ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
+        else:
+            # TODO:
+            #def resolutionfunc(alrids):
+            #    return alrids[0:1]
+            #alrids_list = [alrids if len(alrids) == 1 else resolutionfunc() for alrids in alrids_list]
+            pass
         return alrids_list
 
     @getter_1toM
