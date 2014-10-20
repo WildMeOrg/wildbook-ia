@@ -1,7 +1,7 @@
 import os
 import re
 import csv
-import pypascalxml
+import pypascalmarkup
 import numpy as np
 import ExifTags
 from PIL import Image
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                 img = img.resize((int(np.round(w / r)), int(np.round(h / r))), Image.ANTIALIAS)
                 img.save(dst_img)
 
-                annotation = pypascalxml.PascalVOC_XML_Annotation(dst_img, 'IBEIS', new_img_name, **info)
+                annotation = pypascalmarkup.PascalVOC_Markup_Annotation(dst_img, 'IBEIS', new_img_name, **info)
                 for roi in images[name]:
                     annotation.add_object(classname, tuple(np.asarray(np.round(roi / r), np.int)))
                 with open(dst_ann, 'w') as xml_out:

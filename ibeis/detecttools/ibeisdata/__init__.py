@@ -1,31 +1,25 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-#from datetime import date
-#import cv2
-#import numpy as np
 import os
-#import random
-#from detecttools.directory import Directory  # seems to not exist? # accidently deleted?
-#import xml.etree.ElementTree as xml
-
+from detecttools.directory import Directory
 from . import common as com
-from .ibeis_image import IBEIS_Image
+from ibeis_image import IBEIS_Image
 
 
 class IBEIS_Data(object):
 
     def __init__(ibsd, dataset_path, **kwargs):
-        com._kwargs(kwargs, 'object_min_width',    32)
-        com._kwargs(kwargs, 'object_min_height',   32)
-        com._kwargs(kwargs, 'mine_negatives',      True)
-        com._kwargs(kwargs, 'mine_width_min',      50)
-        com._kwargs(kwargs, 'mine_width_max',      400)
-        com._kwargs(kwargs, 'mine_height_min',     50)
-        com._kwargs(kwargs, 'mine_height_max',     400)
-        com._kwargs(kwargs, 'mine_max_attempts',   100)
-        com._kwargs(kwargs, 'mine_max_keep',       10)
-        com._kwargs(kwargs, 'mine_overlap_margin', 0.25)
+        com._kwargs(kwargs, 'object_min_width',        32)
+        com._kwargs(kwargs, 'object_min_height',       32)
+        com._kwargs(kwargs, 'mine_negatives',          True)
+        com._kwargs(kwargs, 'mine_width_min',          50)
+        com._kwargs(kwargs, 'mine_width_max',          400)
+        com._kwargs(kwargs, 'mine_height_min',         50)
+        com._kwargs(kwargs, 'mine_height_max',         400)
+        com._kwargs(kwargs, 'mine_max_attempts',       100)
+        com._kwargs(kwargs, 'mine_max_keep',           10)
+        com._kwargs(kwargs, 'mine_overlap_margin',     0.25)
         com._kwargs(kwargs, 'mine_exclude_categories', [])
 
         ibsd.dataset_path = dataset_path
@@ -51,7 +45,7 @@ class IBEIS_Data(object):
             ibsd.categories_images += set(temp)
 
             if len(image.objects) == 0:
-                ibsd.categories_images += ["IGNORED"]
+                ibsd.categories_images += ["BACKGROUND"]
 
         ibsd.distribution_images = com.histogram(ibsd.categories_images)
         ibsd.distribution_rois = com.histogram(ibsd.categories_rois)
@@ -88,8 +82,8 @@ class IBEIS_Data(object):
         _max = max([ len(category) for category in ibsd.distribution_rois.keys() + ['TOTAL', 'CATEGORY'] ]) + 3
 
         _print_line("CATEGORY", _max, "IMGs", "ROIs")
-        if "IGNORED" in ibsd.distribution_images:
-            _print_line("IGNORED", _max, ibsd.distribution_images["IGNORED"], "")
+        if "BACKGROUND" in ibsd.distribution_images:
+            _print_line("BACKGROUND", _max, ibsd.distribution_images["BACKGROUND"], "")
 
         for category in sorted(ibsd.distribution_rois):
             _print_line(category, _max, ibsd.distribution_images[category], ibsd.distribution_rois[category])
@@ -104,8 +98,7 @@ class IBEIS_Data(object):
                 _file = open(filepath)
                 for line in _file:
                     line = line.strip().split(" ")
-                    line = [line[0], line[-1]]
-                    _dict[line[0]] = True
+                    _dict[line[0]] = int(line[-1])
             except IOError as e:
                 print("<%r> %s" % (e, filepath))
 
@@ -117,21 +110,21 @@ class IBEIS_Data(object):
         test = []
 
         train_values = _parse_dataset_file(positive_category, "train")
-        val_values = _parse_dataset_file(positive_category, "val")
-        test_values = _parse_dataset_file(positive_category, "test")
+        train_values = _parse_dataset_file(positive_category, "trainval")
+        # val_values   = _parse_dataset_file(positive_category, "val")
+        test_values  = _parse_dataset_file(positive_category, "test")
 
         pos_rois = 0
         neg_rois = 0
         for image in ibsd.images:
-            #filename = image.filename
-            _train = train_values.get(image.filename[:-4], False)
-            _val = val_values.get(image.filename[:-4], False)
-            _test = test_values.get(image.filename[:-4], False)
+            _train = train_values.get(image.filename, 0)
+            # _val   = val_values.get(image.filename,   0)
+            _test  = test_values.get(image.filename,  0)
 
             temp = image.categories(unique=False)
             flag = False
 
-            if _train:
+            if _train != 0:
                 for val in temp:
                     if val == positive_category:
                         flag = True
@@ -144,10 +137,10 @@ class IBEIS_Data(object):
                 elif val not in neg_exclude_categories:
                     negatives.append(image)
 
-            if _val:
-                validation.append(image)
+            # if _val != 0:
+            #     validation.append(image)
 
-            if _test:
+            if _test != 0:
                 test.append(image)
 
         # Setup auto normalize variables for equal positives and negatives
@@ -175,7 +168,7 @@ class IBEIS_Data(object):
                     if val in positive_category:
                         pos_rois += 1
 
-        # Remove positives to target, not gauranteed to give target, but 'close'.
+        # Remove negatives to target, not gauranteed to give target, but 'close'.
         if max_rois_neg is not None and len(negatives) > 0:
             neg_density = float(neg_rois) / len(negatives)
             target_num = int(max_rois_neg / neg_density)
@@ -199,78 +192,6 @@ class IBEIS_Data(object):
 
         return (positives, pos_rois), (negatives, neg_rois), validation, test
 
-    # def export_yaml(ibsd):
-    #     os.system("mkdir " + os.path.join(ibsd.dataset_path, "AnnotationsYAML"))
-
-    #     for image in ibsd.images:
-    #         _filename = image.filename.split(".")[0] + ".yml"
-
-    #         template_an = open("../pypascalxml/template_annotation.yml", 'r')
-    #         template_ob = open("../pypascalxml/template_object.yml", 'r')
-    #         template_pt = open("../pypascalxml/template_part.yml", 'r')
-    #         template_an = ''.join(template_an.readlines())
-    #         template_ob = ''.join(template_ob.readlines())
-    #         template_pt = ''.join(template_pt.readlines())
-
-    #         template_an = template_an.replace('_^_FOLDER_^_', image.folder)
-    #         template_an = template_an.replace('_^_FILENAME_^_', image.filename)
-    #         template_an = template_an.replace('_^_DARABASE_NAME_^_', image.source_database)
-    #         template_an = template_an.replace('_^_DATABASE_YEAR_^_', image.source_annotation)
-    #         template_an = template_an.replace('_^_SOURCE_^_', image.source_image)
-    #         template_an = template_an.replace('_^_WIDTH_^_', str(image.width))
-    #         template_an = template_an.replace('_^_HEIGHT_^_', str(image.height))
-    #         template_an = template_an.replace('_^_CHANNELS_^_', str(image.depth))
-    #         template_an = template_an.replace('_^_SEGMENTED_^_', str(int(image.segmented)))
-
-    #         objects = []
-    #         for _object in image.objects:
-    #             if _object.name == "MINED":
-    #                 continue
-
-    #             temp_ob = template_ob[:]
-
-    #             temp_ob = temp_ob.replace('_^_NAME_^_', _object.name)
-    #             temp_ob = temp_ob.replace('_^_POSE_^_', _object.pose)
-    #             temp_ob = temp_ob.replace('_^_TRUNCATED_^_', str(int(_object.truncated)))
-    #             temp_ob = temp_ob.replace('_^_DIFFICULT_^_', str(int(_object.difficult)))
-    #             temp_ob = temp_ob.replace('_^_XMIN_^_', str(_object.xmin))
-    #             temp_ob = temp_ob.replace('_^_YMIN_^_', str(_object.ymin))
-    #             temp_ob = temp_ob.replace('_^_XMAX_^_', str(_object.xmax))
-    #             temp_ob = temp_ob.replace('_^_YMAX_^_', str(_object.ymax))
-
-    #             parts = []
-    #             for  part in _object.parts:
-    #                 temp_pt = template_pt[:]
-
-    #                 temp_pt = temp_pt.replace('_^_NAME_^_', part.name)
-    #                 temp_pt = temp_pt.replace('_^_XMIN_^_', str(part.xmin))
-    #                 temp_pt = temp_pt.replace('_^_YMIN_^_', str(part.ymin))
-    #                 temp_pt = temp_pt.replace('_^_XMAX_^_', str(part.xmax))
-    #                 temp_pt = temp_pt.replace('_^_YMAX_^_', str(part.ymax))
-
-    #                 parts.append(temp_pt)
-
-    #             if len(parts) > 0:
-    #                 parts =  "\n\t\t\tpart:" + "".join(parts)
-    #             else:
-    #                 parts = ""
-
-    #             temp_ob = temp_ob.replace('_^_PART_MULTIPLE_OPTIONAL_^_', parts)
-
-    #             objects.append(temp_ob)
-
-    #         if len(objects) > 0:
-    #             objects =  "\n\tobject:" + "".join(objects)
-    #         else:
-    #             objects = ""
-
-    #         template_an = template_an.replace('_^_OBJECT_MULTIPLE_^_', objects)
-
-    #         output = open(os.path.join(ibsd.dataset_path, "AnnotationsYAML", _filename), 'w')
-    #         output.write(template_an)
-    #         output.close()
-
-
 if __name__ == "__main__":
 
     information = {
@@ -281,8 +202,6 @@ if __name__ == "__main__":
 
     dataset = IBEIS_Data('test/', **information)
     print(dataset)
-
-    # dataset.export_yaml()
 
     # Access specific information about the dataset
     print("Categories:", dataset.categories)
@@ -303,6 +222,11 @@ if __name__ == "__main__":
 
     # Get all images using a specific positive set
     (pos, pos_rois), (neg, neg_rois), val, test = dataset.dataset('zebra_grevys')
+
+    print(pos, pos_rois)
+    print(neg, neg_rois)
+    print(val)
+    print(test)
 
     # Get a specific number of images (-1 for auto normalize to what the other gives)
     # (pos, pos_rois), (neg, neg_rois), val, test = dataset.dataset('zebra_grevys', max_rois_neg=-1)

@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 import cv2
 import os
+import math
 import xml.etree.ElementTree as xml
 
 from . import common as com
@@ -31,13 +32,14 @@ class IBEIS_Image(object):
 
             ibsi.segmented = com.get(size, 'segmented') == "1"
 
-            ibsi.objects = [ IBEIS_Object(obj, ibsi.width, ibsi.height) for obj in com.get(_xml, 'object', text=False, singularize=False) ]
-
-            for _object in ibsi.objects:
-                if _object.width <= kwargs['object_min_width'] or \
-                   _object.height <= kwargs['object_min_height']:
-                    # Remove objects that are too small.
-                    ibsi.objects.remove(_object)
+            ibsi.objects = []
+            ibsi.objects_invalid = []
+            for obj in com.get(_xml, 'object', text=False, singularize=False):
+                temp = IBEIS_Object(obj, ibsi.width, ibsi.height)
+                if temp.width >= kwargs['object_min_width'] and temp.height >= kwargs['object_min_height']:
+                    ibsi.objects.append(temp)
+                else:
+                    ibsi.objects_invalid.append(temp)
 
             flag = True
             for cat in ibsi.categories():
@@ -111,26 +113,138 @@ class IBEIS_Image(object):
     def bounding_boxes(ibsi, parts=False):
         return [ _object.bounding_box(parts) for _object in ibsi.objects ]
 
-    def show(ibsi, objects=True, parts=True, display=True):
+    def _accuracy_match(ibsi, prediction, object_list):
+        def _distance((x1, y1), (x2, y2)):
+            return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
 
-        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color):
+        # For this non-supressed prediction, compute and assign to the closest bndbox
+        centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
+
+        index_best = None
+        score_best = -1.0
+        for index, _object in enumerate(object_list):
+            width = maxx - minx
+            height = maxy - miny
+
+            x_overlap = max(0, min(maxx, _object.xmax) - max(minx, _object.xmin))
+            y_overlap = max(0, min(maxy, _object.ymax) - max(miny, _object.ymin))
+            area_overlap = float(x_overlap * y_overlap)
+            area_total = (width * height) + _object.area
+            score = area_overlap / (area_total - area_overlap)
+
+            if score >= score_best:
+                # Wooo! Found a (probably) better candidate, but...
+                if score == score_best:
+                    # Well, this is awkward?
+                    assert index_best is not None  # Just to be sure
+                    _object_best = object_list[index_best]
+
+                    a = _distance((centerx, centery), (_object_best.xcenter, _object_best.ycenter))
+                    b = _distance((centerx, centery), (_object.xcenter, _object.ycenter))
+                    if a < b:
+                        # Not a better candidate based on distance
+                        continue
+                    elif a == b:
+                        # First come, first serve
+                        continue
+                # Save new best
+                score_best = score
+                index_best = index
+
+        return index_best, score_best
+
+    def accuracy(ibsi, prediction_list, category, alpha=0.5):
+        # PASCAL ACCURACY MEASUREMENT
+        object_list = []
+        for _object in ibsi.objects + ibsi.objects_invalid:
+            if _object.name == category:
+                object_list.append(_object)
+
+        # Trivial case
+        if len(object_list) == 0 and len(prediction_list) == 0:
+            return 1.0, 0.0, 0.0, 0.0
+
+        true_positive  = 0
+        false_positive = 0
+
+        counters = [0] * len(object_list)
+        for prediction in prediction_list:
+            centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
+            if supressed == 0.0:
+                index_best, score_best = ibsi._accuracy_match(prediction, object_list)
+                if score_best >= alpha:
+                    counters[index_best] += 1
+                    true_positive += 1
+                else:
+                    false_positive += 1
+
+        false_negative = counters.count(0)
+        precision = float(true_positive)
+        recall = true_positive + false_positive + false_negative
+        assert recall != 0
+        return precision / recall, true_positive, false_positive, false_negative
+
+    def show(ibsi, objects=True, parts=True, display=True, prediction_list=None, category=None, alpha=0.5):
+
+        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, top=True):
             font = cv2.FONT_HERSHEY_SIMPLEX
             scale = 0.5
-
             width, height = cv2.getTextSize(annotation, font, scale, -1)[0]
-            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
-            cv2.rectangle(img, (xmin, ymin - height), (xmin + width, ymin), color, -1)
-            cv2.putText(img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255))
+            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, stroke)
+            if top:
+                cv2.rectangle(img, (xmin, ymin - height), (xmin + width, ymin), color, -1)
+                cv2.putText(img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255))
+            else:
+                cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
+                cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
 
         original = com.openImage(ibsi.image_path(), color=True)
-
+        color_dict = {}
         for _object in ibsi.objects:
             color = com.randColor()
+            color_dict[_object] = color
             _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
 
             if parts:
                 for part in _object.parts:
                     _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+
+        for _object in ibsi.objects_invalid:
+            color = [0, 0, 0]
+            color_dict[_object] = color
+            _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
+
+            if parts:
+                for part in _object.parts:
+                    _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+
+        if prediction_list is not None:
+            assert category is not None
+            object_list = []
+            for _object in ibsi.objects + ibsi.objects_invalid:
+                if _object.name == category:
+                    object_list.append(_object)
+
+            for prediction in prediction_list:
+                centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
+                if supressed == 0.0:
+                    if len(object_list) > 0:
+                        index_best, score_best = ibsi._accuracy_match(prediction, object_list)
+                        _object_best = object_list[index_best]
+                        color = color_dict[_object_best]
+                        if score_best >= alpha:
+                            annotation = 'DETECT [TRUE POS %.2f]' % score_best
+                        else:
+                            annotation = 'DETECT [FALSE POS %.2f]' % score_best
+                        cv2.line(original, (int(minx), int(miny)), (_object_best.xmin, _object_best.ymin), color, 1)
+                        cv2.line(original, (int(minx), int(maxy)), (_object_best.xmin, _object_best.ymax), color, 1)
+                        cv2.line(original, (int(maxx), int(miny)), (_object_best.xmax, _object_best.ymin), color, 1)
+                        cv2.line(original, (int(maxx), int(maxy)), (_object_best.xmax, _object_best.ymax), color, 1)
+
+                    else:
+                        annotation = 'DETECT [FALSE POS]'
+                        color = [0, 0, 255]
+                    _draw_box(original, annotation, int(minx), int(miny), int(maxx), int(maxy), color, stroke=1, top=False)
 
         if display:
             cv2.imshow(ibsi.filename + " with Bounding Boxes", original)

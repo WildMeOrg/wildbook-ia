@@ -15,7 +15,7 @@ def _kwargs(kwargs, key, value):
         kwargs[key] = value
 
 
-class PascalVOC_XML_Annotation(object):
+class PascalVOC_Markup_Annotation(object):
 
     def __init__(an, fullpath, folder, filename, **kwargs):
         _kwargs(kwargs, 'database_name', 'Image Database')
@@ -50,7 +50,7 @@ class PascalVOC_XML_Annotation(object):
         an.objects = []
 
     def add_object(an, name, bounding_box, **kwargs):
-        an.objects.append(PascalVOC_XML_Object(name, bounding_box, **kwargs))
+        an.objects.append(PascalVOC_Markup_Object(name, bounding_box, **kwargs))
 
     def add_part(an, object_index, name, bounding_box):
         if object_index <= -len(an.objects) or len(an.objects) <= object_index:
@@ -58,7 +58,16 @@ class PascalVOC_XML_Annotation(object):
         an.objects[object_index].add_part(name, bounding_box)
 
     def xml(an):
-        template = open(os.path.join(__location__, 'template_annotation.xml'), 'r')
+        return an._export()
+
+    def yml(an):
+        return an._export(yml=True)
+
+    def _export(an, yml=False):
+        if yml:
+            template = open(os.path.join(__location__, 'template_annotation.yml'), 'r')
+        else:
+            template = open(os.path.join(__location__, 'template_annotation.xml'), 'r')
         template = ''.join(template.readlines())
 
         template = template.replace('_^_FOLDER_^_', an.folder)
@@ -71,13 +80,16 @@ class PascalVOC_XML_Annotation(object):
         template = template.replace('_^_CHANNELS_^_', an.channels)
         template = template.replace('_^_SEGMENTED_^_', an.segmented)
 
-        objects = [ob.xml() for ob in an.objects]
+        if yml:
+            objects = [ob.yml() for ob in an.objects]
+        else:
+            objects = [ob.xml() for ob in an.objects]
         template = template.replace('_^_OBJECT_MULTIPLE_^_', ''.join(objects))
 
         return template
 
 
-class PascalVOC_XML_Object(object):
+class PascalVOC_Markup_Object(object):
 
     # take bounding box coordinates in the same order as PASCAL-VOC
     def __init__(ob, name, bbox_XxYy, **kwargs):
@@ -100,10 +112,19 @@ class PascalVOC_XML_Object(object):
         ob.parts = []
 
     def add_part(ob, name, bounding_box):
-        ob.parts.append(PascalVOC_XML_Part(name, bounding_box))
+        ob.parts.append(PascalVOC_Markup_Part(name, bounding_box))
 
     def xml(ob):
-        template = open(os.path.join(__location__, 'template_object.xml'), 'r')
+        return ob._export()
+
+    def yml(ob):
+        return ob._export(yml=True)
+
+    def _export(ob, yml=False):
+        if yml:
+            template = open(os.path.join(__location__, 'template_object.yml'), 'r')
+        else:
+            template = open(os.path.join(__location__, 'template_object.xml'), 'r')
         template = ''.join(template.readlines())
 
         template = template.replace('_^_NAME_^_', ob.name)
@@ -115,13 +136,16 @@ class PascalVOC_XML_Object(object):
         template = template.replace('_^_XMAX_^_', ob.xmax)
         template = template.replace('_^_YMAX_^_', ob.ymax)
 
-        parts = [pt.xml() for pt in ob.parts]
+        if yml:
+            parts = [pt.yml() for pt in ob.parts]
+        else:
+            parts = [pt.xml() for pt in ob.parts]
         template = template.replace('_^_PART_MULTIPLE_OPTIONAL_^_', ''.join(parts))
 
         return template
 
 
-class PascalVOC_XML_Part(object):
+class PascalVOC_Markup_Part(object):
 
     def __init__(pt, name, bbox):
         (xmin, ymin, xmax, ymax) = bbox
@@ -134,7 +158,16 @@ class PascalVOC_XML_Part(object):
         pt.ymax = str(ymax)
 
     def xml(pt):
-        template = open(os.path.join(__location__, 'template_part.xml'), 'r')
+        return pt._export()
+
+    def yml(pt):
+        return pt._export(yml=True)
+
+    def _export(pt, yml=False):
+        if yml:
+            template = open(os.path.join(__location__, 'template_part.yml'), 'r')
+        else:
+            template = open(os.path.join(__location__, 'template_part.xml'), 'r')
         template = ''.join(template.readlines())
 
         template = template.replace('_^_NAME_^_', pt.name)
@@ -153,7 +186,7 @@ if __name__ == "__main__":
         'source':           'olpajeta'
     }
 
-    annotation = PascalVOC_XML_Annotation('.', 'test.png', **information)
+    annotation = PascalVOC_Markup_Annotation('.', 'test.png', **information)
     annotation.add_object('person', (100, 100, 400, 400))
     annotation.add_object('dog', (10, 200, 100, 800))
 
@@ -161,3 +194,4 @@ if __name__ == "__main__":
     annotation.add_part(0, 'foot', (1000, 2000, 200, 2100))
 
     print(annotation.xml())
+    print(annotation.yml())

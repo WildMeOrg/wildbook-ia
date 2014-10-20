@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-#import xml.etree.ElementTree as xml
-
 from . import common as com
 from .ibeis_part import IBEIS_Part
 
@@ -29,15 +27,17 @@ class IBEIS_Object(object):
             ibso.truncated = False
             ibso.difficult = False
 
-            ibso.xmax = min(width,  _xml['xmax'])
-            ibso.xmin = max(0,      _xml['xmin'])
-            ibso.ymax = min(height, _xml['ymax'])
-            ibso.ymin = max(0,      _xml['ymin'])
+            ibso.xmax = min(width,  int(_xml['xmax']))
+            ibso.xmin = max(0,      int(_xml['xmin']))
+            ibso.ymax = min(height, int(_xml['ymax']))
+            ibso.ymin = max(0,      int(_xml['ymin']))
 
             ibso.parts = []
 
         ibso.width = ibso.xmax - ibso.xmin
         ibso.height = ibso.ymax - ibso.ymin
+        ibso.xcenter = int(ibso.xmin + (ibso.width / 2))
+        ibso.ycenter = int(ibso.ymin + (ibso.height / 2))
         ibso.area = ibso.width * ibso.height
 
     def __len__(ibso):
