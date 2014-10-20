@@ -109,8 +109,7 @@ class MainWindowBackend(QtCore.QObject):
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
-        if back.ibs is not None:
-            back.ibs.register_observer(back)
+        back.register_self()
 
     #def __del__(back):
     #    back.cleanup()
@@ -118,6 +117,20 @@ class MainWindowBackend(QtCore.QObject):
     def cleanup(back):
         if back.ibs is not None:
             back.ibs.remove_observer(back)
+
+    #@utool.indent_func
+    def notify(back):
+        """ Observer's notify function. """
+        back.refresh_state()
+
+    #@utool.indent_func
+    def notify_controller_killed(back):
+        """ Observer's notify function that the ibeis controller has been killed. """
+        back.ibs = None
+
+    def register_self(back):
+        if back.ibs is not None:
+            back.ibs.register_observer(back)
 
     #------------------------
     # Draw Functions
@@ -184,27 +197,16 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     #@utool.indent_func
-    def notify(back):
-        """ Observer's notify function. """
-        back.refresh_state()
-
-    #@utool.indent_func
     def refresh_state(back):
         """ Blanket refresh function. Try not to call this """
         back.front.update_tables()
-
-    #@utool.indent_func
-    def notify_controller_killed(back):
-        """ Observer's notify function that the ibeis controller has been killed. """
-        back.ibs = None
 
     #@utool.indent_func
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
         # register self with the ibeis controller
-        if back.ibs is not None:
-            back.ibs.register_observer(back)
+        back.register_self()
         back.front.connect_ibeis_control(ibs)
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_eids=[None])

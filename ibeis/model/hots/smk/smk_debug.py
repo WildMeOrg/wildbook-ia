@@ -102,24 +102,26 @@ def testdata_words(**kwargs):
 def testdata_raw_internals0():
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()
+    qparams = qreq_.qparams
     print('[smk_debug] testdata_raw_internals0')
     with_internals = False
-    invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
-    return ibs, annots_df, daids, qaids, invindex
+    invindex = smk_index.index_data_annots(annots_df, daids, words, qparams, with_internals)
+    return ibs, annots_df, daids, qaids, invindex, qreq_
 
 
 def testdata_raw_internals1():
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
+    ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()
+    qparams = qreq_.qparams
     print('[smk_debug] testdata_raw_internals1')
     #ibs.cfg.query_cfg.smk_cfg.printme3()
     words  = invindex.words
     wordflann = invindex.wordflann
     idx2_vec  = invindex.idx2_dvec
     nAssign = 1  # 1 for database
-    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
-    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
-    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
+    massign_sigma = qparams.massign_sigma
+    massign_alpha = qparams.massign_alpha
+    massign_equal_weights = qparams.massign_equal_weights
     # TODO: Extract args from function via inspect
     _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha,
                massign_sigma, massign_equal_weights)
@@ -456,7 +458,8 @@ def check_invindex(invindex, verbose=True):
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
         >>> words = smk_index.learn_visual_words(annots_df, taids, nWords)
-        >>> invindex = smk_index.index_data_annots(annots_df, daids, words)
+        >>> qparams = qreq_.qparams
+        >>> invindex = smk_index.index_data_annots(annots_df, daids, words, qparams)
     """
     daids = invindex.daids
     daid2_sccw = invindex.daid2_sccw
@@ -479,9 +482,10 @@ def test_sccw_cache():
     ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
     smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
     smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+    qparams = qreq_.qparams
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     with_internals = True
-    invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
+    invindex = smk_index.index_data_annots(annots_df, daids, words, qparams, with_internals)
     idx2_daid  = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
     wx2_idf    = invindex.wx2_idf

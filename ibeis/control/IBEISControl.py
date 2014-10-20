@@ -104,12 +104,11 @@ class IBEISController(object):
 
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
         """ Creates a new IBEIS Controller associated with one database """
-        global __ALL_CONTROLLERS__
         if verbose and utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.table_cache = init_tablecache()
-        # observers keeps track of the guibacks connected to this controller
-        ibs.observers = []
+        # observer_weakref_list keeps track of the guibacks connected to this controller
+        ibs.observer_weakref_list = []
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _init_wb will do nothing if no wildbook address is specified
         ibs._init_wb(wbaddr)
@@ -118,48 +117,67 @@ class IBEISController(object):
         # an dict to hack in temporary state
         ibs.temporary_state = {}
         ibsfuncs.inject_ibeis(ibs)
-        ibs_weakref = weakref.ref(ibs)
-        __ALL_CONTROLLERS__.append(ibs_weakref)
+        ibs.register_controller()
 
     # We should probably not implement __del__
     # see: https://docs.python.org/2/reference/datamodel.html#object.__del__
     #def __del__(ibs):
     #    ibs.cleanup()
 
-    def cleanup(ibs):
-        print('[ibs.cleanup] Observers (if any) notified [controller killed]')
-        for observer in ibs.observers:
-            observer.notify_controller_killed()
-
     def rrr(ibs):
-        global __ALL_CONTROLLERS__
-        try:
-            __ALL_CONTROLLERS__.remove(ibs)
-        except ValueError:
-            pass
         from ibeis.control import IBEISControl
+        ibs.unregister_controller()
         IBEISControl.rrr()
         ibsfuncs.rrr()
         print('reloading IBEISControl')
         ibsfuncs.inject_ibeis(ibs)
         utool.reload_class_methods(ibs, IBEISControl.IBEISController)
-        __ALL_CONTROLLERS__.append(ibs)
+        ibs.register_controller()
+
+    # ------------
+    # SELF REGISTRATION
+    # ------------
+
+    def register_controller(ibs):
+        """ registers controller with global list """
+        ibs_weakref = weakref.ref(ibs)
+        __ALL_CONTROLLERS__.append(ibs_weakref)
+
+    def unregister_controller(ibs):
+        ibs_weakref = weakref.ref(ibs)
+        try:
+            __ALL_CONTROLLERS__.remove(ibs_weakref)
+        except ValueError:
+            pass
+
+    # ------------
+    # OBSERVER REGISTRATION
+    # ------------
+
+    def cleanup(ibs):
+        """ call on del? """
+        print('[ibs.cleanup] Observers (if any) notified [controller killed]')
+        for observer_weakref in ibs.observer_weakref_list:
+            observer_weakref().notify_controller_killed()
 
     @default_decorator
     def register_observer(ibs, observer):
         print('[register_observer] Observer registered: %r' % observer)
-        ibs.observers.append(observer)
+        observer_weakref = weakref.ref(observer)
+        ibs.observer_weakref_list.append(observer_weakref)
 
     @default_decorator
     def remove_observer(ibs, observer):
         print('[remove_observer] Observer removed: %r' % observer)
-        ibs.observers.remove(observer)
+        ibs.observer_weakref_list.remove(observer)
 
     @default_decorator
     def notify_observers(ibs):
         print('[notify_observers] Observers (if any) notified')
-        for observer in ibs.observers:
-            observer.notify()
+        for observer_weakref in ibs.observer_weakref_list:
+            observer_weakref().notify()
+
+    # ------------
 
     @default_decorator
     def _init_wb(ibs, wbaddr):
