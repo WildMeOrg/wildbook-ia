@@ -679,11 +679,11 @@ def compute_negentropy_names(aids_list, daid2_label):
     Word weighting based on the negative entropy over all names of p(n_i | word)
 
     Args:
-        aids_list ():
-        daid2_label ():
+        aids_list (list of aids):
+        daid2_label (dict from daid to label):
 
     Returns:
-        negentropy_list
+        negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy
 
     Math::
         p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)
@@ -699,10 +699,12 @@ def compute_negentropy_names(aids_list, daid2_label):
 
         word_weight = log(N) - h(n | word)
 
+    CommandLine:
+        python dev.py -t smk2 --allgt --db GZ_ALL
+
     Auto:
         from ibeis.model.hots.smk import smk_index
-        import utool; print(utool.make_default_docstr(smk_index.compute_negentropy_names))
-
+        python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
     """
     nWords = len(aids_list)
     # --- LABEL MEMBERS w.r.t daids ---
@@ -879,15 +881,11 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
         smk_debug.check_wx2_idxs(wx2_idxs, len(words))
-    # Nonaggregated residuals
-    words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
-    vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
-    rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
-                  for vecs, word in zip(vecs_list, words_list)]  # 103 ms
     # TODO: Report object size
     # TODO: Residuals shoud be using uint8 vectors probably.
+    rvecs_list = helper_compute_nonagg_residuals(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list)
     if aggregate:
-        (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = _aggregate_residuals(
+        (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = helper_aggregate_residuals(
             rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws)
     else:
         # Hack non-aggregate residuals to have the same structure as aggregate
@@ -905,15 +903,26 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
     return wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws
 
 
-def _aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
+@utool.cached_func('_nonagg_rvecs_', appname='smk_cachedir', key_argx=[1, 3, 4])
+def helper_compute_nonagg_residuals(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list):
+    """ helper """
+    # Nonaggregated residuals
+    words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
+    vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
+    rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
+                  for vecs, word in zip(vecs_list, words_list)]  # 103 ms
+    return rvecs_list
+
+
+#@utool.cached_func('_agg_rvecs_', appname='smk', key_argx=[1, 2, 3, 4])
+def helper_aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
     """
     helper function: Aggregate over words of the same aid
     """
     maws_list = [wx2_maws[wx] for wx in wx_sublist]
     tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
     (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list) = tup
-    aggfxs_list = [[idx2_fx.take(idxs) for idxs in aggidxs]
-                   for aggidxs in aggidxs_list]
+    aggfxs_list = [[idx2_fx.take(idxs) for idxs in aggidxs] for aggidxs in aggidxs_list]
     wx2_aggvecs = dict(zip(wx_sublist, aggvecs_list))
     wx2_aggaids = dict(zip(wx_sublist, aggaids_list))
     wx2_aggfxs  = dict(zip(wx_sublist, aggfxs_list))

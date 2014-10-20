@@ -303,10 +303,10 @@ class SMKConfig(ConfigBase):
     """ SMKConfig """
     def __init__(smkcfg, **kwargs):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
-        smkcfg.nAssign = 10  # MultiAssignment
+        smkcfg.nAssign    = 10  # MultiAssignment
         smkcfg.smk_thresh = 0.0  # tau in the paper
-        smkcfg.smk_alpha = 3.0
-        smkcfg.aggregate = False
+        smkcfg.smk_alpha  = 3.0
+        smkcfg.aggregate  = False
         # TODO Separate into vocab config
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.nWords = int(8E3)  #

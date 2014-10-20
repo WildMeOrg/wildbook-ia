@@ -1,3 +1,5 @@
+# TODO: Need test harness to do a gridsearch of these guys
+
 from __future__ import absolute_import, division, print_function
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
@@ -115,7 +117,7 @@ vsmany_best = {
 }
 best = vsmany_best
 
-smk_test = {
+smk_test2 = {
     'pipeline_root': ['smk', 'asmk'],
     'sv_on':         [True],  # True, False],
 }
@@ -177,6 +179,23 @@ smk5 = {
 # * float32 rvecs
 
 # Things to fix:
+'''
+python dev.py -t smk_test --db PZ_MOTHERS --allgt  --print-cfgstr
+python dev.py -t smk_test --db GZ_ALL --allgt  --print-cfgstr
+'''
+
+smk_test = {
+    'pipeline_root': ['vsmany', 'smk', 'asmk'],
+    'sv_on':         [False],  # True, False],
+    'smk_thresh':    [.001],
+    'smk_alpha':     [4],
+    'massign_alpha': [1.2],
+    'massign_sigma': [80.0],
+    'nAssign':       [4],
+    'nWords':        [8000],  # True, False],
+    'massign_equal_weights': [True],
+    'vocab_weighting': ['idf', 'negentropy'],  # 'idf'
+}
 # * batched queries (possibly intermintent reporting)
 
 
