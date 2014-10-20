@@ -91,7 +91,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     # First time computation
     print('[akmeans.precompute] pre_akmeans(): calling akmeans')
     centroids = akmeans(data, nCentroids, max_iters, flann_params)
-    assert_centroids(centroids, data, nCentroids)
+    assert_centroids(centroids, data, nCentroids, clip_centroids)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
     print('L___ END CACHED AKMEANS')
