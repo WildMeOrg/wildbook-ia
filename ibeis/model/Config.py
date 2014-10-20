@@ -431,6 +431,15 @@ def make_feasible(query_cfg):
         query_cfg.pipeline_root = 'smk'
         smk_cfg.aggregate = True
 
+    assert smk_cfg.nAssign > 0, 'cannot assign to nothing'
+    if smk_cfg.nAssign == 1:
+        # No point to multiassign weights if nAssign is 1
+        smk_cfg.massign_equal_weights = True
+
+    if smk_cfg.massign_equal_weights:
+        # massign sigma makes no difference if there are equal weights
+        smk_cfg.massign_sigma = None
+
     hasvalid_weighting = any([
         smk_cfg.vocab_weighting == x
         for x in smk_cfg._valid_vocab_weighting])

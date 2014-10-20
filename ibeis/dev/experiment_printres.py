@@ -98,7 +98,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
 
     #------------
 
-    @utool.argv_flag_dec
+    @utool.argv_flag_dec_true
     def print_cfgstr():
         print('=====================')
         print('[harn] Config Strings: %s' % testnameid)

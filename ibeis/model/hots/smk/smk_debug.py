@@ -407,27 +407,28 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
     if verbose:
         print('[smk_debug] %d words had no residuals' % len(no_wxs))
         print('[smk_debug] %d words have nans' % len(nan_wxs))
-    failed_wx = []
-    for count, (wx, sx) in enumerate(nan_wxs):
-        rvec = pdh.ensure_values(wx2_rvecs[wx])[sx]
-        idxs = wx2_idxs[wx][sx]
-        dvec = pdh.ensure_values(idx2_vec)[idxs]
-        word = pdh.ensure_values(words)[wx]
-        truth = (word == dvec)
-        if not np.all(truth):
-            failed_wx.append(wx)
+    if not (wx2_rvecs is None or wx2_idxs is None or idx2_vec is None):
+        failed_wx = []
+        for count, (wx, sx) in enumerate(nan_wxs):
+            rvec = pdh.ensure_values(wx2_rvecs[wx])[sx]
+            idxs = wx2_idxs[wx][sx]
+            dvec = pdh.ensure_values(idx2_vec)[idxs]
+            word = pdh.ensure_values(words)[wx]
+            truth = (word == dvec)
+            if not np.all(truth):
+                failed_wx.append(wx)
+                if verbose:
+                    print('+=====================')
+                    print('Bad RVEC #%d' % count)
+                    print('[smk_debug] wx=%r, sx=%r was nan and not equal to its word' % (wx, sx))
+                    print('[smk_debug] rvec=%r ' % (rvec,))
+                    print('[smk_debug] dvec=%r ' % (dvec,))
+                    print('[smk_debug] word=%r ' % (word,))
+                    print('[smk_debug] truth=%r ' % (truth,))
+                flag = False
+        if len(failed_wx) == 0:
             if verbose:
-                print('+=====================')
-                print('Bad RVEC #%d' % count)
-                print('[smk_debug] wx=%r, sx=%r was nan and not equal to its word' % (wx, sx))
-                print('[smk_debug] rvec=%r ' % (rvec,))
-                print('[smk_debug] dvec=%r ' % (dvec,))
-                print('[smk_debug] word=%r ' % (word,))
-                print('[smk_debug] truth=%r ' % (truth,))
-            flag = False
-    if len(failed_wx) == 0:
-        if verbose:
-            print('[smk_debug] all nan rvecs were equal to their words')
+                print('[smk_debug] all nan rvecs were equal to their words')
     return flag
 
 

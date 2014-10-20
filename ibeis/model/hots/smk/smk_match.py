@@ -166,8 +166,7 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
             invindex, wx2_qrvecs, wx2_qfxs, qfx2_vec), 'bad qindex'
         assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
     # Compute match kernel for all database aids
-    kernel_args = (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma,
-                   invindex, qparams, withinfo)
+    kernel_args = (wx2_qrvecs, wx2_maws, wx2_qfxs, query_gamma, invindex, qparams, withinfo)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(*kernel_args)  # 54 %
     # Prevent self matches
     #can_match_self = not utool.get_argflag('--noself')

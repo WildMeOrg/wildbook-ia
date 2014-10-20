@@ -170,6 +170,11 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     if kwargs.get('show_exemplar', True):
         flag_list = ibs.get_annot_exemplar_flag(aid_list)
         texts_list.append(['EX' if flag else '' for flag in flag_list])
+    if kwargs.get('show_num_gt', True):
+        # FIXME: This should be num_groundtruth with respect to the currently
+        # allowed annotations
+        nGt_list = ibs.get_annot_num_groundtruth(aid_list)
+        texts_list.append(['nGt=%r' % nGt for nGt in nGt_list])
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]

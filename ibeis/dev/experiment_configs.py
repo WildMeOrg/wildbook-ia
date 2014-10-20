@@ -62,20 +62,47 @@ smk5 = {
 
 
 smk6 = {
-    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'pipeline_root': ['smk'],
+    #'sv_on':         [False, True],
+    'sv_on':         [True],
+    'nAssign':       [2, 4, 10],
+    'massign_equal_weights': [True, False],
+    #'smk_thresh':    [0.0, 0.001],
+    #'smk_alpha':     [3],
+    #'nWords':        [128000, 64000, 8000],
+    #'nWords':        [128000],
+    'nWords':        [64000, 128000],
+}
+
+
+# when vocab is clipped only self matches will be allowed
+# so set nAssign = 2 at least for this case (PZ_MTEST)
+smk6d = {
+    'pipeline_root': ['smk'],
     #'sv_on':         [False, True],
     'sv_on':         [False],
-    'nAssign':       [4],
+    'nAssign':       [2],
     'massign_equal_weights': [True],
     #'smk_thresh':    [0.0, 0.001],
     #'smk_alpha':     [3],
     #'nWords':        [128000, 64000, 8000],
+    #'nWords':        [128000],
     'nWords':        [128000],
 }
 
 '''
-python dev.py -t smk6 --db PZ_Mothers --allgt  --print-cfgstr
-python dev.py -t smk6 --db GZ_ALL --allgt  --print-cfgstr
+python dev.py -t smk6d --db PZ_Mothers --allgt --index 20:30 --noqcache
+
+python dev.py -t smk6 --db PZ_Mothers --allgt
+python dev.py -t smk6 --db GZ_ALL --allgt
+
+python dev.py --db GZ_ALL --vdd
+python dev.py --db PZ_Mothers --vdd
+
+# GZ_HARDCASE
+python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37
+python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37 --va
 '''
 
 # Things to try:

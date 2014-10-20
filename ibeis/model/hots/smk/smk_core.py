@@ -23,16 +23,20 @@ RVEC_MAX = hstypes.RVEC_MAX
 RVEC_MIN = hstypes.RVEC_MIN
 
 
-def quantize_normvec_to_int8(arr_float):
+def compress_normvec(arr_float):
     """
-    compresses 8 or 4 bytes of information into 1 byte
+    compresses 8 or 4 bytes of information into 1 or 2 bytes
 
-    Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
-    compresses them into 1 byte. Takes advantage of the fact that
-    rarely will a component of a vector be greater than 64, so we can extend the
-    range to double what normally would be allowed. This does mean there is a
-    slight (but hopefully negligable) information loss. It will be negligable
-    when nDims=128, when it is lower, you may want to use a different function.
+    If RVEC_TYPE is int8:
+        Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
+        compresses them into 1 byte. Takes advantage of the fact that
+        rarely will a component of a vector be greater than 64, so we can extend the
+        range to double what normally would be allowed. This does mean there is a
+        slight (but hopefully negligable) information loss. It will be negligable
+        when nDims=128, when it is lower, you may want to use a different function.
+
+    If RVEC_TYPE is float16:
+        just casts to float16
 
     Args:
         arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
@@ -45,7 +49,7 @@ def quantize_normvec_to_int8(arr_float):
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
         >>> normalize_vecs_inplace(arr_float)
-        >>> arr_int8 = quantize_normvec_to_int8(arr_float)
+        >>> arr_int8 = compress_normvec(arr_float)
         >>> print(arr_int8)
         [[ 126   28   70 -128 -128]
          [-128 -128  -26  -18   73]]
@@ -85,7 +89,7 @@ def aggregate_rvecs(rvecs, maws):
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
     normalize_vecs_inplace(arr_float)
-    rvecs_agg = quantize_normvec_to_int8(arr_float)
+    rvecs_agg = compress_normvec(arr_float)
     return rvecs_agg
 
 
@@ -93,9 +97,16 @@ def aggregate_rvecs(rvecs, maws):
 def get_norm_rvecs(vecs, word):
     """
     Example:
+        The case where vecs != words
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
+
+    Example2:
+        The case where vecs == words
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
+        >>> word = vecs[1]
     """
     # Compute residuals of assigned vectors
     #rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
@@ -103,7 +114,8 @@ def get_norm_rvecs(vecs, word):
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
     normalize_vecs_inplace(rvecs_n)
-    rvecs_n = quantize_normvec_to_int8(rvecs_n)
+    # Converts normvec to a smaller type like float16 or int8
+    rvecs_n = compress_normvec(rvecs_n)
     return rvecs_n
 
 
@@ -147,9 +159,9 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
         qrvecs_list = drvecs_list = rvecs_list
     """
     if DEBUG_SMK:
-        assert len(maws_list) == len(rvecs_list)
-        assert len(maws_list) == len(idf_list)
-        assert list(map(len, maws_list)) == list(map(len, rvecs_list))
+        assert maws_list is None or len(maws_list) == len(rvecs_list)
+        assert len(rvecs_list) == len(idf_list)
+        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list))
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
     # List of scores for every word.
     scores_list = smk_internal.score_matches(rvecs_list, rvecs_list,
@@ -165,44 +177,6 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     # Square root inverse
     sccw = np.reciprocal(np.sqrt(total))
     return sccw
-
-
-def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
-                    invindex, qparams):
-    """ Builds up information and does verbosity before going to L0 """
-    wx2_drvecs     = invindex.wx2_drvecs
-    wx2_idf        = invindex.wx2_idf
-    wx2_daid       = invindex.wx2_aids
-    daid2_sccw     = invindex.daid2_sccw
-
-    smk_alpha  = qparams.smk_alpha
-    smk_thresh = qparams.smk_thresh
-
-    # for each word compute the pairwise scores between matches
-    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
-    # Build lists over common word indexes
-    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
-    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
-    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
-    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
-    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
-    dmaws_list  = None
-    if utool.VERBOSE:
-        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
-                                        flushfreq=100, writefreq=25,
-                                        with_totaltime=True)
-    #--------
-    retL0 = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list,
-                             smk_alpha, smk_thresh, idf_list, daids_list,
-                             daid2_sccw, query_sccw)
-    (daid2_totalscore, scores_list, daid_agg_keys,) = retL0
-
-    retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list,
-              daid_agg_keys,)
-    #--------
-    if utool.VERBOSE:
-        end_()
-    return retL1
 
 
 def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
@@ -257,8 +231,50 @@ def accumulate_scores(dscores_list, daids_list):
     return daid_agg_keys, daid_agg_scores
 
 
+def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
+                    invindex, qparams):
+    """ Builds up information and does verbosity before going to L0 """
+    wx2_drvecs     = invindex.wx2_drvecs
+    wx2_idf        = invindex.wx2_idf
+    wx2_daid       = invindex.wx2_aids
+    daid2_sccw     = invindex.daid2_sccw
+
+    smk_alpha  = qparams.smk_alpha
+    smk_thresh = qparams.smk_thresh
+
+    # for each word compute the pairwise scores between matches
+    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
+    # Build lists over common word indexes
+    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
+    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
+    dmaws_list  = None
+    if utool.VERBOSE:
+        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
+                                        flushfreq=100, writefreq=25,
+                                        with_totaltime=True)
+    #--------
+    retL0 = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list,
+                            smk_alpha, smk_thresh, idf_list, daids_list,
+                            daid2_sccw, query_sccw)
+    (daid2_totalscore, scores_list, daid_agg_keys,) = retL0
+    if utool.VERBOSE:
+        print('[smk_core] Matched %d daids. nAssign=%r' %
+              (len(daid2_totalscore.keys()), qparams.nAssign))
+        #print('[smk_core] Matched %d daids' % daid2_totalscore.keys())
+    #utool.embed()
+
+    retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)
+    #--------
+    if utool.VERBOSE:
+        end_()
+    return retL1
+
+
 @profile
-def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
+def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
                     invindex, qparams, withinfo=True):
     """
     Example:
@@ -269,23 +285,19 @@ def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
         >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> withinfo = True  # takes an 11s vs 2s
-        >>> argsL2 = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+        >>> argsL2 = (wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
         >>> smk_debug.rrr()
         >>> smk_debug.invindex_dbgstr(invindex)
         >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(*argsL2)
     """
-    # Pack
-    argsL1 = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, qparams)
     # Call match kernel logic
-    retL1 =  match_kernel_L1(*argsL1)
+    retL1 =  match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, qparams)
     # Unpack
-    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list,
-     daid_agg_keys,)  = retL1
+    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)  = retL1
     if withinfo:
         # Build up chipmatch if requested
         # TODO: Only build for a shortlist
-        daid2_chipmatch = build_daid2_chipmatch3(invindex, common_wxs,
-                                                 wx2_qaids, wx2_qfxs,
+        daid2_chipmatch = build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
                                                  scores_list, daids_list,
                                                  query_sccw)
     else:
@@ -295,7 +307,7 @@ def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw,
 
 
 @profile
-def build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs,
+def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
                            scores_list, daids_list, query_sccw):
     """
     Example:
@@ -306,11 +318,11 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> withinfo = True  # takes an 11s vs 2s
-        >>> args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+        >>> args = (wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
         >>> retL1 =  match_kernel_L1(*args)
         >>> (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)  = retL1
-        >>> daid2_chipmatch_new = build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
-        >>> daid2_chipmatch_old = build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
+        >>> daid2_chipmatch_new = build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
+        >>> daid2_chipmatch_old = build_daid2_chipmatch2(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
         >>> print(utool.is_dicteq(daid2_chipmatch_old[0], daid2_chipmatch_new[0]))
         >>> print(utool.is_dicteq(daid2_chipmatch_old[2], daid2_chipmatch_new[2]))
         >>> print(utool.is_dicteq(daid2_chipmatch_old[1], daid2_chipmatch_new[1]))
@@ -335,8 +347,8 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         This function is still a tiny bit slower than the other one.
         There are probably faster ways to do a few things
 
-        %timeit build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
-        %timeit build_daid2_chipmatch3(invindex, common_wxs, wx2_qaids, wx2_qfxs, scores_list, daids_list, query_sccw)
+        %timeit build_daid2_chipmatch2(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
+        %timeit build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
     """
     daid2_sccw = invindex.daid2_sccw
     wx2_dfxs = invindex.wx2_fxs
