@@ -316,6 +316,7 @@ class SMKConfig(ConfigBase):
         smkcfg.massign_equal_weights = True
         smkcfg.massign_alpha = 1.2
         smkcfg.massign_sigma = 80.0
+        smkcfg.allow_self_match = False
 
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = [
@@ -331,6 +332,7 @@ class SMKConfig(ConfigBase):
             ',a=', str(smkcfg.massign_alpha),
             ',s=', str(smkcfg.massign_sigma),
             ',eqw=T' if smkcfg.massign_equal_weights else ',eqw=F',
+            ',SelfOk' if smkcfg.allow_self_match else '',
             ')',
         ]
         return smk_cfgstr

@@ -18,48 +18,53 @@ from ibeis.model.hots.smk import smk_internal
 
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
-RVEC_TYPE = hstypes.RVEC_TYPE
-RVEC_MAX = hstypes.RVEC_MAX
-RVEC_MIN = hstypes.RVEC_MIN
 
+if hstypes.RVEC_TYPE == np.float16:
+    def compress_normvec_float16(arr_float):
+        """
+        compresses 8 or 4 bytes of information into 2 bytes
+        Assumes RVEC_TYPE is float16
+        """
+        return arr_float.astype(hstypes.RVEC_TYPE)
+    compress_normvec = compress_normvec_float16
+elif hstypes.RVEC_TYPE == np.int8:
+    def compress_normvec_uint8(arr_float):
+        """
+        compresses 8 or 4 bytes of information into 1 byte
+        Assumes RVEC_TYPE is int8
 
-def compress_normvec(arr_float):
-    """
-    compresses 8 or 4 bytes of information into 1 or 2 bytes
+            Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
+            compresses them into 1 byte. Takes advantage of the fact that
+            rarely will a component of a vector be greater than 64, so we can extend the
+            range to double what normally would be allowed. This does mean there is a
+            slight (but hopefully negligable) information loss. It will be negligable
+            when nDims=128, when it is lower, you may want to use a different function.
 
-    If RVEC_TYPE is int8:
-        Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
-        compresses them into 1 byte. Takes advantage of the fact that
-        rarely will a component of a vector be greater than 64, so we can extend the
-        range to double what normally would be allowed. This does mean there is a
-        slight (but hopefully negligable) information loss. It will be negligable
-        when nDims=128, when it is lower, you may want to use a different function.
+        Args:
+            arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
+        Returns:
+            (ndarray): residual vector of type int8 in range -128 to 128
 
-    If RVEC_TYPE is float16:
-        just casts to float16
-
-    Args:
-        arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
-    Returns:
-        (ndarray): residual vector of type int8 in range -128 to 128
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> np.random.seed(0)
-        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-        >>> normalize_vecs_inplace(arr_float)
-        >>> arr_int8 = compress_normvec(arr_float)
-        >>> print(arr_int8)
-        [[ 126   28   70 -128 -128]
-         [-128 -128  -26  -18   73]]
-    """
-    # Trick / hack: use 2 * max (psuedo_max), and clip because most components
-    # will be less than 2 * max. This will reduce quantization error
-    #return np.clip((arr_float * (hstypes.RVEC_PSEUDO_MAX)),
-    #               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
-    return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),
-                   hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
+        Example:
+            >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+            >>> from ibeis.model.hots.smk import smk_debug
+            >>> np.random.seed(0)
+            >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
+            >>> normalize_vecs_inplace(arr_float)
+            >>> arr_int8 = compress_normvec(arr_float)
+            >>> print(arr_int8)
+            [[ 126   28   70 -128 -128]
+             [-128 -128  -26  -18   73]]
+        """
+        # Trick / hack: use 2 * max (psuedo_max), and clip because most components
+        # will be less than 2 * max. This will reduce quantization error
+        #return np.clip((arr_float * (hstypes.RVEC_PSEUDO_MAX)),
+        #               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
+        return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),
+                       hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
+    compress_normvec = compress_normvec_uint8
+else:
+    raise AssertionError('unsupported RVEC_TYPE = %r' % hstypes.RVEC_TYPE)
 
 
 #@profile
@@ -110,12 +115,12 @@ def get_norm_rvecs(vecs, word):
     """
     # Compute residuals of assigned vectors
     #rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
-    rvecs_n = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
+    arr_float = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
-    normalize_vecs_inplace(rvecs_n)
+    normalize_vecs_inplace(arr_float)
     # Converts normvec to a smaller type like float16 or int8
-    rvecs_n = compress_normvec(rvecs_n)
+    rvecs_n = compress_normvec(arr_float)
     return rvecs_n
 
 
@@ -260,16 +265,15 @@ def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
                             smk_alpha, smk_thresh, idf_list, daids_list,
                             daid2_sccw, query_sccw)
     (daid2_totalscore, scores_list, daid_agg_keys,) = retL0
-    if utool.VERBOSE:
-        print('[smk_core] Matched %d daids. nAssign=%r' %
-              (len(daid2_totalscore.keys()), qparams.nAssign))
-        #print('[smk_core] Matched %d daids' % daid2_totalscore.keys())
+    #print('[smk_core] Matched %d daids' % daid2_totalscore.keys())
     #utool.embed()
 
     retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)
     #--------
     if utool.VERBOSE:
         end_()
+        print('[smk_core] Matched %d daids. nAssign=%r' %
+              (len(daid2_totalscore.keys()), qparams.nAssign))
     return retL1
 
 
@@ -350,6 +354,8 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
         %timeit build_daid2_chipmatch2(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
         %timeit build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
     """
+    if utool.VERBOSE:
+        print(' +--- START BUILD CHIPMATCH3')
     daid2_sccw = invindex.daid2_sccw
     wx2_dfxs = invindex.wx2_fxs
     # For each word the query feature indexes mapped to it
@@ -367,6 +373,7 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
         for scores, qfxs, dfxs, daids in zip(sparse_list, qfxs_list, dfxs_list, daids_list):
             assert scores.shape == (len(qfxs), len(dfxs)), 'indicies do not correspond'
             assert len(daids) == len(dfxs), 'data indicies do not corresond'
+        print('[smk_core] checked build_chipmatch input ...ok')
 
     # 47ms
     nest_ret = build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list)
@@ -378,6 +385,8 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
 
     # 3.61ms
     daid2_chipmatch = group_correspondences(all_matches, all_scores, all_daids, daid2_sccw)
+    if utool.VERBOSE:
+        print(' L___ END BUILD CHIPMATCH3')
 
     return daid2_chipmatch
 
@@ -452,16 +461,19 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     ]
 
     if DEBUG_SMK:
-        assert len(fm_nestlist) == len(fs_nestlist)
-        assert len(fm_nestlist) == len(nFm_list)
-        assert len(daid_nestlist) == len(fs_nestlist)
-        print(utool.list_str(nFm_list[2:15]))
-        print(utool.list_str(fm_nestlist[2:15]))
-        print(utool.list_str(fs_nestlist[2:15]))
-        print(utool.list_str(daid_nestlist[2:15]))
+        assert len(fm_nestlist) == len(fs_nestlist), 'inconsistent len'
+        assert len(fm_nestlist) == len(nFm_list), 'inconsistent len'
+        assert len(daid_nestlist) == len(fs_nestlist), 'inconsistent len'
+        min_ = min(2, len(nFm_list))
+        max_ = min(15, len(nFm_list))
+        print('nFm_list[_min:_max]      = ' + utool.list_str(nFm_list[min_:max_]))
+        print('fm_nestlist[_min:_max]   = ' + utool.list_str(fm_nestlist[min_:max_]))
+        print('fs_nestlist[_min:_max]   = ' + utool.list_str(fs_nestlist[min_:max_]))
+        print('daid_nestlist[_min:_max] = ' + utool.list_str(daid_nestlist[min_:max_]))
         for fm_, fs_, daid_ in zip(fm_nestlist, fs_nestlist, daid_nestlist):
-            assert len(fm_) == len(fs_)
-            assert len(fm_) == len(daid_)
+            assert len(fm_) == len(fs_), 'inconsistent len'
+            assert len(fm_) == len(daid_), 'inconsistent len'
+        print('[smk_core] checked build_chipmatch correspondence ...ok')
     return fm_nestlist, fs_nestlist, daid_nestlist
 
 
@@ -487,8 +499,10 @@ def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw)
     all_matches = np.fromiter(iflat_(iflat_(fm_nestlist)), FM_DTYPE, 2 * count)
     all_matches.shape = (all_matches.size / 2, 2)
 
-    assert len(all_daids) == len(all_scores)
-    assert len(all_matches) == len(all_scores)
+    if utool.DEBUG2:
+        assert len(all_daids) == len(all_scores), 'inconsistent len'
+        assert len(all_matches) == len(all_scores), 'inconsistent len'
+        print('[smk_core] checked build_chipmatch flatten ...ok')
 
     return all_matches, all_scores, all_daids
 

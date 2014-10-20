@@ -732,23 +732,37 @@ def dictinfo(dict_):
 
     if len(val_types) == 1:
         if val_types[0] == np.ndarray:
+            # each key holds an ndarray
             val_shape_stats = utool.get_stats(set(map(np.shape, vals)), axis=0)
             val_shape_stats_str = utool.dict_str(val_shape_stats, strvals=True, newlines=False)
-            val_dtypes = set([val.dtype for val in vals])
+            val_dtypes = list(set([val.dtype for val in vals]))
             fmtstr_ += utool.unindent('''
             * val_shape_stats = {val_shape_stats_str}
             * val_dtypes = {val_dtypes}
             '''.strip('\n'))
         elif val_types[0] == list:
+            # each key holds a list
             val_len_stats =  utool.get_stats(set(map(len, vals)))
             val_len_stats_str = utool.dict_str(val_len_stats, strvals=True, newlines=False)
             depth = utool.list_depth(vals)
-            val_types = set(utool.list_deep_types(vals))
+            deep_val_types = list(set(utool.list_deep_types(vals)))
             fmtstr_ += utool.unindent('''
             * list_depth = {depth}
             * val_len_stats = {val_len_stats_str}
-            * deep_types = {val_types}
+            * deep_types = {deep_val_types}
             '''.strip('\n'))
+            if len(deep_val_types) == 1:
+                if deep_val_types[0] == np.ndarray:
+                    deep_val_dtypes = list(set([val.dtype for val in vals]))
+                    fmtstr_ += utool.unindent('''
+                    * deep_val_dtypes = {deep_val_dtypes}
+                    ''').strip('\n')
+        elif val_types[0] in [np.uint8, np.int8, np.int32, np.int64, np.float16, np.float32, np.float64]:
+            # each key holds a scalar
+            val_stats = utool.get_stats(vals)
+            fmtstr_ += utool.unindent('''
+            * val_stats = {val_stats}
+            ''').strip('\n')
 
     fmtstr = fmtstr_.format(**locals())
     return utool.indent(fmtstr)

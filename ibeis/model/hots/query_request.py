@@ -309,6 +309,7 @@ class QueryParams(object):
             massign_alpha  = cfg.smk_cfg.massign_alpha
             massign_sigma  = cfg.smk_cfg.massign_sigma
             massign_equal_weights = cfg.smk_cfg.massign_equal_weights
+            allow_self_match = cfg.smk_cfg.allow_self_match
         K                  = cfg.nn_cfg.K
         Knorm              = cfg.nn_cfg.Knorm
         checks             = cfg.nn_cfg.checks

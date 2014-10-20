@@ -169,7 +169,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('--- /Print Hardcase ---')
     print_hardcase()
 
-    @utool.argv_flag_dec
+    @utool.argv_flag_dec_true
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)

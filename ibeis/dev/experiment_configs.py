@@ -79,19 +79,22 @@ smk6 = {
 # when vocab is clipped only self matches will be allowed
 # so set nAssign = 2 at least for this case (PZ_MTEST)
 smk6d = {
+    #'pipeline_root': ['smk', 'asmk', 'vsmany'],
     'pipeline_root': ['smk'],
     #'sv_on':         [False, True],
-    'sv_on':         [False],
-    'nAssign':       [2],
+    'sv_on':         [True, False],
+    'nAssign':       [10],
     'massign_equal_weights': [True],
     #'smk_thresh':    [0.0, 0.001],
     #'smk_alpha':     [3],
     #'nWords':        [128000, 64000, 8000],
     #'nWords':        [128000],
-    'nWords':        [128000],
+    #'nWords':        [64000, 128000],
+    'allow_self_match': [False, True],
 }
 
 '''
+TESTING COMMANDS:
 python dev.py -t smk6d --db PZ_Mothers --allgt --index 20:30 --noqcache
 
 python dev.py -t smk6 --db PZ_Mothers --allgt
@@ -103,6 +106,25 @@ python dev.py --db PZ_Mothers --vdd
 # GZ_HARDCASE
 python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37
 python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37 --va
+
+python dev.py -t smk6d --db GZ_ALL --allgt --index 2 12 --verbose --noqcache --debug2
+python dev.py -t smk6d --db GZ_ALL --allgt --index 2 12 --va
+
+python dev.py -t smk6d --db GZ_ALL --allgt --index 2 --verbose --noqcache --debug2
+'''
+
+'''
+COMPUTE RESULTS COMMANDS:
+
+python dev.py -t smk6 --db PZ_Mothers --allgt
+python dev.py -t smk6 --db GZ_ALL --allgt
+'''
+
+'''
+VIEW RESULTS COMMANDS:
+
+python dev.py -t smk6 --db PZ_Mothers --allgt --va --vf
+python dev.py -t smk6 --db GZ_ALL --allgt --va --vf
 '''
 
 # Things to try:

@@ -526,12 +526,11 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
         >>> _dbargs = wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
         >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
-    if not utool.QUIET:
-        print('[smk_index] assign_to_words_. len(idx2_vec) = %r' % len(idx2_vec))
     if utool.VERBOSE:
-        print('[smk_index] * nAssign=%r' % nAssign)
-        print('[smk_index] * sigma=%r' % massign_sigma)
-        print('[smk_index] * smk_alpha=%r' % massign_alpha)
+        print('[smk_index.assign] +--- Start Assign vecs to words.')
+        print('[smk_index.assign] * nAssign=%r' % nAssign)
+    if not utool.QUIET:
+        print('[smk_index.assign] assign_to_words_. len(idx2_vec) = %r' % len(idx2_vec))
     # Assign each vector to the nearest visual words
     assert nAssign > 0, 'cannot assign to 0 neighbors'
     _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, nAssign)
@@ -552,7 +551,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
     wx2_idxs = dict(zip(wx_keys, idxs_list))
     wx2_maws = dict(zip(wx_keys, maws_list))
     if utool.VERBOSE:
-        print('[smk_index] L___ End Assign vecs to words.')
+        print('[smk_index.assign] L___ End Assign vecs to words.')
 
     return wx2_idxs, wx2_maws, idx2_wxs
 
@@ -585,7 +584,7 @@ def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
         print(argdoc)
     """
     if not utool.QUIET:
-        print('[smk_index] compute_multiassign_weights_')
+        print('[smk_index.assign] compute_multiassign_weights_')
     # Valid word assignments are beyond fraction of distance to the nearest word
     massign_thresh = _idx2_wdist.T[0:1].T.copy()
     # HACK: If the nearest word has distance 0 then this threshold is too hard
@@ -598,10 +597,10 @@ def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
     invalid = np.greater_equal(_idx2_wdist, massign_thresh)
     if utool.VERBOSE:
         _ = (invalid.size - invalid.sum(), invalid.size)
-        print('[smk_index] + massign_alpha = %r' % (massign_alpha,))
-        print('[smk_index] + massign_sigma = %r' % (massign_sigma,))
-        print('[smk_index] + massign_equal_weights = %r' % (massign_equal_weights,))
-        print('[smk_index] * Marked %d/%d assignments as invalid' % _)
+        print('[smk_index.assign] + massign_alpha = %r' % (massign_alpha,))
+        print('[smk_index.assign] + massign_sigma = %r' % (massign_sigma,))
+        print('[smk_index.assign] + massign_equal_weights = %r' % (massign_equal_weights,))
+        print('[smk_index.assign] * Marked %d/%d assignments as invalid' % _)
 
     if massign_equal_weights:
         # Performance hack from jegou paper: just give everyone equal weight
@@ -682,9 +681,9 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
 
     """
     if not utool.QUIET:
-        print('[smk_index] +--- Start Compute IDF')
+        print('[smk_index.idf] +--- Start Compute IDF')
     if utool.VERBOSE or verbose:
-        mark, end_ = utool.log_progress('[smk_index] Word IDFs: ',
+        mark, end_ = utool.log_progress('[smk_index.idf] Word IDFs: ',
                                         len(wx_series), flushfreq=500,
                                         writefreq=50, with_totaltime=WITH_TOTALTIME)
 
@@ -700,7 +699,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
         raise AssertionError('unknown option vocab_weighting=%r' % vocab_weighting)
     if utool.VERBOSE or verbose:
         end_()
-        print('[smk_index] L___ End Compute IDF')
+        print('[smk_index.idf] L___ End Compute IDF')
     wx2_idf = dict(zip(wx_series, idf_list))
     return wx2_idf
 
@@ -927,7 +926,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
 
     """
     if not utool.QUIET:
-        print('[smk_index] +--- Start Compute Residuals')
+        print('[smk_index.rvec] +--- Start Compute Residuals')
 
     wx_sublist = np.array(wx2_idxs.keys())  # pdh.ensure_index(wx2_idxs)
     # Build lists w.r.t. words
@@ -941,11 +940,13 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         assert idx2_vec.shape[0] == idx2_aid.shape[0]
     # Prealloc output
     if utool.VERBOSE or verbose:
-        #print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
+        #print('[smk_index.rvec] Residual Vectors for %d words. aggregate=%r' %
         #      (len(wx2_idxs), aggregate,))
-        mark, end_ = utool.log_progress('[smk_index] Residual Vectors aggregate=%r' % aggregate,
-                                        len(wx2_idxs), flushfreq=500,
-                                        writefreq=50, with_totaltime=WITH_TOTALTIME)
+        lbl = '[smk_index.rvec] agg rvecs' if aggregate else '[smk_index.rvec] nonagg rvecs'
+
+        mark, end_ = utool.log_progress(lbl, len(wx2_idxs), flushfreq=500,
+                                        writefreq=50,
+                                        with_totaltime=WITH_TOTALTIME)
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
         smk_debug.check_wx2_idxs(wx2_idxs, len(words))
@@ -968,7 +969,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         smk_debug.check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
     if utool.VERBOSE or verbose:
         end_()
-        print('[smk_index] L___ End Compute Residuals')
+        print('[smk_index.rvec] L___ End Compute Residuals')
     return wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws
 
 
@@ -1044,11 +1045,11 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws,
 
     wx_sublist = np.array(wx2_rvecs.keys())
     if not utool.QUIET:
-        print('\n[smk_index] +--- Start Compute Data Self Consistency Weight')
+        print('\n[smk_index.sccw] +--- Start Compute Data Self Consistency Weight')
     if utool.VERBOSE or verbose:
-        print('[smk_index] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
+        print('[smk_index.sccw] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
         mark1, end1_ = utool.log_progress(
-            '[smk_index] SCCW group (by present words): ', len(wx_sublist),
+            '[smk_index.sccw] SCCW group (by present words): ', len(wx_sublist),
             flushfreq=100, writefreq=50, with_totaltime=WITH_TOTALTIME)
     # Get list of aids and rvecs w.r.t. words
     aids_list   = [wx2_aids[wx] for wx in wx_sublist]
@@ -1067,7 +1068,7 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws,
     # Summation over words for each aid
     if utool.VERBOSE or verbose:
         mark2, end2_ = utool.log_progress(
-            '[smk_index] SCCW Sum (over daid): ', len(daid2_wx2_drvecs),
+            '[smk_index.sccw] SCCW Sum (over daid): ', len(daid2_wx2_drvecs),
             flushfreq=100, writefreq=25, with_totaltime=WITH_TOTALTIME)
     # Get lists w.r.t daids
     aid_list = list(daid2_wx2_drvecs.keys())
@@ -1088,6 +1089,6 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws,
     daid2_sccw = dict(zip(aid_list, sccw_list))
     if utool.VERBOSE or verbose:
         end2_()
-        print('[smk_index] L___ End Compute Data SCCW\n')
+        print('[smk_index.sccw] L___ End Compute Data SCCW\n')
 
     return daid2_sccw

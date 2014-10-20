@@ -78,6 +78,11 @@ def execute_smk_L5(qreq_):
     memtrack.report('[SMK QREQ INITIALIZED]')
     print('[SMK_MEM] invindex is using ' + utool.get_object_size_str(invindex))
     print('[SMK_MEM] qreq_ is using ' + utool.get_object_size_str(qreq_))
+
+    if utool.DEBUG2:
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.invindex_dbgstr(invindex)
+
     qaid2_scores, qaid2_chipmatch = execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo)
     memtrack.report('[SMK QREQ FINISHED]')
     return qaid2_scores, qaid2_chipmatch
@@ -161,7 +166,6 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
     if DEBUG_SMK:
         from ibeis.model.hots.smk import smk_debug
         qfx2_vec = annots_df['vecs'][qaid]
-        smk_debug.invindex_dbgstr(invindex)
         assert smk_debug.check_wx2_rvecs2(
             invindex, wx2_qrvecs, wx2_qfxs, qfx2_vec), 'bad qindex'
         assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
@@ -170,8 +174,9 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(*kernel_args)  # 54 %
     # Prevent self matches
     #can_match_self = not utool.get_argflag('--noself')
-    can_match_self = utool.get_argflag('--self-match')
-    if (not can_match_self) and qaid in daid2_totalscore:
+    allow_self_match = qparams.allow_self_match
+    #utool.get_argflag('--self-match')
+    if (not allow_self_match) and qaid in daid2_totalscore:
         # If we cannot do self-matches
         daid2_totalscore[qaid] = 0
         daid2_chipmatch[0][qaid] = np.empty((0, 2), dtype=np.int32)
