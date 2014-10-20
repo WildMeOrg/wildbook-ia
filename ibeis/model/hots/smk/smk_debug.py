@@ -1011,13 +1011,20 @@ def get_test_rvecs(num=1000, dim=None, nanrows=None):
     rvecs_float = np.random.normal(size=(num, dim))
     rvecs = ((dtype_range * rvecs_float) - hstypes.RVEC_MIN).astype(dtype)
     if nanrows is not None:
-        rvecs[rvecs] = np.nan
+        rvecs[nanrows] = np.nan
 
     """
     dtype = np.int8
     max_ = 128
     min_ = -128
     nanrows = 1
+
+    import numpy.ma as ma
+    if dtype not in [np.float16, np.float32, np.float64]:
+        rvecs.view(ma.MaskedArray)
+
+
+    np.ma.array([1,2,3,4,5], dtype=int)
 
     """
     return rvecs

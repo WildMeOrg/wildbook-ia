@@ -62,8 +62,8 @@ smk5 = {
 
 
 smk6 = {
-    #'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'pipeline_root': ['smk'],
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk'],
     #'sv_on':         [False, True],
     'sv_on':         [True],
     'nAssign':       [2, 4, 10],
@@ -91,6 +91,19 @@ smk6d = {
     #'nWords':        [128000],
     #'nWords':        [64000, 128000],
     'allow_self_match': [False, True],
+}
+
+
+smk6_overnight = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk'],
+    'sv_on':         [False, True],
+    'nAssign':       [2, 4, 10],
+    'massign_equal_weights': [True, False],
+    'smk_thresh':    [0.0, 0.001],
+    #'smk_alpha':     [3],
+    'nWords':        [128000, 64000, 8000],
+    #'nWords':        [128000],
 }
 
 '''
@@ -124,6 +137,13 @@ python dev.py -t smk6 --db GZ_ALL --allgt
 VIEW RESULTS COMMANDS:
 
 python dev.py -t smk6 --db PZ_Mothers --allgt --va --vf
+python dev.py -t smk6 --db GZ_ALL --allgt --va --vf
+'''
+
+'''
+HARD CASES COMMANDS:
+
+python dev.py -t smk6 --db PZ_Mothers --allgt --va --vf --index 2 3 4 5 6 7 8 10 13 14 15 16 17 18 19 20 21 24 25 28 31 32 34 36 37 38 39 40 43 44 45 46 47 48 49 50 51 52 53 55 56 58 59 60 63 64 65 66 69 70 73 74 76 77 78 80 81 82 83 86 88 90 91 93 94 95 96 97 98 99 101 103 104
 python dev.py -t smk6 --db GZ_ALL --allgt --va --vf
 '''
 

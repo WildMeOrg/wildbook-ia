@@ -19,7 +19,7 @@ def test_name_consistency(ibs):
     """
     Example:
         >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master')  #doctest: +ELLIPSIS
+        >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
         >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
 
     """
@@ -55,7 +55,8 @@ def get_dbinfo(ibs, verbose=True):
     >>> import ibeis
     >>> verbose = True
     >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
-    >>> ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
+    >>> #ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
+    >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
     >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
     >>> print(utool.dict_str(output))
     >>> print(output['info_str'])
@@ -203,6 +204,10 @@ def get_dbinfo(ibs, verbose=True):
     except Exception as ex:
         utool.printex(ex)
 
+    # Get contributor statistics
+    contrib_rowids = ibs.get_valid_contrib_rowids()
+    num_contributors = len(contrib_rowids)
+
     # print
     num_tabs = 5
     info_str = '\n'.join([
@@ -212,6 +217,7 @@ def get_dbinfo(ibs, verbose=True):
         (' --' * num_tabs),
         (' DB Info:  ' + ibs.get_dbname()),
         (' DB Notes: ' + ibs.get_dbnotes()),
+        (' DB NumContrib: %d' % num_contributors),
         (' DB Bytes: '),
         ('      +- dbdir nBytes:         ' + dbdir_space),
         ('      |  +- _ibsdb nBytes:     ' + ibsdir_space),
