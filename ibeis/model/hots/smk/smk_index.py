@@ -37,21 +37,25 @@ class InvertedIndex(object):
     (mapping from words to database aids and fxs_list)
 
     Attributes:
-        idx2_dvec    (ndarray): stacked index -> descriptor vector (currently sift)
-        idx2_daid    (ndarray): stacked index -> annot id
-        idx2_dfx     (ndarray): stacked index -> feature index (wrt daid)
-        idx2_fweight (ndarray): stacked index -> feature weight
-        words        (ndarray): visual word centroids
+        idx2_dvec    (ndarray[S x DIM]): stacked index -> descriptor vector (currently sift)
+        idx2_daid    (ndarray[S x 1]): stacked index -> annot id
+        idx2_dfx     (ndarray[S x 1]): stacked index -> feature index (wrt daid)
+        idx2_fweight (ndarray[S x 1]): stacked index -> feature weight
+
+        words        (ndarray[C x DIM]): visual word centroids
         wordflann    (FLANN): FLANN search structure
-        wx2_idxs     (ndarray): word index -> stacked indexes
-        wx2_aids     (ndarray): word index -> aggregate aids
-        wx2_fxs      (ndarray): word index -> aggregate feature indexes
-        wx2_maws     (ndarray): word index -> multi-assign weights
-        wx2_drvecs   (ndarray): word index -> residual vectors
-        wx2_idf      (ndarray): word index -> idf (wx normalizer)
+
+        wx2_idxs     (dict of lists of ndarrays): word index -> stacked indexes
+        wx2_fxs      (dict of lists of ndarrays): word index -> aggregate feature indexes
+        wx2_aids     (dict of ndarrays[N_c x 1]): word index -> aggregate aids
+
+        wx2_drvecs   (dict of ndarrays[N_c x DIM]): word index -> residual vectors
+        wx2_idf      (dict of ndarrays[N_c x 1]): word index -> idf (wx normalizer)
+        wx2_maws     (dict of ndarrays[N_c x 1]): word index -> multi-assign weights
+
         daids        (ndarray): indexed annotation ids
-        daid2_sccw   (ndarray): daid -> sccw (daid self-consistency weight)
-        daid2_label  (ndarray): daid -> label (name, view)
+        daid2_sccw   (dict of floats): daid -> sccw (daid self-consistency weight)
+        daid2_label  (dict of tuples): daid -> label (name, view)
 
     """
     def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx,
@@ -91,13 +95,13 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     Gets query read for computations
 
     Args:
-        annots_df ():
-        qaid ():
-        invindex ():
-        qparams ():
+        annots_df (DataFrameProxy): pandas-like data interface
+        qaid (int): query annotation id
+        invindex (InvertedIndex): inverted index object
+        qparams (QueryParams): query parameters object
 
     Returns:
-        qindex
+        qindex: named tuple containing query information
 
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -185,7 +189,7 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
         words ():
         qparams ():
         with_internals ():
-        memtrack ():
+        memtrack (): memory debugging object
 
     Returns:
         invindex
@@ -483,12 +487,15 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()
         >>> words  = invindex.words
         >>> wordflann = invindex.wordflann
         >>> idx2_vec  = invindex.idx2_dvec
-        >>> nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-        >>> _dbargs = (wordflann, words, idx2_vec,  nAssign)
+        >>> nAssign = qreq_.qparams.nAssign
+        >>> massign_alpha = qreq_.qparams.massign_alpha
+        >>> massign_sigma = qreq_.qparams.massign_sigma
+        >>> massign_equal_weights = qreq_.qparams.massign_equal_weights
+        >>> _dbargs = wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
         >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
     if not utool.QUIET:
@@ -634,16 +641,9 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
         mark, end_ = utool.log_progress('[smk_index] Word IDFs: ',
                                         len(wx_series), flushfreq=500,
                                         writefreq=50, with_totaltime=WITH_TOTALTIME)
-    # idxs for each word
-    idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
-                 if wx in wx2_idxs
-                 else np.empty(0, dtype=INDEX_TYPE)
-                 for wx in wx_series]
-    # aids for each word
-    aids_list = [idx2_aid.take(idxs)
-                 if len(idxs) > 0
-                 else np.empty(0, dtype=INDEX_TYPE)
-                 for idxs in idxs_list]
+
+    idxs_list, aids_list = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
+
     # TODO: Integrate different idf measures
     if vocab_weighting == 'idf':
         idf_list = compute_idf_orig(aids_list, daids)
@@ -657,6 +657,21 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
         print('[smk_index] L___ End Compute IDF')
     wx2_idf = dict(zip(wx_series, idf_list))
     return wx2_idf
+
+
+def helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series):
+    """ helper function """
+    # idxs for each word
+    idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
+                 if wx in wx2_idxs
+                 else np.empty(0, dtype=INDEX_TYPE)
+                 for wx in wx_series]
+    # aids for each word
+    aids_list = [idx2_aid.take(idxs)
+                 if len(idxs) > 0
+                 else np.empty(0, dtype=INDEX_TYPE)
+                 for idxs in idxs_list]
+    return idxs_list, aids_list
 
 
 def compute_idf_orig(aids_list, daids):
@@ -685,6 +700,17 @@ def compute_negentropy_names(aids_list, daid2_label):
     Returns:
         negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy
 
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+        >>> wx_series = np.arange(len(invindex.words))
+        >>> idx2_aid = invindex.idx2_daid
+        >>> daid2_label = invindex.daid2_label
+        >>> _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
+        >>> idxs_list, aids_list = _
+
     Math::
         p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)
 
@@ -704,7 +730,6 @@ def compute_negentropy_names(aids_list, daid2_label):
         python dev.py -t smk5 --allgt --db GZ_ALL
 
     Auto:
-        from ibeis.model.hots.smk import smk_index
         python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
     """
     nWords = len(aids_list)
@@ -777,15 +802,8 @@ def compute_idf_label1(aids_list, daid2_label):
     >>> wx_series = np.arange(len(invindex.words))
     >>> idx2_aid = invindex.idx2_daid
     >>> daid2_label = invindex.daid2_label
-    >>> idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
-    >>>              if wx in wx2_idxs
-    >>>              else np.empty(0, dtype=INDEX_TYPE)
-    >>>              for wx in wx_series]
-    >>> # aids for each word
-    >>> aids_list = [idx2_aid.take(idxs)
-    >>>              if len(idxs) > 0
-    >>>              else np.empty(0, dtype=INDEX_TYPE)
-    >>>              for idxs in idxs_list]
+    >>> _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
+    >>> idxs_list, aids_list = _
     >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     """
     nWords = len(aids_list)

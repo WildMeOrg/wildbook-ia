@@ -7,6 +7,140 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 
 exclude_vars = vars().keys()   # this line is before tests
 
+smk_test2 = {
+    'pipeline_root': ['smk', 'asmk'],
+    'sv_on':         [True],  # True, False],
+}
+
+asmk = {
+    'pipeline_root': ['asmk'],
+    'sv_on':         [False],  # True, False],
+}
+
+smk = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [False],  # True, False],
+}
+
+smk0 = {
+    'pipeline_root': ['asmk'],
+    'sv_on':         [False],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+smk1 = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [False],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+smk2 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [False, True],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+smkd = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [False, True],  # True, False],
+    'nWords':        [8000],  # True, False],
+}
+
+smk3 = {
+    'pipeline_root': ['smk', 'asmk'],
+    #'smk_thresh':    [0.0, 0.001],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+smk5 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [False, True],
+    'smk_thresh':    [0.0, 0.001],
+    'smk_alpha':     [3],
+    'nWords':        [128000, 64000, 8000],
+}
+
+
+smk6 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'sv_on':         [False, True],
+    'sv_on':         [False],
+    'nAssign':       [4],
+    'massign_equal_weights': [True],
+    #'smk_thresh':    [0.0, 0.001],
+    #'smk_alpha':     [3],
+    #'nWords':        [128000, 64000, 8000],
+    'nWords':        [128000],
+}
+
+'''
+python dev.py -t smk6 --db PZ_Mothers --allgt  --print-cfgstr
+python dev.py -t smk6 --db GZ_ALL --allgt  --print-cfgstr
+'''
+
+# Things to try:
+# * negentropy
+# * lower nAssign
+# * more nWords
+# * no multi assign weights
+# * no cliphack
+# * float32 rvecs
+# Things to fix:
+# * batched queries (possibly intermintent reporting)
+
+smk_test = {
+    'pipeline_root': ['vsmany', 'smk', 'asmk'],
+    'sv_on':         [False],  # True, False],
+    'smk_thresh':    [.001],
+    'smk_alpha':     [3],
+    'massign_alpha': [1.2],
+    'massign_sigma': [80.0],
+    'nAssign':       [4],
+    'nWords':        [64000],  # True, False],
+    'massign_equal_weights': [True],
+    'vocab_weighting': ['idf', 'negentropy'],  # 'idf'
+}
+
+smk_best = {
+    'pipeline_root': ['smk'],
+    'sv_on':         [True],
+    'smk_thresh':    [0.0],
+    'smk_alpha':     [3],
+    'vocab_weighting': ['idf'],
+    'nAssign': [10],
+}
+
+smk_8k = smk_best.copy()
+smk_8k.update({
+    'nWords':        [8000],
+})
+
+smk_64k = smk_best.copy()
+smk_64k.update({
+    'nWords':        [64000],
+})
+
+smk_128k = smk_best.copy()
+smk_128k.update({
+    'nWords':        [128000],
+})
+
+
+# ---
+# Older SMK Tests
+# ---
+
+
+smk_8k_compare = smk_8k.copy()
+smk_8k_compare.update({
+    'pipeline_root': ['smk', 'asmk',  'vsmany'],
+})
+
+# --- -------------------------------
+# Vsmany - vsone tests
+# ---
+
+
 vsmany_2 = {
     'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
@@ -116,123 +250,6 @@ vsmany_best = {
     'chip_sqrt_area':  [450],
 }
 best = vsmany_best
-
-smk_test2 = {
-    'pipeline_root': ['smk', 'asmk'],
-    'sv_on':         [True],  # True, False],
-}
-
-asmk = {
-    'pipeline_root': ['asmk'],
-    'sv_on':         [False],  # True, False],
-}
-
-smk = {
-    'pipeline_root': ['smk'],
-    'sv_on':         [False],  # True, False],
-}
-
-smk0 = {
-    'pipeline_root': ['asmk'],
-    'sv_on':         [False],  # True, False],
-    'nWords':        [64000],  # True, False],
-}
-
-smk1 = {
-    'pipeline_root': ['smk'],
-    'sv_on':         [False],  # True, False],
-    'nWords':        [64000],  # True, False],
-}
-
-smk2 = {
-    'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'sv_on':         [False, True],  # True, False],
-    'nWords':        [64000],  # True, False],
-}
-
-smkd = {
-    'pipeline_root': ['smk'],
-    'sv_on':         [False, True],  # True, False],
-    'nWords':        [8000],  # True, False],
-}
-
-smk3 = {
-    'pipeline_root': ['smk', 'asmk'],
-    #'smk_thresh':    [0.0, 0.001],  # True, False],
-    'nWords':        [64000],  # True, False],
-}
-
-smk5 = {
-    'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'sv_on':         [False, True],
-    'smk_thresh':    [0.0, 0.001],
-    'smk_alpha':     [3],
-    'nWords':        [128000, 64000, 8000],
-}
-
-# Things to try:
-# * negentropy
-# * lower nAssign
-# * more nWords
-# * no multi assign weights
-# * no cliphack
-# * float32 rvecs
-
-# Things to fix:
-'''
-python dev.py -t smk_test --db PZ_MOTHERS --allgt  --print-cfgstr
-python dev.py -t smk_test --db GZ_ALL --allgt  --print-cfgstr
-'''
-
-smk_test = {
-    'pipeline_root': ['vsmany', 'smk', 'asmk'],
-    'sv_on':         [False],  # True, False],
-    'smk_thresh':    [.001],
-    'smk_alpha':     [4],
-    'massign_alpha': [1.2],
-    'massign_sigma': [80.0],
-    'nAssign':       [4],
-    'nWords':        [8000],  # True, False],
-    'massign_equal_weights': [True],
-    'vocab_weighting': ['idf', 'negentropy'],  # 'idf'
-}
-# * batched queries (possibly intermintent reporting)
-
-
-smk_best = {
-    'pipeline_root': ['smk'],
-    'sv_on':         [True],
-    'smk_thresh':    [0.0],
-    'smk_alpha':     [3],
-    'vocab_weighting': ['idf'],
-    'nAssign': [10],
-}
-
-smk_8k = smk_best.copy()
-smk_8k.update({
-    'nWords':        [8000],
-})
-
-smk_64k = smk_best.copy()
-smk_64k.update({
-    'nWords':        [64000],
-})
-
-smk_128k = smk_best.copy()
-smk_128k.update({
-    'nWords':        [128000],
-})
-
-
-# ---
-
-
-smk_8k_compare = smk_8k.copy()
-smk_8k_compare.update({
-    'pipeline_root': ['smk', 'asmk',  'vsmany'],
-})
-
-# --- -------------------------------
 
 gv_test = vsmany_best.copy()
 gv_test.update({
