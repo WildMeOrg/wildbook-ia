@@ -3064,11 +3064,13 @@ class IBEISController(object):
         be only of a specific lbltype/category/type
         """
         if configid is None:
-            configid = ibs.MANUAL_CONFIGID
-        params_iter = ((aid, configid) for aid in aid_list)
-        where_clause = 'annot_rowid=? AND config_rowid=?'
-        alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
-                                       where_clause=where_clause, unpack_scalars=False)
+            alrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), aid_list,
+                                     id_colname='annot_rowid', unpack_scalars=False)
+        else:
+            params_iter = ((aid, configid) for aid in aid_list)
+            where_clause = 'annot_rowid=? AND config_rowid=?'
+            alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
+                                           where_clause=where_clause, unpack_scalars=False)
         # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
         return alrids_list
 
@@ -3086,9 +3088,10 @@ class IBEISController(object):
         # only want the nids of individuals, not species, for example
         valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
         alrids_list = [utool.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
-        assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
-            ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
-             ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
+        if configid is not None:
+            assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
+                ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
+                 ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
         return alrids_list
 
     @getter_1toM

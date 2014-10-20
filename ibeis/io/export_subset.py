@@ -817,15 +817,12 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
         if valid
     ]
     alr_confidence_list = utool.filter_items(lblannot_td.alr_confidence_list, valid_list)
-    from ibeis.control import accessor_decors
-    accessor_decors.DEBUG_ADDERS = True
     alrid_list = ibs_dst.add_annot_relationship(
         aid_list,
         lblannot_rowid_list,
         config_rowid_list=config_rowid_list,
         alr_confidence_list=alr_confidence_list,
     )
-    accessor_decors.DEBUG_ADDERS = False
     return alrid_list
 
 
