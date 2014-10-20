@@ -70,13 +70,14 @@ def get_dbinfo(ibs, verbose=True):
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
+    associated_nids   = ibs.get_valid_nids(filter_empty=True)
 
     # Image info
     gname_list = ibs.get_image_gnames(valid_gids)
     gx2_aids = ibs.get_image_aids(valid_gids)
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats  = utool.get_stats_str(gx2_nAnnots)
+    gx2_nAnnots_stats  = utool.get_stats_str(gx2_nAnnots, newlines=True)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -152,8 +153,8 @@ def get_dbinfo(ibs, verbose=True):
              ('mean', wh_list.mean(0)),
              ( 'std', wh_list.std(0))])
         arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
-        ret = (',\n    '.join(['%r:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
-        return '{\n    ' + ret + '}'
+        ret = (',\n    '.join(['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
+        return '{\n    ' + ret + '\n}'
 
     print('reading image sizes')
     annotation_bbox_list = ibs.get_annot_bboxes(valid_aids)
@@ -165,13 +166,13 @@ def get_dbinfo(ibs, verbose=True):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.get_stats_str(multiton_nid2_nannots)
+    multiton_stats  = utool.get_stats_str(multiton_nid2_nannots, newlines=True)
 
     # Time stats
     unixtime_list_ = ibs.get_image_unixtime(valid_gids)
     utvalid_list   = [time != -1 for time in unixtime_list_]
     unixtime_list  = utool.filter_items(unixtime_list_, utvalid_list)
-    unixtime_statstr = utool.get_timestats_str(unixtime_list)
+    unixtime_statstr = utool.get_timestats_str(unixtime_list, newlines=True)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
@@ -185,9 +186,11 @@ def get_dbinfo(ibs, verbose=True):
 
     # Summarize stats
     num_names = len(valid_nids)
+    num_names_unassociated = len(valid_nids) - len(associated_nids)
     num_names_singleton = len(singleton_nxs)
     num_names_multiton =  len(multiton_nxs)
 
+    num_singleton_annots = len(singleton_aids)
     num_multiton_annots = len(multiton_aids)
     num_unknown_annots = len(unknown_aids)
     num_annots = len(valid_aids)
@@ -201,36 +204,42 @@ def get_dbinfo(ibs, verbose=True):
         utool.printex(ex)
 
     # print
+    num_tabs = 5
     info_str = '\n'.join([
         ('+============================'),
-        ('+ singleton = single sighting'),
-        ('+ multiton = multiple sightings'),
-        (' DB Info: ' + ibs.get_dbname()),
+        ('+ singleton := single sighting'),
+        ('+ multiton  := multiple sightings'),
+        (' --' * num_tabs),
+        (' DB Info:  ' + ibs.get_dbname()),
         (' DB Notes: ' + ibs.get_dbnotes()),
         (' DB Bytes: '),
-        (' +- dbdir nBytes:         ' + dbdir_space),
-        (' |  +- _ibsdb nBytes:     ' + ibsdir_space),
-        (' |  |  +-imgdir nBytes:   ' + imgdir_space),
-        (' |  |  +-cachedir nBytes: ' + cachedir_space),
-        (' * #Img   = %d' % len(valid_gids)),
-        (' * #Annots = %d' % num_annots),
-        (' *  -- -- --'),
-        (' * #Names = %d' % num_names),
-        (' * #Names  (singleton)  = %d' % num_names_singleton),
-        (' * #Names  (multiton)   = %d' % num_names_multiton),
-        (' *  -- -- --'),
-        (' * #Unknown Annots      = %d' % num_unknown_annots),
-        (' * #Annots (multiton)   = %d' % num_multiton_annots),
-        (' * #Annots per Name (multiton) = %s' % (multiton_stats,)),
-        (' * #Annots per Image    = %s' % (gx2_nAnnots_stats,)),
-        (' *  -- -- --'),
-        (' * #Img reviewed        = %d/%d' % (sum(image_reviewed_list), len(valid_gids))),
-        (' * #Img with gps        = %d/%d' % (len(gps_list), len(valid_gids))),
-        (' * #Img with timestamp  = %d/%d' % (len(unixtime_list), len(valid_gids))),
-        (' * #Img time stats      = %s' % (unixtime_statstr,)),
-        (' * #Img in dir = %d' % len(gpath_list)),
-        (' * Image Size Stats = %s' % (img_size_stats,)),
-        (' * # Annots per Species = %s' % (utool.dict_str(species2_nAids),)),
+        ('      +- dbdir nBytes:         ' + dbdir_space),
+        ('      |  +- _ibsdb nBytes:     ' + ibsdir_space),
+        ('      |  |  +-imgdir nBytes:   ' + imgdir_space),
+        ('      |  |  +-cachedir nBytes: ' + cachedir_space),
+        (' --' * num_tabs),
+        (' # Names                      = %d' % num_names),
+        (' # Names (unassociated)       = %d' % num_names_unassociated),
+        (' # Names (singleton)          = %d' % num_names_singleton),
+        (' # Names (multiton)           = %d' % num_names_multiton),
+        (' --' * num_tabs),
+        (' # Annots                     = %d' % num_annots),
+        (' # Annots (unknown)           = %d' % num_unknown_annots),
+        (' # Annots (singleton)         = %d' % num_singleton_annots),
+        (' # Annots (multiton)          = %d' % num_multiton_annots),
+        (' --' * num_tabs),
+        (' # Annots per Name (multiton) = %s' % (multiton_stats,)),
+        (' # Annots per Image           = %s' % (gx2_nAnnots_stats,)),
+        (' # Annots per Species         = %s' % (utool.dict_str(species2_nAids),)),
+        (' --' * num_tabs),
+        (' # Img                        = %d' % len(valid_gids)),
+        (' # Img reviewed               = %d' % sum(image_reviewed_list)),
+        (' # Img with gps               = %d' % len(gps_list)),
+        (' # Img with timestamp         = %d' % len(unixtime_list)),
+        (' # Img in dir                 = %d' % len(gpath_list)),
+        (' --' * num_tabs),
+        (' Img Time Stats               = %s' % (unixtime_statstr,)),
+        (' Image Size Stats             = %s' % (img_size_stats,)),
         #(' * Chip Size Stats = %s' % (chip_size_stats,)),
         ('L============================'),
     ])
