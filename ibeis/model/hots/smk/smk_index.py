@@ -701,6 +701,7 @@ def compute_negentropy_names(aids_list, daid2_label):
 
     CommandLine:
         python dev.py -t smk2 --allgt --db GZ_ALL
+        python dev.py -t smk5 --allgt --db GZ_ALL
 
     Auto:
         from ibeis.model.hots.smk import smk_index
