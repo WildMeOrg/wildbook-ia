@@ -40,6 +40,28 @@ def update_1_0_0(ibs):
         Used to store individual chip features (ellipses)''')
 
 
+# =======================
+# Schema Version 1.0.1
+# =======================
+
+
+def update_1_0_1(ibs):
+    # TODO - Jon this is for you to modify.
+    #
+    # When you're ready to make this schema update go live, simply
+    # bump ibs.dbcache_version_expected in the controller to '1.0.1'
+    ibs.dbcache.add_table(constants.RESIDUAL_TABLE, (
+        ('residual_rowid',               'INTEGER PRIMARY KEY'),
+        ('feature_rowid',                'INTEGER NOT NULL'),
+        ('config_rowid',                 'INTEGER DEFAULT 0'),
+        ('residual_vector',              'NUMPY'),
+    ),
+        superkey_colnames=['residual_rowid', 'feature_rowid', 'config_rowid'],
+        docstr='''
+        Used to store individual SMK/ASMK residual vectors for features''')
+    pass
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -49,5 +71,6 @@ base = constants.BASE_DATABASE_VERSION
 VALID_VERSIONS = {
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
     base   :    (None,                 None,               None                ),
-    '1.0.0':    (None,                 update_1_0_0,       None          ),
+    '1.0.0':    (None,                 update_1_0_0,       None                ),
+    '1.0.1':    (None,                 update_1_0_1,       None                ),
 }
