@@ -61,12 +61,21 @@ def imread(img_fpath, delete_if_corrupted=False):
     return imgBGR
 
 
-def imwrite(img_fpath, imgBGR):
+def imwrite(img_fpath, imgBGR, fallback=False):
     try:
         cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
-        print('[gtool] Caught Exception: %r' % ex)
-        print('[gtool] ERROR reading: %s' % (img_fpath,))
+        if fallback:
+            try:
+                import matplotlib.image as mpl_image
+                imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+                mpl_image.imsave(img_fpath, imgRGB)
+                return None
+            except Exception as ex:
+                msg = '[gtool] FALLBACK ERROR writing: %s' % (img_fpath,)
+                utool.printex(ex, msg, keys=['imgBGR.shape'])
+        msg = '[gtool] ERROR writing: %s' % (img_fpath,)
+        utool.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
 

@@ -77,7 +77,15 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
 
 @profile
 def get_unwarped_patches(chip, kpts):
-    """ Returns cropped unwarped patch around a keypoint """
+    """ Returns cropped unwarped patch around a keypoint
+
+    Args:
+        chip (ndarray): array representing an image
+        kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
+    Returns:
+        patches - the unnormalized patches from the chip corresonding to the keypoint
+
+    """
     _xs, _ys = ktool.get_xys(kpts)
     xyexnts = ktool.get_xy_axis_extents(kpts)
     patches = []
@@ -101,7 +109,14 @@ def get_unwarped_patches(chip, kpts):
 
 @profile
 def get_warped_patches(chip, kpts):
-    """ Returns warped patch around a keypoint """
+    """ Returns warped patch around a keypoint
+
+    Args:
+        chip (ndarray): array representing an image
+        kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
+    Returns:
+        patches - the normalized 41x41 patches from the chip corresonding to the keypoint
+    """
     # TODO: CLEAN ME
     warped_patches = []
     warped_subkpts = []
