@@ -72,6 +72,7 @@ LBLANNOT_TABLE    = 'lblannot'
 LBLIMAGE_TABLE    = 'lblimage'
 LBLTYPE_TABLE     = 'keys'
 METADATA_TABLE    = 'metadata'
+RESIDUAL_TABLE    = 'residuals'
 VERSIONS_TABLE    = 'versions'
 #################################################################
 
