@@ -1117,6 +1117,18 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True):
     return imgB
 
 
+def stack_square_images(img_list):
+    if len(img_list) == 0:
+        raise IndexError('no images to stack')
+    if len(img_list) == 1:
+        return img_list[0]
+    num_vert = int(np.ceil(np.sqrt(len(img_list))))
+    num_horiz = int(np.ceil(len(img_list) / float(num_vert)))
+    vert_patches = [stack_image_list(imgs, vert=True) for imgs in list(utool.ichunks(img_list, num_horiz))]
+    bigpatch = stack_image_list(vert_patches, vert=False)
+    return bigpatch
+
+
 def stack_images(img1, img2, vert=None):
     # TODO: move this to the same place I'm doing the color gradient
     nChannels = gtool.get_num_channels(img1)
