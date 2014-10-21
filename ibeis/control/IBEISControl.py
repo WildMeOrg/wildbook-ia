@@ -3106,16 +3106,24 @@ class IBEISController(object):
         # only want the nids of individuals, not species, for example
         valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
         alrids_list = [utool.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
-        if configid is not None:
-            assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
-                ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
-                 ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
-        else:
-            # TODO:
-            #def resolutionfunc(alrids):
-            #    return alrids[0:1]
-            #alrids_list = [alrids if len(alrids) == 1 else resolutionfunc() for alrids in alrids_list]
-            pass
+        if configid is None:
+            def resolution_func_first(alrid_list):
+                return [ alrid_list[0] ]
+
+            def resolution_func_lowest_config(alrid_list):
+                config_rowid_list = ibs.get_alr_config(alrid_list)
+                temp = sorted(list(zip(config_rowid_list, alrid_list)))
+                return [ temp[0][0] ]
+
+            alrids_list = [
+                resolution_func_first(alrid_list)
+                if len(alrid_list) > 1 else
+                alrid_list
+                for alrid_list in alrids_list
+            ]
+        assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
+            ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
+             ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
         return alrids_list
 
     @getter_1toM
