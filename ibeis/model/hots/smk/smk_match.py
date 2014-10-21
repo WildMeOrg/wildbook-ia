@@ -15,6 +15,7 @@ DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 @utool.indent_func('[smk_query]')
 #@utool.memprof
+@profile
 def execute_smk_L5(qreq_):
     """
     ibeis query interface
@@ -116,6 +117,7 @@ def prepare_qreq(qreq_, annots_df, memtrack):
     return words, invindex
 
 
+@profile
 def execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo):
     """
     Loop over execute_smk_L3

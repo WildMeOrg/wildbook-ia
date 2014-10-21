@@ -96,15 +96,24 @@ smk6d = {
 
 smk6_overnight = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk', 'vsmany'],
     #'pipeline_root': ['smk'],
-    'sv_on':         [False, True],
+    'sv_on':         [True],
     'nAssign':       [2, 4, 10],
-    'massign_equal_weights': [True, False],
-    'smk_thresh':    [0.0, 0.001],
+    'massign_equal_weights': [True],  # , False],
+    #'smk_thresh':    [0.0, 0.0001],
     #'smk_alpha':     [3],
     'nWords':        [128000, 64000, 8000],
     #'nWords':        [128000],
 }
+
+
+'''
+SINGLE QUERY COMMANDS
+python dev.py -t smk6d --db PZ_Mothers --allgt --index 0:1 --noqcache
+
+'''
+
 
 '''
 TESTING COMMANDS:

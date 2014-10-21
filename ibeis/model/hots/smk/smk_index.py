@@ -19,10 +19,6 @@ from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
 from ibeis.model.hots.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk import smk_core
-from ibeis.model.hots.smk import smk_speed
-#from ibeis.model.hots.smk import smk_match
-from ibeis.model.hots.smk import pandas_helpers as pdh
-#from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
@@ -41,6 +37,8 @@ class InvertedIndex(object):
         idx2_daid    (ndarray[S x 1]): stacked index -> annot id
         idx2_dfx     (ndarray[S x 1]): stacked index -> feature index (wrt daid)
         idx2_fweight (ndarray[S x 1]): stacked index -> feature weight
+
+        idx2_wxs     (list): stacked index -> word indexes (jagged)
 
         words        (ndarray[C x DIM]): visual word centroids
         wordflann    (FLANN): FLANN search structure
@@ -75,6 +73,7 @@ class InvertedIndex(object):
         invindex.wx2_idf      = None
         invindex.daid2_sccw   = None
         invindex.idx2_fweight = None
+        invindex.idx2_wxs     = None   # stacked index -> word indexes
 
 
 QueryIndex = namedtuple(
@@ -85,6 +84,36 @@ QueryIndex = namedtuple(
         'wx2_qfxs',
         'query_sccw',
     ))
+
+
+class LazyGetter(object):
+
+    def __init__(self, getter_func):
+        self.getter_func = getter_func
+
+    def __getitem__(self, index):
+        return self.getter_func(index)
+
+    def __call__(self, index):
+        return self.getter_func(index)
+
+
+class DataFrameProxy(object):
+    """
+    pandas is actually really slow. This class emulates it so
+    I don't have to change my function calls, but without all the slowness.
+    """
+
+    def __init__(self, ibs):
+        self.ibs = ibs
+
+    def __getitem__(self, key):
+        if key == 'kpts':
+            return LazyGetter(self.ibs.get_annot_kpts)
+        elif key == 'vecs':
+            return LazyGetter(self.ibs.get_annot_desc)
+        elif key == 'labels':
+            return LazyGetter(self.ibs.get_annot_class_labels)
 
 
 @profile
@@ -175,6 +204,7 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     #return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw
 
 
+#@profile
 def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
                       memtrack=None):
     """
@@ -214,11 +244,6 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
     """
     if not utool.QUIET:
         print('[smk_index] index_data_annots')
-    #_words = words
-    #_words = pdh.ensure_values(words)
-    #_daids = pdh.ensure_values(daids)
-    #_vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
-    #_label_list = pdh.ensure_values(annots_df['labels'][_daids])
     flann_params = {}
     # Compute fast lookup index for the words
     wordflann = nntool.flann_cache(words, flann_params=flann_params,
@@ -248,7 +273,7 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
     return invindex
 
 
-#@profile
+@profile
 def compute_data_internals_(invindex, qparams, memtrack=None):
     """
     TODO: Move to module that uses smk_index
@@ -266,12 +291,8 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
-        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-        >>> vocab_weighting = ibs.cfg.query_cfg.smk_cfg.vocab_weighting
-        >>> compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()
+        >>> compute_data_internals_(invindex, qreq_.qparams)
 
     Ignore:
         idx2_vec = idx2_dvec
@@ -372,7 +393,7 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
         #invindex_cache.save(cachetup)
 
     # Store information
-    invindex.idx2_wxs    = idx2_wxs   # stacked index -> word indexes
+    invindex.idx2_wxs    = idx2_wxs   # stacked index -> word indexes (might not be needed)
     invindex.wx2_idxs    = wx2_idxs
     invindex.wx2_idf     = wx2_idf
     invindex.wx2_drvecs  = wx2_drvecs
@@ -387,7 +408,7 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
         smk_debug.check_invindex_wx2(invindex)
 
 
-#@profile
+@profile
 def make_annot_df(ibs):
     """
     Creates a pandas like DataFrame interface to an IBEISController
@@ -416,23 +437,12 @@ def make_annot_df(ibs):
         argdoc = utool.make_default_docstr(smk_index.make_annot_df)
         print(argdoc)
     """
-    #aid_list = ibs.get_valid_aids()  # 80us
-    annots_df = pdh.DataFrameProxy(ibs)
-    #kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms
-    #vecs_list = ibs.get_annot_desc(aid_list)  # 50ms
-    #assert len(kpts_list) == len(vecs_list)
-    #assert len(label_list) == len(vecs_list)
-    #aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name='aid')
-    #label_series = pd.Series(label_list, index=aid_list, name='labels')
-    #kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')  # 6.7ms
-    #vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')  # 7.1ms
-    ## Pandas Annotation Dataframe
-    #annots_df = pd.concat([kpts_df, vecs_df, label_series], axis=1)  # 845 us
+    annots_df = DataFrameProxy(ibs)
     return annots_df
 
 
-#@profile
 #@utool.memprof
+@profile
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memtrack=None):
     """
     Computes and caches visual words
@@ -464,10 +474,9 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     """
     #if memtrack is None:
     #    memtrack = utool.MemoryTracker('[learn_visual_words]')
-    max_iters = 200
+    #max_iters = 200
+    max_iters = 300
     flann_params = {}
-    #train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
-    #train_vecs_list = annots_df['vecs'][taids]
     train_vecs_list = annots_df.ibs.get_annot_desc(taids, eager=True)
     #memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
     #memtrack.report('loaded trainvecs')
@@ -556,6 +565,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
     return wx2_idxs, wx2_maws, idx2_wxs
 
 
+@profile
 def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
                                  massign_sigma, massign_equal_weights):
     """
@@ -704,6 +714,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
     return wx2_idf
 
 
+@profile
 def helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series):
     """ helper function """
     # idxs for each word
@@ -719,6 +730,7 @@ def helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series):
     return idxs_list, aids_list
 
 
+@profile
 def compute_idf_orig(aids_list, daids):
     """
     The standard tried and true idf measure
@@ -733,6 +745,7 @@ def compute_idf_orig(aids_list, daids):
     return idf_list
 
 
+@profile
 def compute_negentropy_names(aids_list, daid2_label):
     r"""
     One of our idf extensions
@@ -838,6 +851,7 @@ def compute_negentropy_names(aids_list, daid2_label):
     return negentropy_list
 
 
+@profile
 def compute_idf_label1(aids_list, daid2_label):
     """
     One of our idf extensions
@@ -928,7 +942,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
     if not utool.QUIET:
         print('[smk_index.rvec] +--- Start Compute Residuals')
 
-    wx_sublist = np.array(wx2_idxs.keys())  # pdh.ensure_index(wx2_idxs)
+    wx_sublist = np.array(wx2_idxs.keys())
     # Build lists w.r.t. words
 
     idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE) for wx in wx_sublist]
@@ -952,7 +966,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         smk_debug.check_wx2_idxs(wx2_idxs, len(words))
     # TODO: Report object size
     # TODO: Residuals shoud be using uint8 vectors probably.
-    rvecs_list = helper_compute_nonagg_residuals(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list)
+    rvecs_list = smk_core.compute_nonagg_rvecs(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list)
     if aggregate:
         (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = helper_aggregate_residuals(
             rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws)
@@ -973,24 +987,14 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
     return wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws
 
 
-#@utool.cached_func('nonagg_rvecs', appname='smk_cachedir', key_argx=[1, 3, 4])
-def helper_compute_nonagg_residuals(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list):
-    """ helper """
-    # Nonaggregated residuals
-    words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
-    vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
-    rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
-                  for vecs, word in zip(vecs_list, words_list)]  # 103 ms
-    return rvecs_list
-
-
 #@utool.cached_func('_agg_rvecs_', appname='smk', key_argx=[1, 2, 3, 4])
+@profile
 def helper_aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
     """
     helper function: Aggregate over words of the same aid
     """
     maws_list = [wx2_maws[wx] for wx in wx_sublist]
-    tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
+    tup = smk_core.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
     (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list) = tup
     aggfxs_list = [[idx2_fx.take(idxs) for idxs in aggidxs] for aggidxs in aggidxs_list]
     wx2_aggvecs = dict(zip(wx_sublist, aggvecs_list))

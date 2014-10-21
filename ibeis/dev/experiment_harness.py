@@ -21,7 +21,7 @@ NOCACHE_TESTRES =  utool.get_argflag('--nocache-testres', False)
 TEST_INFO = True
 
 
-@profile
+#@profile
 def get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl):
     """
     Helper function.
@@ -46,7 +46,7 @@ def get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl):
 
 #-----------
 #@utool.indent_func('[harn]')
-@profile
+#@profile
 def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     """
     Test harness driver function

@@ -20,6 +20,7 @@ DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 
 if hstypes.RVEC_TYPE == np.float16:
+    @profile
     def compress_normvec_float16(arr_float):
         """
         compresses 8 or 4 bytes of information into 2 bytes
@@ -28,6 +29,7 @@ if hstypes.RVEC_TYPE == np.float16:
         return arr_float.astype(hstypes.RVEC_TYPE)
     compress_normvec = compress_normvec_float16
 elif hstypes.RVEC_TYPE == np.int8:
+    @profile
     def compress_normvec_uint8(arr_float):
         """
         compresses 8 or 4 bytes of information into 1 byte
@@ -67,7 +69,7 @@ else:
     raise AssertionError('unsupported RVEC_TYPE = %r' % hstypes.RVEC_TYPE)
 
 
-#@profile
+@profile
 def normalize_vecs_inplace(vecs):
     # Normalize residuals
     # this can easily be sped up by cyth
@@ -76,9 +78,56 @@ def normalize_vecs_inplace(vecs):
     np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
 
 
-#@profile
+#@utool.cached_func('nonagg_rvecs', appname='smk_cachedir', key_argx=[1, 3, 4])
+@profile
+def compute_nonagg_rvecs(words, wx2_idxs, idx2_vec, wx_sublist, idxs_list):
+    """ helper """
+    # Nonaggregated residuals
+    words_list = [words[wx:wx + 1] for wx in wx_sublist]
+    vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]
+    rvecs_list = [get_norm_rvecs(vecs, word)
+                  for vecs, word in zip(vecs_list, words_list)]
+    return rvecs_list
+
+
+@profile
+def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
+    """
+    Sums and normalizes all rvecs that belong to the same word and the same
+    annotation id
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
+        >>> rvecs_list = compute_nonagg_rvecs(words, wx_sublist, idxs_list, idx2_vec)
+
+    """
+    #assert len(idxs_list) == len(rvecs_list)
+    # group members of each word by aid, we will collapse these groups
+    grouptup_list = [clustertool.group_indicies(aids) for aids in aids_list]
+    # Agg aids
+    aggaids_list = [tup[0] for tup in grouptup_list]
+    groupxs_list = [tup[1] for tup in grouptup_list]
+    # Aggregate vecs that belong to the same aid, for each word
+    # (weighted aggregation with multi-assign-weights)
+    aggvecs_list = [
+        np.vstack([aggregate_rvecs(rvecs.take(xs, axis=0), maws.take(xs)) for xs in groupxs])
+        if len(groupxs) > 0 else
+        np.empty((0, hstypes.VEC_DIM), dtype=hstypes.FLOAT_TYPE)
+        for rvecs, maws, groupxs in zip(rvecs_list, maws_list, groupxs_list)]
+    # Agg idxs
+    aggidxs_list = [[idxs.take(xs) for xs in groupxs]
+                    for idxs, groupxs in zip(idxs_list, groupxs_list)]
+    aggmaws_list = [np.array([maws.take(xs).prod() for xs in groupxs])
+                    for maws, groupxs in zip(maws_list, groupxs_list)]
+    return aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list
+
+
+@profile
 def aggregate_rvecs(rvecs, maws):
     """
+    helper for compute_agg_rvecs
     Example:
         #>>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
@@ -98,7 +147,7 @@ def aggregate_rvecs(rvecs, maws):
     return rvecs_agg
 
 
-#@profile
+@profile
 def get_norm_rvecs(vecs, word):
     """
     Example:
@@ -124,7 +173,7 @@ def get_norm_rvecs(vecs, word):
     return rvecs_n
 
 
-#@profile
+@profile
 def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     r"""
     Computes gamma from "To Aggregate or not to aggregate". Every component in
@@ -181,9 +230,12 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     total  = np.fromiter(_iter, np.float64, _count).sum()
     # Square root inverse
     sccw = np.reciprocal(np.sqrt(total))
+    assert not np.isinf(sccw), 'sccw cannot be infinite'
+    assert not np.isnan(sccw), 'sccw cannot be nan'
     return sccw
 
 
+@profile
 def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
                     smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw):
     """
@@ -224,6 +276,7 @@ def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
     return retL0
 
 
+@profile
 def accumulate_scores(dscores_list, daids_list):
     """ helper """
     daid2_aggscore = utool.ddict(lambda: 0)
@@ -236,6 +289,7 @@ def accumulate_scores(dscores_list, daids_list):
     return daid_agg_keys, daid_agg_scores
 
 
+@profile
 def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
                     invindex, qparams):
     """ Builds up information and does verbosity before going to L0 """
@@ -391,6 +445,7 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
     return daid2_chipmatch
 
 
+@profile
 def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     """ helper
     these list comprehensions replace the prevous for loop
@@ -477,6 +532,7 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     return fm_nestlist, fs_nestlist, daid_nestlist
 
 
+@profile
 def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw):
     """
     helper
@@ -507,6 +563,7 @@ def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw)
     return all_matches, all_scores, all_daids
 
 
+@profile
 def group_correspondences(all_matches, all_scores, all_daids, daid2_sccw):
     daid_keys, groupxs = clustertool.group_indicies(all_daids)
     fs_list = clustertool.apply_grouping(all_scores, groupxs)
@@ -678,6 +735,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     #flatqfxs = utool.flatten([[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)])
 
 
+@profile
 def mem_arange(num, cache={}):
     # TODO: weakref cache
     if num not in cache:
@@ -685,6 +743,7 @@ def mem_arange(num, cache={}):
     return cache[num]
 
 
+@profile
 def mem_meshgrid(wrange, hrange, cache={}):
     # TODO: weakref cache
     key = (id(wrange), id(hrange))

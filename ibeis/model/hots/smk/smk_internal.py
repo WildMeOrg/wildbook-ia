@@ -7,11 +7,12 @@ import utool
 #import pandas as pd
 import numpy as np
 #import scipy.sparse as spsparse
-from ibeis.model.hots import hstypes
+#from ibeis.model.hots import hstypes
 from six.moves import zip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_internal]')
 
 
+@profile
 def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
                   smk_thresh, idf_list):
     """ Similarity + Selectivity: M(X_c, Y_c)
@@ -48,6 +49,7 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
     return scores_list
 
 
+@profile
 def similarity_function(qrvecs_list, drvecs_list):
     """ Phi dot product. Accounts for NaN residual vectors
     qrvecs_list list of rvecs for each word
@@ -58,21 +60,29 @@ def similarity_function(qrvecs_list, drvecs_list):
         >>> qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
         >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
     """
-    # Downweight by the psuedo max squared, to get scores between 0 and 1
+    # For int8: Downweight by the psuedo max squared, to get scores between 0 and 1
+    #simmat_list = [
+    #    qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
+    #    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
+    #]
+    # for float16: just perform the calculation
     simmat_list = [
-        qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
+        qrvecs.dot(drvecs.T)
         for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
     ]
     if utool.DEBUG2:
         assert len(simmat_list) == len(qrvecs_list), 'bad simmat and qrvec'
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
     # Rvec is NaN implies it is a cluster center. perfect similarity
+    # FIXME: this only works for float16, if RVEC_TYPE is int8, then we need
+    # to come up with something else (like a mask for rows)
     for simmat in simmat_list:
         simmat[np.isnan(simmat)] = 1.0
 
     return simmat_list
 
 
+@profile
 def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
     """
     Applys multi-assign weights and idf weights to rvec similarty matrices
@@ -112,6 +122,7 @@ def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
 
 
 #@profile
+@profile
 def selectivity_function(wsim_list, smk_alpha, smk_thresh):
     """ Selectivity function - sigma from SMK paper rscore = residual score
 

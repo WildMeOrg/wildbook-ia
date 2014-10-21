@@ -4,11 +4,9 @@ import utool
 import numpy as np
 import six
 import ibeis
-import pandas as pd
 from ibeis.model.hots import hstypes
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_match
-from ibeis.model.hots.smk import pandas_helpers as pdh
 from ibeis.model.hots import query_request
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
 
@@ -18,9 +16,6 @@ def testdata_printops(**kwargs):
     """
     print('[smk_debug] testdata_printops')
     np.set_printoptions(precision=4)
-    pd.set_option('display.max_rows', 7)
-    pd.set_option('display.max_columns', 7)
-    pd.set_option('isplay.notebook_repr_html', True)
 
 
 def testdata_ibeis(**kwargs):
@@ -38,13 +33,13 @@ def testdata_ibeis(**kwargs):
     smk_debug.testdata_printops(**kwargs)
     print('[smk_debug] testdata_ibeis')
     ibeis.ensure_pz_mtest()
-    ibs = ibeis.opendb('PZ_MTEST')
+    ibs = ibeis.opendb(kwargs.get('db', 'PZ_MTEST'))
     ibs._default_config()
-    #aggregate = False
-    aggregate = kwargs.get('aggregate', utool.get_argflag(('--agg', '--aggregate')))
-    #aggregate = not kwargs.get('aggregate', utool.get_argflag(('--noagg', '--noaggregate')))
-    nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=8E3)
-    nAssign = utool.get_argval(('--nAssign', '--K'), int, default=10)
+    get_argflag = utool.get_argflag
+    get_argval = utool.get_argval
+    aggregate = kwargs.get('aggregate', get_argflag(('--agg', '--aggregate')))
+    nWords    = kwargs.get(   'nWords',  get_argval(('--nWords', '--nCentroids'), int, default=8E3))
+    nAssign   = kwargs.get(  'nAssign',  get_argval(('--nAssign', '--K'), int, default=10))
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
@@ -99,9 +94,9 @@ def testdata_words(**kwargs):
     return ibs, annots_df, daids, qaids, qreq_, words
 
 
-def testdata_raw_internals0():
+def testdata_raw_internals0(**kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()
+    ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words(**kwargs)
     qparams = qreq_.qparams
     print('[smk_debug] testdata_raw_internals0')
     with_internals = False
@@ -400,7 +395,7 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
             #print('word[wx={wx}] has no rvecs'.format(wx=wx))
             no_wxs.append(wx)
         for sx in range(shape[0]):
-            if np.any(np.isnan(pdh.ensure_values(rvecs)[sx])):
+            if np.any(np.isnan(rvecs[sx])):
                 #rvecs[:] = 1 / np.sqrt(128)
                 #print('word[wx={wx}][sx={sx}] has nans'.format(wx=wx))
                 nan_wxs.append((wx, sx))
@@ -410,10 +405,10 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
     if not (wx2_rvecs is None or wx2_idxs is None or idx2_vec is None):
         failed_wx = []
         for count, (wx, sx) in enumerate(nan_wxs):
-            rvec = pdh.ensure_values(wx2_rvecs[wx])[sx]
+            rvec = wx2_rvecs[wx][sx]
             idxs = wx2_idxs[wx][sx]
-            dvec = pdh.ensure_values(idx2_vec)[idxs]
-            word = pdh.ensure_values(words)[wx]
+            dvec = idx2_vec[idxs]
+            word = words[wx]
             truth = (word == dvec)
             if not np.all(truth):
                 failed_wx.append(wx)
@@ -471,7 +466,7 @@ def check_invindex(invindex, verbose=True):
 
 
 def check_daid2_sccw(daid2_sccw, verbose=True):
-    daid2_sccw_values = pdh.ensure_values(daid2_sccw)
+    daid2_sccw_values = daid2_sccw
     assert not np.any(np.isnan(daid2_sccw_values)), 'sccws are nan'
     if verbose:
         print('database sccws are not nan')
@@ -542,7 +537,7 @@ def check_dtype(annots_df):
 def check_rvecs_list_eq(rvecs_list, rvecs_list2):
     """
     Example:
-        >>> rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
+        >>> rvecs_list = smk_core.compute_nonagg_rvecs(*_args1)  # 125 ms
         >>> rvecs_list2 = smk_speed.compute_nonagg_residuals_forloop(*_args1)
     """
     assert len(rvecs_list) == len(rvecs_list2)
@@ -620,14 +615,113 @@ def sift_stats():
     vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
 
 
-def view_vocabs():
+def dump_word_patches(ibs, invindex):
     """
-    looks in vocab cachedir and prints info / vizualizes the vocabs
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+    >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+    >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
+    >>> compute_data_internals_(invindex, qreq_.qparams)
     """
-    from vtool import clustering2 as clustertool
+    from vtool import patch as ptool
+    from vtool import image as gtool
+    import utool
+    from os.path import join
+    from os.path import basename
+    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
+
+    flatdir = False
+    testmode = False
+    print('[smk_debug] Dumping word patches to figure directory')
+
+    vocabdir = join(ibs.get_fig_dir(), 'vocab_patches' + ('_flat' if flatdir else ''))
+    utool.ensuredir(ibs.get_fig_dir())
+    utool.ensuredir(vocabdir)
+    if utool.get_argflag('--vf'):
+        utool.view_directory(vocabdir)
+
+    def dump_annot_word_patches(aid):
+        chip = ibs.get_annot_chips(aid)
+        chip_kpts = ibs.get_annot_kpts(aid)
+        nid = ibs.get_annot_nids(aid)
+        idx_list = np.where(invindex.idx2_daid == aid)[0]
+        fx_list = invindex.idx2_dfx[idx_list]
+        wxs_list = invindex.idx2_wxs[idx_list]
+        #maws_list = invindex.idx2_wxs[idxs]
+        patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
+        for fx, wxs, patch in zip(fx_list, wxs_list, patches):
+            assert len(wxs) == 1
+            for k, wx in enumerate(wxs):
+                word_dname = 'wx=%06d' % wx
+                patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
+                if flatdir:
+                    fpath = join(vocabdir, word_dname + '_' + patch_fname)
+                else:
+                    word_dpath = join(vocabdir, word_dname)
+                    utool.ensuredir(word_dpath)
+                    fpath = join(word_dpath, patch_fname)
+                if testmode:
+                    print(fpath)
+                else:
+                    gtool.imwrite(fpath, patch, fallback=True)
+
+    for aid in utool.progiter(invindex.daids):
+        dump_annot_word_patches(aid)
+
+    def nest_large_directory(dpath):
+        dpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
+        fpath_list = sorted(utool.ls(dpath))
+        max_files = 1000
+        fpath_chunks = list(utool.ichunks(fpath_list, max_files))
+        for count, src_list in enumerate(utool.progiter(fpath_chunks)):
+            print('')
+            chunk_dpath = join(dpath, 'chunk%d' % count)
+            dst_list = [join(chunk_dpath, basename(fpath)) for fpath in src_list]
+            utool.ensuredir(chunk_dpath)
+            utool.move_list(src_list, dst_list)
+
+    def select_subdirs(dpath):
+        dpath1 = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
+        dpath_list = sorted(utool.glob(dpath1, '*', recursive=True, with_files=False))
+        dpath_list1 = list(filter(lambda x: x.find('wx=') > -1, dpath_list))
+
+        subfiles = [utool.ls(dpath_) for dpath_ in dpath_list1]
+        subfiles_len = list(map(len, subfiles))
+
+        dpath_list2 = utool.sortedby(dpath_list1, subfiles_len, reverse=True)
+
+        seldpath = join(dpath1, '..', 'selected_vocab_patches/')
+
+        for dpath2 in utool.progiter(dpath_list2[0:50]):
+            print('')
+            utool.copy(dpath2, join(seldpath, basename(dpath2)))
+
+        # stack for show
+        from plottool import draw_func2 as df2
+        #df2.rrr()
+        bigpatch_list = []
+        for dpath in utool.ls(seldpath):
+            try:
+                fpath_list = utool.ls(dpath)
+                patch_list = [gtool.imread(fpath) for fpath in fpath_list]
+                #img_list = patch_list
+                #bigpatch = df2.stack_image_recurse(patch_list)
+                #bigpatch = df2.stack_image_list(patch_list, vert=False)
+                bigpatch = df2.stack_square_images(patch_list)
+                bigpatch_list.append(bigpatch)
+                bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
+                gtool.imwrite(bigpatch_fpath, bigpatch)
+            except IndexError:
+                pass
+                #df2.imshow(bigpatch)
+                #df2.present()
+                pass
+
+
+def get_cached_vocabs():
     from os.path import join
     import parse
-    import numpy as np
     # Parse some of the training data from fname
     parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
     smkdir = utool.get_app_resource_dir('smk')
@@ -638,6 +732,17 @@ def view_vocabs():
     nDpts_list = [int(res['num_dpts']) for res in result_list]
     key_list = zip(nCent_list, nDpts_list)
     fpath_sorted = utool.sortedby(fpath_list, key_list, reverse=True)
+    return fpath_sorted
+
+
+def view_vocabs():
+    """
+    looks in vocab cachedir and prints info / vizualizes the vocabs
+    """
+    from vtool import clustering2 as clustertool
+    import numpy as np
+
+    fpath_sorted = get_cached_vocabs()
 
     num_pca_dims = 2  # 3
     whiten       = False
@@ -918,8 +1023,8 @@ def main():
     #qaid = qaids[0]
     nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
-    smk_alpha     = qreq_.qparams.smk_alpha
-    smk_thresh    = qreq_.qparams.smk_thresh
+    smk_alpha  = qreq_.qparams.smk_alpha
+    smk_thresh = qreq_.qparams.smk_thresh
     nAssign   = qreq_.qparams.nAssign
     #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     #smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
@@ -1093,13 +1198,11 @@ if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing
     from plottool import draw_func2 as df2
-    if True or utool.get_argflag('--view-vocabs'):
+    mode = utool.get_argval('--mode', int, default=0)
+    if mode == 0 or utool.get_argflag('--view-vocabs'):
         view_vocabs()
     else:
         np.set_printoptions(precision=2)
-        pd.set_option('display.max_rows', 7)
-        pd.set_option('display.max_columns', 7)
-        pd.set_option('isplay.notebook_repr_html', True)
         multiprocessing.freeze_support()  # for win32
         main_locals = main()
         main_execstr = utool.execstr_dict(main_locals, 'main_locals')
