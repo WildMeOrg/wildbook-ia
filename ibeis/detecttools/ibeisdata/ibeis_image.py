@@ -36,7 +36,7 @@ class IBEIS_Image(object):
             ibsi.objects_invalid = []
             for obj in com.get(_xml, 'object', text=False, singularize=False):
                 temp = IBEIS_Object(obj, ibsi.width, ibsi.height)
-                if temp.width >= kwargs['object_min_width'] and temp.height >= kwargs['object_min_height']:
+                if temp.width > kwargs['object_min_width'] and temp.height > kwargs['object_min_height']:
                     ibsi.objects.append(temp)
                 else:
                     ibsi.objects_invalid.append(temp)
