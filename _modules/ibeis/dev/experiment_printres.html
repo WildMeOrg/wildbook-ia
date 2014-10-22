@@ -149,7 +149,7 @@
 
     <span class="c">#------------</span>
 
-    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="nd">@utool.argv_flag_dec_true</span>
     <span class="k">def</span> <span class="nf">print_cfgstr</span><span class="p">():</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;=====================&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Config Strings: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
@@ -220,7 +220,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Print Hardcase ---&#39;</span><span class="p">)</span>
     <span class="n">print_hardcase</span><span class="p">()</span>
 
-    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="nd">@utool.argv_flag_dec_true</span>
     <span class="k">def</span> <span class="nf">echo_hardcase</span><span class="p">():</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;====&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- hardcase commandline: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
@@ -298,7 +298,7 @@
     <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_intersect_list</span><span class="p">)):</span>
         <span class="n">intersected</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">intersected</span><span class="p">,</span> <span class="n">to_intersect_list</span><span class="p">[</span><span class="n">ix</span><span class="p">])</span>
 
-    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="nd">@utool.argv_flag_dec_true</span>
     <span class="k">def</span> <span class="nf">print_bestcfg</span><span class="p">():</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;==========================&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Best Configurations: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>

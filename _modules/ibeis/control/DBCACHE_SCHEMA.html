@@ -91,6 +91,28 @@
 <span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
 
 
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.0.1</span>
+<span class="c"># =======================</span>
+
+</div>
+<div class="viewcode-block" id="update_1_0_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.update_1_0_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_1</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># TODO - Jon this is for you to modify.</span>
+    <span class="c">#</span>
+    <span class="c"># When you&#39;re ready to make this schema update go live, simply</span>
+    <span class="c"># bump ibs.dbcache_version_expected in the controller to &#39;1.0.1&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;residual_vector&#39;</span><span class="p">,</span>              <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store individual SMK/ASMK residual vectors for features&#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+
 <span class="c"># ========================</span>
 <span class="c"># Valid Versions &amp; Mapping</span>
 <span class="c"># ========================</span>
@@ -100,7 +122,8 @@
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
     <span class="n">base</span>   <span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="bp">None</span><span class="p">,</span>               <span class="bp">None</span>                <span class="p">),</span>
-    <span class="s">&#39;1.0.0&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_0</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">),</span>
+    <span class="s">&#39;1.0.0&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
+    <span class="s">&#39;1.0.1&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
 <span class="p">}</span>
 </pre></div>
 

@@ -57,11 +57,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_index</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">pandas_helpers</span> <span class="k">as</span> <span class="n">pdh</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_debug]&#39;</span><span class="p">)</span>
 
@@ -71,9 +69,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_printops&#39;</span><span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-    <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-    <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-    <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;isplay.notebook_repr_html&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="testdata_ibeis"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_ibeis">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibeis</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -91,13 +86,13 @@
     <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_printops</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_ibeis&#39;</span><span class="p">)</span>
     <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;db&#39;</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_default_config</span><span class="p">()</span>
-    <span class="c">#aggregate = False</span>
-    <span class="n">aggregate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aggregate&#39;</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--agg&#39;</span><span class="p">,</span> <span class="s">&#39;--aggregate&#39;</span><span class="p">)))</span>
-    <span class="c">#aggregate = not kwargs.get(&#39;aggregate&#39;, utool.get_argflag((&#39;--noagg&#39;, &#39;--noaggregate&#39;)))</span>
-    <span class="n">nWords</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--nWords&#39;</span><span class="p">,</span> <span class="s">&#39;--nCentroids&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">8E3</span><span class="p">)</span>
-    <span class="n">nAssign</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--nAssign&#39;</span><span class="p">,</span> <span class="s">&#39;--K&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">get_argflag</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span>
+    <span class="n">get_argval</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span>
+    <span class="n">aggregate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aggregate&#39;</span><span class="p">,</span> <span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--agg&#39;</span><span class="p">,</span> <span class="s">&#39;--aggregate&#39;</span><span class="p">)))</span>
+    <span class="n">nWords</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>   <span class="s">&#39;nWords&#39;</span><span class="p">,</span>  <span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--nWords&#39;</span><span class="p">,</span> <span class="s">&#39;--nCentroids&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">8E3</span><span class="p">))</span>
+    <span class="n">nAssign</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>  <span class="s">&#39;nAssign&#39;</span><span class="p">,</span>  <span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--nAssign&#39;</span><span class="p">,</span> <span class="s">&#39;--K&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
     <span class="c"># Configs</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;smk&#39;</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span> <span class="o">=</span> <span class="n">aggregate</span>
@@ -152,27 +147,29 @@
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">words</span>
 
 </div>
-<div class="viewcode-block" id="testdata_raw_internals0"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_raw_internals0">[docs]</a><span class="k">def</span> <span class="nf">testdata_raw_internals0</span><span class="p">():</span>
+<div class="viewcode-block" id="testdata_raw_internals0"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_raw_internals0">[docs]</a><span class="k">def</span> <span class="nf">testdata_raw_internals0</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">words</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_words</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">words</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_words</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_raw_internals0&#39;</span><span class="p">)</span>
     <span class="n">with_internals</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">with_internals</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span>
+    <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">with_internals</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qreq_</span>
 
 </div>
 <div class="viewcode-block" id="testdata_raw_internals1"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_raw_internals1">[docs]</a><span class="k">def</span> <span class="nf">testdata_raw_internals1</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals0</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals0</span><span class="p">()</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_raw_internals1&#39;</span><span class="p">)</span>
     <span class="c">#ibs.cfg.query_cfg.smk_cfg.printme3()</span>
     <span class="n">words</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
     <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
     <span class="n">idx2_vec</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>
     <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># 1 for database</span>
-    <span class="n">massign_sigma</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_sigma</span>
-    <span class="n">massign_alpha</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_alpha</span>
-    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_equal_weights</span>
+    <span class="n">massign_sigma</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
+    <span class="n">massign_alpha</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
+    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
     <span class="c"># TODO: Extract args from function via inspect</span>
     <span class="n">_dbargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span>
                <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
@@ -451,34 +448,35 @@
             <span class="c">#print(&#39;word[wx={wx}] has no rvecs&#39;.format(wx=wx))</span>
             <span class="n">no_wxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values</span><span class="p">(</span><span class="n">rvecs</span><span class="p">)[</span><span class="n">sx</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">rvecs</span><span class="p">[</span><span class="n">sx</span><span class="p">])):</span>
                 <span class="c">#rvecs[:] = 1 / np.sqrt(128)</span>
                 <span class="c">#print(&#39;word[wx={wx}][sx={sx}] has nans&#39;.format(wx=wx))</span>
                 <span class="n">nan_wxs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">wx</span><span class="p">,</span> <span class="n">sx</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] </span><span class="si">%d</span><span class="s"> words had no residuals&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_wxs</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] </span><span class="si">%d</span><span class="s"> words have nans&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">nan_wxs</span><span class="p">))</span>
-    <span class="n">failed_wx</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">sx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nan_wxs</span><span class="p">):</span>
-        <span class="n">rvec</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values</span><span class="p">(</span><span class="n">wx2_rvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">])[</span><span class="n">sx</span><span class="p">]</span>
-        <span class="n">idxs</span> <span class="o">=</span> <span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="n">sx</span><span class="p">]</span>
-        <span class="n">dvec</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">)[</span><span class="n">idxs</span><span class="p">]</span>
-        <span class="n">word</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values</span><span class="p">(</span><span class="n">words</span><span class="p">)[</span><span class="n">wx</span><span class="p">]</span>
-        <span class="n">truth</span> <span class="o">=</span> <span class="p">(</span><span class="n">word</span> <span class="o">==</span> <span class="n">dvec</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">truth</span><span class="p">):</span>
-            <span class="n">failed_wx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">wx2_rvecs</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">wx2_idxs</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">idx2_vec</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">failed_wx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">sx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nan_wxs</span><span class="p">):</span>
+            <span class="n">rvec</span> <span class="o">=</span> <span class="n">wx2_rvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="n">sx</span><span class="p">]</span>
+            <span class="n">idxs</span> <span class="o">=</span> <span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="n">sx</span><span class="p">]</span>
+            <span class="n">dvec</span> <span class="o">=</span> <span class="n">idx2_vec</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+            <span class="n">truth</span> <span class="o">=</span> <span class="p">(</span><span class="n">word</span> <span class="o">==</span> <span class="n">dvec</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">truth</span><span class="p">):</span>
+                <span class="n">failed_wx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+=====================&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Bad RVEC #</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] wx=</span><span class="si">%r</span><span class="s">, sx=</span><span class="si">%r</span><span class="s"> was nan and not equal to its word&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">sx</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] rvec=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rvec</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] dvec=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dvec</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] word=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] truth=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth</span><span class="p">,))</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_wx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;+=====================&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Bad RVEC #</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] wx=</span><span class="si">%r</span><span class="s">, sx=</span><span class="si">%r</span><span class="s"> was nan and not equal to its word&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">sx</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] rvec=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rvec</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] dvec=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dvec</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] word=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] truth=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth</span><span class="p">,))</span>
-            <span class="n">flag</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_wx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] all nan rvecs were equal to their words&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] all nan rvecs were equal to their words&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">flag</span>
 
 </div>
@@ -509,7 +507,8 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()</span>
 <span class="sd">        &gt;&gt;&gt; words = smk_index.learn_visual_words(annots_df, taids, nWords)</span>
-<span class="sd">        &gt;&gt;&gt; invindex = smk_index.index_data_annots(annots_df, daids, words)</span>
+<span class="sd">        &gt;&gt;&gt; qparams = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; invindex = smk_index.index_data_annots(annots_df, daids, words, qparams)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>
     <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>
@@ -520,7 +519,7 @@
 
 </div>
 <div class="viewcode-block" id="check_daid2_sccw"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.check_daid2_sccw">[docs]</a><span class="k">def</span> <span class="nf">check_daid2_sccw</span><span class="p">(</span><span class="n">daid2_sccw</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="n">daid2_sccw_values</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">ensure_values</span><span class="p">(</span><span class="n">daid2_sccw</span><span class="p">)</span>
+    <span class="n">daid2_sccw_values</span> <span class="o">=</span> <span class="n">daid2_sccw</span>
     <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">daid2_sccw_values</span><span class="p">)),</span> <span class="s">&#39;sccws are nan&#39;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;database sccws are not nan&#39;</span><span class="p">)</span>
@@ -532,9 +531,10 @@
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nWords</span> <span class="o">=</span> <span class="n">testdata_dataframe</span><span class="p">()</span>
     <span class="n">smk_alpha</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_alpha</span>
     <span class="n">smk_thresh</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_thresh</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="n">words</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">nWords</span><span class="p">)</span>
     <span class="n">with_internals</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">with_internals</span><span class="p">)</span>
+    <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">with_internals</span><span class="p">)</span>
     <span class="n">idx2_daid</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
     <span class="n">wx2_drvecs</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>
     <span class="n">wx2_idf</span>    <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>
@@ -590,7 +590,7 @@
 <div class="viewcode-block" id="check_rvecs_list_eq"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.check_rvecs_list_eq">[docs]</a><span class="k">def</span> <span class="nf">check_rvecs_list_eq</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">rvecs_list2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms</span>
+<span class="sd">        &gt;&gt;&gt; rvecs_list = smk_core.compute_nonagg_rvecs(*_args1)  # 125 ms</span>
 <span class="sd">        &gt;&gt;&gt; rvecs_list2 = smk_speed.compute_nonagg_residuals_forloop(*_args1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rvecs_list2</span><span class="p">)</span>
@@ -668,14 +668,113 @@
     <span class="n">vector_stats</span><span class="p">(</span><span class="n">stacked_sift</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">512.0</span><span class="p">,</span> <span class="s">&#39;sift&#39;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="view_vocabs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.view_vocabs">[docs]</a><span class="k">def</span> <span class="nf">view_vocabs</span><span class="p">():</span>
+<div class="viewcode-block" id="dump_word_patches"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.dump_word_patches">[docs]</a><span class="k">def</span> <span class="nf">dump_word_patches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invindex</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    looks in vocab cachedir and prints info / vizualizes the vocabs</span>
+<span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">    #&gt;&gt;&gt; tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=64000)</span>
+<span class="sd">    &gt;&gt;&gt; tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=64000)</span>
+<span class="sd">    &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = tup</span>
+<span class="sd">    &gt;&gt;&gt; compute_data_internals_(invindex, qreq_.qparams)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">patch</span> <span class="k">as</span> <span class="n">ptool</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">)</span>
+
+    <span class="n">flatdir</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">testmode</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] Dumping word patches to figure directory&#39;</span><span class="p">)</span>
+
+    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">(),</span> <span class="s">&#39;vocab_patches&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;_flat&#39;</span> <span class="k">if</span> <span class="n">flatdir</span> <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">())</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vf&#39;</span><span class="p">):</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">dump_annot_word_patches</span><span class="p">(</span><span class="n">aid</span><span class="p">):</span>
+        <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">chip_kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">idx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span> <span class="o">==</span> <span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fx_list</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span><span class="p">[</span><span class="n">idx_list</span><span class="p">]</span>
+        <span class="n">wxs_list</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">[</span><span class="n">idx_list</span><span class="p">]</span>
+        <span class="c">#maws_list = invindex.idx2_wxs[idxs]</span>
+        <span class="n">patches</span><span class="p">,</span> <span class="n">subkpts</span> <span class="o">=</span> <span class="n">ptool</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">chip_kpts</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fx</span><span class="p">,</span> <span class="n">wxs</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fx_list</span><span class="p">,</span> <span class="n">wxs_list</span><span class="p">,</span> <span class="n">patches</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">wx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wxs</span><span class="p">):</span>
+                <span class="n">word_dname</span> <span class="o">=</span> <span class="s">&#39;wx=</span><span class="si">%06d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">wx</span>
+                <span class="n">patch_fname</span> <span class="o">=</span> <span class="s">&#39;patch_nid=</span><span class="si">%04d</span><span class="s">_aid=</span><span class="si">%04d</span><span class="s">_fx=</span><span class="si">%04d</span><span class="s">_k=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">flatdir</span><span class="p">:</span>
+                    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">word_dname</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">patch_fname</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">word_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">word_dname</span><span class="p">)</span>
+                    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">word_dpath</span><span class="p">)</span>
+                    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">word_dpath</span><span class="p">,</span> <span class="n">patch_fname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">testmode</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">patch</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">daids</span><span class="p">):</span>
+        <span class="n">dump_annot_word_patches</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">nest_large_directory</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
+        <span class="n">dpath</span> <span class="o">=</span> <span class="s">&#39;/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches&#39;</span>
+        <span class="n">fpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">dpath</span><span class="p">))</span>
+        <span class="n">max_files</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="n">fpath_chunks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">max_files</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">src_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">fpath_chunks</span><span class="p">)):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">chunk_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s">&#39;chunk</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">dst_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">chunk_dpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">src_list</span><span class="p">]</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">chunk_dpath</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">move_list</span><span class="p">(</span><span class="n">src_list</span><span class="p">,</span> <span class="n">dst_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">select_subdirs</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
+        <span class="n">dpath1</span> <span class="o">=</span> <span class="s">&#39;/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches&#39;</span>
+        <span class="n">dpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">dpath1</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_files</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="n">dpath_list1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;wx=&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dpath_list</span><span class="p">))</span>
+
+        <span class="n">subfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">dpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">dpath_</span> <span class="ow">in</span> <span class="n">dpath_list1</span><span class="p">]</span>
+        <span class="n">subfiles_len</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">subfiles</span><span class="p">))</span>
+
+        <span class="n">dpath_list2</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">dpath_list1</span><span class="p">,</span> <span class="n">subfiles_len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">seldpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath1</span><span class="p">,</span> <span class="s">&#39;..&#39;</span><span class="p">,</span> <span class="s">&#39;selected_vocab_patches/&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dpath2</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">dpath_list2</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dpath2</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">seldpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">dpath2</span><span class="p">)))</span>
+
+        <span class="c"># stack for show</span>
+        <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+        <span class="c">#df2.rrr()</span>
+        <span class="n">bigpatch_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">seldpath</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+                <span class="n">patch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
+                <span class="c">#img_list = patch_list</span>
+                <span class="c">#bigpatch = df2.stack_image_recurse(patch_list)</span>
+                <span class="c">#bigpatch = df2.stack_image_list(patch_list, vert=False)</span>
+                <span class="n">bigpatch</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">patch_list</span><span class="p">)</span>
+                <span class="n">bigpatch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bigpatch</span><span class="p">)</span>
+                <span class="n">bigpatch_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">seldpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_patches.png&#39;</span><span class="p">)</span>
+                <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">bigpatch_fpath</span><span class="p">,</span> <span class="n">bigpatch</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">pass</span>
+                <span class="c">#df2.imshow(bigpatch)</span>
+                <span class="c">#df2.present()</span>
+                <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="get_cached_vocabs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_cached_vocabs">[docs]</a><span class="k">def</span> <span class="nf">get_cached_vocabs</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
     <span class="kn">import</span> <span class="nn">parse</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="c"># Parse some of the training data from fname</span>
     <span class="n">parse_str</span> <span class="o">=</span> <span class="s">&#39;{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}&#39;</span>
     <span class="n">smkdir</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
@@ -686,6 +785,17 @@
     <span class="n">nDpts_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s">&#39;num_dpts&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
     <span class="n">key_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nCent_list</span><span class="p">,</span> <span class="n">nDpts_list</span><span class="p">)</span>
     <span class="n">fpath_sorted</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath_sorted</span>
+
+</div>
+<div class="viewcode-block" id="view_vocabs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.view_vocabs">[docs]</a><span class="k">def</span> <span class="nf">view_vocabs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    looks in vocab cachedir and prints info / vizualizes the vocabs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+    <span class="n">fpath_sorted</span> <span class="o">=</span> <span class="n">get_cached_vocabs</span><span class="p">()</span>
 
     <span class="n">num_pca_dims</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># 3</span>
     <span class="n">whiten</span>       <span class="o">=</span> <span class="bp">False</span>
@@ -780,23 +890,37 @@
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">val_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+            <span class="c"># each key holds an ndarray</span>
             <span class="n">val_shape_stats</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vals</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">val_shape_stats_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">val_shape_stats</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="n">val_dtypes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">val</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">])</span>
+            <span class="n">val_dtypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">val</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]))</span>
             <span class="n">fmtstr_</span> <span class="o">+=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">            * val_shape_stats = {val_shape_stats_str}</span>
 <span class="s">            * val_dtypes = {val_dtypes}</span>
 <span class="s">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">val_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="c"># each key holds a list</span>
             <span class="n">val_len_stats</span> <span class="o">=</span>  <span class="n">utool</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">vals</span><span class="p">)))</span>
             <span class="n">val_len_stats_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">val_len_stats</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">depth</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_depth</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
-            <span class="n">val_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_deep_types</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+            <span class="n">deep_val_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_deep_types</span><span class="p">(</span><span class="n">vals</span><span class="p">)))</span>
             <span class="n">fmtstr_</span> <span class="o">+=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">            * list_depth = {depth}</span>
 <span class="s">            * val_len_stats = {val_len_stats_str}</span>
-<span class="s">            * deep_types = {val_types}</span>
+<span class="s">            * deep_types = {deep_val_types}</span>
 <span class="s">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deep_val_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">deep_val_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                    <span class="n">deep_val_dtypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">val</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]))</span>
+                    <span class="n">fmtstr_</span> <span class="o">+=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">                    * deep_val_dtypes = {deep_val_dtypes}</span>
+<span class="s">                    &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">val_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+            <span class="c"># each key holds a scalar</span>
+            <span class="n">val_stats</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">fmtstr_</span> <span class="o">+=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">            * val_stats = {val_stats}</span>
+<span class="s">            &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
 
     <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">fmtstr_</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">fmtstr</span><span class="p">)</span>
@@ -952,8 +1076,8 @@
     <span class="c">#qaid = qaids[0]</span>
     <span class="n">nWords</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nWords</span>
     <span class="n">aggregate</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
-    <span class="n">smk_alpha</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
-    <span class="n">smk_thresh</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
+    <span class="n">smk_alpha</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
+    <span class="n">smk_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
     <span class="n">nAssign</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
     <span class="c">#aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate</span>
     <span class="c">#smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha</span>
@@ -1034,16 +1158,33 @@
     <span class="k">return</span> <span class="n">rvecs_norm_float</span>
 
 </div>
-<div class="viewcode-block" id="get_test_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_test_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nanrows</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+    <span class="n">max_</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MAX</span>
+    <span class="n">min_</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MIN</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_TYPE</span>
     <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_DIM</span>
-    <span class="n">dtype_info</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">dtype_range</span> <span class="o">=</span> <span class="n">dtype_info</span><span class="o">.</span><span class="n">max</span> <span class="o">-</span> <span class="n">dtype_info</span><span class="o">.</span><span class="n">min</span>
-    <span class="c">#rvecs = (dtype_range * np.random.rand(num, dim) - dtype_info.min).astype(dtype)</span>
+    <span class="n">dtype_range</span> <span class="o">=</span> <span class="n">max_</span> <span class="o">-</span> <span class="n">min_</span>
     <span class="n">rvecs_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
-    <span class="n">rvecs</span> <span class="o">=</span> <span class="p">((</span><span class="n">dtype_range</span> <span class="o">*</span> <span class="n">rvecs_float</span><span class="p">)</span> <span class="o">-</span> <span class="n">dtype_info</span><span class="o">.</span><span class="n">min</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">rvecs</span> <span class="o">=</span> <span class="p">((</span><span class="n">dtype_range</span> <span class="o">*</span> <span class="n">rvecs_float</span><span class="p">)</span> <span class="o">-</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MIN</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nanrows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">rvecs</span><span class="p">[</span><span class="n">nanrows</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    dtype = np.int8</span>
+<span class="sd">    max_ = 128</span>
+<span class="sd">    min_ = -128</span>
+<span class="sd">    nanrows = 1</span>
+
+<span class="sd">    import numpy.ma as ma</span>
+<span class="sd">    if dtype not in [np.float16, np.float32, np.float64]:</span>
+<span class="sd">        rvecs.view(ma.MaskedArray)</span>
+
+
+<span class="sd">    np.ma.array([1,2,3,4,5], dtype=int)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">rvecs</span>
 
 </div>
@@ -1110,13 +1251,11 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n\n\n\n\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
-    <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--view-vocabs&#39;</span><span class="p">):</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--mode&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--view-vocabs&#39;</span><span class="p">):</span>
         <span class="n">view_vocabs</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-        <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-        <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;isplay.notebook_repr_html&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
         <span class="n">main_locals</span> <span class="o">=</span> <span class="n">main</span><span class="p">()</span>
         <span class="n">main_execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="s">&#39;main_locals&#39;</span><span class="p">)</span>

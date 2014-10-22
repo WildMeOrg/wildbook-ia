@@ -52,6 +52,14 @@ ibeis.model.preproc.preproc_image module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.preproc.preproc_rvec module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_rvec
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

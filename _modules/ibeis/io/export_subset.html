@@ -867,15 +867,12 @@
         <span class="k">if</span> <span class="n">valid</span>
     <span class="p">]</span>
     <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblannot_td</span><span class="o">.</span><span class="n">alr_confidence_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
-    <span class="n">accessor_decors</span><span class="o">.</span><span class="n">DEBUG_ADDERS</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_annot_relationship</span><span class="p">(</span>
         <span class="n">aid_list</span><span class="p">,</span>
         <span class="n">lblannot_rowid_list</span><span class="p">,</span>
         <span class="n">config_rowid_list</span><span class="o">=</span><span class="n">config_rowid_list</span><span class="p">,</span>
         <span class="n">alr_confidence_list</span><span class="o">=</span><span class="n">alr_confidence_list</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">accessor_decors</span><span class="o">.</span><span class="n">DEBUG_ADDERS</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">return</span> <span class="n">alrid_list</span>
 
 

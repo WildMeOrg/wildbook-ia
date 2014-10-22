@@ -428,6 +428,14 @@ ibeis.tests.test_view_viz module
     :undoc-members:
     :show-inheritance:
 
+ibeis.tests.test_weakref module
+-------------------------------
+
+.. automodule:: ibeis.tests.test_weakref
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

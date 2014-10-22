@@ -105,26 +105,27 @@
     <span class="c"># Do not use bigcache single queries</span>
     <span class="n">use_bigcache_</span> <span class="o">=</span> <span class="p">(</span><span class="n">use_bigcache</span> <span class="ow">and</span> <span class="n">use_cache</span> <span class="ow">and</span>
                      <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">)</span>
-    <span class="c"># Try and load directly from a big cache</span>
-    <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">:</span>
         <span class="n">bc_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span>
         <span class="n">qhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="s">&#39;_QAUUIDS&#39;</span><span class="p">)</span>
         <span class="n">dhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DAUUIDS&#39;</span><span class="p">)</span>
         <span class="n">bc_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="s">&#39;_QRESMAP&#39;</span><span class="p">,</span> <span class="n">qhashid</span><span class="p">,</span> <span class="n">dhashid</span><span class="p">))</span>
         <span class="n">bc_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>  <span class="c"># FIXME, rectify w/ qparams</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache hit&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">qaid2_qres</span>
-        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+            <span class="c"># Try and load directly from a big cache</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache hit&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">qaid2_qres</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss&#39;</span><span class="p">)</span>
     <span class="c"># ------------</span>
     <span class="c"># Build query request</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="c"># Execute query request</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">)</span>
     <span class="c"># ------------</span>
-    <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span>
 

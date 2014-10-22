@@ -64,13 +64,11 @@
 <li class="toctree-l1"><a class="reference internal" href="ibeis.model.hots.smk.html">ibeis.model.hots.smk package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#ibeis-model-hots-smk-grave-module">ibeis.model.hots.smk._grave module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.pandas_helpers">ibeis.model.hots.smk.pandas_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_internal">ibeis.model.hots.smk.smk_internal module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_speed">ibeis.model.hots.smk.smk_speed module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk">Module contents</a></li>
 </ul>
 </li>
@@ -922,6 +920,14 @@ returns a list of failed qaids</p>
 <dt id="ibeis.model.hots.query_request.QueryParams">
 <em class="property">class </em><tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">QueryParams</tt><big>(</big><em>qparams</em>, <em>cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryParams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qparams</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1095,6 +1101,20 @@ returns a list of failed qaids</p>
 <dd><p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span> <span class="o">=</span> <span class="n">get_test_qreq</span><span class="p">()</span>   
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.query_request.parse_config_items">
+<tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">parse_config_items</tt><big>(</big><em>cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#parse_config_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.parse_config_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extracts key, val pairs from Config objects
+into a flat list. (there must not be name conflicts)</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
