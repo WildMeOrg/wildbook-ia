@@ -3,8 +3,9 @@
 #python dev.py -t gv_scores --allgt --db $TESTDB
 #python dev.py -t gv_test --allgt --db $TESTDB
 
-export IBSFLAGS='--noqcache --screen'
+#export IBSFLAGS='--noqcache --screen'
 #export IBSFLAGS='--noqcache --screen --delete-query-cache'
+export IBSFLAGS=''
 
 
 #export IBSFLAGS=''

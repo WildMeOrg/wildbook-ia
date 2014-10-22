@@ -53,19 +53,20 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
-    # Try and load directly from a big cache
-    if use_bigcache_:
+    if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
         qhashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUIDS')
         dhashid = ibs.get_annot_uuid_hashid(daid_list, '_DAUUIDS')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
-        try:
-            qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            print('... qaid2_qres bigcache hit')
-            return qaid2_qres
-        except IOError:
-            print('... qaid2_qres bigcache miss')
+        if use_bigcache_:
+            # Try and load directly from a big cache
+            try:
+                qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                print('... qaid2_qres bigcache hit')
+                return qaid2_qres
+            except IOError:
+                print('... qaid2_qres bigcache miss')
     # ------------
     # Build query request
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
