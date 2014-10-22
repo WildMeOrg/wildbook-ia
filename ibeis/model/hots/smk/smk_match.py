@@ -175,7 +175,6 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
     kernel_args = (wx2_qrvecs, wx2_maws, wx2_qfxs, query_gamma, invindex, qparams, withinfo)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(*kernel_args)  # 54 %
     # Prevent self matches
-    #can_match_self = not utool.get_argflag('--noself')
     allow_self_match = qparams.allow_self_match
     #utool.get_argflag('--self-match')
     if (not allow_self_match) and qaid in daid2_totalscore:

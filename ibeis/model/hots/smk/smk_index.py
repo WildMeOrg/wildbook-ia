@@ -274,7 +274,8 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
 
 
 @profile
-def compute_data_internals_(invindex, qparams, memtrack=None):
+def compute_data_internals_(invindex, qparams, memtrack=None,
+                            delete_rawvecs=True):
     """
     TODO: Move to module that uses smk_index
 
@@ -380,9 +381,10 @@ def compute_data_internals_(invindex, qparams, memtrack=None):
         # Try to save some memory
         if not utool.QUIET:
             print('[smk_index] unloading idx2_vec')
-        #del _wx2_maws
-        #invindex.idx2_dvec = None
-        #del idx2_vec
+        #if delete_rawvecs:
+        #    del _wx2_maws
+        #    invindex.idx2_dvec = None
+        #    del idx2_vec
         # Compute annotation normalization factor
         wx2_rvecs = wx2_drvecs  # NOQA
         daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
@@ -553,7 +555,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
         idx2_maws = [[1.0]] * len(idx2_wxs)
 
     # Invert mapping -- Group by word indexes
-    jagged_idxs = ([idx] * len(wxs) for idx, wxs in enumerate(idx2_wxs))
+    jagged_idxs = ([idx] * len(wxs)for idx, wxs in enumerate(idx2_wxs))
     wx_keys, groupxs = clustertool.jagged_group(idx2_wxs)
     idxs_list = clustertool.apply_jagged_grouping(jagged_idxs, groupxs)
     maws_list = clustertool.apply_jagged_grouping(idx2_maws, groupxs)
@@ -583,15 +585,24 @@ def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
         tuple : (idx2_wxs, idx2_maws)
 
     References:
+        (Improving Bag of Features)
         http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
+
+        (Lost in Quantization)
+        http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz
+
+        (A Context Dissimilarity Measure for Accurate and Efficient Image Search)
+        https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf
+
+    Notes:
+        sigma values from \cite{philbin_lost08}
+        (70 ** 2) ~= 5000,
+        (80 ** 2) ~= 6250,
+        (86 ** 2) ~= 7500,
 
     Auto:
         from ibeis.model.hots.smk import smk_index
-        import utool
-        utool.rrrr()
-        func = smk_index.compute_multiassign_weights_
-        argdoc = utool.make_default_docstr(smk_index.compute_multiassign_weights_)
-        print(argdoc)
+        import utool; print(utool.make_default_docstr(smk_index.compute_multiassign_weights_))
     """
     if not utool.QUIET:
         print('[smk_index.assign] compute_multiassign_weights_')
@@ -758,7 +769,6 @@ def compute_negentropy_names(aids_list, daid2_label):
     Returns:
         negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy
 
-
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -855,15 +865,17 @@ def compute_negentropy_names(aids_list, daid2_label):
 def compute_idf_label1(aids_list, daid2_label):
     """
     One of our idf extensions
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
-    >>> wx_series = np.arange(len(invindex.words))
-    >>> idx2_aid = invindex.idx2_daid
-    >>> daid2_label = invindex.daid2_label
-    >>> _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
-    >>> idxs_list, aids_list = _
-    >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+        >>> wx_series = np.arange(len(invindex.words))
+        >>> idx2_aid = invindex.idx2_daid
+        >>> daid2_label = invindex.daid2_label
+        >>> _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
+        >>> idxs_list, aids_list = _
+        >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     """
     nWords = len(aids_list)
     # Computes our novel label idf weight
@@ -933,11 +945,11 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         >>> idx2_vec  = invindex.idx2_dvec
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
         >>> wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
-
-    Auto:
-        from ibeis.model.hots.smk import smk_index
-        import utool; print(utool.make_default_docstr(smk_index.compute_residuals_))
-
+    """
+    """
+    #Auto:
+    #    from ibeis.model.hots.smk import smk_index
+    #    import utool; print(utool.make_default_docstr(smk_index.compute_residuals_))
     """
     if not utool.QUIET:
         print('[smk_index.rvec] +--- Start Compute Residuals')
@@ -991,7 +1003,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
 @profile
 def helper_aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
     """
-    helper function: Aggregate over words of the same aid
+    helper function. Aggregate over words of the same aid
     """
     maws_list = [wx2_maws[wx] for wx in wx_sublist]
     tup = smk_core.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
@@ -1029,18 +1041,22 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws,
 
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_index
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = smk_debug.testdata_raw_internals2()
+        >>> tup = smk_debug.testdata_raw_internals2()
+        >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = tup
         >>> smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
         >>> idx2_daid  = invindex.idx2_daid
         >>> wx2_idf    = wx2_idf
         >>> daids      = invindex.daids
-        >>> daid2_sccw = compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh)
+        >>> daid2_sccw = smk_index.compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh)
+    """
 
-    Auto:
-        from ibeis.model.hots.smk import smk_index
-        import utool; print(utool.make_default_docstr(smk_index.compute_data_sccw_))
+    """
+    #Auto:
+    #    from ibeis.model.hots.smk import smk_index
+    #    import utool; print(utool.make_default_docstr(smk_index.compute_data_sccw_))
     """
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug

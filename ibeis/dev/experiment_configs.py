@@ -98,12 +98,31 @@ smk6_overnight = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
     #'pipeline_root': ['smk', 'vsmany'],
     #'pipeline_root': ['smk'],
-    'sv_on':         [True],
-    'nAssign':       [2, 4, 10],
+    'sv_on':          [True],
+    'nAssign':        [4, 10],
+    #'nAssign':       [2, 4, 10],
     'massign_equal_weights': [True],  # , False],
     #'smk_thresh':    [0.0, 0.0001],
     #'smk_alpha':     [3],
-    'nWords':        [128000, 64000, 8000],
+    'nWords':         [128000, 64000, 8000],
+    #'nWords':        [128000],
+}
+
+
+smk7_overnight = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk', 'vsmany'],
+    #'pipeline_root': ['smk'],
+    'logdist_weight': [0.0, 1.0],  #
+    'lnbnn_weight':   [0.0, 1.0],  #
+    'crowded_weight': [0.0, 1.0],  #
+    'sv_on':          [True],
+    'nAssign':        [4, 10],
+    #'nAssign':       [2, 4, 10],
+    'massign_equal_weights': [True],  # , False],
+    #'smk_thresh':    [0.0, 0.0001],
+    #'smk_alpha':     [3],
+    'nWords':         [128000, 64000, 8000],
     #'nWords':        [128000],
 }
 
@@ -230,13 +249,13 @@ vsmany_2 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0, 1],  # 1,]
     'lnbnn_weight':    [0, 1],  # 1,]
-    'lnrat_weight':    [0, 1],  # 1,]
+    'lograt_weight':    [0, 1],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],
@@ -254,13 +273,13 @@ vsone_1 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [1],  # 1,]
     'lnbnn_weight':    [0],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [1.5],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # , 'pl'],  #, 'nsum', 'borda', 'topk', 'nunique']
@@ -289,13 +308,13 @@ vsmany_scoremethod = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum', 'pl', 'plw', 'borda'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
@@ -313,13 +332,13 @@ vsmany_best = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'xy_thresh':       [.01],  # [.002],
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
@@ -469,13 +488,13 @@ vsmany_1 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':   [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # , 'nsum', 'borda', 'topk', 'nunique']

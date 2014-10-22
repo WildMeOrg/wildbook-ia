@@ -72,13 +72,11 @@
 <li class="toctree-l3"><a class="reference internal" href="ibeis.model.hots.smk.html">ibeis.model.hots.smk package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#ibeis-model-hots-smk-grave-module">ibeis.model.hots.smk._grave module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.pandas_helpers">ibeis.model.hots.smk.pandas_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_internal">ibeis.model.hots.smk.smk_internal module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_speed">ibeis.model.hots.smk.smk_speed module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk">Module contents</a></li>
 </ul>
 </li>
@@ -108,6 +106,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_encounter">ibeis.model.preproc.preproc_encounter module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_feat">ibeis.model.preproc.preproc_feat module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_image">ibeis.model.preproc.preproc_image module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_rvec">ibeis.model.preproc.preproc_rvec module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc">Module contents</a></li>
 </ul>
 </li>
@@ -379,7 +378,7 @@
 
 <dl class="class">
 <dt id="ibeis.model.Config.SMKConfig">
-<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">SMKConfig</tt><big>(</big><em>smkcfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">SMKConfig</tt><big>(</big><em>smk_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
 <p>SMKConfig</p>
 <dl class="method">
@@ -389,7 +388,7 @@
 
 <dl class="method">
 <dt id="ibeis.model.Config.SMKConfig.get_cfgstr_list">
-<tt class="descname">get_cfgstr_list</tt><big>(</big><em>smkcfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_cfgstr_list</tt><big>(</big><em>smk_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -407,6 +406,40 @@
 <dl class="method">
 <dt id="ibeis.model.Config.SpatialVerifyConfig.get_cfgstr_list">
 <tt class="descname">get_cfgstr_list</tt><big>(</big><em>sv_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SpatialVerifyConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.VocabAssignConfig">
+<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">VocabAssignConfig</tt><big>(</big><em>assign_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
+<p>VocabAssignConfig</p>
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.get_cfgstr">
+<tt class="descname">get_cfgstr</tt><big>(</big><em>cfg</em><big>)</big><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.get_cfgstr_list">
+<tt class="descname">get_cfgstr_list</tt><big>(</big><em>smk_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.VocabTrainConfig">
+<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">VocabTrainConfig</tt><big>(</big><em>vocab_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabTrainConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
+<p>VocabTrainConfig</p>
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.get_cfgstr">
+<tt class="descname">get_cfgstr</tt><big>(</big><em>cfg</em><big>)</big><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.get_cfgstr_list">
+<tt class="descname">get_cfgstr_list</tt><big>(</big><em>smk_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabTrainConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

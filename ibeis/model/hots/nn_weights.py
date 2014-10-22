@@ -11,8 +11,8 @@ print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 eps = 1E-8
 
 
-def LNRAT_fn(vdist, ndist):
-    return np.log(np.divide(ndist, vdist + eps) + 1)
+def LOGRAT_fn(vdist, ndist):
+    return np.log(np.divide(ndist, vdist + eps) + 1.0)
 
 
 def RATIO_fn(vdist, ndist):
@@ -23,10 +23,21 @@ def LNBNN_fn(vdist, ndist):
     return (ndist - vdist)  # / 1000.0
 
 
+def LOGDIST_fn(vdist, ndist):
+    return np.log(ndist - vdist + 1.0)  # / 1000.0
+
+
+def CROWDED_fn(vdist, ndist):
+    return np.tile(ndist[:,0:1], (1, vdist.shape[1]))
+
+
 # normweight_fn = LNBNN_fn
 """
-ndist = array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])
-vdist = array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])
+Testdata:
+
+import numpy as np
+ndist = np.array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])
+vdist = np.array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])
 vdist1 = vdist[:,0:1]
 vdist2 = vdist[:,0:2]
 vdist3 = vdist[:,0:3]
@@ -109,14 +120,24 @@ def nn_lnbnn_weight(*args):
     return _nn_normalized_weight(LNBNN_fn, *args)
 
 
-def nn_lnrat_weight(*args):
-    return _nn_normalized_weight(LNRAT_fn, *args)
+def nn_lograt_weight(*args):
+    return _nn_normalized_weight(LOGRAT_fn, *args)
+
+
+def nn_logdist_weight(*args):
+    return _nn_normalized_weight(LOGDIST_fn, *args)
+
+
+def nn_crowded_weight(*args):
+    return _nn_normalized_weight(CROWDED_fn, *args)
 
 
 # TODO: Make a more elegant way of mapping weighting parameters to weighting
 # function. A dict is better than eval, but there may be a better way.
 NN_WEIGHT_FUNC_DICT = {
-    'lnrat':   nn_lnrat_weight,
+    'lograt':  nn_lograt_weight,
     'lnbnn':   nn_lnbnn_weight,
     'ratio':   nn_ratio_weight,
+    'logdist': nn_logdist_weight,
+    'crowded': nn_crowded_weight,
 }

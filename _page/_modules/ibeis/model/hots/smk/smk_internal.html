@@ -60,11 +60,12 @@
 <span class="c">#import pandas as pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="c">#import scipy.sparse as spsparse</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="c">#from ibeis.model.hots import hstypes</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_internal]&#39;</span><span class="p">)</span>
 
 
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="score_matches"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_internal.score_matches">[docs]</a><span class="k">def</span> <span class="nf">score_matches</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span>
                   <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Similarity + Selectivity: M(X_c, Y_c)</span>
@@ -101,6 +102,7 @@
     <span class="k">return</span> <span class="n">scores_list</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="similarity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_internal.similarity_function">[docs]</a><span class="k">def</span> <span class="nf">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Phi dot product. Accounts for NaN residual vectors</span>
 <span class="sd">    qrvecs_list list of rvecs for each word</span>
@@ -111,21 +113,29 @@
 <span class="sd">        &gt;&gt;&gt; qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()</span>
 <span class="sd">        &gt;&gt;&gt; simmat_list = similarity_function(qrvecs_list, drvecs_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Downweight by the psuedo max squared, to get scores between 0 and 1</span>
+    <span class="c"># For int8: Downweight by the psuedo max squared, to get scores between 0 and 1</span>
+    <span class="c">#simmat_list = [</span>
+    <span class="c">#    qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD</span>
+    <span class="c">#    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)</span>
+    <span class="c">#]</span>
+    <span class="c"># for float16: just perform the calculation</span>
     <span class="n">simmat_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">qrvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">drvecs</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="o">/</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_PSEUDO_MAX_SQRD</span>
+        <span class="n">qrvecs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">drvecs</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and qrvec&#39;</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and drvec&#39;</span>
     <span class="c"># Rvec is NaN implies it is a cluster center. perfect similarity</span>
+    <span class="c"># FIXME: this only works for float16, if RVEC_TYPE is int8, then we need</span>
+    <span class="c"># to come up with something else (like a mask for rows)</span>
     <span class="k">for</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="n">simmat_list</span><span class="p">:</span>
         <span class="n">simmat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">simmat</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
 
     <span class="k">return</span> <span class="n">simmat_list</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="apply_weights"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_internal.apply_weights">[docs]</a><span class="k">def</span> <span class="nf">apply_weights</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applys multi-assign weights and idf weights to rvec similarty matrices</span>
@@ -165,6 +175,7 @@
 
 
 <span class="c">#@profile</span></div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="selectivity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_internal.selectivity_function">[docs]</a><span class="k">def</span> <span class="nf">selectivity_function</span><span class="p">(</span><span class="n">wsim_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Selectivity function - sigma from SMK paper rscore = residual score</span>
 

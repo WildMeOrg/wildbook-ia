@@ -129,7 +129,7 @@ def aggregate_rvecs(rvecs, maws):
     """
     helper for compute_agg_rvecs
     Example:
-        #>>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
+        >>> #rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 128)).astype(hstypes.RVEC_TYPE)
         >>> maws  = (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
@@ -151,13 +151,13 @@ def aggregate_rvecs(rvecs, maws):
 def get_norm_rvecs(vecs, word):
     """
     Example:
-        The case where vecs != words
+        >>> # The case where vecs != words
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
 
-    Example2:
-        The case where vecs == words
+    Example:
+        >>> # The case where vecs == words
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = vecs[1]
@@ -192,7 +192,7 @@ def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
     Returns:
         float: sccw self-consistency-criterion weight
 
-    Math:
+    .. math::
         \begin{equation}
         \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
         \end{equation}
@@ -451,7 +451,9 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     these list comprehensions replace the prevous for loop
     they still need to be optimized a little bit (and made clearer)
     can probably unnest the list comprehensions as well
+    """
 
+    """
     Legacy::
         def old_build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
             fm_nestlist_ = []
@@ -481,7 +483,6 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
 
         59ms
         %timeit old_build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list)
-
     """
     # FIXME: rewrite double comprehension as a flat comprehension
 

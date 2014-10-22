@@ -617,12 +617,15 @@ def sift_stats():
 
 def dump_word_patches(ibs, invindex):
     """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-    >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-    >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
-    >>> compute_data_internals_(invindex, qreq_.qparams)
+    messy function
+
+    Dev:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
+        >>> compute_data_internals_(invindex, qreq_.qparams)
     """
     from vtool import patch as ptool
     from vtool import image as gtool
@@ -635,7 +638,7 @@ def dump_word_patches(ibs, invindex):
     testmode = False
     print('[smk_debug] Dumping word patches to figure directory')
 
-    vocabdir = join(ibs.get_fig_dir(), 'vocab_patches' + ('_flat' if flatdir else ''))
+    vocabdir = join(ibs.get_fig_dir(), 'vocab_patches2' + ('_flat' if flatdir else ''))
     utool.ensuredir(ibs.get_fig_dir())
     utool.ensuredir(vocabdir)
     if utool.get_argflag('--vf'):
@@ -717,6 +720,229 @@ def dump_word_patches(ibs, invindex):
                 #df2.imshow(bigpatch)
                 #df2.present()
                 pass
+
+
+def vizualize_vocabulary(ibs, invindex):
+    """
+    cleaned up version of dump_word_patches
+
+    Dev:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
+        >>> compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
+    """
+    from vtool import patch as ptool
+    from vtool import image as gtool
+    import six
+    import utool
+    import scipy.stats.mstats as spms
+    from os.path import join
+    from os.path import basename
+    import scipy.spatial.distance as spdist
+    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
+
+    print('[smk_debug] Vizualizing vocabulary')
+
+    # DUMPING PART --- dumps patches to disk
+    figdir = ibs.get_fig_dir()
+    utool.ensuredir(figdir)
+    if utool.get_argflag('--vf'):
+        utool.view_directory(figdir)
+
+    ax2_idxs = [np.where(invindex.idx2_daid == aid)[0] for aid in utool.progiter(
+        invindex.daids, 'Building Forward Index: ', freq=100)]
+
+    def euclidean_dist(vecs1, vec2):
+        return np.sqrt(((vecs1.astype(np.float32) - vec2.astype(np.float32)) ** 2).sum(1))
+
+    def dict_where0(dict_):
+        keys = np.array(dict_.keys())
+        flags = np.array(list(map(len, dict_.values()))) == 0
+        indices = np.where(flags)[0]
+        return keys[indices]
+
+    def compute_word_statistics(invindex):
+        wx2_idxs  = invindex.wx2_idxs
+        idx2_dvec = invindex.idx2_dvec
+        words     = invindex.words
+        wx2_pdist = {}
+        wx2_wdist = {}
+        wx2_nMembers = {}
+        wx2_pdist_stats = {}
+        wx2_wdist_stats = {}
+        wordidx_iter = utool.progiter(six.iteritems(wx2_idxs), lbl='Word Dists: ', num=len(wx2_idxs), freq=200)
+
+        for _item in wordidx_iter:
+            wx, idxs = _item
+            dvecs = idx2_dvec.take(idxs, axis=0)
+            word = words[wx:wx + 1]
+            wx2_pdist[wx] = spdist.pdist(dvecs)  # pairwise dist between words
+            wx2_wdist[wx] = euclidean_dist(dvecs, word)  # dist to word center
+            wx2_nMembers[wx] = len(idxs)
+
+        for wx, pdist in utool.progiter(six.iteritems(wx2_pdist), lbl='Word pdist Stats: ', num=len(wx2_idxs), freq=2000):
+            wx2_pdist_stats[wx] = utool.get_stats(pdist)
+
+        for wx, wdist in utool.progiter(six.iteritems(wx2_wdist), lbl='Word wdist Stats: ', num=len(wx2_idxs), freq=2000):
+            wx2_wdist_stats[wx] = utool.get_stats(wdist)
+
+        utool.print_stats(wx2_nMembers.values(), 'word members')
+        return wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats
+        #word_pdist = spdist.pdist(invindex.words)
+
+    # Compute Word Statistics
+    (wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = compute_word_statistics(invindex)
+
+    wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
+    wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
+
+    def select_by_metric(wx2_metric, per_quantile=20):
+        # sample a few words around the quantile points
+        metric_list = np.array(list(wx2_metric.values()))
+        wx_list = np.array(list(wx2_nMembers.keys()))
+        metric_quantiles = spms.mquantiles(metric_list)
+        metric_quantiles = np.array(metric_quantiles.tolist() + [metric_list.max(), metric_list.min()])
+        wx_interest = []
+        for scalar in metric_quantiles:
+            dist = (metric_list - scalar) ** 2
+            wx_quantile = wx_list[dist.argsort()[0:per_quantile]]
+            wx_interest.extend(wx_quantile.tolist())
+        overlap = len(wx_interest) - len(set(wx_interest))
+        if overlap > 0:
+            print('warning: overlap=%r' % overlap)
+        return wx_interest
+
+    wx_sample1 = select_by_metric(wx2_nMembers)
+    wx_sample2 = select_by_metric(wx2_prad)
+    wx_sample3 = select_by_metric(wx2_wrad)
+
+    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
+    overlap123 = len(wx_sample) - len(set(wx_sample))
+    print('overlap123 = %r' % overlap123)
+    wx_sample  = set(wx_sample)
+    print('len(wx_sample) = %r' % len(wx_sample))
+
+    def get_word_dname(wx):
+        stats_ = wx2_wdist_stats[wx]
+        wname_clean = 'wx=%06d' % wx
+        stats1 = 'max={max},min={min},mean={mean},'.format(**stats_)
+        stats2 = 'std={std},nMaxMin=({nMax},{nMin}),shape={shape}'.format(**stats_)
+        fname_fmt = wname_clean + '_{stats1}{stats2}'
+        fmt_dict = dict(stats1=stats1, stats2=stats2)
+        word_dname = utool.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
+        return word_dname
+
+    vocabdir = join(figdir, 'vocab_patches2')
+    utool.ensuredir(vocabdir)
+    wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
+
+    for dpath in utool.progiter(list(wx2_dpath.values()),
+                                lbl='Ensuring word_dpath: ', freq=200):
+        utool.ensuredir(dpath)
+
+    #
+    # DUMP ALL PATCHES TO DIST  --- probably shouldn't
+    # only dump patches in wx_sample
+
+    # Write each patch from each annotation to disk
+    patchdump_iter = utool.progiter(zip(invindex.daids, ax2_idxs), freq=1,
+                                    lbl='Dumping Selected Patches: ', num=len(invindex.daids))
+    for aid, idxs in patchdump_iter:
+        fx_list   = invindex.idx2_dfx[idxs]
+        wxs_list  = invindex.idx2_wxs[idxs]
+        chip      = ibs.get_annot_chips(aid)
+        chip_kpts = ibs.get_annot_kpts(aid)
+        nid       = ibs.get_annot_nids(aid)
+        #maws_list = invindex.idx2_wxs[idxs]
+        patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
+        for fx, wxs, patch in zip(fx_list, wxs_list, patches):
+            assert len(wxs) == 1, 'did you multiassign the database? If so implement it here too'
+            for k, wx in enumerate(wxs):
+                if wx not in wx_sample:
+                    continue
+                patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
+                fpath = join(wx2_dpath[wx], patch_fname)
+                #gtool.imwrite(fpath, patch, fallback=True)
+                gtool.imwrite_fallback(fpath, patch)
+
+    # COLLECTING PART --- collects patches in word folders
+    #vocabdir
+
+    #def select_subdirs(vocabdir):
+    #    # Collect all word directories
+    #    _all_dpath_list = sorted(utool.glob(vocabdir, '*', recursive=True, with_files=False))
+    #    word_dpaths = list(filter(lambda x: x.find('wx=') > -1, _all_dpath_list))
+    #    subfiles = [utool.ls(dpath_) for dpath_ in word_dpaths]
+    #    subfiles_len = list(map(len, subfiles))
+
+    #    sorted_word_dpaths = utool.sortedby(word_dpaths, subfiles_len, reverse=True)
+
+    #    seldpath = join(vocabdir, '..', 'selected_vocab_patches/')
+
+    #    for dpath2 in utool.progiter(sorted_word_dpaths[0:50]):
+    #        print('')
+    #        utool.copy(dpath2, join(seldpath, basename(dpath2)))
+
+    seldpath = vocabdir + '_selected'
+    utool.ensurepath(seldpath)
+    # stack for show
+    from plottool import draw_func2 as df2
+    for wx, dpath in utool.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
+        #df2.rrr()
+        fpath_list = utool.ls(dpath)
+        import parse
+        fname_list = [basename(fpath_) for fpath_ in fpath_list]
+        patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
+        # color each patch by nid
+        nid_list = [int(parse.parse('{}_nid={nid}_{}', fname)['nid']) for fname in fname_list]
+        nid_set = set(nid_list)
+        nid_list = np.array(nid_list)
+        if len(nid_list) == len(nid_set):
+            # no duplicate names
+            newpatch_list = patch_list
+        else:
+            # duplicate names. do coloring
+            sortx = nid_list.argsort()
+            patch_list = np.array(patch_list, dtype=object)[sortx]
+            fname_list = np.array(fname_list, dtype=object)[sortx]
+            nid_list = nid_list[sortx]
+            colors = (255 * np.array(df2.distinct_colors(len(nid_set)))).astype(np.int32)
+            color_dict = dict(zip(nid_set, colors))
+            wpad, hpad = 3, 3
+            newshape_list = [tuple((np.array(patch.shape) + (wpad * 2, hpad * 2, 0)).tolist()) for patch in patch_list]
+            color_list = [color_dict[nid_] for nid_ in nid_list]
+            newpatch_list = [np.zeros(shape) + color[None, None] for shape, color in zip(newshape_list, color_list)]
+            for patch, newpatch in zip(patch_list, newpatch_list):
+                newpatch[wpad:-wpad, hpad:-hpad, :] = patch
+            #img_list = patch_list
+            #bigpatch = df2.stack_image_recurse(patch_list)
+        #bigpatch = df2.stack_image_list(patch_list, vert=False)
+        bigpatch = df2.stack_square_images(newpatch_list)
+        bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
+
+        #
+        def dictstr(dict_):
+            str_ = utool.dict_str(dict_, newlines=False)
+            str_ = str_.replace('\'', '').replace(': ', '=').strip('{},')
+            return str_
+
+        figtitle = '\n'.join([
+            'wx=%r' % wx,
+            'stat(pdist): %s' % dictstr(wx2_pdist_stats[wx]),
+            'stat(wdist): %s' % dictstr(wx2_wdist_stats[wx]),
+        ])
+        wx2_nMembers[wx]
+
+        df2.figure(fnum=1)
+        fig, ax = df2.imshow(bigpatch, figtitle=figtitle)
+        #fig.show()
+        df2.set_figtitle(figtitle)
+        df2.adjust_subplots(top=.878, bottom=0)
+        df2.save_figure(1, bigpatch_fpath)
+        #gtool.imwrite(bigpatch_fpath, bigpatch)
 
 
 def get_cached_vocabs():

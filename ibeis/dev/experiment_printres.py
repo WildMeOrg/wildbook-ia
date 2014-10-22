@@ -247,7 +247,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     for ix in range(1, len(to_intersect_list)):
         intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
-    @utool.argv_flag_dec
+    @utool.argv_flag_dec_true
     def print_bestcfg():
         print('==========================')
         print('[harn] Best Configurations: %s' % testnameid)
