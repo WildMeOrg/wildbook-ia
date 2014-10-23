@@ -31,6 +31,7 @@ def testdata_ibeis(**kwargs):
     print(' === Test Data IBEIS ===')
     from ibeis.model.hots.smk import smk_debug
     smk_debug.testdata_printops(**kwargs)
+    print('kwargs = ' + utool.dict_str(kwargs))
     print('[smk_debug] testdata_ibeis')
     ibeis.ensure_pz_mtest()
     ibs = ibeis.opendb(kwargs.get('db', 'PZ_MTEST'))
@@ -47,6 +48,7 @@ def testdata_ibeis(**kwargs):
     ibs.cfg.query_cfg.smk_cfg.smk_alpha = 3
     ibs.cfg.query_cfg.smk_cfg.smk_thresh = 0
     ibs.cfg.query_cfg.smk_cfg.nAssign = nAssign
+    ibs.cfg.query_cfg.smk_cfg.printme3()
     return ibs
 
 
@@ -615,7 +617,7 @@ def sift_stats():
     vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
 
 
-def dump_word_patches(ibs, invindex):
+def OLDdump_word_patches(ibs, invindex):
     """
     messy function
 
@@ -731,7 +733,10 @@ def vizualize_vocabulary(ibs, invindex):
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        #>>> smk_debug.rrr()
+        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
         >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
         >>> compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
     """
@@ -826,124 +831,164 @@ def vizualize_vocabulary(ibs, invindex):
     wx_sample  = set(wx_sample)
     print('len(wx_sample) = %r' % len(wx_sample))
 
-    def get_word_dname(wx):
-        stats_ = wx2_wdist_stats[wx]
-        wname_clean = 'wx=%06d' % wx
-        stats1 = 'max={max},min={min},mean={mean},'.format(**stats_)
-        stats2 = 'std={std},nMaxMin=({nMax},{nMin}),shape={shape}'.format(**stats_)
-        fname_fmt = wname_clean + '_{stats1}{stats2}'
-        fmt_dict = dict(stats1=stats1, stats2=stats2)
-        word_dname = utool.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
-        return word_dname
+    def make_scatterplots():
+        from plottool import draw_func2 as df2
 
-    vocabdir = join(figdir, 'vocab_patches2')
-    utool.ensuredir(vocabdir)
-    wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
+        def wx2_avepdist(wx):
+            return wx2_pdist_stats[wx]['mean'] if wx in wx2_pdist_stats and 'mean' in wx2_pdist_stats[wx] else -1
+        def wx2_avewdist(wx):
+            return wx2_wdist_stats[wx]['mean'] if wx in wx2_wdist_stats and 'mean' in wx2_wdist_stats[wx] else -1
 
-    for dpath in utool.progiter(list(wx2_dpath.values()),
-                                lbl='Ensuring word_dpath: ', freq=200):
-        utool.ensuredir(dpath)
+        wx2_idf = invindex.wx2_idf
 
-    #
-    # DUMP ALL PATCHES TO DIST  --- probably shouldn't
-    # only dump patches in wx_sample
+        # data
+        wx_list  =  list(wx2_idf.keys())
+        idf_list =  [wx2_idf[wx] for wx in wx_list]
+        nPoints_list =  [wx2_nMembers[wx] if wx in wx2_nMembers else -1 for wx in wx_list]
+        avepdist_list = [wx2_avepdist(wx) for wx in wx_list]
+        avewdist_list = [wx2_avewdist(wx) for wx in wx_list]
 
-    # Write each patch from each annotation to disk
-    patchdump_iter = utool.progiter(zip(invindex.daids, ax2_idxs), freq=1,
-                                    lbl='Dumping Selected Patches: ', num=len(invindex.daids))
-    for aid, idxs in patchdump_iter:
-        fx_list   = invindex.idx2_dfx[idxs]
-        wxs_list  = invindex.idx2_wxs[idxs]
-        chip      = ibs.get_annot_chips(aid)
-        chip_kpts = ibs.get_annot_kpts(aid)
-        nid       = ibs.get_annot_nids(aid)
-        #maws_list = invindex.idx2_wxs[idxs]
-        patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
-        for fx, wxs, patch in zip(fx_list, wxs_list, patches):
-            assert len(wxs) == 1, 'did you multiassign the database? If so implement it here too'
-            for k, wx in enumerate(wxs):
-                if wx not in wx_sample:
-                    continue
-                patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
-                fpath = join(wx2_dpath[wx], patch_fname)
-                #gtool.imwrite(fpath, patch, fallback=True)
-                gtool.imwrite_fallback(fpath, patch)
+        def draw_scatterplot(datax, datay, xlabel, ylabel, color, fnum=None):
+            datac = [color for _ in range(len(datax))]
+            assert len(datax) == len(datay), '%r %r' % (len(datax), len(datay))
+            df2.figure(fnum=fnum)
+            df2.plt.scatter(datax, datay,  c=datac, s=20, marker='o', alpha=.9)
+            ax = df2.gca()
+            title = '%s vs %s.\nnWords=%r. db=%r' % (xlabel, ylabel, len(datax), ibs.get_dbname())
+            df2.set_xlabel(xlabel)
+            df2.set_ylabel(ylabel)
+            ax.set_ylim(min(datay) - 1, max(datay) + 1)
+            ax.set_xlim(min(datax) - 1, max(datax) + 1)
+            df2.dark_background()
+            df2.set_figtitle(title)
+            figpath = join(figdir, title)
+            df2.save_figure(fnum, figpath)
 
-    # COLLECTING PART --- collects patches in word folders
-    #vocabdir
+        df2.reset()
+        draw_scatterplot(idf_list, avepdist_list, 'idf', 'mean(pdist)', df2.WHITE, fnum=1)
+        draw_scatterplot(idf_list, avewdist_list, 'idf', 'mean(wdist)', df2.PINK, fnum=3)
+        draw_scatterplot(nPoints_list, avepdist_list, 'nPointsInWord', 'mean(pdist)', df2.GREEN, fnum=2)
+        draw_scatterplot(avepdist_list, avewdist_list, 'mean(pdist)', 'mean(wdist)', df2.YELLOW, fnum=4)
+        draw_scatterplot(nPoints_list, avewdist_list, 'nPointsInWord', 'mean(wdist)', df2.ORANGE, fnum=5)
+        draw_scatterplot(idf_list, nPoints_list, 'idf', 'nPointsInWord', df2.LIGHT_BLUE, fnum=6)
+        #df2.present()
+    make_scatterplots()
 
-    #def select_subdirs(vocabdir):
-    #    # Collect all word directories
-    #    _all_dpath_list = sorted(utool.glob(vocabdir, '*', recursive=True, with_files=False))
-    #    word_dpaths = list(filter(lambda x: x.find('wx=') > -1, _all_dpath_list))
-    #    subfiles = [utool.ls(dpath_) for dpath_ in word_dpaths]
-    #    subfiles_len = list(map(len, subfiles))
+    def make_wordfigures():
+        """
+        Builds mosaics of patches assigned to words in sample
+        ouptuts them to disk
+        """
 
-    #    sorted_word_dpaths = utool.sortedby(word_dpaths, subfiles_len, reverse=True)
+        def get_word_dname(wx):
+            stats_ = wx2_wdist_stats[wx]
+            wname_clean = 'wx=%06d' % wx
+            stats1 = 'max={max},min={min},mean={mean},'.format(**stats_)
+            stats2 = 'std={std},nMaxMin=({nMax},{nMin}),shape={shape}'.format(**stats_)
+            fname_fmt = wname_clean + '_{stats1}{stats2}'
+            fmt_dict = dict(stats1=stats1, stats2=stats2)
+            word_dname = utool.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
+            return word_dname
 
-    #    seldpath = join(vocabdir, '..', 'selected_vocab_patches/')
+        vocabdir = join(figdir, 'vocab_patches2')
+        utool.ensuredir(vocabdir)
+        wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
 
-    #    for dpath2 in utool.progiter(sorted_word_dpaths[0:50]):
-    #        print('')
-    #        utool.copy(dpath2, join(seldpath, basename(dpath2)))
-
-    seldpath = vocabdir + '_selected'
-    utool.ensurepath(seldpath)
-    # stack for show
-    from plottool import draw_func2 as df2
-    for wx, dpath in utool.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
-        #df2.rrr()
-        fpath_list = utool.ls(dpath)
-        import parse
-        fname_list = [basename(fpath_) for fpath_ in fpath_list]
-        patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
-        # color each patch by nid
-        nid_list = [int(parse.parse('{}_nid={nid}_{}', fname)['nid']) for fname in fname_list]
-        nid_set = set(nid_list)
-        nid_list = np.array(nid_list)
-        if len(nid_list) == len(nid_set):
-            # no duplicate names
-            newpatch_list = patch_list
-        else:
-            # duplicate names. do coloring
-            sortx = nid_list.argsort()
-            patch_list = np.array(patch_list, dtype=object)[sortx]
-            fname_list = np.array(fname_list, dtype=object)[sortx]
-            nid_list = nid_list[sortx]
-            colors = (255 * np.array(df2.distinct_colors(len(nid_set)))).astype(np.int32)
-            color_dict = dict(zip(nid_set, colors))
-            wpad, hpad = 3, 3
-            newshape_list = [tuple((np.array(patch.shape) + (wpad * 2, hpad * 2, 0)).tolist()) for patch in patch_list]
-            color_list = [color_dict[nid_] for nid_ in nid_list]
-            newpatch_list = [np.zeros(shape) + color[None, None] for shape, color in zip(newshape_list, color_list)]
-            for patch, newpatch in zip(patch_list, newpatch_list):
-                newpatch[wpad:-wpad, hpad:-hpad, :] = patch
-            #img_list = patch_list
-            #bigpatch = df2.stack_image_recurse(patch_list)
-        #bigpatch = df2.stack_image_list(patch_list, vert=False)
-        bigpatch = df2.stack_square_images(newpatch_list)
-        bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
+        for dpath in utool.progiter(list(wx2_dpath.values()),
+                                    lbl='Ensuring word_dpath: ', freq=200):
+            utool.ensuredir(dpath)
 
         #
-        def dictstr(dict_):
-            str_ = utool.dict_str(dict_, newlines=False)
-            str_ = str_.replace('\'', '').replace(': ', '=').strip('{},')
-            return str_
+        # DUMP PATCHES IN WX_SAMPLE
 
-        figtitle = '\n'.join([
-            'wx=%r' % wx,
-            'stat(pdist): %s' % dictstr(wx2_pdist_stats[wx]),
-            'stat(wdist): %s' % dictstr(wx2_wdist_stats[wx]),
-        ])
-        wx2_nMembers[wx]
+        # Write each patch from each annotation to disk
+        patchdump_iter = utool.progiter(zip(invindex.daids, ax2_idxs), freq=1,
+                                        lbl='Dumping Selected Patches: ', num=len(invindex.daids))
+        for aid, idxs in patchdump_iter:
+            wxs_list  = invindex.idx2_wxs[idxs]
+            if len(set(utool.flatten(wxs_list)).intersection(set(wx_sample))) == 0:
+                # skip this annotation
+                continue
+            fx_list   = invindex.idx2_dfx[idxs]
+            chip      = ibs.get_annot_chips(aid)
+            chip_kpts = ibs.get_annot_kpts(aid)
+            nid       = ibs.get_annot_nids(aid)
+            #maws_list = invindex.idx2_wxs[idxs]
+            patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
+            for fx, wxs, patch in zip(fx_list, wxs_list, patches):
+                assert len(wxs) == 1, 'did you multiassign the database? If so implement it here too'
+                for k, wx in enumerate(wxs):
+                    if wx not in wx_sample:
+                        continue
+                    patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
+                    fpath = join(wx2_dpath[wx], patch_fname)
+                    #gtool.imwrite(fpath, patch, fallback=True)
+                    gtool.imwrite_fallback(fpath, patch)
 
-        df2.figure(fnum=1)
-        fig, ax = df2.imshow(bigpatch, figtitle=figtitle)
-        #fig.show()
-        df2.set_figtitle(figtitle)
-        df2.adjust_subplots(top=.878, bottom=0)
-        df2.save_figure(1, bigpatch_fpath)
-        #gtool.imwrite(bigpatch_fpath, bigpatch)
+        # COLLECTING PART --- collects patches in word folders
+        #vocabdir
+
+        seldpath = vocabdir + '_selected'
+        utool.ensurepath(seldpath)
+        # stack for show
+        from plottool import draw_func2 as df2
+        for wx, dpath in utool.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
+            #df2.rrr()
+            fpath_list = utool.ls(dpath)
+            import parse
+            fname_list = [basename(fpath_) for fpath_ in fpath_list]
+            patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
+            # color each patch by nid
+            nid_list = [int(parse.parse('{}_nid={nid}_{}', fname)['nid']) for fname in fname_list]
+            nid_set = set(nid_list)
+            nid_list = np.array(nid_list)
+            if len(nid_list) == len(nid_set):
+                # no duplicate names
+                newpatch_list = patch_list
+            else:
+                # duplicate names. do coloring
+                sortx = nid_list.argsort()
+                patch_list = np.array(patch_list, dtype=object)[sortx]
+                fname_list = np.array(fname_list, dtype=object)[sortx]
+                nid_list = nid_list[sortx]
+                colors = (255 * np.array(df2.distinct_colors(len(nid_set)))).astype(np.int32)
+                color_dict = dict(zip(nid_set, colors))
+                wpad, hpad = 3, 3
+                newshape_list = [tuple((np.array(patch.shape) + (wpad * 2, hpad * 2, 0)).tolist()) for patch in patch_list]
+                color_list = [color_dict[nid_] for nid_ in nid_list]
+                newpatch_list = [np.zeros(shape) + color[None, None] for shape, color in zip(newshape_list, color_list)]
+                for patch, newpatch in zip(patch_list, newpatch_list):
+                    newpatch[wpad:-wpad, hpad:-hpad, :] = patch
+                #img_list = patch_list
+                #bigpatch = df2.stack_image_recurse(patch_list)
+            #bigpatch = df2.stack_image_list(patch_list, vert=False)
+            bigpatch = df2.stack_square_images(newpatch_list)
+            bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
+
+            #
+            def dictstr(dict_):
+                str_ = utool.dict_str(dict_, newlines=False)
+                str_ = str_.replace('\'', '').replace(': ', '=').strip('{},')
+                return str_
+
+            figtitle = '\n'.join([
+                'wx=%r' % wx,
+                'stat(pdist): %s' % dictstr(wx2_pdist_stats[wx]),
+                'stat(wdist): %s' % dictstr(wx2_wdist_stats[wx]),
+            ])
+            wx2_nMembers[wx]
+
+            df2.figure(fnum=1)
+            fig, ax = df2.imshow(bigpatch, figtitle=figtitle)
+            #fig.show()
+            df2.set_figtitle(figtitle)
+            df2.adjust_subplots(top=.878, bottom=0)
+            df2.save_figure(1, bigpatch_fpath)
+            #gtool.imwrite(bigpatch_fpath, bigpatch)
+    make_wordfigures()
+    if True:
+        import sys
+        sys.exit(1)
 
 
 def get_cached_vocabs():
@@ -1011,6 +1056,7 @@ def check_qaid2_chipmatch(qaid2_chipmatch, qaids, verbose=True):
 
 
 def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
+    print('[smk_debug] checking %d chipmatches' % len(daid2_chipmatch))
     ## Concatenate into full fmfsfk reprs
     #def concat_chipmatch(cmtup):
     #    fm_list = [_[0] for _ in cmtup]
@@ -1025,7 +1071,6 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
     ##daid2_chipmatch = {}
     ##for daid, cmtup in six.iteritems(daid2_chipmatch_):
     ##    daid2_chipmatch[daid] = concat_chipmatch(cmtup)
-    print('[smk_debug] checking %d chipmatches' % len(daid2_chipmatch))
     featmatches = 0
     daid2_fm, daid2_fs, daid2_fk = daid2_chipmatch
     for daid in six.iterkeys(daid2_fm):

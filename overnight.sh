@@ -16,13 +16,13 @@ export IBSFLAGS=''
 #python dev.py -t smk5 --allgt --db PZ_Mothers $IBSFLAGS
 
 python dev.py -t smk7_overnight --allgt --db GZ_ALL $IBSFLAGS
-python dev.py -t smk7_overnight --allgt --db PZ_Master0 $IBSFLAGS
+python dev.py -t smk7_overnight --allgt --db PZ_Master0 $IBSFLAGS --index 0:200
 python dev.py -t smk7_overnight --allgt --db PZ_Mothers $IBSFLAGS
 
 export IBSFLAGS=''
 
 python dev.py -t smk6_overnight --allgt --db GZ_ALL $IBSFLAGS
-python dev.py -t smk6_overnight --allgt --db PZ_Master0 $IBSFLAGS
+python dev.py -t smk6_overnight --allgt --db PZ_Master0 $IBSFLAGS 
 python dev.py -t smk6_overnight --allgt --db PZ_Mothers $IBSFLAGS
 
 #python dev.py -t smk6_overnight --allgt --db GZ_ALL $IBSFLAGS

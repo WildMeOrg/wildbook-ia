@@ -30,8 +30,11 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
     individually.  On an individual cache miss, it preforms the query.
 
     Args:
-        ibs  : ibeis control object
-        qreq_ : query request object
+        ibs (IBEISController) : ibeis control object
+        qaid_list (list): query annotation ids
+        daid_list (list): database annotation ids
+        use_cache (bool):
+        use_bigcache (bool):
 
     Returns:
         qaid2_qres (dict): dict of QueryResult objects
@@ -80,6 +83,15 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
 
 #@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
+    """
+    Args:
+        ibs (IBEISController):
+        qreq_ (QueryRequest):
+        use_cache (bool):
+
+    Returns:
+        qaid2_qres
+    """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
         if utool.DEBUG2:

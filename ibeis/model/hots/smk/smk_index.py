@@ -381,10 +381,10 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
         # Try to save some memory
         if not utool.QUIET:
             print('[smk_index] unloading idx2_vec')
-        #if delete_rawvecs:
-        #    del _wx2_maws
-        #    invindex.idx2_dvec = None
-        #    del idx2_vec
+        if delete_rawvecs:
+            del _wx2_maws
+            invindex.idx2_dvec = None
+            del idx2_vec
         # Compute annotation normalization factor
         wx2_rvecs = wx2_drvecs  # NOQA
         daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,

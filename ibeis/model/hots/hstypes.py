@@ -28,13 +28,14 @@ currently a weight of zero is hacked in
 from __future__ import absolute_import, division, print_function
 import numpy as np
 
-#FLOAT_TYPE = np.float32
 #INTEGER_TYPE = np.int32
 INDEX_TYPE = np.int32
 
 #INTEGER_TYPE = np.int64
 INTEGER_TYPE = np.int32
-FLOAT_TYPE = np.float64
+
+#FLOAT_TYPE = np.float64
+FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
 

@@ -1,9 +1,19 @@
 # TODO: Need test harness to do a gridsearch of these guys
+"""
+In this file dicts specify all possible combinations of the varied parameters
+and lists specify the union of parameters
+"""
 
 from __future__ import absolute_import, division, print_function
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 # Python
+
+
+def augbase(basedict, updatedict):
+    newdict = basedict.copy()
+    newdict.update(updatedict)
+    return newdict
 
 exclude_vars = vars().keys()   # this line is before tests
 
@@ -113,7 +123,7 @@ smk7_overnight = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
     #'pipeline_root': ['smk', 'vsmany'],
     #'pipeline_root': ['smk'],
-    'logdist_weight': [0.0, 1.0],  #
+    'loglnbnn_weight': [0.0, 1.0],  #
     'lnbnn_weight':   [0.0, 1.0],  #
     'crowded_weight': [0.0, 1.0],  #
     'sv_on':          [True],
@@ -125,6 +135,43 @@ smk7_overnight = {
     'nWords':         [128000, 64000, 8000],
     #'nWords':        [128000],
 }
+
+
+lnbnn2_base = {
+    'pipeline_root': ['vsmany'],
+    'sv_on':          [True],
+    'lnbnn_weight': [0.0],
+    'loglnbnn_weight': [0.0],
+    'normonly_weight': [0.0],
+}
+
+lnbnn2_w1 = augbase(
+    lnbnn2_base, {
+        'loglnbnn_weight': [0.0, 1.0],
+    })
+
+lnbnn2_w2 = augbase(
+    lnbnn2_base, {
+        'normonly_weight': [0.0, 1.0],
+    })
+
+lnbnn2_w3 = augbase(
+    lnbnn2_base, {
+        'lnbnn_weight': [0.0, 1.0],
+    })
+
+'''
+CommandLine:
+
+python dev.py --allgt -t lnbnn2 --db PZ_Mothers --noqcache
+python dev.py --allgt -t lnbnn2 --db GZ_ALL --noqcache
+'''
+
+lnbnn2 = [
+    lnbnn2_w1,
+    lnbnn2_w2,
+    lnbnn2_w3
+]
 
 
 '''
