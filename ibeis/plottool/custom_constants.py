@@ -60,6 +60,7 @@ DARK_RED     = np.array((127,  0,    0, 255)) / 255.0
 DARK_ORANGE  = np.array((127,  63,   0, 255)) / 255.0
 DARK_YELLOW  = np.array((127, 127,   0, 255)) / 255.0
 PURPLE       = np.array((102,   0, 153, 255)) / 255.0
+LIGHT_BLUE   = np.array((102, 100, 255, 255)) / 255.0
 UNKNOWN_PURP = PURPLE
 
 
