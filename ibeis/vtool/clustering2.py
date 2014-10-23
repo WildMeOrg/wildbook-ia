@@ -42,8 +42,30 @@ def assert_centroids(centroids, data, nCentroids, clip_centroids):
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cache_dir='default', force_recomp=False, use_data_hash=True,
                    cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
-                   appname='vtool',  clip_centroids=True):
-    """ precompute aproximate kmeans with builtin caching """
+                   appname='vtool',  clip_centroids=True,
+                   use_external_kmeans=True):
+    """ precompute aproximate kmeans with builtin caching
+
+
+    Example:
+        >>> import numpy as np
+        >>> np.random.seed(42)
+        >>> nump = 100000
+        >>> dims = 128
+        >>> nCentroids = 800
+        >>> max_iters = 300
+        >>> dtype = np.uint8
+        >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
+
+    Timeit:
+        import vtool.clustering2 as clustertool
+        max_iters = 300
+        flann = pyflann.FLANN()
+        centroids1 = flann.kmeans(data, nCentroids, max_iterations=max_iters, dtype=np.uint8)
+        centroids2 = clustertool.akmeans(data, nCentroids, max_iters, {})
+        %timeit clustertool.akmeans(data, nCentroids, max_iters, {})
+        %timeit flann.kmeans(data, nCentroids, max_iterations=max_iters)
+    """
     if data.shape[0] < nCentroids:
         dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
         ex = AssertionError('less data than centroids')
@@ -90,7 +112,22 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         pass
     # First time computation
     print('[akmeans.precompute] pre_akmeans(): calling akmeans')
-    centroids = akmeans(data, nCentroids, max_iters, flann_params)
+    if use_external_kmeans:
+        import pyflann
+        #import utool
+        print('[akmeans.precompute] using flann.kmeans... (hope this is approximate)')
+        flann = pyflann.FLANN()
+        with utool.Timer('testing time of 1 kmeans iteration') as timer:
+            centroids = flann.kmeans(data, nCentroids, max_iterations=1)
+        estimated_time = max_iters * timer.ellapsed
+        print('Current time:            ' + utool.get_timestamp('printable'))
+        print('Estimated Total Time:    ' + utool.get_unix_timedelta_str(estimated_time))
+        print('Estimated finish time:   ' + utool.get_timestamp('printable', delta_seconds=estimated_time))
+        print('Begining computation...')
+        centroids = flann.kmeans(data, nCentroids, max_iterations=max_iters)
+        print('The true finish time is: ' + utool.get_timestamp('printable'))
+    else:
+        centroids = akmeans(data, nCentroids, max_iters, flann_params)
     assert_centroids(centroids, data, nCentroids, clip_centroids)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
