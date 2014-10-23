@@ -622,8 +622,9 @@ def dump_word_patches(ibs, invindex):
     Dev:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_MTEST', nWords=64000)
         >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
         >>> compute_data_internals_(invindex, qreq_.qparams)
     """

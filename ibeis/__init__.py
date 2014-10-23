@@ -5,12 +5,27 @@ IBEIS: main package init
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
-from . import constants
-from . import main_module
-from . import params
-from . import control
-from . import dev
-from . import io
+try:
+    from . import constants
+    from . import main_module
+    from . import params
+    from . import control
+    from . import dev
+    from . import io
+except ImportError as ex:
+    utool.printex(ex)
+    try:
+        from . import constants
+        from . import main_module
+        from . import params
+        from . import control
+        from . import dev
+        from . import io
+    except ImportError as ex:
+        pass
+    else:
+        raise
+
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb
 from .control.IBEISControl import IBEISController

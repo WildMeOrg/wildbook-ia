@@ -131,8 +131,9 @@ class FilterConfig(ConfigBase):
         addfilt(-1,   'ratio',  None,   0.0)
         addfilt(-1,   'lnbnn',  None,   1.0)
         addfilt(-1,  'lograt',  None,   0.0)
-        addfilt(-1,  'crowded',  None,   0.0)
+        addfilt(-1,  'normonly',  None,   0.0)
         addfilt(-1,  'logdist',  None,   0.0)
+        addfilt(-1,  'loglnbnn',  None,   0.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
 
@@ -303,7 +304,16 @@ class FlannConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class SMKConfig(ConfigBase):
-    """ SMKConfig """
+    """
+    SMKConfig
+        #= ibeis.opendb('testdb1')
+
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
+        >>> smk_cfg.printme3()
+    """
     def __init__(smk_cfg, **kwargs):
         super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
         smk_cfg.nAssign    = 10  # MultiAssignment
@@ -404,7 +414,13 @@ class VocabAssignConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
-    """ query configuration parameters """
+    """ query configuration parameters
+
+        Example:
+        >>> import ibeis
+        >>> db ibeis.opendb('testdb1')
+
+    """
     def __init__(query_cfg, feat_cfg=None, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg   = NNConfig(**kwargs)
@@ -418,8 +434,8 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
-        if utool.is_developer():
-            query_cfg.pipeline_root = 'smk'
+        #if utool.is_developer():
+        #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)
