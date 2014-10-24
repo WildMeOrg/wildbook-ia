@@ -126,8 +126,8 @@
 <span class="sd">    Driver logic of query pipeline</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        ibs   (IBEISController): HotSpotter database object to be queried</span>
-<span class="sd">        qreq_ (QueryRequest): use ``prep_qreq`` to create one</span>
+<span class="sd">        ibs   (IBEISController): IBEIS database object to be queried</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters. use ``prep_qreq`` to create one</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (dict of QueryResult): qaid2_qres mapping from query indexes to Query Result Objects</span>
@@ -198,7 +198,7 @@
 <span class="sd">    Plain Nearest Neighbors</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        qreq_  (QueryRequest): query request object</span>
+<span class="sd">        qreq_  (QueryRequest): hyper-parameters</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: qaid2_nnds - a dict mapping query annnotation-ids to a nearest</span>
@@ -255,6 +255,14 @@
 
 </div>
 <div class="viewcode-block" id="weight_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.weight_neighbors">[docs]</a><span class="k">def</span> <span class="nf">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_nns (dict):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict :</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 2) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_cfgstr</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_on</span><span class="p">:</span>
@@ -268,13 +276,13 @@
     <span class="n">nnweight_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">active_filter_list</span>
     <span class="n">filt2_weights</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">nnfilter</span> <span class="ow">in</span> <span class="n">nnweight_list</span><span class="p">:</span>
-        <span class="n">nn_filter_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span>
-        <span class="c"># Apply [nnfilter] weight to each nearest neighbor</span>
+    <span class="k">for</span> <span class="n">nnweight</span> <span class="ow">in</span> <span class="n">nnweight_list</span><span class="p">:</span>
+        <span class="n">nn_filter_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span>
+        <span class="c"># Apply [nnweight] weight to each nearest neighbor</span>
         <span class="c"># TODO FIX THIS!</span>
         <span class="n">qaid2_norm_weight</span><span class="p">,</span> <span class="n">qaid2_selnorms</span> <span class="o">=</span> <span class="n">nn_filter_fn</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="n">filt2_weights</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_norm_weight</span>
-        <span class="n">filt2_meta</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_selnorms</span>
+        <span class="n">filt2_weights</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_norm_weight</span>
+        <span class="n">filt2_meta</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_selnorms</span>
     <span class="k">return</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">filt2_meta</span>
 
 
@@ -301,6 +309,15 @@
 
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="filter_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.filter_neighbors">[docs]</a><span class="k">def</span> <span class="nf">filter_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_nns (dict):</span>
+<span class="sd">        filt2_weights (dict):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_nnfilt</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># Configs</span>
     <span class="n">cant_match_sameimg</span>  <span class="o">=</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
@@ -451,7 +468,7 @@
 <span class="sd">        qaid2_nnfilt : dict of (featmatch_scores, featmatch_mask)</span>
 <span class="sd">                        where the scores and matches correspond to the assigned</span>
 <span class="sd">                        nearest features</span>
-<span class="sd">        qreq_        : QueryRequest object</span>
+<span class="sd">        qreq_(QueryRequest) : hyper-parameters</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        qaid2_chipmatch : feat match, feat score, feat rank</span>
@@ -535,6 +552,15 @@
 
 </div>
 <div class="viewcode-block" id="spatial_verification"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.spatial_verification">[docs]</a><span class="k">def</span> <span class="nf">spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dbginfo</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_chipmatch (dict):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        dbginfo (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict or tuple(dict, dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">dbginfo</span> <span class="k">else</span> <span class="n">qaid2_chipmatch</span>
@@ -669,8 +695,21 @@
 
 <div class="viewcode-block" id="precompute_topx2_dlen_sqrd"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.precompute_topx2_dlen_sqrd">[docs]</a><span class="k">def</span> <span class="nf">precompute_topx2_dlen_sqrd</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">topx2_aid</span><span class="p">,</span> <span class="n">topx2_kpts</span><span class="p">,</span>
                                 <span class="n">nRerank</span><span class="p">,</span> <span class="n">use_chip_extent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; helper for spatial verification, computes the squared diagonal length of</span>
-<span class="sd">    matching chips &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper for spatial verification, computes the squared diagonal length of</span>
+<span class="sd">    matching chips</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        aid2_fm (dict):</span>
+<span class="sd">        topx2_aid (dict):</span>
+<span class="sd">        topx2_kpts (dict):</span>
+<span class="sd">        nRerank (int):</span>
+<span class="sd">        use_chip_extent (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        topx2_dlen_sqrd</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_chip_extent</span><span class="p">:</span>
         <span class="n">topx2_chipsize</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">))</span>
         <span class="k">def</span> <span class="nf">chip_dlen_sqrd</span><span class="p">(</span><span class="n">tx</span><span class="p">):</span>
@@ -700,6 +739,16 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="score_chipmatch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.score_chipmatch">[docs]</a><span class="k">def</span> <span class="nf">score_chipmatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">score_method</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid (int): query annotation id</span>
+<span class="sd">        chipmatch (tuple):</span>
+<span class="sd">        score_method (str):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aid2_score</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
     <span class="c"># HACK: Im not even sure if the &#39;w&#39; suffix is correctly handled anymore</span>
     <span class="k">if</span> <span class="n">score_method</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_method</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
@@ -731,6 +780,15 @@
 <div class="viewcode-block" id="chipmatch_to_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.chipmatch_to_resdict">[docs]</a><span class="k">def</span> <span class="nf">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
                          <span class="n">qaid2_scores</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_chipmatch (dict):</span>
+<span class="sd">        filt2_meta (dict):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        qaid2_scores (dict): optional</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_qres</span>
+
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -785,8 +843,17 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="try_load_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.try_load_resdict">[docs]</a><span class="k">def</span> <span class="nf">try_load_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Try and load the result structures for each query.</span>
-<span class="sd">    returns a list of failed qaids &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        force_miss (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (qaid2_qres_hit, cachemiss_qaids)</span>
+
+<span class="sd">    Try and load the result structures for each query.</span>
+<span class="sd">    returns a list of failed qaids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qaids</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
     <span class="n">qauuids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_quuids</span><span class="p">()</span>
 
@@ -805,6 +872,14 @@
 
 </div>
 <div class="viewcode-block" id="save_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.save_resdict">[docs]</a><span class="k">def</span> <span class="nf">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        qaid2_qres (dict):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qresdir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qresdir</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span></div>
