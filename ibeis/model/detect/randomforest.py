@@ -148,13 +148,12 @@ def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
 
 def _scale_bbox(bbox, s):
     """
-
     Args:
-        bbox (?):
-        s (?):
+        bbox (tuple): bounding box
+        s (float): scale factor
 
     Returns:
-        None
+        bbox2
     """
     bbox_scaled = (s * _ for _ in bbox)
     bbox_round = list(map(round, bbox_scaled))

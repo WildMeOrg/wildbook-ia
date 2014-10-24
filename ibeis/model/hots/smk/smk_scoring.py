@@ -1,6 +1,5 @@
 """
-The real core of the smk_algorithm
-The smk_core module was getting crowded so I made smk_internal
+The functions for scoring smk matches
 """
 from __future__ import absolute_import, division, print_function
 import utool
@@ -8,14 +7,94 @@ import utool
 import numpy as np
 #import scipy.sparse as spsparse
 #from ibeis.model.hots import hstypes
+from ibeis.model.hots import hstypes
 from six.moves import zip
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_internal]')
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_scoring]')
+
+
+DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 
 @profile
-def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
-                  smk_thresh, idf_list):
-    """ Similarity + Selectivity: M(X_c, Y_c)
+def sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_thresh):
+    r"""
+    Computes gamma from "To Aggregate or not to aggregate". Every component in
+    each list is with repsect to a different word.
+
+    scc = self consistency criterion
+    It is a scalar which ensure K(X, X) = 1
+
+    Args:
+        rvecs_list (list of ndarrays): residual vectors for every word
+        idf_list (list of floats): idf weight for each word
+        maws_list (list of ndarrays): multi-assign weights for each word for each residual vector
+        smk_alpha (float): selectivity power
+        smk_thresh (float): selectivity threshold
+
+    Returns:
+        float: sccw self-consistency-criterion weight
+
+    Math:
+        \begin{equation}
+        \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
+        \end{equation}
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_scoring import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_scoring
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> #idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh, wx2_flags = smk_debug.testdata_sccw_sum(db='testdb1')
+        >>> tup = smk_debug.testdata_sccw_sum(db='PZ_Mothers', nWords=128000)
+        >>> idf_list, rvecs_list, flags_list, maws_list, smk_alpha, smk_thresh = tup
+        >>> sccw = smk_scoring.sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_thresh)
+        >>> print(sccw)
+        0.0201041835751
+
+    CommandLine:
+        python smk_match.py --db PZ_MOTHERS --nWords 128
+
+    Ignore:
+        0.0384477314197
+        qmaws_list = dmaws_list = maws_list
+        drvecs_list = qrvecs_list = rvecs_list
+        dflags_list = qflags_list = flags_list
+
+        flags_list = flags_list[7:10]
+        maws_list  = maws_list[7:10]
+        idf_list   = idf_list[7:10]
+        rvecs_list = rvecs_list[7:10]
+
+    """
+    if DEBUG_SMK:
+        assert maws_list is None or len(maws_list) == len(rvecs_list)
+        assert len(rvecs_list) == len(idf_list)
+        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list))
+    # Indexing with asymetric multi-assignment might get you a non 1 self score?
+    # List of scores for every word.
+    scores_list = score_matches(rvecs_list, rvecs_list, flags_list, flags_list,
+                                maws_list, maws_list, smk_alpha, smk_thresh,
+                                idf_list)
+    if DEBUG_SMK:
+        assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
+        assert len(idf_list) == len(scores_list), 'bad weight and score'
+    # Summation over all residual vector scores
+    _count = sum((scores.size for scores in  scores_list))
+    _iter  = utool.iflatten(scores.ravel() for scores in scores_list)
+    self_rawscore = np.fromiter(_iter, np.float64, _count).sum()
+    # Square root inverse to enforce normalized self-score is 1.0
+    sccw = np.reciprocal(np.sqrt(self_rawscore))
+    assert not np.isinf(sccw), 'sccw cannot be infinite'
+    assert not np.isnan(sccw), 'sccw cannot be nan'
+    return sccw
+
+
+@profile
+def score_matches(qrvecs_list, drvecs_list, qflags_list, dflags_list,
+                  qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list):
+    """
+    Similarity + Selectivity: M(X_c, Y_c)
+
+    Computes the similarity matrix between word correspondences
 
     Args:
         qrvecs_list : query vectors for each word
@@ -26,10 +105,13 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
         smk_thresh      : selectivity smk_thresh
 
     Returns:
-        score matrix
+        list : list of score matrices
+
+    References:
+        https://lear.inrialpes.fr/~douze/enseignement/2013-2014/presentation_papers/tolias_aggregate.pdf
 
     Example:
-        >>> from ibeis.model.hots.smk.smk_internal import *  # NOQA
+        >>> from ibeis.model.hots.smk.smk_scoring import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> smk_alpha = 3
         >>> smk_thresh = 0
@@ -37,47 +119,65 @@ def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
         >>> drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
         >>> qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
         >>> dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
-        >>> idf_list = [1 for _ in qrvecs_list]
+        >>> idf_list = [1.0 for _ in qrvecs_list]
         >>> scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)
     """
     # Cosine similarity between normalized residuals
-    simmat_list = similarity_function(qrvecs_list, drvecs_list)
-    # Apply Weights
-    wsim_list = apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
-    # Apply sigma selectivity (power law)
-    scores_list = selectivity_function(wsim_list, smk_alpha, smk_thresh)
-    return scores_list
+    simmat_list = similarity_function(qrvecs_list, drvecs_list, qflags_list, dflags_list)
+    # Apply sigma selectivity (power law) (BEFORE WEIGHTING)
+    scoremat_list = selectivity_function(simmat_list, smk_alpha, smk_thresh)
+    # Apply Weights (AFTER SELECTIVITY)
+    wscoremat_list = apply_weights(scoremat_list, qmaws_list, dmaws_list, idf_list)
+    return wscoremat_list
 
 
 @profile
-def similarity_function(qrvecs_list, drvecs_list):
-    """ Phi dot product. Accounts for NaN residual vectors
+def similarity_function(qrvecs_list, drvecs_list, qflags_list, dflags_list):
+    """ Phi dot product.
+
+    Args:
+        qrvecs_list (list): query residual vectors for each matching word
+        drvecs_list (list): corresponding database residual vectors
+        qflags_list (list): indicates if a query vector was nan
+        dflags_list (list): indicates if a database vector was nan
+
+    Returns:
+        simmat_list
+
     qrvecs_list list of rvecs for each word
 
     Example:
-        >>> from ibeis.model.hots.smk.smk_internal import *  # NOQA
+        >>> from ibeis.model.hots.smk.smk_scoring import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
         >>> simmat_list = similarity_function(qrvecs_list, drvecs_list)
     """
     # For int8: Downweight by the psuedo max squared, to get scores between 0 and 1
-    #simmat_list = [
-    #    qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
-    #    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
-    #]
-    # for float16: just perform the calculation
     simmat_list = [
-        qrvecs.dot(drvecs.T)
+        qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
         for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
     ]
+    # for float16: just perform the calculation
+    #simmat_list = [
+    #    qrvecs.dot(drvecs.T)
+    #    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
+    #]
     if utool.DEBUG2:
         assert len(simmat_list) == len(qrvecs_list), 'bad simmat and qrvec'
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
-    # Rvec is NaN implies it is a cluster center. perfect similarity
-    # FIXME: this only works for float16, if RVEC_TYPE is int8, then we need
-    # to come up with something else (like a mask for rows)
-    for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = 1.0
+
+    if qflags_list is not None and dflags_list is not None:
+        # Set any scores resulting from flagged vectors to 1
+        # Actually lets add .5  because we dont know if a flagged vector
+        # is a good match, but if both database and query are flagged then
+        # it must be a good match
+        for qflags, dflags, simmat in zip(qflags_list, dflags_list, simmat_list):
+            simmat[qflags] += 0.5
+            simmat.T[dflags] += 0.5
+
+    # uint8 does not have nans. We need to use flag lists
+    #for simmat in simmat_list:
+    #    simmat[np.isnan(simmat)] = 1.0
 
     return simmat_list
 
@@ -92,7 +192,7 @@ def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
     Accounts for rvecs being stored as int8's
 
     Example:
-        >>> from ibeis.model.hots.smk.smk_internal import *  # NOQA
+        >>> from ibeis.model.hots.smk.smk_scoring import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()
         >>> wsim_list = apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)

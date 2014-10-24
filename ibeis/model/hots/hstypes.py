@@ -45,8 +45,8 @@ VEC_MAX = VEC_IINFO.max
 VEC_MIN = VEC_IINFO.min
 
 
-#RVEC_TYPE = np.int8
-RVEC_TYPE = np.float16
+RVEC_TYPE = np.int8
+#RVEC_TYPE = np.float16
 if RVEC_TYPE == np.int8:
     # Unfortunatley int8 cannot represent NaN, maybe used a masked array
     RVEC_INFO = np.iinfo(RVEC_TYPE)
