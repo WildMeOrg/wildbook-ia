@@ -55,7 +55,7 @@ def inject_ibeis(ibs):
     """ Injects custom functions into an IBEISController """
     # Give the ibeis object the inject_func_as_method
     utool.inject_func_as_method(ibs, utool.inject_func_as_method)
-    # List of getters to unflatten
+    # List of getters to _unflatten
     to_unflatten = [
         ibs.get_annot_uuids,
         ibs.get_image_uuids,
@@ -638,6 +638,11 @@ def get_match_truth(ibs, aid1, aid2):
     return truth
 
 
+# Use new invertable flatten functions
+_invertable_flatten = utool.invertable_flatten2
+_unflatten = utool.unflatten2
+
+
 def unflat_map(method, unflat_rowids, **kwargs):
     """
     Uses an ibeis lookup function with a non-flat rowid list.
@@ -647,11 +652,11 @@ def unflat_map(method, unflat_rowids, **kwargs):
     """
     #utool.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
+    flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
-    # Then unflatten the results to the original input dimensions
-    unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
+    # Then _unflatten the results to the original input dimensions
+    unflat_vals = _unflatten(flat_vals, reverse_list)
     return unflat_vals
 
 
@@ -659,11 +664,11 @@ def unflat_multimap(method_list, unflat_rowids, **kwargs):
     """ unflat_map, but allows multiple methods
     """
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
+    flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals_list = [method(flat_rowids, **kwargs) for method in method_list]
-    # Then unflatten the results to the original input dimensions
-    unflat_vals_list = [utool.util_list.unflatten(flat_vals, reverse_list)
+    # Then _unflatten the results to the original input dimensions
+    unflat_vals_list = [_unflatten(flat_vals, reverse_list)
                         for flat_vals in flat_vals_list]
     return unflat_vals_list
 
@@ -682,11 +687,11 @@ def _make_unflat_getter_func(flat_getter):
     # Create new function
     def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
-        flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
+        flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
         # Then preform the lookup
         flat_vals = func(self, flat_rowids, *args, **kwargs)
-        # Then unflatten the list
-        unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
+        # Then _unflatten the list
+        unflat_vals = _unflatten(flat_vals, reverse_list)
         return unflat_vals
     set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
