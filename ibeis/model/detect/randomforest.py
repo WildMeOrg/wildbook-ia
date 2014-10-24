@@ -15,6 +15,17 @@ import pyrf
     __name__, '[randomforest]', DEBUG=False)
 
 
+"""
+
+from ibeis.model.detect import randomforest
+dir(randomforest)
+import utool
+func = randomforest.generate_detection_images
+print(utool.make_default_docstr(func))
+
+"""
+
+
 #=================
 # IBEIS INTERFACE
 #=================
@@ -25,6 +36,11 @@ def generate_detection_images(ibs, gid_list, species, **detectkw):
     detectkw can be: save_detection_images, save_scales, draw_supressed,
     detection_width, detection_height, percentage_left, percentage_top,
     nms_margin_percentage
+
+    Args:
+        ibs (IBEISController):
+        gid_list (list):
+        species (?):
 
     Yeilds:
         tuple: tuples of image ids and bounding boxes
@@ -58,6 +74,19 @@ def generate_detection_images(ibs, gid_list, species, **detectkw):
 
 
 def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=True):
+    """
+    Args:
+        ibs (IBEISController):
+        src_gpath_list (list):
+        dst_gpath_list (list):
+        species (?):
+        quick (bool):
+
+    Returns:
+        None
+
+        import utool; utool.print_auto_docstr('ibeis.model.detect.randomforest', 'compute_hough_images')
+    """
     # Define detect dict
     detectkw = {
         'quick': quick,
@@ -68,6 +97,20 @@ def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=Tru
 
 
 def compute_probability_images(ibs, src_gpath_list, dst_gpath_list, species, quick=False):
+    """
+    Args:
+        ibs (IBEISController):
+        src_gpath_list (list):
+        dst_gpath_list (list):
+        species (?):
+        quick (bool):
+
+    Returns:
+        None
+
+    import utool; utool.print_auto_docstr('ibeis.model.detect.randomforest', 'compute_hough_images')
+
+    """
     # Define detect dict
     detectkw = {
         'single': True,  # single is True = probability, False is hough
@@ -82,6 +125,7 @@ def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
     assert len(src_gpath_list) == len(dst_gpath_list)
     isvalid_list = [exists(gpath + '.png') for gpath in dst_gpath_list]
     dirty_src_gpaths = utool.get_dirty_items(src_gpath_list, isvalid_list)
+
     dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
@@ -103,6 +147,15 @@ def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
 
 
 def _scale_bbox(bbox, s):
+    """
+
+    Args:
+        bbox (?):
+        s (?):
+
+    Returns:
+        None
+    """
     bbox_scaled = (s * _ for _ in bbox)
     bbox_round = list(map(round, bbox_scaled))
     bbox_int   = list(map(int,   bbox_round))

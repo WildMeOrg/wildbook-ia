@@ -47,6 +47,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
         >>> use_bigcache = True
         >>> use_cache = True
         >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
+        >>> nnindexer = test_nnindexer
         >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
     """
     # Create new query request object to store temporary state

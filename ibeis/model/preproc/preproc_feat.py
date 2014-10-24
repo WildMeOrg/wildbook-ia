@@ -8,8 +8,7 @@ import utool
 
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[preproc_feat]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_feat]')
 
 
 USE_OPENMP = not utool.WIN32
