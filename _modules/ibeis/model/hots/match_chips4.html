@@ -82,8 +82,11 @@
 <span class="sd">    individually.  On an individual cache miss, it preforms the query.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        ibs  : ibeis control object</span>
-<span class="sd">        qreq_ : query request object</span>
+<span class="sd">        ibs (IBEISController) : ibeis control object</span>
+<span class="sd">        qaid_list (list): query annotation ids</span>
+<span class="sd">        daid_list (list): database annotation ids</span>
+<span class="sd">        use_cache (bool):</span>
+<span class="sd">        use_bigcache (bool):</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        qaid2_qres (dict): dict of QueryResult objects</span>
@@ -96,6 +99,7 @@
 <span class="sd">        &gt;&gt;&gt; use_bigcache = True</span>
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = test_nnindexer</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Create new query request object to store temporary state</span>
@@ -132,6 +136,15 @@
 
 <span class="c">#@profile</span></div>
 <div class="viewcode-block" id="execute_query_and_save_L1"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query_and_save_L1">[docs]</a><span class="k">def</span> <span class="nf">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">USE_CACHE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qreq_ (QueryRequest):</span>
+<span class="sd">        use_cache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_qres</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#print(&#39;[q1] execute_query_and_save_L1()&#39;)</span>
     <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>

@@ -132,6 +132,13 @@ returning locals</p>
 </div>
 <div class="section" id="module-ibeis.dev.experiment_configs">
 <span id="ibeis-dev-experiment-configs-module"></span><h2>ibeis.dev.experiment_configs module<a class="headerlink" href="#module-ibeis.dev.experiment_configs" title="Permalink to this headline">¶</a></h2>
+<p>In this file dicts specify all possible combinations of the varied parameters
+and lists specify the union of parameters</p>
+<dl class="function">
+<dt id="ibeis.dev.experiment_configs.augbase">
+<tt class="descclassname">ibeis.dev.experiment_configs.</tt><tt class="descname">augbase</tt><big>(</big><em>basedict</em>, <em>updatedict</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_configs.html#augbase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_configs.augbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-ibeis.dev.experiment_harness">
 <span id="ibeis-dev-experiment-harness-module"></span><h2>ibeis.dev.experiment_harness module<a class="headerlink" href="#module-ibeis.dev.experiment_harness" title="Permalink to this headline">¶</a></h2>
@@ -180,19 +187,108 @@ returning locals</p>
 <dl class="function">
 <dt id="ibeis.dev.experiment_helpers.get_cfg_list_and_lbls">
 <tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_cfg_list_and_lbls</tt><big>(</big><em>test_cfg_name_list</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_cfg_list_and_lbls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_cfg_list_and_lbls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of varied query configurations. Only custom configs depend on
+<dd><p>Driver function</p>
+<p>Returns a list of varied query configurations. Only custom configs depend on
 IBEIS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; optional for custom configs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(cfg_list, cfgx2_lbl)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.get_cfg_list_helper">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_cfg_list_helper</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_cfg_list_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_cfg_list_helper" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">get_cfg_list_helper</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>&#8216;.join(cfgstr_list))</dt>
+<dd><blockquote class="first">
+<div><blockquote>
+<div>_vsmany_NN(K4+1,last,cks1024)_FILT()_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(logdist_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(normonly_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(lnbnn_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</div></blockquote>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="last docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py &#8211;allgt -t lnbnn2 &#8211;db PZ_Mothers &#8211;noqcache</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.experiment_helpers.get_varied_params_list">
 <tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_varied_params_list</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_varied_params_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_varied_params_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>builds all combinations from dicts defined in experiment_configs</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varied_params_list</span><span class="p">,</span> <span class="n">varied_param_lbls</span> <span class="o">=</span> <span class="n">get_varied_params_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="go">#&gt;&gt;&gt; print(varied_params_list)</span>
+<span class="go">#&gt;&gt;&gt; print(varied_param_lbls)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.experiment_helpers.get_vary_dicts">
 <tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_vary_dicts</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_vary_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_vary_dicts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>build varydicts from experiment_configs.
+recomputes test_cfg_name_list_out in case there are any nested lists specified in it</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vary_dicts</span><span class="p">,</span> <span class="n">test_cfg_name_list_out</span> <span class="o">=</span> <span class="n">get_vary_dicts</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">vary_dicts</span><span class="p">))</span>
+<span class="go">[</span>
+<span class="go">    {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0, 1.0], &#39;lnbnn_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0]},</span>
+<span class="go">    {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0], &#39;lnbnn_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0, 1.0]},</span>
+<span class="go">    {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0], &#39;lnbnn_weight&#39;: [0.0, 1.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0]},</span>
+<span class="go">]</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd>print(utool.indent(utool.list_str(vary_dicts), &#8216; &#8216; * 8))</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.experiment_helpers.rankscore_str">
