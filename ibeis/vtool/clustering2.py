@@ -366,6 +366,10 @@ def apply_grouping_iter(items, groupxs):
     return (items.take(xs, axis=0) for xs in groupxs)
 
 
+def apply_grouping_iter2(items, groupxs):
+    return (np.array(list(items)).take(xs, axis=0) for xs in groupxs)
+
+
 def groupby(items, idx2_groupid):
     """
     >>> items    = np.array(np.arange(100))
