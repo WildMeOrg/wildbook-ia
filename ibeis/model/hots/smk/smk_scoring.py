@@ -66,9 +66,11 @@ def sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_t
 
     """
     if DEBUG_SMK:
-        assert maws_list is None or len(maws_list) == len(rvecs_list)
-        assert len(rvecs_list) == len(idf_list)
-        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list))
+        assert maws_list is None or len(maws_list) == len(rvecs_list), 'inconsistent lengths'
+        assert len(rvecs_list) == len(idf_list), 'inconsistent lengths'
+        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list)), 'inconsistent lengths'
+        assert flags_list is None or list(map(len, maws_list)) == list(map(len, flags_list)), 'inconsistent lengths'
+        assert flags_list is None or len(flags_list) == len(rvecs_list), 'inconsistent lengths'
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
     # List of scores for every word.
     scores_list = score_matches(rvecs_list, rvecs_list, flags_list, flags_list,
@@ -131,6 +133,10 @@ def score_matches(qrvecs_list, drvecs_list, qflags_list, dflags_list,
     return wscoremat_list
 
 
+def rvecs_dot_uint8(qrvecs, drvecs):
+    return qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
+
+
 @profile
 def similarity_function(qrvecs_list, drvecs_list, qflags_list, dflags_list):
     """ Phi dot product.
@@ -154,14 +160,9 @@ def similarity_function(qrvecs_list, drvecs_list, qflags_list, dflags_list):
     """
     # For int8: Downweight by the psuedo max squared, to get scores between 0 and 1
     simmat_list = [
-        qrvecs.astype(np.float32).dot(drvecs.T.astype(np.float32)) / hstypes.RVEC_PSEUDO_MAX_SQRD
+        rvecs_dot_uint8(qrvecs, drvecs)
         for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
     ]
-    # for float16: just perform the calculation
-    #simmat_list = [
-    #    qrvecs.dot(drvecs.T)
-    #    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
-    #]
     if utool.DEBUG2:
         assert len(simmat_list) == len(qrvecs_list), 'bad simmat and qrvec'
         assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
@@ -174,6 +175,18 @@ def similarity_function(qrvecs_list, drvecs_list, qflags_list, dflags_list):
         for qflags, dflags, simmat in zip(qflags_list, dflags_list, simmat_list):
             simmat[qflags] += 0.5
             simmat.T[dflags] += 0.5
+    elif qflags_list is not None:
+        for qflags, simmat in zip(qflags_list, simmat_list):
+            simmat[qflags] += 0.5
+    elif dflags_list is not None:
+        for dflags, simmat in zip(dflags_list, simmat_list):
+            simmat.T[dflags] += 0.5
+
+    # for float16: just perform the calculation
+    #simmat_list = [
+    #    qrvecs.dot(drvecs.T)
+    #    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
+    #]
 
     # uint8 does not have nans. We need to use flag lists
     #for simmat in simmat_list:

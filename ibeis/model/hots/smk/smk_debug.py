@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 import numpy as np
 import six
 import ibeis
@@ -10,7 +10,7 @@ from ibeis.model.hots.smk import smk_repr
 from ibeis.model.hots.smk import smk_match
 from ibeis.model.hots.smk import smk_scoring
 from ibeis.model.hots import query_request
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_debug]')
 
 
 def testdata_printops(**kwargs):
@@ -33,18 +33,16 @@ def testdata_ibeis(**kwargs):
     print(' === Test Data IBEIS ===')
     from ibeis.model.hots.smk import smk_debug
     smk_debug.testdata_printops(**kwargs)
-    print('kwargs = ' + utool.dict_str(kwargs))
+    print('kwargs = ' + ut.dict_str(kwargs))
     print('[smk_debug] testdata_ibeis')
-    get_argflag = utool.get_argflag
-    get_argval = utool.get_argval
-    db = kwargs.get('db', get_argval('--db', str, 'PZ_MTEST'))
+    db = kwargs.get('db', ut.get_argval('--db', str, 'PZ_MTEST'))
     if db == 'PZ_MTEST':
         ibeis.ensure_pz_mtest()
-    ibs = ibeis.opendb()
+    ibs = ibeis.opendb(db=db)
     ibs._default_config()
-    aggregate = kwargs.get('aggregate', get_argflag(('--agg', '--aggregate')))
-    nWords    = kwargs.get(   'nWords',  get_argval(('--nWords', '--nCentroids'), int, default=8E3))
-    nAssign   = kwargs.get(  'nAssign',  get_argval(('--nAssign', '--K'), int, default=10))
+    aggregate = kwargs.get('aggregate', ut.get_argflag(('--agg', '--aggregate')))
+    nWords    = kwargs.get(   'nWords',  ut.get_argval(('--nWords', '--nCentroids'), int, default=8E3))
+    nAssign   = kwargs.get(  'nAssign',  ut.get_argval(('--nAssign', '--K'), int, default=10))
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
@@ -126,9 +124,9 @@ def testdata_raw_internals1(**kwargs):
     # TODO: Extract args from function via inspect
     _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha,
                massign_sigma, massign_equal_weights)
-    (wx2_idxs, wx2_maws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
+    (wx2_idxs, wx2_dmaws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
     invindex.wx2_idxs = wx2_idxs
-    invindex.wx2_maws = wx2_maws
+    invindex.wx2_dmaws = wx2_dmaws
     invindex.idx2_wxs = idx2_wxs
     return ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams
 
@@ -152,26 +150,27 @@ def testdata_raw_internals1_5(**kwargs):
     return ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams
 
 
-def testdata_raw_internals2(**kwargs):
+def testdata_compute_data_sccw(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1_5(**kwargs)
-    print('[smk_debug] testdata_raw_internals2')
+    print('[smk_debug] testdata_compute_data_sccw')
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     idx2_vec  = invindex.idx2_dvec
     idx2_fx   = invindex.idx2_dfx
-    wx2_maws  = invindex.wx2_maws
+    wx2_dmaws = invindex.wx2_dmaws
     idx2_aid  = invindex.idx2_daid
     words     = invindex.words
     wx2_idf   = invindex.wx2_idf
-    wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws, wx2_dflags = smk_index.compute_residuals_(
-        words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
-    invindex.wx2_maws  = wx2_maws
+    wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, wx2_dflags = smk_index.compute_residuals_(
+        words, wx2_idxs, wx2_dmaws, idx2_vec, idx2_aid, idx2_fx, aggregate)
+    invindex.wx2_dmaws  = wx2_dmaws
+    invindex.wx2_drvecs = wx2_drvecs
     invindex.wx2_dflags = wx2_dflags
-    return ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids, qparams
+    return ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, qparams
 
 
 def testdata_query_repr(**kwargs):
@@ -184,46 +183,46 @@ def testdata_query_repr(**kwargs):
     print('[smk_debug] testdata_query_repr')
     qaid = qaids[0]
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    return ibs, annots_df, qaid, invindex
+    return ibs, annots_df, qaid, invindex, qparams
 
 
 def testdata_sccw_sum(**kwargs):
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
 
-    ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr(**kwargs)
-    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    smk_alpha     = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-    smk_thresh    = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+    ibs, annots_df, qaid, invindex, qparams = smk_debug.testdata_query_repr(**kwargs)
+    aggregate  = qparams.aggregate
+    smk_alpha  = qparams.smk_alpha
+    smk_thresh = qparams.smk_thresh
 
-    nAssign =  ibs.cfg.query_cfg.smk_cfg.nAssign
-    massign_sigma = ibs.cfg.query_cfg.smk_cfg.massign_sigma
-    massign_alpha = ibs.cfg.query_cfg.smk_cfg.massign_alpha
-    massign_equal_weights = ibs.cfg.query_cfg.smk_cfg.massign_equal_weights
-    nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
+    nAssign =  qparams.nAssign
+    massign_sigma = qparams.massign_sigma
+    massign_alpha = qparams.massign_alpha
+    massign_equal_weights = qparams.massign_equal_weights
+    nAssign   = qparams.nAssign
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
     wordflann = invindex.wordflann
     #qfx2_vec  = annots_df['vecs'][qaid].values
     qfx2_vec  = annots_df['vecs'][qaid]
     # Assign query to (multiple) words
-    _wx2_qfxs, wx2_maws, qfx2_wxs = smk_index.assign_to_words_(
+    _wx2_qfxs, wx2_qmaws, qfx2_wxs = smk_index.assign_to_words_(
         wordflann, words, qfx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
     # Hack to make implementing asmk easier, very redundant
     qfx2_aid = np.array([qaid] * len(qfx2_wxs), dtype=hstypes.INTEGER_TYPE)
     qfx2_qfx = np.arange(len(qfx2_vec))
     # Compute query residuals
-    wx2_qrvecs, wx2_qaids, wx2_qfxs, wx2_maws, wx2_flags = smk_index.compute_residuals_(
-        words, _wx2_qfxs, wx2_maws, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
+    wx2_qrvecs, wx2_qaids, wx2_qfxs, wx2_qmaws, wx2_flags = smk_index.compute_residuals_(
+        words, _wx2_qfxs, wx2_qmaws, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query sccw
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[smk_index] Query TF smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
     wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=hstypes.INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
-    maws_list   = [wx2_maws[wx]   for wx in wx_sublist]
-    flags_list  = [wx2_flags[wx]  for wx in wx_sublist]
-    return idf_list, rvecs_list, flags_list, maws_list, smk_alpha, smk_thresh
+    qmaws_list  = [wx2_qmaws[wx]  for wx in wx_sublist]
+    qflags_list = [wx2_flags[wx]  for wx in wx_sublist]
+    return idf_list, rvecs_list, qflags_list, qmaws_list, smk_alpha, smk_thresh
 
 
 def testdata_internals_full(**kwargs):
@@ -261,11 +260,11 @@ def testdata_nonagg_rvec():
     ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()
     words     = invindex.words
     idx2_vec  = invindex.idx2_dvec
-    wx2_maws  = invindex.wx2_maws
+    wx2_dmaws  = invindex.wx2_dmaws
     idx2_daid  = invindex.idx2_daid
     wx_sublist = np.array(list(wx2_idxs.keys()))
     idxs_list  = [wx2_idxs[wx].astype(np.int32) for wx in wx_sublist]
-    maws_list  = [wx2_maws[wx] for wx in wx_sublist]
+    maws_list  = [wx2_dmaws[wx] for wx in wx_sublist]
     aids_list  = [idx2_daid.take(idxs) for idxs in idxs_list]
     return words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list
 
@@ -292,9 +291,9 @@ def wx_len_stats(wx2_xxx):
         >>> invindex = smk_repr.index_data_annots(annots_df, daids, words)
         >>> qaid = qaids[0]
         >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = smk_repr.new_qindex(annots_df, qaid, invindex, qparams)
-        >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+        >>> print(ut.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
-    import utool
+    import utool as ut
     if wx2_xxx is None:
         return 'None'
     if isinstance(wx2_xxx, dict):
@@ -304,10 +303,10 @@ def wx_len_stats(wx2_xxx):
         val_list = wx2_xxx
     try:
         len_list = [len(xxx) for xxx in val_list]
-        statdict = utool.get_stats(len_list)
-        return utool.dict_str(statdict, strvals=True, newlines=False)
+        statdict = ut.get_stats(len_list)
+        return ut.dict_str(statdict, strvals=True, newlines=False)
     except Exception as ex:
-        utool.printex(ex)
+        ut.printex(ex)
         for count, xxx in wx2_xxx:
             try:
                 len(xxx)
@@ -378,7 +377,7 @@ def check_wx2_rvecs(wx2_rvecs, verbose=True):
 
 def check_wx2_idxs(wx2_idxs, nWords):
     wx_list = list(wx2_idxs.keys())
-    missing_vals, missing_indicies, duplicate_items = utool.debug_consec_list(wx_list)
+    missing_vals, missing_indicies, duplicate_items = ut.debug_consec_list(wx_list)
     empty_wxs = [wx for wx, idxs in six.iteritems(wx2_idxs) if len(idxs) == 0]
     print('[smk_debug] num indexes with no support: %r' % len(missing_vals))
     print('[smk_debug] num indexes with empty idxs: %r' % len(empty_wxs))
@@ -451,8 +450,8 @@ def check_data_smksumm(aididf_list, aidrvecs_list):
             assert len(idf_list) == len(rvecs_list), 'one list for each word'
             #sccw = smk_scoring.sccw_summation(rvecs_list, idf_list, None, smk_alpha, smk_thresh)
     except Exception as ex:
-        utool.printex(ex)
-        #utool.embed()
+        ut.printex(ex)
+        #ut.embed()
         raise
 
 
@@ -480,7 +479,7 @@ def check_daid2_sccw(daid2_sccw, verbose=True):
     if verbose:
         print('database sccws are not nan')
         print('database sccw stats:')
-        print(utool.get_stats_str(daid2_sccw_values, newlines=True))
+        print(ut.get_stats_str(daid2_sccw_values, newlines=True))
 
 
 def test_sccw_cache():
@@ -495,16 +494,16 @@ def test_sccw_cache():
     wx2_drvecs = invindex.wx2_drvecs
     wx2_idf    = invindex.wx2_idf
     wx2_aids   = invindex.wx2_aids
-    wx2_maws   = invindex.wx2_maws
+    wx2_dmaws   = invindex.wx2_dmaws
     daids      = invindex.daids
     daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                               wx2_idf, wx2_maws, smk_alpha,
+                                               wx2_idf, wx2_dmaws, smk_alpha,
                                                smk_thresh, use_cache=True)
     daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                               wx2_idf, wx2_maws, smk_alpha,
+                                               wx2_idf, wx2_dmaws, smk_alpha,
                                                smk_thresh, use_cache=False)
     daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                                wx2_idf, wx2_maws, smk_alpha,
+                                                wx2_idf, wx2_dmaws, smk_alpha,
                                                 smk_thresh, use_cache=True)
     check_daid2_sccw(daid2_sccw1)
     check_daid2_sccw(daid2_sccw2)
@@ -524,7 +523,7 @@ def check_dtype(annots_df):
         >>> annots_df = make_annot_df(ibs)
     """
 
-    #utool.printex(Exception('check'), keys=[
+    #ut.printex(Exception('check'), keys=[
     #    'annots_df.index'
     #]
     #)
@@ -540,7 +539,7 @@ def check_dtype(annots_df):
         #'vecs',
         #'kpts',
     ]
-    utool.print_keys(key_list)
+    ut.print_keys(key_list)
 
 
 def check_rvecs_list_eq(rvecs_list, rvecs_list2):
@@ -557,7 +556,7 @@ def check_rvecs_list_eq(rvecs_list, rvecs_list2):
             #assert np.all(rvecs == rvecs2)
             np.testing.assert_equal(rvecs, rvecs2, verbose=True)
         except AssertionError:
-            utool.print_keys([rvecs, rvecs2])
+            ut.print_keys([rvecs, rvecs2])
             raise
 
 
@@ -569,7 +568,7 @@ def display_info(ibs, invindex, annots_df):
     dbinfo.get_dbinfo(ibs, verbose=True)
     ################
     print('Inverted Index Stats: vectors per word')
-    print(utool.get_stats_str(map(len, invindex.wx2_idxs.values())))
+    print(ut.get_stats_str(map(len, invindex.wx2_idxs.values())))
     ################
     #qfx2_vec     = annots_df['vecs'][1]
     centroids    = invindex.words
@@ -594,14 +593,14 @@ def vector_normal_stats(vectors):
     norm_list = npl.norm(vectors, axis=1)
     #norm_list2 = np.sqrt((vectors ** 2).sum(axis=1))
     #assert np.all(norm_list == norm_list2)
-    norm_stats = utool.get_stats(norm_list)
-    print('normal_stats:' + utool.dict_str(norm_stats, newlines=False))
+    norm_stats = ut.get_stats(norm_list)
+    print('normal_stats:' + ut.dict_str(norm_stats, newlines=False))
 
 
 def vector_stats(vectors, name):
     print('-- Vector Stats --')
     print(' * vectors = %r' % name)
-    key_list = utool.codeblock(
+    key_list = ut.codeblock(
         '''
         vectors.shape
         vectors.dtype
@@ -609,7 +608,7 @@ def vector_stats(vectors, name):
         vectors.min()
         '''
     ).split('\n')
-    utool.print_keys(key_list)
+    ut.print_keys(key_list)
     vector_normal_stats(vectors)
 
 
@@ -639,7 +638,7 @@ def OLDdump_word_patches(ibs, invindex):
     """
     from vtool import patch as ptool
     from vtool import image as gtool
-    import utool
+    import utool as ut
     from os.path import join
     from os.path import basename
     invindex.idx2_wxs = np.array(invindex.idx2_wxs)
@@ -649,10 +648,10 @@ def OLDdump_word_patches(ibs, invindex):
     print('[smk_debug] Dumping word patches to figure directory')
 
     vocabdir = join(ibs.get_fig_dir(), 'vocab_patches2' + ('_flat' if flatdir else ''))
-    utool.ensuredir(ibs.get_fig_dir())
-    utool.ensuredir(vocabdir)
-    if utool.get_argflag('--vf'):
-        utool.view_directory(vocabdir)
+    ut.ensuredir(ibs.get_fig_dir())
+    ut.ensuredir(vocabdir)
+    if ut.get_argflag('--vf'):
+        ut.view_directory(vocabdir)
 
     def dump_annot_word_patches(aid):
         chip = ibs.get_annot_chips(aid)
@@ -672,51 +671,51 @@ def OLDdump_word_patches(ibs, invindex):
                     fpath = join(vocabdir, word_dname + '_' + patch_fname)
                 else:
                     word_dpath = join(vocabdir, word_dname)
-                    utool.ensuredir(word_dpath)
+                    ut.ensuredir(word_dpath)
                     fpath = join(word_dpath, patch_fname)
                 if testmode:
                     print(fpath)
                 else:
                     gtool.imwrite(fpath, patch, fallback=True)
 
-    for aid in utool.progiter(invindex.daids):
+    for aid in ut.progiter(invindex.daids):
         dump_annot_word_patches(aid)
 
     def nest_large_directory(dpath):
         dpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
-        fpath_list = sorted(utool.ls(dpath))
+        fpath_list = sorted(ut.ls(dpath))
         max_files = 1000
-        fpath_chunks = list(utool.ichunks(fpath_list, max_files))
-        for count, src_list in enumerate(utool.progiter(fpath_chunks)):
+        fpath_chunks = list(ut.ichunks(fpath_list, max_files))
+        for count, src_list in enumerate(ut.progiter(fpath_chunks)):
             print('')
             chunk_dpath = join(dpath, 'chunk%d' % count)
             dst_list = [join(chunk_dpath, basename(fpath)) for fpath in src_list]
-            utool.ensuredir(chunk_dpath)
-            utool.move_list(src_list, dst_list)
+            ut.ensuredir(chunk_dpath)
+            ut.move_list(src_list, dst_list)
 
     def select_subdirs(dpath):
         dpath1 = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
-        dpath_list = sorted(utool.glob(dpath1, '*', recursive=True, with_files=False))
+        dpath_list = sorted(ut.glob(dpath1, '*', recursive=True, with_files=False))
         dpath_list1 = list(filter(lambda x: x.find('wx=') > -1, dpath_list))
 
-        subfiles = [utool.ls(dpath_) for dpath_ in dpath_list1]
+        subfiles = [ut.ls(dpath_) for dpath_ in dpath_list1]
         subfiles_len = list(map(len, subfiles))
 
-        dpath_list2 = utool.sortedby(dpath_list1, subfiles_len, reverse=True)
+        dpath_list2 = ut.sortedby(dpath_list1, subfiles_len, reverse=True)
 
         seldpath = join(dpath1, '..', 'selected_vocab_patches/')
 
-        for dpath2 in utool.progiter(dpath_list2[0:50]):
+        for dpath2 in ut.progiter(dpath_list2[0:50]):
             print('')
-            utool.copy(dpath2, join(seldpath, basename(dpath2)))
+            ut.copy(dpath2, join(seldpath, basename(dpath2)))
 
         # stack for show
         from plottool import draw_func2 as df2
         #df2.rrr()
         bigpatch_list = []
-        for dpath in utool.ls(seldpath):
+        for dpath in ut.ls(seldpath):
             try:
-                fpath_list = utool.ls(dpath)
+                fpath_list = ut.ls(dpath)
                 patch_list = [gtool.imread(fpath) for fpath in fpath_list]
                 #img_list = patch_list
                 #bigpatch = df2.stack_image_recurse(patch_list)
@@ -750,7 +749,6 @@ def vizualize_vocabulary(ibs, invindex):
     from vtool import patch as ptool
     from vtool import image as gtool
     import six
-    import utool
     import scipy.stats.mstats as spms
     from os.path import join
     from os.path import basename
@@ -761,11 +759,11 @@ def vizualize_vocabulary(ibs, invindex):
 
     # DUMPING PART --- dumps patches to disk
     figdir = ibs.get_fig_dir()
-    utool.ensuredir(figdir)
-    if utool.get_argflag('--vf'):
-        utool.view_directory(figdir)
+    ut.ensuredir(figdir)
+    if ut.get_argflag('--vf'):
+        ut.view_directory(figdir)
 
-    ax2_idxs = [np.where(invindex.idx2_daid == aid)[0] for aid in utool.progiter(
+    ax2_idxs = [np.where(invindex.idx2_daid == aid)[0] for aid in ut.progiter(
         invindex.daids, 'Building Forward Index: ', freq=100)]
 
     def euclidean_dist(vecs1, vec2):
@@ -786,7 +784,7 @@ def vizualize_vocabulary(ibs, invindex):
         wx2_nMembers = {}
         wx2_pdist_stats = {}
         wx2_wdist_stats = {}
-        wordidx_iter = utool.progiter(six.iteritems(wx2_idxs), lbl='Word Dists: ', num=len(wx2_idxs), freq=200)
+        wordidx_iter = ut.progiter(six.iteritems(wx2_idxs), lbl='Word Dists: ', num=len(wx2_idxs), freq=200)
 
         for _item in wordidx_iter:
             wx, idxs = _item
@@ -796,13 +794,13 @@ def vizualize_vocabulary(ibs, invindex):
             wx2_wdist[wx] = euclidean_dist(dvecs, word)  # dist to word center
             wx2_nMembers[wx] = len(idxs)
 
-        for wx, pdist in utool.progiter(six.iteritems(wx2_pdist), lbl='Word pdist Stats: ', num=len(wx2_idxs), freq=2000):
-            wx2_pdist_stats[wx] = utool.get_stats(pdist)
+        for wx, pdist in ut.progiter(six.iteritems(wx2_pdist), lbl='Word pdist Stats: ', num=len(wx2_idxs), freq=2000):
+            wx2_pdist_stats[wx] = ut.get_stats(pdist)
 
-        for wx, wdist in utool.progiter(six.iteritems(wx2_wdist), lbl='Word wdist Stats: ', num=len(wx2_idxs), freq=2000):
-            wx2_wdist_stats[wx] = utool.get_stats(wdist)
+        for wx, wdist in ut.progiter(six.iteritems(wx2_wdist), lbl='Word wdist Stats: ', num=len(wx2_idxs), freq=2000):
+            wx2_wdist_stats[wx] = ut.get_stats(wdist)
 
-        utool.print_stats(wx2_nMembers.values(), 'word members')
+        ut.print_stats(wx2_nMembers.values(), 'word members')
         return wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats
         #word_pdist = spdist.pdist(invindex.words)
 
@@ -894,26 +892,26 @@ def vizualize_vocabulary(ibs, invindex):
             stats2 = 'std={std},nMaxMin=({nMax},{nMin}),shape={shape}'.format(**stats_)
             fname_fmt = wname_clean + '_{stats1}{stats2}'
             fmt_dict = dict(stats1=stats1, stats2=stats2)
-            word_dname = utool.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
+            word_dname = ut.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
             return word_dname
 
         vocabdir = join(figdir, 'vocab_patches2')
-        utool.ensuredir(vocabdir)
+        ut.ensuredir(vocabdir)
         wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
 
-        for dpath in utool.progiter(list(wx2_dpath.values()),
+        for dpath in ut.progiter(list(wx2_dpath.values()),
                                     lbl='Ensuring word_dpath: ', freq=200):
-            utool.ensuredir(dpath)
+            ut.ensuredir(dpath)
 
         #
         # DUMP PATCHES IN WX_SAMPLE
 
         # Write each patch from each annotation to disk
-        patchdump_iter = utool.progiter(zip(invindex.daids, ax2_idxs), freq=1,
+        patchdump_iter = ut.progiter(zip(invindex.daids, ax2_idxs), freq=1,
                                         lbl='Dumping Selected Patches: ', num=len(invindex.daids))
         for aid, idxs in patchdump_iter:
             wxs_list  = invindex.idx2_wxs[idxs]
-            if len(set(utool.flatten(wxs_list)).intersection(set(wx_sample))) == 0:
+            if len(set(ut.flatten(wxs_list)).intersection(set(wx_sample))) == 0:
                 # skip this annotation
                 continue
             fx_list   = invindex.idx2_dfx[idxs]
@@ -936,13 +934,13 @@ def vizualize_vocabulary(ibs, invindex):
         #vocabdir
 
         seldpath = vocabdir + '_selected'
-        utool.ensurepath(seldpath)
+        ut.ensurepath(seldpath)
         # stack for show
         from plottool import draw_func2 as df2
         import parse
-        for wx, dpath in utool.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
+        for wx, dpath in ut.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
             #df2.rrr()
-            fpath_list = utool.ls(dpath)
+            fpath_list = ut.ls(dpath)
             fname_list = [basename(fpath_) for fpath_ in fpath_list]
             patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
             # color each patch by nid
@@ -974,7 +972,7 @@ def vizualize_vocabulary(ibs, invindex):
 
             #
             def dictstr(dict_):
-                str_ = utool.dict_str(dict_, newlines=False)
+                str_ = ut.dict_str(dict_, newlines=False)
                 str_ = str_.replace('\'', '').replace(': ', '=').strip('{},')
                 return str_
 
@@ -1003,14 +1001,14 @@ def get_cached_vocabs():
     import parse
     # Parse some of the training data from fname
     parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
-    smkdir = utool.get_app_resource_dir('smk')
-    fname_list = utool.glob(smkdir, 'akmeans*')
+    smkdir = ut.get_app_resource_dir('smk')
+    fname_list = ut.glob(smkdir, 'akmeans*')
     fpath_list = [join(smkdir, fname) for fname in fname_list]
     result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
     nCent_list = [int(res['num_cent']) for res in result_list]
     nDpts_list = [int(res['num_dpts']) for res in result_list]
     key_list = zip(nCent_list, nDpts_list)
-    fpath_sorted = utool.sortedby(fpath_list, key_list, reverse=True)
+    fpath_sorted = ut.sortedby(fpath_list, key_list, reverse=True)
     return fpath_sorted
 
 
@@ -1030,7 +1028,7 @@ def view_vocabs():
 
     def view_vocab(fpath):
         # QUANTIZED AND FLOATING POINT STATS
-        centroids = utool.load_cPkl(fpath)
+        centroids = ut.load_cPkl(fpath)
         print('viewing vocat fpath=%r' % (fpath,))
         vector_stats(centroids, 'centroids')
         #centroids_float = centroids.astype(np.float64) / 255.0
@@ -1058,7 +1056,7 @@ def check_qaid2_chipmatch(qaid2_chipmatch, qaids, verbose=True):
         for count, daid2_chipmatch in enumerate(chipmatch_list):
             check_daid2_chipmatch(daid2_chipmatch)
     except Exception as ex:
-        utool.printex(ex, keys=['qaid2_chipmatch', 'daid2_chipmatch', 'count'])
+        ut.printex(ex, keys=['qaid2_chipmatch', 'daid2_chipmatch', 'count'])
         raise
 
 
@@ -1093,7 +1091,7 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
                 'fk.shape = %r, fs.shape=%r' % (fk.shape, fs.shape))
             assert fm.shape[1] == 2
         except AssertionError as ex:
-            utool.printex(ex, keys=[
+            ut.printex(ex, keys=[
                 'daid',
                 'chipmatch',
             ])
@@ -1111,7 +1109,7 @@ def dictinfo(dict_):
     key_types = list(set(map(type, keys)))
     val_types = list(set(map(type, vals)))
 
-    fmtstr_ = '\n' + utool.unindent('''
+    fmtstr_ = '\n' + ut.unindent('''
     * num_keys  = {num_keys}
     * key_types = {key_types}
     * val_types = {val_types}
@@ -1120,20 +1118,20 @@ def dictinfo(dict_):
     if len(val_types) == 1:
         if val_types[0] == np.ndarray:
             # each key holds an ndarray
-            val_shape_stats = utool.get_stats(set(map(np.shape, vals)), axis=0)
-            val_shape_stats_str = utool.dict_str(val_shape_stats, strvals=True, newlines=False)
+            val_shape_stats = ut.get_stats(set(map(np.shape, vals)), axis=0)
+            val_shape_stats_str = ut.dict_str(val_shape_stats, strvals=True, newlines=False)
             val_dtypes = list(set([val.dtype for val in vals]))
-            fmtstr_ += utool.unindent('''
+            fmtstr_ += ut.unindent('''
             * val_shape_stats = {val_shape_stats_str}
             * val_dtypes = {val_dtypes}
             '''.strip('\n'))
         elif val_types[0] == list:
             # each key holds a list
-            val_len_stats =  utool.get_stats(set(map(len, vals)))
-            val_len_stats_str = utool.dict_str(val_len_stats, strvals=True, newlines=False)
-            depth = utool.list_depth(vals)
-            deep_val_types = list(set(utool.list_deep_types(vals)))
-            fmtstr_ += utool.unindent('''
+            val_len_stats =  ut.get_stats(set(map(len, vals)))
+            val_len_stats_str = ut.dict_str(val_len_stats, strvals=True, newlines=False)
+            depth = ut.list_depth(vals)
+            deep_val_types = list(set(ut.list_deep_types(vals)))
+            fmtstr_ += ut.unindent('''
             * list_depth = {depth}
             * val_len_stats = {val_len_stats_str}
             * deep_types = {deep_val_types}
@@ -1141,18 +1139,18 @@ def dictinfo(dict_):
             if len(deep_val_types) == 1:
                 if deep_val_types[0] == np.ndarray:
                     deep_val_dtypes = list(set([val.dtype for val in vals]))
-                    fmtstr_ += utool.unindent('''
+                    fmtstr_ += ut.unindent('''
                     * deep_val_dtypes = {deep_val_dtypes}
                     ''').strip('\n')
         elif val_types[0] in [np.uint8, np.int8, np.int32, np.int64, np.float16, np.float32, np.float64]:
             # each key holds a scalar
-            val_stats = utool.get_stats(vals)
-            fmtstr_ += utool.unindent('''
+            val_stats = ut.get_stats(vals)
+            fmtstr_ += ut.unindent('''
             * val_stats = {val_stats}
             ''').strip('\n')
 
     fmtstr = fmtstr_.format(**locals())
-    return utool.indent(fmtstr)
+    return ut.indent(fmtstr)
 
 
 def invindex_dbgstr(invindex):
@@ -1162,7 +1160,7 @@ def invindex_dbgstr(invindex):
     >>> invindex_dbgstr(invindex)
     """
     print('+--- INVINDEX DBGSTR ---')
-    print('called by %r' % (utool.get_caller_name(),))
+    print('called by %r' % (ut.get_caller_name(),))
     locals_ = {'invindex': invindex}
     #print(dictinfo(invindex.wx2_fxs))
 
@@ -1177,12 +1175,14 @@ def invindex_dbgstr(invindex):
         'invindex.idx2_dfx.shape',
         (dictinfo, 'invindex.daid2_sccw'),
         (dictinfo, 'invindex.wx2_drvecs'),
+        (dictinfo, 'invindex.wx2_dmaws'),
+        (dictinfo, 'invindex.wx2_dflags'),
         (dictinfo, 'invindex.wx2_idf'),
         (dictinfo, 'invindex.wx2_aids'),
         (dictinfo, 'invindex.wx2_fxs'),
         (dictinfo, 'invindex.wx2_idxs'),
     ]
-    keystr_list = utool.parse_locals_keylist(locals_, key_list)
+    keystr_list = ut.parse_locals_keylist(locals_, key_list)
     append = keystr_list.append
     def stats_(arr):
         return wx_len_stats(arr)
@@ -1240,7 +1240,7 @@ def query_smk_test(annots_df, invindex, qreq_):
     smk_alpha     = qreq_.qparams.smk_alpha
     smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
-    mark, end_ = utool.log_progress(lbl, len(qaids), flushfreq=1,
+    mark, end_ = ut.log_progress(lbl, len(qaids), flushfreq=1,
                                     writefreq=1, with_totaltime=True,
                                     backspace=False)
     withinfo = True
@@ -1255,16 +1255,16 @@ def query_smk_test(annots_df, invindex, qreq_):
         filt2_meta = {}
         qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
     except Exception as ex:
-        utool.printex(ex)
-        utool.qflag()
+        ut.printex(ex)
+        ut.qflag()
         raise
     return qaid2_qres_
 
 
 def dbstr_qindex(qindex_=None):
-    qindex = utool.get_localvar_from_stack('qindex')
-    common_wxs = utool.get_localvar_from_stack('common_wxs')
-    wx2_qaids = utool.get_localvar_from_stack('wx2_qaids')
+    qindex = ut.get_localvar_from_stack('qindex')
+    common_wxs = ut.get_localvar_from_stack('common_wxs')
+    wx2_qaids = ut.get_localvar_from_stack('wx2_qaids')
     qindex.query_sccw
     qmaws_list  = [qindex.wx2_maws[wx] for wx in common_wxs]
     qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
@@ -1272,20 +1272,20 @@ def dbstr_qindex(qindex_=None):
     qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
     qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
     print('-- max --')
-    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, max))
-    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, max))
-    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, max))
-    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, max))
+    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, max))
+    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, max))
+    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, max))
+    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, max))
     print('-- min --')
-    print('list_depth(qaids_list) = %d' % utool.list_depth(qaids_list, min))
-    print('list_depth(qmaws_list) = %d' % utool.list_depth(qmaws_list, min))
-    print('list_depth(qfxs_list) = %d' % utool.list_depth(qfxs_list, min))
-    print('list_depth(qrvecs_list) = %d' % utool.list_depth(qrvecs_list, min))
+    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, min))
+    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, min))
+    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, min))
+    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, min))
     print('-- sig --')
-    print('list_depth(qaids_list) = %r' % utool.depth_profile(qaids_list))
-    print('list_depth(qmaws_list) = %r' % utool.depth_profile(qmaws_list))
-    print('list_depth(qfxs_list) = %r' % utool.depth_profile(qfxs_list))
-    print('list_depth(qrvecs_list) = %r' % utool.depth_profile(utool.depth_profile(qrvecs_list)))
+    print('list_depth(qaids_list) = %r' % ut.depth_profile(qaids_list))
+    print('list_depth(qmaws_list) = %r' % ut.depth_profile(qmaws_list))
+    print('list_depth(qfxs_list) = %r' % ut.depth_profile(qfxs_list))
+    print('list_depth(qrvecs_list) = %r' % ut.depth_profile(ut.depth_profile(qrvecs_list)))
     print(qfxs_list[0:3])
     print(qaids_list[0:3])
     print(qmaws_list[0:3])
@@ -1329,7 +1329,7 @@ def main():
     print('SMK_DEBUG MATCH KERNEL')
     print('+------------')
     qaid2_scores, qaid2_chipmatch_SMK = smk_match.execute_smk_L5(qreq_)
-    SVER = utool.get_argflag('--sver')
+    SVER = ut.get_argflag('--sver')
     if SVER:
         print('+------------')
         print('SMK_DEBUG SVER? YES!')
@@ -1353,14 +1353,14 @@ def main():
         for aid in qres.aid2_score.keys():
             smkscore = qaid2_scores[qaid][aid]
             sumscore = qres.aid2_score[aid]
-            if not utool.almost_eq(smkscore, sumscore):
+            if not ut.almost_eq(smkscore, sumscore):
                 print('scorediff aid=%r, smkscore=%r, sumscore=%r' % (aid, smkscore, sumscore))
 
         scores = qaid2_scores[qaid]
         #print(scores)
         print(qres.get_inspect_str(ibs))
         print('L================')
-        #utool.embed()
+        #ut.embed()
     #print(qres.aid2_fs)
     #daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
     ## Pack into QueryResult
@@ -1477,13 +1477,13 @@ if __name__ == '__main__':
     print('\n\n\n\n\n\n')
     import multiprocessing
     from plottool import draw_func2 as df2
-    mode = utool.get_argval('--mode', int, default=0)
-    if mode == 0 or utool.get_argflag('--view-vocabs'):
+    mode = ut.get_argval('--mode', int, default=0)
+    if mode == 0 or ut.get_argflag('--view-vocabs'):
         view_vocabs()
     else:
         np.set_printoptions(precision=2)
         multiprocessing.freeze_support()  # for win32
         main_locals = main()
-        main_execstr = utool.execstr_dict(main_locals, 'main_locals')
+        main_execstr = ut.execstr_dict(main_locals, 'main_locals')
         exec(main_execstr)
     exec(df2.present())

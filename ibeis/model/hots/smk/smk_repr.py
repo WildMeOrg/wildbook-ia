@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 #import weakref
 import numpy as np
-#import pandas as pd
+import six
 from six.moves import zip, map  # NOQA
 from vtool import nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
@@ -16,7 +16,7 @@ from collections import namedtuple
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 
-#@six.add_metaclass(utool.ReloadingMetaclass)
+@six.add_metaclass(utool.ReloadingMetaclass)
 class InvertedIndex(object):
     """
     Stores inverted index state information
@@ -66,6 +66,30 @@ class InvertedIndex(object):
         invindex.daid2_sccw   = None
         invindex.idx2_fweight = None
         invindex.idx2_wxs     = None   # stacked index -> word indexes
+
+        from ibeis.model.hots.smk import smk_debug
+        utool.classmember(InvertedIndex)(smk_debug.invindex_dbgstr)
+
+        utool.inject_instance(InvertedIndex, invindex)
+
+
+@utool.classmember(InvertedIndex)
+def report_memory(obj, objname='obj'):
+    """
+    obj = invindex
+    objname = 'invindex'
+
+    """
+    print('Object Memory Usage for %s' % objname)
+    maxlen = max(map(len, six.iterkeys(obj.__dict__)))
+    for key, val in six.iteritems(obj.__dict__):
+        fmtstr = 'memusage({0}.{1}){2} = '
+        lbl = fmtstr.format(objname, key, ' ' * (maxlen - len(key)))
+        sizestr = utool.get_object_size_str(val, lbl=lbl, unit='MB')
+        print(sizestr)
+
+
+report_memsize = utool.classmember(InvertedIndex)(utool.report_memsize)
 
 
 QueryIndex = namedtuple(
@@ -368,7 +392,7 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     if utool.DEBUG2:
         assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute (normalized) residual vectors and inverse mappings
-    wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws, wx2_dflags = smk_index.compute_residuals_(
+    wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, wx2_dflags = smk_index.compute_residuals_(
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx,
         aggregate, verbose=True)
     if not utool.QUIET:
@@ -379,12 +403,11 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
         invindex.idx2_dvec = None
         del idx2_vec
     # Compute annotation normalization factor
-    wx2_rvecs = wx2_drvecs  # NOQA
     daid2_sccw = smk_index.compute_data_sccw_(
-        idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf, wx2_maws, smk_alpha,
+        idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf, wx2_dmaws, smk_alpha,
         smk_thresh, verbose=True)
     # Cache save
-    #cachetup = (idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws, daid2_sccw)
+    #cachetup = (idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, daid2_sccw)
     #invindex_cache.save(cachetup)
 
     # Store information
@@ -393,9 +416,9 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     invindex.wx2_idf     = wx2_idf
     invindex.wx2_drvecs  = wx2_drvecs
     invindex.wx2_dflags  = wx2_dflags  # flag nan rvecs
-    invindex.wx2_aids    = wx2_aids   # needed for asmk
-    invindex.wx2_fxs     = wx2_fxs    # needed for asmk
-    invindex.wx2_maws    = wx2_maws   # needed for awx2_mawssmk
+    invindex.wx2_aids    = wx2_aids    # needed for asmk
+    invindex.wx2_fxs     = wx2_fxs     # needed for asmk
+    invindex.wx2_dmaws   = wx2_dmaws   # needed for awx2_mawssmk
     invindex.daid2_sccw  = daid2_sccw
     #memtrack.report('[DATA INTERNALS3]')
 
