@@ -87,6 +87,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+        >>> ibs.cfg.query_cfg.with_metadata = True
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
         >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_)
         >>> qres = qaid2_qres[1]
@@ -94,23 +95,25 @@ def request_ibeis_query_L0(ibs, qreq_):
 
     # Load data for nearest neighbors
     qreq_.lazy_load(ibs)
-
+    metadata = {}
     #
     if qreq_.qparams.pipeline_root == 'smk':
         from ibeis.model.hots.smk import smk_match
         # Alternative to naive bayes matching:
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
-        filt2_meta_ = {}
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
         qaid2_nns_ = nearest_neighbors(qreq_)
 
-        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
+        if qreq_.qparams.with_metadata:
+            metadata['nns'] = qaid2_nns_
+
+        # Nearest neighbors weighting and scoring (filt2_weights, metadata)
         # * feature matches are weighted
-        filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
+        filt2_weights_, metadata = weight_neighbors(qaid2_nns_, qreq_, metadata)
 
         # Thresholding and weighting (qaid2_nnfilter)
         # * feature matches are pruned
@@ -131,7 +134,7 @@ def request_ibeis_query_L0(ibs, qreq_):
     # Query results format (qaid2_qres)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, filt2_meta_, qreq_)
+    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, metadata, qreq_)
 
     return qaid2_qres_
 
@@ -202,36 +205,53 @@ def nearest_neighbors(qreq_):
 #============================
 
 
-def weight_neighbors(qaid2_nns, qreq_):
+def weight_neighbors(qaid2_nns, qreq_, metadata):
     """
     Args:
         qaid2_nns (dict):
         qreq_ (QueryRequest): hyper-parameters
+        metadata (dict): metadata dictionary
 
     Returns:
-        dict :
+        tuple(dict, dict) : (filt2_weights, metadata)
     """
     if NOT_QUIET:
         print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
     if not qreq_.qparams.filt_on:
-        return  {}
+        filt2_weights = {}
     else:
-        return _weight_neighbors(qaid2_nns, qreq_)
+        filt2_weights, metadata = _weight_neighbors(qaid2_nns, qreq_, metadata)
+    return (filt2_weights, metadata)
 
 
 @profile
-def _weight_neighbors(qaid2_nns, qreq_):
+def _weight_neighbors(qaid2_nns, qreq_, metadata):
+    """
+    Args:
+        qaid2_nns (int): query annotation id
+        qreq_ (QueryRequest): hyper-parameters
+        metadata (dict): metadata dictionary
+
+    Returns:
+        tuple : (filt2_weights, metadata)
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
+    """
     nnweight_list = qreq_.qparams.active_filter_list
-    filt2_weights = {}
-    filt2_meta = {}
+    # Prealloc output
+    filt2_weights = {nnweight: None for nnweight in nnweight_list}
+    # Buidl output
     for nnweight in nnweight_list:
         nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweight]
         # Apply [nnweight] weight to each nearest neighbor
-        # TODO FIX THIS!
-        qaid2_norm_weight, qaid2_selnorms = nn_filter_fn(qaid2_nns, qreq_)
+        qaid2_norm_weight, qaid2_norm_metadata = nn_filter_fn(qaid2_nns, qreq_)
         filt2_weights[nnweight] = qaid2_norm_weight
-        filt2_meta[nnweight] = qaid2_selnorms
-    return filt2_weights, filt2_meta
+        if qreq_.qparams.with_metadata:
+            metadata[nnweight + '_norm_meta'] = qaid2_norm_metadata
+    return filt2_weights, metadata
 
 
 #==========================
@@ -725,12 +745,12 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 
 
 @profile
-def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
+def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
                          qaid2_scores=None):
     """
     Args:
         qaid2_chipmatch (dict):
-        filt2_meta (dict):
+        metadata (dict):
         qreq_ (QueryRequest): hyper-parameters
         qaid2_scores (dict): optional
 
@@ -782,9 +802,9 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
         # Populate query result fields
         qres.aid2_score = aid2_score
 
-        qres.filt2_meta = {}  # dbgstats
-        for filt, qaid2_meta in six.iteritems(filt2_meta):
-            qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
+        qres.metadata = {}  # dbgstats
+        for key, qaid2_meta in six.iteritems(metadata):
+            qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
     return qaid2_qres
 

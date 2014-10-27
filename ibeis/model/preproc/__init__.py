@@ -4,6 +4,7 @@ from . import preproc_chip
 from . import preproc_detectimg
 from . import preproc_encounter
 from . import preproc_feat
+from . import preproc_featweight
 from . import preproc_image
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -16,6 +17,7 @@ def reload_subs():
     getattr(preproc_detectimg, 'rrr', lambda: None)()
     getattr(preproc_encounter, 'rrr', lambda: None)()
     getattr(preproc_feat, 'rrr', lambda: None)()
+    getattr(preproc_featweight, 'rrr', lambda: None)()
     getattr(preproc_image, 'rrr', lambda: None)()
     rrr()
 rrrr = reload_subs

@@ -434,6 +434,7 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
+        query_cfg.with_metadata = False
         #if utool.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
@@ -680,10 +681,14 @@ class PreprocConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
-    def __init__(guicfg, **kwargs):
-        super(DetectionConfig, guicfg).__init__(name='detectcfg')
-        guicfg.species     = 'zebra_grevys'
-        guicfg.detector    = 'rf'
+    def __init__(detect_cfg, **kwargs):
+        super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
+        detect_cfg.species     = 'zebra_grevys'
+        detect_cfg.detector    = 'rf'
+
+    def get_cfgstr_list(detect_cfg):
+        cfgstrs = ['_DETECT(', detect_cfg.detector, ',', detect_cfg.species, ')']
+        return cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)

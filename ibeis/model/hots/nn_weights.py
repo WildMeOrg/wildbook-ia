@@ -3,7 +3,6 @@ import utool
 import six
 import numpy as np
 import vtool.linalg as ltool
-from numpy import array
 from six.moves import zip
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 import functools
@@ -100,20 +99,21 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
     rule  = qreq_.qparams.normalizer_rule
     # Prealloc output
     qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
-    qaid2_selnorms = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    qaid2_norm_metadata = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         # Apply normalized weights
-        (qfx2_normweight, qfx2_normmeta) = apply_normweight(
+        (qfx2_normweight, norm_metadata) = apply_normweight(
             normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_)
         # Output
-        qaid2_weight[qaid]   = qfx2_normweight
-        qaid2_selnorms[qaid] = qfx2_normmeta
-    return (qaid2_weight, qaid2_selnorms)
+        qaid2_weight[qaid] = qfx2_normweight
+        qaid2_norm_metadata[qaid] = norm_metadata
+    return (qaid2_weight, qaid2_norm_metadata)
 
 
-def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_):
+def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
+                     qreq_, with_meta=True):
     """
     helper: applies the normalized weight function to one query annotation
 
@@ -128,7 +128,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, q
         qreq_ (QueryRequest): hyper-parameters
 
     Returns:
-        tuple(ndarray, ndarray) : (qfx2_normweight, qfx2_normmeta)
+        tuple(ndarray, tuple(list, ndarray)) : (qfx2_normweight, norm_metadata)
 
     Example:
         >>> from ibeis.model.hots.nn_weights import *
@@ -157,18 +157,26 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, q
         qfx2_normk = get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx)
     else:
         raise NotImplementedError('[nn_weights] no rule=%r' % rule)
-    qfx2_normdist = [dists[normk] for (dists, normk) in zip(qfx2_dist, qfx2_normk)]
-    qfx2_normidx  = [idxs[normk] for (idxs, normk) in zip(qfx2_idx, qfx2_normk)]
-    # build meta
-    qfx2_normmeta = [(qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)
-                     for (normk, idx) in zip(qfx2_normk, qfx2_normidx)]
-    qfx2_normdist = array(qfx2_normdist)
-    qfx2_normidx  = array(qfx2_normidx)
-    qfx2_normmeta = array(qfx2_normmeta)
+    qfx2_normdist = np.array([dists[normk]
+                              for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
+    qfx2_normidx  = np.array([idxs[normk]
+                              for (idxs, normk) in zip(qfx2_idx, qfx2_normk)])
     # Ensure shapes are valid
     qfx2_normdist.shape = (len(qfx2_idx), 1)
     qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
-    return (qfx2_normweight, qfx2_normmeta)
+    # build meta
+    if with_meta:
+        normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
+        qfx2_normmeta = np.array(
+            [
+                (qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)
+                for (normk, idx) in zip(qfx2_normk, qfx2_normidx)
+            ]
+        )
+        norm_metadata = (normmeta_header, qfx2_normmeta)
+    else:
+        norm_metadata = None
+    return (qfx2_normweight, norm_metadata)
 
 
 def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
@@ -223,7 +231,7 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
         qnid (int): query name id
 
     Returns:
-        qfx2_selnorm
+        qfx2_selnorm - index of the selected normalizer for each query feature
     """
     #columns = qfx2_topnid
     #matrix = qfx2_normnid
@@ -238,8 +246,8 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
 
     # For each query feature find its best normalizer (using negative indices)
     qfx2_validlist = [np.where(normrow)[0] for normrow in qfx2_valid]
-    qfx2_selnorm = array([poslist[0] - Kn if len(poslist) != 0 else -1 for
-                          poslist in qfx2_validlist], hstypes.FK_DTYPE)
+    qfx2_selnorm = np.array([poslist[0] - Kn if len(poslist) != 0 else -1 for
+                             poslist in qfx2_validlist], hstypes.FK_DTYPE)
     return qfx2_selnorm
 
 

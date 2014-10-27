@@ -14,7 +14,28 @@ from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_plots]')
 
 
-Metrics = namedtuple('Metrics', ('wx2_pdist', 'wx2_wdist', 'wx2_nMembers', 'wx2_pdist_stats', 'wx2_wdist_stats',))
+Metrics = namedtuple('Metrics', ('wx2_nMembers', 'wx2_pdist_stats', 'wx2_wdist_stats',))
+
+
+def metric_clamped_stat(metrics, wx_list, key):
+    """
+    if key is a tuple it specifies a statdict and a chosen stat
+    else its just a key
+    """
+    try:
+        if isinstance(key, tuple):
+            metrickey, statkey = key
+            wx2_statdict = metrics.__dict__[metrickey]
+            def wx2_metric(wx):
+                return wx2_statdict[wx][statkey] if wx in wx2_statdict and statkey in wx2_statdict[wx] else -1
+            stat_list = np.array([wx2_metric(wx) for wx in wx_list])
+        else:
+            wx2_metric = metrics.__dict__[key]
+            stat_list = np.array([wx2_metric[wx] for wx in wx_list])
+        stat_list = ut.negative_minclamp_inplace(stat_list)
+    except Exception as ex:
+        ut.printex(ex, keys=['key'])
+    return stat_list
 
 
 def compute_word_metrics(invindex):
@@ -34,7 +55,7 @@ def compute_word_metrics(invindex):
         dvecs = idx2_dvec.take(idxs, axis=0)
         word = words[wx:wx + 1]
         wx2_pdist[wx] = spdist.pdist(dvecs)  # pairwise dist between words
-        wx2_wdist[wx] = euclidean_dist(dvecs, word)  # dist to word center
+        wx2_wdist[wx] = ut.euclidean_dist(dvecs, word)  # dist to word center
         wx2_nMembers[wx] = len(idxs)
 
     for wx, pdist in ut.progiter(six.iteritems(wx2_pdist), lbl='Word pdist Stats: ', num=len(wx2_idxs), freq=2000):
@@ -44,47 +65,18 @@ def compute_word_metrics(invindex):
         wx2_wdist_stats[wx] = ut.get_stats(wdist)
 
     ut.print_stats(wx2_nMembers.values(), 'word members')
-    metrics = Metrics(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats)
+    metrics = Metrics(wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats)
     return metrics
     #word_pdist = spdist.pdist(invindex.words)
 
 
-def euclidean_dist(vecs1, vec2):
-    return np.sqrt(((vecs1.astype(np.float32) - vec2.astype(np.float32)) ** 2).sum(1))
-
-
-def dict_where0(dict_):
-    keys = np.array(dict_.keys())
-    flags = np.array(list(map(len, dict_.values()))) == 0
-    indices = np.where(flags)[0]
-    return keys[indices]
-
-
-def get_cached_vocabs():
-    import parse
-    # Parse some of the training data from fname
-    parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
-    smkdir = ut.get_app_resource_dir('smk')
-    fname_list = ut.glob(smkdir, 'akmeans*')
-    fpath_list = [join(smkdir, fname) for fname in fname_list]
-    result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
-    nCent_list = [int(res['num_cent']) for res in result_list]
-    nDpts_list = [int(res['num_dpts']) for res in result_list]
-    key_list = zip(nCent_list, nDpts_list)
-    fpath_sorted = ut.sortedby(fpath_list, key_list, reverse=True)
-    return fpath_sorted
-
-
-def negative_minclamp(arr):
-    arr[arr > 0] -= arr[arr > 0].min()
-    arr[arr <= 0] = arr[arr > 0].min()
-    return arr
-
-
-def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', colortype='score',
-                     darken=.5, **kwargs):
+def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', figtitle='', colortype='score',
+                     darken=.5, cmap_='hot', reverse_cmap=False, **kwargs):
     """
-    the word metric is used liberally
+    Plots one annotation with one metric.
+
+    The word metric is used liberally.
+
     Example:
         >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
@@ -101,7 +93,7 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', colortype='score',
         >>> aid = 1
         >>> fnum = 0
         >>> lbl='test'
-        >>> colortype='scores'
+        >>> colortype='score'
         >>> kwargs = {'annote': False}
         #>>> df2.rrr()
         >>> smk_plots.plot_chip_metric(ibs, aid, metric, fnum, lbl, colortype, **kwargs)
@@ -112,21 +104,30 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', colortype='score',
     df2.figure(fnum=fnum, doclf=True, docla=True)
     if metric is not None:
         if  colortype == 'score':
-            colors = df2.scores_to_color(metric)
+            colors = df2.scores_to_color(metric, cmap_=cmap_, reverse_cmap=reverse_cmap)
         elif colortype == 'label':
             colors = df2.label_to_colors(metric)
         else:
             raise ValueError('no known colortype = %r' % (colortype,))
     else:
         colors = 'distinct'
-    viz_chip.show_chip(ibs, aid, color=colors, darken=darken, **kwargs)
+    viz_chip.show_chip(ibs, aid, color=colors, darken=darken,
+                       ell_alpha=.8,
+                       #ell_linewidth=4,
+                       ell_linewidth=2,
+                       **kwargs)
     if metric is not None:
         cb = df2.colorbar(metric, colors)
         cb.set_label(lbl)
-    df2.set_figtitle(lbl)
+    df2.set_figtitle(figtitle)
 
 
-def viz_annot_with_metrics(ibs, invindex, aid, metrics, metric_keys=['mean', 'std', 'min', 'max']):
+def viz_annot_with_metrics(ibs, invindex, aid, metrics,
+                           metric_keys=['wx2_nMembers',
+                                        ('wx2_pdist_stats', 'mean'),
+                                        ('wx2_wdist_stats', 'mean')],
+                           qfx2_closest_k=None,
+                           featweights=None):
     """
     Args:
         ibs (IBEISController):
@@ -145,7 +146,7 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics, metric_keys=['mean', 'st
         >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
         >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
         >>> invindex.idx2_wxs = np.array(invindex.idx2_wxs)
-        >>> metric_keys=['mean', 'std', 'min', 'max']
+        >>> metric_keys=['wx2_nMembers', ('wx2_pdist_stats', 'mean'), ('wx2_wdist_stats', 'mean')]
         >>> metrics = compute_word_metrics(invindex)
         >>> aid = 1
 
@@ -165,37 +166,54 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics, metric_keys=['mean', 'st
     assert len(fxs) == len(wxs)
 
     idf_list = np.array(list(ut.dict_take_gen(invindex.wx2_idf, wxs)))
-
-    wx2_pdist_stats = metrics.wx2_pdist_stats
-    wx2_wdist_stats = metrics.wx2_wdist_stats
-
-    def wx2_pdiststat(wx, key='mean'):
-        return wx2_pdist_stats[wx][key] if wx in wx2_pdist_stats and key in wx2_pdist_stats[wx] else -1
-
-    def wx2_wdiststat(wx, key='mean'):
-        return wx2_wdist_stats[wx][key] if wx in wx2_wdist_stats and key in wx2_wdist_stats[wx] else -1
-
     #wx2_idf = invindex.wx2_idf
-
     # data
     #idf_list =  [wx2_idf[wx] for wx in wxs]
+    fnum = 1
 
-    clamp = negative_minclamp
+    nWords = ibs.cfg.query_cfg.smk_cfg.nWords
+    dbname = ibs.get_dbname()
+    def _plot(metric, fnum=1, lbl='', annote=True, darken=.1, colortype='score', **kwargs):
+        print('ploting fnum=%r' % fnum)
+        lblaug = ' db=%r, nWords = %r' % (dbname, nWords)
+        figtitle = lbl
+        lbl = lbl + lblaug
+        plot_chip_metric(ibs, aid, metric=metric, fnum=fnum, lbl=lbl, figtitle=figtitle,
+                         annote=annote, darken=darken, colortype=colortype, **kwargs)
+        return fnum + 1
 
-    avepdist_list =  clamp(np.array([wx2_pdiststat(wx, 'mean') for wx in wxs]))
-    avewdist_list =  clamp(np.array([wx2_wdiststat(wx, 'mean') for wx in wxs]))
-    #maxwdist_list =  clamp(np.array([wx2_wdiststat(wx, 'max') for wx in wxs]))
-    #minwdist_list =  clamp(np.array([wx2_wdiststat(wx, 'min') for wx in wxs]))
-    #stdwdist_list =  clamp(np.array([wx2_wdiststat(wx, 'std') for wx in wxs]))
+    fnum = _plot(None, fnum=fnum, lbl='Orig Chip', annote=False, darken=None)
 
-    plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', annote=False, darken=None)
-    plot_chip_metric(ibs, aid, idf_list, fnum=2, lbl='idf', colortype='score')
-    plot_chip_metric(ibs, aid, avepdist_list, fnum=3, lbl='avepdist_list', colortype='score')
-    plot_chip_metric(ibs, aid, avewdist_list, fnum=4, lbl='avewdist_list', colortype='score')
-    #plot_chip_metric(ibs, aid, wxs, fnum=3, lbl='wx', colortype='label')
-    #plot_chip_metric(ibs, aid, stdwdist_list, fnum=5, lbl='stdwdist_list', colortype='score')
-    #plot_chip_metric(ibs, aid, maxwdist_list, fnum=6, lbl='maxwdist_list', colortype='score')
-    #plot_chip_metric(ibs, aid, minwdist_list, fnum=7, lbl='minwdist_list', colortype='score')
+    fnum = _plot(idf_list, fnum=fnum, lbl='IDF')
+    print('stats(idf_list)  = ' + ut.get_stats_str(idf_list))
+
+    #fnum = _plot(wxs, fnum=fnum, lbl='Words', colortype='label')
+
+    if qfx2_closest_k is not None:
+        # Plot ranked positions
+        qfx2_closest_k = np.array(qfx2_closest_k)
+        qfx2_closest_k_qeq0 = qfx2_closest_k[qfx2_closest_k >= 0]
+        qfx2_closest_k_lt0  = qfx2_closest_k[qfx2_closest_k < 0]
+        print('stats(qfx2_closest_k_qeq0) = ' + ut.get_stats_str(qfx2_closest_k_qeq0))
+        print('stats(qfx2_closest_k_lt0)  = ' + ut.get_stats_str(qfx2_closest_k_lt0))
+        fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks', colortype='score')
+
+    if featweights is not None:
+        # plot rf feature weights
+        detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
+        fnum = _plot(featweights, fnum=fnum, lbl='Feature Weights ' + detect_cfgstr, colortype='score')
+
+    for count, metrickey in enumerate(metric_keys):
+        break
+        # Plot word metrics
+        if isinstance(metrickey, tuple):
+            #lbl = repr(metrickey)
+            fixstr = lambda str_: str_.replace('wx2_', '').replace('_stats', '')
+            lbl = '%s(%s)' % (metrickey[1].upper(), fixstr(metrickey[0]))
+        else:
+            lbl = str(metrickey)
+        metric_list = metric_clamped_stat(metrics, wxs, metrickey)
+        fnum = _plot(metric_list, fnum=fnum, lbl=lbl)
 
 
 def draw_scatterplot(figdir, datax, datay, xlabel, ylabel, color, fnum=None):
@@ -456,6 +474,21 @@ def vizualize_vocabulary(ibs, invindex):
     make_wordfigures()
 
 
+def get_cached_vocabs():
+    import parse
+    # Parse some of the training data from fname
+    parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
+    smkdir = ut.get_app_resource_dir('smk')
+    fname_list = ut.glob(smkdir, 'akmeans*')
+    fpath_list = [join(smkdir, fname) for fname in fname_list]
+    result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
+    nCent_list = [int(res['num_cent']) for res in result_list]
+    nDpts_list = [int(res['num_dpts']) for res in result_list]
+    key_list = zip(nCent_list, nDpts_list)
+    fpath_sorted = ut.sortedby(fpath_list, key_list, reverse=True)
+    return fpath_sorted
+
+
 def view_vocabs():
     """
     looks in vocab cachedir and prints info / vizualizes the vocabs
@@ -489,23 +522,91 @@ def view_vocabs():
         view_vocab(fpath)
 
 
+def get_closet_valid_k(ibs, aid):
+    """
+    >>> import numpy as np
+    >>> from ibeis.model.hots import query_request
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> aid = 2
+    """
+    # FIXME: Put query_cfg into the qreq_ structure by itself.
+    # Don't change the IBEIS Structure
+    custom_qparams = {
+        'pipeline_root': 'vsmany',
+        'with_metadata': True
+    }
+    #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
+    #ibs.cfg.query_cfg.with_metadata = True
+    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, custom_qparams=custom_qparams)
+    indexer = qreq_.indexer
+    qres = qaid2_qres[aid]
+    (qfx2_idx, qfx2_dist) = qres.metadata['nns']
+    nid = ibs.get_annot_nids(aid)
+    qfx2_aids = indexer.get_nn_aids(qfx2_idx)
+    qfx2_nids = ibs.get_annot_nids(qfx2_aids)
+    qfx2_isself  = qfx2_aids != aid
+    qfx2_correct = np.logical_and(qfx2_nids == nid, qfx2_isself)
+    # Mark the top ranked groundtruth
+    qfx2_valid_ks = [np.flatnonzero(ranks) for ranks in qfx2_correct]
+    NO_VALID_RANKS_CODE = -2
+    POSSIBLY_VALID_RANKS_CODE = -1
+    qfx2_closest_k = [ks[0] if len(ks) > 0 else NO_VALID_RANKS_CODE for ks in qfx2_valid_ks]
+    # Mark cases where it is not possible to know the groundtruth
+    qfx2_isimpossible = np.logical_and(qfx2_nids < 0, qfx2_isself)
+    qfx2_possibly_impossible_ks = [np.flatnonzero(ranks) for ranks in qfx2_isimpossible]
+    # Mark as POSSIBLY_VALID_RANKS_CODE if there is no best k
+    #
+    def is_possible(k, pi_ks):
+        ERR_ON_THE_SIDE_OF_THE_IMPOSSIBLE = False
+        if len(pi_ks) == 0:
+            return False
+        elif k == NO_VALID_RANKS_CODE:
+            return True
+        elif ERR_ON_THE_SIDE_OF_THE_IMPOSSIBLE and pi_ks[0] < k:
+            return True
+        else:
+            return False
+
+    qfx2_closest_k2 = [POSSIBLY_VALID_RANKS_CODE if is_possible(k, pi_ks) else k
+                       for pi_ks, k in zip(qfx2_possibly_impossible_ks, qfx2_closest_k)]
+    return qfx2_closest_k2
+
+
 if __name__ == '__main__':
     #from ibeis.model.hots.smk.smk_plots import *  # NOQA
     from plottool import draw_func2 as df2
     kwargs = {
         #'db': 'GZ_ALL',
         #'db': 'PZ_MTEST',
-        'db': 'testdb1',
-        'nWords': 8000,
+        'db': ut.get_argval('--db', str, default='testdb1'),
+        'nWords': ut.get_argval('--nWords', int, default=8000),
         'delete_rawvecs': False,
     }
     (ibs, annots_df, daids, qaids, invindex, qreq_) = smk_debug.testdata_internals_full(**kwargs)
-    metrics = compute_word_metrics(invindex)
     kwargs = {}
-    valid_aids =  ibs.get_valid_aids()
     aid = 3
+    #try:
+    #    testdata = ('metrics',)
+    #    metrics = ut.load_testdata(*testdata)
+    #except Exception as ex:
+    metrics = compute_word_metrics(invindex)
+    #ut.save_testdata(*testdata)
+    valid_aids =  ibs.get_valid_aids()
+
+    if ibs.get_dbname().startswith('GZ_'):
+        ibs.cfg.detect_cfg.species = 'zebra_grevys'
+    else:
+        ibs.cfg.detect_cfg.species = 'zebra_plains'
+
     for aid in ut.InteractiveIter(valid_aids):
         print('[smk_plot] visualizing annotation aid=%r' % (aid,))
-        viz_annot_with_metrics(ibs, invindex, aid, metrics)
+        qfx2_closest_k = get_closet_valid_k(ibs, aid)
+        from ibeis.model.preproc import preproc_featweight
+        featweights = preproc_featweight.compute_featweights(ibs, [aid])[0]
+
+        viz_annot_with_metrics(ibs, invindex, aid, metrics,
+                               qfx2_closest_k=qfx2_closest_k,
+                               featweights=featweights)
         execstr = df2.present()
     #exec(execstr)

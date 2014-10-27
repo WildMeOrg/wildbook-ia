@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[QRes]', DEBUG=False)
 # Python
 import six
 from six.moves import zip, cPickle
@@ -10,6 +9,7 @@ import os
 # Scientific
 import numpy as np
 from ibeis.model.hots import exceptions as hsexcept
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[QRes]', DEBUG=False)
 
 
 #FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
@@ -126,7 +126,7 @@ def get_num_feats_in_matches(qres):
 class QueryResult(__OBJECT_BASE__):
     #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
-    #             'filt2_meta']
+    #             'metadata']
     def __init__(qres, qaid, qauuid, cfgstr):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
@@ -141,7 +141,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fs = None  # feat_score_list
         qres.aid2_fk = None  # feat_rank_list
         qres.aid2_score = None  # annotation score
-        qres.filt2_meta = None  # messy
+        qres.metadata = None  # messy (meta information of query)
         #qres.daid_list = None  # matchable daids
 
     def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
@@ -156,9 +156,9 @@ class QueryResult(__OBJECT_BASE__):
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
                 qres.__dict__.update(loaded_dict)
-            #if not isinstance(qres.filt2_meta, dict):
+            #if not isinstance(qres.metadata, dict):
             #    print('[qr] loading old result format')
-            #    qres.filt2_meta = {}
+            #    qres.metadata = {}
             if verbose:
                 print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
@@ -209,7 +209,7 @@ class QueryResult(__OBJECT_BASE__):
             _qres_dicteq(self.aid2_fs, self.aid2_fs),
             _qres_dicteq(self.aid2_fk, self.aid2_fk),
             _qres_dicteq(self.aid2_score, other.aid2_score),
-            _qres_dicteq(self.filt2_meta, other.filt2_meta),
+            _qres_dicteq(self.metadata, other.metadata),
         ])
 
     def has_cache(qres, qresdir):

@@ -48,7 +48,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     # Get img dest information (output path)
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
     # Get img configuration information
-    sqrt_area   = 800
+    sqrt_area   = 800  # TODO: Put this in a config
     target_area = sqrt_area ** 2
     # Get img source information (image, annotation_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)

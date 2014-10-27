@@ -1401,7 +1401,8 @@ class IBEISController(object):
     def get_image_detectpaths(ibs, gid_list):
         """
         Returns:
-            list_ (list): a list of image paths resized to a constant area for detection """
+            list_ (list): a list of image paths resized to a constant area for detection
+        """
         new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
         return new_gfpath_list
 
@@ -1729,6 +1730,13 @@ class IBEISController(object):
         return cid_list
 
     @getter_1to1
+    def get_annot_chip_paths(ibs, aid_list, ensure=True):
+        utool.assert_all_not_None(aid_list, 'aid_list')
+        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
+        chip_fpath_list = ibs.get_chip_paths(cid_list)
+        return chip_fpath_list
+
+    @getter_1to1
     def get_annot_chips(ibs, aid_list, ensure=True):
         utool.assert_all_not_None(aid_list, 'aid_list')
         cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
@@ -1741,6 +1749,18 @@ class IBEISController(object):
                 raise
         chip_list = ibs.get_chips(cid_list, ensure=ensure)
         return chip_list
+
+    @getter_1to1
+    def get_annot_probchip_fpaths(ibs, aid_list):
+        """
+        Returns paths to probability images.
+
+        FIXME: this is implemented very poorly. Caches not robust. IE they are
+        never invalidated. Not all config information is passed through
+        """
+        from ibeis.model.preproc import preproc_featweight
+        probchip_fpath_list = preproc_featweight.compute_and_write_probchip(ibs, aid_list)
+        return probchip_fpath_list
 
     @getter_1to1
     def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
@@ -2509,7 +2529,7 @@ class IBEISController(object):
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         tt = utool.tic()
-        detect_gen = randomforest.generate_detection_images(ibs, gid_list, species, **kwargs)
+        detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
         ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
@@ -2619,7 +2639,7 @@ class IBEISController(object):
     #    return qaid2_qres
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=mc4.USE_CACHE,
-                      use_bigcache=mc4.USE_BIGCACHE):
+                      use_bigcache=mc4.USE_BIGCACHE, **kwargs):
         """
         >>> from ibeis.all_imports import *  # NOQA
         >>> qaid_list = [1]
@@ -2635,8 +2655,10 @@ class IBEISController(object):
         >>> qreq = ibs.qreq
 
         """
+        assert len(daid_list) > 0, 'there are no database chips'
+        assert len(qaid_list) > 0, 'there are no query chips'
         qaid2_qres = mc4.submit_query_request(ibs,  qaid_list, daid_list,
-                                              use_cache, use_bigcache)
+                                              use_cache, use_bigcache, **kwargs)
         return qaid2_qres
 
     #_query_chips = _query_chips3
@@ -2656,6 +2678,13 @@ class IBEISController(object):
         """ Queries vs the exemplars """
         daid_list = ibs.get_valid_aids(is_exemplar=True)
         assert len(daid_list) > 0, 'there are no exemplars'
+        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        return qaid2_qres
+
+    @default_decorator
+    def query_all(ibs, qaid_list, **kwargs):
+        """ Queries vs the exemplars """
+        daid_list = ibs.get_valid_aids()
         qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
         return qaid2_qres
 

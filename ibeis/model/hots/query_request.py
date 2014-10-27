@@ -19,7 +19,7 @@ def get_test_qreq():
     return qreq_, ibs
 
 
-def new_ibeis_query_request(ibs, qaid_list, daid_list):
+def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
     """
     Example:
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -29,7 +29,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list):
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
-    qparams = QueryParams(cfg)
+    qparams = QueryParams(cfg, custom_qparams)
     # Neighbor Indexer
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
@@ -322,6 +322,20 @@ def parse_config_items(cfg):
     return param_list
 
 
+def test_cfg_deepcopy():
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    cfg1 = ibs.cfg.query_cfg
+    cfg2 = cfg1.deepcopy()
+    cfg3 = cfg2
+    assert cfg1.get_cfgstr() == cfg2.get_cfgstr()
+    assert cfg2.sv_cfg is not cfg1.sv_cfg
+    assert cfg3.sv_cfg is cfg2.sv_cfg
+    cfg2.update_query_cfg(sv_on=False)
+    assert cfg1.get_cfgstr() != cfg2.get_cfgstr()
+    assert cfg2.get_cfgstr() == cfg3.get_cfgstr()
+
+
 class QueryParams(object):
     # TODO: Use setattr to dynamically set all of these via config names
     """
@@ -333,9 +347,13 @@ class QueryParams(object):
         >>> qparams = query_request.QueryParams(cfg)
     """
 
-    def __init__(qparams, cfg):
+    def __init__(qparams, cfg, custom_qparams=None):
         # Ensures that at least everything exits
         # pares nested config structure into this flat one
+        if custom_qparams is not None:
+            cfg2 = cfg.deepcopy()
+            cfg2.update_query_cfg(**custom_qparams)
+            cfg = cfg2
         param_list = parse_config_items(cfg)
         seen_ = set()
         for key, val in param_list:
