@@ -91,7 +91,29 @@ def execstr_global():
     return execstr
 
 
+def label_to_colors(labels_):
+    """
+    returns a unique and distinct color corresponding to each label
+    """
+    unique_labels = list(set(labels_))
+    unique_colors = distinct_colors(len(unique_labels))
+    label2_color = dict(zip(unique_labels, unique_colors))
+    color_list = [label2_color[label] for label in labels_]
+    return color_list
+
+
 def distinct_colors(N, brightness=.878):
+    """
+    Args:
+        N (int): number of distinct colors
+        brightness (float): brightness of colors (maximum distinctiveness is .5) default is .878
+
+    Returns:
+        RGB_tuples
+
+    Example:
+        >>> from plottool.draw_func2 import *  # NOQA
+    """
     # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
     sat = brightness
     val = brightness
