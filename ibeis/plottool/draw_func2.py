@@ -11,6 +11,7 @@ import six
 #import os
 #import sys
 import utool
+import utool as ut  # NOQA
 # Matplotlib
 import matplotlib as mpl
 # Should be taken care of by parent
@@ -52,8 +53,8 @@ figure = custom_figure.figure
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
-
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
+DEBUG = False
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=DEBUG)
 
 #================
 # GLOBALS
@@ -632,12 +633,29 @@ def variation_trunctate(data):
 #_----------------- HELPERS ^^^ ---------
 
 
-def scores_to_color(score_list, cmap_='hot', logscale=False):
-    printDBG('scores_to_color()')
+def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False):
+    """
+    Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1', 'Set2', 'Accent'
+
+    Args:
+        score_list (list):
+        cmap_ (str): defaults to hot
+        logscale (bool):
+
+    Returns:
+        <class '_ast.ListComp'>
+
+    Example:
+        >>> from plottool.draw_func2 import *  # NOQA
+    """
+    if DEBUG:
+        print('scores_to_color()')
     assert len(score_list.shape) == 1, 'score must be 1d'
     if logscale:
         score_list = np.log2(np.log2(score_list + 2) + 1)
     cmap = plt.get_cmap(cmap_)
+    if reverse_cmap:
+        cmap = reverse_colormap(cmap)
     mins = score_list.min()
     rnge = score_list.max() - mins
     if rnge == 0:
@@ -656,8 +674,55 @@ def scores_to_color(score_list, cmap_='hot', logscale=False):
         return colors
 
 
+def reverse_colormap(cmap):
+    """
+    References:
+        http://nbviewer.ipython.org/github/kwinkunks/notebooks/blob/master/Matteo_colourmaps.ipynb
+    """
+    if isinstance(cmap,  mpl.colors.ListedColormap):
+        return mpl.colors.ListedColormap(cmap.colors[::-1])
+    else:
+        reverse = []
+        k = []
+        for key, channel in six.iteritems(cmap._segmentdata):
+            data = []
+            for t in channel:
+                data.append((1 - t[0], t[1], t[2]))
+            k.append(key)
+            reverse.append(sorted(data))
+        cmap_reversed = mpl.colors.LinearSegmentedColormap(cmap.name + '_reversed', dict(zip(k, reverse)))
+        return cmap_reversed
+
+
+def show_all_colormaps():
+    """
+    Displays at a 90 degree angle. Weird
+
+    FIXME: Remove call to pylab
+
+    References:
+        http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
+    """
+    import pylab
+    import numpy as np
+    pylab.rc('text', usetex=False)
+    a = np.outer(np.arange(0, 1, 0.01), np.ones(10))
+    pylab.figure(figsize=(10, 5))
+    pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
+    maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
+    maps.sort()
+    l = len(maps) + 1
+    for i, m in enumerate(maps):
+        pylab.subplot(1, l, i + 1)
+        pylab.axis("off")
+        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m), origin="lower")
+        pylab.title(m, rotation=90, fontsize=10)
+    #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
+
+
 def scores_to_cmap(scores, colors=None, cmap_='hot'):
-    printDBG('scores_to_cmap()')
+    if DEBUG:
+        print('scores_to_cmap()')
     if colors is None:
         colors = scores_to_color(scores, cmap_=cmap_)
     sorted_colors = [x for (y, x) in sorted(zip(scores, colors))]
@@ -675,7 +740,18 @@ def ensure_divider(ax):
 
 
 def colorbar(scalars, colors):
-    """ adds a color bar next to the axes """
+    """ adds a color bar next to the axes
+    Args:
+        scalars (ndarray):
+        colors (ndarray):
+
+    Returns:
+        cb : matplotlib colorbar object
+
+    Example:
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool import draw_func2 as df2
+    """
     printDBG('colorbar()')
     # Parameters
     ax = gca()
@@ -703,7 +779,9 @@ def colorbar(scalars, colors):
     axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
     #position = 'bottom' if orientation == 'horizontal' else 'right'
     #axis.set_ticks_position(position)
-    axis.set_ticks([0, .5, 1])
+
+    # This line alone removes data
+    # axis.set_ticks([0, .5, 1])
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
     plt.sca(ax)
     return cb
