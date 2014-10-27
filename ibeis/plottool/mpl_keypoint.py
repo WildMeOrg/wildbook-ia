@@ -35,6 +35,33 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
                    **kwargs):
     """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
+    Args:
+        ax (?):
+        kpts (?):
+        scale_factor (float):
+        offset (tuple):
+        rotation (float):
+        ell (bool):
+        pts (bool):
+        rect (bool):
+        eig (bool):
+        ori (bool):
+        sifts (None):
+
+    Example:
+        >>> from plottool.mpl_keypoint import *  # NOQA
+        >>> ax
+        >>> kpts
+        >>> scale_factor=1.0
+        >>> offset=(0.0, 0.0)
+        >>> rotation=0.0
+        >>> ell=True
+        >>> pts=False
+        >>> rect=False
+        >>> eig=False
+        >>> ori=False
+        >>> sifts=None
+        >>>
     """
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)

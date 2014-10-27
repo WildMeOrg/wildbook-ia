@@ -684,6 +684,7 @@ def colorbar(scalars, colors):
     axis.set_ticks([0, .5, 1])
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
     plt.sca(ax)
+    return cb
 
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
@@ -725,17 +726,58 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
                ell_color=None, pts_color=ORANGE, color_list=None, **kwargs):
+    """
+    Args:
+        kpts (?):
+        offset (tuple):
+        scale_factor (int):
+        ell (bool):
+        pts (bool):
+        rect (bool):
+        eig (bool):
+        ori (bool):
+        pts_size (int):
+        ell_alpha (float):
+        ell_linewidth (float):
+        ell_color (None):
+        pts_color (ndarray):
+        color_list (list):
+
+    Example:
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool import draw_func2 as df2
+        >>> offset = (0, 0)
+        >>> scale_factor = 1
+        >>> ell = True
+        >>> ell=True
+        >>> pts=False
+        >>> rect=False
+        >>> eig=False
+        >>> ell=True
+        >>> pts=False
+        >>> rect=False
+        >>> eig=False
+        >>> ori=False
+        >>> pts_size=2
+        >>> ell_alpha=.6
+        >>> ell_linewidth=1.5
+        >>> ell_color=None
+        >>> pts_color=df2.ORANGE
+        >>> color_list=None
+    """
     if ell_color is None:
         ell_color = kwargs.get('color', BLUE)
-    printDBG('-------------')
-    printDBG('draw_kpts2():')
-    #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
-    printDBG(' * kpts.shape=%r:' % (kpts.shape,))
-    printDBG(' * ell=%r pts=%r' % (ell, pts))
-    printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
-    printDBG(' * scale_factor=%r' % (scale_factor,))
-    printDBG(' * offset=%r' % (offset,))
-    printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
+
+    if utool.DEBUG2:
+        printDBG('-------------')
+        printDBG('draw_kpts2():')
+        #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
+        printDBG(' * kpts.shape=%r:' % (kpts.shape,))
+        printDBG(' * ell=%r pts=%r' % (ell, pts))
+        printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
+        printDBG(' * scale_factor=%r' % (scale_factor,))
+        printDBG(' * offset=%r' % (offset,))
+        printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
     assert len(kpts) > 0, 'len(kpts) < 0'
     ax = gca()
     ell_alpha = ell_alpha
@@ -836,6 +878,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
     if darken is not None:
+        if darken is True:
+            darken = .5
         # Darken the shown picture
         imgdtype = img.dtype
         img = np.array(img, dtype=float) * darken
