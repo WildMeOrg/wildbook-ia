@@ -41,6 +41,7 @@ from vtool import chip as ctool
 from vtool import trig
 # UTool
 import utool
+import utool as ut
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[kpts]')
 
 
@@ -163,13 +164,15 @@ def get_invV_mats2x2(kpts, with_ori=False):
     nKpts = len(kpts)
     try:
         _iv11s, _iv21s, _iv22s = get_invVs(kpts)
-    except ValueError:
-        print(kpts)
+        _zeros = zeros(nKpts)
+        invV_arrs = array([[_iv11s, _zeros],
+                           [_iv21s, _iv22s]])  # R x C x N
+        invV_mats = rollaxis(invV_arrs, 2)     # N x R x C
+    except ValueError as ex:
+        ut.printex(ex, keys=['kpts', '_zeros', '_iv11s', '_iv21s', '_iv22s'])
+        #ut.embed()
+        #print(kpts)
         raise
-    _zeros = zeros(nKpts)
-    invV_arrs = array(((_iv11s, _zeros),
-                       (_iv21s, _iv22s)))  # R x C x N
-    invV_mats = rollaxis(invV_arrs, 2)     # N x R x C
     if with_ori:
         # You must apply rotations before you apply shape
         # This is because we are dealing with \emph{inv}(V).
@@ -216,9 +219,9 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
             _iv13s, _iv23s = get_xys(kpts)
         else:
             _iv13s = _iv23s = _zeros
-        invV_arrs =  array(((_iv11s, _iv12s, _iv13s),
-                            (_iv21s, _iv22s, _iv23s),
-                            (_zeros, _zeros,  _ones)))  # R x C x N
+        invV_arrs =  array([[_iv11s, _iv12s, _iv13s],
+                            [_iv21s, _iv22s, _iv23s],
+                            [_zeros, _zeros,  _ones]])  # R x C x N
         invV_mats = rollaxis(invV_arrs, 2)  # N x R x C
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
