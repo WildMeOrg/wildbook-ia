@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import numpy.linalg as npl
 import numpy as np
 from vtool import clustering2 as clustertool
@@ -131,7 +132,7 @@ def compress_normvec_float16(arr_float):
         >>> from ibeis.model.hots.smk import smk_debug
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-        >>> normalize_vecs_inplace(arr_float)
+        >>> normalize_vecs2d_inplace(arr_float)
         >>> arr_float16 = compress_normvec_float16(arr_float)
         >>> print(arr_float16)
         [[ 0.49414062  0.11212158  0.27416992  0.62792969  0.5234375 ]
@@ -163,7 +164,7 @@ def compress_normvec_uint8(arr_float):
         >>> from ibeis.model.hots.smk import smk_debug
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-        >>> normalize_vecs_inplace(arr_float)
+        >>> normalize_vecs2d_inplace(arr_float)
         >>> arr_int8 = compress_normvec_uint8(arr_float)
         >>> print(arr_int8)
         [[ 127   29   70 -128 -128]
@@ -190,11 +191,27 @@ else:
 
 
 @profile
-def normalize_vecs_inplace(vecs):
+def normalize_vecs2d_inplace(vecs):
     """
     Args:
         vecs (ndarray): row vectors to normalize in place
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
+        >>> import numpy as np
+        >>> vecs = np.random.rand(1, 10)
+        >>> normalize_vecs2d_inplace(vecs)
+        >>> print(vecs)
+        >>> vecs = np.random.rand(10)
+        >>> normalize_vecs2d_inplace(vecs)
+        >>> print(vecs)
     """
+    if utool.DEBUG2:
+        try:
+            assert vecs.ndim == 2, 'vecs.shape = %r' % (vecs.shape,)
+        except AssertionError as ex:
+            ut.printex(ex, keys=['vecs'])
+            raise
     # Normalize residuals
     # this can easily be sped up by cyth
     norm_ = npl.norm(vecs, axis=1)
@@ -222,13 +239,13 @@ def aggregate_rvecs(rvecs, maws):
     """
     if rvecs.shape[0] == 1:
         return rvecs
-    # Prealloc sum output
+    # Prealloc sum output (do not assign the result of sum)
     arr_float = np.empty((1, rvecs.shape[1]), dtype=hstypes.FLOAT_TYPE)
     # Take weighted average of multi-assigned vectors
-    arr_float = (maws[:, np.newaxis] * rvecs.astype(hstypes.FLOAT_TYPE)).sum(axis=0, out=arr_float[0])
+    (maws[:, np.newaxis] * rvecs.astype(hstypes.FLOAT_TYPE)).sum(axis=0, out=arr_float[0])
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
-    normalize_vecs_inplace(arr_float)
+    normalize_vecs2d_inplace(arr_float)
     rvecs_agg = compress_normvec(arr_float)
     return rvecs_agg
 
@@ -276,7 +293,7 @@ def get_norm_residuals(vecs, word):
     arr_float = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
-    normalize_vecs_inplace(arr_float)
+    normalize_vecs2d_inplace(arr_float)
     # Mark null residuals
     #_rvec_sums = arr_float.sum(axis=1)
     #rvec_flag = np.isnan(_rvec_sums)

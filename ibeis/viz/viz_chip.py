@@ -69,7 +69,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
 
 
 if __name__ == '__main__':
-    from plottool.viz_keypoints import _annotate_kpts
+    #from plottool.viz_keypoints import _annotate_kpts
     from ibeis.viz.viz_chip import *  # NOQA
     import ibeis
     ibs = ibeis.opendb('PZ_Mothers')

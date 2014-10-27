@@ -227,7 +227,7 @@ def testdata_sccw_sum(**kwargs):
     return idf_list, rvecs_list, qflags_list, qmaws_list, smk_alpha, smk_thresh
 
 
-def testdata_internals_full(**kwargs):
+def testdata_internals_full(delete_rawvecs=True, **kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -238,8 +238,8 @@ def testdata_internals_full(**kwargs):
     print('[smk_debug] testdata_internals_full')
     with_internals = True
     qparams = qreq_.qparams
-    _args = (annots_df, daids, words, qparams, with_internals)
-    invindex = smk_repr.index_data_annots(*_args)
+    invindex = smk_repr.index_data_annots(
+        annots_df, daids, words, qparams, with_internals, delete_rawvecs=delete_rawvecs)
     return ibs, annots_df, daids, qaids, invindex, qreq_
 
 

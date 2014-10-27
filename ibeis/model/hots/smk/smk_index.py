@@ -61,7 +61,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     #if memtrack is None:
     #    memtrack = ut.MemoryTracker('[learn_visual_words]')
     #max_iters = 200
-    max_iters = 200
+    max_iters = 300
     flann_params = {}
     train_vecs_list = annots_df.ibs.get_annot_desc(taids, eager=True)
     #memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
@@ -710,7 +710,7 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
         mark2, end2_ = ut.log_progress(lbl='[smk_index.sccw] SCCW Sum (over daid): ',
                                         total=len(unique_aids), freq=100, with_time=WITH_TOTALTIME)
         progiter = ut.ProgressIter(lbl='[smk_index.sccw] SCCW Sum (over daid): ',
-                                   total=len(unique_aids), freq=4, with_time=WITH_TOTALTIME)
+                                   total=len(unique_aids), freq=10, with_time=WITH_TOTALTIME)
     else:
         progiter = ut.identity
 

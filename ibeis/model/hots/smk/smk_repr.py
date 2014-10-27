@@ -233,7 +233,7 @@ def new_qindex(annots_df, qaid, invindex, qparams):
 
 #@profile
 def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
-                      memtrack=None):
+                      memtrack=None, delete_rawvecs=False):
     """
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
@@ -294,7 +294,8 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
     del words, idx2_dvec, idx2_daid, idx2_dfx, daids, daid2_label
     del _vecs_list, _label_list
     if with_internals:
-        compute_data_internals_(invindex, qparams, memtrack=memtrack)  # 99%
+        compute_data_internals_(invindex, qparams, memtrack=memtrack,
+                                delete_rawvecs=delete_rawvecs)  # 99%
     return invindex
 
 
