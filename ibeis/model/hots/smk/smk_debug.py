@@ -13,6 +13,8 @@ from ibeis.model.hots import query_request
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_debug]')
 
 
+# <TESTDATA>
+
 def testdata_printops(**kwargs):
     """ test print options. doesnt take up too much screen
     """
@@ -269,6 +271,142 @@ def testdata_nonagg_rvec():
     return words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list
 
 
+def get_test_float_norm_rvecs(num=1000, dim=None):
+    import numpy.linalg as npl
+    from ibeis.model.hots import hstypes
+    if dim is None:
+        dim = hstypes.VEC_DIM
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs_norm_float = rvecs_float / npl.norm(rvecs_float, axis=1)[:, None]
+    return rvecs_norm_float
+
+
+def get_test_rvecs(num=1000, dim=None, nanrows=None):
+    from ibeis.model.hots import hstypes
+    max_ = hstypes.RVEC_MAX
+    min_ = hstypes.RVEC_MIN
+    dtype = hstypes.RVEC_TYPE
+    if dim is None:
+        dim = hstypes.VEC_DIM
+    dtype_range = max_ - min_
+    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs = ((dtype_range * rvecs_float) - hstypes.RVEC_MIN).astype(dtype)
+    if nanrows is not None:
+        rvecs[nanrows] = np.nan
+
+    """
+    dtype = np.int8
+    max_ = 128
+    min_ = -128
+    nanrows = 1
+
+    import numpy.ma as ma
+    if dtype not in [np.float16, np.float32, np.float64]:
+        rvecs.view(ma.MaskedArray)
+
+
+    np.ma.array([1,2,3,4,5], dtype=int)
+
+    """
+    return rvecs
+
+
+def get_test_maws(rvecs):
+    from ibeis.model.hots import hstypes
+    return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+
+
+def testdata_match_kernel_L0():
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    np.random.seed(0)
+    smk_alpha = 3.0
+    smk_thresh = 0.0
+    num_qrvecs_per_word = [0, 1, 3, 4, 5]
+    num_drvecs_per_word = [0, 1, 2, 4, 6]
+    qrvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_qrvecs_per_word]
+    drvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_drvecs_per_word]
+    daids_list  = [list(range(len(rvecs))) for rvecs in drvecs_list]
+    qaids_list  = [[42] * len(rvecs) for rvecs in qrvecs_list]
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in drvecs_list]
+    idf_list = [1.0 for _ in qrvecs_list]
+    daid2_sccw  = {daid: 1.0 for daid in range(10)}
+    query_sccw = smk_scoring.sccw_summation(qrvecs_list, idf_list, qmaws_list, smk_alpha, smk_thresh)
+    qaid2_sccw  = {42: query_sccw}
+    core1 = smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw
+    core2 = qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list
+    extra = qaid2_sccw, qaids_list
+    return core1, core2, extra
+
+
+def testdata_similarity_function():
+    from ibeis.model.hots.smk import smk_debug
+    qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
+    return qrvecs_list, drvecs_list
+
+
+def testdata_apply_weights():
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots import hstypes
+    qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
+    simmat_list = smk_scoring.similarity_function(qrvecs_list, drvecs_list)
+    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
+    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
+    idf_list = [1 for _ in qrvecs_list]
+    return simmat_list, qmaws_list, dmaws_list, idf_list
+
+
+def testdata_selectivity_function():
+    from ibeis.model.hots.smk import smk_debug
+    smk_alpha = 3
+    smk_thresh = 0
+    simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()
+    wsim_list = smk_scoring.apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
+    return wsim_list, smk_alpha, smk_thresh
+
+
+# </TESTDATA>
+#L--------
+
+
+#+--------
+# <ASSERTS>
+
+
+def test_sccw_cache():
+    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
+    smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
+    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+    qparams = qreq_.qparams
+    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    with_internals = True
+    invindex = smk_repr.index_data_annots(annots_df, daids, words, qparams, with_internals)
+    idx2_daid  = invindex.idx2_daid
+    wx2_drvecs = invindex.wx2_drvecs
+    wx2_idf    = invindex.wx2_idf
+    wx2_aids   = invindex.wx2_aids
+    wx2_dmaws   = invindex.wx2_dmaws
+    daids      = invindex.daids
+    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_dmaws, smk_alpha,
+                                               smk_thresh, use_cache=True)
+    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                               wx2_idf, wx2_dmaws, smk_alpha,
+                                               smk_thresh, use_cache=False)
+    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
+                                                wx2_idf, wx2_dmaws, smk_alpha,
+                                                smk_thresh, use_cache=True)
+    check_daid2_sccw(daid2_sccw1)
+    check_daid2_sccw(daid2_sccw2)
+    check_daid2_sccw(daid2_sccw3)
+    if not np.all(daid2_sccw2 == daid2_sccw3):
+        raise AssertionError('caching error in sccw')
+    if not np.all(daid2_sccw1 == daid2_sccw2):
+        raise AssertionError('cache outdated in sccw')
+
+
 def check_invindex_wx2(invindex):
     words = invindex.words
     #wx2_idf = invindex.wx2_idf
@@ -277,44 +415,6 @@ def check_invindex_wx2(invindex):
     wx2_aids   = invindex.wx2_aids  # needed for asmk
     wx2_fxs    = invindex.wx2_fxs   # needed for asmk
     check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
-
-
-def wx_len_stats(wx2_xxx):
-    """
-    Example:
-        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> from ibeis.model.hots.smk import smk_repr
-        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
-        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-        >>> qparams = qreq_.qparams
-        >>> invindex = smk_repr.index_data_annots(annots_df, daids, words)
-        >>> qaid = qaids[0]
-        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = smk_repr.new_qindex(annots_df, qaid, invindex, qparams)
-        >>> print(ut.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
-    """
-    import utool as ut
-    if wx2_xxx is None:
-        return 'None'
-    if isinstance(wx2_xxx, dict):
-        #len_list = [len(xxx) for xxx in ]
-        val_list = wx2_xxx.values()
-    else:
-        val_list = wx2_xxx
-    try:
-        len_list = [len(xxx) for xxx in val_list]
-        statdict = ut.get_stats(len_list)
-        return ut.dict_str(statdict, strvals=True, newlines=False)
-    except Exception as ex:
-        ut.printex(ex)
-        for count, xxx in wx2_xxx:
-            try:
-                len(xxx)
-            except Exception:
-                print('failed on count=%r' % (count,))
-                print('failed on xxx=%r' % (xxx,))
-                pass
-        raise
 
 
 def check_wx2(words=None, wx2_rvecs=None, wx2_aids=None, wx2_fxs=None):
@@ -482,38 +582,6 @@ def check_daid2_sccw(daid2_sccw, verbose=True):
         print(ut.get_stats_str(daid2_sccw_values, newlines=True))
 
 
-def test_sccw_cache():
-    ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
-    smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-    smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-    qparams = qreq_.qparams
-    words = smk_index.learn_visual_words(annots_df, taids, nWords)
-    with_internals = True
-    invindex = smk_repr.index_data_annots(annots_df, daids, words, qparams, with_internals)
-    idx2_daid  = invindex.idx2_daid
-    wx2_drvecs = invindex.wx2_drvecs
-    wx2_idf    = invindex.wx2_idf
-    wx2_aids   = invindex.wx2_aids
-    wx2_dmaws   = invindex.wx2_dmaws
-    daids      = invindex.daids
-    daid2_sccw1 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                               wx2_idf, wx2_dmaws, smk_alpha,
-                                               smk_thresh, use_cache=True)
-    daid2_sccw2 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                               wx2_idf, wx2_dmaws, smk_alpha,
-                                               smk_thresh, use_cache=False)
-    daid2_sccw3 = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids,
-                                                wx2_idf, wx2_dmaws, smk_alpha,
-                                                smk_thresh, use_cache=True)
-    check_daid2_sccw(daid2_sccw1)
-    check_daid2_sccw(daid2_sccw2)
-    check_daid2_sccw(daid2_sccw3)
-    if not np.all(daid2_sccw2 == daid2_sccw3):
-        raise AssertionError('caching error in sccw')
-    if not np.all(daid2_sccw1 == daid2_sccw2):
-        raise AssertionError('cache outdated in sccw')
-
-
 def check_dtype(annots_df):
     """
     Example:
@@ -558,491 +626,6 @@ def check_rvecs_list_eq(rvecs_list, rvecs_list2):
         except AssertionError:
             ut.print_keys([rvecs, rvecs2])
             raise
-
-
-def display_info(ibs, invindex, annots_df):
-    from vtool import clustering2 as clustertool
-    ################
-    from ibeis.dev import dbinfo
-    print(ibs.get_infostr())
-    dbinfo.get_dbinfo(ibs, verbose=True)
-    ################
-    print('Inverted Index Stats: vectors per word')
-    print(ut.get_stats_str(map(len, invindex.wx2_idxs.values())))
-    ################
-    #qfx2_vec     = annots_df['vecs'][1]
-    centroids    = invindex.words
-    num_pca_dims = 2  # 3
-    whiten       = False
-    kwd = dict(num_pca_dims=num_pca_dims,
-               whiten=whiten,)
-    #clustertool.rrr()
-    def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
-        return clustertool.plot_centroids(data, centroids, labels=labels,
-                                          fnum=fnum, prefix=prefix + '\n', **kwd)
-    makeplot_(1, 'centroid vecs', centroids)
-    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
-    #makeplot_(3, 'query vecs', qfx2_vec)
-    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
-    #makeplot_(5, 'query vecs', qfx2_vec)
-    #################
-
-
-def vector_normal_stats(vectors):
-    import numpy.linalg as npl
-    norm_list = npl.norm(vectors, axis=1)
-    #norm_list2 = np.sqrt((vectors ** 2).sum(axis=1))
-    #assert np.all(norm_list == norm_list2)
-    norm_stats = ut.get_stats(norm_list)
-    print('normal_stats:' + ut.dict_str(norm_stats, newlines=False))
-
-
-def vector_stats(vectors, name):
-    print('-- Vector Stats --')
-    print(' * vectors = %r' % name)
-    key_list = ut.codeblock(
-        '''
-        vectors.shape
-        vectors.dtype
-        vectors.max()
-        vectors.min()
-        '''
-    ).split('\n')
-    ut.print_keys(key_list)
-    vector_normal_stats(vectors)
-
-
-def sift_stats():
-    import ibeis
-    ibs = ibeis.opendb('PZ_Mothers')
-    aid_list = ibs.get_valid_aids()
-    stacked_sift = np.vstack(ibs.get_annot_desc(aid_list))
-    vector_stats(stacked_sift, 'sift')
-    # We see that SIFT vectors are actually normalized
-    # Between 0 and 512 and clamped to uint8
-    vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
-
-
-def OLDdump_word_patches(ibs, invindex):
-    """
-    messy function
-
-    Dev:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_MTEST', nWords=64000)
-        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
-        >>> compute_data_internals_(invindex, qreq_.qparams)
-    """
-    from vtool import patch as ptool
-    from vtool import image as gtool
-    import utool as ut
-    from os.path import join
-    from os.path import basename
-    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
-
-    flatdir = False
-    testmode = False
-    print('[smk_debug] Dumping word patches to figure directory')
-
-    vocabdir = join(ibs.get_fig_dir(), 'vocab_patches2' + ('_flat' if flatdir else ''))
-    ut.ensuredir(ibs.get_fig_dir())
-    ut.ensuredir(vocabdir)
-    if ut.get_argflag('--vf'):
-        ut.view_directory(vocabdir)
-
-    def dump_annot_word_patches(aid):
-        chip = ibs.get_annot_chips(aid)
-        chip_kpts = ibs.get_annot_kpts(aid)
-        nid = ibs.get_annot_nids(aid)
-        idx_list = np.where(invindex.idx2_daid == aid)[0]
-        fx_list = invindex.idx2_dfx[idx_list]
-        wxs_list = invindex.idx2_wxs[idx_list]
-        #maws_list = invindex.idx2_wxs[idxs]
-        patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
-        for fx, wxs, patch in zip(fx_list, wxs_list, patches):
-            assert len(wxs) == 1
-            for k, wx in enumerate(wxs):
-                word_dname = 'wx=%06d' % wx
-                patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
-                if flatdir:
-                    fpath = join(vocabdir, word_dname + '_' + patch_fname)
-                else:
-                    word_dpath = join(vocabdir, word_dname)
-                    ut.ensuredir(word_dpath)
-                    fpath = join(word_dpath, patch_fname)
-                if testmode:
-                    print(fpath)
-                else:
-                    gtool.imwrite(fpath, patch, fallback=True)
-
-    for aid in ut.progiter(invindex.daids):
-        dump_annot_word_patches(aid)
-
-    def nest_large_directory(dpath):
-        dpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
-        fpath_list = sorted(ut.ls(dpath))
-        max_files = 1000
-        fpath_chunks = list(ut.ichunks(fpath_list, max_files))
-        for count, src_list in enumerate(ut.progiter(fpath_chunks)):
-            print('')
-            chunk_dpath = join(dpath, 'chunk%d' % count)
-            dst_list = [join(chunk_dpath, basename(fpath)) for fpath in src_list]
-            ut.ensuredir(chunk_dpath)
-            ut.move_list(src_list, dst_list)
-
-    def select_subdirs(dpath):
-        dpath1 = '/media/raid/work/GZ_ALL/_ibsdb/figures/vocab_patches'
-        dpath_list = sorted(ut.glob(dpath1, '*', recursive=True, with_files=False))
-        dpath_list1 = list(filter(lambda x: x.find('wx=') > -1, dpath_list))
-
-        subfiles = [ut.ls(dpath_) for dpath_ in dpath_list1]
-        subfiles_len = list(map(len, subfiles))
-
-        dpath_list2 = ut.sortedby(dpath_list1, subfiles_len, reverse=True)
-
-        seldpath = join(dpath1, '..', 'selected_vocab_patches/')
-
-        for dpath2 in ut.progiter(dpath_list2[0:50]):
-            print('')
-            ut.copy(dpath2, join(seldpath, basename(dpath2)))
-
-        # stack for show
-        from plottool import draw_func2 as df2
-        #df2.rrr()
-        bigpatch_list = []
-        for dpath in ut.ls(seldpath):
-            try:
-                fpath_list = ut.ls(dpath)
-                patch_list = [gtool.imread(fpath) for fpath in fpath_list]
-                #img_list = patch_list
-                #bigpatch = df2.stack_image_recurse(patch_list)
-                #bigpatch = df2.stack_image_list(patch_list, vert=False)
-                bigpatch = df2.stack_square_images(patch_list)
-                bigpatch_list.append(bigpatch)
-                bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
-                gtool.imwrite(bigpatch_fpath, bigpatch)
-            except IndexError:
-                pass
-                #df2.imshow(bigpatch)
-                #df2.present()
-                pass
-
-
-def vizualize_vocabulary(ibs, invindex):
-    """
-    cleaned up version of dump_word_patches
-
-    Dev:
-        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        #>>> smk_debug.rrr()
-        #>>> tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
-        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
-        >>> compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
-    """
-    from vtool import patch as ptool
-    from vtool import image as gtool
-    import six
-    import scipy.stats.mstats as spms
-    from os.path import join
-    from os.path import basename
-    import scipy.spatial.distance as spdist
-    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
-
-    print('[smk_debug] Vizualizing vocabulary')
-
-    # DUMPING PART --- dumps patches to disk
-    figdir = ibs.get_fig_dir()
-    ut.ensuredir(figdir)
-    if ut.get_argflag('--vf'):
-        ut.view_directory(figdir)
-
-    ax2_idxs = [np.where(invindex.idx2_daid == aid)[0] for aid in ut.progiter(
-        invindex.daids, 'Building Forward Index: ', freq=100)]
-
-    def euclidean_dist(vecs1, vec2):
-        return np.sqrt(((vecs1.astype(np.float32) - vec2.astype(np.float32)) ** 2).sum(1))
-
-    def dict_where0(dict_):
-        keys = np.array(dict_.keys())
-        flags = np.array(list(map(len, dict_.values()))) == 0
-        indices = np.where(flags)[0]
-        return keys[indices]
-
-    def compute_word_statistics(invindex):
-        wx2_idxs  = invindex.wx2_idxs
-        idx2_dvec = invindex.idx2_dvec
-        words     = invindex.words
-        wx2_pdist = {}
-        wx2_wdist = {}
-        wx2_nMembers = {}
-        wx2_pdist_stats = {}
-        wx2_wdist_stats = {}
-        wordidx_iter = ut.progiter(six.iteritems(wx2_idxs), lbl='Word Dists: ', num=len(wx2_idxs), freq=200)
-
-        for _item in wordidx_iter:
-            wx, idxs = _item
-            dvecs = idx2_dvec.take(idxs, axis=0)
-            word = words[wx:wx + 1]
-            wx2_pdist[wx] = spdist.pdist(dvecs)  # pairwise dist between words
-            wx2_wdist[wx] = euclidean_dist(dvecs, word)  # dist to word center
-            wx2_nMembers[wx] = len(idxs)
-
-        for wx, pdist in ut.progiter(six.iteritems(wx2_pdist), lbl='Word pdist Stats: ', num=len(wx2_idxs), freq=2000):
-            wx2_pdist_stats[wx] = ut.get_stats(pdist)
-
-        for wx, wdist in ut.progiter(six.iteritems(wx2_wdist), lbl='Word wdist Stats: ', num=len(wx2_idxs), freq=2000):
-            wx2_wdist_stats[wx] = ut.get_stats(wdist)
-
-        ut.print_stats(wx2_nMembers.values(), 'word members')
-        return wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats
-        #word_pdist = spdist.pdist(invindex.words)
-
-    # Compute Word Statistics
-    (wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = compute_word_statistics(invindex)
-
-    wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
-    wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
-
-    def select_by_metric(wx2_metric, per_quantile=20):
-        # sample a few words around the quantile points
-        metric_list = np.array(list(wx2_metric.values()))
-        wx_list = np.array(list(wx2_nMembers.keys()))
-        metric_quantiles = spms.mquantiles(metric_list)
-        metric_quantiles = np.array(metric_quantiles.tolist() + [metric_list.max(), metric_list.min()])
-        wx_interest = []
-        for scalar in metric_quantiles:
-            dist = (metric_list - scalar) ** 2
-            wx_quantile = wx_list[dist.argsort()[0:per_quantile]]
-            wx_interest.extend(wx_quantile.tolist())
-        overlap = len(wx_interest) - len(set(wx_interest))
-        if overlap > 0:
-            print('warning: overlap=%r' % overlap)
-        return wx_interest
-
-    wx_sample1 = select_by_metric(wx2_nMembers)
-    wx_sample2 = select_by_metric(wx2_prad)
-    wx_sample3 = select_by_metric(wx2_wrad)
-
-    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
-    overlap123 = len(wx_sample) - len(set(wx_sample))
-    print('overlap123 = %r' % overlap123)
-    wx_sample  = set(wx_sample)
-    print('len(wx_sample) = %r' % len(wx_sample))
-
-    def make_scatterplots():
-        from plottool import draw_func2 as df2
-
-        def wx2_avepdist(wx):
-            return wx2_pdist_stats[wx]['mean'] if wx in wx2_pdist_stats and 'mean' in wx2_pdist_stats[wx] else -1
-        def wx2_avewdist(wx):
-            return wx2_wdist_stats[wx]['mean'] if wx in wx2_wdist_stats and 'mean' in wx2_wdist_stats[wx] else -1
-
-        wx2_idf = invindex.wx2_idf
-
-        # data
-        wx_list  =  list(wx2_idf.keys())
-        idf_list =  [wx2_idf[wx] for wx in wx_list]
-        nPoints_list =  [wx2_nMembers[wx] if wx in wx2_nMembers else -1 for wx in wx_list]
-        avepdist_list = [wx2_avepdist(wx) for wx in wx_list]
-        avewdist_list = [wx2_avewdist(wx) for wx in wx_list]
-
-        def draw_scatterplot(datax, datay, xlabel, ylabel, color, fnum=None):
-            datac = [color for _ in range(len(datax))]
-            assert len(datax) == len(datay), '%r %r' % (len(datax), len(datay))
-            df2.figure(fnum=fnum, doclf=True, docla=True)
-            df2.plt.scatter(datax, datay,  c=datac, s=20, marker='o', alpha=.9)
-            ax = df2.gca()
-            title = '%s vs %s.\nnWords=%r. db=%r' % (xlabel, ylabel, len(datax), ibs.get_dbname())
-            df2.set_xlabel(xlabel)
-            df2.set_ylabel(ylabel)
-            ax.set_ylim(min(datay) - 1, max(datay) + 1)
-            ax.set_xlim(min(datax) - 1, max(datax) + 1)
-            df2.dark_background()
-            df2.set_figtitle(title)
-            figpath = join(figdir, title)
-            df2.save_figure(fnum, figpath)
-
-        df2.reset()
-        draw_scatterplot(idf_list, avepdist_list, 'idf', 'mean(pdist)', df2.WHITE, fnum=1)
-        draw_scatterplot(idf_list, avewdist_list, 'idf', 'mean(wdist)', df2.PINK, fnum=3)
-        draw_scatterplot(nPoints_list, avepdist_list, 'nPointsInWord', 'mean(pdist)', df2.GREEN, fnum=2)
-        draw_scatterplot(avepdist_list, avewdist_list, 'mean(pdist)', 'mean(wdist)', df2.YELLOW, fnum=4)
-        draw_scatterplot(nPoints_list, avewdist_list, 'nPointsInWord', 'mean(wdist)', df2.ORANGE, fnum=5)
-        draw_scatterplot(idf_list, nPoints_list, 'idf', 'nPointsInWord', df2.LIGHT_BLUE, fnum=6)
-        #df2.present()
-    make_scatterplots()
-
-    def make_wordfigures():
-        """
-        Builds mosaics of patches assigned to words in sample
-        ouptuts them to disk
-        """
-
-        def get_word_dname(wx):
-            stats_ = wx2_wdist_stats[wx]
-            wname_clean = 'wx=%06d' % wx
-            stats1 = 'max={max},min={min},mean={mean},'.format(**stats_)
-            stats2 = 'std={std},nMaxMin=({nMax},{nMin}),shape={shape}'.format(**stats_)
-            fname_fmt = wname_clean + '_{stats1}{stats2}'
-            fmt_dict = dict(stats1=stats1, stats2=stats2)
-            word_dname = ut.long_fname_format(fname_fmt, fmt_dict, ['stats2', 'stats1'], max_len=250, hashlen=4)
-            return word_dname
-
-        vocabdir = join(figdir, 'vocab_patches2')
-        ut.ensuredir(vocabdir)
-        wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
-
-        for dpath in ut.progiter(list(wx2_dpath.values()),
-                                    lbl='Ensuring word_dpath: ', freq=200):
-            ut.ensuredir(dpath)
-
-        #
-        # DUMP PATCHES IN WX_SAMPLE
-
-        # Write each patch from each annotation to disk
-        patchdump_iter = ut.progiter(zip(invindex.daids, ax2_idxs), freq=1,
-                                        lbl='Dumping Selected Patches: ', num=len(invindex.daids))
-        for aid, idxs in patchdump_iter:
-            wxs_list  = invindex.idx2_wxs[idxs]
-            if len(set(ut.flatten(wxs_list)).intersection(set(wx_sample))) == 0:
-                # skip this annotation
-                continue
-            fx_list   = invindex.idx2_dfx[idxs]
-            chip      = ibs.get_annot_chips(aid)
-            chip_kpts = ibs.get_annot_kpts(aid)
-            nid       = ibs.get_annot_nids(aid)
-            #maws_list = invindex.idx2_wxs[idxs]
-            patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
-            for fx, wxs, patch in zip(fx_list, wxs_list, patches):
-                assert len(wxs) == 1, 'did you multiassign the database? If so implement it here too'
-                for k, wx in enumerate(wxs):
-                    if wx not in wx_sample:
-                        continue
-                    patch_fname = 'patch_nid=%04d_aid=%04d_fx=%04d_k=%d' % (nid, aid, fx, k)
-                    fpath = join(wx2_dpath[wx], patch_fname)
-                    #gtool.imwrite(fpath, patch, fallback=True)
-                    gtool.imwrite_fallback(fpath, patch)
-
-        # COLLECTING PART --- collects patches in word folders
-        #vocabdir
-
-        seldpath = vocabdir + '_selected'
-        ut.ensurepath(seldpath)
-        # stack for show
-        from plottool import draw_func2 as df2
-        import parse
-        for wx, dpath in ut.progiter(six.iteritems(wx2_dpath), lbl='Dumping Word Images:', num=len(wx2_dpath), freq=1, backspace=False):
-            #df2.rrr()
-            fpath_list = ut.ls(dpath)
-            fname_list = [basename(fpath_) for fpath_ in fpath_list]
-            patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
-            # color each patch by nid
-            nid_list = [int(parse.parse('{}_nid={nid}_{}', fname)['nid']) for fname in fname_list]
-            nid_set = set(nid_list)
-            nid_list = np.array(nid_list)
-            if len(nid_list) == len(nid_set):
-                # no duplicate names
-                newpatch_list = patch_list
-            else:
-                # duplicate names. do coloring
-                sortx = nid_list.argsort()
-                patch_list = np.array(patch_list, dtype=object)[sortx]
-                fname_list = np.array(fname_list, dtype=object)[sortx]
-                nid_list = nid_list[sortx]
-                colors = (255 * np.array(df2.distinct_colors(len(nid_set)))).astype(np.int32)
-                color_dict = dict(zip(nid_set, colors))
-                wpad, hpad = 3, 3
-                newshape_list = [tuple((np.array(patch.shape) + (wpad * 2, hpad * 2, 0)).tolist()) for patch in patch_list]
-                color_list = [color_dict[nid_] for nid_ in nid_list]
-                newpatch_list = [np.zeros(shape) + color[None, None] for shape, color in zip(newshape_list, color_list)]
-                for patch, newpatch in zip(patch_list, newpatch_list):
-                    newpatch[wpad:-wpad, hpad:-hpad, :] = patch
-                #img_list = patch_list
-                #bigpatch = df2.stack_image_recurse(patch_list)
-            #bigpatch = df2.stack_image_list(patch_list, vert=False)
-            bigpatch = df2.stack_square_images(newpatch_list)
-            bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
-
-            #
-            def dictstr(dict_):
-                str_ = ut.dict_str(dict_, newlines=False)
-                str_ = str_.replace('\'', '').replace(': ', '=').strip('{},')
-                return str_
-
-            figtitle = '\n'.join([
-                'wx=%r' % wx,
-                'stat(pdist): %s' % dictstr(wx2_pdist_stats[wx]),
-                'stat(wdist): %s' % dictstr(wx2_wdist_stats[wx]),
-            ])
-            wx2_nMembers[wx]
-
-            df2.figure(fnum=1, doclf=True, docla=True)
-            fig, ax = df2.imshow(bigpatch, figtitle=figtitle)
-            #fig.show()
-            df2.set_figtitle(figtitle)
-            df2.adjust_subplots(top=.878, bottom=0)
-            df2.save_figure(1, bigpatch_fpath)
-            #gtool.imwrite(bigpatch_fpath, bigpatch)
-    make_wordfigures()
-    if True:
-        import sys
-        sys.exit(1)
-
-
-def get_cached_vocabs():
-    from os.path import join
-    import parse
-    # Parse some of the training data from fname
-    parse_str = '{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}'
-    smkdir = ut.get_app_resource_dir('smk')
-    fname_list = ut.glob(smkdir, 'akmeans*')
-    fpath_list = [join(smkdir, fname) for fname in fname_list]
-    result_list = [parse.parse(parse_str, fpath) for fpath in fpath_list]
-    nCent_list = [int(res['num_cent']) for res in result_list]
-    nDpts_list = [int(res['num_dpts']) for res in result_list]
-    key_list = zip(nCent_list, nDpts_list)
-    fpath_sorted = ut.sortedby(fpath_list, key_list, reverse=True)
-    return fpath_sorted
-
-
-def view_vocabs():
-    """
-    looks in vocab cachedir and prints info / vizualizes the vocabs
-    """
-    from vtool import clustering2 as clustertool
-    import numpy as np
-
-    fpath_sorted = get_cached_vocabs()
-
-    num_pca_dims = 2  # 3
-    whiten       = False
-    kwd = dict(num_pca_dims=num_pca_dims,
-               whiten=whiten,)
-
-    def view_vocab(fpath):
-        # QUANTIZED AND FLOATING POINT STATS
-        centroids = ut.load_cPkl(fpath)
-        print('viewing vocat fpath=%r' % (fpath,))
-        vector_stats(centroids, 'centroids')
-        #centroids_float = centroids.astype(np.float64) / 255.0
-        centroids_float = centroids.astype(np.float64) / 512.0
-        vector_stats(centroids_float, 'centroids_float')
-
-        fig = clustertool.plot_centroids(centroids, centroids, labels='centroids',
-                                         fnum=1, prefix='centroid vecs\n', **kwd)
-        fig.show()
-
-    for count, fpath in enumerate(fpath_sorted):
-        if count > 0:
-            break
-        view_vocab(fpath)
 
 
 def check_qaid2_chipmatch(qaid2_chipmatch, qaids, verbose=True):
@@ -1098,59 +681,150 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
             raise
     print('[smk_debug] checked %d featmatches in %d chipmatches' % (featmatches, len(daid2_chipmatch)))
 
+# <ASSERTS>
+#L--------
 
-def dictinfo(dict_):
-    if not isinstance(dict_, dict):
-        return 'expected dict got %r' % type(dict_)
 
-    keys = list(dict_.keys())
-    vals = list(dict_.values())
-    num_keys  = len(keys)
-    key_types = list(set(map(type, keys)))
-    val_types = list(set(map(type, vals)))
+#+--------
+# <INFO>
 
-    fmtstr_ = '\n' + ut.unindent('''
-    * num_keys  = {num_keys}
-    * key_types = {key_types}
-    * val_types = {val_types}
-    '''.strip('\n'))
+def dbstr_qindex(qindex_=None):
+    qindex = ut.get_localvar_from_stack('qindex')
+    common_wxs = ut.get_localvar_from_stack('common_wxs')
+    wx2_qaids = ut.get_localvar_from_stack('wx2_qaids')
+    qindex.query_sccw
+    qmaws_list  = [qindex.wx2_maws[wx] for wx in common_wxs]
+    qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
+    qfxs_list   = [qindex.wx2_qfxs[wx] for wx in common_wxs]
+    qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
+    qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
+    print('-- max --')
+    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, max))
+    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, max))
+    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, max))
+    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, max))
+    print('-- min --')
+    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, min))
+    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, min))
+    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, min))
+    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, min))
+    print('-- sig --')
+    print('list_depth(qaids_list) = %r' % ut.depth_profile(qaids_list))
+    print('list_depth(qmaws_list) = %r' % ut.depth_profile(qmaws_list))
+    print('list_depth(qfxs_list) = %r' % ut.depth_profile(qfxs_list))
+    print('list_depth(qrvecs_list) = %r' % ut.depth_profile(ut.depth_profile(qrvecs_list)))
+    print(qfxs_list[0:3])
+    print(qaids_list[0:3])
+    print(qmaws_list[0:3])
 
-    if len(val_types) == 1:
-        if val_types[0] == np.ndarray:
-            # each key holds an ndarray
-            val_shape_stats = ut.get_stats(set(map(np.shape, vals)), axis=0)
-            val_shape_stats_str = ut.dict_str(val_shape_stats, strvals=True, newlines=False)
-            val_dtypes = list(set([val.dtype for val in vals]))
-            fmtstr_ += ut.unindent('''
-            * val_shape_stats = {val_shape_stats_str}
-            * val_dtypes = {val_dtypes}
-            '''.strip('\n'))
-        elif val_types[0] == list:
-            # each key holds a list
-            val_len_stats =  ut.get_stats(set(map(len, vals)))
-            val_len_stats_str = ut.dict_str(val_len_stats, strvals=True, newlines=False)
-            depth = ut.list_depth(vals)
-            deep_val_types = list(set(ut.list_deep_types(vals)))
-            fmtstr_ += ut.unindent('''
-            * list_depth = {depth}
-            * val_len_stats = {val_len_stats_str}
-            * deep_types = {deep_val_types}
-            '''.strip('\n'))
-            if len(deep_val_types) == 1:
-                if deep_val_types[0] == np.ndarray:
-                    deep_val_dtypes = list(set([val.dtype for val in vals]))
-                    fmtstr_ += ut.unindent('''
-                    * deep_val_dtypes = {deep_val_dtypes}
-                    ''').strip('\n')
-        elif val_types[0] in [np.uint8, np.int8, np.int32, np.int64, np.float16, np.float32, np.float64]:
-            # each key holds a scalar
-            val_stats = ut.get_stats(vals)
-            fmtstr_ += ut.unindent('''
-            * val_stats = {val_stats}
-            ''').strip('\n')
 
-    fmtstr = fmtstr_.format(**locals())
-    return ut.indent(fmtstr)
+def wx_len_stats(wx2_xxx):
+    """
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> from ibeis.model.hots.smk import smk_repr
+        >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> qparams = qreq_.qparams
+        >>> invindex = smk_repr.index_data_annots(annots_df, daids, words)
+        >>> qaid = qaids[0]
+        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = smk_repr.new_qindex(annots_df, qaid, invindex, qparams)
+        >>> print(ut.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+    """
+    import utool as ut
+    if wx2_xxx is None:
+        return 'None'
+    if isinstance(wx2_xxx, dict):
+        #len_list = [len(xxx) for xxx in ]
+        val_list = wx2_xxx.values()
+    else:
+        val_list = wx2_xxx
+    try:
+        len_list = [len(xxx) for xxx in val_list]
+        statdict = ut.get_stats(len_list)
+        return ut.dict_str(statdict, strvals=True, newlines=False)
+    except Exception as ex:
+        ut.printex(ex)
+        for count, xxx in wx2_xxx:
+            try:
+                len(xxx)
+            except Exception:
+                print('failed on count=%r' % (count,))
+                print('failed on xxx=%r' % (xxx,))
+                pass
+        raise
+
+
+def display_info(ibs, invindex, annots_df):
+    from vtool import clustering2 as clustertool
+    ################
+    from ibeis.dev import dbinfo
+    print(ibs.get_infostr())
+    dbinfo.get_dbinfo(ibs, verbose=True)
+    ################
+    print('Inverted Index Stats: vectors per word')
+    print(ut.get_stats_str(map(len, invindex.wx2_idxs.values())))
+    ################
+    #qfx2_vec     = annots_df['vecs'][1]
+    centroids    = invindex.words
+    num_pca_dims = 2  # 3
+    whiten       = False
+    kwd = dict(num_pca_dims=num_pca_dims,
+               whiten=whiten,)
+    #clustertool.rrr()
+    def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
+        return clustertool.plot_centroids(data, centroids, labels=labels,
+                                          fnum=fnum, prefix=prefix + '\n', **kwd)
+    makeplot_(1, 'centroid vecs', centroids)
+    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(3, 'query vecs', qfx2_vec)
+    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(5, 'query vecs', qfx2_vec)
+    #################
+
+
+def vector_normal_stats(vectors):
+    import numpy.linalg as npl
+    norm_list = npl.norm(vectors, axis=1)
+    #norm_list2 = np.sqrt((vectors ** 2).sum(axis=1))
+    #assert np.all(norm_list == norm_list2)
+    norm_stats = ut.get_stats(norm_list)
+    print('normal_stats:' + ut.dict_str(norm_stats, newlines=False))
+
+
+def vector_stats(vectors, name, verbose=True):
+    line_list = []
+    line_list.append('+--- Vector Stats --')
+    line_list.append(' * vectors = %r' % name)
+    key_list = ut.codeblock(
+        '''
+        vectors.shape
+        vectors.dtype
+        vectors.max()
+        vectors.min()
+        '''
+    ).split('\n')
+    strlist_ = ut.parse_locals_keylist(locals(), key_list)
+    line_list.extend(strlist_)
+    line_list.append(vectors)
+    line_list.append('L--- Vector Stats --')
+
+    statstr = '\n'.join(line_list)
+    if verbose:
+        print(statstr)
+    return statstr
+
+
+def sift_stats():
+    import ibeis
+    ibs = ibeis.opendb('PZ_Mothers')
+    aid_list = ibs.get_valid_aids()
+    stacked_sift = np.vstack(ibs.get_annot_desc(aid_list))
+    vector_stats(stacked_sift, 'sift')
+    # We see that SIFT vectors are actually normalized
+    # Between 0 and 512 and clamped to uint8
+    vector_stats(stacked_sift.astype(np.float32) / 512.0, 'sift')
 
 
 def invindex_dbgstr(invindex):
@@ -1216,6 +890,69 @@ def invindex_dbgstr(invindex):
     print(dbgstr)
     print('L--- END INVINDEX DBGSTR ---')
 
+# </INFO>
+#L--------
+
+
+#+--------
+# <UTIL>
+
+def dictinfo(dict_):
+    if not isinstance(dict_, dict):
+        return 'expected dict got %r' % type(dict_)
+
+    keys = list(dict_.keys())
+    vals = list(dict_.values())
+    num_keys  = len(keys)
+    key_types = list(set(map(type, keys)))
+    val_types = list(set(map(type, vals)))
+
+    fmtstr_ = '\n' + ut.unindent('''
+    * num_keys  = {num_keys}
+    * key_types = {key_types}
+    * val_types = {val_types}
+    '''.strip('\n'))
+
+    if len(val_types) == 1:
+        if val_types[0] == np.ndarray:
+            # each key holds an ndarray
+            val_shape_stats = ut.get_stats(set(map(np.shape, vals)), axis=0)
+            val_shape_stats_str = ut.dict_str(val_shape_stats, strvals=True, newlines=False)
+            val_dtypes = list(set([val.dtype for val in vals]))
+            fmtstr_ += ut.unindent('''
+            * val_shape_stats = {val_shape_stats_str}
+            * val_dtypes = {val_dtypes}
+            '''.strip('\n'))
+        elif val_types[0] == list:
+            # each key holds a list
+            val_len_stats =  ut.get_stats(set(map(len, vals)))
+            val_len_stats_str = ut.dict_str(val_len_stats, strvals=True, newlines=False)
+            depth = ut.list_depth(vals)
+            deep_val_types = list(set(ut.list_deep_types(vals)))
+            fmtstr_ += ut.unindent('''
+            * list_depth = {depth}
+            * val_len_stats = {val_len_stats_str}
+            * deep_types = {deep_val_types}
+            '''.strip('\n'))
+            if len(deep_val_types) == 1:
+                if deep_val_types[0] == np.ndarray:
+                    deep_val_dtypes = list(set([val.dtype for val in vals]))
+                    fmtstr_ += ut.unindent('''
+                    * deep_val_dtypes = {deep_val_dtypes}
+                    ''').strip('\n')
+        elif val_types[0] in [np.uint8, np.int8, np.int32, np.int64, np.float16, np.float32, np.float64]:
+            # each key holds a scalar
+            val_stats = ut.get_stats(vals)
+            fmtstr_ += ut.unindent('''
+            * val_stats = {val_stats}
+            ''').strip('\n')
+
+    fmtstr = fmtstr_.format(**locals())
+    return ut.indent(fmtstr)
+
+# </UTIL>
+#L--------
+
 
 def query_smk_test(annots_df, invindex, qreq_):
     """
@@ -1240,9 +977,7 @@ def query_smk_test(annots_df, invindex, qreq_):
     smk_alpha     = qreq_.qparams.smk_alpha
     smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
-    mark, end_ = ut.log_progress(lbl, len(qaids), flushfreq=1,
-                                    writefreq=1, with_totaltime=True,
-                                    backspace=False)
+    mark, end_ = ut.log_progress(lbl, len(qaids), freq=1, with_time=True, backspace=False)
     withinfo = True
     for count, qaid in enumerate(qaids):
         mark(count)
@@ -1259,36 +994,6 @@ def query_smk_test(annots_df, invindex, qreq_):
         ut.qflag()
         raise
     return qaid2_qres_
-
-
-def dbstr_qindex(qindex_=None):
-    qindex = ut.get_localvar_from_stack('qindex')
-    common_wxs = ut.get_localvar_from_stack('common_wxs')
-    wx2_qaids = ut.get_localvar_from_stack('wx2_qaids')
-    qindex.query_sccw
-    qmaws_list  = [qindex.wx2_maws[wx] for wx in common_wxs]
-    qaids_list  = [qindex.wx2_qaids[wx] for wx in common_wxs]
-    qfxs_list   = [qindex.wx2_qfxs[wx] for wx in common_wxs]
-    qrvecs_list = [qindex.wx2_qrvecs[wx] for wx in common_wxs]
-    qaids_list  = [wx2_qaids[wx] for wx in common_wxs]
-    print('-- max --')
-    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, max))
-    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, max))
-    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, max))
-    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, max))
-    print('-- min --')
-    print('list_depth(qaids_list) = %d' % ut.list_depth(qaids_list, min))
-    print('list_depth(qmaws_list) = %d' % ut.list_depth(qmaws_list, min))
-    print('list_depth(qfxs_list) = %d' % ut.list_depth(qfxs_list, min))
-    print('list_depth(qrvecs_list) = %d' % ut.list_depth(qrvecs_list, min))
-    print('-- sig --')
-    print('list_depth(qaids_list) = %r' % ut.depth_profile(qaids_list))
-    print('list_depth(qmaws_list) = %r' % ut.depth_profile(qmaws_list))
-    print('list_depth(qfxs_list) = %r' % ut.depth_profile(qfxs_list))
-    print('list_depth(qrvecs_list) = %r' % ut.depth_profile(ut.depth_profile(qrvecs_list)))
-    print(qfxs_list[0:3])
-    print(qaids_list[0:3])
-    print(qmaws_list[0:3])
 
 
 def main():
@@ -1377,109 +1082,14 @@ def main():
     return locals()
 
 
-def get_test_float_norm_rvecs(num=1000, dim=None):
-    import numpy.linalg as npl
-    from ibeis.model.hots import hstypes
-    if dim is None:
-        dim = hstypes.VEC_DIM
-    rvecs_float = np.random.normal(size=(num, dim))
-    rvecs_norm_float = rvecs_float / npl.norm(rvecs_float, axis=1)[:, None]
-    return rvecs_norm_float
-
-
-def get_test_rvecs(num=1000, dim=None, nanrows=None):
-    from ibeis.model.hots import hstypes
-    max_ = hstypes.RVEC_MAX
-    min_ = hstypes.RVEC_MIN
-    dtype = hstypes.RVEC_TYPE
-    if dim is None:
-        dim = hstypes.VEC_DIM
-    dtype_range = max_ - min_
-    rvecs_float = np.random.normal(size=(num, dim))
-    rvecs = ((dtype_range * rvecs_float) - hstypes.RVEC_MIN).astype(dtype)
-    if nanrows is not None:
-        rvecs[nanrows] = np.nan
-
-    """
-    dtype = np.int8
-    max_ = 128
-    min_ = -128
-    nanrows = 1
-
-    import numpy.ma as ma
-    if dtype not in [np.float16, np.float32, np.float64]:
-        rvecs.view(ma.MaskedArray)
-
-
-    np.ma.array([1,2,3,4,5], dtype=int)
-
-    """
-    return rvecs
-
-
-def get_test_maws(rvecs):
-    from ibeis.model.hots import hstypes
-    return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
-
-
-def testdata_match_kernel_L0():
-    from ibeis.model.hots.smk import smk_debug
-    from ibeis.model.hots import hstypes
-    np.random.seed(0)
-    smk_alpha = 3.0
-    smk_thresh = 0.0
-    num_qrvecs_per_word = [0, 1, 3, 4, 5]
-    num_drvecs_per_word = [0, 1, 2, 4, 6]
-    qrvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_qrvecs_per_word]
-    drvecs_list = [smk_debug.get_test_rvecs(n, dim=2) for n in num_drvecs_per_word]
-    daids_list  = [list(range(len(rvecs))) for rvecs in drvecs_list]
-    qaids_list  = [[42] * len(rvecs) for rvecs in qrvecs_list]
-    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
-    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in drvecs_list]
-    idf_list = [1.0 for _ in qrvecs_list]
-    daid2_sccw  = {daid: 1.0 for daid in range(10)}
-    query_sccw = smk_scoring.sccw_summation(qrvecs_list, idf_list, qmaws_list, smk_alpha, smk_thresh)
-    qaid2_sccw  = {42: query_sccw}
-    core1 = smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw
-    core2 = qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list
-    extra = qaid2_sccw, qaids_list
-    return core1, core2, extra
-
-
-def testdata_similarity_function():
-    from ibeis.model.hots.smk import smk_debug
-    qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
-    drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]
-    return qrvecs_list, drvecs_list
-
-
-def testdata_apply_weights():
-    from ibeis.model.hots.smk import smk_debug
-    from ibeis.model.hots import hstypes
-    qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()
-    simmat_list = smk_scoring.similarity_function(qrvecs_list, drvecs_list)
-    qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]
-    dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]
-    idf_list = [1 for _ in qrvecs_list]
-    return simmat_list, qmaws_list, dmaws_list, idf_list
-
-
-def testdata_selectivity_function():
-    from ibeis.model.hots.smk import smk_debug
-    smk_alpha = 3
-    smk_thresh = 0
-    simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()
-    wsim_list = smk_scoring.apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)
-    return wsim_list, smk_alpha, smk_thresh
-
-
 if __name__ == '__main__':
     print('\n\n\n\n\n\n')
+    from ibeis.model.hots.smk import smk_plots
     import multiprocessing
     from plottool import draw_func2 as df2
     mode = ut.get_argval('--mode', int, default=0)
     if mode == 0 or ut.get_argflag('--view-vocabs'):
-        view_vocabs()
+        smk_plots.view_vocabs()
     else:
         np.set_printoptions(precision=2)
         multiprocessing.freeze_support()  # for win32

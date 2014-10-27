@@ -64,8 +64,8 @@ def get_chips(ibs, aid_list, in_image=False, **kwargs):
 
 @getter_vector_output
 def get_kpts(ibs, aid_list, in_image=False, **kwargs):
-    #if 'kpts' in kwargs:
-        #return kwargs['kpts']
+    if 'kpts' in kwargs:
+        return kwargs['kpts']
     kpts_subset = kwargs.get('kpts_subset', None)
     ensure = kwargs.get('ensure', True)
     if in_image:
