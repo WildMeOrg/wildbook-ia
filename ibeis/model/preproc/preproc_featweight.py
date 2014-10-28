@@ -27,6 +27,7 @@ def gen_featweight_worker(tup):
         tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
 
     Example:
+        >>> # DOCTEST ENABLE
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -34,12 +35,14 @@ def gen_featweight_worker(tup):
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_fpath = 'something'
-        >>> kpts = kpts_list[0]
-        >>> aids = aid_list[0]
-        >>> chip = chip_list[0]
-        >>> probchip = chip
-        >>> #probchip = gtool.imread(probchip_fpath)
+        >>> probchip_list = [gtool.imread(fpath, grayscale=False) for fpath in probchip_fpath_list]
+        >>> kpts     = kpts_list[0]
+        >>> aids     = aid_list[0]
+        >>> probchip = probchip_list[0]
+        >>> tup = (aid, kpts, probchip)
+        >>> (aid, weights) = gen_featweight_worker(tup)
+        >>> print(weights.sum())
+        275.025
 
     """
     (aid, kpts, probchip) = tup

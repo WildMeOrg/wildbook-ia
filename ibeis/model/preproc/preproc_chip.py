@@ -376,7 +376,7 @@ def compute_and_write_probchip(ibs, aid_list):
     """ Computes probability chips using pyrf
 
     Example:
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -388,6 +388,12 @@ def compute_and_write_probchip(ibs, aid_list):
     cachedir = get_probchip_cachedir(ibs)
     utool.ensuredir(cachedir)
     probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
+    dirty_aids = list(utool.ifilterfalse_items(aid_list, map(exists, probchip_fpath_list)))
+    compute_and_write_chips(ibs, dirty_aids)
+
+    #ibs.delete_annot_chips(aid_list)
+    #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
+
     # Get img configuration information
     # Get img source information (image, annotation_bbox, theta)
     cfpath_list  = ibs.get_annot_cpaths(aid_list)
