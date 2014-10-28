@@ -203,8 +203,8 @@ def plot(*args, **kwargs):
     return plot
 
 
-def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y', *args,
-          **kwargs):
+def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
+          unitbox=False, flipx=False, flipy=False, title=None, *args, **kwargs):
     do_plot = True
     ax = gca()
     if len(x_data) != len(y_data):
@@ -220,15 +220,31 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y', *
     if do_plot:
         ax.plot(x_data, y_data, marker, *args, **kwargs)
 
-    min_ = min(x_data.min(), y_data.min())
-    max_ = max(x_data.max(), y_data.max())
-    # Equal aspect ratio
-    ax.set_xlim(min_, max_)
-    ax.set_ylim(min_, max_)
-    ax.set_aspect('equal')
+        min_ = min(x_data.min(), y_data.min())
+        max_ = max(x_data.max(), y_data.max())
+        # Equal aspect ratio
+        if unitbox is True:
+            # Just plot a little bit outside  the box
+            ax.set_xlim(-.01, 1.01)
+            ax.set_ylim(-.01, 1.01)
+            ax.grid(True)
+        else:
+            ax.set_xlim(min_, max_)
+            ax.set_ylim(min_, max_)
+        ax.set_aspect('equal')
+        if flipx:
+            ax.invert_xaxis()
+        if flipy:
+            ax.invert_yaxis()
+    else:
+        # No data, draw big red x
+        draw_boxedX()
+
     ax.set_xlabel(x_label, fontproperties=FONTS.xlabel)
     ax.set_ylabel(y_label, fontproperties=FONTS.xlabel)
-    set_title(title_pref + ' ' + x_label + ' vs ' + y_label, ax=None)
+    if title is None:
+        title = x_label + ' vs ' + y_label
+    set_title(title_pref + ' ' + title, ax=None)
 
 
 def adjust_subplots_xlabels():
@@ -739,6 +755,58 @@ def ensure_divider(ax):
     return ax._df2_divider
 
 
+def testcolorbar():
+    """
+
+    References:
+        http://stackoverflow.com/questions/18704353/correcting-matplotlib-colorbar-ticks
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib.cm as cm
+    import matplotlib.colors as mcolors
+
+    def colorbar_index(ncolors, cmap):
+        cmap = cmap_discretize(cmap, ncolors)
+        mappable = cm.ScalarMappable(cmap=cmap)
+        mappable.set_array([])
+        mappable.set_clim(-0.5, ncolors+0.5)
+        colorbar = plt.colorbar(mappable)
+        colorbar.set_ticks(np.linspace(0, ncolors, ncolors))
+        colorbar.set_ticklabels(range(ncolors))
+
+    def cmap_discretize(cmap, N):
+        """Return a discrete colormap from the continuous colormap cmap.
+
+            cmap: colormap instance, eg. cm.jet.
+            N: number of colors.
+
+        Example
+            x = resize(arange(100), (5,100))
+            djet = cmap_discretize(cm.jet, 5)
+            imshow(x, cmap=djet)
+        """
+
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+        colors_i = np.concatenate((np.linspace(0, 1., N), (0.,0.,0.,0.)))
+        colors_rgba = cmap(colors_i)
+        indices = np.linspace(0, 1., N+1)
+        cdict = {}
+        for ki,key in enumerate(('red','green','blue')):
+            cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki])
+                           for i in xrange(N+1) ]
+        # Return colormap object.
+        return mcolors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
+
+    fig, ax = plt.subplots()
+    A = np.random.random((10,10))*10
+    cmap = plt.get_cmap('YlGnBu')
+    ax.imshow(A, interpolation='nearest', cmap=cmap)
+    colorbar_index(ncolors=11, cmap=cmap)
+    plt.show()
+
+
 def colorbar(scalars, colors):
     """ adds a color bar next to the axes
     Args:
@@ -776,12 +844,15 @@ def colorbar(scalars, colors):
     cb = plt.colorbar(sm, cax=cax)
 
     ## Add the colorbar to the correct label
-    axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
+    #axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
     #position = 'bottom' if orientation == 'horizontal' else 'right'
     #axis.set_ticks_position(position)
 
     # This line alone removes data
     # axis.set_ticks([0, .5, 1])
+
+    # FIXME: Figure out how to make a maximum number of ticks
+    # and to enforce them to be inside the data bounds
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
     plt.sca(ax)
     return cb
