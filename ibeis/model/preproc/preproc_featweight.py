@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip, range, map  # NOQA
 # UTool
-from os.path import join, basename, splitext
 import utool
 import utool as ut
 import vtool.patch as ptool
@@ -31,13 +30,13 @@ def gen_featweight_worker(tup):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aids_list = ibs.get_valid_aids()[0:1]
-        >>> chip_list = ibs.get_annot_chips(aids_list)
-        >>> kpts_list = ibs.get_annot_kpts(aids_list)
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> chip_list = ibs.get_annot_chips(aid_list)
+        >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
         >>> probchip_fpath = 'something'
         >>> kpts = kpts_list[0]
-        >>> aids = aids_list[0]
+        >>> aids = aid_list[0]
         >>> chip = chip_list[0]
         >>> probchip = chip
         >>> #probchip = gtool.imread(probchip_fpath)

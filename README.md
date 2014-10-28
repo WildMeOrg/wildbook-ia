@@ -532,5 +532,9 @@ python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --index 0 --noca
 
 python dev.py -t smk_64k --allgt --db PZ_Master0
 python dev.py -t smk_128k --allgt --db PZ_Master0
+ 
+TODO: make these tests work
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))" --quiet
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
 
 ```
