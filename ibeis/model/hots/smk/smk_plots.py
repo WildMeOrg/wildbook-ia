@@ -423,6 +423,8 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', figtitle='', colorty
             colors = df2.scores_to_color(metric, cmap_=cmap_, reverse_cmap=reverse_cmap)
         elif colortype == 'label':
             colors = df2.label_to_colors(metric)
+        elif colortype == 'custom':
+            colors = df2.scores_to_color(metric, cmap_=cmap_, reverse_cmap=reverse_cmap, custom=True)
         else:
             raise ValueError('no known colortype = %r' % (colortype,))
     else:
@@ -434,7 +436,7 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', figtitle='', colorty
                        **kwargs)
     df2.set_figtitle(figtitle)
     if metric is not None:
-        cb = df2.colorbar(metric, colors)
+        cb = df2.colorbar(metric, colors, custom=(colortype == 'custom'))
         cb.set_label(lbl)
 
 
@@ -589,7 +591,7 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
             qfx2_closest_k_lt0  = qfx2_closest_k[qfx2_closest_k < 0]
             print('stats(qfx2_closest_k_qeq0) = ' + ut.get_stats_str(qfx2_closest_k_qeq0))
             print('stats(qfx2_closest_k_lt0)  = ' + ut.get_stats_str(qfx2_closest_k_lt0))
-            fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='score')
+            fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='custom')
 
     # Feature Weight Plots
     if show_featweights:
@@ -686,8 +688,8 @@ def main_options():
         show_aveprecision=False,
         show_featweights=False,
         metric_keys=metric_keys,
-        K_list=[2, 4, 10, 20],
-        #K_list=[4, 10],
+        #K_list=[2, 4, 10, 20],
+        K_list=[4, 10],
     )
     return kwargs
 
