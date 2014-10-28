@@ -478,7 +478,8 @@ def run_devcmds(ibs, qaid_list):
         if intest(test_cfg_name):
             test_cfg_name_list = [test_cfg_name]
             fnum = df2.next_fnum()
-            experiment_harness.test_configurations(ibs, qaid_list, test_cfg_name_list, fnum)
+            # Should we specify fnum here?
+            experiment_harness.test_configurations(ibs, qaid_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 

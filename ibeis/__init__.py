@@ -5,6 +5,18 @@ IBEIS: main package init
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+import sys
+
+#if '--loadall' in sys.argv:
+#    from ibeis import ibsfuncs
+#    from ibeis import constants
+#    from ibeis import main_module
+#    from ibeis import params
+#    from ibeis import control
+#    from ibeis import dev
+#    from ibeis import io
+#    from ibeis import model
+
 try:
     from . import constants
     from . import main_module
@@ -14,6 +26,7 @@ try:
     from . import io
 except ImportError as ex:
     utool.printex(ex, 'error in __init__')
+    raise
     try:
         from . import constants
         from . import main_module

@@ -417,8 +417,10 @@ class QueryConfig(ConfigBase):
     """ query configuration parameters
 
         Example:
-        >>> import ibeis
-        >>> db ibeis.opendb('testdb1')
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> cfg = ibs.cfg.query_cfg
+            >>> cfg.printme3()
 
     """
     def __init__(query_cfg, feat_cfg=None, **kwargs):

@@ -398,7 +398,7 @@ def compute_and_write_probchip(ibs, aid_list):
     # Get img source information (image, annotation_bbox, theta)
     cfpath_list  = ibs.get_annot_cpaths(aid_list)
     # Define "Asynchronous" generator
-    randomforest.compute_hough_images(cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks)
+    randomforest.compute_probability_images(cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks)
     # Fix stupid bug in pyrf
     probchip_fpath_list_ = [fpath + '.png' for fpath in probchip_fpath_list]
     return probchip_fpath_list_

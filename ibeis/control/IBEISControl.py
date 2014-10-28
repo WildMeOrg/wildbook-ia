@@ -1761,8 +1761,8 @@ class IBEISController(object):
         FIXME: this is implemented very poorly. Caches not robust. IE they are
         never invalidated. Not all config information is passed through
         """
-        from ibeis.model.preproc import preproc_featweight
-        probchip_fpath_list = preproc_featweight.compute_and_write_probchip(ibs, aid_list)
+        from ibeis.model.preproc import preproc_chip
+        probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
         return probchip_fpath_list
 
     @getter_1to1
