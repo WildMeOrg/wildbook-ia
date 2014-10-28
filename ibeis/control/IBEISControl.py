@@ -198,9 +198,11 @@ class IBEISController(object):
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
         if ensure:
-            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
+            if not utool.QUIET:
+                print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
-            print(dbdir)
+            if not utool.QUIET:
+                print(dbdir)
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
@@ -389,7 +391,8 @@ class IBEISController(object):
 
     def _default_config(ibs, new=False):
         """ Resets the databases's algorithm configuration """
-        print('[ibs] building default config')
+        if not utool.QUIET:
+            print('[ibs] building default config')
         if new:
             # Sometimes a fresh object
             ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
@@ -1796,6 +1799,9 @@ class IBEISController(object):
     @getter_1to1
     def get_annot_cpaths(ibs, aid_list):
         """
+        Just builds the filename strings based off of the current
+        configuration.
+
         Returns:
             cfpath_list (list): cpaths defined by ANNOTATIONs """
         #utool.assert_all_not_None(aid_list, 'aid_list')

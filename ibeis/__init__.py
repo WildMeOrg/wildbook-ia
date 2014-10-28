@@ -13,7 +13,7 @@ try:
     from . import dev
     from . import io
 except ImportError as ex:
-    utool.printex(ex)
+    utool.printex(ex, 'error in __init__')
     try:
         from . import constants
         from . import main_module
