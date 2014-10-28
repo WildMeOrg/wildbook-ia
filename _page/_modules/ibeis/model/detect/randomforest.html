@@ -67,6 +67,17 @@
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[randomforest]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">from ibeis.model.detect import randomforest</span>
+<span class="sd">dir(randomforest)</span>
+<span class="sd">import utool</span>
+<span class="sd">func = randomforest.generate_detection_images</span>
+<span class="sd">print(utool.make_default_docstr(func))</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
 <span class="c">#=================</span>
 <span class="c"># IBEIS INTERFACE</span>
 <span class="c">#=================</span>
@@ -77,6 +88,11 @@
 <span class="sd">    detectkw can be: save_detection_images, save_scales, draw_supressed,</span>
 <span class="sd">    detection_width, detection_height, percentage_left, percentage_top,</span>
 <span class="sd">    nms_margin_percentage</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        gid_list (list):</span>
+<span class="sd">        species (?):</span>
 
 <span class="sd">    Yeilds:</span>
 <span class="sd">        tuple: tuples of image ids and bounding boxes</span>
@@ -110,6 +126,19 @@
 
 </div>
 <div class="viewcode-block" id="compute_hough_images"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.compute_hough_images">[docs]</a><span class="k">def</span> <span class="nf">compute_hough_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        src_gpath_list (list):</span>
+<span class="sd">        dst_gpath_list (list):</span>
+<span class="sd">        species (?):</span>
+<span class="sd">        quick (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">        import utool; utool.print_auto_docstr(&#39;ibeis.model.detect.randomforest&#39;, &#39;compute_hough_images&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Define detect dict</span>
     <span class="n">detectkw</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;quick&#39;</span><span class="p">:</span> <span class="n">quick</span><span class="p">,</span>
@@ -120,6 +149,20 @@
 
 </div>
 <div class="viewcode-block" id="compute_probability_images"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.randomforest.compute_probability_images">[docs]</a><span class="k">def</span> <span class="nf">compute_probability_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        src_gpath_list (list):</span>
+<span class="sd">        dst_gpath_list (list):</span>
+<span class="sd">        species (?):</span>
+<span class="sd">        quick (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    import utool; utool.print_auto_docstr(&#39;ibeis.model.detect.randomforest&#39;, &#39;compute_hough_images&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Define detect dict</span>
     <span class="n">detectkw</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;single&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># single is True = probability, False is hough</span>
@@ -134,6 +177,7 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst_gpath_list</span><span class="p">)</span>
     <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">gpath</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">dst_gpath_list</span><span class="p">]</span>
     <span class="n">dirty_src_gpaths</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+
     <span class="n">dirty_dst_gpaths</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
     <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_src_gpaths</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -155,6 +199,14 @@
 
 
 <span class="k">def</span> <span class="nf">_scale_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        bbox (tuple): bounding box</span>
+<span class="sd">        s (float): scale factor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bbox2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">bbox_scaled</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">bbox</span><span class="p">)</span>
     <span class="n">bbox_round</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">round</span><span class="p">,</span> <span class="n">bbox_scaled</span><span class="p">))</span>
     <span class="n">bbox_int</span>   <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span>   <span class="n">bbox_round</span><span class="p">))</span>

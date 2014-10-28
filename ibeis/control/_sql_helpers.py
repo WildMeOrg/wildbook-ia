@@ -81,12 +81,15 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
     version = ibs.get_database_version(db)
-    print('[ensure_correct_version] Database version: %r | Expected version: %r ' % (version, version_expected))
+    if not utool.QUIET:
+        print('[ensure_correct_version] Database version: %r | Expected version: %r ' % (version, version_expected))
     if version < version_expected:
-        print('[ensure_correct_version] Database version behind, updating...')
+        if not utool.QUIET:
+            print('[ensure_correct_version] Database version behind, updating...')
         update_schema_version(ibs, db.fpath, db_versions, version, version_expected)
         ibs.set_database_version(db, version_expected)
-        print('[ensure_correct_version] Database version updated to %r' % (version_expected))
+        if not utool.QUIET:
+            print('[ensure_correct_version] Database version updated to %r' % (version_expected))
     elif version > version_expected:
         raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
 

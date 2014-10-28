@@ -27,6 +27,7 @@ MAX_NEIGHBOR_CACHE_SIZE = 8
 
 
 def rrr():
+    # TODO: Weakref?
     global NEIGHBOR_CACHE
     NEIGHBOR_CACHE.clear()
     rrr_()

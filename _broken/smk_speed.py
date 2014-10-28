@@ -8,6 +8,7 @@ from six.moves import zip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_speed]')
 
 
+@profile
 def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
     """
     Sums and normalizes all rvecs that belong to the same word and the same
@@ -68,7 +69,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
 #    #                for rvecs, aids in zip(rvecs_list, aids_list)]  # 233 ms
 
 
-#@profile
+@profile
 def compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec):
     """
     PREFERED METHOD - 110ms

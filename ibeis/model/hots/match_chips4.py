@@ -22,7 +22,8 @@ MIN_BIGCACHE_BUNDLE = 20
 
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
-                         use_bigcache=USE_BIGCACHE):
+                         use_bigcache=USE_BIGCACHE, return_request=False,
+                         custom_qparams=None):
     """
     The standard query interface.
 
@@ -30,8 +31,11 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
     individually.  On an individual cache miss, it preforms the query.
 
     Args:
-        ibs  : ibeis control object
-        qreq_ : query request object
+        ibs (IBEISController) : ibeis control object
+        qaid_list (list): query annotation ids
+        daid_list (list): database annotation ids
+        use_cache (bool):
+        use_bigcache (bool):
 
     Returns:
         qaid2_qres (dict): dict of QueryResult objects
@@ -45,40 +49,55 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
         >>> use_cache = True
         >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
         >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
+
+        >>> qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)
     """
     # Create new query request object to store temporary state
     if utool.NOT_QUIET:
         print(' --- Submit QueryRequest_ --- ')
+    # ------------
+    # Build query request
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_.qparams
     # --- BIG CACHE ---
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
-    # Try and load directly from a big cache
-    if use_bigcache_:
+    if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
         qhashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUIDS')
         dhashid = ibs.get_annot_uuid_hashid(daid_list, '_DAUUIDS')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
-        try:
-            qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            print('... qaid2_qres bigcache hit')
-            return qaid2_qres
-        except IOError:
-            print('... qaid2_qres bigcache miss')
-    # ------------
-    # Build query request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
+        if use_bigcache_:
+            # Try and load directly from a big cache
+            try:
+                qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                print('... qaid2_qres bigcache hit')
+                return qaid2_qres
+            except IOError:
+                print('... qaid2_qres bigcache miss')
     # Execute query request
     qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache)
     # ------------
-    if use_bigcache_:
+    if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         utool.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_qres)
+    if return_request:
+        return qaid2_qres, qreq_
     return qaid2_qres
 
 
 #@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
+    """
+    Args:
+        ibs (IBEISController):
+        qreq_ (QueryRequest):
+        use_cache (bool):
+
+    Returns:
+        qaid2_qres
+    """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
         if utool.DEBUG2:

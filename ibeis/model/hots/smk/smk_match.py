@@ -4,6 +4,7 @@ from six.moves import zip, range, map  # NOQA
 import utool
 import numpy as np
 from ibeis.model.hots.smk import smk_index
+from ibeis.model.hots.smk import smk_repr
 from ibeis.model.hots.smk import smk_core
 #from six.moves import zip
 #from ibeis.model.hots.hstypes import INTEGER_TYPE
@@ -15,6 +16,7 @@ DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 @utool.indent_func('[smk_query]')
 #@utool.memprof
+@profile
 def execute_smk_L5(qreq_):
     """
     ibeis query interface
@@ -70,7 +72,7 @@ def execute_smk_L5(qreq_):
     qparams = qreq_.qparams
     memtrack.report('[SMK PREINIT]')
     # Build ~~Pandas~~ dataframe (or maybe not)
-    annots_df = smk_index.make_annot_df(ibs)
+    annots_df = smk_repr.make_annot_df(ibs)
     words, invindex = prepare_qreq(qreq_, annots_df, memtrack)
     withinfo = True
 
@@ -109,13 +111,14 @@ def prepare_qreq(qreq_, annots_df, memtrack):
         memtrack.report('[SMK LEARN VWORDS]')
         # Index database annotations
         with_internals = True
-        invindex = smk_index.index_data_annots(annots_df, daids, words, qparams,
+        invindex = smk_repr.index_data_annots(annots_df, daids, words, qparams,
                                                with_internals, memtrack)
         memtrack.report('[SMK INDEX ANNOTS]')
         print('L___ FINISHED LOADING VOCAB ___\n')
     return words, invindex
 
 
+@profile
 def execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo):
     """
     Loop over execute_smk_L3
@@ -161,19 +164,10 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, qparams)
-    (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
-    if DEBUG_SMK:
-        from ibeis.model.hots.smk import smk_debug
-        qfx2_vec = annots_df['vecs'][qaid]
-        assert smk_debug.check_wx2_rvecs2(
-            invindex, wx2_qrvecs, wx2_qfxs, qfx2_vec), 'bad qindex'
-        assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
+    qindex = smk_repr.new_qindex(annots_df, qaid, invindex, qparams)
     # Compute match kernel for all database aids
-    kernel_args = (wx2_qrvecs, wx2_maws, wx2_qfxs, query_gamma, invindex, qparams, withinfo)
-    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(*kernel_args)  # 54 %
+    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(qindex, invindex, qparams, withinfo)  # 54 %
     # Prevent self matches
-    #can_match_self = not utool.get_argflag('--noself')
     allow_self_match = qparams.allow_self_match
     #utool.get_argflag('--self-match')
     if (not allow_self_match) and qaid in daid2_totalscore:

@@ -15,16 +15,32 @@ import pyrf
     __name__, '[randomforest]', DEBUG=False)
 
 
+"""
+
+from ibeis.model.detect import randomforest
+dir(randomforest)
+import utool
+func = randomforest.ibeis_generate_image_detections
+print(utool.make_default_docstr(func))
+
+"""
+
+
 #=================
 # IBEIS INTERFACE
 #=================
 
 
-def generate_detection_images(ibs, gid_list, species, **detectkw):
+def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
     """
     detectkw can be: save_detection_images, save_scales, draw_supressed,
     detection_width, detection_height, percentage_left, percentage_top,
     nms_margin_percentage
+
+    Args:
+        ibs (IBEISController):
+        gid_list (list):
+        species (?):
 
     Yeilds:
         tuple: tuples of image ids and bounding boxes
@@ -41,7 +57,7 @@ def generate_detection_images(ibs, gid_list, species, **detectkw):
     scale_list = [oldw / neww for oldw, neww in zip(oldw_list, neww_list)]
 
     # Detect on scaled images
-    ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
+    #ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
     use_chunks = ibs.cfg.other_cfg.detect_use_chunks
 
     generator = detect_species_bboxes(src_gpath_list, dst_gpath_list, species,
@@ -57,17 +73,42 @@ def generate_detection_images(ibs, gid_list, species, **detectkw):
             yield gid, bbox, confidence, img_conf
 
 
-def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=True):
+def compute_hough_images(src_gpath_list, dst_gpath_list, species, use_chunks=True, quick=True):
+    """
+    Args:
+        src_gpath_list (list):
+        dst_gpath_list (list):
+        species (?):
+        quick (bool):
+
+    Returns:
+        None
+
+        import utool; utool.print_auto_docstr('ibeis.model.detect.randomforest', 'compute_hough_images')
+    """
     # Define detect dict
     detectkw = {
         'quick': quick,
         'save_detection_images': True,
         'save_scales': False,
     }
-    _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
+    _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=use_chunks, **detectkw)
 
 
-def compute_probability_images(ibs, src_gpath_list, dst_gpath_list, species, quick=False):
+def compute_probability_images(src_gpath_list, dst_gpath_list, species, use_chunks=True, quick=False):
+    """
+    Args:
+        src_gpath_list (list):
+        dst_gpath_list (list):
+        species (?):
+        quick (bool):
+
+    Returns:
+        None
+
+    import utool; utool.print_auto_docstr('ibeis.model.detect.randomforest', 'compute_hough_images')
+
+    """
     # Define detect dict
     detectkw = {
         'single': True,  # single is True = probability, False is hough
@@ -75,21 +116,23 @@ def compute_probability_images(ibs, src_gpath_list, dst_gpath_list, species, qui
         'save_detection_images': True,
         'save_scales': False,
     }
-    _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
+    _compute_hough(src_gpath_list, dst_gpath_list, species, **detectkw)
 
 
-def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
+def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True, **detectkw):
+    """
+    FIXME. This name is not accurate
+
+    """
     assert len(src_gpath_list) == len(dst_gpath_list)
+
+    # FIXME: images are not invalidated so this cache doesnt always work
     isvalid_list = [exists(gpath + '.png') for gpath in dst_gpath_list]
     dirty_src_gpaths = utool.get_dirty_items(src_gpath_list, isvalid_list)
     dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
         print('[detect.rf] making hough images for %d images' % num_dirty)
-        # Detect on scaled images
-        ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
-        use_chunks = ibs.cfg.other_cfg.detect_use_chunks
-
         generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths, species,
                                           use_chunks=use_chunks, **detectkw)
         # Execute generator
@@ -103,6 +146,14 @@ def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
 
 
 def _scale_bbox(bbox, s):
+    """
+    Args:
+        bbox (tuple): bounding box
+        s (float): scale factor
+
+    Returns:
+        bbox2
+    """
     bbox_scaled = (s * _ for _ in bbox)
     bbox_round = list(map(round, bbox_scaled))
     bbox_int   = list(map(int,   bbox_round))

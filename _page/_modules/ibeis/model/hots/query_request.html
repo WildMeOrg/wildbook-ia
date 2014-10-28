@@ -345,10 +345,61 @@
         <span class="n">assert_uuids</span><span class="p">(</span><span class="n">_daids</span><span class="p">,</span> <span class="n">_dauuids</span><span class="p">)</span>
 
 </div></div>
+<div class="viewcode-block" id="parse_config_items"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.parse_config_items">[docs]</a><span class="k">def</span> <span class="nf">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively extracts key, val pairs from Config objects</span>
+<span class="sd">    into a flat list. (there must not be name conflicts)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; param_list = parse_config_items(cfg)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
+            <span class="c">#print(key)</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ConfigBase</span><span class="p">):</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="c">#print(key)</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="c">#print(key)</span>
+    <span class="k">return</span> <span class="n">param_list</span>
+
+</div>
 <div class="viewcode-block" id="QueryParams"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryParams">[docs]</a><span class="k">class</span> <span class="nc">QueryParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="c"># TODO: Use setattr to dynamically set all of these via config names</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import query_request</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; qparams = query_request.QueryParams(cfg)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
+        <span class="c"># Ensures that at least everything exits</span>
+        <span class="c"># pares nested config structure into this flat one</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">param_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Configs specify duplicate names: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">seen_</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">param_list</span>
+
+        <span class="c"># Then we explicitly add some items as well that might not be explicit</span>
+        <span class="c"># in the configs.</span>
         <span class="n">pipeline_root</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
         <span class="k">if</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
             <span class="n">nAssign</span>     <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nAssign</span>
@@ -357,34 +408,22 @@
             <span class="n">smk_alpha</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_alpha</span>
             <span class="n">indexer_key</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">indexer_key</span>
             <span class="n">nWords</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nWords</span>
-            <span class="n">vocab_weighting</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span>
-            <span class="n">massign_alpha</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_alpha</span>
-            <span class="n">massign_sigma</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_sigma</span>
+            <span class="n">vocab_weighting</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span>
+            <span class="n">allow_self_match</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">allow_self_match</span>
+            <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_alpha</span>
+            <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_sigma</span>
             <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_equal_weights</span>
         <span class="n">K</span>                  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
         <span class="n">Knorm</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
         <span class="n">checks</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span>
         <span class="n">normalizer_rule</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span>
+        <span class="n">filt_on</span>            <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">filt_on</span>
+        <span class="n">gravity_weighting</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">gravity_weighting</span>
         <span class="n">Krecip</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">Krecip</span>
         <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_sameimg</span>
         <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_samename</span>
-        <span class="n">can_match_self</span>     <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">filt_on</span>            <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">filt_on</span>
-        <span class="n">gravity_weighting</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">gravity_weighting</span>
-        <span class="n">active_filter_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_active_filters</span><span class="p">()</span>
-        <span class="c">#active_filter_list = cfg.filt_cfg._valid_filters</span>
-        <span class="n">filt2_stw</span>          <span class="o">=</span> <span class="p">{</span><span class="n">filt</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_stw</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span> <span class="k">for</span> <span class="n">filt</span> <span class="ow">in</span> <span class="n">active_filter_list</span><span class="p">}</span>
-        <span class="c"># Correct dumb Pref bugs</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_stw</span><span class="p">):</span>
-            <span class="c">#print(val)</span>
-            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
-                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
-                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">isWeighted</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span>
         <span class="n">max_alts</span>           <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span>
-        <span class="n">vsmany</span>             <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span>
-        <span class="n">vsone</span>              <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span>
         <span class="n">score_method</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span>
         <span class="n">min_nInliers</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span>
         <span class="n">nShortlist</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">nShortlist</span>
@@ -394,7 +433,22 @@
         <span class="n">use_chip_extent</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span>
         <span class="n">xy_thresh</span>          <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span>
         <span class="n">sv_on</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span>
+
+        <span class="c"># Params not explicitly represented in Config objects</span>
+        <span class="c">###</span>
         <span class="n">flann_params</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
+        <span class="n">vsmany</span>             <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span>
+        <span class="n">vsone</span>              <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span>
+        <span class="c">###</span>
+        <span class="n">active_filter_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_active_filters</span><span class="p">()</span>
+        <span class="n">filt2_stw</span>          <span class="o">=</span> <span class="p">{</span><span class="n">filt</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_stw</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span> <span class="k">for</span> <span class="n">filt</span> <span class="ow">in</span> <span class="n">active_filter_list</span><span class="p">}</span>
+        <span class="c"># Correct dumb Pref bugs</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_stw</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c">####</span>
 
         <span class="c"># cfgstrs</span>
         <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>

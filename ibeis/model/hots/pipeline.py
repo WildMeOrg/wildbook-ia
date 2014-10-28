@@ -74,8 +74,8 @@ def request_ibeis_query_L0(ibs, qreq_):
     Driver logic of query pipeline
 
     Args:
-        ibs   (IBEISController): HotSpotter database object to be queried
-        qreq_ (QueryRequest): use ``prep_qreq`` to create one
+        ibs   (IBEISController): IBEIS database object to be queried
+        qreq_ (QueryRequest): hyper-parameters. use ``prep_qreq`` to create one
 
     Returns:
         (dict of QueryResult): qaid2_qres mapping from query indexes to Query Result Objects
@@ -87,6 +87,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+        >>> ibs.cfg.query_cfg.with_metadata = True
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
         >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_)
         >>> qres = qaid2_qres[1]
@@ -94,23 +95,25 @@ def request_ibeis_query_L0(ibs, qreq_):
 
     # Load data for nearest neighbors
     qreq_.lazy_load(ibs)
-
+    metadata = {}
     #
     if qreq_.qparams.pipeline_root == 'smk':
         from ibeis.model.hots.smk import smk_match
         # Alternative to naive bayes matching:
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
-        filt2_meta_ = {}
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
         qaid2_nns_ = nearest_neighbors(qreq_)
 
-        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
+        if qreq_.qparams.with_metadata:
+            metadata['nns'] = qaid2_nns_
+
+        # Nearest neighbors weighting and scoring (filt2_weights, metadata)
         # * feature matches are weighted
-        filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
+        filt2_weights_, metadata = weight_neighbors(qaid2_nns_, qreq_, metadata)
 
         # Thresholding and weighting (qaid2_nnfilter)
         # * feature matches are pruned
@@ -131,7 +134,7 @@ def request_ibeis_query_L0(ibs, qreq_):
     # Query results format (qaid2_qres)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, filt2_meta_, qreq_)
+    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, metadata, qreq_)
 
     return qaid2_qres_
 
@@ -146,7 +149,7 @@ def nearest_neighbors(qreq_):
     Plain Nearest Neighbors
 
     Args:
-        qreq_  (QueryRequest): query request object
+        qreq_  (QueryRequest): hyper-parameters
 
     Returns:
         dict: qaid2_nnds - a dict mapping query annnotation-ids to a nearest
@@ -202,28 +205,53 @@ def nearest_neighbors(qreq_):
 #============================
 
 
-def weight_neighbors(qaid2_nns, qreq_):
+def weight_neighbors(qaid2_nns, qreq_, metadata):
+    """
+    Args:
+        qaid2_nns (dict):
+        qreq_ (QueryRequest): hyper-parameters
+        metadata (dict): metadata dictionary
+
+    Returns:
+        tuple(dict, dict) : (filt2_weights, metadata)
+    """
     if NOT_QUIET:
         print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
     if not qreq_.qparams.filt_on:
-        return  {}
+        filt2_weights = {}
     else:
-        return _weight_neighbors(qaid2_nns, qreq_)
+        filt2_weights, metadata = _weight_neighbors(qaid2_nns, qreq_, metadata)
+    return (filt2_weights, metadata)
 
 
 @profile
-def _weight_neighbors(qaid2_nns, qreq_):
+def _weight_neighbors(qaid2_nns, qreq_, metadata):
+    """
+    Args:
+        qaid2_nns (int): query annotation id
+        qreq_ (QueryRequest): hyper-parameters
+        metadata (dict): metadata dictionary
+
+    Returns:
+        tuple : (filt2_weights, metadata)
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
+    """
     nnweight_list = qreq_.qparams.active_filter_list
-    filt2_weights = {}
-    filt2_meta = {}
-    for nnfilter in nnweight_list:
-        nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnfilter]
-        # Apply [nnfilter] weight to each nearest neighbor
-        # TODO FIX THIS!
-        qaid2_norm_weight, qaid2_selnorms = nn_filter_fn(qaid2_nns, qreq_)
-        filt2_weights[nnfilter] = qaid2_norm_weight
-        filt2_meta[nnfilter] = qaid2_selnorms
-    return filt2_weights, filt2_meta
+    # Prealloc output
+    filt2_weights = {nnweight: None for nnweight in nnweight_list}
+    # Buidl output
+    for nnweight in nnweight_list:
+        nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweight]
+        # Apply [nnweight] weight to each nearest neighbor
+        qaid2_norm_weight, qaid2_norm_metadata = nn_filter_fn(qaid2_nns, qreq_)
+        filt2_weights[nnweight] = qaid2_norm_weight
+        if qreq_.qparams.with_metadata:
+            metadata[nnweight + '_norm_meta'] = qaid2_norm_metadata
+    return filt2_weights, metadata
 
 
 #==========================
@@ -249,6 +277,15 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
 
 @profile
 def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
+    """
+    Args:
+        qaid2_nns (dict):
+        filt2_weights (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        qaid2_nnfilt
+    """
     qaid2_nnfilt = {}
     # Configs
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
@@ -399,7 +436,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         qaid2_nnfilt : dict of (featmatch_scores, featmatch_mask)
                         where the scores and matches correspond to the assigned
                         nearest features
-        qreq_        : QueryRequest object
+        qreq_(QueryRequest) : hyper-parameters
 
     Returns:
         qaid2_chipmatch : feat match, feat score, feat rank
@@ -483,6 +520,15 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
 
 
 def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
+    """
+    Args:
+        qaid2_chipmatch (dict):
+        qreq_ (QueryRequest): hyper-parameters
+        dbginfo (bool):
+
+    Returns:
+        dict or tuple(dict, dict)
+    """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         print('[hs] Step 5) Spatial verification: off')
         return (qaid2_chipmatch, {}) if dbginfo else qaid2_chipmatch
@@ -617,8 +663,21 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
 
 def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
                                 nRerank, use_chip_extent):
-    """ helper for spatial verification, computes the squared diagonal length of
-    matching chips """
+    """
+    helper for spatial verification, computes the squared diagonal length of
+    matching chips
+
+    Args:
+        qreq_ (QueryRequest): hyper-parameters
+        aid2_fm (dict):
+        topx2_aid (dict):
+        topx2_kpts (dict):
+        nRerank (int):
+        use_chip_extent (bool):
+
+    Returns:
+        topx2_dlen_sqrd
+    """
     if use_chip_extent:
         topx2_chipsize = list(qreq_.get_annot_chipsizes(topx2_aid))
         def chip_dlen_sqrd(tx):
@@ -648,6 +707,16 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 
 @profile
 def score_chipmatch(qaid, chipmatch, score_method, qreq_):
+    """
+    Args:
+        qaid (int): query annotation id
+        chipmatch (tuple):
+        score_method (str):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        aid2_score
+    """
     (aid2_fm, aid2_fs, aid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
     if score_method.find('w') == len(score_method) - 1:
@@ -676,9 +745,18 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 
 
 @profile
-def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
+def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
                          qaid2_scores=None):
     """
+    Args:
+        qaid2_chipmatch (dict):
+        metadata (dict):
+        qreq_ (QueryRequest): hyper-parameters
+        qaid2_scores (dict): optional
+
+    Returns:
+        qaid2_qres
+
     Examples:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
     """
@@ -724,17 +802,26 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
         # Populate query result fields
         qres.aid2_score = aid2_score
 
-        qres.filt2_meta = {}  # dbgstats
-        for filt, qaid2_meta in six.iteritems(filt2_meta):
-            qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
+        qres.metadata = {}  # dbgstats
+        for key, qaid2_meta in six.iteritems(metadata):
+            qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
     return qaid2_qres
 
 
 @profile
 def try_load_resdict(qreq_, force_miss=False):
-    """ Try and load the result structures for each query.
-    returns a list of failed qaids """
+    """
+    Args:
+        qreq_ (QueryRequest): hyper-parameters
+        force_miss (bool):
+
+    Returns:
+        tuple : (qaid2_qres_hit, cachemiss_qaids)
+
+    Try and load the result structures for each query.
+    returns a list of failed qaids
+    """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
 
@@ -753,6 +840,14 @@ def try_load_resdict(qreq_, force_miss=False):
 
 
 def save_resdict(qreq_, qaid2_qres):
+    """
+    Args:
+        qreq_ (QueryRequest): hyper-parameters
+        qaid2_qres (dict):
+
+    Returns:
+        None
+    """
     qresdir = qreq_.get_qresdir()
     for qres in six.itervalues(qaid2_qres):
         qres.save(qresdir)

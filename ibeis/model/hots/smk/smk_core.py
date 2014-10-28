@@ -8,186 +8,52 @@ from itertools import product
 import utool
 #import pandas as pd
 import numpy as np
-import numpy.linalg as npl
 import scipy.sparse as spsparse
 from ibeis.model.hots import hstypes
+from ibeis.model.hots.smk import smk_scoring
 from vtool import clustering2 as clustertool
-from ibeis.model.hots.smk import smk_internal
 
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
 
-if hstypes.RVEC_TYPE == np.float16:
-    def compress_normvec_float16(arr_float):
-        """
-        compresses 8 or 4 bytes of information into 2 bytes
-        Assumes RVEC_TYPE is float16
-        """
-        return arr_float.astype(hstypes.RVEC_TYPE)
-    compress_normvec = compress_normvec_float16
-elif hstypes.RVEC_TYPE == np.int8:
-    def compress_normvec_uint8(arr_float):
-        """
-        compresses 8 or 4 bytes of information into 1 byte
-        Assumes RVEC_TYPE is int8
-
-            Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
-            compresses them into 1 byte. Takes advantage of the fact that
-            rarely will a component of a vector be greater than 64, so we can extend the
-            range to double what normally would be allowed. This does mean there is a
-            slight (but hopefully negligable) information loss. It will be negligable
-            when nDims=128, when it is lower, you may want to use a different function.
-
-        Args:
-            arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
-        Returns:
-            (ndarray): residual vector of type int8 in range -128 to 128
-
-        Example:
-            >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-            >>> from ibeis.model.hots.smk import smk_debug
-            >>> np.random.seed(0)
-            >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-            >>> normalize_vecs_inplace(arr_float)
-            >>> arr_int8 = compress_normvec(arr_float)
-            >>> print(arr_int8)
-            [[ 126   28   70 -128 -128]
-             [-128 -128  -26  -18   73]]
-        """
-        # Trick / hack: use 2 * max (psuedo_max), and clip because most components
-        # will be less than 2 * max. This will reduce quantization error
-        #return np.clip((arr_float * (hstypes.RVEC_PSEUDO_MAX)),
-        #               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
-        return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),
-                       hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(hstypes.RVEC_TYPE)
-    compress_normvec = compress_normvec_uint8
-else:
-    raise AssertionError('unsupported RVEC_TYPE = %r' % hstypes.RVEC_TYPE)
+@profile
+def accumulate_scores(dscores_list, daids_list):
+    """ helper to accumulate grouped scores for database annotations """
+    daid2_aggscore = utool.ddict(lambda: 0)
+    ### Weirdly iflatten was slower here
+    for dscores, daids in zip(dscores_list, daids_list):
+        for daid, score in zip(daids, dscores):
+            daid2_aggscore[daid] += score
+    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
+    daid_agg_scores = np.array(list(daid2_aggscore.values()))
+    return daid_agg_keys, daid_agg_scores
 
 
-#@profile
-def normalize_vecs_inplace(vecs):
-    # Normalize residuals
-    # this can easily be sped up by cyth
-    norm_ = npl.norm(vecs, axis=1)
-    norm_.shape = (norm_.size, 1)
-    np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
-
-
-#@profile
-def aggregate_rvecs(rvecs, maws):
-    """
-    Example:
-        #>>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 128)).astype(hstypes.RVEC_TYPE)
-        >>> maws  = (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
-    """
-    if rvecs.shape[0] == 1:
-        return rvecs
-    # Prealloc sum output
-    arr_float = np.empty((1, rvecs.shape[1]), dtype=hstypes.FLOAT_TYPE)
-    # Take weighted average of multi-assigned vectors
-    (maws[:, np.newaxis] * rvecs.astype(hstypes.FLOAT_TYPE)).sum(axis=0, out=arr_float[0])
-    # Jegou uses mean instead. Sum should be fine because we normalize
-    #rvecs.mean(axis=0, out=rvecs_agg[0])
-    normalize_vecs_inplace(arr_float)
-    rvecs_agg = compress_normvec(arr_float)
-    return rvecs_agg
-
-
-#@profile
-def get_norm_rvecs(vecs, word):
-    """
-    Example:
-        The case where vecs != words
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
-        >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
-
-    Example2:
-        The case where vecs == words
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
-        >>> word = vecs[1]
-    """
-    # Compute residuals of assigned vectors
-    #rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
-    arr_float = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
-    # Faster, but doesnt work with np.norm
-    #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
-    normalize_vecs_inplace(arr_float)
-    # Converts normvec to a smaller type like float16 or int8
-    rvecs_n = compress_normvec(arr_float)
-    return rvecs_n
-
-
-#@profile
-def sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh):
-    r"""
-    Computes gamma from "To Aggregate or not to aggregate". Every component in
-    each list is with repsect to a different word.
-
-    scc = self consistency criterion
-    It is a scalar which ensure K(X, X) = 1
-
-    Args:
-        rvecs_list (list of ndarrays): residual vectors for every word
-        idf_list (list of floats): idf weight for each word
-        maws_list (list of ndarrays): multi-assign weights for each word for each residual vector
-        smk_alpha (float): selectivity power
-        smk_thresh (float): selectivity threshold
-
-    Returns:
-        float: sccw self-consistency-criterion weight
-
-    Math:
-        \begin{equation}
-        \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
-        \end{equation}
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh = smk_debug.testsdata_sccw_sum()
-        >>> qmaws_list = dmaws_list = maws_list
-        >>> drvecs_list = qrvecs_list = rvecs_list
-        >>> scoremat = sccw_summation(rvecs_list, idf_list, maws_list, smk_alpha, smk_thresh )
-        >>> print(scoremat)
-        0.0201041835751
-
-        0.0384477314197
-
-    Ignore:
-        qrvecs_list = drvecs_list = rvecs_list
-    """
-    if DEBUG_SMK:
-        assert maws_list is None or len(maws_list) == len(rvecs_list)
-        assert len(rvecs_list) == len(idf_list)
-        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list))
-    # Indexing with asymetric multi-assignment might get you a non 1 self score?
-    # List of scores for every word.
-    scores_list = smk_internal.score_matches(rvecs_list, rvecs_list,
-                                             maws_list, maws_list,
-                                             smk_alpha, smk_thresh, idf_list)
-    if DEBUG_SMK:
-        assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
-        assert len(idf_list) == len(scores_list), 'bad weight and score'
-    # Summation over all residual vector scores
-    _count = sum((scores.size for scores in  scores_list))
-    _iter  = utool.iflatten(scores.ravel() for scores in scores_list)
-    total  = np.fromiter(_iter, np.float64, _count).sum()
-    # Square root inverse
-    sccw = np.reciprocal(np.sqrt(total))
-    return sccw
-
-
-def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
-                    smk_thresh, idf_list, daids_list, daid2_sccw, query_sccw):
+@profile
+def match_kernel_L0(qrvecs_list, drvecs_list, qflags_list, dflags_list,
+                    qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list,
+                    daids_list, daid2_sccw, query_sccw):
     """
     Computes smk kernels
+
+    Args:
+        qrvecs_list (list):
+        drvecs_list (list):
+        qflags_list (list):
+        dflags_list (list):
+        qmaws_list (list):
+        dmaws_list (list):
+        smk_alpha (float): selectivity power
+        smk_thresh (float): selectivity threshold
+        idf_list (list):
+        daids_list (list):
+        daid2_sccw (dict):
+        query_sccw (float): query self-consistency-criterion
+
+    Returns:
+        retL0 : (daid2_totalscore, scores_list, daid_agg_keys,)
 
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
@@ -209,7 +75,11 @@ def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
         1.0000000000000007
     """
     # Residual vector scores
-    scores_list = smk_internal.score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)
+    scores_list = smk_scoring.score_matches(qrvecs_list, drvecs_list,
+                                            qflags_list, dflags_list,
+                                            qmaws_list, dmaws_list,
+                                            smk_alpha, smk_thresh,
+                                            idf_list)
     # Summation over query features (resulting in scores over daids)
     dscores_list = [scores.sum(axis=0) for scores in scores_list]
     # Accumulate scores over daids (database annotation ids)
@@ -224,24 +94,16 @@ def match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha,
     return retL0
 
 
-def accumulate_scores(dscores_list, daids_list):
-    """ helper """
-    daid2_aggscore = utool.ddict(lambda: 0)
-    ### Weirdly iflatten was slower here
-    for dscores, daids in zip(dscores_list, daids_list):
-        for daid, score in zip(daids, dscores):
-            daid2_aggscore[daid] += score
-    daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
-    daid_agg_scores = np.array(list(daid2_aggscore.values()))
-    return daid_agg_keys, daid_agg_scores
-
-
-def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
-                    invindex, qparams):
+@profile
+def match_kernel_L1(qindex, invindex, qparams):
     """ Builds up information and does verbosity before going to L0 """
+    # Unpack Query
+    (wx2_qrvecs, wx2_qflags, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex
+    # Unpack Database
     wx2_drvecs     = invindex.wx2_drvecs
     wx2_idf        = invindex.wx2_idf
     wx2_daid       = invindex.wx2_aids
+    wx2_dflags     = invindex.wx2_dflags
     daid2_sccw     = invindex.daid2_sccw
 
     smk_alpha  = qparams.smk_alpha
@@ -250,25 +112,27 @@ def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
     # for each word compute the pairwise scores between matches
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
     # Build lists over common word indexes
-    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
-    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
-    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
-    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
-    qmaws_list  = [ wx2_qmaws[wx] for wx in common_wxs]  # NOQA
+    qrvecs_list = [ wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [ wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [   wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [    wx2_idf[wx] for wx in common_wxs]
+    qmaws_list  = [  wx2_qmaws[wx] for wx in common_wxs]  # NOQA
+    dflags_list = [ wx2_dflags[wx] for wx in common_wxs]  # NOQA
+    qflags_list = [ wx2_qflags[wx] for wx in common_wxs]
     dmaws_list  = None
     if utool.VERBOSE:
         mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
                                         flushfreq=100, writefreq=25,
                                         with_totaltime=True)
     #--------
-    retL0 = match_kernel_L0(qrvecs_list, drvecs_list, qmaws_list, dmaws_list,
-                            smk_alpha, smk_thresh, idf_list, daids_list,
-                            daid2_sccw, query_sccw)
-    (daid2_totalscore, scores_list, daid_agg_keys,) = retL0
+    retL0 = match_kernel_L0(qrvecs_list, drvecs_list, qflags_list, dflags_list,
+                            qmaws_list, dmaws_list, smk_alpha, smk_thresh,
+                            idf_list, daids_list, daid2_sccw, query_sccw)
+    (daid2_totalscore, scores_list, daid_agg_keys) = retL0
     #print('[smk_core] Matched %d daids' % daid2_totalscore.keys())
     #utool.embed()
 
-    retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)
+    retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list)
     #--------
     if utool.VERBOSE:
         end_()
@@ -278,32 +142,29 @@ def match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
 
 
 @profile
-def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
-                    invindex, qparams, withinfo=True):
+def match_kernel_L2(qindex, invindex, qparams, withinfo=True):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel_L2()
-        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
-        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
+        >>> ibs, invindex, qindex, qparams = smk_debug.testdata_match_kernel_L2()
         >>> withinfo = True  # takes an 11s vs 2s
-        >>> argsL2 = (wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
         >>> smk_debug.rrr()
         >>> smk_debug.invindex_dbgstr(invindex)
-        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(*argsL2)
+        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel_L2(qindex, invindex, qparams, withinfo)
     """
+    if DEBUG_SMK:
+        from ibeis.model.hots.smk import smk_debug
+        assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
+        smk_debug.dbstr_qindex()  # UNSAFE FUNC STACK INSPECTOR
+    # Unpack qindex
     # Call match kernel logic
-    retL1 =  match_kernel_L1(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, qparams)
+    retL1 =  match_kernel_L1(qindex, invindex, qparams)
     # Unpack
-    (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)  = retL1
+    (daid2_totalscore, common_wxs, scores_list, daids_list)  = retL1
     if withinfo:
-        # Build up chipmatch if requested
-        # TODO: Only build for a shortlist
-        daid2_chipmatch = build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
-                                                 scores_list, daids_list,
-                                                 query_sccw)
+        # Build up chipmatch if requested TODO: Only build for a shortlist
+        daid2_chipmatch = build_daid2_chipmatch3(qindex, invindex, common_wxs, scores_list, daids_list)
     else:
         daid2_chipmatch = None
 
@@ -311,18 +172,26 @@ def match_kernel_L2(wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw,
 
 
 @profile
-def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
-                           scores_list, daids_list, query_sccw):
+def build_daid2_chipmatch3(qindex, invindex, common_wxs, scores_list,
+                           daids_list):
     """
+
+    Args:
+        invindex (InvertedIndex): object for fast vocab lookup
+        common_wxs (list): list of word intersections
+        wx2_qfxs (dict):
+        scores_list (list):
+        daids_list (list):
+        query_sccw (float): query self-consistency-criterion
+
+    Returns:
+        daid2_chipmatch
+
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel_L2(aggregate=True)
-        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
-        >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
-        >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
-        >>> withinfo = True  # takes an 11s vs 2s
-        >>> args = (wx2_qrvecs, wx2_qmaws, wx2_qfxs, query_sccw, invindex, withinfo, smk_alpha, smk_thresh)
+        >>> ibs, invindex, qindex, qparams = smk_debug.testdata_match_kernel_L2(aggregate=True)
+        >>> args = (qindex, invindex, qparms)
         >>> retL1 =  match_kernel_L1(*args)
         >>> (daid2_totalscore, common_wxs, scores_list, daids_list, idf_list, daid_agg_keys,)  = retL1
         >>> daid2_chipmatch_new = build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs, scores_list, daids_list, query_sccw)
@@ -336,7 +205,8 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
          fxs_list ~ [ ... list_per_word ... ]
          list_per_word ~ [ ... list_per_rvec ... ]
          list_per_rvec ~ [ features contributing to rvec (only one if agg=False)]
-
+    """
+    """
     CommandLine::
         python dev.py -t smk0 --allgt --db GZ_ALL --index 2:5
         python dev.py -t smk --allgt --db PZ_Mothers --index 1:3 --noqcache --va --vf
@@ -356,6 +226,8 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
     """
     if utool.VERBOSE:
         print(' +--- START BUILD CHIPMATCH3')
+    wx2_qfxs = qindex.wx2_qfxs
+    query_sccw = qindex.query_sccw
     daid2_sccw = invindex.daid2_sccw
     wx2_dfxs = invindex.wx2_fxs
     # For each word the query feature indexes mapped to it
@@ -391,12 +263,16 @@ def build_daid2_chipmatch3(invindex, common_wxs, wx2_qfxs,
     return daid2_chipmatch
 
 
+@profile
 def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     """ helper
     these list comprehensions replace the prevous for loop
     they still need to be optimized a little bit (and made clearer)
     can probably unnest the list comprehensions as well
+    """
 
+    """
+    IGNORE
     Legacy::
         def old_build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
             fm_nestlist_ = []
@@ -426,7 +302,7 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
 
         59ms
         %timeit old_build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list)
-
+    IGNORE
     """
     # FIXME: rewrite double comprehension as a flat comprehension
 
@@ -477,6 +353,7 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
     return fm_nestlist, fs_nestlist, daid_nestlist
 
 
+@profile
 def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw):
     """
     helper
@@ -507,6 +384,7 @@ def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw)
     return all_matches, all_scores, all_daids
 
 
+@profile
 def group_correspondences(all_matches, all_scores, all_daids, daid2_sccw):
     daid_keys, groupxs = clustertool.group_indicies(all_daids)
     fs_list = clustertool.apply_grouping(all_scores, groupxs)
@@ -549,7 +427,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     Example:
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel_L2()
+        >>> ibs, invindex, qindex, qparams = smk_debug.testdata_match_kernel_L2()
         >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
         >>> smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
         >>> smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
@@ -581,10 +459,6 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
     # Normalize scores for words, nMatches, and query sccw (still need daid sccw)
     nscores_iter = (scores * query_sccw for scores in scores_list)
-
-    if DEBUG_SMK:
-        from ibeis.model.hots.smk import smk_debug
-        smk_debug.dbstr_qindex()
 
     # FIXME: Preflatten all of these lists
     out_ijs = [
@@ -678,6 +552,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     #flatqfxs = utool.flatten([[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)])
 
 
+@profile
 def mem_arange(num, cache={}):
     # TODO: weakref cache
     if num not in cache:
@@ -685,6 +560,7 @@ def mem_arange(num, cache={}):
     return cache[num]
 
 
+@profile
 def mem_meshgrid(wrange, hrange, cache={}):
     # TODO: weakref cache
     key = (id(wrange), id(hrange))

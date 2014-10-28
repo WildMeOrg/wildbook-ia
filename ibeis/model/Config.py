@@ -130,7 +130,10 @@ class FilterConfig(ConfigBase):
         addfilt(+1,  'bursty',  None,   0.0)
         addfilt(-1,   'ratio',  None,   0.0)
         addfilt(-1,   'lnbnn',  None,   1.0)
-        addfilt(-1,   'lnrat',  None,   0.0)
+        addfilt(-1,  'lograt',  None,   0.0)
+        addfilt(-1,  'normonly',  None,   0.0)
+        addfilt(-1,  'logdist',  None,   0.0)
+        addfilt(-1,  'loglnbnn',  None,   0.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
 
@@ -281,6 +284,7 @@ class FlannConfig(ConfigBase):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
         flann_cfg.algorithm = 'kdtree'
         flann_cfg.trees = 4
+        flann_cfg.update(**kwargs)
 
     def get_dict_args(flann_cfg):
         return {
@@ -300,39 +304,109 @@ class FlannConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class SMKConfig(ConfigBase):
-    """ SMKConfig """
-    def __init__(smkcfg, **kwargs):
-        super(SMKConfig, smkcfg).__init__(name='smkcfg')
-        smkcfg.nAssign    = 10  # MultiAssignment
-        smkcfg.smk_thresh = 0.0  # tau in the paper
-        smkcfg.smk_alpha  = 3.0
-        smkcfg.aggregate  = False
-        # TODO Separate into vocab config
-        smkcfg.indexer_key = 'default'  # Vocab
-        smkcfg.nWords = int(8E3)  #
-        smkcfg._valid_vocab_weighting = ['idf', 'negentropy']
-        smkcfg.vocab_weighting = 'idf'
-        # Multiassign parameters
-        smkcfg.massign_equal_weights = True
-        smkcfg.massign_alpha = 1.2
-        smkcfg.massign_sigma = 80.0
-        smkcfg.allow_self_match = False
+    """
+    SMKConfig
+        #= ibeis.opendb('testdb1')
 
-    def get_cfgstr_list(smkcfg):
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
+        >>> smk_cfg.printme3()
+    """
+    def __init__(smk_cfg, **kwargs):
+        super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
+        smk_cfg.nAssign    = 10  # MultiAssignment
+        smk_cfg.smk_thresh = 0.0  # tau in the paper
+        smk_cfg.smk_alpha  = 3.0
+        smk_cfg.aggregate  = False
+        # TODO Separate into vocab config
+        smk_cfg.indexer_key = 'default'  # Vocab
+        smk_cfg.nWords = int(8E3)  #
+        smk_cfg._valid_vocab_weighting = ['idf', 'negentropy']
+        smk_cfg.vocab_weighting = 'idf'
+        # Multiassign parameters
+        smk_cfg.massign_equal_weights = True
+        smk_cfg.massign_alpha = 1.2
+        smk_cfg.massign_sigma = 80.0
+        smk_cfg.allow_self_match = False
+        smk_cfg.update(**kwargs)
+
+    def get_cfgstr_list(smk_cfg):
         smk_cfgstr = [
             '_SMK(',
-            'agg=', str(smkcfg.aggregate),
-            ',t=', str(smkcfg.smk_thresh),
-            ',a=', str(smkcfg.smk_alpha),
+            'agg=', str(smk_cfg.aggregate),
+            ',t=', str(smk_cfg.smk_thresh),
+            ',a=', str(smk_cfg.smk_alpha),
             ')',
             '_Vocab(',
-            'sz=%d' % int(smkcfg.nWords),
-            ',K=', str(smkcfg.nAssign),
-            ',%s' % smkcfg.vocab_weighting,
-            ',a=', str(smkcfg.massign_alpha),
-            ',s=', str(smkcfg.massign_sigma),
-            ',eqw=T' if smkcfg.massign_equal_weights else ',eqw=F',
-            ',SelfOk' if smkcfg.allow_self_match else '',
+            'sz=%d' % int(smk_cfg.nWords),
+            ',K=', str(smk_cfg.nAssign),
+            ',%s' % smk_cfg.vocab_weighting,
+            ',a=', str(smk_cfg.massign_alpha),
+            ',s=', str(smk_cfg.massign_sigma),
+            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
+            ',SelfOk' if smk_cfg.allow_self_match else '',
+            ')',
+        ]
+        return smk_cfgstr
+
+    #def get_cfgstr_list(smk_cfg):
+    #    smk_cfgstr = [
+    #        '_SMK(',
+    #        'agg=', str(smk_cfg.aggregate),
+    #        ',t=', str(smk_cfg.smk_thresh),
+    #        ',a=', str(smk_cfg.smk_alpha),
+    #        ',%s' % smk_cfg.vocab_weighting,
+    #        ',SelfOk' if smk_cfg.allow_self_match else '',
+    #        ')',
+    #    ]
+    #    return smk_cfgstr
+
+
+# TODO
+@six.add_metaclass(ConfigMetaclass)
+class VocabTrainConfig(ConfigBase):
+    """ VocabTrainConfig """
+    def __init__(vocab_cfg, **kwargs):
+        super(VocabTrainConfig, vocab_cfg).__init__(name='vocab_cfg')
+        vocab_cfg.indexer_key = 'default'  # Vocab
+        vocab_cfg.nWords = int(8E3)  #
+        vocab_cfg.update(**kwargs)
+
+    def get_cfgstr_list(smk_cfg):
+        smk_cfgstr = [
+            '_Vocab(',
+            'sz=%d' % int(smk_cfg.nWords),
+            ',K=', str(smk_cfg.nAssign),
+            ',%s' % smk_cfg.vocab_weighting,
+            ',a=', str(smk_cfg.massign_alpha),
+            ',s=', str(smk_cfg.massign_sigma),
+            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
+            ')',
+        ]
+        return smk_cfgstr
+
+
+# TODO
+@six.add_metaclass(ConfigMetaclass)
+class VocabAssignConfig(ConfigBase):
+    """ VocabAssignConfig """
+    def __init__(assign_cfg, **kwargs):
+        super(SMKConfig, assign_cfg).__init__(name='assign_cfg')
+        assign_cfg.nAssign    = 10  # MultiAssignment
+        assign_cfg.massign_equal_weights = True
+        assign_cfg.massign_alpha = 1.2
+        assign_cfg.massign_sigma = 80.0
+        assign_cfg.update(**kwargs)
+
+    def get_cfgstr_list(smk_cfg):
+        smk_cfgstr = [
+            '_Assign(',
+            ',K=', str(smk_cfg.nAssign),
+            ',a=', str(smk_cfg.massign_alpha),
+            ',s=', str(smk_cfg.massign_sigma) if smk_cfg.massign_equal_weights else ''
+            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
             ')',
         ]
         return smk_cfgstr
@@ -340,7 +414,13 @@ class SMKConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
-    """ query configuration parameters """
+    """ query configuration parameters
+
+        Example:
+        >>> import ibeis
+        >>> db ibeis.opendb('testdb1')
+
+    """
     def __init__(query_cfg, feat_cfg=None, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg   = NNConfig(**kwargs)
@@ -354,8 +434,9 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
-        if utool.is_developer():
-            query_cfg.pipeline_root = 'smk'
+        query_cfg.with_metadata = False
+        #if utool.is_developer():
+        #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)
@@ -600,10 +681,14 @@ class PreprocConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
-    def __init__(guicfg, **kwargs):
-        super(DetectionConfig, guicfg).__init__(name='detectcfg')
-        guicfg.species     = 'zebra_grevys'
-        guicfg.detector    = 'rf'
+    def __init__(detect_cfg, **kwargs):
+        super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
+        detect_cfg.species     = 'zebra_grevys'
+        detect_cfg.detector    = 'rf'
+
+    def get_cfgstr_list(detect_cfg):
+        cfgstrs = ['_DETECT(', detect_cfg.detector, ',', detect_cfg.species, ')']
+        return cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)

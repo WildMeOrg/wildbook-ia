@@ -28,13 +28,14 @@ currently a weight of zero is hacked in
 from __future__ import absolute_import, division, print_function
 import numpy as np
 
-#FLOAT_TYPE = np.float32
 #INTEGER_TYPE = np.int32
 INDEX_TYPE = np.int32
 
 #INTEGER_TYPE = np.int64
 INTEGER_TYPE = np.int32
-FLOAT_TYPE = np.float64
+
+#FLOAT_TYPE = np.float64
+FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
 
@@ -44,9 +45,9 @@ VEC_MAX = VEC_IINFO.max
 VEC_MIN = VEC_IINFO.min
 
 
-#RVEC_TYPE = np.int8
-RVEC_TYPE = np.float16
-try:
+RVEC_TYPE = np.int8
+#RVEC_TYPE = np.float16
+if RVEC_TYPE == np.int8:
     # Unfortunatley int8 cannot represent NaN, maybe used a masked array
     RVEC_INFO = np.iinfo(RVEC_TYPE)
     RVEC_MAX = 128
@@ -56,7 +57,7 @@ try:
     # because values will hardly ever be close to the true max.
     RVEC_PSEUDO_MAX = RVEC_MAX * 2
     RVEC_PSEUDO_MAX_SQRD = float(RVEC_PSEUDO_MAX ** 2)
-except ValueError:
+else:
     RVEC_INFO = np.finfo(RVEC_TYPE)
     RVEC_MAX = 1.0
     RVEC_MIN = -1.0

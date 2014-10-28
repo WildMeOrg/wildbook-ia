@@ -159,8 +159,7 @@
         <span class="c"># connect signals and other objects</span>
         <span class="n">fig_presenter</span><span class="o">.</span><span class="n">register_qt4_win</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">)</span>
         <span class="c"># register self with the ibeis controller</span>
-        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">register_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">register_self</span><span class="p">()</span>
 
     <span class="c">#def __del__(back):</span>
     <span class="c">#    back.cleanup()</span>
@@ -168,6 +167,20 @@
 <div class="viewcode-block" id="MainWindowBackend.cleanup"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">remove_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
+
+    <span class="c">#@utool.indent_func</span></div>
+<div class="viewcode-block" id="MainWindowBackend.notify"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify">[docs]</a>    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function. &quot;&quot;&quot;</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
+
+    <span class="c">#@utool.indent_func</span></div>
+<div class="viewcode-block" id="MainWindowBackend.notify_controller_killed"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify_controller_killed">[docs]</a>    <span class="k">def</span> <span class="nf">notify_controller_killed</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function that the ibeis controller has been killed. &quot;&quot;&quot;</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="MainWindowBackend.register_self"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.register_self">[docs]</a>    <span class="k">def</span> <span class="nf">register_self</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">register_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
 
     <span class="c">#------------------------</span>
     <span class="c"># Draw Functions</span>
@@ -234,27 +247,16 @@
         <span class="k">pass</span>
 
     <span class="c">#@utool.indent_func</span></div>
-<div class="viewcode-block" id="MainWindowBackend.notify"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify">[docs]</a>    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function. &quot;&quot;&quot;</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
-
-    <span class="c">#@utool.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.refresh_state"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.refresh_state">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_state</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Blanket refresh function. Try not to call this &quot;&quot;&quot;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
-
-    <span class="c">#@utool.indent_func</span></div>
-<div class="viewcode-block" id="MainWindowBackend.notify_controller_killed"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify_controller_killed">[docs]</a>    <span class="k">def</span> <span class="nf">notify_controller_killed</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function that the ibeis controller has been killed. &quot;&quot;&quot;</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="c">#@utool.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.connect_ibeis_control"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.connect_ibeis_control">[docs]</a>    <span class="k">def</span> <span class="nf">connect_ibeis_control</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] connect_ibeis()&#39;</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="c"># register self with the ibeis controller</span>
-        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">register_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">register_self</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">_set_selection</span><span class="p">(</span><span class="n">sel_gids</span><span class="o">=</span><span class="p">[],</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">sel_nids</span><span class="o">=</span><span class="p">[],</span>
                             <span class="n">sel_eids</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">])</span>

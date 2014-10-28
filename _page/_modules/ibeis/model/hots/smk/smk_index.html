@@ -69,391 +69,17 @@
 <span class="c">#import pandas as pd</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
-<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">nearest_neighbors</span> <span class="k">as</span> <span class="n">nntool</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.hstypes</span> <span class="kn">import</span> <span class="n">INTEGER_TYPE</span><span class="p">,</span> <span class="n">FLOAT_TYPE</span><span class="p">,</span> <span class="n">INDEX_TYPE</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_core</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_speed</span>
-<span class="c">#from ibeis.model.hots.smk import smk_match</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">pandas_helpers</span> <span class="k">as</span> <span class="n">pdh</span>
-<span class="c">#from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_scoring</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_residuals</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_index]&#39;</span><span class="p">)</span>
 
 <span class="n">USE_CACHE_WORDS</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-words&#39;</span><span class="p">)</span>
-<span class="n">WITH_TOTALTIME</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">WITH_TOTALTIME</span> <span class="o">=</span> <span class="bp">True</span>
 
 
-<span class="c">#@six.add_metaclass(utool.ReloadingMetaclass)</span>
-<div class="viewcode-block" id="InvertedIndex"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.InvertedIndex">[docs]</a><span class="k">class</span> <span class="nc">InvertedIndex</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Stores inverted index state information</span>
-<span class="sd">    (mapping from words to database aids and fxs_list)</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        idx2_dvec    (ndarray): stacked index -&gt; descriptor vector (currently sift)</span>
-<span class="sd">        idx2_daid    (ndarray): stacked index -&gt; annot id</span>
-<span class="sd">        idx2_dfx     (ndarray): stacked index -&gt; feature index (wrt daid)</span>
-<span class="sd">        idx2_fweight (ndarray): stacked index -&gt; feature weight</span>
-<span class="sd">        words        (ndarray): visual word centroids</span>
-<span class="sd">        wordflann    (FLANN): FLANN search structure</span>
-<span class="sd">        wx2_idxs     (ndarray): word index -&gt; stacked indexes</span>
-<span class="sd">        wx2_aids     (ndarray): word index -&gt; aggregate aids</span>
-<span class="sd">        wx2_fxs      (ndarray): word index -&gt; aggregate feature indexes</span>
-<span class="sd">        wx2_maws     (ndarray): word index -&gt; multi-assign weights</span>
-<span class="sd">        wx2_drvecs   (ndarray): word index -&gt; residual vectors</span>
-<span class="sd">        wx2_idf      (ndarray): word index -&gt; idf (wx normalizer)</span>
-<span class="sd">        daids        (ndarray): indexed annotation ids</span>
-<span class="sd">        daid2_sccw   (ndarray): daid -&gt; sccw (daid self-consistency weight)</span>
-<span class="sd">        daid2_label  (ndarray): daid -&gt; label (name, view)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">wordflann</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span>
-                 <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>        <span class="o">=</span> <span class="n">words</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>    <span class="o">=</span> <span class="n">wordflann</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>    <span class="o">=</span> <span class="n">idx2_vec</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>    <span class="o">=</span> <span class="n">idx2_aid</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span>     <span class="o">=</span> <span class="n">idx2_fx</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>        <span class="o">=</span> <span class="n">daids</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>  <span class="o">=</span> <span class="n">daid2_label</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span>     <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>     <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>      <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_maws</span>     <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>   <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>      <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>   <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_fweight</span> <span class="o">=</span> <span class="bp">None</span>
-
-</div>
-<span class="n">QueryIndex</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
-    <span class="s">&#39;QueryIndex&#39;</span><span class="p">,</span> <span class="p">(</span>
-        <span class="s">&#39;wx2_qrvecs&#39;</span><span class="p">,</span>
-        <span class="s">&#39;wx2_maws&#39;</span><span class="p">,</span>
-        <span class="s">&#39;wx2_qaids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;wx2_qfxs&#39;</span><span class="p">,</span>
-        <span class="s">&#39;query_sccw&#39;</span><span class="p">,</span>
-    <span class="p">))</span>
-
-
+<span class="c">#@utool.memprof</span>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="new_qindex"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.new_qindex">[docs]</a><span class="k">def</span> <span class="nf">new_qindex</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: Move to module that uses smk_index</span>
-
-<span class="sd">    Gets query read for computations</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        annots_df ():</span>
-<span class="sd">        qaid ():</span>
-<span class="sd">        invindex ():</span>
-<span class="sd">        qparams ():</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        qindex</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()</span>
-<span class="sd">        &gt;&gt;&gt; qparams = ibs.cfg.query_cfg.smk_cfg</span>
-<span class="sd">        &gt;&gt;&gt; qindex = new_qindex(annots_df, qaid, invindex, qparams)</span>
-<span class="sd">        &gt;&gt;&gt; (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex</span>
-<span class="sd">        &gt;&gt;&gt; assert smk_debug.check_wx2_rvecs(wx2_qrvecs), &#39;has nan&#39;</span>
-<span class="sd">        &gt;&gt;&gt; invindex_dbgstr.invindex_dbgstr(invindex)</span>
-
-<span class="sd">    Ignore::</span>
-<span class="sd">        idx2_vec = qfx2_vec</span>
-<span class="sd">        idx2_aid = qfx2_aid</span>
-<span class="sd">        idx2_fx  = qfx2_qfx</span>
-<span class="sd">        wx2_idxs = _wx2_qfxs</span>
-<span class="sd">        wx2_maws = _wx2_maws</span>
-
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool</span>
-<span class="sd">        utool.rrrr()</span>
-<span class="sd">        print(utool.make_default_docstr(smk_index.new_qindex))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: Precompute and lookup residuals and assignments</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] Query Repr qaid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
-    <span class="c">#</span>
-    <span class="n">nAssign</span>               <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
-    <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
-    <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
-    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
-    <span class="c">#</span>
-    <span class="n">aggregate</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
-    <span class="n">smk_alpha</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
-    <span class="n">smk_thresh</span>            <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
-    <span class="c">#</span>
-
-    <span class="n">wx2_idf</span>   <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>
-    <span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
-    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
-    <span class="c">#qfx2_vec  = annots_df[&#39;vecs&#39;][qaid].values</span>
-    <span class="n">qfx2_vec</span>  <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span>
-    <span class="c"># Assign query to (multiple) words</span>
-    <span class="n">_wx2_qfxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">qfx2_wxs</span> <span class="o">=</span> <span class="n">assign_to_words_</span><span class="p">(</span>
-        <span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span>
-        <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
-    <span class="c"># Hack to make implementing asmk easier, very redundant</span>
-    <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_wxs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INTEGER_TYPE</span><span class="p">)</span>
-    <span class="n">qfx2_qfx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">))</span>
-    <span class="c"># Compute query residuals</span>
-    <span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">wx2_maws</span> <span class="o">=</span> <span class="n">compute_residuals_</span><span class="p">(</span>
-        <span class="n">words</span><span class="p">,</span> <span class="n">_wx2_qfxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">qfx2_aid</span><span class="p">,</span> <span class="n">qfx2_qfx</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">)</span>
-    <span class="c"># each value in wx2_ dicts is a list with len equal to the number of rvecs</span>
-    <span class="c"># Compute query sccw</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] Query SCCW smk_alpha=</span><span class="si">%r</span><span class="s">, smk_thresh=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
-    <span class="n">wx_sublist</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-    <span class="n">idf_list</span>    <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>    <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">rvecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qrvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">maws_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>   <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">query_sccw</span> <span class="o">=</span> <span class="n">smk_core</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">query_sccw</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;query_sccw=</span><span class="si">%r</span><span class="s"> is not positive!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_sccw</span><span class="p">,)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-        <span class="k">raise</span>
-    <span class="c"># Build query representationm class/tuple</span>
-    <span class="n">qindex</span> <span class="o">=</span> <span class="n">QueryIndex</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">query_sccw</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">qindex</span>
-    <span class="c">#return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw</span>
-
-</div>
-<div class="viewcode-block" id="index_data_annots"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.index_data_annots">[docs]</a><span class="k">def</span> <span class="nf">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">with_internals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                      <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: Move to module that uses smk_index</span>
-
-<span class="sd">    Builds the initial inverted index from a dataframe, daids, and words.</span>
-<span class="sd">    Optionally builds the internals of the inverted structure</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        annots_df ():</span>
-<span class="sd">        daids ():</span>
-<span class="sd">        words ():</span>
-<span class="sd">        qparams ():</span>
-<span class="sd">        with_internals ():</span>
-<span class="sd">        memtrack ():</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        invindex</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()</span>
-<span class="sd">        &gt;&gt;&gt; qparams = qreq_.qparams</span>
-<span class="sd">        &gt;&gt;&gt; with_internals = False</span>
-<span class="sd">        &gt;&gt;&gt; invindex = index_data_annots(annots_df, daids, words, qparams, with_internals)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        #&gt;&gt;&gt; print(utool.hashstr(repr(list(invindex.__dict__.values()))))</span>
-<span class="sd">        #v8+i5i8+55j0swio</span>
-
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool</span>
-<span class="sd">        utool.rrrr()</span>
-<span class="sd">        print(utool.make_default_docstr(smk_index.index_data_annots))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] index_data_annots&#39;</span><span class="p">)</span>
-    <span class="c">#_words = words</span>
-    <span class="c">#_words = pdh.ensure_values(words)</span>
-    <span class="c">#_daids = pdh.ensure_values(daids)</span>
-    <span class="c">#_vecs_list = pdh.ensure_2d_values(annots_df[&#39;vecs&#39;][_daids])</span>
-    <span class="c">#_label_list = pdh.ensure_values(annots_df[&#39;labels&#39;][_daids])</span>
-    <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c"># Compute fast lookup index for the words</span>
-    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span>
-                                   <span class="n">appname</span><span class="o">=</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
-    <span class="n">_vecs_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
-    <span class="n">_label_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;labels&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
-    <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">invertable_stack</span><span class="p">(</span><span class="n">_vecs_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
-
-    <span class="n">daid2_label</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">_label_list</span><span class="p">))</span>
-
-    <span class="n">invindex</span> <span class="o">=</span> <span class="n">InvertedIndex</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wordflann</span><span class="p">,</span> <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span>
-                             <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">)</span>
-    <span class="c"># Decrement reference count so memory can be cleared in the next function</span>
-    <span class="k">del</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span>
-    <span class="k">del</span> <span class="n">_vecs_list</span><span class="p">,</span> <span class="n">_label_list</span>
-    <span class="k">if</span> <span class="n">with_internals</span><span class="p">:</span>
-        <span class="n">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>  <span class="c"># 99%</span>
-    <span class="k">return</span> <span class="n">invindex</span>
-
-
-<span class="c">#@profile</span></div>
-<div class="viewcode-block" id="compute_data_internals_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_data_internals_">[docs]</a><span class="k">def</span> <span class="nf">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: Move to module that uses smk_index</span>
-
-<span class="sd">    Builds each of the inverted index internals.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        invindex ():</span>
-<span class="sd">        qparams ():</span>
-<span class="sd">        memtrack ():</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()</span>
-<span class="sd">        &gt;&gt;&gt; aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate</span>
-<span class="sd">        &gt;&gt;&gt; smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha</span>
-<span class="sd">        &gt;&gt;&gt; smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh</span>
-<span class="sd">        &gt;&gt;&gt; vocab_weighting = ibs.cfg.query_cfg.smk_cfg.vocab_weighting</span>
-<span class="sd">        &gt;&gt;&gt; compute_data_internals_(invindex, aggregate, smk_alpha, smk_thresh)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        idx2_vec = idx2_dvec</span>
-<span class="sd">        wx2_maws = _wx2_maws  # NOQA</span>
-
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool</span>
-<span class="sd">        utool.rrrr()</span>
-<span class="sd">        print(utool.make_default_docstr(smk_index.compute_data_internals_))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Get information</span>
-    <span class="c">#if memtrack is None:</span>
-    <span class="c">#    memtrack = utool.MemoryTracker(&#39;[DATA INTERNALS ENTRY]&#39;)</span>
-
-    <span class="c">#memtrack.report(&#39;[DATA INTERNALS1]&#39;)</span>
-
-    <span class="c">#</span>
-    <span class="n">aggregate</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
-    <span class="n">smk_alpha</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
-    <span class="n">smk_thresh</span>            <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
-    <span class="c">#</span>
-    <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
-    <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
-    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
-    <span class="c">#</span>
-    <span class="n">vocab_weighting</span>       <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">vocab_weighting</span>
-    <span class="c">#</span>
-    <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># single assignment for database side</span>
-
-    <span class="n">idx2_vec</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>
-    <span class="n">idx2_dfx</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span>
-    <span class="n">idx2_daid</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
-    <span class="n">daids</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>
-    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
-    <span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
-    <span class="n">daid2_label</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>
-    <span class="n">wx_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
-    <span class="c">#memtrack.track_obj(idx2_vec, &#39;idx2_vec&#39;)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] compute_data_internals_&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * len(daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * len(words) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * len(idx2_vec) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * aggregate = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aggregate</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * smk_alpha = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * smk_thresh = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_thresh</span><span class="p">,))</span>
-    <span class="c"># Database word assignments (perform single assignment on database side)</span>
-    <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">assign_to_words_</span><span class="p">(</span><span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span>
-                                                     <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span>
-                                                     <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">_wx2_maws</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="c"># Database word inverse-document-frequency (idf weights)</span>
-    <span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">compute_word_idf_</span><span class="p">(</span>
-        <span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">,</span> <span class="n">vocab_weighting</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="c"># Compute (normalized) residual vectors and inverse mappings</span>
-    <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span> <span class="o">=</span> <span class="n">compute_residuals_</span><span class="p">(</span>
-        <span class="n">words</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">)</span>
-    <span class="c"># Try to save some memory</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] unloading idx2_vec&#39;</span><span class="p">)</span>
-    <span class="k">del</span> <span class="n">_wx2_maws</span>
-    <span class="c">#memtrack.report(&#39;[DATA INTERNALS1]&#39;)</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">del</span> <span class="n">idx2_vec</span>
-    <span class="c">#utool.report_memsize(idx2_vec_ref, &#39;idx2_vec_ref&#39;)</span>
-    <span class="c">#memtrack.report(&#39;[DATA INTERNALS2]&#39;)</span>
-    <span class="c"># Compute annotation normalization factor</span>
-    <span class="n">wx2_rvecs</span> <span class="o">=</span> <span class="n">wx2_drvecs</span>  <span class="c"># NOQA</span>
-    <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="n">compute_data_sccw_</span><span class="p">(</span><span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
-    <span class="c"># Store information</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span>    <span class="o">=</span> <span class="n">idx2_wxs</span>   <span class="c"># stacked index -&gt; word indexes</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span>    <span class="o">=</span> <span class="n">wx2_idxs</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>     <span class="o">=</span> <span class="n">wx2_idf</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>  <span class="o">=</span> <span class="n">wx2_drvecs</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>    <span class="o">=</span> <span class="n">wx2_aids</span>  <span class="c"># needed for asmk</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>     <span class="o">=</span> <span class="n">wx2_fxs</span>   <span class="c"># needed for asmk</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_maws</span>    <span class="o">=</span> <span class="n">wx2_maws</span>  <span class="c"># needed for awx2_mawssmk</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>  <span class="o">=</span> <span class="n">daid2_sccw</span>
-    <span class="c">#memtrack.report(&#39;[DATA INTERNALS3]&#39;)</span>
-
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_invindex_wx2</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
-
-
-<span class="c">#@profile</span></div>
-<div class="viewcode-block" id="make_annot_df"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.make_annot_df">[docs]</a><span class="k">def</span> <span class="nf">make_annot_df</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a pandas like DataFrame interface to an IBEISController</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs ():</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        annots_df</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs = smk_debug.testdata_ibeis()</span>
-<span class="sd">        &gt;&gt;&gt; annots_df = make_annot_df(ibs)</span>
-<span class="sd">        &gt;&gt;&gt; print(utool.hashstr(repr(annots_df.values)))</span>
-<span class="sd">        j12n+x93m4c!4un3</span>
-
-<span class="sd">    #&gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">    #&gt;&gt;&gt; smk_debug.rrr()</span>
-<span class="sd">    #&gt;&gt;&gt; smk_debug.check_dtype(annots_df)</span>
-
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool</span>
-<span class="sd">        argdoc = utool.make_default_docstr(smk_index.make_annot_df)</span>
-<span class="sd">        print(argdoc)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#aid_list = ibs.get_valid_aids()  # 80us</span>
-    <span class="n">annots_df</span> <span class="o">=</span> <span class="n">pdh</span><span class="o">.</span><span class="n">DataFrameProxy</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="c">#kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms</span>
-    <span class="c">#vecs_list = ibs.get_annot_desc(aid_list)  # 50ms</span>
-    <span class="c">#assert len(kpts_list) == len(vecs_list)</span>
-    <span class="c">#assert len(label_list) == len(vecs_list)</span>
-    <span class="c">#aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name=&#39;aid&#39;)</span>
-    <span class="c">#label_series = pd.Series(label_list, index=aid_list, name=&#39;labels&#39;)</span>
-    <span class="c">#kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, &#39;fx&#39;, &#39;kpts&#39;)  # 6.7ms</span>
-    <span class="c">#vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, &#39;fx&#39;, &#39;vecs&#39;)  # 7.1ms</span>
-    <span class="c">## Pandas Annotation Dataframe</span>
-    <span class="c">#annots_df = pd.concat([kpts_df, vecs_df, label_series], axis=1)  # 845 us</span>
-    <span class="k">return</span> <span class="n">annots_df</span>
-
-
-<span class="c">#@profile</span>
-<span class="c">#@utool.memprof</span></div>
 <div class="viewcode-block" id="learn_visual_words"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.learn_visual_words">[docs]</a><span class="k">def</span> <span class="nf">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">nWords</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">USE_CACHE_WORDS</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes and caches visual words</span>
@@ -485,10 +111,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#if memtrack is None:</span>
     <span class="c">#    memtrack = utool.MemoryTracker(&#39;[learn_visual_words]&#39;)</span>
-    <span class="n">max_iters</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="c">#max_iters = 200</span>
+    <span class="n">max_iters</span> <span class="o">=</span> <span class="mi">300</span>
     <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c">#train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df[&#39;vecs&#39;][taids].values]</span>
-    <span class="c">#train_vecs_list = annots_df[&#39;vecs&#39;][taids]</span>
     <span class="n">train_vecs_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c">#memtrack.track_obj(train_vecs_list[0], &#39;train_vecs_list[0]&#39;)</span>
     <span class="c">#memtrack.report(&#39;loaded trainvecs&#39;)</span>
@@ -536,20 +161,22 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()</span>
 <span class="sd">        &gt;&gt;&gt; words  = invindex.words</span>
 <span class="sd">        &gt;&gt;&gt; wordflann = invindex.wordflann</span>
 <span class="sd">        &gt;&gt;&gt; idx2_vec  = invindex.idx2_dvec</span>
-<span class="sd">        &gt;&gt;&gt; nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign</span>
-<span class="sd">        &gt;&gt;&gt; _dbargs = (wordflann, words, idx2_vec,  nAssign)</span>
+<span class="sd">        &gt;&gt;&gt; nAssign = qreq_.qparams.nAssign</span>
+<span class="sd">        &gt;&gt;&gt; massign_alpha = qreq_.qparams.massign_alpha</span>
+<span class="sd">        &gt;&gt;&gt; massign_sigma = qreq_.qparams.massign_sigma</span>
+<span class="sd">        &gt;&gt;&gt; massign_equal_weights = qreq_.qparams.massign_equal_weights</span>
+<span class="sd">        &gt;&gt;&gt; _dbargs = wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)</span>
 <span class="sd">        &gt;&gt;&gt; wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] assign_to_words_. len(idx2_vec) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * nAssign=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * sigma=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">massign_sigma</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] * smk_alpha=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">massign_alpha</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] +--- Start Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] * nAssign=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] assign_to_words_. len(idx2_vec) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">))</span>
     <span class="c"># Assign each vector to the nearest visual words</span>
     <span class="k">assert</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;cannot assign to 0 neighbors&#39;</span>
     <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="n">wordflann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
@@ -563,18 +190,19 @@
         <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span>
 
     <span class="c"># Invert mapping -- Group by word indexes</span>
-    <span class="n">jagged_idxs</span> <span class="o">=</span> <span class="p">([</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">))</span>
+    <span class="n">jagged_idxs</span> <span class="o">=</span> <span class="p">([</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span><span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">))</span>
     <span class="n">wx_keys</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">jagged_group</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span>
     <span class="n">idxs_list</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">jagged_idxs</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">maws_list</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">idx2_maws</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">wx2_idxs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">))</span>
     <span class="n">wx2_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">idx2_wxs</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_multiassign_weights_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_multiassign_weights_">[docs]</a><span class="k">def</span> <span class="nf">compute_multiassign_weights_</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span>
                                  <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -585,32 +213,59 @@
 <span class="sd">        _idx2_wdist ():</span>
 <span class="sd">        massign_alpha ():</span>
 <span class="sd">        massign_sigma ():</span>
-<span class="sd">        massign_equal_weights ():</span>
+<span class="sd">        massign_equal_weights (): Turns off soft weighting. Gives all assigned</span>
+<span class="sd">            vectors weight 1</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple : (idx2_wxs, idx2_maws)</span>
 
 <span class="sd">    References:</span>
+<span class="sd">        (Improving Bag of Features)</span>
 <span class="sd">        http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf</span>
+
+<span class="sd">        (Lost in Quantization)</span>
+<span class="sd">        http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz</span>
+
+<span class="sd">        (A Context Dissimilarity Measure for Accurate and Efficient Image Search)</span>
+<span class="sd">        https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        sigma values from \cite{philbin_lost08}</span>
+<span class="sd">        (70 ** 2) ~= 5000,</span>
+<span class="sd">        (80 ** 2) ~= 6250,</span>
+<span class="sd">        (86 ** 2) ~= 7500,</span>
 
 <span class="sd">    Auto:</span>
 <span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool</span>
-<span class="sd">        utool.rrrr()</span>
-<span class="sd">        func = smk_index.compute_multiassign_weights_</span>
-<span class="sd">        argdoc = utool.make_default_docstr(smk_index.compute_multiassign_weights_)</span>
-<span class="sd">        print(argdoc)</span>
+<span class="sd">        import utool; print(utool.make_default_docstr(smk_index.compute_multiassign_weights_))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] compute_multiassign_weights_&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] compute_multiassign_weights_&#39;</span><span class="p">)</span>
     <span class="c"># Valid word assignments are beyond fraction of distance to the nearest word</span>
-    <span class="n">massign_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">massign_alpha</span><span class="p">,</span> <span class="p">(</span><span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="o">.</span><span class="mo">001</span> <span class="p">))</span>
+    <span class="n">massign_thresh</span> <span class="o">=</span> <span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c"># HACK: If the nearest word has distance 0 then this threshold is too hard</span>
+    <span class="c"># so we should use the distance to the second nearest word.</span>
+    <span class="n">flag_too_close</span> <span class="o">=</span> <span class="p">(</span><span class="n">massign_thresh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">massign_thresh</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span> <span class="o">=</span> <span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span>
+    <span class="c"># Compute the threshold fraction</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">.</span><span class="mo">001</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">massign_thresh</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">massign_thresh</span><span class="p">)</span>
     <span class="n">invalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">_idx2_wdist</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">massign_equal_weights</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">invalid</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">invalid</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] + massign_alpha = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_alpha</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] + massign_sigma = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_sigma</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] + massign_equal_weights = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_equal_weights</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] * Marked </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> assignments as invalid&#39;</span> <span class="o">%</span> <span class="n">_</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">massign_equal_weights</span><span class="p">:</span>
         <span class="c"># Performance hack from jegou paper: just give everyone equal weight</span>
         <span class="n">masked_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
         <span class="n">idx2_wxs</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">,</span> <span class="n">masked_wxs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
-        <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">wxs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">]</span>
+        <span class="c">#utool.embed()</span>
+        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">wxs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">])</span>
+        <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># More natural weighting scheme</span>
         <span class="c"># Weighting as in Lost in Quantization</span>
@@ -646,7 +301,7 @@
 <span class="c">#@utool.cached_func(&#39;smk_idf&#39;, appname=&#39;smk&#39;, key_argx=[1, 2, 3], key_kwds=[&#39;daid2_label&#39;])</span></div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_word_idf_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_word_idf_">[docs]</a><span class="k">def</span> <span class="nf">compute_word_idf_</span><span class="p">(</span><span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                      <span class="n">vocab_weighting</span><span class="o">=</span><span class="s">&#39;idf&#39;</span><span class="p">):</span>
+                      <span class="n">vocab_weighting</span><span class="o">=</span><span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes the inverse-document-frequency weighting for each word</span>
 
@@ -664,7 +319,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
 <span class="sd">        &gt;&gt;&gt; wx_series = np.arange(len(invindex.words))</span>
 <span class="sd">        &gt;&gt;&gt; idx2_aid = invindex.idx2_daid</span>
 <span class="sd">        &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
@@ -682,21 +337,14 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] +--- Start Compute IDF&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;[smk_index] Word IDFs: &#39;</span><span class="p">,</span>
-                                        <span class="nb">len</span><span class="p">(</span><span class="n">wx_series</span><span class="p">),</span> <span class="n">flushfreq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-                                        <span class="n">writefreq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
-    <span class="c"># idxs for each word</span>
-    <span class="n">idxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-                 <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_idxs</span>
-                 <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-                 <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_series</span><span class="p">]</span>
-    <span class="c"># aids for each word</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx2_aid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
-                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-                 <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-                 <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.idf] +--- Start Compute IDF&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;[smk_index.idf] Word IDFs: &#39;</span><span class="p">,</span>
+                                        <span class="nb">len</span><span class="p">(</span><span class="n">wx_series</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                                        <span class="n">with_time</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
+
+    <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span> <span class="o">=</span> <span class="n">helper_idf_wordgroup</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">wx_series</span><span class="p">)</span>
+
     <span class="c"># TODO: Integrate different idf measures</span>
     <span class="k">if</span> <span class="n">vocab_weighting</span> <span class="o">==</span> <span class="s">&#39;idf&#39;</span><span class="p">:</span>
         <span class="n">idf_list</span> <span class="o">=</span> <span class="n">compute_idf_orig</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
@@ -705,13 +353,30 @@
         <span class="n">idf_list</span> <span class="o">=</span> <span class="n">compute_idf_label1</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown option vocab_weighting=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">vocab_weighting</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">end_</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] L___ End Compute IDF&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.idf] L___ End Compute IDF&#39;</span><span class="p">)</span>
     <span class="n">wx2_idf</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_series</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">wx2_idf</span>
 
 </div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="helper_idf_wordgroup"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.helper_idf_wordgroup">[docs]</a><span class="k">def</span> <span class="nf">helper_idf_wordgroup</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">wx_series</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; helper function &quot;&quot;&quot;</span>
+    <span class="c"># idxs for each word</span>
+    <span class="n">idxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_idxs</span>
+                 <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_series</span><span class="p">]</span>
+    <span class="c"># aids for each word</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx2_aid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                 <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_idf_orig"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_idf_orig">[docs]</a><span class="k">def</span> <span class="nf">compute_idf_orig</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The standard tried and true idf measure</span>
@@ -722,21 +387,32 @@
     <span class="c"># Typically for IDF, 1 is added to the denominator to prevent divide by 0</span>
     <span class="c"># compute idf half of sccw-idf weighting</span>
     <span class="n">idf_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">nTotalDocs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nDocsWithWord_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-                                <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">idf_list</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_negentropy_names"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_negentropy_names">[docs]</a><span class="k">def</span> <span class="nf">compute_negentropy_names</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    One of our idf extensions</span>
 <span class="sd">    Word weighting based on the negative entropy over all names of p(n_i | word)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        aids_list ():</span>
-<span class="sd">        daid2_label ():</span>
+<span class="sd">        aids_list (list of aids):</span>
+<span class="sd">        daid2_label (dict from daid to label):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        negentropy_list</span>
+<span class="sd">        negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
+<span class="sd">        &gt;&gt;&gt; wx_series = np.arange(len(invindex.words))</span>
+<span class="sd">        &gt;&gt;&gt; idx2_aid = invindex.idx2_daid</span>
+<span class="sd">        &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
+<span class="sd">        &gt;&gt;&gt; _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)</span>
+<span class="sd">        &gt;&gt;&gt; idxs_list, aids_list = _</span>
 
 <span class="sd">    Math::</span>
 <span class="sd">        p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)</span>
@@ -752,10 +428,12 @@
 
 <span class="sd">        word_weight = log(N) - h(n | word)</span>
 
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool; print(utool.make_default_docstr(smk_index.compute_negentropy_names))</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL</span>
+<span class="sd">        python dev.py -t smk5 --allgt --db GZ_ALL</span>
 
+<span class="sd">    Auto:</span>
+<span class="sd">        python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nWords</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
     <span class="c"># --- LABEL MEMBERS w.r.t daids ---</span>
@@ -818,25 +496,21 @@
     <span class="k">return</span> <span class="n">negentropy_list</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_idf_label1"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_idf_label1">[docs]</a><span class="k">def</span> <span class="nf">compute_idf_label1</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    One of our idf extensions</span>
-<span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
-<span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">    &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()</span>
-<span class="sd">    &gt;&gt;&gt; wx_series = np.arange(len(invindex.words))</span>
-<span class="sd">    &gt;&gt;&gt; idx2_aid = invindex.idx2_daid</span>
-<span class="sd">    &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
-<span class="sd">    &gt;&gt;&gt; idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)</span>
-<span class="sd">    &gt;&gt;&gt;              if wx in wx2_idxs</span>
-<span class="sd">    &gt;&gt;&gt;              else np.empty(0, dtype=INDEX_TYPE)</span>
-<span class="sd">    &gt;&gt;&gt;              for wx in wx_series]</span>
-<span class="sd">    &gt;&gt;&gt; # aids for each word</span>
-<span class="sd">    &gt;&gt;&gt; aids_list = [idx2_aid.take(idxs)</span>
-<span class="sd">    &gt;&gt;&gt;              if len(idxs) &gt; 0</span>
-<span class="sd">    &gt;&gt;&gt;              else np.empty(0, dtype=INDEX_TYPE)</span>
-<span class="sd">    &gt;&gt;&gt;              for idxs in idxs_list]</span>
-<span class="sd">    &gt;&gt;&gt; wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
+<span class="sd">        &gt;&gt;&gt; wx_series = np.arange(len(invindex.words))</span>
+<span class="sd">        &gt;&gt;&gt; idx2_aid = invindex.idx2_daid</span>
+<span class="sd">        &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
+<span class="sd">        &gt;&gt;&gt; _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)</span>
+<span class="sd">        &gt;&gt;&gt; idxs_list, aids_list = _</span>
+<span class="sd">        &gt;&gt;&gt; wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nWords</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
     <span class="c"># Computes our novel label idf weight</span>
@@ -862,26 +536,28 @@
 
     <span class="c"># Labels for each word</span>
     <span class="n">idf_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">nLabels</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pcntLblsWithWord</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-                                <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">),</span>
+                      <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">idf_list</span>
 
 
 <span class="c">#@utool.cached_func(&#39;smk_rvecs_&#39;, appname=&#39;smk&#39;)</span></div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_residuals_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_residuals_">[docs]</a><span class="k">def</span> <span class="nf">compute_residuals_</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span>
-                       <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">):</span>
+                       <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes residual vectors based on worwx2_fxs d assignments</span>
+<span class="sd">    Computes residual vectors based on word assignments</span>
 <span class="sd">    returns mapping from word index to a set of residual vectors</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        words ():</span>
-<span class="sd">        wx2_idxs ():</span>
-<span class="sd">        wx2_maws ():</span>
-<span class="sd">        idx2_vec ():</span>
-<span class="sd">        idx2_aid ():</span>
-<span class="sd">        idx2_fx ():</span>
-<span class="sd">        aggregate ():</span>
+<span class="sd">        words (ndarray):</span>
+<span class="sd">        wx2_idxs (dict):</span>
+<span class="sd">        wx2_maws (dict):</span>
+<span class="sd">        idx2_vec (dict):</span>
+<span class="sd">        idx2_aid (dict):</span>
+<span class="sd">        idx2_fx (dict):</span>
+<span class="sd">        aggregate (bool):</span>
+<span class="sd">        verbose (bool):</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple : (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) formatted as::</span>
@@ -899,26 +575,21 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
 <span class="sd">        &gt;&gt;&gt; words     = invindex.words</span>
 <span class="sd">        &gt;&gt;&gt; idx2_aid  = invindex.idx2_daid</span>
 <span class="sd">        &gt;&gt;&gt; idx2_fx   = invindex.idx2_dfx</span>
 <span class="sd">        &gt;&gt;&gt; idx2_vec  = invindex.idx2_dvec</span>
 <span class="sd">        &gt;&gt;&gt; aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate</span>
-<span class="sd">        &gt;&gt;&gt; wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)</span>
-
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool; print(utool.make_default_docstr(smk_index.compute_residuals_))</span>
-
+<span class="sd">        &gt;&gt;&gt; wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws, wx2_flags = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] +--- Start Compute Residuals&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.rvec] +--- Start Compute Residuals&#39;</span><span class="p">)</span>
 
-    <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  <span class="c"># pdh.ensure_index(wx2_idxs)</span>
+    <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="c"># Build lists w.r.t. words</span>
 
-    <span class="n">idxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">INDEX_TYPE</span><span class="p">)</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">idxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx2_aid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="c">#assert np.all(np.diff(wx_sublist) == 1), &#39;not dense&#39;</span>
@@ -926,22 +597,34 @@
         <span class="k">assert</span> <span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx2_fx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx2_aid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c"># Prealloc output</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] Residual Vectors for </span><span class="si">%d</span><span class="s"> words. aggregate=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">aggregate</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="c">#print(&#39;[smk_index.rvec] Residual Vectors for %d words. aggregate=%r&#39; %</span>
+        <span class="c">#      (len(wx2_idxs), aggregate,))</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[smk_index.rvec] agg rvecs&#39;</span> <span class="k">if</span> <span class="n">aggregate</span> <span class="k">else</span> <span class="s">&#39;[smk_index.rvec] nonagg rvecs&#39;</span>
+        <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">with_time</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
         <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2_idxs</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
-    <span class="c"># Nonaggregated residuals</span>
-    <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>  <span class="c"># 1 ms</span>
-    <span class="n">vecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>  <span class="c"># 5.3 ms</span>
-    <span class="n">rvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">smk_core</span><span class="o">.</span><span class="n">get_norm_rvecs</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
-                  <span class="k">for</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">words_list</span><span class="p">)]</span>  <span class="c"># 103 ms</span>
-    <span class="c"># TODO: Report object size</span>
-    <span class="c"># TODO: Residuals shoud be using uint8 vectors probably.</span>
+    <span class="c"># Compute Residuals</span>
+    <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span> <span class="o">=</span> <span class="n">smk_residuals</span><span class="o">.</span><span class="n">compute_nonagg_rvecs</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computed size(rvecs_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computed size(flags_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">flags_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">aggregate</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">)</span> <span class="o">=</span> <span class="n">_aggregate_residuals</span><span class="p">(</span>
-            <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">)</span>
+        <span class="n">maws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+        <span class="c"># Aggregate Residuals</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="n">smk_residuals</span><span class="o">.</span><span class="n">compute_agg_rvecs</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">aggvecs_list</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">,</span> <span class="n">aggidxs_list</span><span class="p">,</span> <span class="n">aggmaws_list</span><span class="p">,</span> <span class="n">aggflags_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="c"># Pack into common query structure</span>
+        <span class="n">aggfxs_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idx2_fx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">aggidxs</span><span class="p">]</span> <span class="k">for</span> <span class="n">aggidxs</span> <span class="ow">in</span> <span class="n">aggidxs_list</span><span class="p">]</span>
+        <span class="n">wx2_aggvecs</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggvecs_list</span><span class="p">))</span>
+        <span class="n">wx2_aggaids</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">))</span>
+        <span class="n">wx2_aggfxs</span>   <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggfxs_list</span><span class="p">))</span>
+        <span class="n">wx2_aggmaws</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggmaws_list</span><span class="p">))</span>
+        <span class="n">wx2_aggflags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggflags_list</span><span class="p">))</span>
+        <span class="p">(</span><span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_flags</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">wx2_aggvecs</span><span class="p">,</span> <span class="n">wx2_aggaids</span><span class="p">,</span> <span class="n">wx2_aggfxs</span><span class="p">,</span> <span class="n">wx2_aggmaws</span><span class="p">,</span> <span class="n">wx2_aggflags</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Hack non-aggregate residuals to have the same structure as aggregate</span>
         <span class="c"># residuals for compatability: i.e. each rvec gets a list of fxs that</span>
@@ -950,34 +633,20 @@
         <span class="n">wx2_rvecs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">))</span>
         <span class="n">wx2_aids</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
         <span class="n">wx2_fxs</span>   <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">))</span>
+        <span class="n">wx2_flags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
         <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] L___ End Compute Residuals&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span>
-
-</div>
-<span class="k">def</span> <span class="nf">_aggregate_residuals</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper function: Aggregate over words of the same aid</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">maws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">tup</span> <span class="o">=</span> <span class="n">smk_speed</span><span class="o">.</span><span class="n">compute_agg_rvecs</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">)</span>
-    <span class="p">(</span><span class="n">aggvecs_list</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">,</span> <span class="n">aggidxs_list</span><span class="p">,</span> <span class="n">aggmaws_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
-    <span class="n">aggfxs_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idx2_fx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">aggidxs</span><span class="p">]</span>
-                   <span class="k">for</span> <span class="n">aggidxs</span> <span class="ow">in</span> <span class="n">aggidxs_list</span><span class="p">]</span>
-    <span class="n">wx2_aggvecs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggvecs_list</span><span class="p">))</span>
-    <span class="n">wx2_aggaids</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">))</span>
-    <span class="n">wx2_aggfxs</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggfxs_list</span><span class="p">))</span>
-    <span class="n">wx2_aggmaws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aggmaws_list</span><span class="p">))</span>
-    <span class="c"># Alisas</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">wx2_aggvecs</span><span class="p">,</span> <span class="n">wx2_aggaids</span><span class="p">,</span> <span class="n">wx2_aggfxs</span><span class="p">,</span> <span class="n">wx2_aggmaws</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">end_</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.rvec] L___ End Compute Residuals&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_flags</span>
 
 
-<span class="c">#@utool.cached_func(&#39;sccw&#39;, appname=&#39;smk&#39;, key_argx=[1, 2])</span>
+<span class="c">#@utool.cached_func(&#39;sccw&#39;, appname=&#39;smk&#39;, key_argx=[1, 2])</span></div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="compute_data_sccw_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_data_sccw_">[docs]</a><span class="k">def</span> <span class="nf">compute_data_sccw_</span><span class="p">(</span><span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_data_sccw_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_data_sccw_">[docs]</a><span class="k">def</span> <span class="nf">compute_data_sccw_</span><span class="p">(</span><span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_dflags</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span>
+                       <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes sccw normalization scalar for the database annotations.</span>
 <span class="sd">    This is gamma from the SMK paper.</span>
@@ -986,10 +655,10 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        idx2_daid ():</span>
-<span class="sd">        wx2_rvecs ():</span>
+<span class="sd">        wx2_drvecs ():</span>
 <span class="sd">        wx2_aids ():</span>
 <span class="sd">        wx2_idf ():</span>
-<span class="sd">        wx2_maws ():</span>
+<span class="sd">        wx2_dmaws ():</span>
 <span class="sd">        smk_alpha ():</span>
 <span class="sd">        smk_thresh ():</span>
 
@@ -998,72 +667,179 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_index</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = smk_debug.testdata_raw_internals2()</span>
-<span class="sd">        &gt;&gt;&gt; smk_alpha  = ibs.cfg.query_cfg.smk_cfg.smk_alpha</span>
-<span class="sd">        &gt;&gt;&gt; smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh</span>
+<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_raw_internals2(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, qparams = tup</span>
+<span class="sd">        &gt;&gt;&gt; wx2_dflags = invindex.wx2_dflags</span>
+<span class="sd">        &gt;&gt;&gt; wx2_dmaws  = invindex.wx2_maws</span>
 <span class="sd">        &gt;&gt;&gt; idx2_daid  = invindex.idx2_daid</span>
-<span class="sd">        &gt;&gt;&gt; wx2_idf    = wx2_idf</span>
 <span class="sd">        &gt;&gt;&gt; daids      = invindex.daids</span>
-<span class="sd">        &gt;&gt;&gt; daid2_sccw = compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, smk_alpha, smk_thresh)</span>
+<span class="sd">        &gt;&gt;&gt; smk_alpha  = qparams.smk_alpha</span>
+<span class="sd">        &gt;&gt;&gt; smk_thresh = qparams.smk_thresh</span>
+<span class="sd">        &gt;&gt;&gt; wx2_idf    = wx2_idf</span>
+<span class="sd">        &gt;&gt;&gt; verbose = False</span>
+<span class="sd">        &gt;&gt;&gt; daid2_sccw = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_dmaws, smk_alpha, smk_thresh)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="sd">    Auto:</span>
-<span class="sd">        from ibeis.model.hots.smk import smk_index</span>
-<span class="sd">        import utool; print(utool.make_default_docstr(smk_index.compute_data_sccw_))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    #Auto:</span>
+<span class="sd">    #    from ibeis.model.hots.smk import smk_index</span>
+<span class="sd">    #    import utool; print(utool.make_default_docstr(smk_index.compute_data_sccw_))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2</span><span class="p">(</span><span class="n">wx2_rvecs</span><span class="o">=</span><span class="n">wx2_rvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="o">=</span><span class="n">wx2_aids</span><span class="p">)</span>
-
-    <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx2_rvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2</span><span class="p">(</span><span class="n">wx2_rvecs</span><span class="o">=</span><span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="o">=</span><span class="n">wx2_aids</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[smk_index] +--- Start Compute Data Self Consistency Weight&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] Compute SCCW smk_alpha=</span><span class="si">%r</span><span class="s">, smk_thresh=</span><span class="si">%r</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[smk_index.sccw] +--- Start Compute Data Self Consistency Weight&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.sccw] Compute SCCW smk_alpha=</span><span class="si">%r</span><span class="s">, smk_thresh=</span><span class="si">%r</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
         <span class="n">mark1</span><span class="p">,</span> <span class="n">end1_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span>
-            <span class="s">&#39;[smk_index] SCCW group (by present words): &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">),</span>
-            <span class="n">flushfreq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">writefreq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
-    <span class="c"># Get list of aids and rvecs w.r.t. words</span>
-    <span class="n">aids_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">wx2_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">rvecs_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_rvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
-    <span class="n">maws_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+            <span class="s">&#39;[smk_index.sccw] SCCW group (by present words): &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_drvecs</span><span class="p">),</span>
+            <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">with_time</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="c"># Get list of aids and rvecs w.r.t. words (ie one item per word)</span>
+    <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_drvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wx_sublist = wx_sublist[0:4]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list1</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">rvecs_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_drvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">maws_list1</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dmaws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">flags_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dflags</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">assert_single_assigned_maws</span><span class="p">(</span><span class="n">maws_list</span><span class="p">)</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">assert_single_assigned_maws</span><span class="p">(</span><span class="n">maws_list1</span><span class="p">)</span>
     <span class="c"># Group by daids first and then by word index</span>
-    <span class="n">daid2_wx2_drvecs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">double_group</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">rvecs_list1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">end1_</span><span class="p">()</span>
+
+    <span class="c">#with utool.Timer(&#39;time2&#39;):</span>
+    <span class="n">flat_aids</span><span class="p">,</span> <span class="n">cumlen_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">invertable_flatten2</span><span class="p">(</span><span class="n">aids_list1</span><span class="p">)</span>
+    <span class="n">flat_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_aids</span><span class="p">)</span>
+    <span class="n">flat_wxs</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(([</span><span class="n">wx</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aids_list1</span><span class="p">))))</span>
+    <span class="n">unique_aids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">flat_aids</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">unique_aids</span>   <span class="c"># noqa</span>
+    <span class="c"># wxs grouped by aid</span>
+    <span class="n">grouped_wxs</span>   <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">flat_wxs</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="c"># Make subgroups of wxs for each aid</span>
+    <span class="n">grouped_subgroups</span> <span class="o">=</span> <span class="p">[</span><span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">grouped_wxs</span><span class="p">]</span>
+
+    <span class="c"># Use subgroups to get sccw score for each aid</span>
+    <span class="c"># This is very inefficient. It should be using idxs to look it up in one</span>
+    <span class="c"># big numpy array.</span>
+    <span class="n">grouped_rvecs</span>     <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">rvecs_list1</span><span class="p">)),</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_maws</span>      <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">maws_list1</span><span class="p">)),</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_flags</span>     <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">flags_list1</span><span class="p">)),</span> <span class="n">groupxs</span><span class="p">)</span>
 
     <span class="c"># For every daid, compute its sccw using pregrouped rvecs</span>
     <span class="c"># Summation over words for each aid</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="n">mark2</span><span class="p">,</span> <span class="n">end2_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span>
-            <span class="s">&#39;[smk_index] SCCW Sum (over daid): &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid2_wx2_drvecs</span><span class="p">),</span>
-            <span class="n">flushfreq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">writefreq</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[smk_index.sccw] SCCW Sum (over daid): &#39;</span>
+        <span class="n">mark2</span><span class="p">,</span> <span class="n">end2_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_aids</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                                          <span class="n">with_time</span><span class="o">=</span><span class="n">WITH_TOTALTIME</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_subgrouplist</span><span class="p">(</span><span class="n">grouped_vals</span><span class="p">,</span> <span class="n">grouped_subgroups</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">clustertool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">sub_groupxs</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">vals</span><span class="p">,</span> <span class="p">(</span><span class="n">sub_keys</span><span class="p">,</span> <span class="n">sub_groupxs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_vals</span><span class="p">,</span> <span class="n">grouped_subgroups</span><span class="p">))</span>
+
+    <span class="n">aidrvecs_list2</span> <span class="o">=</span> <span class="n">make_subgrouplist</span><span class="p">(</span><span class="n">grouped_rvecs</span><span class="p">,</span> <span class="n">grouped_subgroups</span><span class="p">)</span>
+    <span class="n">aidflags_list2</span> <span class="o">=</span> <span class="n">make_subgrouplist</span><span class="p">(</span><span class="n">grouped_flags</span><span class="p">,</span> <span class="n">grouped_subgroups</span><span class="p">)</span>
+    <span class="n">aidmaws_list2</span>  <span class="o">=</span> <span class="n">make_subgrouplist</span><span class="p">(</span><span class="n">grouped_maws</span><span class="p">,</span> <span class="n">grouped_subgroups</span><span class="p">)</span>
+    <span class="n">aididf_list2</span>   <span class="o">=</span> <span class="p">([</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">sub_wxs</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">sub_wxs</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">grouped_subgroups</span><span class="p">)</span>
+
+    <span class="n">sccw_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">smk_scoring</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">idf_list</span> <span class="ow">in</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">aidrvecs_list2</span><span class="p">,</span> <span class="n">aidflags_list2</span><span class="p">,</span> <span class="n">aidmaws_list2</span><span class="p">,</span> <span class="n">aididf_list2</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    assert sorted(list(daid2_wx2_drvecs.keys())) == sorted(unique_aids)</span>
+<span class="sd">    unique_aids</span>
+<span class="sd">    _wx2_aidrvecs_list = [daid2_wx2_drvecs[daid] for daid in unique_aids]</span>
+<span class="sd">    _aidwxs_list   = [list(wx2_aidrvecs.keys()) for wx2_aidrvecs in _wx2_aidrvecs_list]</span>
+<span class="sd">    aidrvecs_list  = [list(wx2_aidrvecs.values()) for wx2_aidrvecs in _wx2_aidrvecs_list]</span>
+<span class="sd">    aididf_list   = [[wx2_idf[wx] for wx in aidwxs] for aidwxs in _aidwxs_list]</span>
+<span class="sd">    aidflags_list = [[wx2_dflags[wx] for wx in aidwxs] for aidwxs in _aidwxs_list]</span>
+<span class="sd">    aidmaws_list  = [None for aidwxs in _aidwxs_list]</span>
+
+<span class="sd">    z = [all([np.all(x == y) for x, y in zip(xs, ys)]) for xs, ys in zip(aidrvecs_list2, aidrvecs_list)]</span>
+<span class="sd">    assert all(z)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    len(aids_list1)</span>
+<span class="sd">    len(wx_sublist)</span>
+<span class="sd">    unflat_list = aids_list1</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c">#with utool.Timer(&#39;time1&#39;):</span>
+    <span class="c">#    daid2_wx2_drvecs = clustertool.double_group(wx_sublist, aids_list1, rvecs_list1)</span>
+    <span class="c">#    # Get lists w.r.t daids</span>
+    <span class="c">#    aid_list = list(daid2_wx2_drvecs.keys())</span>
+    <span class="c">#    # list of mappings from words to rvecs foreach daid</span>
+    <span class="c">#    # [wx2_aidrvecs_1, ..., wx2_aidrvecs_nDaids,]</span>
+    <span class="c">#    _wx2_aidrvecs_list = list(daid2_wx2_drvecs.values())</span>
+    <span class="c">#    _aidwxs_list   = [list(wx2_aidrvecs.keys()) for wx2_aidrvecs in _wx2_aidrvecs_list]</span>
+    <span class="c">#    aidrvecs_list  = [list(wx2_aidrvecs.values()) for wx2_aidrvecs in _wx2_aidrvecs_list]</span>
+    <span class="c">#    aididf_list   = [[wx2_idf[wx] for wx in aidwxs] for aidwxs in _aidwxs_list]</span>
+    <span class="c">#    aidflags_list = [[wx2_dflags[wx] for wx in aidwxs] for aidwxs in _aidwxs_list]</span>
+    <span class="c">#    aidmaws_list  = [None for aidwxs in _aidwxs_list]</span>
+
+    <span class="c">#    if utool.DEBUG2:</span>
+    <span class="c">#        from ibeis.model.hots.smk import smk_debug</span>
+    <span class="c">#        smk_debug.check_data_smksumm(aididf_list, aidrvecs_list)</span>
+    <span class="c">#    # TODO: implement database side soft-assign</span>
+    <span class="c">#    sccw_list = [</span>
+    <span class="c">#        smk_scoring.sccw_summation(rvecs_list, None, idf_list, maws_list, smk_alpha, smk_thresh)</span>
+    <span class="c">#        for idf_list, rvecs_list, flags_list, maws_list in</span>
+    <span class="c">#        zip(aididf_list, aidrvecs_list, aidflags_list, aidmaws_list)</span>
+    <span class="c">#    ]</span>
+
+    <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">sccw_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">end2_</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.sccw] L___ End Compute Data SCCW</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">daid2_sccw</span>
+
+</div>
+<div class="viewcode-block" id="OLD_compute_data_sccw_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.OLD_compute_data_sccw_">[docs]</a><span class="k">def</span> <span class="nf">OLD_compute_data_sccw_</span><span class="p">(</span><span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_dflags</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span>
+                           <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c">#</span>
+    <span class="c"># Get list of aids and rvecs w.r.t. words (ie one item per word)</span>
+    <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_drvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wx_sublist = wx_sublist[0:4]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list1</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">rvecs_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_drvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">maws_list1</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dmaws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">flags_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dflags</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="c"># Group by daids first and then by word index</span>
+    <span class="n">daid2_wx2_drvecs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">double_group</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aids_list1</span><span class="p">,</span> <span class="n">rvecs_list1</span><span class="p">)</span>
+
     <span class="c"># Get lists w.r.t daids</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">daid2_wx2_drvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="c"># list of mappings from words to rvecs foreach daid</span>
     <span class="c"># [wx2_aidrvecs_1, ..., wx2_aidrvecs_nDaids,]</span>
     <span class="n">_wx2_aidrvecs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">daid2_wx2_drvecs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="n">_aidwxs_iter</span>   <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_aidrvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">wx2_aidrvecs</span> <span class="ow">in</span> <span class="n">_wx2_aidrvecs_list</span><span class="p">)</span>
+    <span class="n">_aidwxs_list</span>   <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_aidrvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">wx2_aidrvecs</span> <span class="ow">in</span> <span class="n">_wx2_aidrvecs_list</span><span class="p">]</span>
     <span class="n">aidrvecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_aidrvecs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">for</span> <span class="n">wx2_aidrvecs</span> <span class="ow">in</span> <span class="n">_wx2_aidrvecs_list</span><span class="p">]</span>
-    <span class="n">aididf_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">aidwxs</span><span class="p">]</span> <span class="k">for</span> <span class="n">aidwxs</span> <span class="ow">in</span> <span class="n">_aidwxs_iter</span><span class="p">]</span>
+    <span class="n">aididf_list</span>   <span class="o">=</span> <span class="p">[[</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">aidwxs</span><span class="p">]</span> <span class="k">for</span> <span class="n">aidwxs</span> <span class="ow">in</span> <span class="n">_aidwxs_list</span><span class="p">]</span>
+    <span class="n">aidflags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">wx2_dflags</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">aidwxs</span><span class="p">]</span> <span class="k">for</span> <span class="n">aidwxs</span> <span class="ow">in</span> <span class="n">_aidwxs_list</span><span class="p">]</span>
+    <span class="n">aidmaws_list</span>  <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">aidwxs</span> <span class="ow">in</span> <span class="n">_aidwxs_list</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
         <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_data_smksumm</span><span class="p">(</span><span class="n">aididf_list</span><span class="p">,</span> <span class="n">aidrvecs_list</span><span class="p">)</span>
     <span class="c"># TODO: implement database side soft-assign</span>
-    <span class="n">sccw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">smk_core</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
-                 <span class="k">for</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">rvecs_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aididf_list</span><span class="p">,</span> <span class="n">aidrvecs_list</span><span class="p">)]</span>
+    <span class="n">sccw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">smk_scoring</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">maws_list</span> <span class="ow">in</span>
+                 <span class="nb">zip</span><span class="p">(</span><span class="n">aididf_list</span><span class="p">,</span> <span class="n">aidrvecs_list</span><span class="p">,</span> <span class="n">aidflags_list</span><span class="p">,</span> <span class="n">aidmaws_list</span><span class="p">)]</span>
 
     <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">sccw_list</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="n">end2_</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index] L___ End Compute Data SCCW</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-
     <span class="k">return</span> <span class="n">daid2_sccw</span></div>
 </pre></div>
 

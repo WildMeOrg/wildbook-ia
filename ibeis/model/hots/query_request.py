@@ -19,7 +19,7 @@ def get_test_qreq():
     return qreq_, ibs
 
 
-def new_ibeis_query_request(ibs, qaid_list, daid_list):
+def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
     """
     Example:
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -29,7 +29,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list):
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
-    qparams = QueryParams(cfg)
+    qparams = QueryParams(cfg, custom_qparams)
     # Neighbor Indexer
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
@@ -293,10 +293,79 @@ class QueryRequest(object):
         assert_uuids(_daids, _dauuids)
 
 
+def parse_config_items(cfg):
+    """
+    Recursively extracts key, val pairs from Config objects
+    into a flat list. (there must not be name conflicts)
+
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> param_list = parse_config_items(cfg)
+
+    """
+    import ibeis
+    param_list = []
+    for item in cfg.items():
+        key, val = item
+        if key.startswith('_'):
+            #print(key)
+            pass
+        elif isinstance(val, ibeis.model.Config.ConfigBase):
+            param_list.extend(parse_config_items(val))
+            #print(key)
+            pass
+        else:
+            param_list.append(item)
+            #print(key)
+    return param_list
+
+
+def test_cfg_deepcopy():
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    cfg1 = ibs.cfg.query_cfg
+    cfg2 = cfg1.deepcopy()
+    cfg3 = cfg2
+    assert cfg1.get_cfgstr() == cfg2.get_cfgstr()
+    assert cfg2.sv_cfg is not cfg1.sv_cfg
+    assert cfg3.sv_cfg is cfg2.sv_cfg
+    cfg2.update_query_cfg(sv_on=False)
+    assert cfg1.get_cfgstr() != cfg2.get_cfgstr()
+    assert cfg2.get_cfgstr() == cfg3.get_cfgstr()
+
+
 class QueryParams(object):
     # TODO: Use setattr to dynamically set all of these via config names
+    """
+    Example:
+        >>> from ibeis.model.hots import query_request
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> qparams = query_request.QueryParams(cfg)
+    """
 
-    def __init__(qparams, cfg):
+    def __init__(qparams, cfg, custom_qparams=None):
+        # Ensures that at least everything exits
+        # pares nested config structure into this flat one
+        if custom_qparams is not None:
+            cfg2 = cfg.deepcopy()
+            cfg2.update_query_cfg(**custom_qparams)
+            cfg = cfg2
+        param_list = parse_config_items(cfg)
+        seen_ = set()
+        for key, val in param_list:
+            if key not in seen_:
+                seen_.add(key)
+            else:
+                raise AssertionError('Configs specify duplicate names: %r' % key)
+            setattr(qparams, key, val)
+        del seen_, key, val, param_list
+
+        # Then we explicitly add some items as well that might not be explicit
+        # in the configs.
         pipeline_root      = cfg.pipeline_root
         if pipeline_root == 'smk':
             nAssign     = cfg.smk_cfg.nAssign
@@ -305,35 +374,22 @@ class QueryParams(object):
             smk_alpha   = cfg.smk_cfg.smk_alpha
             indexer_key = cfg.smk_cfg.indexer_key
             nWords      = cfg.smk_cfg.nWords
-            vocab_weighting = cfg.smk_cfg.vocab_weighting
-            massign_alpha  = cfg.smk_cfg.massign_alpha
-            massign_sigma  = cfg.smk_cfg.massign_sigma
+            vocab_weighting       = cfg.smk_cfg.vocab_weighting
+            allow_self_match      = cfg.smk_cfg.allow_self_match
+            massign_alpha         = cfg.smk_cfg.massign_alpha
+            massign_sigma         = cfg.smk_cfg.massign_sigma
             massign_equal_weights = cfg.smk_cfg.massign_equal_weights
-            allow_self_match = cfg.smk_cfg.allow_self_match
         K                  = cfg.nn_cfg.K
         Knorm              = cfg.nn_cfg.Knorm
         checks             = cfg.nn_cfg.checks
         normalizer_rule    = cfg.nn_cfg.normalizer_rule
+        filt_on            = cfg.filt_cfg.filt_on
+        gravity_weighting  = cfg.filt_cfg.gravity_weighting
         Krecip             = cfg.filt_cfg.Krecip
         can_match_sameimg  = cfg.filt_cfg.can_match_sameimg
         can_match_samename = cfg.filt_cfg.can_match_samename
-        can_match_self     = False
-        filt_on            = cfg.filt_cfg.filt_on
-        gravity_weighting  = cfg.filt_cfg.gravity_weighting
-        active_filter_list = cfg.filt_cfg.get_active_filters()
-        #active_filter_list = cfg.filt_cfg._valid_filters
-        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt) for filt in active_filter_list}
-        # Correct dumb Pref bugs
-        for key, val in six.iteritems(filt2_stw):
-            #print(val)
-            if val[1] == 'None':
-                val[1] = None
-            if val[1] is not None and not isinstance(val[1], (float, int)):
-                val[1] = float(val[1])
         isWeighted         = cfg.agg_cfg.isWeighted
         max_alts           = cfg.agg_cfg.max_alts
-        vsmany             = pipeline_root == 'vsmany'
-        vsone              = pipeline_root == 'vsone'
         score_method       = cfg.agg_cfg.score_method
         min_nInliers       = cfg.sv_cfg.min_nInliers
         nShortlist         = cfg.sv_cfg.nShortlist
@@ -343,7 +399,22 @@ class QueryParams(object):
         use_chip_extent    = cfg.sv_cfg.use_chip_extent
         xy_thresh          = cfg.sv_cfg.xy_thresh
         sv_on              = cfg.sv_cfg.sv_on
+
+        # Params not explicitly represented in Config objects
+        ###
         flann_params       = cfg.flann_cfg.get_dict_args()
+        vsmany             = pipeline_root == 'vsmany'
+        vsone              = pipeline_root == 'vsone'
+        ###
+        active_filter_list = cfg.filt_cfg.get_active_filters()
+        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt) for filt in active_filter_list}
+        # Correct dumb Pref bugs
+        for key, val in six.iteritems(filt2_stw):
+            if val[1] == 'None':
+                val[1] = None
+            if val[1] is not None and not isinstance(val[1], (float, int)):
+                val[1] = float(val[1])
+        ####
 
         # cfgstrs
         feat_cfgstr  = cfg._feat_cfg.get_cfgstr()

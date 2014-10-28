@@ -320,6 +320,38 @@ dict kwargs</dd>
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.model.preproc.preproc_featweight">
+<span id="ibeis-model-preproc-preproc-featweight-module"></span><h2>ibeis.model.preproc.preproc_featweight module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_featweight" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_featweight.gen_featweight_worker">
+<tt class="descclassname">ibeis.model.preproc.preproc_featweight.</tt><tt class="descname">gen_featweight_worker</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_featweight.html#gen_featweight_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_featweight.gen_featweight_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
+Must take in one argument to be used by multiprocessing.map_async</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tup</strong> (<em>aid, tuple(kpts(ndarray), probchip_fpath )</em>) &#8211; keypoints and probability chip file path</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath</span> <span class="o">=</span> <span class="s">&#39;something&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kpts</span> <span class="o">=</span> <span class="n">kpts_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chip</span> <span class="o">=</span> <span class="n">chip_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_img</span> <span class="o">=</span> <span class="n">chip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#probchip_img = gtool.imread(probchip_fpath)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.model.preproc.preproc_image">
 <span id="ibeis-model-preproc-preproc-image-module"></span><h2>ibeis.model.preproc.preproc_image module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_image" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -430,6 +462,19 @@ SQL columns on else returns None</td>
 </dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.model.preproc.preproc_rvec">
+<span id="ibeis-model-preproc-preproc-rvec-module"></span><h2>ibeis.model.preproc.preproc_rvec module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_rvec" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_rvec.add_rvecs_params_gen">
+<tt class="descclassname">ibeis.model.preproc.preproc_rvec.</tt><tt class="descname">add_rvecs_params_gen</tt><big>(</big><em>ibs</em>, <em>nInput=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_rvec.html#add_rvecs_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_rvec.add_rvecs_params_gen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.preproc.preproc_rvec.generate_rvecs">
+<tt class="descclassname">ibeis.model.preproc.preproc_rvec.</tt><tt class="descname">generate_rvecs</tt><big>(</big><em>vecs_list</em>, <em>words</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_rvec.html#generate_rvecs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_rvec.generate_rvecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.model.preproc">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.model.preproc" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -462,7 +507,9 @@ SQL columns on else returns None</td>
 <li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_detectimg">ibeis.model.preproc.preproc_detectimg module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_encounter">ibeis.model.preproc.preproc_encounter module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_feat">ibeis.model.preproc.preproc_feat module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_featweight">ibeis.model.preproc.preproc_featweight module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_image">ibeis.model.preproc.preproc_image module</a></li>
+<li><a class="reference internal" href="#module-ibeis.model.preproc.preproc_rvec">ibeis.model.preproc.preproc_rvec module</a></li>
 <li><a class="reference internal" href="#module-ibeis.model.preproc">Module contents</a></li>
 </ul>
 </li>

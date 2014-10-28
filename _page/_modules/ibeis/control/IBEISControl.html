@@ -155,12 +155,11 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates a new IBEIS Controller associated with one database &quot;&quot;&quot;</span>
-        <span class="k">global</span> <span class="n">__ALL_CONTROLLERS__</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">init_tablecache</span><span class="p">()</span>
-        <span class="c"># observers keeps track of the guibacks connected to this controller</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># observer_weakref_list keeps track of the guibacks connected to this controller</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_dirs</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
         <span class="c"># _init_wb will do nothing if no wildbook address is specified</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_wb</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>
@@ -169,48 +168,67 @@
         <span class="c"># an dict to hack in temporary state</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">inject_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">register_controller</span><span class="p">()</span>
 
     <span class="c"># We should probably not implement __del__</span>
     <span class="c"># see: https://docs.python.org/2/reference/datamodel.html#object.__del__</span>
     <span class="c">#def __del__(ibs):</span>
     <span class="c">#    ibs.cleanup()</span>
 
-<div class="viewcode-block" id="IBEISController.cleanup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span><span class="p">:</span>
-            <span class="n">observer</span><span class="o">.</span><span class="n">notify_controller_killed</span><span class="p">()</span>
-</div>
 <div class="viewcode-block" id="IBEISController.rrr"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.rrr">[docs]</a>    <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="k">global</span> <span class="n">__ALL_CONTROLLERS__</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">pass</span>
         <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">unregister_controller</span><span class="p">()</span>
         <span class="n">IBEISControl</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading IBEISControl&#39;</span><span class="p">)</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">inject_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">reload_class_methods</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
-        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">register_controller</span><span class="p">()</span>
+
+    <span class="c"># ------------</span>
+    <span class="c"># SELF REGISTRATION</span>
+    <span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="IBEISController.register_controller"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.register_controller">[docs]</a>    <span class="k">def</span> <span class="nf">register_controller</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; registers controller with global list &quot;&quot;&quot;</span>
+        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.unregister_controller"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.unregister_controller">[docs]</a>    <span class="k">def</span> <span class="nf">unregister_controller</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c"># ------------</span>
+    <span class="c"># OBSERVER REGISTRATION</span>
+    <span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="IBEISController.cleanup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; call on del? &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
+            <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify_controller_killed</span><span class="p">()</span>
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.register_observer"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.register_observer">[docs]</a>    <span class="k">def</span> <span class="nf">register_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[register_observer] Observer registered: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+        <span class="n">observer_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer_weakref</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.remove_observer"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.remove_observer">[docs]</a>    <span class="k">def</span> <span class="nf">remove_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[remove_observer] Observer removed: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.notify_observers"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.notify_observers">[docs]</a>    <span class="k">def</span> <span class="nf">notify_observers</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[notify_observers] Observers (if any) notified&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observers</span><span class="p">:</span>
-            <span class="n">observer</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
+            <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+    <span class="c"># ------------</span>
 </div>
     <span class="nd">@default_decorator</span>
     <span class="k">def</span> <span class="nf">_init_wb</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wbaddr</span><span class="p">):</span>
@@ -3115,11 +3133,13 @@
 <span class="sd">        be only of a specific lbltype/category/type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">configid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">configid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span>
-        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">configid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;annot_rowid=? AND config_rowid=?&#39;</span>
-        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
-                                       <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span>
+                                     <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">configid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;annot_rowid=? AND config_rowid=?&#39;</span>
+            <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
+                                           <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="c"># assert all([x &gt; 0 for x in map(len, alrids_list)]), &#39;annotations must have at least one relationship&#39;</span>
         <span class="k">return</span> <span class="n">alrids_list</span>
 </div>
@@ -3137,6 +3157,21 @@
         <span class="c"># only want the nids of individuals, not species, for example</span>
         <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span> <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span><span class="p">]</span>
         <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">configid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span> <span class="n">alrid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+
+            <span class="k">def</span> <span class="nf">resolution_func_lowest_config</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">):</span>
+                <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_config</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">alrid_list</span><span class="p">)))</span>
+                <span class="k">return</span> <span class="p">[</span> <span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+
+            <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span>
+                <span class="n">alrid_list</span>
+                <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span>
+            <span class="p">]</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span><span class="p">]),</span>\
             <span class="p">(</span><span class="s">&quot;More than one type per lbltype.  ALRIDS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span> <span class="o">+</span>
              <span class="s">&quot;, ROW: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbltype_rowid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;, KEYS:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">))</span>

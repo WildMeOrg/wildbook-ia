@@ -4,22 +4,6 @@ ibeis.model.hots.smk package
 Submodules
 ----------
 
-ibeis.model.hots.smk._grave module
-----------------------------------
-
-.. automodule:: ibeis.model.hots.smk._grave
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.model.hots.smk.pandas_helpers module
-------------------------------------------
-
-.. automodule:: ibeis.model.hots.smk.pandas_helpers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.model.hots.smk.smk_core module
 ------------------------------------
 
@@ -44,14 +28,6 @@ ibeis.model.hots.smk.smk_index module
     :undoc-members:
     :show-inheritance:
 
-ibeis.model.hots.smk.smk_internal module
-----------------------------------------
-
-.. automodule:: ibeis.model.hots.smk.smk_internal
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.model.hots.smk.smk_match module
 -------------------------------------
 
@@ -60,10 +36,26 @@ ibeis.model.hots.smk.smk_match module
     :undoc-members:
     :show-inheritance:
 
-ibeis.model.hots.smk.smk_speed module
--------------------------------------
+ibeis.model.hots.smk.smk_repr module
+------------------------------------
 
-.. automodule:: ibeis.model.hots.smk.smk_speed
+.. automodule:: ibeis.model.hots.smk.smk_repr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.smk.smk_residuals module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.smk.smk_residuals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.smk.smk_scoring module
+---------------------------------------
+
+.. automodule:: ibeis.model.hots.smk.smk_scoring
     :members:
     :undoc-members:
     :show-inheritance:

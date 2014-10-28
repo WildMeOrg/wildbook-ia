@@ -44,10 +44,26 @@ ibeis.model.preproc.preproc_feat module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.preproc.preproc_featweight module
+---------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_featweight
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.preproc.preproc_image module
 ----------------------------------------
 
 .. automodule:: ibeis.model.preproc.preproc_image
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_rvec module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_rvec
     :members:
     :undoc-members:
     :show-inheritance:

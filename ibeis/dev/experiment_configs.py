@@ -1,9 +1,19 @@
 # TODO: Need test harness to do a gridsearch of these guys
+"""
+In this file dicts specify all possible combinations of the varied parameters
+and lists specify the union of parameters
+"""
 
 from __future__ import absolute_import, division, print_function
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 # Python
+
+
+def augbase(basedict, updatedict):
+    newdict = basedict.copy()
+    newdict.update(updatedict)
+    return newdict
 
 exclude_vars = vars().keys()   # this line is before tests
 
@@ -96,15 +106,80 @@ smk6d = {
 
 smk6_overnight = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk', 'vsmany'],
     #'pipeline_root': ['smk'],
-    'sv_on':         [False, True],
-    'nAssign':       [2, 4, 10],
-    'massign_equal_weights': [True, False],
-    'smk_thresh':    [0.0, 0.001],
+    'sv_on':          [True],
+    'nAssign':        [4, 10],
+    #'nAssign':       [2, 4, 10],
+    'massign_equal_weights': [True],  # , False],
+    #'smk_thresh':    [0.0, 0.0001],
     #'smk_alpha':     [3],
-    'nWords':        [128000, 64000, 8000],
+    'nWords':         [128000, 64000, 8000],
     #'nWords':        [128000],
 }
+
+
+smk7_overnight = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    #'pipeline_root': ['smk', 'vsmany'],
+    #'pipeline_root': ['smk'],
+    'loglnbnn_weight': [0.0, 1.0],  #
+    'lnbnn_weight':   [0.0, 1.0],  #
+    'crowded_weight': [0.0, 1.0],  #
+    'sv_on':          [True],
+    'nAssign':        [4, 10],
+    #'nAssign':       [2, 4, 10],
+    'massign_equal_weights': [True],  # , False],
+    #'smk_thresh':    [0.0, 0.0001],
+    #'smk_alpha':     [3],
+    'nWords':         [128000, 64000, 8000],
+    #'nWords':        [128000],
+}
+
+
+lnbnn2_base = {
+    'pipeline_root': ['vsmany'],
+    'sv_on':          [True],
+    'lnbnn_weight': [0.0],
+    'loglnbnn_weight': [0.0],
+    'normonly_weight': [0.0],
+}
+
+lnbnn2_w1 = augbase(
+    lnbnn2_base, {
+        'loglnbnn_weight': [0.0, 1.0],
+    })
+
+lnbnn2_w2 = augbase(
+    lnbnn2_base, {
+        'normonly_weight': [0.0, 1.0],
+    })
+
+lnbnn2_w3 = augbase(
+    lnbnn2_base, {
+        'lnbnn_weight': [0.0, 1.0],
+    })
+
+'''
+CommandLine:
+
+python dev.py --allgt -t lnbnn2 --db PZ_Mothers --noqcache
+python dev.py --allgt -t lnbnn2 --db GZ_ALL --noqcache
+'''
+
+lnbnn2 = [
+    lnbnn2_w1,
+    lnbnn2_w2,
+    lnbnn2_w3
+]
+
+
+'''
+SINGLE QUERY COMMANDS
+python dev.py -t smk6d --db PZ_Mothers --allgt --index 0:1 --noqcache
+
+'''
+
 
 '''
 TESTING COMMANDS:
@@ -221,13 +296,13 @@ vsmany_2 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0, 1],  # 1,]
     'lnbnn_weight':    [0, 1],  # 1,]
-    'lnrat_weight':    [0, 1],  # 1,]
+    'lograt_weight':    [0, 1],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],
@@ -245,13 +320,13 @@ vsone_1 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [1],  # 1,]
     'lnbnn_weight':    [0],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [1.5],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # , 'pl'],  #, 'nsum', 'borda', 'topk', 'nunique']
@@ -280,13 +355,13 @@ vsmany_scoremethod = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum', 'pl', 'plw', 'borda'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
@@ -304,13 +379,13 @@ vsmany_best = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':    [None],  #
     'xy_thresh':       [.01],  # [.002],
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
@@ -460,13 +535,13 @@ vsmany_1 = {
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
-    'lnrat_weight':    [0],  # 1,]
+    'lograt_weight':    [0],  # 1,]
     'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
-    'lnrat_thresh':    [None],  #
+    'lograt_thresh':   [None],  #
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # , 'nsum', 'borda', 'topk', 'nunique']
