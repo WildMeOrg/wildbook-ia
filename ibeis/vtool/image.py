@@ -44,9 +44,9 @@ IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IM
 def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
     try:
         if grayscale:
-            imgBGR = cv2.imread(img_fpath, flags=IMREAD_GRAYSCALE)
+            imgBGR = cv2.imread(img_fpath, flags=cv2.IMREAD_GRAYSCALE)
         else:
-            # opencv always reads in BGR mode (fastest load time)
+            # opencv always reads in BGR mode (fastest load time?)
             imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
     except Exception as ex:
         utool.printex(ex, iswarning=True)
