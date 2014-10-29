@@ -17,6 +17,19 @@ def augbase(basedict, updatedict):
 
 exclude_vars = vars().keys()   # this line is before tests
 
+
+vsone_best = {
+    'pipeline_root':  ['vsone'],
+    'checks':        [256],
+    'K':             [1],
+    'Knorm':         [1],
+    'Krecip':        [0],
+    'ratio_weight':  [0, 1],
+    'lnbnn_weight':  [0],
+    'ratio_thresh':  [1.5, 1.8],
+}
+
+
 smk_test2 = {
     'pipeline_root': ['smk', 'asmk'],
     'sv_on':         [True],  # True, False],

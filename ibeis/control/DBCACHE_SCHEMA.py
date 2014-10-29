@@ -33,6 +33,7 @@ def update_1_0_0(ibs):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('feature_num_feats',            'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
+        # Maybe change name to feature_vecs
         ('feature_sifts',                'NUMPY'),
     ),
         superkey_colnames=['chip_rowid, config_rowid'],
@@ -46,8 +47,6 @@ def update_1_0_0(ibs):
 
 
 def update_1_0_1(ibs):
-    # TODO - Jon this is for you to modify.
-    #
     # When you're ready to make this schema update go live, simply
     # bump ibs.dbcache_version_expected in the controller to '1.0.1'
     ibs.dbcache.add_table(constants.RESIDUAL_TABLE, (
@@ -62,6 +61,15 @@ def update_1_0_1(ibs):
     pass
 
 
+def update_1_0_2(ibs):
+    # Change name of feature_sifts to feature_vecs and
+    # add new column for feature_weights
+    ibs.dbcache.modify_table(constants.FEATURE_TABLE, (
+        ('feature_sifts',   'feature_vecs',                 '', None),
+        (           None, 'feature_weight', 'REAL DEFAULT 1.0', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -73,4 +81,5 @@ VALID_VERSIONS = {
     base   :    (None,                 None,               None                ),
     '1.0.0':    (None,                 update_1_0_0,       None                ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),
+    '1.0.2':    (None,                 update_1_0_2,       None                ),
 }

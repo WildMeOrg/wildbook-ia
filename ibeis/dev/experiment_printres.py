@@ -416,7 +416,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     #utool.view_directory(figdir, verbose=True)
 
-    VIEW_FIG_DIR = utool.get_argflag(('--view-figures', '--vf'))
+    VIEW_FIG_DIR = utool.get_argflag(('--view-fig-dir', '--vf'))
     if VIEW_FIG_DIR:
         utool.view_directory(figdir, verbose=True)
 

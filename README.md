@@ -537,6 +537,9 @@ python dev.py -t oxford --allgt --db Oxford --index 0:55
  
 
 
+# VSONE TESTS
+python dev.py -t vsone_best --db PZ_Mothers --allgt --index 0:2 --print-all --va
+
 # DOCTESTS
 TODO: make these tests work
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))" --quiet

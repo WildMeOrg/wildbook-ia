@@ -261,7 +261,7 @@ class IBEISController(object):
         )
 
         # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.0'
+        ibs.dbcache_version_expected = '1.0.2'
         ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(
             ibs,
@@ -1035,7 +1035,7 @@ class IBEISController(object):
                 print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
-                        'feature_sifts', 'config_rowid',)
+                        'feature_vecs', 'config_rowid',)
             get_rowid_from_superkey = partial(ibs.get_chip_fids, ensure=False)
             fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
@@ -1996,13 +1996,22 @@ class IBEISController(object):
         return kpts_list
 
     @getter_1toM
-    #@cache_getter(FEATURE_TABLE, 'feature_sifts')
+    #@cache_getter(FEATURE_TABLE, 'feature_vecs')
     def get_feat_desc(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
             desc_list (list): chip SIFT descriptors """
-        desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, eager=eager, num_params=num_params)
+        desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_vecs',), fid_list, eager=eager, num_params=num_params)
         return desc_list
+
+    @getter_1toM
+    #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
+    def get_feat_weights(ibs, fid_list, eager=True, num_params=None):
+        """
+        Returns:
+            kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
+        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_weights',), fid_list, eager=eager, num_params=num_params)
+        return kpts_list
 
     @getter_1to1
     #@cache_getter(FEATURE_TABLE, 'feature_num_feats')

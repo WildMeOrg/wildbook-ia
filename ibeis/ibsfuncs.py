@@ -1175,7 +1175,7 @@ def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.FEATURE_TABLE, exclude_columns=[
-        'feature_keypoints', 'feature_sifts']))
+        'feature_keypoints', 'feature_vecs']))
 
 
 @__injectable(False)
@@ -1225,7 +1225,7 @@ def print_egpairs_table(ibs):
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
         exclude_columns = ['annot_uuid', 'lblannot_uuid', 'annot_verts', 'feature_keypoints',
-                           'feature_sifts', 'image_uuid', 'image_uri']
+                           'feature_vecs', 'image_uuid', 'image_uri']
     if exclude_tables is None:
         exclude_tables = ['masks', 'recognitions', 'chips', 'features']
     for table_name in ibs.db.get_table_names():
