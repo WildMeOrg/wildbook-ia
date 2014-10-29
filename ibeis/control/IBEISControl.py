@@ -2010,7 +2010,7 @@ class IBEISController(object):
         """
         Returns:
             kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_weights',), fid_list, eager=eager, num_params=num_params)
+        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_weight',), fid_list, eager=eager, num_params=num_params)
         return kpts_list
 
     @getter_1to1
