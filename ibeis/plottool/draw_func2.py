@@ -128,7 +128,7 @@ def add_alpha(colors):
     return [list(color) + [1] for color in colors]
 
 
-def _axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
+def get_axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
     if ax is None:
         ax = gca()
     'gets geometry of a subplot'
@@ -141,7 +141,7 @@ def _axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
 
 def draw_border(ax, color=GREEN, lw=2, offset=None):
     'draws rectangle border around a subplot'
-    xy, width, height = _axis_xy_width_height(ax, -.7, -.2, 1, .4)
+    xy, width, height = get_axis_xy_width_height(ax, -.7, -.2, 1, .4)
     if offset is not None:
         xoff, yoff = offset
         xy = [xoff, yoff]
@@ -331,7 +331,7 @@ def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), alpha=.6, **kwargs):
 def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
     if ax is None:
         ax = gca()
-    xy, width, height = _axis_xy_width_height(ax)
+    xy, width, height = get_axis_xy_width_height(ax)
     x_, y_ = ((xy[0]) + x * width, (xy[1] + height) - y * height)
     if offset is not None:
         xoff, yoff = offset
@@ -348,7 +348,7 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
         kwargs['fontproperties'] = FONTS.relative
     if roffset is not None:
         xroff, yroff = roffset
-        xy, width, height = _axis_xy_width_height(ax)
+        xy, width, height = get_axis_xy_width_height(ax)
         x_ += xroff * width
         y_ += yroff * height
 
@@ -359,14 +359,14 @@ def fig_relative_text(x, y, txt, **kwargs):
     kwargs['horizontalalignment'] = 'center'
     kwargs['verticalalignment'] = 'center'
     fig = gcf()
-    #xy, width, height = _axis_xy_width_height(ax)
+    #xy, width, height = get_axis_xy_width_height(ax)
     #x_, y_ = ((xy[0]+width)+x*width, (xy[1]+height)-y*height)
     fig.text(x, y, txt, **kwargs)
 
 
 def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
     ax = gca()
-    xy, width, height = _axis_xy_width_height(ax)
+    xy, width, height = get_axis_xy_width_height(ax)
     text_x = xy[0] + (width / 2)
     text_y = xy[1] + (height / 2)
     ax.text(text_x, text_y, text_str,
@@ -531,7 +531,7 @@ def dark_background(ax=None, doubleit=False):
     if isinstance(ax, Axes3D):
         ax.set_axis_bgcolor(bgcolor)
         return
-    xy, width, height = _axis_xy_width_height(ax)
+    xy, width, height = get_axis_xy_width_height(ax)
     if doubleit:
         halfw = (doubleit) * (width / 2)
         halfh = (doubleit) * (height / 2)
@@ -650,7 +650,8 @@ def variation_trunctate(data):
 
 
 def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
-                    custom=False):
+                    custom=False, val2_customcolor=None, scale_min=.1,
+                    scale_max=.9):
     """
     Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1', 'Set2', 'Accent'
 
@@ -664,6 +665,15 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
 
     Example:
         >>> from plottool.draw_func2 import *  # NOQA
+        >>> score_list = np.array([-1, -2, 1, 1, 2, 10])
+        >>> cmap_ = 'hot'
+        >>> logscale = False
+        >>> reverse_cmap = True
+        >>> custom = True
+        >>> val2_customcolor  = {
+        ...        -1: UNKNOWN_PURP,
+        ...        -2: LIGHT_BLUE,
+        ...    }
     """
     if DEBUG:
         print('scores_to_color()')
@@ -673,30 +683,34 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     cmap = plt.get_cmap(cmap_)
     if reverse_cmap:
         cmap = reverse_colormap(cmap)
-    if custom:
-        cmap = customize_colormap(score_list, cmap)
-    mins = score_list.min()
-    rnge = score_list.max() - mins
-    if rnge == 0:
+    #if custom:
+    #    base_colormap = cmap
+    #    data = score_list
+    #    cmap = customize_colormap(score_list, base_colormap)
+    min_ = score_list.min()
+    range_ = score_list.max() - min_
+    if range_ == 0:
         return [cmap(.5) for fx in range(len(score_list))]
     else:
         if logscale:
-            score2_01 = lambda score: np.log2(1.1 + .9 * (float(score) - mins) / (rnge))
+            score2_01 = lambda score: np.log2(1 + scale_min + scale_max * (float(score) - min_) / (range_))
             score_list = np.array(score_list)
             #rank_multiplier = score_list.argsort() / len(score_list)
             #normscore = np.array(list(map(score2_01, score_list))) * rank_multiplier
             normscore = np.array(list(map(score2_01, score_list)))
             colors =  list(map(cmap, normscore))
         else:
-            score2_01 = lambda score: .1 + .9 * (float(score) - mins) / (rnge)
-        colors    = [cmap(score2_01(score)) for score in score_list]
+            score2_01 = lambda score: scale_min + scale_max * (float(score) - min_) / (range_)
+        colors = [cmap(score2_01(score)) for score in score_list]
+        if val2_customcolor is not None:
+            colors = [np.array(val2_customcolor.get(score, color)) for color, score in zip(colors, score_list)]
         return colors
 
 
 def customize_colormap(data, base_colormap):
-    unique_vals = np.array(sorted(np.unique(data)))
-    max_ = unique_vals.max()
-    min_ = unique_vals.min()
+    unique_scalars = np.array(sorted(np.unique(data)))
+    max_ = unique_scalars.max()
+    min_ = unique_scalars.min()
     range_ = max_ - min_
     bounds = np.linspace(min_, max_ + 1, range_ + 2)
 
@@ -718,26 +732,14 @@ def customize_colormap(data, base_colormap):
 
     cmap = mpl.colors.ListedColormap(special_colors)
 
-    #norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
-    #mappable = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
-    #mappable.set_array([])
-    #mappable.set_clim(-.5, range_ + 0.5)
-    #colorbar = plt.colorbar(mappable)
+    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    sm.set_clim(-.5, range_ + 0.5)
+    #colorbar = plt.colorbar(sm)
 
-    #def find_missing_val_ixs(unique_vals, bounds):
-    #    missing_ixs = []
-    #    valx   = 0
-    #    boundx = 0
-    #    while valx < len(unique_vals) and boundx < len(bounds):
-    #        if unique_vals[valx] != bounds[boundx]:
-    #            missing_ixs.append(valx)
-    #        else:
-    #            valx += 1
-    #        boundx += 1
-    #    return missing_ixs
-
-    #missing_ixs = find_missing_val_ixs(unique_vals, bounds)
+    #missing_ixs = find_nonconsec_indicies(unique_scalars, bounds)
     #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
 
     #ticks = sel_bounds + .5
@@ -747,12 +749,26 @@ def customize_colormap(data, base_colormap):
     return cmap
 
 
+def unique_rows(arr):
+    """
+    References:
+        http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    """
+    rowblocks = np.ascontiguousarray(arr).view(np.dtype((np.void, arr.dtype.itemsize * arr.shape[1])))
+    _, idx = np.unique(rowblocks, return_index=True)
+    unique_arr = arr[idx]
+    return unique_arr
+
+
 def scores_to_cmap(scores, colors=None, cmap_='hot'):
     if DEBUG:
         print('scores_to_cmap()')
     if colors is None:
         colors = scores_to_color(scores, cmap_=cmap_)
-    sorted_colors = [x for (y, x) in sorted(zip(scores, colors))]
+    scores = np.array(scores)
+    colors = np.array(colors)
+    sortx = scores.argsort()
+    sorted_colors = colors[sortx]
     # Make a listed colormap and mappable object
     listed_cmap = mpl.colors.ListedColormap(sorted_colors)
     return listed_cmap
@@ -825,16 +841,16 @@ def test_integral_label_colormap():
         >>> from plottool.draw_func2 import *  # NOQA
     """
 
-    def label_domain(unique_vals):
-        diff = np.diff(unique_vals)
-        # Find the holes in unique_vals
+    def label_domain(unique_scalars):
+        diff = np.diff(unique_scalars)
+        # Find the holes in unique_scalars
         missing_vals = []
         for diffx in np.where(diff > 1)[0]:
-            missing_vals.extend([(unique_vals[diffx] + x + 1) for x in range(diff[diffx] - 1)])
+            missing_vals.extend([(unique_scalars[diffx] + x + 1) for x in range(diff[diffx] - 1)])
 
         # Find the indicies of those holes
         missing_ixs = np.array(missing_vals) - min_
-        assert all([val not in unique_vals for val in missing_vals])
+        assert all([val not in unique_scalars for val in missing_vals])
 
         domain = np.array([x for ix, x in enumerate(rawdomain) if ix not in missing_ixs])
         domain -= min_
@@ -851,9 +867,9 @@ def test_integral_label_colormap():
     data = (np.random.random((10, 10)) * 13).astype(np.int32) - 2
     data[data == 0] = 12
 
-    unique_vals = np.array(sorted(np.unique(data)))
-    max_ = unique_vals.max()
-    min_ = unique_vals.min()
+    unique_scalars = np.array(sorted(np.unique(data)))
+    max_ = unique_scalars.max()
+    min_ = unique_scalars.min()
     range_ = max_ - min_
     bounds = np.linspace(min_, max_ + 1, range_ + 2)
 
@@ -879,24 +895,12 @@ def test_integral_label_colormap():
 
     ax.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
 
-    mappable = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
-    mappable.set_array([])
-    mappable.set_clim(-.5, range_ + 0.5)
-    colorbar = plt.colorbar(mappable)
+    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    sm.set_clim(-.5, range_ + 0.5)
+    colorbar = plt.colorbar(sm)
 
-    def find_missing_val_ixs(unique_vals, bounds):
-        missing_ixs = []
-        valx   = 0
-        boundx = 0
-        while valx < len(unique_vals) and boundx < len(bounds):
-            if unique_vals[valx] != bounds[boundx]:
-                missing_ixs.append(valx)
-            else:
-                valx += 1
-            boundx += 1
-        return missing_ixs
-
-    missing_ixs = find_missing_val_ixs(unique_vals, bounds)
+    missing_ixs = utool.find_nonconsec_indicies(unique_scalars, bounds)
     sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
 
     ticks = sel_bounds + .5
@@ -919,6 +923,19 @@ def colorbar(scalars, colors, custom=False):
     Example:
         >>> from plottool.draw_func2 import *  # NOQA
         >>> from plottool import draw_func2 as df2
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> scalars = np.array([-1, -2, 1, 1, 2, 7, 10])
+        >>> cmap_ = 'hot'
+        >>> logscale = False
+        >>> custom = True
+        >>> reverse_cmap = True
+        >>> val2_customcolor  = {
+        ...        -1: UNKNOWN_PURP,
+        ...        -2: LIGHT_BLUE,
+        ...    }
+        >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale, reverse_cmap=reverse_cmap, val2_customcolor=val2_customcolor)
+        >>> colorbar(scalars, colors, custom=custom)
+        >>> df2.present()
     """
     printDBG('colorbar()')
     # Parameters
@@ -926,24 +943,27 @@ def colorbar(scalars, colors, custom=False):
     divider = ensure_divider(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
 
-    xy, width, height = _axis_xy_width_height(ax)
+    xy, width, height = get_axis_xy_width_height(ax)
     #orientation = ['vertical', 'horizontal'][0]
     TICK_FONTSIZE = 8
     #
-    listed_cmap = scores_to_cmap(scalars, colors)
     # Create scalar mappable with cmap
-    sorted_scalars = sorted(scalars)
     if custom:
-        unique_vals = np.array(sorted(np.unique(scalars)))
-        max_ = unique_vals.max()
-        min_ = unique_vals.min()
-        range_ = max_ - min_
-        bounds = np.linspace(min_, max_ + 1, range_ + 2)
-        norm = mpl.colors.BoundaryNorm(bounds, listed_cmap.N)
-        sm = mpl.cm.ScalarMappable(cmap=listed_cmap, norm=norm)
-        sm.set_array([])
-        sm.set_clim(-.5, range_ + 0.5)
+        # FIXME: clean this code up and change the name custom
+        # to be meaningful. It is more like: display unique colors
+        unique_scalars, unique_idx = np.unique(scalars, return_index=True)
+        unique_colors = np.array(colors)[unique_idx]
+        #max_, min_ = unique_scalars.max(), unique_scalars.min()
+        #range_ = max_ - min_
+        #bounds = np.linspace(min_, max_ + 1, range_ + 2)
+        listed_cmap = mpl.colors.ListedColormap(unique_colors)
+        #norm = mpl.colors.BoundaryNorm(bounds, listed_cmap.N)
+        #sm = mpl.cm.ScalarMappable(cmap=listed_cmap, norm=norm)
+        sm = mpl.cm.ScalarMappable(cmap=listed_cmap)
+        sm.set_array(np.linspace(0, 1, len(unique_scalars) + 1))
     else:
+        sorted_scalars = sorted(scalars)
+        listed_cmap = scores_to_cmap(scalars, colors)
         sm = plt.cm.ScalarMappable(cmap=listed_cmap)
         sm.set_array(sorted_scalars)
     # Use mapable object to create the colorbar
@@ -962,29 +982,26 @@ def colorbar(scalars, colors, custom=False):
     # This line alone removes data
     # axis.set_ticks([0, .5, 1])
     if custom:
-        def find_missing_val_ixs(unique_vals, bounds):
-            missing_ixs = []
-            valx   = 0
-            boundx = 0
-            while valx < len(unique_vals) and boundx < len(bounds):
-                if unique_vals[valx] != bounds[boundx]:
-                    missing_ixs.append(valx)
-                else:
-                    valx += 1
-                boundx += 1
-            return missing_ixs
+        #missing_ixs = utool.find_nonconsec_indicies(unique_scalars, bounds)
+        #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
+        #ticks = sel_bounds + .5 - (sel_bounds.min())
+        #ticklabels = sel_bounds
+        #ticks = bounds
+        ticks = np.linspace(0, 1, len(unique_scalars) + 1)
+        if len(ticks) < 2:
+            ticks += .5
+        else:
+            # SO HACKY
+            ticks += (ticks[1] - ticks[0]) / 2
 
-        missing_ixs = find_missing_val_ixs(unique_vals, bounds)
-        sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
-
-        ticks = sel_bounds + .5
-        ticklabels = sel_bounds
+        ticklabels = unique_scalars
         cb.set_ticks(ticks)  # tick locations
         cb.set_ticklabels(ticklabels)  # tick labels
 
     # FIXME: Figure out how to make a maximum number of ticks
     # and to enforce them to be inside the data bounds
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
+    # Sets current axis
     plt.sca(ax)
     return cb
 
@@ -1394,7 +1411,7 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     'draws a big red x. redx'
     ax = gca()
     if xywh is None:
-        xy, w, h = _axis_xy_width_height(ax)
+        xy, w, h = get_axis_xy_width_height(ax)
         xywh = (xy[0], xy[1], w, h)
     x1, y1, w, h = xywh
     x2, y2 = x1 + w, y1 + h
