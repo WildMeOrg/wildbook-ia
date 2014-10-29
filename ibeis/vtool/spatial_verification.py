@@ -498,8 +498,8 @@ def spatial_verification(kpts1, kpts2, fm,
         >>> daid = ibs.get_annot_groundtruth(qaid)[0]
         >>> kpts1 = ibs.get_annot_kpts(qaid)
         >>> kpts2 = ibs.get_annot_kpts(daid)
-        >>> qvecs = ibs.get_annot_desc(qaid)
-        >>> dvecs = ibs.get_annot_desc(daid)
+        >>> qvecs = ibs.get_annot_vecs(qaid)
+        >>> dvecs = ibs.get_annot_vecs(daid)
         >>> # Simple ratio-test matching
         >>> flann = pyflann.FLANN()
         >>> flann.build_index(dvecs)
