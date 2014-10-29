@@ -107,7 +107,7 @@ def new_ibeis_nnindexer(ibs, daid_list):
             #rx2_nid  = ibs.get_annot_nids(daid_list)
             flann_params = ibs.cfg.query_cfg.flann_cfg.get_dict_args()
             # Get annotation descriptors that will be searched
-            vecs_list = ibs.get_annot_desc(daid_list)
+            vecs_list = ibs.get_annot_vecs(daid_list)
             flann_cachedir = ibs.get_flann_cachedir()
             nnindexer = new_neighbor_indexer(
                 daid_list, vecs_list, flann_params, flann_cachedir,
@@ -162,8 +162,8 @@ class NeighborIndex(object):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
         >>> new_aid_list = [2, 3, 4]
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
+        >>> qfx2_vec = ibs.get_annot_vecs(1)
+        >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
         >>> K = 2
         >>> checks = 1028
         >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
@@ -181,8 +181,8 @@ class NeighborIndex(object):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
         >>> new_aid_list = [2, 3, 4]
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
+        >>> qfx2_vec = ibs.get_annot_vecs(1)
+        >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
         >>> K = 2
         >>> checks = 1028
         >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K, checks=checks)

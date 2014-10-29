@@ -242,7 +242,7 @@ def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None):
         fnum = df2.next_fnum()
     rchip = ibs.get_annot_chips(aid)
     kp    = ibs.get_annot_kpts(aid)[fx]
-    sift  = ibs.get_annot_desc(aid)[fx]
+    sift  = ibs.get_annot_vecs(aid)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
                                             mode='vec', fnum=fnum, pnum=pnum)
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))

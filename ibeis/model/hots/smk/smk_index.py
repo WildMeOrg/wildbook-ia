@@ -63,7 +63,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     #max_iters = 200
     max_iters = 300
     flann_params = {}
-    train_vecs_list = annots_df.ibs.get_annot_desc(taids, eager=True)
+    train_vecs_list = annots_df.ibs.get_annot_vecs(taids, eager=True)
     #memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
     #memtrack.report('loaded trainvecs')
     train_vecs = np.vstack(train_vecs_list)

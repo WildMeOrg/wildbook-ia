@@ -55,7 +55,7 @@ def train_paris_vocab(ibs):
             # use annote with largest area
             aid_list.append(aids[np.argmax(ibs.get_annot_bbox_area(aids))])
 
-    vecs_list = ibs.get_annot_desc(aid_list)
+    vecs_list = ibs.get_annot_vecs(aid_list)
     vecs = np.vstack(vecs_list)
     nWords = 8000
     from vtool import clustering2 as clustertool

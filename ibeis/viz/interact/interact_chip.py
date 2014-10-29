@@ -23,7 +23,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
         # Get the fx-th keypiont
         chip = ibs.get_annot_chips(aid)
         kp = ibs.get_annot_kpts(aid)[fx]
-        sift = ibs.get_annot_desc(aid)[fx]
+        sift = ibs.get_annot_vecs(aid)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots

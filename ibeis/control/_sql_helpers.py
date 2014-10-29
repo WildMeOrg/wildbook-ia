@@ -91,7 +91,10 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
         if not utool.QUIET:
             print('[ensure_correct_version] Database version updated to %r' % (version_expected))
     elif version > version_expected:
-        raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
+        msg = (('[ensure_correct_version] ERROR: '
+                'Expected database version behind. expected: %r. got: %r') %
+               (version_expected, version))
+        raise AssertionError(msg)
 
 
 def update_schema_version(ibs, db_fpath, db_versions, version, version_target):

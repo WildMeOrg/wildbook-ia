@@ -60,7 +60,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
         fscore2  = qres.aid2_fs[aid2][mx]
         fk2      = qres.aid2_fk[aid2][mx]
         kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2])
-        desc1, desc2 = ibs.get_annot_desc([aid1, aid2])
+        desc1, desc2 = ibs.get_annot_vecs([aid1, aid2])
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'
@@ -77,7 +77,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
             (aid3, fx3, normk) = qfx2_norm[fx1]
             rchip3 = ibs.get_annot_chips(aid3)
             kp3 = ibs.get_annot_kpts(aid3)[fx3]
-            sift3 = ibs.get_annot_desc(aid3)[fx3]
+            sift3 = ibs.get_annot_vecs(aid3)[fx3]
             info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
             extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
         else:
@@ -249,7 +249,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #        fscore2  = qres.aid2_fs[aid2][mx]
 #        fk2      = qres.aid2_fk[aid2][mx]
 #        kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2])
-#        desc1, desc2 = ibs.get_annot_desc([aid1, aid2])
+#        desc1, desc2 = ibs.get_annot_vecs([aid1, aid2])
 #        kp1, kp2     = kpts1[fx1], kpts2[fx2]
 #        sift1, sift2 = desc1[fx1], desc2[fx2]
 #        info1 = '\nquery'
@@ -266,7 +266,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #            (aid3, fx3, normk) = qfx2_norm[fx1]
 #            rchip3 = ibs.get_annot_chips(aid3)
 #            kp3 = ibs.get_annot_kpts(aid3)[fx3]
-#            sift3 = ibs.get_annot_desc(aid3)[fx3]
+#            sift3 = ibs.get_annot_vecs(aid3)[fx3]
 #            info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
 #            extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
 #        else:

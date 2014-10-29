@@ -63,10 +63,10 @@ def update_1_0_1(ibs):
 
 def update_1_0_2(ibs):
     # Change name of feature_sifts to feature_vecs and
-    # add new column for feature_weights
+    # add new column for feature_forground_weight
     ibs.dbcache.modify_table(constants.FEATURE_TABLE, (
-        ('feature_sifts',   'feature_vecs',                 '', None),
-        (           None, 'feature_weight', 'REAL DEFAULT 1.0', None),
+        ('feature_sifts',   'feature_vecs',             '',      None),
+        (           None,   'feature_forground_weight', 'NUMPY', None),
     ))
 
 

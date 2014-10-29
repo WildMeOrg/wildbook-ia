@@ -546,3 +546,10 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.prep
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
 
 ```
+
+#---------------
+# Things we are not currently doing
+#---------------
+
+* No orientation invariance, gravity vector is always assumed
+* We do not add or remove points from kdtrees. They are always rebuilt

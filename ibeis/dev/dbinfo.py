@@ -333,7 +333,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
     from utool import util_latex
     print('[dev stats] cache_memory_stats()')
     #kpts_list = ibs.get_annot_kpts(cid_list)
-    #desc_list = ibs.get_annot_desc(cid_list)
+    #desc_list = ibs.get_annot_vecs(cid_list)
     #nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 

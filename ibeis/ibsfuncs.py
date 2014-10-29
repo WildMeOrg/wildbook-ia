@@ -343,7 +343,7 @@ def check_name_consistency(ibs, nid_list):
 def check_annot_size(ibs):
     aid_list = ibs.get_valid_aids()
     uuid_list = ibs.get_annot_uuids(aid_list)
-    desc_list = ibs.get_annot_desc(aid_list)
+    desc_list = ibs.get_annot_vecs(aid_list)
     kpts_list = ibs.get_annot_kpts(aid_list)
     vert_list = ibs.get_annot_verts(aid_list)
     print('size(aid_list) = ' + utool.byte_str2(utool.get_object_size(aid_list)))
@@ -524,11 +524,11 @@ def vd(ibs):
 
 
 @__injectable
-def get_annot_desc_cache(ibs, aids):
+def get_annot_vecs_cache(ibs, aids):
     """ When you have a list with duplicates and you dont want to copy data
-    creates a reference to each data object idnexed by a dict """
+    creates a reference to each data object indexed by a dict """
     unique_aids = list(set(aids))
-    unique_desc = ibs.get_annot_desc(unique_aids)
+    unique_desc = ibs.get_annot_vecs(unique_aids)
     desc_cache = dict(list(zip(unique_aids, unique_desc)))
     return desc_cache
 

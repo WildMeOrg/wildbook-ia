@@ -439,7 +439,14 @@ class IBEISController(object):
 
     @default_decorator
     def get_feat_config_rowid(ibs):
-        """ # FIXME: Configs are still handled poorly """
+        """
+        Returns the feature configuration id based on the cfgstr
+        defined by ibs.cfg.feat_cfg.get_cfgstr()
+
+        # FIXME: Configs are still handled poorly
+        used in ibeis.model.preproc.preproc_feats in the param
+        generator. (that should probably be moved into the controller)
+        """
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
         feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
         return feat_cfg_rowid
@@ -1040,6 +1047,10 @@ class IBEISController(object):
             fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return fid_list
+
+    @setter
+    def set_feat_fg_weight(ibs, fid_list, fgweight_list):
+        pass
 
     #
     #
@@ -1810,7 +1821,8 @@ class IBEISController(object):
         configuration.
 
         Returns:
-            cfpath_list (list): cpaths defined by ANNOTATIONs """
+            cfpath_list (list): cpaths defined by ANNOTATIONs
+        """
         #utool.assert_all_not_None(aid_list, 'aid_list')
         #assert all([aid is not None for aid in aid_list])
         cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
@@ -1828,25 +1840,39 @@ class IBEISController(object):
     def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, num_params=None):
         """
         Returns:
-            kpts_list (list): chip keypoints """
+            kpts_list (list): annotation descriptor keypoints
+        """
         fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
         kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, num_params=num_params)
         return kpts_list
 
     @getter_1toM
-    def get_annot_desc(ibs, aid_list, ensure=True, eager=True, num_params=None):
+    def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, num_params=None):
         """
         Returns:
-            desc_list (list): chip descriptors """
+            desc_list (list): annotation descriptor vectors
+        """
         fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
-        desc_list = ibs.get_feat_desc(fid_list, eager=eager, num_params=num_params)
+        desc_list = ibs.get_feat_vecs(fid_list, eager=eager, num_params=num_params)
         return desc_list
+
+    @getter_1toM
+    def get_annot_fg_weights(ibs, aid_list, ensure=True, eager=True, num_params=None):
+        """
+        Forground Weights
+
+        Returns:
+            fgweight_list (list): probability of being a forground keypoint
+        """
+        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
+        fgweight_list = ibs.get_feat_fg_weights(fid_list, eager=eager, num_params=num_params)
+        return fgweight_list
 
     @getter_1to1
     def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, num_params=None):
         """
         Returns:
-            size_list (list): num descriptors per annotation
+            nFeats_list (list): num descriptors per annotation
         """
         fid_list = ibs.get_annot_fids(aid_list, ensure=ensure, num_params=num_params)
         nFeats_list = ibs.get_num_feats(fid_list)
@@ -1997,7 +2023,7 @@ class IBEISController(object):
 
     @getter_1toM
     #@cache_getter(FEATURE_TABLE, 'feature_vecs')
-    def get_feat_desc(ibs, fid_list, eager=True, num_params=None):
+    def get_feat_vecs(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
             desc_list (list): chip SIFT descriptors """
@@ -2005,13 +2031,13 @@ class IBEISController(object):
         return desc_list
 
     @getter_1toM
-    #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
-    def get_feat_weights(ibs, fid_list, eager=True, num_params=None):
+    def get_feat_fg_weights(ibs, fid_list, eager=True, num_params=None):
         """
         Returns:
-            kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_weight',), fid_list, eager=eager, num_params=num_params)
-        return kpts_list
+            fgweight_list (list): probability of being a forground keypoint
+        """
+        fgweight_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_forground_weight',), fid_list, eager=eager, num_params=num_params)
+        return fgweight_list
 
     @getter_1to1
     #@cache_getter(FEATURE_TABLE, 'feature_num_feats')

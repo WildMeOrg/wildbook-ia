@@ -820,7 +820,7 @@ def sift_stats():
     import ibeis
     ibs = ibeis.opendb('PZ_Mothers')
     aid_list = ibs.get_valid_aids()
-    stacked_sift = np.vstack(ibs.get_annot_desc(aid_list))
+    stacked_sift = np.vstack(ibs.get_annot_vecs(aid_list))
     vector_stats(stacked_sift, 'sift')
     # We see that SIFT vectors are actually normalized
     # Between 0 and 512 and clamped to uint8

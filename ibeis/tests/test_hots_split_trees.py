@@ -13,7 +13,7 @@ def TEST_HOTS_SPLITTREE(ibs):
     num_forests = 8
     daid_list = ibs.get_valid_aids()
     num_neighbors = 3
-    qfx2_desc = ibs.get_annot_desc(daid_list[2])
+    qfx2_desc = ibs.get_annot_vecs(daid_list[2])
 
     split_index = HOTSSplitIndex(ibs, daid_list, num_forests=num_forests)
 
