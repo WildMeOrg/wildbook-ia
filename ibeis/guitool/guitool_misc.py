@@ -39,11 +39,14 @@ class GUILoggingHandler(logging.StreamHandler):
         except:
             self.handleError(record)
 
+#WITH_GUILOG = utool.get_argflag('--guilog')
+WITH_GUILOG = not utool.get_argflag('--noguilog')
+
 
 class QLoggedOutput(QtGui.QTextEdit):
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
-        if utool.get_argflag('--guilog'):
+        if WITH_GUILOG:
             self.logging_handler = GUILoggingHandler(self.gui_write)
             utool.add_logging_handler(self.logging_handler)
 
