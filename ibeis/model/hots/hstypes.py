@@ -13,7 +13,6 @@ This says dont clip, do rootsift instead
 * Incorporate Spatial Verification
 * Implement correct cfgstrs based on algorithm input
 for cached computations.
-* Go pandas all the way
 * Color by word
 * Profile on hyrule
 * Train vocab on paris

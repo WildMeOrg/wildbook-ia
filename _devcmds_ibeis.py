@@ -88,9 +88,9 @@ def convert_hsdbs(*args):
     ingest_hsdb.ingest_unconverted_hsdbs_in_workdir()
 
 
-@devcmd('delete_cache')
-def delete_cachedir(ibs, *args):
-    ibs.delete_cachedir()
+@devcmd
+def delete_cache(ibs, *args):
+    ibs.delete_cache()
 
 
 @devcmd

@@ -371,6 +371,7 @@ class VocabTrainConfig(ConfigBase):
     def __init__(vocab_cfg, **kwargs):
         super(VocabTrainConfig, vocab_cfg).__init__(name='vocab_cfg')
         vocab_cfg.indexer_key = 'default'  # Vocab
+        vocab_cfg.nIters = 200
         vocab_cfg.nWords = int(8E3)  #
         vocab_cfg.update(**kwargs)
 

@@ -1,6 +1,11 @@
 #!/usr/bin/env python2.7
 """
-This is a hacky script meant to be run interactively
+This is a hacky script meant to be run mostly automatically with the option of
+interactions.
+
+dev.py is supposed to be a developer non-gui interface into the IBEIS software.
+
+dev.py runs experiments and serves as a scratchpad for new code and quick scripts
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function

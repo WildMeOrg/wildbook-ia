@@ -50,6 +50,15 @@ smk2 = {
     'nWords':        [64000],  # True, False],
 }
 
+
+# Test to make sure things are working for oxford
+oxford = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [False, True],  # True, False],
+    'nWords':        [64000, 128000],
+    'xy_thresh':     [.1, .01, .001]
+}
+
 smkd = {
     'pipeline_root': ['smk'],
     'sv_on':         [False, True],  # True, False],

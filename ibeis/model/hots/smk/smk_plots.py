@@ -424,7 +424,20 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', figtitle='', colorty
         elif colortype == 'label':
             colors = df2.label_to_colors(metric)
         elif colortype == 'custom':
-            colors = df2.scores_to_color(metric, cmap_=cmap_, reverse_cmap=reverse_cmap, custom=True)
+            # Give ranks of -1 and -2 special meaning
+            val2_customcolor = {
+                -1: df2.UNKNOWN_PURP,
+                -2: df2.LIGHT_BLUE,
+            }
+            # Inconsistent but visable colors
+            scale_max = .7
+            #consistent colors (needs to know highest K)
+            #maxval = np.array(metric).max()
+            #scale_max = .7 * (float(maxval) / 20.0)
+            colors = df2.scores_to_color(metric, cmap_=cmap_,
+                                         reverse_cmap=reverse_cmap,
+                                         scale_max=scale_max,
+                                         val2_customcolor=val2_customcolor)
         else:
             raise ValueError('no known colortype = %r' % (colortype,))
     else:
@@ -454,7 +467,8 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     custom_qparams = {
         'pipeline_root': 'vsmany',
         'with_metadata': True,
-        'K': K
+        'K': K,
+        'sv_on': False,
         #K=4
     }
     #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
@@ -505,6 +519,7 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
                            show_aveprecision=True,
                            show_featweights=True,
                            qfx2_closest_k_list=None,
+                           show_word_correct_assignments=False,
                            qres_list=None):
     """
     Args:
@@ -534,14 +549,16 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
     kpts = ibs.get_annot_kpts(aid)
     if ut.VERBOSE:
         ut.super_print(kpts)
-    invindex.idx2_wxs
 
-    _mask = invindex.idx2_daid == aid
-    fxs = invindex.idx2_dfx[_mask]
-    wxs = invindex.idx2_wxs[_mask].T[0].T
+    if show_word_correct_assignments or show_idf:
+        # Get only the first assigned word
+        # FIXME: need to look at multi-assignment
+        _mask = invindex.idx2_daid == aid
+        fxs = invindex.idx2_dfx[_mask]
+        wxs = invindex.idx2_wxs[_mask].T[0].T
 
-    assert len(fxs) == len(kpts)
-    assert len(fxs) == len(wxs)
+        assert len(fxs) == len(kpts)
+        assert len(fxs) == len(wxs)
 
     fnum = 1
 
@@ -591,7 +608,18 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
             qfx2_closest_k_lt0  = qfx2_closest_k[qfx2_closest_k < 0]
             print('stats(qfx2_closest_k_qeq0) = ' + ut.get_stats_str(qfx2_closest_k_qeq0))
             print('stats(qfx2_closest_k_lt0)  = ' + ut.get_stats_str(qfx2_closest_k_lt0))
-            fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='custom')
+            fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='custom', reverse_cmap=True)
+
+    # Correct word assignment plots
+    if show_word_correct_assignments:
+        unique_wxs, unique_inverse = np.unique(wxs, return_inverse=True)
+        _idxs_list = [invindex.wx2_idxs[wx] for wx in unique_wxs]
+        _aids_list = [invindex.idx2_daid[idxs] for idxs in _idxs_list]
+        # Check if this word will provide a correct assignment
+        gt_aids = np.array(ibs.get_annot_groundtruth(aid))
+        _hastp_list = np.array([len(np.intersect1d(aids, gt_aids)) > 0 for aids in _aids_list])
+        hascorrectmatch = _hastp_list[unique_inverse].astype(np.int32) * 3 - 2
+        fnum = _plot(hascorrectmatch, fnum=fnum, lbl='Correct Words ' + qres.make_smaller_title(), colortype='custom', reverse_cmap=False)
 
     # Feature Weight Plots
     if show_featweights:
@@ -646,7 +674,7 @@ def main():
 
     # Define the plots you want
 
-    startx = ut.get_argval(('--startx', '--x'), int, default=min(18, len(valid_aids)))
+    startx = ut.get_argval(('--startx', '--x'), int, default=min(18, len(valid_aids) - 1))
 
     for aid in ut.InteractiveIter(valid_aids, startx=startx):
         df2.rrr()
@@ -668,7 +696,7 @@ def main():
 
 
 def present():
-    # For reloadableness
+    # In its own function for reloadableness
     from plottool import draw_func2 as df2
     return df2.present(max_rows=4, row_first=False)
 
@@ -687,9 +715,11 @@ def main_options():
         show_analysis=True,
         show_aveprecision=False,
         show_featweights=False,
+        show_word_correct_assignments=True,
         metric_keys=metric_keys,
-        #K_list=[2, 4, 10, 20],
-        K_list=[4, 10],
+        K_list=[2, 4, 10],
+        #K_list=[10, 20],
+        #K_list=[4, 10],
     )
     return kwargs
 

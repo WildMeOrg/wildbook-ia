@@ -98,7 +98,7 @@ def annotate_matches(ibs, qres, aid2,
         bbox_color2 = truth_color if draw_border else df2.ORANGE
         df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
     else:
-        xy, w, h = df2._axis_xy_width_height(ax)
+        xy, w, h = df2.get_axis_xy_width_height(ax)
         bbox2 = (xy[0], xy[1], w, h)
         theta2 = 0
         if draw_border:

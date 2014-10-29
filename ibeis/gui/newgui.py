@@ -241,8 +241,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
+        WITH_GUILOG = not utool.get_argflag('--noguilog')
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
-                                                  visible=utool.get_argflag('--guilog'), verticalStretch=6)
+                                                  visible=WITH_GUILOG, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         # New widget has black magic (for implicit layouts) in it
         ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,

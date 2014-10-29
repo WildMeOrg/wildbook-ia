@@ -36,8 +36,8 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
     return diff_matstr
 
 
-def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
-                  sel_rows, sel_cols, cfgx2_lbl=None):
+def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
+                  testnameid, sel_rows, sel_cols, cfgx2_lbl):
     """
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -47,7 +47,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     nQuery = len(qaids)
     #--------------------
     # Print Best Results
-    rank_mat = np.hstack(mat_list)  # concatenate each query rank across configs
+    rank_mat = np.hstack(bestranks_list)  # concatenate each query rank across configs
     # Label the rank matrix:
     _colxs = np.arange(nCfg)
     lbld_mat = utool.debug_vstack([_colxs, rank_mat])
@@ -117,11 +117,13 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     new_hard_qx_list = []
     new_qaids = []
     new_hardtup_list = []
+
     for qx in range(nQuery):
         ranks = rank_mat[qx]
         min_rank = ranks.min()
         bestCFG_X = np.where(ranks == min_rank)[0]
         qx2_min_rank.append(min_rank)
+        # Find the best rank over all configurations
         qx2_argmin_rank.append(bestCFG_X)
         # Mark examples as hard
         if ranks.max() > 0:
@@ -153,6 +155,18 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
                 print(' minimizing_cfg_x\'s = %s ' % minimizing_cfg_str)
     print_rowscore()
 
+    @utool.argv_flag_dec
+    def print_row_ave_precision():
+        print('=======================')
+        print('[harn] Scores per Query: %s' % testnameid)
+        print('=======================')
+        for qx in range(nQuery):
+            aveprecs = ', '.join(['%.2f' % (aveprecs[qx],) for aveprecs in cfgx2_aveprecs])
+            print('-------')
+            print(qx2_lbl[qx])
+            print(' aveprecs = %s ' % aveprecs)
+    print_row_ave_precision()
+
     #------------
 
     @utool.argv_flag_dec
@@ -181,13 +195,28 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     echo_hardcase()
 
     #------------
+
+    @utool.argv_flag_dec_true
+    def print_colmap():
+        print('==================')
+        print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
+        print('==================')
+        cfgx2_mAP = np.array([aveprec_list.mean() for aveprec_list in cfgx2_aveprecs])
+        sortx = cfgx2_mAP.argsort()
+        for cfgx in sortx:
+            print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
+        #print('--- /Scores per Config ---')
+    print_colmap()
+    #------------
+
+    #------------
     # Build Colscore
     X_list = [1, 5]
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nCfg) for X in iter(X_list)}
+    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_list}
     for cfgx in range(nCfg):
         ranks = rank_mat[:, cfgx]
-        for X in iter(X_list):
+        for X in X_list:
             #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
             nLessX_dict[int(X)][cfgx] = nLessX_
@@ -199,7 +228,16 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('==================')
         for cfgx in range(nCfg):
             print('[score] %s' % (cfgx2_lbl[cfgx]))
-            for X in iter(X_list):
+            for X in X_list:
+                nLessX_ = nLessX_dict[int(X)][cfgx]
+                print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
+
+        print('\n[harn] ... sorted scores')
+        for X in X_list:
+            print('[harn] Scores sorted by num less than %r' % (X))
+            sortx = np.array(nLessX_dict[int(X)]).argsort()
+            for cfgx in sortx:
+                print('[score] %s' % (cfgx2_lbl[cfgx]))
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
         print('--- /Scores per Config ---')

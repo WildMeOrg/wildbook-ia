@@ -196,10 +196,11 @@ class IBEISController(object):
 
     @default_decorator
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
-        """ Define ibs directories """
-        if ensure:
-            if not utool.QUIET:
-                print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
+        """
+        Define ibs directories
+        """
+        if ensure and not utool.QUIET:
+            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
             if not utool.QUIET:
                 print(dbdir)
@@ -228,17 +229,23 @@ class IBEISController(object):
         ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
         ibs.bigcachedir = join(ibs.cachedir, PATH_NAMES.bigcache)
         if ensure:
-            _verbose = utool.VERBOSE
-            utool.ensuredir(ibs._ibsdb)
-            utool.ensuredir(ibs.cachedir,    verbose=_verbose)
-            utool.ensuredir(ibs.workdir,     verbose=_verbose)
-            utool.ensuredir(ibs.imgdir,      verbose=_verbose)
-            utool.ensuredir(ibs.chipdir,     verbose=_verbose)
-            utool.ensuredir(ibs.flanndir,    verbose=_verbose)
-            utool.ensuredir(ibs.qresdir,     verbose=_verbose)
-            utool.ensuredir(ibs.bigcachedir, verbose=_verbose)
-            utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
+            ibs.ensure_directories()
         assert dbdir is not None, 'must specify database directory'
+
+    def ensure_directories(ibs):
+        """
+        Makes sure the core directores for the controller exist
+        """
+        _verbose = utool.VERBOSE
+        utool.ensuredir(ibs._ibsdb)
+        utool.ensuredir(ibs.cachedir,    verbose=_verbose)
+        utool.ensuredir(ibs.workdir,     verbose=_verbose)
+        utool.ensuredir(ibs.imgdir,      verbose=_verbose)
+        utool.ensuredir(ibs.chipdir,     verbose=_verbose)
+        utool.ensuredir(ibs.flanndir,    verbose=_verbose)
+        utool.ensuredir(ibs.qresdir,     verbose=_verbose)
+        utool.ensuredir(ibs.bigcachedir, verbose=_verbose)
+        utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
 
     @default_decorator
     def _init_sql(ibs):

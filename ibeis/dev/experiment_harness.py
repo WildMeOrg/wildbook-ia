@@ -107,7 +107,8 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list):
     nCfg     = len(cfg_list)   # number of configurations (cols)
     #nQuery   = len(qaids)  # number of queries (rows)
 
-    mat_list = []
+    bestranks_list = []
+    cfgx2_aveprecs = []
     #ibs._init_query_requestor()
 
     dbname = ibs.get_dbname()
@@ -134,13 +135,14 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list):
             with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
                 qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
             if not NOMEMORY:
-                mat_list.append(qx2_bestranks)
+                bestranks_list.append(qx2_bestranks)
+                cfgx2_aveprecs.append(qx2_avepercision)
             # Store the results
     if not utool.QUIET:
         print('[harn] Finished testing parameters')
     if NOMEMORY:
-        print('ran tests in memory savings mode. exiting')
+        print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
-                                      mat_list, testnameid, sel_rows,
-                                      sel_cols, cfgx2_lbl=cfgx2_lbl)
+                                      bestranks_list, cfgx2_aveprecs, testnameid, sel_rows,
+                                      sel_cols, cfgx2_lbl)

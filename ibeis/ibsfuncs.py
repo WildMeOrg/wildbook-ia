@@ -450,19 +450,47 @@ def check_exif_data(ibs, gid_list):
 
 
 @__injectable
+def delete_all_recomputable_data(ibs):
+    print('[ibs] delete_all_recomputable_data')
+    ibs.delete_all_features()
+    ibs.delete_all_chips()
+    ibs.delete_all_encounters()
+    print('[ibs] finished delete_all_recomputable_data')
+
+
+@__injectable
+def delete_cache(ibs, remove_from_sql=True):
+    """
+    Deletes the cache directory in the database directory.
+
+    Also removes features and chips from the sql controller if remove_from_sql is True
+    """
+    ibs.ensure_directories()
+    ibs.delete_cachedir()
+    if remove_from_sql:
+        ibs.delete_all_features()
+        ibs.delete_all_chips()
+    ibs.ensure_directories()
+
+
+@__injectable
+def delete_cachedir(ibs):
+    """
+    Deletes the cache directory in the database directory.
+    """
+    print('[ibs] delete_cachedir')
+    cachedir = ibs.get_cachedir()
+    print('[ibs] cachedir=%r' % cachedir)
+    utool.delete(cachedir)
+    print('[ibs] finished delete cachedir')
+
+
+@__injectable
 def delete_all_features(ibs):
     print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
     ibs.delete_features(all_fids)
     print('[ibs] finished delete_all_features')
-
-
-@__injectable
-def delete_all_annotations(ibs):
-    print('[ibs] delete_all_annotations')
-    all_aids = ibs._get_all_aids()
-    ibs.delete_annots(all_aids)
-    print('[ibs] finished delete_all_annotations')
 
 
 @__injectable
@@ -482,6 +510,15 @@ def delete_all_encounters(ibs):
 
 
 @__injectable
+def delete_all_annotations(ibs):
+    """ Carefull with this function. Annotations are not recomputable """
+    print('[ibs] delete_all_annotations')
+    all_aids = ibs._get_all_aids()
+    ibs.delete_annots(all_aids)
+    print('[ibs] finished delete_all_annotations')
+
+
+@__injectable
 def vd(ibs):
     utool.view_directory(ibs.get_dbdir())
 
@@ -496,11 +533,49 @@ def get_annot_desc_cache(ibs, aids):
     return desc_cache
 
 
+# TODO: move to constants
+
 @__injectable
 def get_annot_is_hard(ibs, aid_list):
+    """
+    CmdLine:
+        ./dev.py --cmd --db PZ_Mothers
+    Example:
+        >>> aid_list = ibs.get_valid_aids()
+    """
     notes_list = ibs.get_annot_notes(aid_list)
-    is_hard_list = ['hard' in notes.lower().split() for (notes)
+    is_hard_list = [constants.HARD_NOTE_TAG in notes.upper().split() for (notes)
                     in notes_list]
+    return is_hard_list
+
+
+@__injectable
+def set_annot_is_hard(ibs, aid_list, flag_list):
+    """
+    Hack to mark hard cases in the notes column
+
+    Example:
+        >>> pz_mothers_hard_aids = [27, 43, 44, 49, 50, 51, 54, 66, 89, 97]
+        >>> aid_list = pz_mothers_hard_aids
+        >>> flag_list = [True] * len(aid_list)
+    """
+    notes_list = ibs.get_annot_notes(aid_list)
+    is_hard_list = [constants.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
+    def fix_notes(notes, is_hard, flag):
+        if flag and is_hard or not (flag or is_hard):
+            # do nothing
+            return notes
+        elif not is_hard and flag:
+            # need to add flag
+            return constants.HARD_NOTE_TAG + ' '  + notes
+        elif is_hard and not flag:
+            # need to remove flag
+            return notes.replace(constants.HARD_NOTE_TAG, '').strip()
+        else:
+            raise AssertionError('impossible state')
+
+    new_notes_list = [fix_notes(notes, is_hard, flag) for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
+    ibs.set_annot_notes(aid_list, new_notes_list)
     return is_hard_list
 
 
@@ -1225,23 +1300,6 @@ def prune_exemplars(ibs):
     small_aids_list = [aids[sortx][:-MAX_EXEMPLAR] for aids, sortx in zip(problem_aids, problem_sortx)]
     small_aids = utool.flatten(small_aids_list)
     ibs.set_annot_exemplar_flag(small_aids, [False] * len(small_aids))
-
-
-@__injectable
-def delete_cachedir(ibs, removefeat=True):
-    """
-    Deletes the cache directory in the database directory.
-
-    Also removes features from the sql controller if removefeat is True
-    """
-    print('[ibs] delete_cachedir')
-    cachedir = ibs.get_cachedir()
-    print('[ibs] cachedir=%r' % cachedir)
-    utool.delete(cachedir)
-    print('[ibs] finished delete cachedir')
-    # TODO: features really need to not be in SQL or in a separate SQLDB
-    if removefeat:
-        ibs.delete_all_features()
 
 
 def draw_thumb_helper(tup):

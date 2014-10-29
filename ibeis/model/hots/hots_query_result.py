@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut  # NOQA
 # Python
 import six
 from six.moves import zip, cPickle
@@ -563,8 +564,10 @@ class QueryResult(__OBJECT_BASE__):
             recall = TP / (TP + FN)
             return recall
 
+        #with ut.EmbedOnException():
         max_rank = gt_ranks.max()
-
+        if max_rank is None:
+            max_rank = 0
         ofrank_curve = np.arange(max_rank + 1)
 
         truepos_curve  = np.array(list(map(get_nTruePositive, ofrank_curve)))
