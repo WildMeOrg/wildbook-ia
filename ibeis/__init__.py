@@ -12,6 +12,7 @@ try:
     from . import control
     from . import dev
     from . import io
+    from . import web
 except ImportError as ex:
     utool.printex(ex, 'error in __init__')
     try:
@@ -21,6 +22,7 @@ except ImportError as ex:
         from . import control
         from . import dev
         from . import io
+        from . import web
     except ImportError as ex:
         pass
     else:

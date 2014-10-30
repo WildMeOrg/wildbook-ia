@@ -86,7 +86,7 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
     if version < version_expected:
         if not utool.QUIET:
             print('[ensure_correct_version] Database version behind, updating...')
-        update_schema_version(ibs, db.fpath, db_versions, version, version_expected)
+        update_schema_version(ibs, db_versions, version, version_expected)
         ibs.set_database_version(db, version_expected)
         if not utool.QUIET:
             print('[ensure_correct_version] Database version updated to %r' % (version_expected))
@@ -94,10 +94,11 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
         raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
 
 
-def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
+def update_schema_version(ibs, db, db_versions, version, version_target):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+    db_fpath = db.fpath
     db_backup_fpath = db_fpath + '-backup'
     utool.copy(db_fpath, db_backup_fpath)
     valid_versions = sorted(db_versions.keys(), compare_string_versions)
@@ -117,11 +118,11 @@ def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
             print('Updating database to version: %r' % (next_version))
             pre, update, post = db_versions[next_version]
             if pre is not None:
-                pre(ibs)
+                pre(db, ibs=ibs)
             if update is not None:
-                update(ibs)
+                update(db, ibs=ibs)
             if post is not None:
-                post(ibs)
+                post(db, ibs=ibs)
     except Exception as ex:
         utool.printex(ex)
         utool.remove_file(db_fpath)

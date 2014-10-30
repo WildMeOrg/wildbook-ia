@@ -7,7 +7,7 @@ import utool
 # Tools
 from ibeis import constants
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
-                                        SQLExecutionContext)
+                                        SQLExecutionContext, PRINT_SQL)
 from ibeis.control import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
 
@@ -69,6 +69,30 @@ def ider_sql(func):
 
 
 __STR__ = str if six.PY3 else unicode
+
+
+class SQLAtomicContext(object):
+    def __init__(context, db, verbose=PRINT_SQL):
+        context.db = db  # Reference to sqldb
+        context.cur = context.db.connection.cursor()  # Get new cursor
+        context.verbose = verbose
+
+    def __enter__(context):
+        """ Sets the database into a state of an atomic transaction """
+        context.cur.execute('BEGIN EXCLUSIVE TRANSACTION')
+        return context
+
+    def __exit__(context, type_, value, trace):
+        """ Finalization of an SQLAtomicContext """
+        if trace is not None:
+            # An SQLError is a serious offence.
+            print('[sql] FATAL ERROR IN ATOMIC CONTEXT')
+            context.db.dump()  # Dump on error
+            print('[sql] Error in atomic context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        else:
+            context.db.connection.commit()
+            context.cur.close()
 
 
 class SQLDatabaseController(object):

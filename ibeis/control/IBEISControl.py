@@ -1246,6 +1246,20 @@ class IBEISController(object):
             ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
 
     @setter
+    def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
+        """ Sets the vertices [(x, y), ...] of a list of chips by aid """
+        import numpy as np
+        def deg_to_rad(degree):
+            degree %= 360.0
+            return (degree / 360.0) * 2 * np.pi
+        id_iter = ((aid,) for aid in aid_list)
+        if convert_radians:
+            viewpoint_list = [ deg_to_rad(viewpoint) for viewpoint in viewpoint_list]
+        assert all([0.0 <= viewpoint < 2 * np.pi for viewpoint in viewpoint_list])
+        val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_viewpoint',), val_iter, id_iter)
+
+    @setter
     def set_annot_detect_confidence(ibs, aid_list, confidence_list):
         """ Sets annotation notes """
         id_iter = ((aid,) for aid in aid_list)

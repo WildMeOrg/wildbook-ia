@@ -103,6 +103,7 @@ def _init_gui():
 #@profile
 def _init_ibeis(dbdir=None, verbose=True):
     import utool
+    from ibeis import params
     from ibeis.control import IBEISControl
     if verbose and not utool.QUIET:
         print('[main] _init_ibeis()')
@@ -112,6 +113,9 @@ def _init_ibeis(dbdir=None, verbose=True):
         utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
         ibs = IBEISControl.IBEISController(dbdir=dbdir)
+        if params.args.webapp:
+            from ibeis.web import app
+            app.start_from_ibeis(ibs)
     return ibs
 
 
