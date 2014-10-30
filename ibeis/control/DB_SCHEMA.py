@@ -10,8 +10,8 @@ from ibeis import constants
 # =======================
 
 
-def update_1_0_0(ibs):
-    ibs.db.add_table(constants.IMAGE_TABLE, (
+def update_1_0_0(db, ibs=None):
+    db.add_table(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
@@ -31,7 +31,7 @@ def update_1_0_0(ibs):
         docstr='''
         First class table used to store image locations and meta-data''')
 
-    ibs.db.add_table(constants.ENCOUNTER_TABLE, (
+    db.add_table(constants.ENCOUNTER_TABLE, (
         ('encounter_rowid',              'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
@@ -41,7 +41,7 @@ def update_1_0_0(ibs):
         docstr='''
         List of all encounters''')
 
-    ibs.db.add_table(constants.LBLTYPE_TABLE, (
+    db.add_table(constants.LBLTYPE_TABLE, (
         ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
@@ -53,7 +53,7 @@ def update_1_0_0(ibs):
         lblannot_value of annotations with a relationship of some
         lbltype_rowid''')
 
-    ibs.db.add_table(constants.CONFIG_TABLE, (
+    db.add_table(constants.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
     ),
@@ -66,7 +66,7 @@ def update_1_0_0(ibs):
     ##########################
     # FIRST ORDER            #
     ##########################
-    ibs.db.add_table(constants.ANNOTATION_TABLE, (
+    db.add_table(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
@@ -88,7 +88,7 @@ def update_1_0_0(ibs):
         encoded here Attributes are stored in the Annotation Label Relationship
         Table''')
 
-    ibs.db.add_table(constants.LBLIMAGE_TABLE, (
+    db.add_table(constants.LBLIMAGE_TABLE, (
         ('lblimage_rowid',               'INTEGER PRIMARY KEY'),
         ('lblimage_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -99,7 +99,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store the labels (attributes) of images''')
 
-    ibs.db.add_table(constants.LBLANNOT_TABLE, (
+    db.add_table(constants.LBLANNOT_TABLE, (
         ('lblannot_rowid',               'INTEGER PRIMARY KEY'),
         ('lblannot_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -115,7 +115,7 @@ def update_1_0_0(ibs):
     # SECOND ORDER           #
     ##########################
     # TODO: constraint needs modification
-    ibs.db.add_table(constants.CHIP_TABLE, (
+    db.add_table(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -127,7 +127,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    ibs.db.add_table(constants.FEATURE_TABLE, (
+    db.add_table(constants.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -139,7 +139,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    ibs.db.add_table(constants.EG_RELATION_TABLE, (
+    db.add_table(constants.EG_RELATION_TABLE, (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
@@ -153,7 +153,7 @@ def update_1_0_0(ibs):
     ##########################
     # THIRD ORDER            #
     ##########################
-    ibs.db.add_table(constants.GL_RELATION_TABLE, (
+    db.add_table(constants.GL_RELATION_TABLE, (
         ('glr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('lblimage_rowid',               'INTEGER NOT NULL'),
@@ -165,7 +165,7 @@ def update_1_0_0(ibs):
         Used to store one-to-many the relationship between images
         and labels''')
 
-    ibs.db.add_table(constants.AL_RELATION_TABLE, (
+    db.add_table(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('lblannot_rowid',               'INTEGER NOT NULL'),
@@ -178,9 +178,9 @@ def update_1_0_0(ibs):
         and labels''')
 
 
-def post_1_0_0(ibs):
+def post_1_0_0(db, ibs=None):
     # We are dropping the versions table and rather using the metadata table
-    ibs.db.drop_table(constants.VERSIONS_TABLE)
+    db.drop_table(constants.VERSIONS_TABLE)
 
 
 # =======================
@@ -188,9 +188,9 @@ def post_1_0_0(ibs):
 # =======================
 
 
-def update_1_0_1(ibs):
+def update_1_0_1(db, ibs=None):
     # Add a contributor's table
-    ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
+    db.add_table(constants.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
         ('contributor_name_first',       'TEXT'),
@@ -206,17 +206,17 @@ def update_1_0_1(ibs):
         Used to store the contributors to the project
         ''')
 
-    ibs.db.modify_table(constants.IMAGE_TABLE, (
+    db.modify_table(constants.IMAGE_TABLE, (
         # add column to v1.0.0 at index 1
         (1, 'contributor_rowid', 'INTEGER', None),
     ))
 
-    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+    db.modify_table(constants.ANNOTATION_TABLE, (
         # add column to v1.0.0 at index 1
         (1, 'annot_parent_rowid', 'INTEGER', None),
     ))
 
-    ibs.db.modify_table(constants.FEATURE_TABLE, (
+    db.modify_table(constants.FEATURE_TABLE, (
         # append column to v1.0.0 because None
         (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
     ))
@@ -227,9 +227,9 @@ def update_1_0_1(ibs):
 # =======================
 
 
-def update_1_0_2(ibs):
+def update_1_0_2(db, ibs=None):
     # Fix the contibutor table's constraint
-    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+    db.modify_table(constants.CONTRIBUTOR_TABLE, (
         # add column to v1.0.1 at index 1
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
@@ -242,19 +242,19 @@ def update_1_0_2(ibs):
 # =======================
 
 
-def update_1_1_0(ibs):
+def update_1_1_0(db, ibs=None):
     # Moving chips and features to their own cache database
-    ibs.db.drop_table(constants.CHIP_TABLE)
-    ibs.db.drop_table(constants.FEATURE_TABLE)
+    db.drop_table(constants.CHIP_TABLE)
+    db.drop_table(constants.FEATURE_TABLE)
 
     # Add viewpoint (radians) to annotations
-    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+    db.modify_table(constants.ANNOTATION_TABLE, (
         # add column to v1.0.2 at index 11
         (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
     ))
 
     # Add contributor to configs
-    ibs.db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(constants.CONFIG_TABLE, (
         # add column to v1.0.2 at index 1
         (1, 'contributor_uuid', 'UUID', None),
     ),
@@ -263,7 +263,7 @@ def update_1_1_0(ibs):
     )
 
     # Add config to encounters
-    ibs.db.modify_table(constants.ENCOUNTER_TABLE, (
+    db.modify_table(constants.ENCOUNTER_TABLE, (
         # add column to v1.0.2 at index 2
         (2, 'config_rowid', 'INTEGER', None),
     ),
@@ -272,7 +272,7 @@ def update_1_1_0(ibs):
     )
 
     # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
-    ibs.db.drop_table(constants.VERSIONS_TABLE)
+    db.drop_table(constants.VERSIONS_TABLE)
 
 
 # =======================
@@ -280,9 +280,9 @@ def update_1_1_0(ibs):
 # =======================
 
 
-def update_1_1_1(ibs):
+def update_1_1_1(db, ibs=None):
     # Change name of column
-    ibs.db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(constants.CONFIG_TABLE, (
         # rename column and change it's type
         ('contributor_uuid', 'contributor_rowid', '', None),
     ),
@@ -291,13 +291,13 @@ def update_1_1_1(ibs):
     )
 
     # Change type of column
-    ibs.db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(constants.CONFIG_TABLE, (
         # rename column and change it's type
         ('contributor_rowid', '', 'INTEGER', None),
     ))
 
     # Change type of columns
-    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+    db.modify_table(constants.CONTRIBUTOR_TABLE, (
         # Update column's types
         ('contributor_location_zip', '', 'TEXT', None),
         ('contributor_note', '', 'TEXT', None),

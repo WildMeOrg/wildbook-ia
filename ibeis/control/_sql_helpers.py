@@ -86,7 +86,7 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
     if version < version_expected:
         if not utool.QUIET:
             print('[ensure_correct_version] Database version behind, updating...')
-        update_schema_version(ibs, db_versions, version, version_expected)
+        update_schema_version(ibs, db, db_versions, version, version_expected)
         ibs.set_database_version(db, version_expected)
         if not utool.QUIET:
             print('[ensure_correct_version] Database version updated to %r' % (version_expected))

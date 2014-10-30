@@ -153,3 +153,12 @@ def enforce_unkonwn_name_is_explicit(ibs):
     assert len(utool.flatten(unknown_aids)) == 0
     # TODO Take unknown_aids and remove any name relationships to make unknown
     # implicit
+
+
+def fix_nulled_viewpoints(ibs):
+    aid_list = ibs.get_valid_aids()
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    valid_list = [viewpoint == 0.0 for viewpoint in viewpoint_list]
+    dirty_aid_list = utool.filter_items(aid_list, valid_list)
+    print("[duct_tape] Nulling %d annotation viewpoints" % len(dirty_aid_list))
+    ibs.set_annot_viewpoint(dirty_aid_list, [-1.0] * len(dirty_aid_list))

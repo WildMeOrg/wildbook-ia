@@ -16,13 +16,12 @@ VIEWPOINT_TABLE = 'viewpoints'
 def update_1_0_0(db, ibs=None):
     db.add_table(VIEWPOINT_TABLE, (
         ('viewpoint_rowid',              'INTEGER PRIMARY KEY'),
-        ('viewpoint_aid',                'INTEGER'),
-        ('viewpoint_cpath',              'TEXT'),
-        ('viewpoint_value1',             'REAL'),
-        ('viewpoint_value2',             'REAL'),
-        ('viewpoint_value3',             'REAL'),
+        ('annot_rowid',                  'INTEGER'),
+        ('viewpoint_value_1',            'INTEGER DEFAULT -1'),
+        ('viewpoint_value_2',            'INTEGER DEFAULT -1'),
+        ('viewpoint_value_avg',          'INTEGER DEFAULT -1'),
     ),
-        superkey_colnames=['viewpoint_cpath'],
+        superkey_colnames=['annot_rowid'],
         docstr='''
         SQLite table to store the web state''')
 

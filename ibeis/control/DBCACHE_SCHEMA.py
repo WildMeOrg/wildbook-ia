@@ -10,12 +10,12 @@ from ibeis import constants
 # =======================
 
 
-def update_1_0_0(ibs):
+def update_1_0_0(db, ibs=None):
     ##########################
     # SECOND ORDER           #
     ##########################
     # TODO: constraint needs modification
-    ibs.dbcache.add_table(constants.CHIP_TABLE, (
+    db.add_table(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -27,7 +27,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    ibs.dbcache.add_table(constants.FEATURE_TABLE, (
+    db.add_table(constants.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -46,10 +46,10 @@ def update_1_0_0(ibs):
 # =======================
 
 
-def update_1_0_1(ibs):
+def update_1_0_1(db, ibs=None):
     # When you're ready to make this schema update go live, simply
     # bump ibs.dbcache_version_expected in the controller to '1.0.1'
-    ibs.dbcache.add_table(constants.RESIDUAL_TABLE, (
+    db.add_table(constants.RESIDUAL_TABLE, (
         ('residual_rowid',               'INTEGER PRIMARY KEY'),
         ('feature_rowid',                'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -61,10 +61,10 @@ def update_1_0_1(ibs):
     pass
 
 
-def update_1_0_2(ibs):
+def update_1_0_2(db, ibs=None):
     # Change name of feature_sifts to feature_vecs and
     # add new column for feature_forground_weight
-    ibs.dbcache.modify_table(constants.FEATURE_TABLE, (
+    db.modify_table(constants.FEATURE_TABLE, (
         ('feature_sifts',   'feature_vecs',             '',      None),
         (           None,   'feature_forground_weight', 'NUMPY', None),
     ))
