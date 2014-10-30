@@ -1,6 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import utool
 
+depends_list = ['annot', 'chip', 'feat', 'featweight']
+
+
+colname_alias = {
+    'kpts': 'feature_keypoints',
+    'vecs': 'feature_vectors',
+}
+
 getter_1toM_dependency_template = utool.codeblock(
     '''
     def get_{parent}_{colname}({self}, {parent_rowid_list}):
@@ -21,8 +29,8 @@ getter_1toM_dependency_template = utool.codeblock(
 getter_1to1_template = utool.codeblock(
     '''
     def get_{tblname}_{colname}(ibs, {rowid_list}):
-        return kpts_list
-        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_keypoints',), fid_list, eager=eager, num_params=num_params)
+        {colname}_list = ibs.dbcache.get(FEATURE_TABLE, ('{colname}',), {rowid_list})
+        return {colname}_list
     ''')
 
 

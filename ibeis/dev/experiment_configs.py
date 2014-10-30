@@ -34,6 +34,7 @@ featparams = {
 }
 
 featparams_big = {
+    'fg_weight': [1.0],
     'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
     'numberOfScales': [1, 2, 3],
     'maxIterations': [16, 32],
