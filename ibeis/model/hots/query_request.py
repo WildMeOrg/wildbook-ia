@@ -1,5 +1,8 @@
 """
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.query_request))"
+
+FIXME: if cfg changes in controller all bets are off.
+Need to make controller functions have a purely stateless option.
 """
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index as hsnbrx
@@ -254,7 +257,7 @@ class QueryRequest(object):
     def load_indexer(qreq_, ibs):
         if qreq_.indexer is not None:
             return False
-        indexer = hsnbrx.new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
+        indexer = hsnbrx.new_ibeis_nnindexer(ibs, qreq_)
         qreq_.indexer = indexer
 
     def lazy_load(qreq_, ibs):
@@ -265,6 +268,10 @@ class QueryRequest(object):
             # FIXME: not sure if this is even used
             qreq_.load_query_vectors(ibs)
             qreq_.load_query_keypoints(ibs)
+        if qreq_.qparams.fg_weight != 0:
+            # Hacky way to ensure fgweights exist
+            #ibs.ensure_annot_fg_weights(qreq_.get_internal_daids())
+            ibs.ensure_annot_fg_weights(qreq_.get_internal_qaids())
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))

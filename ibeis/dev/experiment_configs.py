@@ -17,6 +17,35 @@ def augbase(basedict, updatedict):
 
 exclude_vars = vars().keys()   # this line is before tests
 
+fgweight = {
+    'fg_weight': [1.0, 0.0],
+}
+
+
+# Feature parameters
+featparams = {
+    #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+    'numberOfScales': [1, 2, 3],
+    #'maxIterations': [16, 32],
+    #'convergenceThreshold': [.05, .1],
+    #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
+    'initialSigma': [3.2, 1.6, 0.8],
+    #'edgeEigenValueRatio': [10, 5, 3],
+}
+
+featparams_big = {
+    'fg_weight': [1.0],
+    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+    'numberOfScales': [1, 2, 3],
+    'maxIterations': [16, 32],
+    'convergenceThreshold': [.05, .1],
+    #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
+    'initialSigma': [3.2, 2.4, 1.6, 1.2, 0.8],
+    'edgeEigenValueRatio': [10, 5, 3],
+}
+# low threshold = more keypoints
+# low initialSigma = more keypoints
+
 
 vsone_best = {
     'pipeline_root':  ['vsone'],

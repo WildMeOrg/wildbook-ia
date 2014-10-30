@@ -537,7 +537,12 @@ python dev.py -t oxford --allgt --db Oxford --index 0:55
  
 
 # Feature Tuning
-dev.py -d --devmode -w --db  GZ_all --show --db PZ_Mothers --allgt --index 0:2
+python dev.py -t test_feats -w --show --db PZ_Mothers --allgt --index 1:2
+
+python dev.py -t featparams -w --show --db PZ_Mothers --allgt
+python dev.py -t featparams_big -w --show --db PZ_Mothers --allgt
+python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
+ --allgt --index 1:2
 
 
 # VSONE TESTS

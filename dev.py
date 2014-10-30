@@ -555,10 +555,87 @@ def dev_snippets(main_locals):
     return locals()
 
 
-def get_sortbystr(str_list, key_list):
+def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
     sortx = key_list.argsort()
-    sorted_strs = [(str(key) + ') ' + str_) for str_, key in zip(str_list[sortx], key_list[sortx])]
-    return ('\n * '.join(sorted_strs))
+    ndigits = max(len(str(key_list.max())), 0 if keylbl is None else len(keylbl))
+    keyfmt  = '%' + str(ndigits) + 'd'
+    if keylbl is not None:
+        header = keylbl + ' --- ' + strlbl
+    else:
+        header = None
+
+    sorted_strs = ([(keyfmt % key + ' --- ' + str_) for str_, key in zip(str_list[sortx], key_list[sortx])])
+    def boxjoin(list_, header=None):
+        topline = '+----------'
+        botline = 'L__________'
+        boxlines = []
+        boxlines.append(topline + '\n')
+        if header is not None:
+            boxlines.append(header + '\n')
+            boxlines.append(topline)
+
+        body = utool.indentjoin(list_, '\n | ')
+        boxlines.append(body + '\n ')
+        boxlines.append(botline + '\n')
+        return ''.join(boxlines)
+    return boxjoin(sorted_strs, header)
+
+
+@devcmd('test_feats')
+def test_feats(ibs, qaid_list):
+    """
+    test_feats shows features using several different parameters
+
+    Args:
+        ibs (IBEISController):
+        qaid_list (int): query annotation id
+
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaid_list = [1]
+    """
+    from ibeis import viz
+    from plottool import df2
+    from ibeis.dev import experiment_configs
+    import utool as ut
+
+    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
+    varyparams_list = [experiment_configs.featparams]
+
+    def test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
+        for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
+            # Set ibs parameters to the current config
+            for key_, val_ in six.iteritems(dict_):
+                ibs.cfg.feat_cfg[key_] = val_
+            cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
+            if count == 0:
+                # On first run just record info
+                kpts = ibs.get_annot_kpts(aid)
+                nKpts_list.append(len(kpts))
+                cfgstr_list.append(cfgstr_)
+            if count == 1:
+                kpts = ibs.get_annot_kpts(aid)
+                # If second run happens display info
+                cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
+                                              breakchars=',', newline_prefix='',
+                                              break_words=False, wordsep=',')
+                title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
+                viz.show_chip(ibs, aid, fnum=df2.next_fnum(),
+                              title_suffix=title_suffix, darken=.8,
+                              ell_linewidth=2, ell_alpha=.6)
+
+    alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
+    for count in range(NUM_PASSES):
+        nKpts_list = []
+        cfgstr_list = []
+        for aid in qaid_list:
+            test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
+            #for dict_ in alldictcomb:
+        if count == 0:
+            nKpts_list = np.array(nKpts_list)
+            cfgstr_list = np.array(cfgstr_list)
+            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
 
 
 def devfunc(ibs, qaid_list):
@@ -579,33 +656,34 @@ def devfunc(ibs, qaid_list):
     kpts = ibs.get_annot_kpts(aid)
     print('len(kpts) = %r' % len(kpts))
     from plottool import df2
-    varyparams_list = [
-        #{
-        #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-        #    'numberOfScales': [3, 2, 1],
-        #    'maxIterations': [16, 32],
-        #    'convergenceThreshold': [.05, .1],
-        #    'initialSigma': [1.6, 1.2],
-        #},
-        {
-            #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-            'numberOfScales': [1],
-            #'maxIterations': [16, 32],
-            #'convergenceThreshold': [.05, .1],
-            #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
-            'initialSigma': [3.2, 1.6, 0.8],
-            'edgeEigenValueRatio': [10, 5, 3],
-        },
-    ]
+    from ibeis.dev import experiment_configs
+    #varyparams_list = [
+    #    #{
+    #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+    #    #    'numberOfScales': [3, 2, 1],
+    #    #    'maxIterations': [16, 32],
+    #    #    'convergenceThreshold': [.05, .1],
+    #    #    'initialSigma': [1.6, 1.2],
+    #    #},
+    #    {
+    #        #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+    #        'numberOfScales': [1],
+    #        #'maxIterations': [16, 32],
+    #        #'convergenceThreshold': [.05, .1],
+    #        #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
+    #        'initialSigma': [3.2, 1.6, 0.8],
+    #        'edgeEigenValueRatio': [10, 5, 3],
+    #    },
+    #]
+    varyparams_list = [experiment_configs.featparams]
 
     # low threshold = more keypoints
     # low initialSigma = more keypoints
-    next_fnum = df2.next_fnum
 
     nKpts_list = []
     cfgstr_list = []
 
-    alldictcomb = utool.flatten([utool.util_dict.all_dict_combinations(varyparams) for varyparams in varyparams_list])
+    alldictcomb = utool.flatten([utool.util_dict.all_dict_combinations(varyparams) for varyparams in featparams_list])
     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
     for count in range(NUM_PASSES):
         for aid in qaid_list:
@@ -625,14 +703,14 @@ def devfunc(ibs, qaid_list):
                     cfgstr_list.append(cfgstr_)
                 if count == 1:
                     title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgstr
-                    viz.show_chip(ibs, aid, fnum=next_fnum(),
+                    viz.show_chip(ibs, aid, fnum=df2.next_fnum(),
                                    title_suffix=title_suffix, darken=.4,
                                    ell_linewidth=2, ell_alpha=.8)
 
         if count == 0:
             nKpts_list = np.array(nKpts_list)
             cfgstr_list = np.array(cfgstr_list)
-            print(get_sortbystr(cfgstr_list, nKpts_list))
+            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
     df2.present()
     locals_ = locals()
     #locals_.update(annotationmatch_scores(ibs, qaid_list))
@@ -640,6 +718,7 @@ def devfunc(ibs, qaid_list):
 
 
 def run_dev(main_locals):
+    """ main command """
     print('[dev] run_dev')
     # Get references to controller
     ibs  = main_locals['ibs']

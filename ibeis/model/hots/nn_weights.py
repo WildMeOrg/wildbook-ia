@@ -9,51 +9,11 @@ import functools
 from ibeis.model.hots import hstypes
 
 
-def testdata_nn_weights():
-    import ibeis
-    from ibeis.model.hots import query_request
-    from ibeis.model.hots import pipeline
-    ibs = ibeis.opendb('testdb1')
-    aids = ibs.get_valid_aids()
-    daid_list = aids[1:5]
-    qaid_list = aids[0:1]
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
-    qreq_.lazy_load(ibs)
-    qaid2_nns = pipeline.nearest_neighbors(qreq_)
-    return ibs, daid_list, qaid_list, qaid2_nns, qreq_
+NN_WEIGHT_FUNC_DICT = {}
+EPS = 1E-8
 
 
-def test_all_weights():
-    from ibeis.model.hots import nn_weights
-    import six
-    ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
-    qaid = qaid_list[0]
-
-    def test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid):
-        from ibeis.model.hots import nn_weights
-        #----
-        normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
-        tup1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
-        (qaid2_weight1, qaid2_selnorms1) = tup1
-        weights1 = qaid2_weight1[qaid]
-        selnorms1 = qaid2_selnorms1[qaid]
-        #---
-        # test NN_WEIGHT_FUNC_DICT
-        #---
-        nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
-        tup2 = nn_normonly_weight(qaid2_nns, qreq_)
-        (qaid2_weight2, qaid2_selnorms2) = tup2
-        selnorms2 = qaid2_selnorms2[qaid]
-        weights2 = qaid2_weight2[qaid]
-        assert np.all(weights1 == weights2)
-        assert np.all(selnorms1 == selnorms2)
-        print(nn_weight + ' passed')
-
-    for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
-        nn_weights.test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
-
-
-def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
+def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
     """
     Weights nearest neighbors using the chosen function
 
@@ -63,7 +23,7 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
         qreq_ (QueryRequest): hyper-parameters
 
     Returns:
-        tuple(dict, dict) : (qaid2_weight, qaid2_selnorms)
+        dict: qaid2_weight
 
     Example:
         >>> from ibeis.model.hots.nn_weights import *
@@ -97,23 +57,72 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
 
     Knorm = qreq_.qparams.Knorm
     rule  = qreq_.qparams.normalizer_rule
+    with_metadata = qreq_.qparams.with_metadata
     # Prealloc output
     qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
-    qaid2_norm_metadata = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         # Apply normalized weights
-        (qfx2_normweight, norm_metadata) = apply_normweight(
-            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_)
+        qfx2_normweight = apply_normweight(
+            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_,
+            metadata, with_metadata)
         # Output
         qaid2_weight[qaid] = qfx2_normweight
-        qaid2_norm_metadata[qaid] = norm_metadata
-    return (qaid2_weight, qaid2_norm_metadata)
+    return qaid2_weight
+
+
+def _register_nn_normalized_weight_func(func):
+    """
+    Decorator for weighting functions
+
+    Registers a nearest neighbor normalized weighting
+    """
+    global NN_WEIGHT_FUNC_DICT
+    nnweight = utool.get_funcname(func).replace('_fn', '').lower()
+    if utool.VERBOSE:
+        print('[nn_weights] registering norm func: %r' % (nnweight,))
+    filtfunc = functools.partial(nn_normalized_weight, func)
+    NN_WEIGHT_FUNC_DICT[nnweight] = filtfunc
+    return func
+
+
+def _register_nn_simple_weight_func(func):
+    nnweight = utool.get_funcname(func).replace('_match_weighter', '').lower()
+    if utool.VERBOSE:
+        print('[nn_weights] registering simple func: %r' % (nnweight,))
+    NN_WEIGHT_FUNC_DICT[nnweight] = func
+    return func
+
+
+@_register_nn_simple_weight_func
+def fg_match_weighter(qaid2_nns, qreq_, metadata):
+    """
+    Example:
+        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots import nn_weights
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights(dict(fg_weight=1.0))
+        >>> metadata = {}
+        >>> qaid2_weight = fg_match_weighter(qaid2_nns, qreq_, metadata)
+    """
+    # Prealloc output
+    K = qreq_.qparams.K
+    qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    # Database feature index to chip index
+    for qaid in six.iterkeys(qaid2_nns):
+        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
+        # database forground weights
+        qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:K].T)
+        # query forground weights
+        qfx2_qfgw = qreq_.ibs.get_annot_fg_weights([qaid])[0]
+        # feature match forground weight
+        qfx2_fgweight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
+        qaid2_weight[qaid] = qfx2_fgweight
+    return qaid2_weight
 
 
 def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
-                     qreq_, with_meta=True):
+                     qreq_, with_metadata, metadata):
     """
     helper: applies the normalized weight function to one query annotation
 
@@ -126,9 +135,11 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         K (int):
         Knorm (int):
         qreq_ (QueryRequest): hyper-parameters
+        with_metadata (bool):
+        metadata (dict):
 
     Returns:
-        tuple(ndarray, tuple(list, ndarray)) : (qfx2_normweight, norm_metadata)
+        ndarray: qfx2_normweight
 
     Example:
         >>> from ibeis.model.hots.nn_weights import *
@@ -165,7 +176,8 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
     qfx2_normdist.shape = (len(qfx2_idx), 1)
     qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
     # build meta
-    if with_meta:
+    if with_metadata:
+        metakey = normweight_fn.func_name + '_norm_meta'
         normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
         qfx2_normmeta = np.array(
             [
@@ -173,10 +185,8 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
                 for (normk, idx) in zip(qfx2_normk, qfx2_normidx)
             ]
         )
-        norm_metadata = (normmeta_header, qfx2_normmeta)
-    else:
-        norm_metadata = None
-    return (qfx2_normweight, norm_metadata)
+        metadata[metakey] = (normmeta_header, qfx2_normmeta)
+    return qfx2_normweight
 
 
 def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
@@ -251,27 +261,7 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
     return qfx2_selnorm
 
 
-NN_WEIGHT_FUNC_DICT = {}
-EPS = 1E-8
-
-
-def _regweight_decor(func):
-    """
-    Decorator for weighting functions
-
-    Registers a nearest neighbor weighting
-    """
-    global NN_WEIGHT_FUNC_DICT
-    #filtfunc = functools.partial(nn_normalized_weight, func, *args)
-    nnweight = utool.get_funcname(func).replace('_fn', '').lower()
-    if utool.VERBOSE:
-        print('[nn_weights] registering func: %r' % (nnweight,))
-    filtfunc = functools.partial(nn_normalized_weight, func)
-    NN_WEIGHT_FUNC_DICT[nnweight] = filtfunc
-    return func
-
-
-@_regweight_decor
+@_register_nn_normalized_weight_func
 def lnbnn_fn(vdist, ndist):
     """
     Locale Naive Bayes Nearest Neighbor weighting
@@ -292,22 +282,22 @@ def lnbnn_fn(vdist, ndist):
     return (ndist - vdist)  # / 1000.0
 
 
-@_regweight_decor
+@_register_nn_normalized_weight_func
 def loglnbnn_fn(vdist, ndist):
     return np.log(ndist - vdist + 1.0)  # / 1000.0
 
 
-@_regweight_decor
+@_register_nn_normalized_weight_func
 def ratio_fn(vdist, ndist):
     return np.divide(ndist, vdist + EPS)
 
 
-@_regweight_decor
+@_register_nn_normalized_weight_func
 def logratio_fn(vdist, ndist):
     return np.log(np.divide(ndist, vdist + EPS) + 1.0)
 
 
-@_regweight_decor
+@_register_nn_normalized_weight_func
 def normonly_fn(vdist, ndist):
     return np.tile(ndist[:, 0:1], (1, vdist.shape[1]))
 
@@ -333,8 +323,8 @@ def normonly_fn(vdist, ndist):
 #    exec(funcstr)
 
 
-#def nn_ratio_weight(*args):
-#    return nn_normalized_weight(RATIO_fn, *args)
+#def nn_ratio_weight(qaid2_nns, qreq_):
+#    return nn_normalized_weight(RATIO_fn, qaid2_nns, qreq_)
 
 
 #def nn_lnbnn_weight(*args):
@@ -365,3 +355,48 @@ def normonly_fn(vdist, ndist):
 
 
 # normweight_fn = LNBNN_fn
+
+
+def testdata_nn_weights(custom_qparams={}):
+    """
+    >>> ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
+    >>> custom_qparams = {'fg_weight': 1.0}
+    """
+    import ibeis
+    from ibeis.model.hots import query_request
+    from ibeis.model.hots import pipeline
+    ibs = ibeis.opendb('testdb1')
+    aids = ibs.get_valid_aids()
+    daid_list = aids[1:5]
+    qaid_list = aids[0:1]
+    #ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_.lazy_load(ibs)
+    metadata = {}
+    qaid2_nns = pipeline.nearest_neighbors(qreq_, metadata)
+    return ibs, daid_list, qaid_list, qaid2_nns, qreq_
+
+
+def test_all_weights():
+    from ibeis.model.hots import nn_weights
+    import six
+    ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
+    qaid = qaid_list[0]
+
+    def test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid):
+        from ibeis.model.hots import nn_weights
+        #----
+        normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
+        qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
+        weights1 = qaid2_weight1[qaid]
+        #---
+        # test NN_WEIGHT_FUNC_DICT
+        #---
+        nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
+        qaid2_weight2 = nn_normonly_weight(qaid2_nns, qreq_)
+        weights2 = qaid2_weight2[qaid]
+        assert np.all(weights1 == weights2)
+        print(nn_weight + ' passed')
+
+    for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
+        nn_weights.test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
