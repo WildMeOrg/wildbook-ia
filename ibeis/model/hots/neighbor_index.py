@@ -44,25 +44,54 @@ def __cleanup():
         pass
 
 
-def test_nnindexer():
+def test_nnindexer(with_indexer=True):
+    """
+    Example:
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS
+    """
     from ibeis.model.hots.query_request import new_ibeis_query_request
     import ibeis
     daid_list = [7, 8, 9, 10, 11]
     ibs = ibeis.opendb(db='testdb1')
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
-    nnindexer = new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
+    if with_indexer:
+        nnindexer = new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
+    else:
+        nnindexer = None
     return nnindexer, qreq_, ibs
 
 
-def new_neighbor_indexer(aid_list=[], vecs_list=[], flann_params={},
+def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params={},
                          flann_cachedir=None, indexer_cfgstr='',
                          hash_rowids=True, use_cache=not NOCACHE_FLANN,
                          use_params_hash=True):
+    """
+    new_neighbor_indexer
+
+    Args:
+        aid_list (list):
+        vecs_list (list):
+        fgws_list (list):
+        flann_params (dict):
+        flann_cachedir (None):
+        indexer_cfgstr (str):
+        hash_rowids (bool):
+        use_cache (bool):
+        use_params_hash (bool):
+
+    Returns:
+        nnindexer
+    """
     print('[nnindexer] building NeighborIndex object')
     _check_input(aid_list, vecs_list)
     # Create indexes into the input aids
     ax_list = np.arange(len(aid_list))
     idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list)
+    if fgws_list is not None:
+        idx2_fgw = np.hstack(fgws_list)
+    else:
+        idx2_fgw = None
     if hash_rowids:
         # Fingerprint
         aids_hashstr = utool.hashstr_arr(aid_list, '_AIDS')
@@ -78,23 +107,45 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], flann_params={},
         'use_cache': use_cache,
         'use_params_hash': use_params_hash})
     ax2_aid = np.array(aid_list)
-    nnindexer = NeighborIndex(ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann)
+    nnindexer = NeighborIndex(ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx, flann)
     return nnindexer
 
 
-def new_ibeis_nnindexer(ibs, daid_list):
+def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
     """
+
+    FIXME: this needs to take in a qreq_ instead of a daid list
+    and use params from qparams instead of ibs.cfg
+
     IBEIS interface into neighbor_index
+
+    new_ibeis_nnindexer
+
+    Args:
+        ibs (IBEISController):
+        qreq_ (QueryRequest): hyper-parameters
+        _aids (list): for multiindexer use only
+    Returns:
+        nnindexer
 
     Example:
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer(None) # doctest: +ELLIPSIS
+        >>> nnindexer = new_ibeis_nnindexer(ibs, qreq_)
     """
     global NEIGHBOR_CACHE
+    if _aids is not None:
+        daid_list = _aids
+    else:
+        daid_list = qreq_.get_external_daids()
     daids_hashid = ibs.get_annot_uuid_hashid(daid_list, '_DUUIDS')
-    flann_cfgstr = ibs.cfg.query_cfg.flann_cfg.get_cfgstr()
-    feat_cfgstr  = ibs.cfg.query_cfg._feat_cfg.get_cfgstr()
-    indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr
+    flann_cfgstr = qreq_.qparams.flann_cfgstr
+    feat_cfgstr  = qreq_.qparams.feat_cfgstr
+
+    # HACK: feature weights should probably have their own config
+    fw_cfgstr = 'weighted=%r' % (qreq_.qparams.fg_weight != 0)
+    indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr + fw_cfgstr
+
     try:
         # neighbor cache
         if indexer_cfgstr in NEIGHBOR_CACHE:
@@ -105,12 +156,17 @@ def new_ibeis_nnindexer(ibs, daid_list):
             #rx2_kpts = ibs.get_annot_kpts(daid_list)
             #rx2_gid  = ibs.get_annot_gids(daid_list)
             #rx2_nid  = ibs.get_annot_nids(daid_list)
-            flann_params = ibs.cfg.query_cfg.flann_cfg.get_dict_args()
+            flann_params =  qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
             vecs_list = ibs.get_annot_vecs(daid_list)
+            #fgws_list = ibs.get_annot_fg_weights(daid_list)
+            if qreq_.qparams.fg_weight != 0:
+                fgws_list = ibs.ensure_annot_fg_weights(daid_list)
+            else:
+                fgws_list = None
             flann_cachedir = ibs.get_flann_cachedir()
             nnindexer = new_neighbor_indexer(
-                daid_list, vecs_list, flann_params, flann_cachedir,
+                daid_list, vecs_list, fgws_list, flann_params, flann_cachedir,
                 indexer_cfgstr, hash_rowids=False, use_params_hash=False)
             if len(NEIGHBOR_CACHE) > MAX_NEIGHBOR_CACHE_SIZE:
                 NEIGHBOR_CACHE.clear()
@@ -138,9 +194,10 @@ class NeighborIndex(object):
         >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
     """
 
-    def __init__(nnindexer, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
+    def __init__(nnindexer, ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx, flann):
         nnindexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
+        nnindexer.idx2_fgw = idx2_fgw  # (M x 1) Descriptor forground weight
         nnindexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
         nnindexer.flann    = flann     # Approximate search structure
@@ -176,7 +233,7 @@ class NeighborIndex(object):
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)
 
-    def add_points(nnindexer, new_aid_list, new_vecs_list):
+    def add_points(nnindexer, new_aid_list, new_vecs_list, new_fgws_list):
         """
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
@@ -195,15 +252,18 @@ class NeighborIndex(object):
         new_ax_list = np.arange(nAnnots, nAnnots + nNew)
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
                 invert_index(new_vecs_list, new_ax_list)
+        new_idx2_fgw = np.vstack(new_fgws_list)
         # Stack inverted information
         _ax2_aid = np.hstack((nnindexer.ax2_aid, new_aid_list))
         _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
         _idx2_fx = np.hstack((nnindexer.idx2_fx, new_idx2_fx))
         _idx2_vec = np.vstack((nnindexer.idx2_vec, new_idx2_vec))
+        _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
         nnindexer.ax2_aid  = _ax2_aid
         nnindexer.idx2_ax  = _idx2_ax
         nnindexer.idx2_vec = _idx2_vec
         nnindexer.idx2_fx  = _idx2_fx
+        nnindexer.idx2_fgw = _idx2_fgw
         #nnindexer.idx2_kpts   = None
         #nnindexer.idx2_oris   = None
         # Add new points to flann structure
@@ -245,7 +305,27 @@ class NeighborIndex(object):
                                nearest data vector
         """
         #return nnindexer.idx2_fx[qfx2_nnidx]
-        return nnindexer.idx2_fx.take(qfx2_nnidx)
+        qfx2_fx = nnindexer.idx2_fx.take(qfx2_nnidx)
+        return qfx2_fx
+
+    def get_nn_fgws(nnindexer, qfx2_nnidx):
+        """
+        Args:
+            qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
+                                  approximate nearest data vector
+        Returns:
+            qfx2_fgw : (N x K) qfx2_fgw[n][k] is the annotation id index of the
+                                kth forground weight
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
+            >>> qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])
+            >>> qfx2_fgw = nnindexer.get_nn_fgws(qfx2_nnidx)
+        """
+        #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
+        #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
+        qfx2_fgw = nnindexer.idx2_fgw.take(qfx2_nnidx)
+        return qfx2_fgw
 
 
 def invert_index(vecs_list, ax_list):

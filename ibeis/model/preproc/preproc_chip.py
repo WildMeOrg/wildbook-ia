@@ -388,8 +388,10 @@ def compute_and_write_probchip(ibs, aid_list):
     cachedir = get_probchip_cachedir(ibs)
     utool.ensuredir(cachedir)
     probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
+
+    # Needs probability chips
     dirty_aids = list(utool.ifilterfalse_items(aid_list, map(exists, probchip_fpath_list)))
-    compute_and_write_chips(ibs, dirty_aids)
+    compute_and_write_chips_lazy(ibs, dirty_aids)
 
     #ibs.delete_annot_chips(aid_list)
     #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)

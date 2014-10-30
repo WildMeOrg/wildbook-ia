@@ -99,6 +99,9 @@ def postload_commands(ibs, back):
         utool.ensuredir(qreq_cachedir)
     if params.args.set_notes is not None:
         ibs.set_dbnotes(params.args.set_notes)
+    if params.args.set_aids_as_hard is not None:
+        aid_list = params.args.set_aids_as_hard
+        ibs.set_annot_is_hard(aid_list, [True] * len(aid_list))
     if params.args.set_all_species is not None:
         ibs._overwrite_all_annot_species_to(params.args.set_all_species)
     if params.args.dump_schema:

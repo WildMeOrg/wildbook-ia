@@ -188,8 +188,9 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
         print('--index ' + (' '.join(map(str, new_hard_qx_list))))
-        print('--take new_hard_qx_list')
-        hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_qaids))
+        #print('--take new_hard_qx_list')
+        #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_qaids))
+        hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_qaids))
         print(hardaids_str)
         print('--- /Echo Hardcase ---')
     echo_hardcase()
@@ -226,20 +227,20 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
-        for cfgx in range(nCfg):
-            print('[score] %s' % (cfgx2_lbl[cfgx]))
-            for X in X_list:
-                nLessX_ = nLessX_dict[int(X)][cfgx]
-                print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
+        #for cfgx in range(nCfg):
+        #    print('[score] %s' % (cfgx2_lbl[cfgx]))
+        #    for X in X_list:
+        #        nLessX_ = nLessX_dict[int(X)][cfgx]
+        #        print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
 
         print('\n[harn] ... sorted scores')
         for X in X_list:
-            print('[harn] Scores sorted by num less than %r' % (X))
+            print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             for cfgx in sortx:
-                print('[score] %s' % (cfgx2_lbl[cfgx]))
                 nLessX_ = nLessX_dict[int(X)][cfgx]
-                print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
+                rankstr = eh.rankscore_str(X, nLessX_, nQuery, withlbl=False)
+                print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
         print('--- /Scores per Config ---')
     print_colscore()
 

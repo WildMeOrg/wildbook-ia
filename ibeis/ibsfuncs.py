@@ -562,6 +562,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
     notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = [constants.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
     def fix_notes(notes, is_hard, flag):
+        " Adds or removes hard tag if needed "
         if flag and is_hard or not (flag or is_hard):
             # do nothing
             return notes

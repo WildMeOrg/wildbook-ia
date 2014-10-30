@@ -110,7 +110,7 @@ def request_ibeis_query_L0(ibs, qreq_):
 
         # Nearest neighbors weighting and scoring (filt2_weights, metadata)
         # * feature matches are weighted
-        filt2_weights_, metadata = weight_neighbors(qaid2_nns_, qreq_, metadata)
+        filt2_weights_ = weight_neighbors(qaid2_nns_, qreq_, metadata)
 
         # Thresholding and weighting (qaid2_nnfilter)
         # * feature matches are pruned
@@ -248,10 +248,8 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
         nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweight]
         # Apply [nnweight] weight to each nearest neighbor
         # FIXME: only compute metadata if requested
-        qaid2_norm_weight, qaid2_norm_metadata = nn_filter_fn(qaid2_nns, qreq_)
+        qaid2_norm_weight = nn_filter_fn(qaid2_nns, qreq_, metadata)
         filt2_weights[nnweight] = qaid2_norm_weight
-        if qreq_.qparams.with_metadata:
-            metadata[nnweight + '_norm_meta'] = qaid2_norm_metadata
     return filt2_weights
 
 
@@ -262,6 +260,25 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
 
 @profile
 def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
+    """
+    helper function _threshold_and_scale_weights
+
+    qfx2_score is an ndarray containing the score of individual feature matches.
+    qfx2_valid marks if that score will be thresholded.
+
+    Args:
+        qaid (int): query annotation id
+        qfx2_nnidx (dict):
+        filt2_weights (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        tuple : (qfx2_score, qfx2_valid)
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+    """
+    # Baseline is all matches have score 1 and all matches are valid
     qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
@@ -269,10 +286,13 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
         qfx2_weights = aid2_weights[qaid]
         sign, thresh, weight = qreq_.qparams.filt2_stw[filt]  # stw = sign, thresh, weight
         if thresh is not None:
+            # Filter if threshold is specified
             qfx2_passed = sign * qfx2_weights <= sign * thresh
             qfx2_valid  = np.logical_and(qfx2_valid, qfx2_passed)
         if not weight == 0:
-            qfx2_score += weight * qfx2_weights
+            # Score if weight is specified
+            # This used to be an addition. should it still be?
+            qfx2_score *= (weight * qfx2_weights)
     return qfx2_score, qfx2_valid
 
 

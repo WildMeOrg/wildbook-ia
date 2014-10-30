@@ -623,8 +623,10 @@ class IBEISController(object):
     @ider
     def get_valid_aids(ibs, eid=None, is_exemplar=None):
         """
+
         Returns:
-            list_ (list):  a list of valid ANNOTATION unique ids """
+            list_ (list):  a list of valid ANNOTATION unique ids
+        """
         if eid is None and is_exemplar is not None:
             # Optimization Hack
             aid_list = ibs.db.get_all_rowids_where(ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
@@ -1048,9 +1050,74 @@ class IBEISController(object):
 
         return fid_list
 
-    @setter
-    def set_feat_fg_weight(ibs, fid_list, fgweight_list):
-        pass
+    def ensure_annot_fg_weights(ibs, aid_list, verbose=True):
+        """
+
+        # FIXME: this depends on the detector cfg
+        # We could make it depend on the annotation species label
+
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> fg_weight_list = ibs.ensure_annot_fg_weights(aid_list)
+        """
+        if verbose:
+            print('Ensuring fg weights exist')
+        from ibeis.model.preproc import preproc_featweight
+        orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
+        flag_list = [fgw is None for fgw in orig_fgweight_list]
+        dirty_aids = utool.filter_items(aid_list, flag_list)
+        if len(dirty_aids) > 0:
+            fgweight_list = preproc_featweight.compute_fg_weights(ibs, dirty_aids)
+            ibs.set_annot_fg_weights(dirty_aids, fgweight_list)
+            return ibs.get_annot_fg_weights(aid_list)
+        else:
+            return orig_fgweight_list
+
+    def delete_annot_fg_weights(ibs, aid_list):
+        """
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> old_fg_weights = ibs.get_annot_fg_weights(aid_list)
+            >>> if all([fg is None for fg in old_fg_weights]):
+            ...     print('Warning: cannot check delete')
+            >>> ibs.delete_annot_fg_weights(aid_list)
+            >>> fg_weights = ibs.get_annot_fg_weights(aid_list)
+            >>> assert all([fg is None for fg in fg_weights])
+        """
+        fid_list  = ibs.get_annot_fids(aid_list)
+        ibs.set_feat_fg_weights(fid_list, [None] * len(aid_list))
+
+    def set_annot_fg_weights(ibs, aid_list, fgweight_list):
+        """
+        set_annot_fg_weights
+
+        Args:
+            ibs (IBEISController):
+            aid_list (list):
+            fgweight_list (list):
+
+        Example:
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> from ibeis.model.preproc import preproc_featweight
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
+            >>> fgweight_list = preproc_featweight.compute_fg_weights(ibs, aid_list)
+            >>> ibs.set_annot_fg_weights(aid_list, fgweight_list)
+        """
+        fid_list  = ibs.get_annot_fids(aid_list)
+        ibs.set_feat_fg_weights(fid_list, fgweight_list)
+
+    def set_feat_fg_weights(ibs, fid_list, fgweight_list):
+        id_iter = fid_list
+        colnames = ('feature_forground_weight',)
+        val_iter = ((fgweight,) for fgweight in fgweight_list)
+        ibs.dbcache.set(FEATURE_TABLE, colnames, val_iter, id_iter)
 
     #
     #
@@ -1861,8 +1928,18 @@ class IBEISController(object):
         """
         Forground Weights
 
+        Args:
+            ibs (IBEISController):
+            aid_list (list):
+            ensure (bool):
+            eager (bool):
+            num_params (None):
+
         Returns:
             fgweight_list (list): probability of being a forground keypoint
+
+        Example:
+            >>> from ibeis.control.IBEISControl import *  # NOQA
         """
         fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, num_params=num_params)
         fgweight_list = ibs.get_feat_fg_weights(fid_list, eager=eager, num_params=num_params)

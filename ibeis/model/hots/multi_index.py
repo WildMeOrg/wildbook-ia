@@ -18,7 +18,7 @@ import ibeis.model.hots.neighbor_index as nbrx
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[multi_index]', DEBUG=False)
 
 
-def new_ibeis_mindexer(ibs, daid_list,
+def new_ibeis_mindexer(ibs, qreq_,
                        num_indexers=8,
                        split_method='name'):
     """
@@ -26,6 +26,8 @@ def new_ibeis_mindexer(ibs, daid_list,
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> mxer, qreq_, ibs = test_mindexer()
     """
+
+    daid_list = qreq_.get_internal_daids()
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
 
     # Split annotations into groups accorindg to split_method
@@ -69,7 +71,7 @@ def new_ibeis_mindexer(ibs, daid_list,
         print('[mindex] building forest %d/%d with %d aids' %
                 (tx + 1, num_bins, len(aids)))
         if len(aids) > 0:
-            nnindexer = nbrx.new_ibeis_nnindexer(ibs, aids)
+            nnindexer = nbrx.new_ibeis_nnindexer(ibs, qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -88,13 +90,12 @@ def new_ibeis_mindexer(ibs, daid_list,
 def test_mindexer():
     from ibeis.model.hots.query_request import new_ibeis_query_request
     import ibeis
-    ibs = ibeis.opendb(db='PZ_Mothers')
+    ibs = ibeis.opendb(db='PZ_MTEST')
     daid_list = ibs.get_valid_aids()[1:60]
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     num_indexers = 4
     split_method = 'name'
-    mxer = new_ibeis_mindexer(ibs, qreq_.get_internal_daids(),
-                                  num_indexers, split_method)
+    mxer = new_ibeis_mindexer(ibs, qreq_, num_indexers, split_method)
     return mxer, qreq_, ibs
 
 

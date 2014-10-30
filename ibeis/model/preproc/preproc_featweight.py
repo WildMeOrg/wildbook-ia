@@ -53,7 +53,7 @@ def gen_featweight_worker(tup):
     return (aid, weights)
 
 
-def compute_featweights(ibs, aid_list):
+def compute_fg_weights(ibs, aid_list):
     """
 
     Example:
@@ -61,9 +61,9 @@ def compute_featweights(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> featweight_list = compute_featweights(ibs, aid_list)
+        >>> featweight_list = compute_fg_weights(ibs, aid_list)
     """
-
+    print('[preproc_featweight] Preparing to compute fgweights')
     probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
     if ut.DEBUG2:
         from PIL import Image
@@ -74,6 +74,7 @@ def compute_featweights(ibs, aid_list):
     kpts_list = ibs.get_annot_kpts(aid_list)
     probchip_list = [gtool.imread(fpath) for fpath in probchip_fpath_list]
 
+    print('[preproc_featweight] Computing fgweights')
     arg_iter = zip(aid_list, kpts_list, probchip_list)
     featweight_gen = utool.util_parallel.generate(gen_featweight_worker, arg_iter, nTasks=len(aid_list))
     featweight_param_list = list(featweight_gen)
@@ -81,6 +82,7 @@ def compute_featweights(ibs, aid_list):
     #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]
     #featweight_aids = ut.get_list_column(featweight_param_list, 0)
     featweight_list = ut.get_list_column(featweight_param_list, 1)
+    print('[preproc_featweight] Done computing fgweights')
     return featweight_list
 
 

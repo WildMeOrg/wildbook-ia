@@ -102,6 +102,14 @@ class NNConfig(ConfigBase):
 class FilterConfig(ConfigBase):
     """
     Rename to scoring mechanism
+
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> filt_cfg = FilterConfig()
+        >>> print(filt_cfg.get_cfgstr())
+        _FILT(lnbnn_1.0)
+        >>> filt_cfg.fg_weight = 1
+        >>> print(filt_cfg.get_cfgstr())
     """
 
     def __init__(filt_cfg, **kwargs):
@@ -114,26 +122,31 @@ class FilterConfig(ConfigBase):
         filt_cfg.gravity_weighting = False
         filt_cfg._valid_filters = []
         def addfilt(sign, filt, thresh, weight, depends=None):
-            'dynamically adds filters'
+            """
+            dynamically adds filters
+            (sign, filt, thresh, weight)
+            """
             printDBG('[addfilt] %r %r %r %r' % (sign, filt, thresh, weight))
             filt_cfg._valid_filters.append(filt)
             filt_cfg[filt + '_thresh'] = None if thresh is None else float(thresh)
             filt_cfg[filt + '_weight'] = None if weight is None else float(weight)
             filt_cfg['_' + filt + '_depends'] = depends
             filt_cfg['_' + filt + '_sign'] = sign
-        #tuple(Sign, Filt, ValidSignThresh, ScoreMetaWeight)
         # thresh test is: sign * score <= sign * thresh
         # sign +1 --> Lower scores are better
         # sign -1 --> Higher scores are better
-        addfilt(+1, 'bboxdist',  None,   0.0)
-        addfilt(-1,   'recip',   0.0,   0.0, 'filt_cfg.Krecip > 0')
-        addfilt(+1,  'bursty',  None,   0.0)
-        addfilt(-1,   'ratio',  None,   0.0)
-        addfilt(-1,   'lnbnn',  None,   1.0)
-        addfilt(-1,  'lograt',  None,   0.0)
-        addfilt(-1,  'normonly',  None,   0.0)
-        addfilt(-1,  'logdist',  None,   0.0)
-        addfilt(-1,  'loglnbnn',  None,   0.0)
+        #tup( Sign,        Filt, ValidSignThresh, ScoreMetaWeight)
+        #    (sign,        filt, thresh, weight,  depends)
+        addfilt(+1,  'bboxdist',   None,    0.0)
+        addfilt(-1,     'recip',    0.0,    0.0, 'filt_cfg.Krecip > 0')
+        addfilt(+1,    'bursty',   None,    0.0)
+        addfilt(-1,     'ratio',   None,    0.0)
+        addfilt(-1,     'lnbnn',   None,    1.0)
+        addfilt(-1,    'lograt',   None,    0.0)
+        addfilt(-1,  'normonly',   None,    0.0)
+        addfilt(-1,   'logdist',   None,    0.0)
+        addfilt(-1,  'loglnbnn',   None,    0.0)
+        addfilt(-1,        'fg',   None,    0.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
 

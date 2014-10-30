@@ -51,12 +51,16 @@ def get_vary_dicts(test_cfg_name_list):
     return vary_dicts, test_cfg_name_list_out
 
 
-def rankscore_str(thresh, nLess, total):
+def rankscore_str(thresh, nLess, total, withlbl=True):
     #helper to print rank scores of configs
     percent = 100 * nLess / total
     fmtsf = '%' + str(utool.num2_sigfig(total)) + 'd'
-    fmtstr = '#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
-    rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
+    if withlbl:
+        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
+    else:
+        fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        rankscore_str = fmtstr % (nLess, total, percent, (total - nLess))
     return rankscore_str
 
 
