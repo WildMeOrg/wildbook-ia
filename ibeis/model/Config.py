@@ -371,6 +371,7 @@ class VocabTrainConfig(ConfigBase):
     def __init__(vocab_cfg, **kwargs):
         super(VocabTrainConfig, vocab_cfg).__init__(name='vocab_cfg')
         vocab_cfg.indexer_key = 'default'  # Vocab
+        vocab_cfg.nIters = 200
         vocab_cfg.nWords = int(8E3)  #
         vocab_cfg.update(**kwargs)
 
@@ -417,8 +418,10 @@ class QueryConfig(ConfigBase):
     """ query configuration parameters
 
         Example:
-        >>> import ibeis
-        >>> db ibeis.opendb('testdb1')
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> cfg = ibs.cfg.query_cfg
+            >>> cfg.printme3()
 
     """
     def __init__(query_cfg, feat_cfg=None, **kwargs):
@@ -551,13 +554,76 @@ def make_feasible(query_cfg):
 
 @six.add_metaclass(ConfigMetaclass)
 class FeatureConfig(ConfigBase):
-    """ FeatureConfig """
+    """
+    Feature configuration object.
+
+    Example:
+        >>> import ibeis
+        >>> from ibeis.model import Config  # NOQA
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> feat_cfg = Config.FeatureConfig()
+        >>> feat_cfg.printme3()
+        ChipConfig _chip_cfg =
+            bool adapteq = False
+            bool grabcut = False
+            bool histeq = False
+            bool local_eq = False
+            bool maxcontrast = False
+            bool rank_eq = False
+            bool region_norm = False
+            int chip_sqrt_area = 450
+            str chipfmt = '.png'
+        bool nogravity_hack = False
+        bool rotation_invariance = False
+        bool use_adaptive_scale = False
+        bool whiten = False
+        int scale_max = 9001
+        int scale_min = 0
+        str feat_type = 'hesaff+sift'
+
+    """
     def __init__(feat_cfg, chip_cfg=None, **kwargs):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg.feat_type = 'hesaff+sift'
         feat_cfg.whiten = False
-        feat_cfg.scale_min = 0  # 0  # 30 # TODO: Put in pref types here
-        feat_cfg.scale_max = 9001  # 9001 # 80
+        #feat_cfg.scale_min = 0  # 0  # 30 # TODO: Put in pref types here
+        #feat_cfg.scale_max = 9001  # 9001 # 80
+        # Inlineish copy of pyhesaff.hesaff_types_parms
+        import numpy as np
+        import ctypes as C
+        PY2 = True
+        if PY2:
+            int_t     = C.c_int
+        else:
+            raise NotImplementedError('PY3')
+        bool_t    = C.c_bool
+        float_t   = C.c_float
+        feat_cfg._param_list = [
+            (int_t,   'numberOfScales', 3, 'number of scale per octave'),
+            (float_t, 'threshold', 16.0 / 3.0, 'noise dependent threshold on the response (sensitivity)'),
+            (float_t, 'edgeEigenValueRatio', 10.0, 'ratio of the eigenvalues'),
+            (int_t,   'border', 5, 'number of pixels ignored at the border of image'),
+            # Affine Shape Params
+            (int_t,   'maxIterations', 16, 'number of affine shape interations'),
+            (float_t, 'convergenceThreshold', 0.05, 'maximum deviation from isotropic shape at convergence'),
+            (int_t,   'smmWindowSize', 19, 'width and height of the SMM (second moment matrix) mask'),
+            (float_t, 'mrSize', 3.0 * np.sqrt(3.0), 'size of the measurement region (as multiple of the feature scale)'),
+            # SIFT params
+            (int_t,   'spatialBins', 4),
+            (int_t,   'orientationBins', 8),
+            (float_t, 'maxBinValue', 0.2),
+            # Shared params
+            (float_t, 'initialSigma', 1.6, 'amount of smoothing applied to the initial level of first octave'),
+            (int_t,   'patchSize', 41, 'width and height of the patch'),
+            # My params
+            (float_t, 'scale_min', -1.0),
+            (float_t, 'scale_max', -1.0),
+            (bool_t,  'rotation_invariance', False),
+        ]
+
+        for type_, name, default, doc in feat_cfg._iterparams():
+            setattr(feat_cfg, name, default)
+
         feat_cfg.use_adaptive_scale = False  # 9001 # 80
         feat_cfg.nogravity_hack = False  # 9001 # 80
         if chip_cfg is None:
@@ -566,28 +632,108 @@ class FeatureConfig(ConfigBase):
             feat_cfg._chip_cfg = chip_cfg  # Features depend on chips
         feat_cfg.update(**kwargs)
 
+    def _iterparams(feat_cfg):
+        for tup in feat_cfg._param_list:
+            if len(tup) == 4:
+                type_, name, default, doc = tup
+            else:
+                type_, name, default = tup
+                doc = None
+            yield (type_, name, default, doc)
+
     def get_dict_args(feat_cfg):
         dict_args = {
-            'scale_min': feat_cfg.scale_min,
-            'scale_max': feat_cfg.scale_max,
-            'use_adaptive_scale': feat_cfg.use_adaptive_scale,
-            'nogravity_hack': feat_cfg.nogravity_hack,
+            name: feat_cfg[name]
+            for type_, name, default, doc in feat_cfg._iterparams()
         }
+        #dict_args = {
+        #    'scale_min': feat_cfg.scale_min,
+        #    'scale_max': feat_cfg.scale_max,
+        #    'use_adaptive_scale': feat_cfg.use_adaptive_scale,
+        #    'nogravity_hack': feat_cfg.nogravity_hack,
+        #}
         return dict_args
 
     def get_cfgstr_list(feat_cfg):
-        if feat_cfg._chip_cfg is None:
-            raise Exception('Chip config is required')
-        if feat_cfg.scale_min < 0:
-            feat_cfg.scale_min = None
-        if feat_cfg.scale_max < 0:
-            feat_cfg.scale_max = None
+        def remove_vowels(str_):
+            for char_ in 'AEOIUaeiou':
+                str_ = str_.replace(char_, '')
+            return str_
+
+        def clipstr(str_, maxlen):
+            if len(str_) > maxlen:
+                str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
+                if len(str2) > maxlen:
+                    return str2[0:maxlen]
+                else:
+                    return str_[0:maxlen]
+            else:
+                return str_
+        #if feat_cfg._chip_cfg is None:
+        #    raise Exception('Chip config is required')
+        #if feat_cfg.scale_min < 0:
+        #    feat_cfg.scale_min = None
+        #if feat_cfg.scale_max < 0:
+        #    feat_cfg.scale_max = None
         feat_cfgstrs = ['_FEAT(']
         feat_cfgstrs += [feat_cfg.feat_type]
         feat_cfgstrs += [',white'] * feat_cfg.whiten
-        feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
+        #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
         feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
         feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
+        # TODO: Named Tuple
+        alias = {
+            'numberOfScales': 'nScales',
+            'edgeEigValRat': 'EdgeEigvRat',
+            'maxIterations': 'nIter',
+            #'whiten':
+        }
+        ignore = []
+        #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
+        #              'nogravity_hack', 'feat_type'])
+        ignore_if_default = set([
+            # 'numberOfScales',
+            # 'threshold',
+            # 'edgeEigenValueRatio',
+            'border',
+            # 'maxIterations',
+            # 'convergenceThreshold',
+
+            'smmWindowSize',
+            'mrSize',
+
+            'spatialBins',
+            'orientationBins',
+
+            'maxBinValue',
+            #'initialSigma',
+            'patchSize',
+
+            'scale_min',
+            'scale_max',
+            'rotation_invariance',
+        ])
+
+        def _gen():
+            for param in feat_cfg._iterparams():
+                # a parameter is a type, name, default value, and docstring
+                (type_, name, default, doc) = param
+                if name in ignore:
+                    continue
+                val = feat_cfg[name]
+                if name in ignore_if_default and val == default:
+                    continue
+                if isinstance(val, float):
+                    valstr = '%.2f' % val
+                else:
+                    valstr = str(val)
+
+                #namestr = utool.hashstr(alias.get(name, name), hashlen=6,
+                #                        alphabet=utool.util_hash.ALPHABET_27)
+                namestr = clipstr(alias.get(name, name), 5)
+                str_ = namestr + '=' + valstr
+                yield str_
+        feat_cfgstrs.append('_' + ',' .join(list(_gen())))
         feat_cfgstrs += [')']
         feat_cfgstrs += feat_cfg._chip_cfg.get_cfgstr_list()
         return feat_cfgstrs

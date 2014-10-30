@@ -128,7 +128,7 @@ class DataFrameProxy(object):
         if key == 'kpts':
             return LazyGetter(self.ibs.get_annot_kpts)
         elif key == 'vecs':
-            return LazyGetter(self.ibs.get_annot_desc)
+            return LazyGetter(self.ibs.get_annot_vecs)
         elif key == 'labels':
             return LazyGetter(self.ibs.get_annot_class_labels)
 

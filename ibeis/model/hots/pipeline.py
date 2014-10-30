@@ -106,10 +106,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
-        qaid2_nns_ = nearest_neighbors(qreq_)
-
-        if qreq_.qparams.with_metadata:
-            metadata['nns'] = qaid2_nns_
+        qaid2_nns_ = nearest_neighbors(qreq_, metadata)
 
         # Nearest neighbors weighting and scoring (filt2_weights, metadata)
         # * feature matches are weighted
@@ -144,7 +141,7 @@ def request_ibeis_query_L0(ibs, qreq_):
 
 
 @profile
-def nearest_neighbors(qreq_):
+def nearest_neighbors(qreq_, metadata):
     """
     Plain Nearest Neighbors
 
@@ -197,6 +194,9 @@ def nearest_neighbors(qreq_):
     qaids = qreq_.get_internal_qaids()
     qaid2_nns_ = {aid: (qfx2_idx, qfx2_dist) for (aid, qfx2_idx, qfx2_dist) in
                   zip(qaids, nn_idxs_arr, nn_dists_arr)}
+
+    if qreq_.qparams.with_metadata:
+        metadata['nns'] = qaid2_nns_
     return qaid2_nns_
 
 
@@ -213,15 +213,15 @@ def weight_neighbors(qaid2_nns, qreq_, metadata):
         metadata (dict): metadata dictionary
 
     Returns:
-        tuple(dict, dict) : (filt2_weights, metadata)
+        dict : filt2_weights
     """
     if NOT_QUIET:
         print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
     if not qreq_.qparams.filt_on:
         filt2_weights = {}
     else:
-        filt2_weights, metadata = _weight_neighbors(qaid2_nns, qreq_, metadata)
-    return (filt2_weights, metadata)
+        filt2_weights = _weight_neighbors(qaid2_nns, qreq_, metadata)
+    return filt2_weights
 
 
 @profile
@@ -233,7 +233,7 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
         metadata (dict): metadata dictionary
 
     Returns:
-        tuple : (filt2_weights, metadata)
+        dict : filt2_weights
 
     Example:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
@@ -247,11 +247,12 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
     for nnweight in nnweight_list:
         nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweight]
         # Apply [nnweight] weight to each nearest neighbor
+        # FIXME: only compute metadata if requested
         qaid2_norm_weight, qaid2_norm_metadata = nn_filter_fn(qaid2_nns, qreq_)
         filt2_weights[nnweight] = qaid2_norm_weight
         if qreq_.qparams.with_metadata:
             metadata[nnweight + '_norm_meta'] = qaid2_norm_metadata
-    return filt2_weights, metadata
+    return filt2_weights
 
 
 #==========================
@@ -549,8 +550,8 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = 1
         >>> daid = ibs.get_annot_groundtruth(qaid)[0]
-        >>> qvecs = ibs.get_annot_desc(qaid)
-        >>> dvecs = ibs.get_annot_desc(daid)
+        >>> qvecs = ibs.get_annot_vecs(qaid)
+        >>> dvecs = ibs.get_annot_vecs(daid)
         >>> # Simple ratio-test matching
         >>> flann = pyflann.FLANN()
         >>> flann.build_index(dvecs)

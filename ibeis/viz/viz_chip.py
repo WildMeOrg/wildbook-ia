@@ -11,7 +11,7 @@ from ibeis.viz import viz_image
 
 
 @utool.indent_func
-def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
+def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
     """ Driver function to show chips
 
         Args:
@@ -19,6 +19,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
             aid (int): annotation rowid
             in_image (bool): displays annotation with the context of its source image
             annote (bool): enables overlay annoations
+            title_suffix (str):
 
         Keywords:
             color (3/4-tuple, ndarray, or str): colors for keypoints
@@ -45,6 +46,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
     chip = vh.get_chips(ibs, aid, in_image, **kwargs)
     # Create chip title
     chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
+    chip_title_text = chip_text + title_suffix
     # Draw chip
     fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
@@ -59,8 +61,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
             pass
         _annotate_kpts(kpts_, **kwargs)
     df2.upperleft_text(chip_text, color=kwargs.get('text_color', None))
-    if not kwargs.get('notitle', False):
-        ax.set_title(chip_text)
+    if not kwargs.get('ntitle', False):
+        ax.set_title(chip_title_text)
     if in_image:
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)

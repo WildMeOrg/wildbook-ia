@@ -1,3 +1,8 @@
+"""
+DoctestCMD:
+    python -c "import ibeis; import doctest; from ibeis.dev import experiment_harness; print(doctest.testmod(ibeis.dev.experiment_harness))"
+    python ibeis/dev/experiment_harness.py
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 import sys
@@ -22,7 +27,7 @@ TEST_INFO = True
 
 
 #@profile
-def get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl):
+def get_qx2_bestrank(ibs, qaids, daids):
     """
     Helper function.
 
@@ -32,24 +37,50 @@ def get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl):
         ibs : IBEIS Controller
         qaids (list) : query annotation ids
         daids (list) : database annotation ids
-        nTotalQueries (int) : current count
-        nPrevQueries (int) : current count
-        cfglbl (str) : current count
+
+    Returns:
+        qx2_bestranks
+
+    Example:
+        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaids = ibs.get_valid_aids()[0:15]
+        >>> daids = ibs.get_valid_aids()
+        >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
     """
-    # NEW STUFF
+    # Execute or load query
     qaid2_qres = ibs._query_chips(qaids, daids)
+    # Compute measures
     gtaids_list = ibs.get_annot_groundtruth(qaids)
     qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs, gtaids)]
                      for qaid, gtaids in zip(qaids, gtaids_list)]
-    return qx2_bestranks
+    qx2_avepercision = [qaid2_qres[qaid].get_average_percision(ibs, gtaids) for
+                        (qaid, gtaids) in zip(qaids, gtaids_list)]
+    # Compute mAP score  # TODO: use mAP score
+    qx2_avepercision = np.array(qx2_avepercision)
+    mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
+    return qx2_bestranks, qx2_avepercision
 
 
 #-----------
 #@utool.indent_func('[harn]')
 #@profile
-def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
+def test_configurations(ibs, qaid_list, test_cfg_name_list):
     """
     Test harness driver function
+
+    Args:
+        ibs (IBEISController):
+        qaid_list (int): query annotation id
+        test_cfg_name_list (list):
+
+    Example:
+        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibs.opendb('PZ_MTEST')
+        >>> qaid_list = [0]
+        >>> test_cfg_name_list = ['best', 'smk2']
     """
     # Test Each configuration
     if not utool.QUIET:
@@ -74,9 +105,10 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     sel_rows = [] if sel_rows is None else sel_rows
 
     nCfg     = len(cfg_list)   # number of configurations (cols)
-    nQuery   = len(qaids)  # number of queries (rows)
+    #nQuery   = len(qaids)  # number of queries (rows)
 
-    mat_list = []
+    bestranks_list = []
+    cfgx2_aveprecs = []
     #ibs._init_query_requestor()
 
     dbname = ibs.get_dbname()
@@ -89,27 +121,28 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     # Run each test configuration
     # Query Config / Col Loop
     daids = ibs.get_recognition_database_aids()
-    nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
+    #nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     with utool.Timer('experiment_harness'):
         for cfgx, query_cfg in enumerate(cfg_list):
             if not utool.QUIET:
                 mark_prog(cfgx + 1, nCfg)
                 print(query_cfg.get_cfgstr())
-            cfglbl = cfgx2_lbl[cfgx]
+            #cfglbl = cfgx2_lbl[cfgx]
             ibs.set_query_cfg(query_cfg)
             # Set data to the current config
-            nPrevQueries = nQuery * cfgx  # number of pervious queries
+            #nPrevQueries = nQuery * cfgx  # number of pervious queries
             # Run the test / read cache
             with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-                qx2_bestranks = get_qx2_bestrank(ibs, qaids, daids, nTotalQueries, nPrevQueries, cfglbl)
+                qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
             if not NOMEMORY:
-                mat_list.append(qx2_bestranks)
+                bestranks_list.append(qx2_bestranks)
+                cfgx2_aveprecs.append(qx2_avepercision)
             # Store the results
     if not utool.QUIET:
         print('[harn] Finished testing parameters')
     if NOMEMORY:
-        print('ran tests in memory savings mode. exiting')
+        print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
-                                      mat_list, testnameid, sel_rows,
-                                      sel_cols, cfgx2_lbl=cfgx2_lbl)
+                                      bestranks_list, cfgx2_aveprecs, testnameid, sel_rows,
+                                      sel_cols, cfgx2_lbl)

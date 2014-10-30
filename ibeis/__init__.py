@@ -5,8 +5,20 @@ IBEIS: main package init
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+import sys
+
+from . import constants
+#if '--loadall' in sys.argv:
+#    from ibeis import ibsfuncs
+#    from ibeis import constants
+#    from ibeis import main_module
+#    from ibeis import params
+#    from ibeis import control
+#    from ibeis import dev
+#    from ibeis import io
+#    from ibeis import model
+
 try:
-    from . import constants
     from . import main_module
     from . import params
     from . import control
@@ -14,7 +26,7 @@ try:
     from . import io
     from . import web
 except ImportError as ex:
-    utool.printex(ex, 'error in __init__')
+    utool.printex(ex, 'WARNING in ibeis\' __init__', iswarning=True, tb=True)
     try:
         from . import constants
         from . import main_module
@@ -26,7 +38,10 @@ except ImportError as ex:
     except ImportError as ex:
         pass
     else:
+        utool.printex(ex, 'ERROR in ibeis\' __init__')
         raise
+
+from . import control
 
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb

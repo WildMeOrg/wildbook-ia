@@ -745,7 +745,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_cache')
         if not back.are_you_sure():
             return
-        back.ibs.delete_cachedir()
+        back.ibs.delete_cache()
         print('[back] finished delete_cache')
         pass
 

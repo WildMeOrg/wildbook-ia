@@ -75,8 +75,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true']):
 
 def get_matching_descriptors(allres, qaids, aids):
     ibs = allres.ibs
-    qdesc_cache = ibsfuncs.get_annot_desc_cache(ibs, qaids)
-    rdesc_cache = ibsfuncs.get_annot_desc_cache(ibs, aids)
+    qdesc_cache = ibsfuncs.get_annot_vecs_cache(ibs, qaids)
+    rdesc_cache = ibsfuncs.get_annot_vecs_cache(ibs, aids)
     desc1_list = []
     desc2_list = []
     for qaid, aid in zip(qaids, aids):

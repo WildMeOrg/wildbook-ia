@@ -45,6 +45,17 @@ def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
     """
     Computes features and yields results asynchronously: TODO: Remove IBEIS from
     this equation. Move the firewall towards the controller
+
+    Args:
+        ibs (IBEISController):
+        cid_list (list):
+        nInput (None):
+
+    Returns:
+        <class '_ast.Call'>
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
     """
     if nInput is None:
         nInput = len(cid_list)
@@ -61,14 +72,25 @@ def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
         # Multiprocessing parallelization
         featgen = generate_feats(cfpath_list, dict_args=dict_args,
                                  cid_list=cid_list, nInput=nInput, **kwargs)
-        return ((cid, nKpts, kpts, desc, feat_config_rowid)
-                for cid, nKpts, kpts, desc in featgen)
+        return ((cid, nKpts, kpts, desc, feat_config_rowid) for cid, nKpts, kpts, desc in featgen)
 
 
 def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwargs):
     # chip-ids are an artifact of the IBEIS Controller. Make dummyones if needbe.
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
+
+    Args:
+        cfpath_list (list):
+        dict_args (dict):
+        cid_list (list):
+        nInput (None):
+
+    Returns:
+        featgen
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
 
     Cyth:
         cdef:
@@ -84,8 +106,11 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
         nInput = len(cfpath_list)
     dictargs_iter = (dict_args for _ in range(nInput))
     arg_iter = zip(cid_list, cfpath_list, dictargs_iter)
+    # eager evaluation.
+    # TODO: see if we can just pass in the iterator or if there is benefit in
+    # doing so
     arg_list = list(arg_iter)
-    featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, **kwargs)
+    featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput, **kwargs)
     return featgen
 
 

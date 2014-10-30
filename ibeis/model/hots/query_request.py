@@ -234,7 +234,7 @@ class QueryRequest(object):
         if qreq_.internal_qvecs_list is not None:
             return False
         aid_list = qreq_.get_internal_qaids()
-        vecs_list = ibs.get_annot_desc(aid_list)
+        vecs_list = ibs.get_annot_vecs(aid_list)
         qreq_.internal_qvecs_list = vecs_list
 
     def load_query_keypoints(qreq_, ibs):

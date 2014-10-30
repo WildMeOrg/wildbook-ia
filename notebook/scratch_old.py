@@ -15,7 +15,7 @@ pd.set_option('isplay.notebook_repr_html', True)
 ibeis.ensure_pz_mtest()
 
 #taids = ibs.get_valid_aids()
-#tvecs_list = ibs.get_annot_desc(taids)
+#tvecs_list = ibs.get_annot_vecs(taids)
 #tkpts_list = ibs.get_annot_kpts(taids)
 #tvec_list = np.vstack(tvecs_list)
 #print(idx2_vec)
@@ -31,7 +31,7 @@ ibeis.ensure_pz_mtest()
 
 
 #taids = ibs.get_valid_aids()
-#tvecs_list = ibs.get_annot_desc(taids)
+#tvecs_list = ibs.get_annot_vecs(taids)
 #tkpts_list = ibs.get_annot_kpts(taids)
 
 #orig_idx2_vec, orig_idx2_ax, orig_idx2_fx = vtool.nearest_neighbors.invertable_stack(tvecs_list, taids)
@@ -77,7 +77,7 @@ def make_annot_df(ibs):
     aid_list = ibs.get_valid_aids()
     _kpts_col = pd.DataFrame(ibs.get_annot_kpts(aid_list),
                              index=aid_list, columns=['kpts'])
-    _vecs_col = pd.DataFrame(ibs.get_annot_desc(aid_list),
+    _vecs_col = pd.DataFrame(ibs.get_annot_vecs(aid_list),
                              index=aid_list, columns=['vecs'])
     annots_df = pd.concat([_vecs_col, _kpts_col], axis=1)
     return annots_df

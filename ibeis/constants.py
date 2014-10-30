@@ -145,6 +145,8 @@ SPECIES_NICE = [tup[1] for tup in SPECIES_TUPS]
 VS_EXEMPLARS_KEY = 'vs_exemplars'
 INTRA_ENC_KEY = 'intra_encounter'
 
+HARD_NOTE_TAG = '<HARDCASE>'
+
 
 if six.PY2:
     __STR__ = unicode  # change to str if needed

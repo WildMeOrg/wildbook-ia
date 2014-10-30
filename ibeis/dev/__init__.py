@@ -18,6 +18,13 @@ def import_subs():
     from . import experiment_harness
     __LOADED__ = True
 
+import sys
+if '--loadall' in sys.argv:
+    from ibeis.dev import main_commands
+    from ibeis.dev import main_helpers
+    from ibeis.dev import experiment_configs
+    from ibeis.dev import experiment_harness
+    from ibeis.dev import dbinfo
 
 def reload_subs():
     rrr()

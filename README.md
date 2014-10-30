@@ -517,7 +517,7 @@ dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --index
 ./dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query
 
 
-./dev.py -t smk2 --allgt --index 0:55 --db Oxford
+./dev.py -t smk1 --allgt --index 0:2 --db Oxford
 
 # SMK TESTS
 python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
@@ -532,9 +532,28 @@ python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --index 0 --noca
 
 python dev.py -t smk_64k --allgt --db PZ_Master0
 python dev.py -t smk_128k --allgt --db PZ_Master0
+
+python dev.py -t oxford --allgt --db Oxford --index 0:55
  
+
+# Feature Tuning
+dev.py -d --devmode -w --db  GZ_all --show --db PZ_Mothers --allgt --index 0:2
+
+
+# VSONE TESTS
+python dev.py -t vsone_best --db PZ_Mothers --allgt --index 0:2 --print-all --va
+
+# DOCTESTS
 TODO: make these tests work
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))" --quiet
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
 
 ```
+
+#---------------
+# Things we are not currently doing
+#---------------
+
+* No orientation invariance, gravity vector is always assumed
+* We do not add or remove points from kdtrees. They are always rebuilt
+

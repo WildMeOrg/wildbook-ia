@@ -16,10 +16,11 @@ def get_query_components(ibs, qaids):
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
     qreq_.lazy_load(ibs)
+    metadata = {}
     #---
-    qaid2_nns = hspipe.nearest_neighbors(qreq_)
+    qaid2_nns = hspipe.nearest_neighbors(qreq_, metadata)
     #---
-    filt2_weights, filt2_meta = hspipe.weight_neighbors(qaid2_nns, qreq_)
+    filt2_weights = hspipe.weight_neighbors(qaid2_nns, qreq_, metadata)
     #---
     qaid2_nnfilt = hspipe.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
     #---
@@ -28,7 +29,7 @@ def get_query_components(ibs, qaids):
     _tup = hspipe.spatial_verification(qaid2_chipmatch_FILT, qreq_, dbginfo=True)
     qaid2_chipmatch_SVER, qaid2_svtups = _tup
     #---
-    qaid2_qres = hspipe.chipmatch_to_resdict(qaid2_chipmatch_SVER, filt2_meta, qreq_)
+    qaid2_qres = hspipe.chipmatch_to_resdict(qaid2_chipmatch_SVER, metadata, qreq_)
     #####################
     # Testing components
     #####################
@@ -41,8 +42,8 @@ def get_query_components(ibs, qaids):
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
         qaid2_nnfilt_ORIG    = hspipe.identity_filter(qaid2_nns, qreq_)
         qaid2_chipmatch_ORIG = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
-        qaid2_qres_ORIG = hspipe.chipmatch_to_resdict(qaid2_chipmatch_ORIG, filt2_meta, qreq_)
-        qaid2_qres_FILT = hspipe.chipmatch_to_resdict(qaid2_chipmatch_FILT, filt2_meta, qreq_)
+        qaid2_qres_ORIG = hspipe.chipmatch_to_resdict(qaid2_chipmatch_ORIG, metadata, qreq_)
+        qaid2_qres_FILT = hspipe.chipmatch_to_resdict(qaid2_chipmatch_FILT, metadata, qreq_)
         qaid2_qres_SVER = qaid2_qres
     #####################
     # Relevant components
@@ -59,9 +60,9 @@ def data_index_integrity(ibs, qreq):
     print('checking qreq.data_index integrity')
 
     aid_list = ibs.get_valid_aids()
-    desc_list = ibs.get_annot_desc(aid_list)
+    desc_list = ibs.get_annot_vecs(aid_list)
     fid_list = ibs.get_annot_fids(aid_list)
-    desc_list2 = ibs.get_feat_desc(fid_list)
+    desc_list2 = ibs.get_feat_vecs(fid_list)
 
     assert all([np.all(desc1 == desc2) for desc1, desc2 in zip(desc_list, desc_list2)])
 

@@ -12,7 +12,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx):
     from . import match_chips3 as mc3
     ibs._init_query_requestor()
     qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
-    qfx2_desc = ibs.get_annot_desc(qaid)[qfx:(qfx + 1)]
+    qfx2_desc = ibs.get_annot_vecs(qaid)[qfx:(qfx + 1)]
     (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = qreq.data_index.nn_index2(qreq, qfx2_desc)
     return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
 
@@ -31,7 +31,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         def get_extract_tuple(aid, fx, k=-1):
             rchip = ibs.get_annot_chips(aid)
             kp    = ibs.get_annot_kpts(aid)[fx]
-            sift  = ibs.get_annot_desc(aid)[fx]
+            sift  = ibs.get_annot_vecs(aid)[fx]
             if k == -1:
                 info = '\nquery %s, fx=%r' % (vh.get_aidstrs(aid), fx)
                 type_ = 'query'

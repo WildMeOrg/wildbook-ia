@@ -9,7 +9,7 @@
         #
         print('\n+----------')
         print('Get the set of vectors from each image/anotation')
-        vecs_list = ibs.get_annot_desc(aid_list)
+        vecs_list = ibs.get_annot_vecs(aid_list)
         print('vecs_list = ')
         print(vecs_list)
         print('L----------')
@@ -53,7 +53,7 @@ annots_df = pd.concat([kpts_series, vecs_series], axis=1)
 
 aid_list = ibs.get_valid_aids()
 kpts_list = ibs.get_annot_kpts(aid_list)
-vecs_list = ibs.get_annot_desc(aid_list)
+vecs_list = ibs.get_annot_vecs(aid_list)
 aid_series = pd.Series(aid_list, name='aid')
 
 
