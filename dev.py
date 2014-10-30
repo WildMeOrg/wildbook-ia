@@ -555,10 +555,85 @@ def dev_snippets(main_locals):
     return locals()
 
 
+def get_sortbystr(str_list, key_list):
+    sortx = key_list.argsort()
+    sorted_strs = [(str(key) + ') ' + str_) for str_, key in zip(str_list[sortx], key_list[sortx])]
+    return ('\n * '.join(sorted_strs))
+
+
 def devfunc(ibs, qaid_list):
     """ Function for developing something """
     print('[dev] devfunc')
-    allres = get_allres(ibs, qaid_list)
+    import ibeis  # NOQA
+    from ibeis.model import Config  # NOQA
+    from ibeis.model.Config import *  # NOQA
+    feat_cfg = Config.FeatureConfig()
+    #feat_cfg.printme3()
+    print('\ncfgstr..')
+    print(feat_cfg.get_cfgstr())
+    print(utool.dict_str(feat_cfg.get_dict_args()))
+    #allres = get_allres(ibs, qaid_list)
+    from ibeis import viz
+    aid = 1
+    ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
+    kpts = ibs.get_annot_kpts(aid)
+    print('len(kpts) = %r' % len(kpts))
+    from plottool import df2
+    varyparams_list = [
+        #{
+        #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+        #    'numberOfScales': [3, 2, 1],
+        #    'maxIterations': [16, 32],
+        #    'convergenceThreshold': [.05, .1],
+        #    'initialSigma': [1.6, 1.2],
+        #},
+        {
+            #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
+            'numberOfScales': [1],
+            #'maxIterations': [16, 32],
+            #'convergenceThreshold': [.05, .1],
+            #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
+            'initialSigma': [3.2, 1.6, 0.8],
+            'edgeEigenValueRatio': [10, 5, 3],
+        },
+    ]
+
+    # low threshold = more keypoints
+    # low initialSigma = more keypoints
+    next_fnum = df2.next_fnum
+
+    nKpts_list = []
+    cfgstr_list = []
+
+    alldictcomb = utool.flatten([utool.util_dict.all_dict_combinations(varyparams) for varyparams in varyparams_list])
+    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
+    for count in range(NUM_PASSES):
+        for aid in qaid_list:
+            #for dict_ in utool.progiter(alldictcomb, lbl='feature param comb: ', total=len(alldictcomb)):
+            for dict_ in alldictcomb:
+                for key_, val_ in six.iteritems(dict_):
+                    ibs.cfg.feat_cfg[key_] = val_
+                cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
+                cfgstr = utool.packstr(cfgstr_, textwidth=80,
+                                        breakchars=',', newline_prefix='', break_words=False, wordsep=',')
+                if count == 0:
+                    kpts = ibs.get_annot_kpts(aid)
+                    #print('___________')
+                    #print('len(kpts) = %r' % len(kpts))
+                    #print(cfgstr)
+                    nKpts_list.append(len(kpts))
+                    cfgstr_list.append(cfgstr_)
+                if count == 1:
+                    title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgstr
+                    viz.show_chip(ibs, aid, fnum=next_fnum(),
+                                   title_suffix=title_suffix, darken=.4,
+                                   ell_linewidth=2, ell_alpha=.8)
+
+        if count == 0:
+            nKpts_list = np.array(nKpts_list)
+            cfgstr_list = np.array(cfgstr_list)
+            print(get_sortbystr(cfgstr_list, nKpts_list))
+    df2.present()
     locals_ = locals()
     #locals_.update(annotationmatch_scores(ibs, qaid_list))
     return locals_
@@ -590,10 +665,10 @@ def run_dev(main_locals):
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
-            if '--devmode' in sys.argv:
-                # Execute the dev-func and add to local namespace
-                devfunc_locals = devfunc(ibs, qaid_list)
-                exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
+        if '--devmode' in sys.argv:
+            # Execute the dev-func and add to local namespace
+            devfunc_locals = devfunc(ibs, qaid_list)
+            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     return locals()
 

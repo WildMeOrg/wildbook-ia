@@ -536,6 +536,9 @@ python dev.py -t smk_128k --allgt --db PZ_Master0
 python dev.py -t oxford --allgt --db Oxford --index 0:55
  
 
+# Feature Tuning
+dev.py -d --devmode -w --db  GZ_all --show --db PZ_Mothers --allgt --index 0:2
+
 
 # VSONE TESTS
 python dev.py -t vsone_best --db PZ_Mothers --allgt --index 0:2 --print-all --va
@@ -553,3 +556,4 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.prep
 
 * No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
+

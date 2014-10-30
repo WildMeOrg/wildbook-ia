@@ -77,4 +77,5 @@ if __name__ == '__main__':
     elif 'inno' in sys.argv:
         build_win32_inno_installer()
     else:
+        # Default to building
         build_pyinstaller()

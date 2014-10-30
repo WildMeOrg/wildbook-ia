@@ -68,7 +68,7 @@ def get_test_qaids(ibs):
 
     if params.args.all_cases:
         available_qaids.extend(valid_aids_())
-    else:
+    if not params.args.all_cases or utool.get_argflag('--hard'):
         is_hard_list = ibs.get_annot_is_hard(valid_aids_())
         hard_aids = utool.filter_items(valid_aids_(), is_hard_list)
         available_qaids.extend(hard_aids)

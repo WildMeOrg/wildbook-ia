@@ -100,7 +100,7 @@ def export_to_xml(ibs):
         if len(aid_list) > 0:
             fulldir = image_path.split('/')
             filename = fulldir.pop()
-            extension = filename.split('.')[-1]
+            extension = filename.split('.')[-1]  # NOQA
             out_name = "2014_%06d" % offset
             out_img = out_name + ".jpg"
             folder = "IBEIS"
