@@ -47,8 +47,8 @@ def embed_image_html(image):
     '''Creates an image embedded in HTML base64 format.'''
     image_pil = Image.fromarray((255 * image).astype('uint8'))
     width, height = image_pil.size
-    _width = 500
-    _height = int((float(_width) / width) * height)
+    _height = 200
+    _width = int((float(_height) / height) * width)
     image_pil = image_pil.resize((_width, _height))
     string_buf = StringIO.StringIO()
     image_pil.save(string_buf, format='jpeg')
@@ -117,6 +117,7 @@ def database_init(app):
         return int((radians / twopi) * 360.0)
     # Get data out of ibeis
     aid_list = app.ibeis.get_valid_aids()
+    # Grab viewpoints
     viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
     viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
     # Add chips to temporary web viewpoint table

@@ -278,7 +278,7 @@ class IBEISController(object):
         from ibeis.dev import duct_tape  # NOQA
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
-        duct_tape.fix_nulled_viewpoints(ibs)
+        # duct_tape.fix_nulled_viewpoints(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
