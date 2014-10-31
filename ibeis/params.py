@@ -68,8 +68,8 @@ def parse_args():
                         help='specifies the short name of the database to load')
         parser2.add_str('--dbdir', None,
                         help='specifies the full path of the database to load')
-        parser2.add_str(('--workdir', '--set-workdir', '--wdir'), None,
-                        help='sets the default work directory')
+        parser2.add_str('--set-workdir', None)
+        parser2.add_flag('--get-workdir', help='gets the default work directory')
         parser2.add_str(('--logdir', '--set-logdir'), None,
                         help='sets the default logging directory')
 

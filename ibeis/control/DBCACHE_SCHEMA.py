@@ -3,13 +3,15 @@ Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
+import utool
+profile = utool.profile
 
 
 # =======================
 # Schema Version 1.0.0
 # =======================
 
-
+@profile
 def update_1_0_0(ibs):
     ##########################
     # SECOND ORDER           #
@@ -46,6 +48,7 @@ def update_1_0_0(ibs):
 # =======================
 
 
+@profile
 def update_1_0_1(ibs):
     # When you're ready to make this schema update go live, simply
     # bump ibs.dbcache_version_expected in the controller to '1.0.1'
@@ -61,6 +64,7 @@ def update_1_0_1(ibs):
     pass
 
 
+@profile
 def update_1_0_2(ibs):
     # Change name of feature_sifts to feature_vecs and
     # add new column for feature_forground_weight

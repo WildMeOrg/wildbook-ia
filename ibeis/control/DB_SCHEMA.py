@@ -3,6 +3,8 @@ Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
+import utool
+profile = utool.profile
 
 
 # =======================
@@ -10,6 +12,7 @@ from ibeis import constants
 # =======================
 
 
+@profile
 def update_1_0_0(ibs):
     ibs.db.add_table(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
@@ -178,6 +181,7 @@ def update_1_0_0(ibs):
         and labels''')
 
 
+@profile
 def post_1_0_0(ibs):
     # We are dropping the versions table and rather using the metadata table
     ibs.db.drop_table(constants.VERSIONS_TABLE)
@@ -188,6 +192,7 @@ def post_1_0_0(ibs):
 # =======================
 
 
+@profile
 def update_1_0_1(ibs):
     # Add a contributor's table
     ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
@@ -227,6 +232,7 @@ def update_1_0_1(ibs):
 # =======================
 
 
+@profile
 def update_1_0_2(ibs):
     # Fix the contibutor table's constraint
     ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
@@ -242,6 +248,7 @@ def update_1_0_2(ibs):
 # =======================
 
 
+@profile
 def update_1_1_0(ibs):
     # Moving chips and features to their own cache database
     ibs.db.drop_table(constants.CHIP_TABLE)
@@ -280,6 +287,7 @@ def update_1_1_0(ibs):
 # =======================
 
 
+@profile
 def update_1_1_1(ibs):
     # Change name of column
     ibs.db.modify_table(constants.CONFIG_TABLE, (

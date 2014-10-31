@@ -76,6 +76,7 @@ def compare_string_versions(a, b):
 # ========================
 
 
+@profile
 def ensure_correct_version(ibs, db, version_expected, db_versions):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
@@ -97,6 +98,7 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
         raise AssertionError(msg)
 
 
+@profile
 def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
