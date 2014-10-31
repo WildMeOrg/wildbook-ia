@@ -186,7 +186,7 @@ def _get_detector(species, quick=True, single=False):
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species)
     # Load forest, so we don't have to reload every time
-    forest = detector.load(trees_path, species + '-')
+    forest = detector.load(trees_path, species + '-', num_trees=25)
     return detector, forest
 
 
@@ -230,7 +230,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
             src_gpath_list = [tup[0] for tup in chunk]
             dst_gpath_list = [tup[1] for tup in chunk]
             mark_prog(ic * chunksize)
-            results_list = detector.detect_many(forest, src_gpath_list, dst_gpath_list)
+            results_list = detector.detect_many(forest, src_gpath_list, dst_gpath_list, use_openmp=True)
 
             for results in results_list:
                 bboxes = [(minx, miny, (maxx - minx), (maxy - miny))

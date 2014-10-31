@@ -60,6 +60,11 @@ INSTALL_REQUIRES = [
     #'PyQt 4/5 >= 4.9.1', # cannot include because pyqt4 is not in pip
 ]
 
+INSTALL_OPTIONAL = [
+    'tornado',
+    'flask',
+]
+
 if six.PY2:
     INSTALL_REQUIRES.append('requests >= 0.8.2')
 

@@ -28,7 +28,7 @@ PREREQ_PKG_LIST = [
     'libpng',
     'libjpg',
     'libtiff',  # 'libtiff4-dev', libtiff5-dev
-    'littlecms', # libcms?
+    'littlecms',  # libcms?
     'openjpeg',
     'zlib',
     'freetype',
@@ -86,6 +86,7 @@ PREREQ_PYPKG_LIST = [
     'scipy',
     'ipython',
     'tornado',
+    'flask',
     'matplotlib',
     'scikit-learn',
     'parse',

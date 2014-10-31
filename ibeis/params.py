@@ -87,6 +87,7 @@ def parse_args():
                                '--cfg xy_thresh=.01 score_method=csum'))
         parser2.add_flag(('--preload-exit', '--prequit', '--prele'), help='exit after preload commands')
         parser2.add_flag(('--postload-exit', '--postquit', '--postle'), help='exit after postload commands')
+        parser2.add_flag(('--webapp', '--webapi', '--web'), help='automatically launch the web app / web api')
 
     def postload_gui_commands_argparse(parser2):
         parser2 = parser2.add_argument_group('Postload GUI Commands')

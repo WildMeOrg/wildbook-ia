@@ -77,7 +77,7 @@ def compare_string_versions(a, b):
 
 
 @profile
-def ensure_correct_version(ibs, db, version_expected, db_versions):
+def ensure_correct_version(ibs, db, version_expected, db_versions, dobackup=True):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
@@ -87,7 +87,8 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
     if version < version_expected:
         if not utool.QUIET:
             print('[ensure_correct_version] Database version behind, updating...')
-        update_schema_version(ibs, db.fpath, db_versions, version, version_expected)
+        update_schema_version(ibs, db, db_versions, version, version_expected,
+                              dobackup=dobackup)
         ibs.set_database_version(db, version_expected)
         if not utool.QUIET:
             print('[ensure_correct_version] Database version updated to %r' % (version_expected))
@@ -99,12 +100,15 @@ def ensure_correct_version(ibs, db, version_expected, db_versions):
 
 
 @profile
-def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
+def update_schema_version(ibs, db, db_versions, version, version_target,
+                          dobackup=True):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
-    db_backup_fpath = db_fpath + '-backup'
-    utool.copy(db_fpath, db_backup_fpath)
+    db_fpath = db.fpath
+    if dobackup:
+        db_backup_fpath = db_fpath + '-backup'
+        utool.copy(db_fpath, db_backup_fpath)
     valid_versions = sorted(db_versions.keys(), compare_string_versions)
     try:
         start_index = valid_versions.index(version) + 1
@@ -122,21 +126,26 @@ def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
             print('Updating database to version: %r' % (next_version))
             pre, update, post = db_versions[next_version]
             if pre is not None:
-                pre(ibs)
+                pre(db, ibs=ibs)
             if update is not None:
-                update(ibs)
+                update(db, ibs=ibs)
             if post is not None:
-                post(ibs)
+                post(db, ibs=ibs)
     except Exception as ex:
-        utool.printex(ex)
-        utool.remove_file(db_fpath)
-        utool.copy(db_backup_fpath, db_fpath)
+        if dobackup:
+            msg = "The database update failed, rolled back to the original version."
+            utool.printex(ex, msg, iswarning=True)
+            utool.remove_file(db_fpath)
+            utool.copy(db_backup_fpath, db_fpath)
+            utool.remove_file(db_backup_fpath)
+            # Why are we using the logging module when utool does it for us?
+            logging.exception(msg)
+            raise
+        else:
+            utool.printex(ex, 'The database update failed, and no backup was made. I hope you didnt need that data', iswarning=False)
+            raise
+    if dobackup:
         utool.remove_file(db_backup_fpath)
-        # Why are we using the logging module when utool does it for us?
-        logging.exception("'The database update failed, rolled back to the original version.")
-        raise
-
-    utool.remove_file(db_backup_fpath)
 
 
 # =======================

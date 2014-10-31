@@ -1,0 +1,38 @@
+
+.header
+{
+  height: 40px;
+}
+
+.content
+{
+  margin-top: 10px;
+}
+
+.row-custom-expand
+{
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.col-custom-span-8
+{
+/*   text-align: center; */
+  width: 11.5%;
+  display: inline-block;
+}
+
+.rotate-45 {
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.image-center
+{
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

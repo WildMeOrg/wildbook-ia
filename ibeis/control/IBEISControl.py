@@ -267,7 +267,8 @@ class IBEISController(object):
             ibs,
             ibs.dbcache,
             ibs.dbcache_version_expected,
-            DBCACHE_SCHEMA.VALID_VERSIONS
+            DBCACHE_SCHEMA.VALID_VERSIONS,
+            dobackup=False  # Everything in dbcache can be regenerated.
         )
 
         # ibs.db.dump_schema()
@@ -278,6 +279,7 @@ class IBEISController(object):
         from ibeis.dev import duct_tape  # NOQA
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
+        # duct_tape.fix_nulled_viewpoints(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -936,7 +938,7 @@ class IBEISController(object):
         if annotation_uuid_list is None:
             annotation_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
         if viewpoint_list is None:
-            viewpoint_list = [0.0] * len(image_uuid_list)
+            viewpoint_list = [-1.0] * len(image_uuid_list)
         nVert_list = [len(verts) for verts in vert_list]
         vertstr_list = [__STR__(verts) for verts in vert_list]
         xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
@@ -1329,6 +1331,20 @@ class IBEISController(object):
         ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, num_params=num_params)
         if delete_thumbs:
             ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
+
+    @setter
+    def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
+        """ Sets the vertices [(x, y), ...] of a list of chips by aid """
+        import numpy as np
+        def deg_to_rad(degree):
+            degree %= 360.0
+            return (degree / 360.0) * 2 * np.pi
+        id_iter = ((aid,) for aid in aid_list)
+        if convert_radians:
+            viewpoint_list = [ deg_to_rad(viewpoint) for viewpoint in viewpoint_list]
+        assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])
+        val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_viewpoint',), val_iter, id_iter)
 
     @setter
     def set_annot_detect_confidence(ibs, aid_list, confidence_list):
@@ -1731,6 +1747,7 @@ class IBEISController(object):
         Returns:
             viewpoint_list (list): the viewpoint (in radians) for the annotation """
         viewpoint_list = ibs.db.get(ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
+        viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
         return viewpoint_list
 
     @utool.accepts_numpy

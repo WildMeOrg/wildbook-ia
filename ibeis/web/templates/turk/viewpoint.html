@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, turking is completed.  Please report the number of hours you helped us on this project to Chuck Stewart in order to get paid.  Thank you!
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-3"></div>
+    
+    <div class="col-lg-6">
+      Aid: {{ aid }}
+      <br/>
+      Path: {{ image_path }}
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; display: block;">
+      <br/>
+      <form method="post" action="/submit/turk.html">
+        <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
+        Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>) 
+        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions"></span>
+        <br/>
+        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="0" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand">
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up"             ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up rotate-45"   ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right"          ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right rotate-45"></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down"           ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45" ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"           ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45" ></span></div>
+        </div>
+        <br/>
+        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept">
+      </form
+      <br/>
+    </div>
+
+    <div class="col-lg-3"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Viewpoint Turking Instructions</h4>
+        </div>
+        <div class="modal-body">
+          To turk a viewpoint, simply adjust the slider for the image based on the following guidelines:
+          <br/>
+          <img class="image-center" src="{{ url_for('static', filename='images/guideline.jpg') }}">
+          <p style="width:100%; color:#888; text-align:center;"><i>Top-down view (view from above)</i></p>
+          <br/>
+          <ul style="padding-right:30px;">
+            <li>
+              The easiest way to visualize and decide on the correct viewpoint is by thinking of the image as being <b>taken from above</b> and to always select the viewpoint direction that points closest towards the <b>camera</b>.  This will ensure a consistent metric is being used by every turker. 
+              <br/>
+              <i>Example:</i>
+            </li>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin: 20px 0px;">
+                <img src="{{ url_for('static', filename='images/example.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the left side of the animal (looking from above).  Therefore, the viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <li>For faster viewpoint annotation, the number keys or a keypad can be used.  The numbers 1 thru 8 are mapped to increments of 45&deg;.  We urge every turker to use the number pad to input the viewpoint, but you can further adjust the slider to get even closer accuracy, down to a precision of a single degree. </li>
+            <li>If the viewpoint cannot be determined due to not enough information (e.g., the animal is obscured by some obstacle, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), simply press the Skip button.  No degree information is saved for images that are skipped - the current value of the slider is completely ignored.</li>
+            <li>In the event that there is more than one animal in the image, give the viewpoint for the most dominant object.  This is a subjective decision and up to the turker to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing viewpoints of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
+            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's viewpoint.</li>
+            <li>Enter viewpoints as fast as you can while maintaining perfect accuracy.  However, if a mistake is made, do not worry.  Each image's viewpoint is checked for consistency and a subsequent reviewer (or reviewers) will most likely catch the mistake.</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_javascript %}  
+<script type="text/javascript">
+
+  update_label();
+    
+  function update_label()
+  {
+    value = parseFloat( $("#slider-viewpoint").val() );
+    radians_sub = (value / 360.0) * 2.0;
+    $("#label-degrees").html(value);
+    $("#label-radians1").html((radians_sub * Math.PI).toFixed(4));
+    $("#label-radians2").html((radians_sub).toFixed(4));
+  }
+  
+	$("body").keydown(function(event) {
+	  key = event.which;
+    console.log(key);
+    if(key == 13)
+    {
+      // Enter key pressed, submit form as accept
+      $('input#viewpoint-submit-accept').click();
+    }
+    else if(key == 32)
+    {
+      // Space key pressed, submit form as skip
+      $('input#viewpoint-submit-skip').click();
+    }
+    else if(49 <= key && key <= 56)
+    {
+      // 48 == numberc key 0
+      // 49 == numeric key 1
+      // 50 == numberc key 2
+      // 51 == numberc key 3
+      // 52 == numberc key 4
+      // 53 == numberc key 5
+      // 54 == numberc key 6
+      // 55 == numberc key 7
+      // 56 == numberc key 8
+      // 57 == numberc key 9
+      value = key - 49; // offset by 49 so that the number one is the value of 0
+      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees 
+      update_label();
+    }
+  });
+  
+</script>
+{% endblock %}

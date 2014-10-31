@@ -24,15 +24,17 @@ try:
     from . import control
     from . import dev
     from . import io
+    from . import web
 except ImportError as ex:
     utool.printex(ex, 'WARNING in ibeis\' __init__', iswarning=True, tb=True)
     try:
-        from ibeis import constants
-        from ibeis import main_module
-        from ibeis import params
-        from ibeis import control
-        from ibeis import dev
-        from ibeis import io
+        from . import constants
+        from . import main_module
+        from . import params
+        from . import control
+        from . import dev
+        from . import io
+        from . import web
     except ImportError as ex:
         pass
     else:
