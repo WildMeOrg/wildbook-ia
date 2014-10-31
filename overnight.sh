@@ -21,6 +21,7 @@ export IBSFLAGS=''
 
 python dev.py -t featparams_big --db PZ_Mothers --allgt
 python dev.py -t featparams_big --db GZ_ALL --allgt
+python dev.py -t smk2 --db PZ_Master0 --allgt
 
 
 export IBSFLAGS=''

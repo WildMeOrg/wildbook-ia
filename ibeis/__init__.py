@@ -24,7 +24,7 @@ try:
     from . import control
     from . import dev
     from . import io
-    from . import web
+    #from . import web
 except ImportError as ex:
     utool.printex(ex, 'WARNING in ibeis\' __init__', iswarning=True, tb=True)
     try:
@@ -34,7 +34,7 @@ except ImportError as ex:
         from . import control
         from . import dev
         from . import io
-        from . import web
+        #from . import web
     except ImportError as ex:
         pass
     else:
