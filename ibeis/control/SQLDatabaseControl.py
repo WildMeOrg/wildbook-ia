@@ -296,9 +296,20 @@ class SQLDatabaseController(object):
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
+    def get_where2(db, tblname, colnames, params_iter, andwhere_colnames,
+                   unpack_scalars=True, eager=True, **kwargs):
+        """ hacked in function for nicer templates """
+        andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
+        where_clause = ' AND '.join(andwhere_clauses)
+        return db.get_where(tblname, colnames, params_iter, where_clause,
+                            unpack_scalars=unpack_scalars, eager=eager,
+                            **kwargs)
+
     #@getter_sql
     def get_where(db, tblname, colnames, params_iter, where_clause,
-                  unpack_scalars=True, eager=True, **kwargs):
+                  unpack_scalars=True, eager=True,
+                  **kwargs):
+
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -329,7 +340,7 @@ class SQLDatabaseController(object):
     #@getter_sql
     def get_rowid_from_superkey(db, tblname, params_iter=None, superkey_colnames=None, **kwargs):
         """ getter which uses the constrained superkeys instead of rowids """
-        where_clause = 'AND'.join([colname + '=?' for colname in superkey_colnames])
+        where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
 
     #@getter_sql
@@ -453,7 +464,24 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def add_table(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
-        printDBG('[sql] schema ensuring tablename=%r' % tablename)
+        """
+        add_table
+
+        Args:
+            tablename (str):
+            coldef_list (list):
+            table_constraints (list or None):
+            docstr (str):
+            superkey_colnames (list or None): list of column names which uniquely identifies a rowid
+        """
+        if utool.DEBUG2:
+            print('[sql] schema ensuring tablename=%r' % tablename)
+        if utool.VERBOSE:
+            print('')
+            print(utool.func_str(db.add_table, [tablename, coldef_list],
+                                 dict(table_constraints=table_constraints, docstr=docstr,
+                                      superkey_colnames=superkey_colnames)))
+            print('')
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -461,8 +489,10 @@ class SQLDatabaseController(object):
             table_constraints = []
 
         if superkey_colnames is not None and len(superkey_colnames) > 0:
-            c = superkey_colnames
-            _ = (c if isinstance(c, six.string_types) else ','.join(c))
+            _ = ','.join(superkey_colnames)
+            ###
+            #c = superkey_colnames
+            #_ = (c if isinstance(c, six.string_types) else ','.join(c))
             unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
             assert len(table_constraints) == 0
             table_constraints.append(unique_constraint)
@@ -953,15 +983,58 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_superkeys(db, tablename):
+        """
+        get_table_superkeys
+
+        Args:
+            tablename (str):
+
+        Returns:
+            list: superkey_colname_list
+        """
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         data = [(tablename + '_superkeys',)]
         superkeys = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
-        superkeys = superkeys[0]
-        if superkeys is None:
-            return None
+        # These asserts might not be valid, but in that case this function needs
+        # to be rewritten under a different name
+        assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
+        superkey_colnames_str = superkeys[0]
+        if superkey_colnames_str is None:
+            # Sometimes the metadata gets moved for some reason
+            # Hack the information out of the constraints
+            constraint_list = db.get_table_constraints(tablename)
+            assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT'
+            if constraint_list is not None:
+                import parse
+                for constraint in constraint_list:
+                    parse_result = parse.parse('CONSTRAINT superkey UNIQUE ({colnames})', constraint)
+                    if parse_result is not None:
+                        superkey_colnames = list(map(lambda x: x.strip(), parse_result['colnames'].split(',')))
+            else:
+                superkey_colnames = None
         else:
-            return superkeys.split(';')
+            superkey_colnames = superkey_colnames_str.split(';')
+        return superkey_colnames
+
+    get_table_superkey_colnames = get_table_superkeys
+
+    @default_decorator
+    def get_table_primarykey_colnames(db, tablename):
+        columns = db.get_columns(tablename)
+        primarykey_colnames = [name
+                               for (column_id, name, type_, notnull, dflt_value, pk,) in columns
+                               if pk]
+        return primarykey_colnames
+
+    @default_decorator
+    def get_table_otherkey_colnames(db, tablename):
+        superkey_colnames = set((lambda x: x if x is not None else [])(db.get_table_superkeys(tablename)))
+        columns = db.get_columns(tablename)
+        otherkey_colnames = [name
+                             for (column_id, name, type_, notnull, dflt_value, pk,) in columns
+                             if not pk and name not in superkey_colnames]
+        return otherkey_colnames
 
     @default_decorator
     def get_table_docstr(db, tablename):
@@ -973,8 +1046,32 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_columns(db, tablename):
+        """
+        get_columns
+
+        Args:
+            tablename (str): table name
+
+        Returns:
+            column_list : list of tuples with format:
+                (
+                    column_id  : id of the column
+                    name       : the name of the column
+                    type_      : the type of the column
+                    notnull    : 0 or 1 if the column can contains null values
+                    dflt_value : the default value
+                    pk         : 0 or 1 if the column partecipate to the primary key
+                )
+
+        References:
+            http://stackoverflow.com/questions/17717829/how-to-get-column-names-from-a-table-in-sqlite-via-pragma-net-c
+
+        Example:
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+        """
         db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-        return db.cur.fetchall()
+        column_list = db.cur.fetchall()
+        return column_list
 
     @default_decorator
     def get_column_names(db, tablename):
