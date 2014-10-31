@@ -56,24 +56,27 @@ ROSEMARY_ANNOT_METADATA = [
 
 BASE_DATABASE_VERSION = '0.0.0'
 
-# DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
 #################################################################
-AL_RELATION_TABLE = 'annotation_lblannot_relationship'
-ANNOTATION_TABLE  = 'annotations'
-CHIP_TABLE        = 'chips'
-CONFIG_TABLE      = 'configs'
-CONTRIBUTOR_TABLE = 'contributors'
-EG_RELATION_TABLE = 'encounter_image_relationship'
-ENCOUNTER_TABLE   = 'encounters'
-FEATURE_TABLE     = 'features'
-GL_RELATION_TABLE = 'image_lblimage_relationship'
-IMAGE_TABLE       = 'images'
-LBLANNOT_TABLE    = 'lblannot'
-LBLIMAGE_TABLE    = 'lblimage'
-LBLTYPE_TABLE     = 'keys'
-METADATA_TABLE    = 'metadata'
-RESIDUAL_TABLE    = 'residuals'
-VERSIONS_TABLE    = 'versions'
+# DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
+# THIS GOES FOR OLD AND DEPRICATED TABLENAMES AS WELL!!!
+#################################################################
+AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
+ANNOTATION_TABLE     = 'annotations'
+CHIP_TABLE           = 'chips'
+CONFIG_TABLE         = 'configs'
+CONTRIBUTOR_TABLE    = 'contributors'
+EG_RELATION_TABLE    = 'encounter_image_relationship'
+ENCOUNTER_TABLE      = 'encounters'
+FEATURE_TABLE        = 'features'
+FEATURE_WEIGHT_TABLE = 'feature_weights'
+GL_RELATION_TABLE    = 'image_lblimage_relationship'
+IMAGE_TABLE          = 'images'
+LBLANNOT_TABLE       = 'lblannot'
+LBLIMAGE_TABLE       = 'lblimage'
+LBLTYPE_TABLE        = 'keys'
+METADATA_TABLE       = 'metadata'
+RESIDUAL_TABLE       = 'residuals'
+VERSIONS_TABLE       = 'versions'
 #################################################################
 
 
