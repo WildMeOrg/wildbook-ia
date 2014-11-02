@@ -7,7 +7,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}
+AppId={47BE3DA2-261D-4672-9849-18BB2EB382FC}
 AppName=IBEIS
 AppVersion=1
 ;AppVerName=IBEIS 1
@@ -18,7 +18,7 @@ AppUpdatesURL=www.rpi.edu/~crallj/
 DefaultDirName={pf}\IBEIS
 DefaultGroupName=IBEIS
 OutputBaseFilename=ibeis-win32-setup
-SetupIconFile=ibsicon1.ico
+SetupIconFile=ibsicon.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -39,5 +39,3 @@ Name: "{commondesktop}\ibeis"; Filename: "{app}\IBEISApp.exe"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\IBEISApp.exe"; Description: "{cm:LaunchProgram,IBEIS}"; Flags: nowait postinstall skipifsilent
-
-

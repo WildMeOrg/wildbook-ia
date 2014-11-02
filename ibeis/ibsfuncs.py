@@ -1324,7 +1324,8 @@ def draw_thumb_helper(tup):
 
 
 @__injectable
-def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **kwargs):
+def preprocess_image_thumbs(
+        ibs, gid_list=None, use_cache=True, chunksize=8, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
@@ -1356,7 +1357,7 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
     }
     #genkw['force_serial'] = True
     #genkw['chunksize'] = max(len(gid_list_) // 16, 1)
-    gen = utool.generate(draw_thumb_helper, args_list, **genkw)
+    gen = utool.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
     #for output in gen:
     #    #with utool.Timer('gentime'):
     #    gtool.imwrite(output[0], output[1])

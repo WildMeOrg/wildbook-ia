@@ -203,10 +203,10 @@ if APPLE:
 #DATATUP_LIST.append((userguide_dst, userguide_src))
 
 # Icon File
-ICON_EXT = {'darwin': 'icns',
-            'win32':  'ico',
-            'linux2': 'ico'}[PLATFORM]
-iconfile = join('_installers', 'ibsicon1.' + ICON_EXT)
+ICON_EXT = {'darwin': '.icns',
+            'win32':  '.ico',
+            'linux2': '.ico'}[PLATFORM]
+iconfile = join('_installers', 'ibsicon' + ICON_EXT)
 icon_src = join(root_dir, iconfile)
 icon_dst = join(ibsbuild, iconfile)
 DATATUP_LIST.append((icon_dst, icon_src))
@@ -221,7 +221,7 @@ exe_name = {'win32':  'build/IBEISApp.exe',
 
 print('[installer] Checking Data')
 for (dst, src) in DATATUP_LIST:
-    assert utool.checkpath(src, verbose=True), 'checkpath failed'
+    assert utool.checkpath(src, verbose=True), 'checkpath for src failed'
 
 #import sys
 #print('exiting')
