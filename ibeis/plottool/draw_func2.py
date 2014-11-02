@@ -23,7 +23,11 @@ import matplotlib as mpl
 #mpl.use(TARGET_BACKEND)
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+try:
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+except ImportError as ex:
+    utool.printex(ex,  'try pip install mpl_toolkits.axes_grid1 or something.  idk yet', iswarning=False)
+    raise
 # Python
 import colorsys
 import pylab
