@@ -10,7 +10,7 @@ import uuid
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 
 
-@profile
+#@profile
 def parse_exif(pil_img):
     """ Image EXIF helper
 
@@ -133,24 +133,6 @@ def parse_imageinfo(tup):
     )
     #print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
-
-
-def imgparams_worker2(tup):
-    #gpath, kwargs = tup
-    #cache_dir       = kwargs.get('cache_dir', None)
-    #max_width       = kwargs.get('max_image_width', None)
-    #max_height      = kwargs.get('max_image_height', None)
-    #localize_images = kwargs.get('localize_images', False)
-
-    # Move images to the cache dir
-    #if localize_images:
-    #    gname = image_uuid + ext
-    #    gpath = '/'.join((cache_dir, gname))
-
-    #if width > max_width or height > max_height:
-    #    pass
-    # TODO: Resize, Filter, and localize Image
-    pass
 
 
 @profile

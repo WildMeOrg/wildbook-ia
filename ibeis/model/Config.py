@@ -88,6 +88,11 @@ class NNConfig(ConfigBase):
         nn_cfg.checks  = 1024  # 512#128
         nn_cfg.update(**kwargs)
 
+    def make_feasible(nn_cfg):
+        # normalizer rule depends on Knorm
+        if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
+            nn_cfg.normalizer_rule = 'last'
+
     def get_cfgstr_list(nn_cfg):
         nn_cfgstr  = ['_NN(',
                       'K', str(nn_cfg.K),
@@ -149,6 +154,15 @@ class FilterConfig(ConfigBase):
         addfilt(-1,        'fg',   None,    0.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
+
+    def make_feasible(filt_cfg):
+        # Ensure the list of on filters is valid given the weight and thresh
+        if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
+            filt_cfg.ratio_thresh = None
+        if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
+            filt_cfg.bboxdist_thresh = None
+        if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
+            filt_cfg.bursty_thresh = None
 
     def get_stw(filt_cfg, filt):
         # stw = sign, thresh, weight
@@ -321,7 +335,14 @@ class SMKConfig(ConfigBase):
     SMKConfig
         #= ibeis.opendb('testdb1')
 
+
     Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> smk_cfg = SMKConfig()
+        >>> result = smk_cfg.get_cfgstr()
+        >>> print(result)
+
+    Example2:
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
@@ -329,40 +350,37 @@ class SMKConfig(ConfigBase):
     """
     def __init__(smk_cfg, **kwargs):
         super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
-        smk_cfg.nAssign    = 10  # MultiAssignment
         smk_cfg.smk_thresh = 0.0  # tau in the paper
         smk_cfg.smk_alpha  = 3.0
         smk_cfg.aggregate  = False
         # TODO Separate into vocab config
-        smk_cfg.indexer_key = 'default'  # Vocab
-        smk_cfg.nWords = int(8E3)  #
         smk_cfg._valid_vocab_weighting = ['idf', 'negentropy']
         smk_cfg.vocab_weighting = 'idf'
-        # Multiassign parameters
-        smk_cfg.massign_equal_weights = True
-        smk_cfg.massign_alpha = 1.2
-        smk_cfg.massign_sigma = 80.0
         smk_cfg.allow_self_match = False
+        smk_cfg.vocabtrain_cfg = VocabTrainConfig(**kwargs)
+        smk_cfg.vocabassign_cfg = VocabAssignConfig(**kwargs)
         smk_cfg.update(**kwargs)
 
+    def make_feasible(smk_cfg):
+
+        hasvalid_weighting = any([
+            smk_cfg.vocab_weighting == x
+            for x in smk_cfg._valid_vocab_weighting])
+        assert hasvalid_weighting, 'invalid vocab weighting %r' % smk_cfg.vocab_weighting
+
     def get_cfgstr_list(smk_cfg):
-        smk_cfgstr = [
+        smk_cfgstr_list = [
             '_SMK(',
             'agg=', str(smk_cfg.aggregate),
             ',t=', str(smk_cfg.smk_thresh),
             ',a=', str(smk_cfg.smk_alpha),
-            ')',
-            '_Vocab(',
-            'sz=%d' % int(smk_cfg.nWords),
-            ',K=', str(smk_cfg.nAssign),
-            ',%s' % smk_cfg.vocab_weighting,
-            ',a=', str(smk_cfg.massign_alpha),
-            ',s=', str(smk_cfg.massign_sigma),
-            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
             ',SelfOk' if smk_cfg.allow_self_match else '',
+            ',%s' % smk_cfg.vocab_weighting,
             ')',
         ]
-        return smk_cfgstr
+        smk_cfgstr_list.extend(smk_cfg.vocabassign_cfg.get_cfgstr_list())
+        smk_cfgstr_list.extend(smk_cfg.vocabtrain_cfg.get_cfgstr_list())
+        return smk_cfgstr_list
 
     #def get_cfgstr_list(smk_cfg):
     #    smk_cfgstr = [
@@ -380,50 +398,78 @@ class SMKConfig(ConfigBase):
 # TODO
 @six.add_metaclass(ConfigMetaclass)
 class VocabTrainConfig(ConfigBase):
-    """ VocabTrainConfig """
-    def __init__(vocab_cfg, **kwargs):
-        super(VocabTrainConfig, vocab_cfg).__init__(name='vocab_cfg')
-        vocab_cfg.indexer_key = 'default'  # Vocab
-        vocab_cfg.nIters = 200
-        vocab_cfg.nWords = int(8E3)  #
-        vocab_cfg.update(**kwargs)
+    """ VocabTrainConfig
 
-    def get_cfgstr_list(smk_cfg):
-        smk_cfgstr = [
-            '_Vocab(',
-            'sz=%d' % int(smk_cfg.nWords),
-            ',K=', str(smk_cfg.nAssign),
-            ',%s' % smk_cfg.vocab_weighting,
-            ',a=', str(smk_cfg.massign_alpha),
-            ',s=', str(smk_cfg.massign_sigma),
-            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
-            ')',
-        ]
-        return smk_cfgstr
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> vocabtrain_cfg = VocabTrainConfig()
+        >>> result = vocabtrain_cfg.get_cfgstr()
+        >>> print(result)
+
+    """
+    def __init__(vocabtrain_cfg, **kwargs):
+        super(VocabTrainConfig, vocabtrain_cfg).__init__(name='vocabtrain_cfg')
+        vocabtrain_cfg.override_vocab = 'default'  # Vocab
+        vocabtrain_cfg.nWords = int(8E3)  #
+        vocabtrain_cfg.init_method = 'akmeans++'
+        vocabtrain_cfg.nIters = 64
+        vocabtrain_cfg.vocab_flann_params = {}  # TODO: easy flann params cfgstr
+        vocabtrain_cfg.update(**kwargs)
+
+    def get_cfgstr_list(vocabtrain_cfg):
+        if vocabtrain_cfg.override_vocab == 'default':
+            vocabtrain_cfg_list = [
+                '_VocabTrain(',
+                'nWords=%d' % (vocabtrain_cfg.nWords,),
+                ',init=', str(vocabtrain_cfg.init_method),
+                ',nIters=%d' % int(vocabtrain_cfg.nIters),
+                ')',
+            ]
+        else:
+            vocabtrain_cfg_list = ['_VocabTrain(override=%s)' %
+                                   (vocabtrain_cfg.override_vocab,)]
+        return vocabtrain_cfg_list
 
 
 # TODO
 @six.add_metaclass(ConfigMetaclass)
 class VocabAssignConfig(ConfigBase):
-    """ VocabAssignConfig """
-    def __init__(assign_cfg, **kwargs):
-        super(SMKConfig, assign_cfg).__init__(name='assign_cfg')
-        assign_cfg.nAssign    = 10  # MultiAssignment
-        assign_cfg.massign_equal_weights = True
-        assign_cfg.massign_alpha = 1.2
-        assign_cfg.massign_sigma = 80.0
-        assign_cfg.update(**kwargs)
+    """ VocabAssignConfig
 
-    def get_cfgstr_list(smk_cfg):
-        smk_cfgstr = [
-            '_Assign(',
-            ',K=', str(smk_cfg.nAssign),
-            ',a=', str(smk_cfg.massign_alpha),
-            ',s=', str(smk_cfg.massign_sigma) if smk_cfg.massign_equal_weights else ''
-            ',eqw=T' if smk_cfg.massign_equal_weights else ',eqw=F',
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> vocabassign_cfg = VocabAssignConfig()
+        >>> result = vocabassign_cfg.get_cfgstr()
+        >>> print(result)
+    """
+    def __init__(vocabassign_cfg, **kwargs):
+        super(VocabAssignConfig, vocabassign_cfg).__init__(name='vocabassign_cfg')
+        vocabassign_cfg.nAssign = 10  # MultiAssignment
+        vocabassign_cfg.massign_equal_weights = True
+        vocabassign_cfg.massign_alpha = 1.2
+        vocabassign_cfg.massign_sigma = 80.0
+        vocabassign_cfg.update(**kwargs)
+
+    def make_feasible(vocabassign_cfg):
+        assert vocabassign_cfg.nAssign > 0, 'cannot assign to nothing'
+        if vocabassign_cfg.nAssign == 1:
+            # No point to multiassign weights if nAssign is 1
+            vocabassign_cfg.massign_equal_weights = True
+
+        if vocabassign_cfg.massign_equal_weights:
+            # massign sigma makes no difference if there are equal weights
+            vocabassign_cfg.massign_sigma = None
+
+    def get_cfgstr_list(vocabassign_cfg):
+        vocabassign_cfg_list = [
+            '_VocabAssign(',
+            'nAssign=', str(vocabassign_cfg.nAssign),
+            ',a=', str(vocabassign_cfg.massign_alpha),
+            ',s=', str(vocabassign_cfg.massign_sigma) if vocabassign_cfg.massign_equal_weights else '',
+            ',eqw=T' if vocabassign_cfg.massign_equal_weights else ',eqw=F',
             ')',
         ]
-        return smk_cfgstr
+        return vocabassign_cfg_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -475,7 +521,34 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg.update(**kwargs)
         query_cfg.update(**kwargs)
         # Ensure feasibility of the configuration
-        make_feasible(query_cfg)
+        query_cfg.make_feasible()
+
+    def make_feasible(query_cfg):
+        """
+        removes invalid parameter settings over all cfgs (move to QueryConfig)
+        """
+        filt_cfg = query_cfg.filt_cfg
+        nn_cfg   = query_cfg.nn_cfg
+        feat_cfg = query_cfg._feat_cfg
+        smk_cfg = query_cfg.smk_cfg
+        vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+
+        if query_cfg.pipeline_root == 'asmk':
+            query_cfg.pipeline_root = 'smk'
+            smk_cfg.aggregate = True
+
+        hasvalid_root = any([
+            query_cfg.pipeline_root == root
+            for root in query_cfg._valid_pipeline_roots])
+        assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
+
+        if feat_cfg.nogravity_hack is False:
+            filt_cfg.gravity_weighting = False
+
+        vocabassign_cfg.make_feasible()
+        smk_cfg.make_feasible()
+        filt_cfg.make_feasible()
+        nn_cfg.make_feasible()
 
     def deepcopy(query_cfg, **kwargs):
         copy_ = copy.deepcopy(query_cfg)
@@ -487,7 +560,7 @@ class QueryConfig(ConfigBase):
             raise Exception('Feat / chip config is required')
 
         # Ensure feasibility of the configuration
-        make_feasible(query_cfg)
+        query_cfg.make_feasible()
 
         # Build cfgstr
         cfgstr_list = ['_' + query_cfg.pipeline_root ]
@@ -517,54 +590,6 @@ class QueryConfig(ConfigBase):
         return cfgstr_list
 
 
-def make_feasible(query_cfg):
-    """
-    removes invalid parameter settings over all cfgs (move to QueryConfig)
-    """
-    filt_cfg = query_cfg.filt_cfg
-    nn_cfg   = query_cfg.nn_cfg
-    feat_cfg = query_cfg._feat_cfg
-    smk_cfg = query_cfg.smk_cfg
-
-    if query_cfg.pipeline_root == 'asmk':
-        query_cfg.pipeline_root = 'smk'
-        smk_cfg.aggregate = True
-
-    assert smk_cfg.nAssign > 0, 'cannot assign to nothing'
-    if smk_cfg.nAssign == 1:
-        # No point to multiassign weights if nAssign is 1
-        smk_cfg.massign_equal_weights = True
-
-    if smk_cfg.massign_equal_weights:
-        # massign sigma makes no difference if there are equal weights
-        smk_cfg.massign_sigma = None
-
-    hasvalid_weighting = any([
-        smk_cfg.vocab_weighting == x
-        for x in smk_cfg._valid_vocab_weighting])
-    assert hasvalid_weighting, 'invalid vocab weighting %r' % smk_cfg.vocab_weighting
-
-    hasvalid_root = any([
-        query_cfg.pipeline_root == root
-        for root in query_cfg._valid_pipeline_roots])
-    assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
-
-    # Ensure the list of on filters is valid given the weight and thresh
-    if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
-        filt_cfg.ratio_thresh = None
-    if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
-        filt_cfg.bboxdist_thresh = None
-    if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
-        filt_cfg.bursty_thresh = None
-
-    if feat_cfg.nogravity_hack is False:
-        filt_cfg.gravity_weighting = False
-
-    # normalizer rule depends on Knorm
-    if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
-        nn_cfg.normalizer_rule = 'last'
-
-
 @six.add_metaclass(ConfigMetaclass)
 class FeatureConfig(ConfigBase):
     """
@@ -575,25 +600,8 @@ class FeatureConfig(ConfigBase):
         >>> from ibeis.model import Config  # NOQA
         >>> from ibeis.model.Config import *  # NOQA
         >>> feat_cfg = Config.FeatureConfig()
-        >>> feat_cfg.printme3()
-        ChipConfig _chip_cfg =
-            bool adapteq = False
-            bool grabcut = False
-            bool histeq = False
-            bool local_eq = False
-            bool maxcontrast = False
-            bool rank_eq = False
-            bool region_norm = False
-            int chip_sqrt_area = 450
-            str chipfmt = '.png'
-        bool nogravity_hack = False
-        bool rotation_invariance = False
-        bool use_adaptive_scale = False
-        bool whiten = False
-        int scale_max = 9001
-        int scale_min = 0
-        str feat_type = 'hesaff+sift'
-
+        >>> print(feat_cfg.get_cfgstr())
+        _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
     def __init__(feat_cfg, chip_cfg=None, **kwargs):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
@@ -826,27 +834,67 @@ class EncounterConfig(ConfigBase):
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
 
-@six.add_metaclass(ConfigMetaclass)
-class PreprocConfig(ConfigBase):
-    def __init__(preproc_cfg, **kwargs):
-        super(PreprocConfig, preproc_cfg).__init__(name='preproc_cfg')
-        preproc_cfg.max_image_width  = 1000
-        preproc_cfg.max_image_height = 1000
+#@six.add_metaclass(ConfigMetaclass)
+#class PreprocConfig(ConfigBase):
+#    def __init__(preproc_cfg, **kwargs):
+#        super(PreprocConfig, preproc_cfg).__init__(name='preproc_cfg')
+#        preproc_cfg.max_image_width  = 1000
+#        preproc_cfg.max_image_height = 1000
 
-    def get_cfgstr_list(preproc_cfg):
-        cfgstrs = []
-        return ['_PREPROC(', ','.join(cfgstrs), ')']
+#    def get_cfgstr_list(preproc_cfg):
+#        cfgstrs = []
+#        return ['_PREPROC(', ','.join(cfgstrs), ')']
 
 
 @six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
+    """
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> detect_cfg = DetectionConfig()
+        >>> print(detect_cfg.get_cfgstr())
+        _DETECT(rf,zebra_grevys)
+    """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
         detect_cfg.species     = 'zebra_grevys'
         detect_cfg.detector    = 'rf'
+        detect_cfg.detectimg_sqrt_area = 800
 
     def get_cfgstr_list(detect_cfg):
-        cfgstrs = ['_DETECT(', detect_cfg.detector, ',', detect_cfg.species, ')']
+        cfgstrs = ['_DETECT(',
+                   detect_cfg.detector,
+                   ',', detect_cfg.species,
+                   ',sz=%d' % (detect_cfg.detectimg_sqrt_area,),
+                   ')']
+        return cfgstrs
+
+
+@six.add_metaclass(ConfigMetaclass)
+class FeatureWeightConfig(ConfigBase):
+    """
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> featweight_cfg = FeatureWeightConfig()
+        >>> print(featweight_cfg.get_cfgstr())
+        _FEATWEIGHT(OFF)
+    """
+
+    def __init__(featweight_cfg, _detect_cfg=None, **kwargs):
+        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
+        featweight_cfg.featweight_on = True
+        featweight_cfg._detect_cfg = _detect_cfg
+
+    def make_feasible(featweight_cfg):
+        if featweight_cfg._detect_cfg is None:
+            featweight_cfg.featweight_on = False
+
+    def get_cfgstr_list(featweight_cfg):
+        featweight_cfg.make_feasible()
+        if featweight_cfg.featweight_on is False:
+            return ['_FEATWEIGHT(OFF)']
+        else:
+            cfgstrs = ['_FEATWEIGHT(ON)'] + featweight_cfg._detect_cfg.get_cfgstr_list()
         return cfgstrs
 
 

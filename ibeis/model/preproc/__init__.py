@@ -1,12 +1,15 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool
+
 from . import preproc_chip
 from . import preproc_detectimg
 from . import preproc_encounter
 from . import preproc_feat
 from . import preproc_featweight
 from . import preproc_image
-import utool
+
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[preproc]')
 

@@ -411,7 +411,7 @@ class IBEISController(object):
         query_cfg = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
         ibs.cfg.enc_cfg     = Config.EncounterConfig()
-        ibs.cfg.preproc_cfg = Config.PreprocConfig()
+        #ibs.cfg.preproc_cfg = Config.PreprocConfig()
         ibs.cfg.detect_cfg  = Config.DetectionConfig()
         ibs.cfg.other_cfg   = Config.OtherConfig()
 

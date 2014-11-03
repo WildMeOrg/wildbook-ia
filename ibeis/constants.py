@@ -158,5 +158,5 @@ else:
 
 
 # clean namespace
-del utool
-del np
+#del utool
+#del np

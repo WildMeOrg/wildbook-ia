@@ -33,23 +33,48 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
 
 
 def get_image_detectimg_fpath_list(ibs, gid_list):
-    """ Returns detectimg path list """
+    r""" Returns detectimg path list
+
+    >>> import ibeis
+    >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> valid_gids = ibs.get_valid_gids()
+    >>> gid_list = valid_gids[0:2]
+    >>> new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
+    >>> print("\n".join(new_gfpath_list))
+    /media/raid/work/testdb1/_ibsdb/_ibeis_cache/detectimg/reszd_800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg
+    /media/raid/work/testdb1/_ibsdb/_ibeis_cache/detectimg/reszd_800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg
+
+    """
     utool.assert_all_not_None(gid_list, 'gid_list')
+    sqrt_area   = ibs.cfg.detect_cfg.detectimg_sqrt_area
     gext_list    = ibs.get_image_exts(gid_list)
     guuid_list   = ibs.get_image_uuids(gid_list)
     cachedir = ibs.get_detectimg_cachedir()
-    new_gfpath_list = [join(cachedir, 'reszd_' + str(guuid) + ext)
+    new_gfpath_list = [join(cachedir, 'reszd_' + str(sqrt_area) + '_' + str(guuid) + ext)
                        for (guuid, ext) in zip(guuid_list, gext_list)]
     return new_gfpath_list
 
 
 def compute_and_write_detectimg(ibs, gid_list):
+    """
+
+    Example:
+        >>> import ibeis
+        >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_gids = ibs.get_valid_gids()
+        >>> gid_list = valid_gids[0:2]
+        >>> result = compute_and_write_detectimg(ibs, gid_list)
+
+
+    """
     utool.ensuredir(ibs.get_detectimg_cachedir())
+    # Get img configuration information
+    sqrt_area   = ibs.cfg.detect_cfg.detectimg_sqrt_area
+    target_area = sqrt_area ** 2
     # Get img dest information (output path)
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
-    # Get img configuration information
-    sqrt_area   = 800  # TODO: Put this in a config
-    target_area = sqrt_area ** 2
     # Get img source information (image, annotation_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
