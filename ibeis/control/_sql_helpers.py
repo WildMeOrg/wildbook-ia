@@ -91,16 +91,19 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
     # NEW DATABASE CONDITION
     if version == constants.BASE_DATABASE_VERSION and not params.args.force_incremental_db_update:
         if schema_spec.UPDATE_CURRENT is not None and schema_spec.VERSION_CURRENT is not None:
-            print('[ensure_correct_version] New database and a current schema found')
+            if not utool.QUIET:
+                print('[ensure_correct_version] New database and a current schema found')
             # Since this is a new database, we do not have to worry about backinng up the
             # current database.  The subsequent update functions (if needed) will handle
             # this for us.
             with utool.Timer('UPDATE_CURRENT'):
                 schema_spec.UPDATE_CURRENT(db, ibs=ibs)
             ibs.set_database_version(db, schema_spec.VERSION_CURRENT)
-            print('[ensure_correct_version] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
+            if not utool.QUIET:
+                print('[ensure_correct_version] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
         else:
-            print('[ensure_correct_version] New database but current version not exported, updating incrementally...')
+            if not utool.QUIET:
+                print('[ensure_correct_version] New database but current version not exported, updating incrementally...')
     # Chec version again for sanity's sake, update if exported current is behind expected
     version = ibs.get_database_version(db)
     if not utool.QUIET:

@@ -29,14 +29,13 @@ WITH_TOTALTIME = True
 
 #@ut.memprof
 @profile
-def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memtrack=None):
+def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=None):
     """
     Computes and caches visual words
 
     Args:
         annots_df ():
-        taids ():
-        nWords ():
+        qreq_ ():
         use_cache ():
         memtrack ():
 
@@ -60,9 +59,13 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     """
     #if memtrack is None:
     #    memtrack = ut.MemoryTracker('[learn_visual_words]')
-    #max_iters = 200
-    max_iters = 300
-    flann_params = {}
+    nWords = qreq_.qparams.nWords
+    # TODO: Incorporated taids (vocab training ids) into qreq
+    if qreq_.qparams.vocab_taids == 'all':
+        taids = annots_df.ibs.get_valid_aids()  # exemplar
+    initmethod   = qreq_.qparams.vocab_init_method
+    max_iters    = qreq_.qparams.vocab_nIters
+    flann_params = qreq_.qparams.vocab_flann_params
     train_vecs_list = annots_df.ibs.get_annot_vecs(taids, eager=True)
     #memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
     #memtrack.report('loaded trainvecs')
@@ -72,7 +75,8 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS, memt
     del train_vecs_list
     print('[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
-    kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
+    kwds = dict(max_iters=max_iters, use_cache=use_cache,
+                initmethod=initmethod, appname='smk',
                 flann_params=flann_params)
     words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
     #annots_df.ibs.dbcache.squeeze()

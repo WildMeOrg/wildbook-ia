@@ -67,6 +67,7 @@ def update_1_0_1(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('residual_vector',              'NUMPY'),
     ),
+        # TODO: Remove residual_rowid from being a superkey
         superkey_colnames=['residual_rowid', 'feature_rowid', 'config_rowid'],
         docstr='''
         Used to store individual SMK/ASMK residual vectors for features''')
