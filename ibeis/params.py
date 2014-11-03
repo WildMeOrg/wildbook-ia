@@ -72,6 +72,8 @@ def parse_args():
         parser2.add_flag('--get-workdir', help='gets the default work directory')
         parser2.add_str(('--logdir', '--set-logdir'), None,
                         help='sets the default logging directory')
+        parser2.add_flag('--force-incremental-db-update',
+                         help='ignores the current database schema and forces an incremental update for new databases')
 
     def commands_argparse(parser2):
         parser2 = parser2.add_argument_group('Commands')

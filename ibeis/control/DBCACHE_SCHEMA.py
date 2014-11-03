@@ -3,6 +3,14 @@ Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
+try:
+    from ibeis.control import DBCACHE_SCHEMA_CURRENT
+    UPDATE_CURRENT  = DBCACHE_SCHEMA_CURRENT.update_current
+    VERSION_CURRENT = DBCACHE_SCHEMA_CURRENT.VERSION_CURRENT
+except:
+    UPDATE_CURRENT  = None
+    VERSION_CURRENT = None
+    print("[dbcache] NO DBCACHE_SCHEMA_CURRENT AUTO-GENERATED!")
 import utool
 profile = utool.profile
 
@@ -10,6 +18,7 @@ profile = utool.profile
 # =======================
 # Schema Version 1.0.0
 # =======================
+
 
 @profile
 def update_1_0_0(db, ibs=None):
