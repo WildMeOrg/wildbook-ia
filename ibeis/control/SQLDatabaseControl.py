@@ -141,7 +141,9 @@ class SQLDatabaseController(object):
         ),
             superkey_colnames=['metadata_key'],
             docstr='''
-            The table that stores permanently all of the metadata about the database (tables, etc)''')
+        The table that stores permanently all of the metadata about the
+        database (tables, etc)''')
+        # IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation
 
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
@@ -945,10 +947,73 @@ class SQLDatabaseController(object):
                 file_.write(table_csv)
 
     @default_decorator
-    def dump_schema(db):
-        """ Convenience: Dumps all csv database files to disk """
+    def dump_schema_current_autogeneration(db, output_filename):
+        """ Convenience: Autogenerates the most up-to-date database schema """
         controller_directory = dirname(realpath(__file__))
-        dump_fpath = join(controller_directory, 'schema.txt')
+        db_version_current = db.get_db_version()
+        dump_fpath = join(controller_directory, output_filename)
+        with open(dump_fpath, 'w') as file_:
+            # File Header
+            file_.write('%s\n' % '"""')
+            file_.write('%s\n' % 'Module Licence and docstring')
+            file_.write('%s\n' % '"""')
+            file_.write('%s\n' % 'from __future__ import absolute_import, division, print_function')
+            file_.write('%s\n' % 'from ibeis import constants')
+            file_.write('%s\n' % '')
+            file_.write('%s\n' % '')
+            file_.write('%s\n' % '# =======================')
+            file_.write('%s\n' % '# Schema Version Current')
+            file_.write('%s\n' % '# =======================')
+            file_.write('%s\n' % '')
+            file_.write('%s\n' % '')
+            file_.write('VERSION_CURRENT = %r\n' % str(db_version_current))
+            file_.write('%s\n' % '')
+            file_.write('%s\n' % 'def update_current(db, ibs=None):')
+            # Define what tab space we want to save
+            tab = ' ' * 4
+            # Function content
+            first = True
+            for tablename in sorted(db.get_table_names()):
+                if first:
+                    first = False
+                else:
+                    file_.write('%s\n' % '')
+                constant_name = None
+                for variable, value in constants.__dict__.iteritems():
+                    if value == tablename:
+                        constant_name = variable
+                        break
+                assert constant_name is not None, "Table name does not exists in constants"
+                file_.write('%sdb.add_table(constants.%s, (\n' % (tab, constant_name, ))
+                column_list = db.get_columns(tablename)
+                for column in column_list:
+                    col_name = ('%r,' % str(column[1])).ljust(32)
+                    col_type = str(column[2])
+                    if column[5] == 1:  # Check if PRIMARY KEY
+                        col_type += " PRIMARY KEY"
+                    elif column[3] == 1:  # Check if NOT NULL
+                        col_type += " NOT NULL"
+                    elif column[4] is not None:
+                        col_type += " DEFAULT " + str(column[4])  # Specify default value
+                    file_.write('%s%s(%s%r),\n' % (tab, tab, col_name, col_type, ))
+                file_.write('%s),\n' % tab)
+                colnames = db.get_table_superkeys(tablename)
+                docstr = db.get_table_docstr(tablename)
+                file_.write('%s%ssuperkey_colnames=%r,\n' % (tab, tab, colnames, ))
+                file_.write('%s%sdocstr=\'\'\'%s\'\'\')\n' % (tab, tab, docstr, ))
+
+    @default_decorator
+    def dump_schema(db):
+        """
+            Convenience: Dumps all csv database files to disk
+            NOTE: This function is semi-obsolete because of the auto-generated
+            current schema file.  Use dump_schema_current_autogeneration instead for
+            all purposes except for parsing out the database schema or for consice visual
+            representation.
+        """
+
+        app_resource_dir = utool.get_app_resource_dir('ibeis')
+        dump_fpath = join(app_resource_dir, 'schema.txt')
         with open(dump_fpath, 'w') as file_:
             for tablename in sorted(db.get_table_names()):
                 file_.write(tablename + '\n')
@@ -961,6 +1026,7 @@ class SQLDatabaseController(object):
                     col_key = str(('KEY' if column[5] == 1 else ''))
                     col = (col_name, col_type, col_null, col_default, col_key)
                     file_.write('\t%s%s%s%s%s\n' % col)
+        utool.view_directory(app_resource_dir)
 
     @default_decorator
     def get_table_names(db):
@@ -1015,6 +1081,10 @@ class SQLDatabaseController(object):
                 superkey_colnames = None
         else:
             superkey_colnames = superkey_colnames_str.split(';')
+        superkey_colnames = [
+            None if superkey_colname is None else str(superkey_colname)
+            for superkey_colname in superkey_colnames
+        ]
         return superkey_colnames
 
     get_table_superkey_colnames = get_table_superkeys
@@ -1149,6 +1219,15 @@ class SQLDatabaseController(object):
     def print_schema(db):
         for tablename in db.get_table_names():
             print(db.get_table_csv_header(tablename) + '\n')
+
+    def get_db_version(db):
+        metadata_key_list = ['database_version']
+        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        where_clause = 'metadata_key=?'
+        # list of relationships for each image
+        metadata_value_list = db.get_where(constants.METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+        version = metadata_value_list[0]
+        return version
 
     @default_decorator
     def get_sql_version(db):

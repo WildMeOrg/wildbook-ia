@@ -2,9 +2,11 @@ from __future__ import absolute_import, division, print_function
 import utool
 import re
 from . import __SQLITE3__ as lite
+from os.path import split, splitext
 #import six
 import logging
-#from ibeis import constants
+from ibeis import params
+from ibeis import constants
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
@@ -77,10 +79,24 @@ def compare_string_versions(a, b):
 
 
 @profile
-def ensure_correct_version(ibs, db, version_expected, db_versions, dobackup=True):
+def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+    db_versions = schema_spec.VALID_VERSIONS
+    version = ibs.get_database_version(db)
+    if version == constants.BASE_DATABASE_VERSION and not params.args.force_incremental_db_update:
+        if schema_spec.UPDATE_CURRENT is not None and schema_spec.VERSION_CURRENT is not None:
+            print('[ensure_correct_version] New database and a current schema found')
+            # Since this is a new database, we do not have to worry about backinng up the
+            # current database.  The subsequent update functions (if needed) will handle
+            # this for us.
+            schema_spec.UPDATE_CURRENT(db, ibs=ibs)
+            ibs.set_database_version(db, schema_spec.VERSION_CURRENT)
+            print('[ensure_correct_version] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
+        else:
+            print('[ensure_correct_version] New database but current version not exported, updating incrementally...')
+    # Chec version again for sanity's sake, update if exported current is behind expected
     version = ibs.get_database_version(db)
     if not utool.QUIET:
         print('[ensure_correct_version] Database version: %r | Expected version: %r ' % (version, version_expected))
@@ -90,8 +106,11 @@ def ensure_correct_version(ibs, db, version_expected, db_versions, dobackup=True
         update_schema_version(ibs, db, db_versions, version, version_expected,
                               dobackup=dobackup)
         ibs.set_database_version(db, version_expected)
+        # Auto-generate the version skip schema file
+        schema_spec_filename = splitext(split(schema_spec.__file__)[1])[0]
+        db.dump_schema_current_autogeneration('%s_CURRENT.py' % schema_spec_filename)
         if not utool.QUIET:
-            print('[ensure_correct_version] Database version updated to %r' % (version_expected))
+            print('[ensure_correct_version] Database version updated (incrementally) to %r' % (version_expected))
     elif version > version_expected:
         msg = (('[ensure_correct_version] ERROR: '
                 'Expected database version behind. expected: %r. got: %r') %

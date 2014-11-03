@@ -170,10 +170,12 @@ def _get_detector(species, quick=True, single=False):
             print("[detect.rf] Running quick (single scale) probability image")
             config = {
                 'scales': '1 1.0',
+                'out_scale': 255,
                 'pos_like': 1,
             }
         else:
             config = {
+                'out_scale': 255,
                 'pos_like': 1,
             }
     else:

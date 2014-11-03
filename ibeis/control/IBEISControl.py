@@ -260,7 +260,7 @@ class IBEISController(object):
             ibs,
             ibs.db,
             ibs.db_version_expected,
-            DB_SCHEMA.VALID_VERSIONS
+            DB_SCHEMA
         )
 
         # IBEIS SQL Features & Chips database
@@ -270,7 +270,7 @@ class IBEISController(object):
             ibs,
             ibs.dbcache,
             ibs.dbcache_version_expected,
-            DBCACHE_SCHEMA.VALID_VERSIONS,
+            DBCACHE_SCHEMA,
             dobackup=False  # Everything in dbcache can be regenerated.
         )
 
