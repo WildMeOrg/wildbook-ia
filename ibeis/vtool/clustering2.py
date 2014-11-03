@@ -42,7 +42,7 @@ def assert_centroids(centroids, data, nCentroids, clip_centroids):
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cache_dir='default', force_recomp=False, use_data_hash=True,
                    cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
-                   appname='vtool',  clip_centroids=True):
+                   appname='vtool',  initmethod='kmeans++', clip_centroids=True):
     """ precompute aproximate kmeans with builtin caching
 
     Example:
@@ -58,7 +58,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     Timeit:
         import vtool.clustering2 as clustertool
         max_iters = 300
-        flann = pyflann.FLANN()
+        flann = p yflann.FLANN()
         centroids1 = flann.kmeans(data, nCentroids, max_iterations=max_iters, dtype=np.uint8)
         centroids2 = clustertool.akmeans(data, nCentroids, max_iters, {})
         %timeit clustertool.akmeans(data, nCentroids, max_iters, {})
@@ -78,7 +78,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         utool.ensuredir(cache_dir)
     # Build a cfgstr if the full one is not specified
     akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters, flann_params,
-                                        use_data_hash, cfgstr, akmeans_cfgstr)
+                                        use_data_hash, cfgstr, akmeans_cfgstr) + initmethod
     try:
         # Try and load a previous centroiding
         if not use_cache or force_recomp:
@@ -112,10 +112,10 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     print('[akmeans.precompute] pre_akmeans(): calling akmeans')
     # FLANN.AKMEANS IS NOT APPROXIMATE KMEANS
     #if use_external_kmeans:
-    #    import pyflann
+    #    import p yflann
     #    #import utool
     #    print('[akmeans.precompute] using flann.kmeans... (hope this is approximate)')
-    #    flann = pyflann.FLANN()
+    #    flann = p yflann.FLANN()
     #    with utool.Timer('testing time of 1 kmeans iteration') as timer:
     #        centroids = flann.kmeans(data, nCentroids, max_iterations=1)
     #    estimated_time = max_iters * timer.ellapsed
@@ -126,12 +126,77 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     #    centroids = flann.kmeans(data, nCentroids, max_iterations=max_iters)
     #    print('The true finish time is: ' + utool.get_timestamp('printable'))
     #else:
+    if initmethod == 'kmeans++':
+        pass
+
     centroids = akmeans(data, nCentroids, max_iters, flann_params)
     assert_centroids(centroids, data, nCentroids, clip_centroids)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
     print('L___ END CACHED AKMEANS')
     return centroids
+
+
+class KPlusPlusInit(object):
+    """
+    Referencs:
+        http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
+    Example:
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
+        >>> np.random.seed(42)
+        >>> nump = 128000
+        >>> dims = 128
+        >>> nCentroids = 800
+        >>> max_iters = 300
+        >>> K = 64000
+        >>> dtype = np.uint8
+        >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
+        >>> self = KPlusPlusInit(data, K)
+        >>> initial_centers = self()
+    """
+    def __init__(self, data, K):
+        """
+        >>> self = ut.DynStruct()
+        """
+        self.X = data
+        self.K = K
+        self.mu = None
+        self.D2 = None
+        self.probs = None
+        self.cumprobs = None
+
+    def __call__(self):
+        self.init_centers()
+        return self.mu
+
+    def _choose_next_center(self):
+        self.probs = self.D2 / self.D2.sum()
+        self.cumprobs = self.probs.cumsum()
+        r = np.random.random()
+        ind = np.where(self.cumprobs >= r)[0][0]
+        return(self.X[ind])
+
+    def _dist_from_centers(self):
+        #cent =
+        #X =
+        # TODO: replace with flann
+        #D2 = np.array([min([np.linalg.norm(x - c) ** 2 for c in cent]) for x in X])
+        cent = np.array(self.mu)
+        self.D2 = approximate_distances(cent, self.X, 1, {}) + np.sqrt(self.X.shape[1])
+
+    def init_centers(self):
+        import random
+        self.mu = random.sample(self.X, 1)
+        mark, end = utool.log_progress('kmeans++: ', total=self.K)
+        count = 0
+        while len(self.mu) < self.K:
+            mark(count)
+            self._dist_from_centers()
+            self.mu.append(self._choose_next_center())
+            count += 1
+        end()
 
 
 def akmeans(data, nCentroids, max_iters=5, flann_params={},
@@ -211,7 +276,7 @@ def akmeans_iterations(data, centroids, max_iters,
     for count in range(0, max_iters):
         _mark(count)
         # 1) Assign each datapoint to the nearest centroid
-        (datax2_centroidx, _) = pyflann.FLANN().nn(centroids, data, 1, **flann_params)
+        (datax2_centroidx, _) = approximate_assignments(centroids, data, 1, flann_params)
         # 2) Compute new centroids based on assignments
         centroids = compute_centroids(data, centroids, datax2_centroidx)
         # 3) Convergence Check: which datapoints changed membership?
@@ -224,6 +289,16 @@ def akmeans_iterations(data, centroids, max_iters,
             datax2_centroidx_old = datax2_centroidx
     _end()
     return centroids
+
+
+def approximate_distances(centroids, data, K, flann_params):
+    (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
+    return qdist2_sdist
+
+
+def approximate_assignments(seachedvecs, queryvecs, K, flann_params):
+    (qx2_sx, _) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
+    return qx2_sx
 
 
 def compute_centroids(data, centroids, datax2_centroidx):
@@ -239,7 +314,7 @@ def compute_centroids(data, centroids, datax2_centroidx):
     >>> flann_params = {}
     >>> centroids = initialize_centroids(nCentroids, data)
     >>> centroids_ = centroids.copy()
-    >>> (datax2_centroidx, _) = pyflann.FLANN().nn(centroids, data, 1, **flann_params)
+    >>> (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1, **flann_params)
     >>> out = compute_centroids(data, centroids, datax2_centroidx)
     """
     nData = data.shape[0]
@@ -513,14 +588,14 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        datax2_label = pyflann.FLANN().nn(centroids, data, 1)[0]
+        datax2_label = approximate_assignments(centroids, data, 1, {})
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
     print(datax2_label)
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     #if datax2_centroids is None:
-    #    (datax2_centroidx, _) = pyflann.FLANN().nn(centroids, data, 1)
+    #    (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1)
     #data_colors = colors[np.array(datax2_centroidx, dtype=np.int32)]
     nColors = datax2_label.max() - datax2_label.min() + 1
     print('nColors=%r' % (nColors,))
