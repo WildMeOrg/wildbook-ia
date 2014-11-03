@@ -123,7 +123,8 @@ class SQLDatabaseController(object):
         db.connection.text_factory = db.text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
         #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-        if  inmemory is True or (inmemory is None and COPY_TO_MEMORY):
+        if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
+            db.squeeze()
             db._copy_to_memory()
             db.connection.text_factory = text_factory
         # Get a cursor which will preform sql commands / queries / executions
@@ -181,13 +182,12 @@ class SQLDatabaseController(object):
         #db.cur.execute('PRAGMA cache_size = 0;')
         #db.cur.execute('PRAGMA cache_size = 1024;')
         #db.cur.execute('PRAGMA page_size = 1024;')
+        print('[sql] running sql pragma optimizions')
+        db.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
+        db.cur.execute('PRAGMA temp_store = MEMORY;')
         db.cur.execute('PRAGMA synchronous = OFF;')
         #db.cur.execute('PRAGMA synchronous = NORMAL;')
-        #db.cur.execute('PRAGMA synchronous = FULL;')
-        #db.cur.execute('PRAGMA count_changes = OFF;')
-        #db.cur.execute('PRAGMA journal_mode = OFF;')
-        #db.cur.execute('PRAGMA max_page_count = 0;')
-        #db.cur.execute('PRAGMA page_size = 512;')
+        #db.cur.execute('PRAGMA synchronous = FULL;')  # Default
         #db.cur.execute('PRAGMA parser_trace = OFF;')
         #db.cur.execute('PRAGMA busy_timeout = 1;')
         #db.cur.execute('PRAGMA default_cache_size = 0;')
