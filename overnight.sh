@@ -19,8 +19,11 @@ export IBSFLAGS=''
 #python dev.py -t smk7_overnight --allgt --db PZ_Master0 $IBSFLAGS --index 0:200
 #python dev.py -t smk7_overnight --allgt --db PZ_Mothers $IBSFLAGS
 
+python dev.py -t featparams_big2 --db PZ_Mothers --allgt
+python dev.py -t featparams_big2 --db GZ_ALL --allgt
 python dev.py -t featparams_big --db PZ_Mothers --allgt
 python dev.py -t featparams_big --db GZ_ALL --allgt
+
 python dev.py -t smk2 --db PZ_Master0 --allgt
 
 

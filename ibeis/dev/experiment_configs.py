@@ -34,7 +34,6 @@ featparams = {
 }
 
 featparams_big = {
-    'fg_weight': [1.0],
     'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
     'numberOfScales': [1, 2, 3],
     'maxIterations': [16, 32],
@@ -43,6 +42,20 @@ featparams_big = {
     'initialSigma': [3.2, 2.4, 1.6, 1.2, 0.8],
     'edgeEigenValueRatio': [10, 5, 3],
 }
+
+smk00 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [False, True],  # True, False],
+    'nWords':        [64000],  # True, False],
+}
+
+# HACKED IN
+featparams_big2 = augbase(
+    featparams_big,
+    {
+        'K': [4, 7, 10, 20],
+        'fg_weight': [1.0],
+    })
 # low threshold = more keypoints
 # low initialSigma = more keypoints
 
