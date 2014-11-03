@@ -12,6 +12,7 @@ from ibeis import constants
 
 VERSION_CURRENT = '1.1.1'
 
+
 def update_current(db, ibs=None):
     db.add_table(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                    'INTEGER PRIMARY KEY'),

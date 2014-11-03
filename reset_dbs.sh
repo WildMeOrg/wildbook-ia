@@ -21,3 +21,9 @@ $PYEXE ibeis/tests/reset_testdbs.py $@
 echo "PYEXE = $PYEXE"
 #python ibeis/tests/test_gui_import_images.py --set-dbdir
 #python ibeis/tests/test_gui_add_roi.py
+
+
+"
+profiler.sh ibeis/tests/reset_testdbs.py
+
+"

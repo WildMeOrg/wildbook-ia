@@ -82,6 +82,9 @@ def compare_string_versions(a, b):
 def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
+
+    Args:
+        schema_spec (module): module of schema specifications
     """
     db_versions = schema_spec.VALID_VERSIONS
     version = ibs.get_database_version(db)
