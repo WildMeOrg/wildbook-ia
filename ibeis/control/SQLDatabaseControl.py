@@ -129,7 +129,7 @@ class SQLDatabaseController(object):
         # Get a cursor which will preform sql commands / queries / executions
         db.cur = db.connection.cursor()
         # Optimize the database (if anything is set)
-        #db.optimize()
+        db.optimize()
         db._ensure_metadata_table()
 
     def _ensure_metadata_table(db):
@@ -175,11 +175,13 @@ class SQLDatabaseController(object):
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        print('[sql] executing sql optimizions')
+        print('[sql] running sql pragma optimizions')
         #db.cur.execute('PRAGMA cache_size = 0;')
         #db.cur.execute('PRAGMA cache_size = 1024;')
         #db.cur.execute('PRAGMA page_size = 1024;')
-        #db.cur.execute('PRAGMA synchronous = OFF;')
+        db.cur.execute('PRAGMA synchronous = OFF;')
+        #db.cur.execute('PRAGMA synchronous = NORMAL;')
+        #db.cur.execute('PRAGMA synchronous = FULL;')
         #db.cur.execute('PRAGMA count_changes = OFF;')
         #db.cur.execute('PRAGMA journal_mode = OFF;')
         #db.cur.execute('PRAGMA max_page_count = 0;')

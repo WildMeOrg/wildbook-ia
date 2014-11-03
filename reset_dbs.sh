@@ -23,7 +23,4 @@ echo "PYEXE = $PYEXE"
 #python ibeis/tests/test_gui_add_roi.py
 
 
-"
-profiler.sh ibeis/tests/reset_testdbs.py
-
-"
+#profiler.sh ibeis/tests/reset_testdbs.py

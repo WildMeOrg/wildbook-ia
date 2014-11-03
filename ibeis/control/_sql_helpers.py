@@ -95,7 +95,8 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
             # Since this is a new database, we do not have to worry about backinng up the
             # current database.  The subsequent update functions (if needed) will handle
             # this for us.
-            schema_spec.UPDATE_CURRENT(db, ibs=ibs)
+            with utool.Timer('UPDATE_CURRENT'):
+                schema_spec.UPDATE_CURRENT(db, ibs=ibs)
             ibs.set_database_version(db, schema_spec.VERSION_CURRENT)
             print('[ensure_correct_version] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
         else:
