@@ -257,7 +257,7 @@ class IBEISController(object):
         ibs.db_version_expected = '1.1.1'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=__STR__,
-                                              inmemory=True)
+                                              inmemory=False)
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.2'
         ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
