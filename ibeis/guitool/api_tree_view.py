@@ -31,6 +31,7 @@ class APITreeView(API_VIEW_BASE):
         API_VIEW_BASE.__init__(view, parent)
         # Implicitly inject common APIItemView functions
         api_item_view.injectviewinstance(view)
+        #utool.inject_instance(view, API_VIEW_BASE)
         # Allow sorting by column
         view._init_tree_behavior()
         view.col_hidden_list = []

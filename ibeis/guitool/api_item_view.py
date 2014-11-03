@@ -24,7 +24,8 @@ VERBOSE = utool.VERBOSE
 
 API_VIEW_BASE = QtGui.QAbstractItemView
 viewmember = utool.classmember(API_VIEW_BASE)
-injectviewinstance = partial(utool.inject_instance, API_VIEW_BASE)
+
+injectviewinstance = partial(utool.inject_instance, classtype=API_VIEW_BASE)
 
 
 VALID_API_MODELS = (FilterProxyModel, StripeProxyModel, APIItemModel)
