@@ -968,6 +968,7 @@ class SQLDatabaseController(object):
             file_.write('%s\n' % '')
             file_.write('VERSION_CURRENT = %r\n' % str(db_version_current))
             file_.write('%s\n' % '')
+            file_.write('%s\n' % '')
             file_.write('%s\n' % 'def update_current(db, ibs=None):')
             # Define what tab space we want to save
             tab = ' ' * 4
