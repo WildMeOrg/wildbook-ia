@@ -36,6 +36,12 @@ def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
     return qx2_dx
 
 
+def get_flann_params_cfgstr(flann_params):
+    flann_valsig_ = str(list(flann_params.values()))
+    flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
+    return flann_valsig
+
+
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
     """
     >>> from vtool.nearest_neighbors import *  # NOQA
@@ -49,8 +55,7 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
     """
     flann_cfgstr = cfgstr
     if use_params_hash:
-        flann_valsig_ = str(list(flann_params.values()))
-        flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
+        flann_valsig = get_flann_params_cfgstr(flann_params)
         flann_cfgstr += '_FLANN(' + flann_valsig + ')'
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:

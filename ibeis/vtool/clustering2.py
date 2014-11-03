@@ -1,7 +1,9 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 from six.moves import range
+import six
 import utool
+import utool as ut
 import sys
 import numpy as np
 import scipy.sparse as spsparse
@@ -14,11 +16,11 @@ import vtool.nearest_neighbors as nntool
 CLUSTERS_FNAME = 'akmeans_centroids'
 
 
-def get_akmeans_cfgstr(data, nCentroids, max_iters=5, flann_params={},
+def get_akmeans_cfgstr(data, nCentroids, max_iters=5, initmethod='kmeans++', flann_params={},
                        use_data_hash=True, cfgstr='', akmeans_cfgstr=None):
     if akmeans_cfgstr is None:
         # compute a hashstr based on the data
-        cfgstr += '_nC=%d,nIter=%d' % (nCentroids, max_iters)
+        cfgstr += '_nC=%d,nIter=%d,init=%s' % (nCentroids, max_iters, initmethod)
         akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
                                                  cfgstr, use_data_hash)
     return akmeans_cfgstr
@@ -77,7 +79,8 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         cache_dir = utool.get_app_resource_dir(appname)
         utool.ensuredir(cache_dir)
     # Build a cfgstr if the full one is not specified
-    akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters, flann_params,
+    akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters,
+                                        initmethod, flann_params,
                                         use_data_hash, cfgstr, akmeans_cfgstr) + initmethod
     try:
         # Try and load a previous centroiding
@@ -126,10 +129,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     #    centroids = flann.kmeans(data, nCentroids, max_iterations=max_iters)
     #    print('The true finish time is: ' + utool.get_timestamp('printable'))
     #else:
-    if initmethod == 'kmeans++':
-        pass
-
-    centroids = akmeans(data, nCentroids, max_iters, flann_params)
+    centroids = akmeans(data, nCentroids, max_iters, initmethod, flann_params)
     assert_centroids(centroids, data, nCentroids, clip_centroids)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
@@ -151,7 +151,7 @@ def tune_flann2(data):
 
 
 @profile
-def kmeans_plusplus_init(data, K, samples_per_iter, flann_params=None):
+def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
     """
     Referencs:
         http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
@@ -161,15 +161,15 @@ def kmeans_plusplus_init(data, K, samples_per_iter, flann_params=None):
         >>> import utool as ut
         >>> import numpy as np
         >>> np.random.seed(42)
-        >>> nump = 128000
-        >>> K = 64000
+        >>> K = 8000  # 64000
+        >>> nump = K * 2
         >>> dims = 128
         >>> max_iters = 300
-        >>> samples_per_iter = 500
+        >>> samples_per_iter = None
         >>> dtype = np.uint8
         >>> flann_params = None
         >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-        >>> initial_centers = kmeans_plusplus_init(data, K, samples_per_iter, flann_params)
+        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter, flann_params)
 
     Example2:
         >>> from vtool.clustering2 import *  # NOQA
@@ -179,15 +179,27 @@ def kmeans_plusplus_init(data, K, samples_per_iter, flann_params=None):
         >>> flann_params = None
         >>> samples_per_iter = 1000
         >>> K = 8000  # 64000
-        >>> initial_centers = kmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
+        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
+
+    CommandLine:
+        profiler.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
     """
-    print('approx kmeans++ on %r points' % (len(data)))
+    if samples_per_iter is None:
+        #sample_fraction = 32.0 / K
+        sample_fraction = 64.0 / K
+        #sample_fraction = 128.0 / K
+        samples_per_iter = int(len(data) * sample_fraction)
+    print('approx kmeans++ on %r points. samples_per_iter=%r. K=%r' % (len(data), samples_per_iter, K))
     #import random
-    import time
     eps = np.sqrt(data.shape[1])
     flann = pyflann.FLANN()
-    center_indicies = [np.random.randint(0, len(data))]
-    centers = data.take(center_indicies, axis=0)
+    # Choose an index and "use" it
+    unusedx2_datax = np.arange(len(data), dtype=np.int32)
+    chosen_unusedx = np.random.randint(0, len(unusedx2_datax))
+    center_indicies = [unusedx2_datax[chosen_unusedx]]
+    unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
+
     if flann_params is None:
         flann_params = {}
         flann_params['target_precision'] = .6
@@ -196,66 +208,44 @@ def kmeans_plusplus_init(data, K, samples_per_iter, flann_params=None):
         #flann_params['algorithm'] = 'linear'
         flann_params['algorithm'] = 'kdtree'
         flann_params['iterations'] = 3
-    build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
-    #mark, end = utool.log_progress('kmeans++: ', total=K, freq=10)
-    count = 0
-    starttime = time.time()
-    cumrate = 0
-    freq = 100
-    num_sample = min(samples_per_iter, len(data))
-    all_centerxs = np.arange(len(data), dtype=np.int32)
-    unused_flag = np.ones(len(data), dtype=np.bool)
-    unused_flag[center_indicies] = False
 
-    for count in range(1, K):
-        #mark(count)
-        # randomly choose a set of unchosen potential seed points
-        random_datax = np.random.choice(all_centerxs[unused_flag], size=num_sample, replace=True)
-        sampledata = data.take(random_datax, axis=0)
-        # Distance from data to current centers
-        # (this call takes 98% of the time. optimize here only)
-        samplex2_dist = flann.nn_index(sampledata, 1, checks=flann_params['checks'])[1] + eps
-        # Choose new_center that has a high probability of being a new cluster
-        probs = samplex2_dist / samplex2_dist.sum()
-        ind = np.where(probs.cumsum() >= np.random.random() * .98)[0][0]
-        #new_center = data[ind:(ind + 1)]
-        new_datax = random_datax[ind:ind + 1]
-        unused_flag[new_datax] = False
-        center_indicies.append(new_datax)
-        new_center = data.take(new_datax, axis=0)
-        # Append new center to data and flann index
-        #centers.append(new_center)
-        flann.add_points(new_center)
-        if count % freq == 0:
-            endtime = time.time()
-            cumrate += (endtime - starttime)
-            starttime = endtime
-            rate = count / cumrate
-            msg = '\rkmeans++ %4d/%d... rate=%d iters per second.' % (count, K, rate)
-            sys.stdout.write(msg)
-            sys.stdout.flush()
-    center_indicies = np.array(center_indicies)
-    print(len(center_indicies))
-    print(len(set(center_indicies)))
+    # initalize flann index for approximate nn calculation
     centers = data.take(center_indicies, axis=0)
+    build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
+    num_sample = min(samples_per_iter, len(data))
+    progiter = utool.progiter(range(0, K), lbl='akmeans++ init')
+    _iter = progiter.iter_rate()
+    six.next(_iter)
+
+    #for count in range(1, K):
+    for count in _iter:
+        # Randomly choose a set of unused potential seed points
+        sx2_unusedx = np.random.randint(len(unusedx2_datax), size=num_sample)
+        sx2_datax = unusedx2_datax.take(sx2_unusedx)
+        # Distance from a random sample of data to current centers
+        # (this call takes 98% of the time. optimize here only)
+        sample_data = data.take(sx2_datax, axis=0)
+        sx2_dist = flann.nn_index(sample_data, 1, checks=flann_params['checks'])[1] + eps
+        # Choose data sample index that has a high probability of being a new cluster
+        sx2_prob = sx2_dist / sx2_dist.sum()
+        chosen_sx = np.where(sx2_prob.cumsum() >= np.random.random() * .98)[0][0]
+        chosen_unusedx = sx2_unusedx[chosen_sx]
+        chosen_datax = unusedx2_datax[chosen_unusedx]
+        # Remove the chosen index from unused indicies
+        unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
+        center_indicies.append(chosen_datax)
+        chosen_data = data.take(chosen_datax, axis=0)
+        # Append new center to data and flann index
+        flann.add_points(chosen_data)
+    center_indicies = np.array(center_indicies)
+    centers = data.take(center_indicies, axis=0)
+    print('len(center_indicies) = %r' % len(center_indicies))
+    print('len(set(center_indicies)) = %r' % len(set(center_indicies)))
     return centers
 
 
-if __name__ == '__main__':
-    np.random.seed(42)
-    nump = 16000  # 128000
-    K = 8000  # 64000
-    dims = 128
-    max_iters = 300
-    dtype = np.uint8
-    flann_params = {}
-    data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-    initial_centers = kmeans_plusplus_init(data, K, flann_params)
-
-
-def akmeans(data, nCentroids, max_iters=5, flann_params={},
-            ave_unchanged_thresh=0,
-            ave_unchanged_iterwin=10):
+def akmeans(data, nCentroids, max_iters=5, initmethod='akmeans++',
+            flann_params={}, ave_unchanged_thresh=0, ave_unchanged_iterwin=10):
     """
     Approximiate K-Means (using FLANN)
     Input: data - np.array with rows of data.
@@ -264,19 +254,24 @@ def akmeans(data, nCentroids, max_iters=5, flann_params={},
     its approximate nearest centroid center.  The centroid centers are recomputed.
     Repeat until approximate convergence."""
     # Setup iterations
-    centroids = initialize_centroids(nCentroids, data)
+    centroids = initialize_centroids(nCentroids, data, initmethod)
     centroids = akmeans_iterations(data, centroids, max_iters, flann_params,
                                     ave_unchanged_thresh, ave_unchanged_iterwin)
     return centroids
 
 
-def initialize_centroids(nCentroids, data):
+def initialize_centroids(nCentroids, data, initmethod='akmeans++'):
     """ Initializes centroids to random datapoints """
-    nData = data.shape[0]
-    datax_rand = np.arange(0, nData, dtype=np.int32)
-    np.random.shuffle(datax_rand)
-    centroidx2_datax = datax_rand[0:nCentroids]
-    centroids = np.copy(data[centroidx2_datax])
+    if initmethod == 'akmeans++':
+        centroids = np.copy(akmeans_plusplus_init(data, nCentroids))
+    elif initmethod == 'random':
+        nData = data.shape[0]
+        datax_rand = np.arange(0, nData, dtype=np.int32)
+        np.random.shuffle(datax_rand)
+        centroidx2_datax = datax_rand[0:nCentroids]
+        centroids = np.copy(data[centroidx2_datax])
+    else:
+        raise AssertionError('Unknown initmethod=%r' % (initmethod,))
     return centroids
 
 
@@ -699,3 +694,17 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
                 '{waswhitestr}').format(**locals())
     ax.set_title(titlestr)
     return fig
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/vtool/vtool/clustering2.py
+        profiler.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+    """
+    # Run any doctests
+    testable_list = [
+        akmeans_plusplus_init
+    ]
+    ut.doctest_funcs(testable_list)
