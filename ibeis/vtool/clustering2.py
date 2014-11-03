@@ -151,7 +151,7 @@ def tune_flann2(data):
 
 
 @profile
-def kmeans_plusplus_init(data, K, flann_params=None):
+def kmeans_plusplus_init(data, K, samples_per_iter, flann_params=None):
     """
     Referencs:
         http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
@@ -161,52 +161,70 @@ def kmeans_plusplus_init(data, K, flann_params=None):
         >>> import utool as ut
         >>> import numpy as np
         >>> np.random.seed(42)
-        >>> nump = 16000  # 128000
-        >>> K = 8000  # 64000
+        >>> nump = 128000
+        >>> K = 64000
         >>> dims = 128
         >>> max_iters = 300
+        >>> samples_per_iter = 500
         >>> dtype = np.uint8
         >>> flann_params = None
         >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-        >>> initial_centers = kmeans_plusplus_init(data, K, flann_params)
+        >>> initial_centers = kmeans_plusplus_init(data, K, samples_per_iter, flann_params)
 
     Example2:
         >>> from vtool.clustering2 import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
+        >>> flann_params = None
+        >>> samples_per_iter = 1000
+        >>> K = 8000  # 64000
+        >>> initial_centers = kmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
     """
-    import random
+    print('approx kmeans++ on %r points' % (len(data)))
+    #import random
     import time
     eps = np.sqrt(data.shape[1])
     flann = pyflann.FLANN()
-    centers = random.sample(data, 1)
+    center_indicies = [np.random.randint(0, len(data))]
+    centers = data.take(center_indicies, axis=0)
     if flann_params is None:
         flann_params = {}
         flann_params['target_precision'] = .6
         flann_params['trees'] = 1
         flann_params['checks'] = 8
-        #flann_params['algorithm'] = 'kdtree'
-        flann_params['algorithm'] = 'linear'
+        #flann_params['algorithm'] = 'linear'
+        flann_params['algorithm'] = 'kdtree'
         flann_params['iterations'] = 3
     build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
     #mark, end = utool.log_progress('kmeans++: ', total=K, freq=10)
     count = 0
     starttime = time.time()
     cumrate = 0
-    freq = 10
-    for count in range(0, K):
+    freq = 100
+    num_sample = min(samples_per_iter, len(data))
+    all_centerxs = np.arange(len(data), dtype=np.int32)
+    unused_flag = np.ones(len(data), dtype=np.bool)
+    unused_flag[center_indicies] = False
+
+    for count in range(1, K):
         #mark(count)
+        # randomly choose a set of unchosen potential seed points
+        random_datax = np.random.choice(all_centerxs[unused_flag], size=num_sample, replace=True)
+        sampledata = data.take(random_datax, axis=0)
         # Distance from data to current centers
         # (this call takes 98% of the time. optimize here only)
-        datax2_dist = flann.nn_index(data, 1, checks=flann_params['checks'])[1] + eps
+        samplex2_dist = flann.nn_index(sampledata, 1, checks=flann_params['checks'])[1] + eps
         # Choose new_center that has a high probability of being a new cluster
-        probs = datax2_dist / datax2_dist.sum()
-        ind = np.where(probs.cumsum() >= np.random.random())[0][0:1]
+        probs = samplex2_dist / samplex2_dist.sum()
+        ind = np.where(probs.cumsum() >= np.random.random() * .98)[0][0]
         #new_center = data[ind:(ind + 1)]
-        new_center = data.take(ind, axis=0)
+        new_datax = random_datax[ind:ind + 1]
+        unused_flag[new_datax] = False
+        center_indicies.append(new_datax)
+        new_center = data.take(new_datax, axis=0)
         # Append new center to data and flann index
-        centers.append(new_center)
+        #centers.append(new_center)
         flann.add_points(new_center)
         if count % freq == 0:
             endtime = time.time()
@@ -216,6 +234,10 @@ def kmeans_plusplus_init(data, K, flann_params=None):
             msg = '\rkmeans++ %4d/%d... rate=%d iters per second.' % (count, K, rate)
             sys.stdout.write(msg)
             sys.stdout.flush()
+    center_indicies = np.array(center_indicies)
+    print(len(center_indicies))
+    print(len(set(center_indicies)))
+    centers = data.take(center_indicies, axis=0)
     return centers
 
 
