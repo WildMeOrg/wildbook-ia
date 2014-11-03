@@ -5,35 +5,34 @@ from ibeis import constants
 
 
 class SHORTNAMES(object):
-    RVEC = 'residual'
-    #RVEC = 'rvec'
-    FEAT = 'feat'
+    ANNOT      = 'annot'
+    CHIP       = 'chip'
+    FEAT       = 'feat'
+    FEATWEIGHT = 'featweight'
+    RVEC       = 'residual'  # 'rvec'
+    VOCABTRAIN = 'vocabtrain'
+    DETECT     = 'detect'
 
 depends_map = {
-    'annot': None,
-    'chip': 'annot',
-    'feat': 'chip',
-    'featweight': 'feat',
-    SHORTNAMES.RVEC: SHORTNAMES.FEAT
+    SHORTNAMES.ANNOT: None,
+    SHORTNAMES.CHIP: SHORTNAMES.ANNOT,
+    SHORTNAMES.FEAT: SHORTNAMES.CHIP,
+    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,
+    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
 }
 
 # shortened tablenames
 tablename2_tbl = {
-    constants.ANNOTATION_TABLE     : 'annot',
-    constants.CHIP_TABLE           : 'chip',
-    constants.FEATURE_TABLE        : 'feat',
-    constants.FEATURE_WEIGHT_TABLE : 'featweight',
+    constants.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
+    constants.CHIP_TABLE           : SHORTNAMES.CHIP,
+    constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
+    constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
     constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
 }
 
-
-tbl2_TABLE = {
-    'annot'      : 'ANNOTATION_TABLE',
-    'chip'       : 'CHIP_TABLE',
-    'feat'       : 'FEATURE_TABLE',
-    'featweight' : 'FEATURE_WEIGHT_TABLE',
-    SHORTNAMES.RVEC  : 'RESIDUAL_TABLE',
-}
+# mapping to variable names in constants
+tbl2_TABLE = {key: ut.get_varname_from_locals(val, constants.__dict__)
+              for key, val in six.iteritems(ut.invert_dict(tablename2_tbl))}
 
 
 variable_aliases = {
@@ -48,6 +47,24 @@ variable_aliases = {
     'keypoints': 'kpts',
     'vectors': 'vecs',
 }
+
+
+#def test():
+#    from ibeis.control.templates import *  # NOQA
+
+def build_depends_path(child):
+    parent = depends_map[child]
+    if parent is not None:
+        return build_depends_path(parent) + [child]
+    else:
+        return [child]
+    #depends_list = ['annot', 'chip', 'feat', 'featweight']
+
+
+def colname2_col(colname, tablename):
+    # col is a short alias for colname
+    col = colname.replace(ut.singular_string(tablename) + '_', '')
+    return col
 
 
 get_child_config_rowid_template = ut.codeblock(
@@ -99,9 +116,9 @@ add_dependent_child_stub_template = ut.codeblock(
 get_configed_child_rowids_template = ut.codeblock(
     '''
     def get_{parent}_{child}_rowids({self}, {parent}_rowid_list,
-                                      config_rowid=None, all_configs=False,
-                                      ensure=True, eager=True,
-                                      num_params=None):
+                                    config_rowid=None, all_configs=False,
+                                    ensure=True, eager=True,
+                                    num_params=None):
         """
         get_{parent}_{child}_rowids
 
@@ -126,7 +143,6 @@ get_configed_child_rowids_template = ut.codeblock(
                 id_colname={PARENT}_ROWID, eager=eager, num_params=num_params)
         else:
             config_rowid = {self}.get_{child}_config_rowid()
-            # This template could be smoothed out a bit by sql controller
             andwhere_colnames = [{PARENT}_ROWID, CONFIG_ROWID]
             params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
             {child}_rowid_list = {self}.{dbself}.get_where2(
@@ -137,8 +153,7 @@ get_configed_child_rowids_template = ut.codeblock(
 
 get_dependency_template = ut.codeblock(
     '''
-    def get_{parent}_{col}({self}, {parent}_rowid_list,
-                                 config_rowid=None):
+    def get_{parent}_{col}({self}, {parent}_rowid_list, config_rowid=None):
         """
         get_{parent}_{col}
 
@@ -178,28 +193,6 @@ get_column_template = ut.codeblock(
         {col}_list = {self}.dbcache.get({TABLE}, colnames, params_iter)
         return {col}_list
     ''')
-
-
-#def test():
-#    from ibeis.control.templates import *  # NOQA
-
-def build_depends_path(child):
-    parent = depends_map[child]
-    if parent is not None:
-        return build_depends_path(parent) + [child]
-    else:
-        return [child]
-    #depends_list = ['annot', 'chip', 'feat', 'featweight']
-
-
-def singular_string(str_):
-    return str_[:-1] if str_.endswith('s') else str_
-
-
-def colname2_col(colname, tablename):
-    # col is a short alias for colname
-    col = colname.replace(singular_string(tablename) + '_', '')
-    return col
 
 
 def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, dbself):
@@ -248,8 +241,9 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, db
             for varname, alias in six.iteritems(variable_aliases):
                 func_code = func_code.replace(varname, alias)
             func_code = ut.modify_quoted_strs(func_code, unpreserve_quoted_str)
-        func_code = ut.autofix_codeblock(func_code)
-        func_code = ut.indent(func_code)
+        func_code = ut.autofix_codeblock(func_code).strip()
+        #func_code = ut.indent(func_code)
+        func_code = '@register_ibs_method\n' + func_code
         return func_code
 
     def append_func(func_code, func_list):
@@ -349,8 +343,37 @@ def main(ibs):
             funcs1.extend(funcs2)
 
     (rowid_func_list, dep_func_list, native_func_list, add_stub_list, config_rowid_func_list) = big_funcs_tup
+    ut.truepath(ibeis.control.__file__)
 
-    print('\n'.join(rowid_func_list))
+    from os.path import dirname, join
+    autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
+
+    autogen_header = ut.codeblock(
+        '''
+        from __future__ import absolute_import, division, print_function
+        from ibeis.control.IBEISControll import IBEISController
+        from ibeis import constants
+        from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
+                                     ENCOUNTER_TABLE, EG_RELATION_TABLE,
+                                     AL_RELATION_TABLE, GL_RELATION_TABLE,
+                                     CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
+                                     CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
+                                     METADATA_TABLE, VERSIONS_TABLE, __STR__)
+        # utool inject
+        import utool as ut
+        print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
+        register_ibs_method = ut.classmember(IBEISController)
+        '''
+    )
+
+    autogen_body = '\n\n'
+    autogen_body += ('\n\n\n'.join(rowid_func_list))
+
+    autogen_text = '\n'.join([autogen_header, autogen_body, ''])
+    print(autogen_text)
+
+    ut.write_to(autogen_fpath, autogen_text)
+
     return locals()
 
 
