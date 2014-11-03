@@ -2,6 +2,23 @@
 from __future__ import absolute_import, division, print_function
 __version__ = '1.0.0.dev1'
 
+
+# TODO utoolify this
+IMPORT_TUPLES = [
+    ('image', None),
+    ('histogram', None),
+    ('image', None),
+    ('exif', None),
+    ('keypoint', None),
+    ('patch', None),
+    ('chip', None),
+    ('spatial_verification', None),
+    ('trig', None),
+    ('math', None),
+    ('geometry', None),
+    ('clustering2', None),
+]
+
 from . import histogram
 from . import linalg
 from . import image

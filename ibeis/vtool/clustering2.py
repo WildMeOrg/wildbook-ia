@@ -16,7 +16,7 @@ import vtool.nearest_neighbors as nntool
 CLUSTERS_FNAME = 'akmeans_centroids'
 
 
-def get_akmeans_cfgstr(data, nCentroids, max_iters=5, initmethod='kmeans++', flann_params={},
+def get_akmeans_cfgstr(data, nCentroids, max_iters=5, initmethod='akmeans++', flann_params={},
                        use_data_hash=True, cfgstr='', akmeans_cfgstr=None):
     if akmeans_cfgstr is None:
         # compute a hashstr based on the data
@@ -44,7 +44,7 @@ def assert_centroids(centroids, data, nCentroids, clip_centroids):
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cache_dir='default', force_recomp=False, use_data_hash=True,
                    cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
-                   appname='vtool',  initmethod='kmeans++', clip_centroids=True):
+                   appname='vtool',  initmethod='akmeans++', clip_centroids=True):
     """ precompute aproximate kmeans with builtin caching
 
     Example:
@@ -190,7 +190,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
         sample_fraction = 64.0 / K
         #sample_fraction = 128.0 / K
         samples_per_iter = int(len(data) * sample_fraction)
-    print('approx kmeans++ on %r points. samples_per_iter=%r. K=%r' % (len(data), samples_per_iter, K))
+    print('akmeans++ on %r points. samples_per_iter=%r. K=%r' % (len(data), samples_per_iter, K))
     #import random
     eps = np.sqrt(data.shape[1])
     flann = pyflann.FLANN()
@@ -325,7 +325,7 @@ def akmeans_iterations(data, centroids, max_iters,
     for count in range(0, max_iters):
         _mark(count)
         # 1) Assign each datapoint to the nearest centroid
-        (datax2_centroidx, _) = approximate_assignments(centroids, data, 1, flann_params)
+        datax2_centroidx = approximate_assignments(centroids, data, 1, flann_params)
         # 2) Compute new centroids based on assignments
         centroids = compute_centroids(data, centroids, datax2_centroidx)
         # 3) Convergence Check: which datapoints changed membership?
