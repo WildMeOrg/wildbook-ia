@@ -310,7 +310,6 @@ def parse_config_items(cfg):
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> param_list = parse_config_items(cfg)
-
     """
     import ibeis
     param_list = []
@@ -351,7 +350,12 @@ class QueryParams(object):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
+        >>> cfg.pipeline_root = 'asmk'
         >>> qparams = query_request.QueryParams(cfg)
+        >>> print(cfg.get_cfgstr())
+
+    CommandLine:
+        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
     """
 
     def __init__(qparams, cfg, custom_qparams=None):
@@ -374,38 +378,38 @@ class QueryParams(object):
         # Then we explicitly add some items as well that might not be explicit
         # in the configs.
         pipeline_root      = cfg.pipeline_root
-        if pipeline_root == 'smk':
-            nAssign     = cfg.smk_cfg.nAssign
-            aggregate   = cfg.smk_cfg.aggregate
-            smk_thresh  = cfg.smk_cfg.smk_thresh
-            smk_alpha   = cfg.smk_cfg.smk_alpha
-            indexer_key = cfg.smk_cfg.indexer_key
-            nWords      = cfg.smk_cfg.nWords
-            vocab_weighting       = cfg.smk_cfg.vocab_weighting
-            allow_self_match      = cfg.smk_cfg.allow_self_match
-            massign_alpha         = cfg.smk_cfg.massign_alpha
-            massign_sigma         = cfg.smk_cfg.massign_sigma
-            massign_equal_weights = cfg.smk_cfg.massign_equal_weights
-        K                  = cfg.nn_cfg.K
-        Knorm              = cfg.nn_cfg.Knorm
-        checks             = cfg.nn_cfg.checks
-        normalizer_rule    = cfg.nn_cfg.normalizer_rule
-        filt_on            = cfg.filt_cfg.filt_on
-        gravity_weighting  = cfg.filt_cfg.gravity_weighting
-        Krecip             = cfg.filt_cfg.Krecip
-        can_match_sameimg  = cfg.filt_cfg.can_match_sameimg
-        can_match_samename = cfg.filt_cfg.can_match_samename
-        isWeighted         = cfg.agg_cfg.isWeighted
-        max_alts           = cfg.agg_cfg.max_alts
-        score_method       = cfg.agg_cfg.score_method
-        min_nInliers       = cfg.sv_cfg.min_nInliers
-        nShortlist         = cfg.sv_cfg.nShortlist
-        ori_thresh         = cfg.sv_cfg.ori_thresh
-        prescore_method    = cfg.sv_cfg.prescore_method
-        scale_thresh       = cfg.sv_cfg.scale_thresh
-        use_chip_extent    = cfg.sv_cfg.use_chip_extent
-        xy_thresh          = cfg.sv_cfg.xy_thresh
-        sv_on              = cfg.sv_cfg.sv_on
+        #if pipeline_root == 'smk':
+        #    nAssign     = cfg.smk_cfg.nAssign
+        #    aggregate   = cfg.smk_cfg.aggregate
+        #    smk_thresh  = cfg.smk_cfg.smk_thresh
+        #    smk_alpha   = cfg.smk_cfg.smk_alpha
+        #    indexer_key = cfg.smk_cfg.indexer_key
+        #    nWords      = cfg.smk_cfg.nWords
+        #    vocab_weighting       = cfg.smk_cfg.vocab_weighting
+        #    allow_self_match      = cfg.smk_cfg.allow_self_match
+        #    massign_alpha         = cfg.smk_cfg.massign_alpha
+        #    massign_sigma         = cfg.smk_cfg.massign_sigma
+        #    massign_equal_weights = cfg.smk_cfg.massign_equal_weights
+        #K                  = cfg.nn_cfg.K
+        #Knorm              = cfg.nn_cfg.Knorm
+        #checks             = cfg.nn_cfg.checks
+        #normalizer_rule    = cfg.nn_cfg.normalizer_rule
+        #filt_on            = cfg.filt_cfg.filt_on
+        #gravity_weighting  = cfg.filt_cfg.gravity_weighting
+        #Krecip             = cfg.filt_cfg.Krecip
+        #can_match_sameimg  = cfg.filt_cfg.can_match_sameimg
+        #can_match_samename = cfg.filt_cfg.can_match_samename
+        #isWeighted         = cfg.agg_cfg.isWeighted
+        #max_alts           = cfg.agg_cfg.max_alts
+        #score_method       = cfg.agg_cfg.score_method
+        #min_nInliers       = cfg.sv_cfg.min_nInliers
+        #nShortlist         = cfg.sv_cfg.nShortlist
+        #ori_thresh         = cfg.sv_cfg.ori_thresh
+        #prescore_method    = cfg.sv_cfg.prescore_method
+        #scale_thresh       = cfg.sv_cfg.scale_thresh
+        #use_chip_extent    = cfg.sv_cfg.use_chip_extent
+        #xy_thresh          = cfg.sv_cfg.xy_thresh
+        #sv_on              = cfg.sv_cfg.sv_on
 
         # Params not explicitly represented in Config objects
         ###
@@ -430,8 +434,24 @@ class QueryParams(object):
         sv_cfgstr    = cfg.sv_cfg.get_cfgstr()
         flann_cfgstr = cfg.flann_cfg.get_cfgstr()
         query_cfgstr = cfg.get_cfgstr()
+        vocabtrain_cfgstr = cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
 
         # Dynamically set members
         for key, val in locals().iteritems():
             if key not in ['qparams', 'cfg', 'filt', 'key', 'val']:
                 setattr(qparams, key, val)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ibeis/ibeis/model/hots/query_request.py
+        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
+        profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
+    """
+    # Run any doctests
+    import utool as ut
+    testable_list = [
+        QueryParams
+    ]
+    ut.doctest_funcs(testable_list)
