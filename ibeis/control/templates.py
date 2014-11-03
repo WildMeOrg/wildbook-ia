@@ -350,7 +350,8 @@ def main(ibs):
 
     (rowid_func_list, dep_func_list, native_func_list, add_stub_list, config_rowid_func_list) = big_funcs_tup
 
-    print('\n\n'.join(rowid_func_list))
+    print('\n'.join(rowid_func_list))
+    return locals()
 
 
 def autogenerate_controller_methods():
@@ -362,4 +363,5 @@ if __name__ == '__main__':
     if 'ibs' not in vars():
         import ibeis
         ibs = ibeis.opendb('testdb1')
-    main(ibs)
+    locals_ = main(ibs)
+    exec(ut.execstr_dict(locals_))
