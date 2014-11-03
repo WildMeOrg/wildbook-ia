@@ -255,17 +255,18 @@ class IBEISController(object):
         """ Load or create sql database """
         # IBEIS SQL State Database
         ibs.db_version_expected = '1.1.1'
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
+        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
+                                              text_factory=__STR__,
+                                              inmemory=True)
+        # IBEIS SQL Features & Chips database
+        ibs.dbcache_version_expected = '1.0.2'
+        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.db,
             ibs.db_version_expected,
             DB_SCHEMA
         )
-
-        # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.2'
-        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.dbcache,

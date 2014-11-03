@@ -21,7 +21,7 @@ VERBOSE = utool.VERBOSE
 VERYVERBOSE = utool.VERYVERBOSE
 QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
 AUTODUMP = utool.get_argflag('--auto-dump')
-COPY_TO_MEMORY = utool.get_argflag('--copy-db-to-memory')
+COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
 
 """ If would be really great if we could get a certain set of setters, getters,
 and deleters to be indexed into only with rowids. If we could do this than for
@@ -101,7 +101,7 @@ class SQLDatabaseController(object):
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
-                 text_factory=__STR__):
+                 text_factory=__STR__, inmemory=None):
         """ Creates db and opens connection """
         #with utool.Timer('New SQLDatabaseController'):
         #printDBG('[sql.__init__]')
@@ -123,7 +123,7 @@ class SQLDatabaseController(object):
         db.connection.text_factory = db.text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
         #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-        if COPY_TO_MEMORY:
+        if  inmemory is True or (inmemory is None and COPY_TO_MEMORY):
             db._copy_to_memory()
             db.connection.text_factory = text_factory
         # Get a cursor which will preform sql commands / queries / executions
