@@ -137,66 +137,97 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     return centroids
 
 
-class KPlusPlusInit(object):
+def tune_flann2(data):
+    flann = pyflann.FLANN()
+    flann_atkwargs = dict(algorithm='autotuned',
+                          target_precision=.6,
+                          build_weight=0.01,
+                          memory_weight=0.0,
+                          sample_fraction=0.001)
+    print(flann_atkwargs)
+    print('Autotuning flann')
+    tuned_params = flann.build_index(data, **flann_atkwargs)
+    return tuned_params
+
+
+@profile
+def kmeans_plusplus_init(data, K, flann_params=None):
     """
     Referencs:
         http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
+
     Example:
         >>> from vtool.clustering2 import *  # NOQA
         >>> import utool as ut
         >>> import numpy as np
         >>> np.random.seed(42)
-        >>> nump = 128000
+        >>> nump = 16000  # 128000
+        >>> K = 8000  # 64000
         >>> dims = 128
-        >>> nCentroids = 800
         >>> max_iters = 300
-        >>> K = 64000
         >>> dtype = np.uint8
+        >>> flann_params = None
         >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-        >>> self = KPlusPlusInit(data, K)
-        >>> initial_centers = self()
+        >>> initial_centers = kmeans_plusplus_init(data, K, flann_params)
+
+    Example2:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTest')
+        >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
     """
-    def __init__(self, data, K):
-        """
-        >>> self = ut.DynStruct()
-        """
-        self.X = data
-        self.K = K
-        self.mu = None
-        self.D2 = None
-        self.probs = None
-        self.cumprobs = None
+    import random
+    import time
+    eps = np.sqrt(data.shape[1])
+    flann = pyflann.FLANN()
+    centers = random.sample(data, 1)
+    if flann_params is None:
+        flann_params = {}
+        flann_params['target_precision'] = .6
+        flann_params['trees'] = 1
+        flann_params['checks'] = 8
+        #flann_params['algorithm'] = 'kdtree'
+        flann_params['algorithm'] = 'linear'
+        flann_params['iterations'] = 3
+    build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
+    #mark, end = utool.log_progress('kmeans++: ', total=K, freq=10)
+    count = 0
+    starttime = time.time()
+    cumrate = 0
+    freq = 10
+    for count in range(0, K):
+        #mark(count)
+        # Distance from data to current centers
+        # (this call takes 98% of the time. optimize here only)
+        datax2_dist = flann.nn_index(data, 1, checks=flann_params['checks'])[1] + eps
+        # Choose new_center that has a high probability of being a new cluster
+        probs = datax2_dist / datax2_dist.sum()
+        ind = np.where(probs.cumsum() >= np.random.random())[0][0:1]
+        #new_center = data[ind:(ind + 1)]
+        new_center = data.take(ind, axis=0)
+        # Append new center to data and flann index
+        centers.append(new_center)
+        flann.add_points(new_center)
+        if count % freq == 0:
+            endtime = time.time()
+            cumrate += (endtime - starttime)
+            starttime = endtime
+            rate = count / cumrate
+            msg = '\rkmeans++ %4d/%d... rate=%d iters per second.' % (count, K, rate)
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+    return centers
 
-    def __call__(self):
-        self.init_centers()
-        return self.mu
 
-    def _choose_next_center(self):
-        self.probs = self.D2 / self.D2.sum()
-        self.cumprobs = self.probs.cumsum()
-        r = np.random.random()
-        ind = np.where(self.cumprobs >= r)[0][0]
-        return(self.X[ind])
-
-    def _dist_from_centers(self):
-        #cent =
-        #X =
-        # TODO: replace with flann
-        #D2 = np.array([min([np.linalg.norm(x - c) ** 2 for c in cent]) for x in X])
-        cent = np.array(self.mu)
-        self.D2 = approximate_distances(cent, self.X, 1, {}) + np.sqrt(self.X.shape[1])
-
-    def init_centers(self):
-        import random
-        self.mu = random.sample(self.X, 1)
-        mark, end = utool.log_progress('kmeans++: ', total=self.K)
-        count = 0
-        while len(self.mu) < self.K:
-            mark(count)
-            self._dist_from_centers()
-            self.mu.append(self._choose_next_center())
-            count += 1
-        end()
+if __name__ == '__main__':
+    np.random.seed(42)
+    nump = 16000  # 128000
+    K = 8000  # 64000
+    dims = 128
+    max_iters = 300
+    dtype = np.uint8
+    flann_params = {}
+    data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
+    initial_centers = kmeans_plusplus_init(data, K, flann_params)
 
 
 def akmeans(data, nCentroids, max_iters=5, flann_params={},

@@ -152,6 +152,51 @@ def get_kdtree_flann_params():
     return flann_params
 
 
+def get_flann_params(type_='kdtree'):
+    """
+    References:
+        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf
+    """
+    _algorithm_options = [
+        'linear',
+        'kdtree',
+        'kmeans',
+        'composite',
+        'kdtree_single'
+    ]
+    _centersinit_options = [
+        'random',
+        'gonzales',
+        'kmeanspp',
+    ]
+    # Search params (for all algos)
+    flann_params = {
+        'checks': 32,  # how many leafs (features) to check in one search
+        'cb_index': 0.5,  # cluster boundary index for searching kdtrees
+    }
+    if type_ == 'kdtree':
+        # kdtree index parameters
+        flann_params.update({
+            'algorithm': _algorithm_options[1],
+            'trees': 4,
+        })
+        # Kmeans index parametrs
+        flann_params.update({
+            'breanching': 32,
+            'iterations': 5,
+            'centers_init': _centersinit_options[2],
+        })
+    elif type_ == 'autotuned':
+        flann_params.update({
+            'algorithm'        : 'autotuned',
+            'target_precision' : .01,    # precision desired (used for autotuning, -1 otherwise)
+            'build_weight'     : 0.01,   # build tree time weighting factor
+            'memory_weight'    : 0.0,    # index memory weigthing factor
+            'sample_fraction'  : 0.001,  # what fraction of the dataset to use for autotuning
+        })
+    return flann_params
+
+
 def tune_flann(dpts, **kwargs):
     flann = pyflann.FLANN()
     #num_data = len(dpts)
