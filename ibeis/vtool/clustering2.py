@@ -171,8 +171,9 @@ def kmeans_plusplus_init(data, K, flann_params=None):
         >>> initial_centers = kmeans_plusplus_init(data, K, flann_params)
 
     Example2:
+        >>> from vtool.clustering2 import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTest')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
     """
     import random
