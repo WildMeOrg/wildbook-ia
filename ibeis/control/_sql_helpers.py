@@ -88,6 +88,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
     """
     db_versions = schema_spec.VALID_VERSIONS
     version = ibs.get_database_version(db)
+    # NEW DATABASE CONDITION
     if version == constants.BASE_DATABASE_VERSION and not params.args.force_incremental_db_update:
         if schema_spec.UPDATE_CURRENT is not None and schema_spec.VERSION_CURRENT is not None:
             print('[ensure_correct_version] New database and a current schema found')
@@ -109,9 +110,6 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
         update_schema_version(ibs, db, db_versions, version, version_expected,
                               dobackup=dobackup)
         ibs.set_database_version(db, version_expected)
-        # Auto-generate the version skip schema file
-        schema_spec_filename = splitext(split(schema_spec.__file__)[1])[0]
-        db.dump_schema_current_autogeneration('%s_CURRENT.py' % schema_spec_filename)
         if not utool.QUIET:
             print('[ensure_correct_version] Database version updated (incrementally) to %r' % (version_expected))
     elif version > version_expected:
@@ -119,6 +117,10 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
                 'Expected database version behind. expected: %r. got: %r') %
                (version_expected, version))
         raise AssertionError(msg)
+    if utool.get_argflag('--dump-autogen-schema'):
+        # Auto-generate the version skip schema file
+        schema_spec_filename = splitext(split(schema_spec.__file__)[1])[0]
+        db.dump_schema_current_autogeneration('%s_CURRENT.py' % schema_spec_filename)
 
 
 @profile
