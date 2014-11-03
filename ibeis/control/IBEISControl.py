@@ -18,25 +18,20 @@ from six.moves import zip, map, range
 from functools import partial
 from os.path import join, split
 # VTool
-from vtool import image as gtool
 from vtool import geometry
 # UTool
 import utool
-# IBEIS EXPORT
-import ibeis.io.export_wb as wb
-# IBEIS DEV
-from ibeis import constants
-from ibeis import ibsfuncs
-# IBEIS MODEL
-from ibeis.model import Config
-from ibeis.model.preproc import preproc_chip
-from ibeis.model.preproc import preproc_image
-from ibeis.model.preproc import preproc_feat
-from ibeis.model.preproc import preproc_detectimg
-from ibeis.model.preproc import preproc_encounter
-from ibeis.model.detect import randomforest
-from ibeis.model.hots import match_chips4 as mc4
+import utool as ut  # NOQA
 # IBEIS
+# CONSTANTS
+from ibeis import constants
+from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
+                             ENCOUNTER_TABLE, EG_RELATION_TABLE,
+                             AL_RELATION_TABLE, GL_RELATION_TABLE,
+                             CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
+                             CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
+                             METADATA_TABLE, VERSIONS_TABLE, __STR__)
+# IBSFUNCS
 # from ibeis.control import DB_SCHEMA
 from ibeis.control import _sql_helpers
 from ibeis.control import SQLDatabaseControl as sqldbc
@@ -45,13 +40,17 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
                                            default_decorator, cache_getter,
                                            cache_invalidator, init_tablecache)
-# CONSTANTS
-from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
-                             ENCOUNTER_TABLE, EG_RELATION_TABLE,
-                             AL_RELATION_TABLE, GL_RELATION_TABLE,
-                             CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
-                             CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
-                             METADATA_TABLE, VERSIONS_TABLE, __STR__)
+# IBEIS MODEL
+from ibeis.model import Config
+from ibeis.model.preproc import preproc_chip
+from ibeis.model.preproc import preproc_image
+from ibeis.model.preproc import preproc_feat
+from ibeis.model.preproc import preproc_detectimg
+from ibeis.model.preproc import preproc_encounter
+IMPORTUPFRONT = True
+if IMPORTUPFRONT:
+    #from ibeis.model.detect import randomforest  # NOQA
+    pass
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
@@ -116,7 +115,11 @@ class IBEISController(object):
         ibs._init_config()
         # an dict to hack in temporary state
         ibs.temporary_state = {}
-        ibsfuncs.inject_ibeis(ibs)
+        # Ensure injectable functions have been defined
+        from ibeis import ibsfuncs  # NOQA
+        #from ibeis.controller import ibeis_contoller_autogen_funcs
+        #ibsfuncs.inject_ibeis(ibs)
+        ut.inject_instance(ibs)
         ibs.register_controller()
 
     # We should probably not implement __del__
@@ -801,6 +804,7 @@ class IBEISController(object):
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         #print('[ibs] gpath_list = %r' % (gpath_list,))
         # Processing an image might fail, yeilding a None instead of a tup
+        from ibeis import ibsfuncs
         gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
         if params_list is None:
             # Create param_iter
@@ -1411,7 +1415,9 @@ class IBEISController(object):
     def get_images(ibs, gid_list):
         """
         Returns:
-            list_ (list): a list of images in numpy matrix form by gid """
+            list_ (list): a list of images in numpy matrix form by gid
+        """
+        from vtool import image as gtool
         gpath_list = ibs.get_image_paths(gid_list)
         image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
@@ -1423,6 +1429,7 @@ class IBEISController(object):
             list_ (list): tuple of image paths, thumb paths, bboxes and thetas """
         # print('gid_list = %r' % (gid_list,))
         aids_list = ibs.get_image_aids(gid_list)
+        from ibeis import ibsfuncs
         bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
         thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=128)
@@ -1580,6 +1587,7 @@ class IBEISController(object):
         Returns:
             list_ (list): image detection confidence as the max of ANNOTATION confidences """
         aids_list = ibs.get_image_aids(gid_list)
+        from ibeis import ibsfuncs
         confs_list = ibsfuncs.unflat_map(ibs.get_annot_detect_confidence, aids_list)
         maxconf_list = [max(confs) if len(confs) > 0 else -1 for confs in confs_list]
         return maxconf_list
@@ -1617,6 +1625,7 @@ class IBEISController(object):
         """
         Returns:
             list_ (list): a list of enctexts for each image by gid """
+        from ibeis import ibsfuncs
         eids_list = ibs.get_image_eids(gid_list)
         enctext_list = ibsfuncs.unflat_map(ibs.get_encounter_enctext, eids_list)
         return enctext_list
@@ -2052,6 +2061,7 @@ class IBEISController(object):
             groundtruth_list_ = aids_list
         else:
             # Filter out non-exemplars
+            from ibeis import ibsfuncs
             exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
             isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
             groundtruth_list_ = [utool.filter_items(aids, isvalids)
@@ -2377,6 +2387,7 @@ class IBEISController(object):
         Returns:
             aids_list (list):  a list of list of aids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
+        from ibeis import ibsfuncs
         aids_list_ = ibsfuncs.unflat_map(ibs.get_image_aids, gids_list)
         aids_list = list(map(utool.flatten, aids_list_))
         #print('get_encounter_aids')
@@ -2434,6 +2445,7 @@ class IBEISController(object):
         Returns:
             list_ (list):  a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
+        from ibeis import ibsfuncs
         nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
                                         _lbltype=constants.INDIVIDUAL_KEY)
         nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
@@ -2656,6 +2668,7 @@ class IBEISController(object):
     @default_decorator
     def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
+        import ibeis.io.export_wb as wb
         print('[ibs] exporting to wildbook')
         eid_list = ibs.get_valid_eids()
         addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
@@ -2695,6 +2708,7 @@ class IBEISController(object):
     @default_decorator
     def detect_existence(ibs, gid_list, **kwargs):
         """ Detects the probability of animal existence in each image """
+        from ibeis.model.detect import randomforest  # NOQ
         probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
@@ -2704,6 +2718,7 @@ class IBEISController(object):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
+        from ibeis.model.detect import randomforest  # NOQ
         tt = utool.tic()
         detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
@@ -2814,23 +2829,28 @@ class IBEISController(object):
     #    qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
     #    return qaid2_qres
 
-    def _query_chips4(ibs, qaid_list, daid_list, use_cache=mc4.USE_CACHE,
-                      use_bigcache=mc4.USE_BIGCACHE, **kwargs):
+    def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
+                      use_bigcache=None, **kwargs):
         """
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5]
-        >>> mc3.USE_CACHE = False
-        >>> mc4.USE_CACHE = False
-        >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-        >>> qres1 = ibs._query_chips3(qaid_list, daid_list, use_cache=False)[1]
-        >>> qres2 = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
-        >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
-        >>> qreq_.load_indexer(ibs)
-        >>> qreq_.load_query_vectors(ibs)
-        >>> qreq = ibs.qreq
-
+        Example:
+            >>> from ibeis.all_imports import *  # NOQA
+            >>> qaid_list = [1]
+            >>> daid_list = [1, 2, 3, 4, 5]
+            >>> mc3.USE_CACHE = False
+            >>> mc4.USE_CACHE = False
+            >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+            >>> qres1 = ibs._query_chips3(qaid_list, daid_list, use_cache=False)[1]
+            >>> qres2 = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+            >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+            >>> qreq_.load_indexer(ibs)
+            >>> qreq_.load_query_vectors(ibs)
+            >>> qreq = ibs.qreq
         """
+        from ibeis.model.hots import match_chips4 as mc4
+        if use_cache is None:
+            use_cache = mc4.USE_CACHE
+        if use_bigcache is None:
+            use_bigcache = mc4.USE_BIGCACHE
         assert len(daid_list) > 0, 'there are no database chips'
         assert len(qaid_list) > 0, 'there are no query chips'
         qaid2_qres = mc4.submit_query_request(ibs,  qaid_list, daid_list,
@@ -3063,6 +3083,7 @@ class IBEISController(object):
     @setter
     def set_name_notes(ibs, nid_list, notes_list):
         """ Sets notes of names (groups of animals) """
+        from ibeis import ibsfuncs
         ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         ibs.set_lblannot_notes(nid_list, notes_list)
 
@@ -3071,6 +3092,7 @@ class IBEISController(object):
         """ Changes the name text. Does not affect the animals of this name.
         Effectively an alias.
         """
+        from ibeis import ibsfuncs
         ibsfuncs.assert_valid_names(name_list)
         ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         ibs.set_lblannot_values(nid_list, name_list)
@@ -3768,3 +3790,15 @@ class IBEISController(object):
     def set_annot_meta_lblannot_values(ibs, aid_list, value_list, _lbltype):
         """ docstr """
         return ibs.set_annot_lblannot_from_value(aid_list, value_list, _lbltype)
+
+    def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
+        aids_hashid = utool.hashstr_arr(aid_list, label)
+        return aids_hashid
+
+    def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
+        uuid_list    = ibs.get_annot_uuids(aid_list)
+        uuui_hashid  = utool.hashstr_arr(uuid_list, label)
+        return uuui_hashid
+
+
+from ibeis import ibsfuncs

@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from six.moves import zip, map
-from ibeis import ibsfuncs
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
 from sklearn.cluster import MeanShift, estimate_bandwidth

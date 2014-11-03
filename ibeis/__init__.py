@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 
-from . import constants
 #if '--loadall' in sys.argv:
 #    from ibeis import ibsfuncs
 #    from ibeis import constants
@@ -19,21 +18,29 @@ from . import constants
 #    from ibeis import model
 
 try:
-    from . import main_module
-    from . import params
-    from . import control
-    from . import dev
-    from . import io
+    # relative from ibeis imports
+    from ibeis import constants
+    from ibeis import params
+    from ibeis import main_module
+    from ibeis import control
+    from ibeis import ibsfuncs
+    from ibeis import dev
+    from ibeis import io
     #from . import web
 except ImportError as ex:
     utool.printex(ex, 'WARNING in ibeis\' __init__', iswarning=True, tb=True)
+    raise
     try:
-        from . import constants
-        from . import main_module
-        from . import params
-        from . import control
-        from . import dev
-        from . import io
+        pass
+        #from . import constants
+        #from . import main_module
+        #from . import params
+        #from . import control
+        #from . import dev
+        #from . import io
+        #from . import dev
+        #from . import ibsfuncs
+        #from . import model
         #from . import web
     except ImportError as ex:
         pass
@@ -41,7 +48,6 @@ except ImportError as ex:
         utool.printex(ex, 'ERROR in ibeis\' __init__')
         raise
 
-from . import control
 
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb
@@ -55,8 +61,6 @@ def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
     global __LOADED__
-    from . import dev
-    from . import ibsfuncs
     from . import model
     from . import viz
     __LOADED__ = True

@@ -67,10 +67,10 @@ class InvertedIndex(object):
         invindex.idx2_fweight = None
         invindex.idx2_wxs     = None   # stacked index -> word indexes
 
+        # Inject debug function
         from ibeis.model.hots.smk import smk_debug
         utool.classmember(InvertedIndex)(smk_debug.invindex_dbgstr)
-
-        utool.inject_instance(InvertedIndex, invindex)
+        utool.inject_instance(invindex)
 
 
 @utool.classmember(InvertedIndex)

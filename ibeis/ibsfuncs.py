@@ -10,13 +10,11 @@ import six
 import types
 from six.moves import zip, range, map
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
-from functools import partial
+#from functools import partial  # NOQA
 from os.path import split, join, exists, commonprefix
 import utool
 import ibeis
 from ibeis import constants
-from ibeis.dev import sysres
-from ibeis.io import export_hsdb
 try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 except ImportError as ex:
@@ -36,25 +34,38 @@ import numpy as np
 __INJECTABLE_FUNCS__ = []
 
 
-def __injectable(input_):
-    def closure_injectable(func, indent=True):
-        global __INJECTABLE_FUNCS__
-        if indent:
-            func_ = utool.indent_func(func)
-        else:
-            func_ = func
-        __INJECTABLE_FUNCS__.append(func_)
-        return func_
-    if utool.is_funclike(input_):
-        return closure_injectable(input_)
-    else:
-        return partial(closure_injectable, indent=input_)
+#def __injectable(input_):
+#    def closure_injectable(func, indent=True):
+#        global __INJECTABLE_FUNCS__
+#        if indent:
+#            func_ = utool.indent_func(func)
+#        else:
+#            func_ = func
+#        __INJECTABLE_FUNCS__.append(func_)
+#        return func_
+#    if utool.is_funclike(input_):
+#        return closure_injectable(input_)
+#    else:
+#        return partial(closure_injectable, indent=input_)
+
+#import ibeis
+import utool as ut  # NOQA
+
+from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
+__injectable = ut.classmember(IBEISController)
+#__injectable(utool.inject_func_as_method)
 
 
-def inject_ibeis(ibs):
-    """ Injects custom functions into an IBEISController """
-    # Give the ibeis object the inject_func_as_method
-    utool.inject_func_as_method(ibs, utool.inject_func_as_method)
+#def inject_ibeis(ibs):
+#    """ Injects custom functions into an IBEISController """
+#    # Give the ibeis object the inject_func_as_method
+#    for func in __INJECTABLE_FUNCS__:
+#        utool.inject_func_as_method(ibs, func)
+#    postinject_func()
+
+
+@ut.classpostinject(IBEISController)
+def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
         ibs.get_annot_uuids,
@@ -66,9 +77,7 @@ def inject_ibeis(ibs):
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ibs.inject_func_as_method(unflat_getter)
-    for func in __INJECTABLE_FUNCS__:
-        ibs.inject_func_as_method(func)
+        ut.inject_func_as_method(ibs, unflat_getter)
 
 
 @__injectable
@@ -77,7 +86,7 @@ def refresh(ibs):
     from ibeis import all_imports
     ibsfuncs.rrr()
     all_imports.reload_all()
-    ibsfuncs.inject_ibeis(ibs)
+    ibs.rrr()
 
 
 def export_to_xml(ibs):
@@ -157,6 +166,7 @@ def export_to_xml(ibs):
 
 @__injectable
 def export_to_hotspotter(ibs):
+    from ibeis.io import export_hsdb
     export_hsdb.export_ibeis_to_hotspotter(ibs)
 
 
@@ -891,6 +901,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
 
 
 def get_species_dbs(species_prefix):
+    from ibeis.dev import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return utool.filter_items(ibs_dblist, isvalid_list)
@@ -899,6 +910,7 @@ def get_species_dbs(species_prefix):
 def merge_species_databases(species_prefix):
     """ Build a merged database """
     from ibeis.control import IBEISControl
+    from ibeis.dev import sysres
     print('[ibsfuncs] Merging species with prefix: %r' % species_prefix)
     utool.util_parallel.ensure_pool(warn=False)
     with utool.Indenter('    '):
@@ -1046,7 +1058,7 @@ def update_all_image_encounter(ibs):
     ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
-@__injectable(False)
+@__injectable
 @utool.time_func
 #@profile
 def update_special_encounters(ibs):
@@ -1157,21 +1169,21 @@ def get_infostr(ibs):
     return infostr
 
 
-@__injectable(False)
+@__injectable
 def print_annotation_table(ibs):
     """ Dumps annotation table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotation_uuid', 'annotation_verts']))
 
 
-@__injectable(False)
+@__injectable
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.CHIP_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -1179,7 +1191,7 @@ def print_feat_table(ibs):
         'feature_keypoints', 'feature_vecs']))
 
 
-@__injectable(False)
+@__injectable
 def print_image_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -1187,42 +1199,42 @@ def print_image_table(ibs):
     #, exclude_columns=['image_rowid']))
 
 
-@__injectable(False)
+@__injectable
 def print_lblannot_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.LBLANNOT_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_alr_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.AL_RELATION_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_config_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.CONFIG_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_encounter_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.ENCOUNTER_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_egpairs_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.EG_RELATION_TABLE))
 
 
-@__injectable(False)
+@__injectable
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
         exclude_columns = ['annot_uuid', 'lblannot_uuid', 'annot_verts', 'feature_keypoints',

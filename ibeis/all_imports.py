@@ -193,6 +193,19 @@ from ibeis.model import preproc
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[all_imports]')
 
 
+def find_unregisterd():
+    import sys
+    from ibeis import all_imports
+    sys_module_strs = list(map(lambda x: str(x[1]), six.iteritems(sys.modules)))
+    all_module_strs = []
+
+    for attrname in dir(all_imports):
+        attr = getattr(all_imports, attrname)
+        if str(type(attr)).startswith('<type \'module\'>'):
+            #print(attr)
+            sys_module_strs.append(str(attr))
+    set(sys_module_strs) - set(all_module_strs)
+
 def reload_all():
     rrr()
     guiback.rrr()
