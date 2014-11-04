@@ -407,9 +407,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     #DELETE              = False
     USE_FIGCACHE = False
     DUMP_EXTRA   = utool.get_argflag('--dump-extra')
-    DUMP_QANNOT         = DUMP_EXTRA and True
-    DUMP_QANNOT_DUMP_GT = DUMP_EXTRA and True
-    DUMP_TOP_CONTEXT    = DUMP_EXTRA and True
+    DUMP_QANNOT         = DUMP_EXTRA
+    DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
+    DUMP_TOP_CONTEXT    = DUMP_EXTRA
 
     figdir = join(ibs.get_fig_dir(), 'query_analysis')
     utool.ensuredir(ibs.get_fig_dir())
@@ -426,6 +426,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     # Save DEFAULT=True
     def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
+        print('show_chip(aid=%r)' % (aid,))
         from ibeis import viz
         if aid in seen:
             return

@@ -26,6 +26,8 @@ def parse_args():
         parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'))
+        parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
+        parser2.add_flag(('--all-singleton-cases', '--allsingle'))
         parser2.add_ints(('--index', '-x'), None, help='test only this index')
         parser2.add_ints(('--sel-rows', '-r'), help='view row')
         parser2.add_ints(('--sel-cols', '-c'), help='view col')
