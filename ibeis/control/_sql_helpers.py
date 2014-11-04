@@ -390,6 +390,11 @@ def sanatize_sql(db, tablename, columns=None):
 
 
 def get_nth_test_schema_version(schema_spec, n=-1, autogenerate=False):
+    """
+    Args:
+        schema_spec (module): schema module to get nth version of
+        n (int): version index (-1 is the latest)
+    """
     from ibeis.control import SQLDatabaseControl as sqldbc
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
