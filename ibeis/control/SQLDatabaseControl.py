@@ -484,7 +484,7 @@ class SQLDatabaseController(object):
     #=========
 
     @default_decorator
-    def add_table(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
+    def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames=None):
         """
         add_table
 
@@ -495,6 +495,8 @@ class SQLDatabaseController(object):
             docstr (str):
             superkey_colnames (list or None): list of column names which uniquely identifies a rowid
         """
+        assert tablename is not None, 'tablename must be given'
+        assert coldef_list is not None, 'tablename must be given'
         if utool.DEBUG2:
             print('[sql] schema ensuring tablename=%r' % tablename)
         if utool.VERBOSE:
@@ -509,16 +511,21 @@ class SQLDatabaseController(object):
         if table_constraints is None:
             table_constraints = []
 
-        if superkey_colnames is not None and len(superkey_colnames) > 0:
-            _ = ','.join(superkey_colnames)
-            ###
-            #c = superkey_colnames
-            #_ = (c if isinstance(c, six.string_types) else ','.join(c))
-            unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
-            assert len(table_constraints) == 0
-            table_constraints.append(unique_constraint)
-
-        body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
+        try:
+            if superkey_colnames is not None and len(superkey_colnames) > 0:
+                _ = ','.join(superkey_colnames)
+                ###
+                #c = superkey_colnames
+                #_ = (c if isinstance(c, six.string_types) else ','.join(c))
+                unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
+                if len(table_constraints) != 0:
+                    print('[sql] Warning: blindly commented assert would have triggered')
+                #assert len(table_constraints) == 0
+                table_constraints.append(unique_constraint)
+            body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
+        except Exception as ex:
+            utool.printex(ex, keys=locals().keys())
+            raise
 
         fmtkw = {
             'table_body': ', '.join(body_list + table_constraints),
@@ -574,7 +581,10 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
 
     @default_decorator
-    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None, tablename_new=None):
+    def modify_table(db, tablename, colmap_list=None, table_constraints=None,
+                     docstr=None, superkey_colnames=None, tablename_new=None):
+        assert colmap_list is not None, 'must specify colmaplist'
+        assert tablename is not None, 'must specify tablename'
         """
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
@@ -626,7 +636,10 @@ class SQLDatabaseController(object):
                     coltype_list.insert(src, type_)
                     insert = True
             else:
-                assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
+                try:
+                    assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
+                except AssertionError as ex:
+                    ut.printex(ex, keys=['colname_list'])
                 index = colname_list.index(src)
                 if dst is None:
                     # Drop column

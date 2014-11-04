@@ -509,17 +509,19 @@ def run_devcmds(ibs, qaid_list, daid_list):
 __ALLRES_CACHE__ = {}
 
 
-def get_allres(ibs, qaid_list):
+def get_allres(ibs, qaid_list, daid_list=None):
     print('[dev] get_allres')
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
     allres_cfgstr = ibs.cfg.query_cfg.get_cfgstr()
+    allres_key = (qaid_list, daid_list, allres_cfgstr)
     try:
-        allres = __ALLRES_CACHE__[allres_cfgstr]
+        allres = __ALLRES_CACHE__[allres_key]
     except KeyError:
-        valid_aids = ibs.get_valid_aids()
-        qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
+        qaid2_qres = ibs._query_chips(qaid_list, daid_list)
         allres = results_all.init_allres(ibs, qaid2_qres)
     # Cache save
-    __ALLRES_CACHE__[allres_cfgstr] = allres
+    __ALLRES_CACHE__[allres_key] = allres
     return allres
 
 

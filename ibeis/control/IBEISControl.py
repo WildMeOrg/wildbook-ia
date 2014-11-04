@@ -270,6 +270,7 @@ class IBEISController(object):
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.2'
         ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
+        # Ensure correct schema versions
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.db,

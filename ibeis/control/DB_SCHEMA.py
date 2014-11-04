@@ -326,12 +326,42 @@ def update_1_1_1(db, ibs=None):
 
 
 base = constants.BASE_DATABASE_VERSION
-VALID_VERSIONS = {
+VALID_VERSIONS = utool.odict([
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
-    base   :    (None,                 None,               None                ),
-    '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
-    '1.0.1':    (None,                 update_1_0_1,       None                ),
-    '1.0.2':    (None,                 update_1_0_2,       None                ),
-    '1.1.0':    (None,                 update_1_1_0,       None                ),
-    '1.1.1':    (None,                 update_1_1_1,       None                ),
-}
+    (base   ,    (None,                 None,               None                )),
+    ('1.0.0',    (None,                 update_1_0_0,       post_1_0_0          )),
+    ('1.0.1',    (None,                 update_1_0_1,       None                )),
+    ('1.0.2',    (None,                 update_1_0_2,       None                )),
+    ('1.1.0',    (None,                 update_1_1_0,       None                )),
+    ('1.1.1',    (None,                 update_1_1_1,       None                )),
+])
+
+
+def test_dbschema():
+    """
+    test_dbschema
+
+    CommandLine:
+        python ibeis/control/DB_SCHEMA.py
+
+    Example:
+        >>> from ibeis.control.DB_SCHEMA import *  # NOQA
+        >>> test_dbschema()
+    """
+    from ibeis.control import DB_SCHEMA
+    from ibeis.control import _sql_helpers
+    autogenerate = utool.get_argflag('--dump-autogen-schema')
+    db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=-1, autogenerate=autogenerate)
+    autogen_str = db.get_schema_current_autogeneration_str()
+    print(autogen_str)
+    print(' Run with --dump-autogen-schema to autogenerate latest schema version')
+
+
+if __name__ == '__main__':
+    test_dbschema()
+    # Run any doctests
+    #import utool as ut
+    #testable_list = [
+    #    test_dbschema
+    #]
+    #ut.doctest_funcs(testable_list)

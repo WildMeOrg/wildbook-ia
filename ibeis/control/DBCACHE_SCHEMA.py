@@ -12,6 +12,7 @@ except:
     VERSION_CURRENT = None
     print("[dbcache] NO DBCACHE_SCHEMA_CURRENT AUTO-GENERATED!")
 import utool
+import utool as ut
 profile = utool.profile
 
 
@@ -84,14 +85,26 @@ def update_1_0_2(db, ibs=None):
     ))
 
 
-#@profile
-#def update_1_0_2(db, ibs=None):
-#    # Change name of feature_sifts to feature_vecs and
-#    # add new column for feature_forground_weight
-#    db.modify_table(constants.FEATURE_TABLE, (
-#        ('feature_sifts',   'feature_vecs',             '',      None),
-#        (           None,   'feature_forground_weight', 'NUMPY', None),
-#    ))
+@profile
+def update_1_0_3(db, ibs=None):
+    # Move the forground weight column to a new table
+    db.drop_column(constants.FEATURE_TABLE, 'feature_forground_weight')
+
+    db.add_table(tablename=constants.FEATURE_WEIGHT_TABLE, coldef_list=(
+        ('featweight_rowid',            'INTEGER PRIMARY KEY'),
+        ('feature_rowid',               'INTEGER NOT NULL'),
+        ('config_rowid',                'INTEGER DEFAULT 0'),
+        ('featweight_forground_weight', 'NUMPY'),
+    ),
+        superkey_colnames=['feature_rowid', 'config_rowid'],
+        docstr='''
+        Stores weightings of features based on the forground... etc
+        '''
+    )
+
+    # Fix the superkeys for the residual table
+    db.modify_table(tablename=constants.RESIDUAL_TABLE, colmap_list=[],
+                    superkey_colnames=['feature_rowid', 'config_rowid'],)
 
 
 # ========================
@@ -100,10 +113,40 @@ def update_1_0_2(db, ibs=None):
 
 
 base = constants.BASE_DATABASE_VERSION
-VALID_VERSIONS = {
+VALID_VERSIONS = ut.odict([
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
-    base   :    (None,                 None,               None                ),
-    '1.0.0':    (None,                 update_1_0_0,       None                ),
-    '1.0.1':    (None,                 update_1_0_1,       None                ),
-    '1.0.2':    (None,                 update_1_0_2,       None                ),
-}
+    (base   ,    (None,                 None,               None,)),
+    ('1.0.0',    (None,                 update_1_0_0,       None,)),
+    ('1.0.1',    (None,                 update_1_0_1,       None,)),
+    ('1.0.2',    (None,                 update_1_0_2,       None,)),
+    ('1.0.3',    (None,                 update_1_0_3,       None,)),
+])
+
+
+def test_dbcache_schema():
+    """
+    test_dbcache_schema
+
+    Example:
+        >>> from ibeis.control.DBCACHE_SCHEMA import *  # NOQA
+        >>> test_dbcache_schema()
+
+    CommandLine:
+        python ibeis/control/DBCACHE_SCHEMA.py
+    """
+    from ibeis.control import DBCACHE_SCHEMA
+    from ibeis.control import _sql_helpers
+    autogenerate = utool.get_argflag('--dump-autogen-schema')
+    dbcache = _sql_helpers.get_nth_test_schema_version(DBCACHE_SCHEMA, n=-1, autogenerate=autogenerate)
+    autogen_str = dbcache.get_schema_current_autogeneration_str()
+    print(autogen_str)
+    print(' Run with --dump-autogen-schema to autogenerate latest schema version')
+
+
+if __name__ == '__main__':
+    test_dbcache_schema()
+    #import utool as ut
+    #testable_list = [
+    #    test_dbcache_schema
+    #]
+    #ut.doctest_funcs(testable_list)
