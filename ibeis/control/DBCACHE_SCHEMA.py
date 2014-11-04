@@ -83,6 +83,15 @@ def update_1_0_2(db, ibs=None):
         (           None,   'feature_forground_weight', 'NUMPY', None),
     ))
 
+@profile
+def update_1_0_2(db, ibs=None):
+    # Change name of feature_sifts to feature_vecs and
+    # add new column for feature_forground_weight
+    db.modify_table(constants.FEATURE_TABLE, (
+        ('feature_sifts',   'feature_vecs',             '',      None),
+        (           None,   'feature_forground_weight', 'NUMPY', None),
+    ))
+
 
 # ========================
 # Valid Versions & Mapping

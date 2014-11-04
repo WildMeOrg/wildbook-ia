@@ -76,6 +76,11 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 #    #print('Warning: %r' % ex)
 #    pass
 
+# WEB
+import tornado
+import flask
+import simplejson
+
 # Tools
 import detecttools
 import guitool
@@ -211,7 +216,7 @@ def reload_all():
     guiback.rrr()
     ibeis.reload_subs()
     utool.reload_subs()
-    #vtool.reload_subs()
+    vtool.reload_subs()
     guitool.reload_subs()
     plottool.reload_subs()
 

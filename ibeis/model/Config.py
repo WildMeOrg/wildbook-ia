@@ -561,7 +561,15 @@ class QueryConfig(ConfigBase):
         hasvalid_root = any([
             query_cfg.pipeline_root == root
             for root in query_cfg._valid_pipeline_roots])
-        assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
+        try:
+            assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
+        except AssertionError as ex:
+            utool.printex(ex)
+            if utool.SUPER_STRICT:
+                raise
+            else:
+                query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
+                pass
 
         if feat_cfg.nogravity_hack is False:
             filt_cfg.gravity_weighting = False
