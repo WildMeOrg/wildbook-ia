@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 import six
 from six.moves import map, zip
-from os.path import join, exists, dirname, realpath
+from os.path import join, exists
 import utool
 # Tools
 from ibeis import constants
@@ -989,8 +989,11 @@ class SQLDatabaseController(object):
                 if value == tablename:
                     constant_name = variable
                     break
-            assert constant_name is not None, "Table name does not exists in constants"
-            line_list.append('%sdb.add_table(constants.%s, (' % (tab, constant_name, ))
+            # assert constant_name is not None, "Table name does not exists in constants"
+            if constant_name is not None:
+                line_list.append('%sdb.add_table(constants.%s, (' % (tab, constant_name, ))
+            else:
+                line_list.append('%sdb.add_table(%r, (' % (tab, tablename, ))
             column_list = db.get_columns(tablename)
             for column in column_list:
                 col_name = ('%r,' % str(column[1])).ljust(32)
@@ -1011,11 +1014,10 @@ class SQLDatabaseController(object):
         return '\n'.join(line_list)
 
     @default_decorator
-    def dump_schema_current_autogeneration(db, output_filename):
+    def dump_schema_current_autogeneration(db, output_dir, output_filename):
         """ Convenience: Autogenerates the most up-to-date database schema """
         print('[sqldb] dumping current schema to output_filename=%r' % (output_filename,))
-        controller_directory = dirname(realpath(__file__))
-        dump_fpath = join(controller_directory, output_filename)
+        dump_fpath = join(output_dir, output_filename)
         schema_current_str = db.get_schema_current_autogeneration_str()
         with open(dump_fpath, 'w') as file_:
             file_.write(schema_current_str)

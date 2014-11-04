@@ -182,7 +182,7 @@ def init_database(app, reset_db):
         app.ibeis,
         app.db,
         app.dbweb_version_expected,
-        DBWEB_SCHEMA.VALID_VERSIONS
+        DBWEB_SCHEMA
     )
 
 

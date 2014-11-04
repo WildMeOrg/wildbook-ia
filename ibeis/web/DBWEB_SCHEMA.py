@@ -3,7 +3,14 @@ Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
-
+try:
+    from ibeis.web import DBWEB_SCHEMA_CURRENT
+    UPDATE_CURRENT  = DBWEB_SCHEMA_CURRENT.update_current
+    VERSION_CURRENT = DBWEB_SCHEMA_CURRENT.VERSION_CURRENT
+except:
+    UPDATE_CURRENT  = None
+    VERSION_CURRENT = None
+    print("[dbcache] NO DBWEB_SCHEMA_CURRENT AUTO-GENERATED!")
 
 VIEWPOINT_TABLE = 'viewpoints'
 

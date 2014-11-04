@@ -156,8 +156,9 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup=True
         raise AssertionError(msg)
     if utool.get_argflag('--dump-autogen-schema'):
         # Auto-generate the version skip schema file
-        schema_spec_filename = splitext(split(schema_spec.__file__)[1])[0]
-        db.dump_schema_current_autogeneration('%s_CURRENT.py' % schema_spec_filename)
+        schema_spec_dir, schema_spec_filename = split(schema_spec.__file__)
+        schema_spec_filename = splitext(schema_spec_filename)[0]
+        db.dump_schema_current_autogeneration(schema_spec_dir, '%s_CURRENT.py' % schema_spec_filename)
 
 
 @profile
