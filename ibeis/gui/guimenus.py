@@ -239,10 +239,10 @@ def setup_help_menu(mainwin, back):
     mainwin.menuHelp.addSeparator()
     # ---
     mainwin.menuHelp.newAction(
-        name='actionDelete_Detection_Models',
-        text='Delete Detection Models',
+        name='actionRedownload_Detection_Models',
+        text='Redownload Detection Models',
         shortcut='',
-        slot_fn=back.delete_detection_models)
+        slot_fn=back.redownload_detection_models)
     mainwin.menuHelp.newAction(
         name='actionDelete_Precomputed_Results',
         text='Delete Cached Query Results',
