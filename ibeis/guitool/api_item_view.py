@@ -23,7 +23,7 @@ from guitool.api_item_model import APIItemModel
 VERBOSE = utool.VERBOSE
 
 API_VIEW_BASE = QtGui.QAbstractItemView
-viewmember = utool.classmember(API_VIEW_BASE)
+register_view_method = utool.make_class_method_decorator(API_VIEW_BASE)
 
 injectviewinstance = partial(utool.inject_instance, classtype=API_VIEW_BASE)
 
@@ -45,7 +45,7 @@ class APIItemView(API_VIEW_BASE):
 #---------------
 
 
-@viewmember
+@register_view_method
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
     col_type_list = headers.get('col_type_list', [])
@@ -63,7 +63,7 @@ def infer_delegates(view, **headers):
             view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 
 
-@viewmember
+@register_view_method
 def set_column_persistant_editor(view, column):
     """ Set each row in a column as persistant """
     num_rows = view.model.rowCount()
@@ -73,7 +73,7 @@ def set_column_persistant_editor(view, column):
         view.view.openPersistentEditor(index)
 
 
-@viewmember
+@register_view_method
 def _update_headers(view, **headers):
     """ Mirrors _update_headers in api_item_model """
     # Use headers from model #model = view.model #headers = model.headers
@@ -88,14 +88,14 @@ def _update_headers(view, **headers):
     #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
 
 
-@viewmember
+@register_view_method
 def _set_sort(view, col_sort_index, col_sort_reverse=False):
     if col_sort_index is not None:
         order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
         view.sortByColumn(col_sort_index, order)
 
 
-@viewmember
+@register_view_method
 def hide_cols(view):
     total_num_cols = view.model().columnCount()
     num_cols = len(view.col_hidden_list)
@@ -110,7 +110,7 @@ def hide_cols(view):
 #---------------
 
 
-@viewmember
+#@register_view_method
 def itemDelegate(view, qindex):
     """ QtOverride: Returns item delegate for this index """
     # Does this even work? TODO: testme
@@ -136,7 +136,7 @@ def setModel(view, model):
 #---------------
 
 
-@viewmember
+@register_view_method
 def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
     if VERBOSE:
