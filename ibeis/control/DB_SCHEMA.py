@@ -343,6 +343,8 @@ def test_dbschema():
 
     CommandLine:
         python ibeis/control/DB_SCHEMA.py
+        python ibeis/control/DB_SCHEMA.py -n 2
+        python ibeis/control/DB_SCHEMA.py --force-incremental-db-update
 
     Example:
         >>> from ibeis.control.DB_SCHEMA import *  # NOQA
@@ -351,7 +353,8 @@ def test_dbschema():
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
     autogenerate = utool.get_argflag('--dump-autogen-schema')
-    db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=-1, autogenerate=autogenerate)
+    n = utool.get_argval('-n', int, default=-1)
+    db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
     autogen_str = db.get_schema_current_autogeneration_str()
     print(autogen_str)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
