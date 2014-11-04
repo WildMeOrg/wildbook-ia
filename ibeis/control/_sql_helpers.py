@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import re
 from . import __SQLITE3__ as lite
-from os.path import split, splitext
+from os.path import split, splitext, join, exists
 #import six
 import logging
 from ibeis import params
@@ -73,6 +73,39 @@ def compare_string_versions(a, b):
     raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
 
 
+# =========================
+# Database Backup Functions
+# =========================
+
+
+def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=60):
+    # Keep 60 days worth of database backups
+    database_backup(db_dir, db_fname, backup_dir, max_keep=max_keep, manual=False)
+
+
+def database_backup(db_dir, db_fname, backup_dir, max_keep=60, manual=True):
+    # Keep 60 days worth of database backups
+    fname, ext = splitext(db_fname)
+    src_fpath = join(db_dir, db_fname)
+    import datetime
+    now = datetime.datetime.now()
+    if manual:
+        now_str = now.strftime('%Y_%m_%d_%H_%M_%S')
+    else:
+        now_str = now.strftime('%Y_%m_%d_00_00_00')
+    dst_fpath = join(backup_dir, '%s_backup_%s%s' % (fname, now_str, ext))
+    if exists(src_fpath) and not exists(dst_fpath):
+        print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
+        utool.copy(src_fpath, dst_fpath)
+        # Clean-up old database backups
+        path_list = sorted(utool.glob(backup_dir, '*%s' % ext))
+        if path_list > max_keep:
+            path_delete_list = path_list[:-1 * max_keep]
+            for path_delete in path_delete_list:
+                print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
+                utool.remove_file(path_delete, verbose=False)
+
+
 # ========================
 # Schema Updater Functions
 # ========================
@@ -132,7 +165,8 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
     """
     db_fpath = db.fpath
     if dobackup:
-        db_backup_fpath = db_fpath + '-backup'
+        fname, ext = splitext(db_fpath)
+        db_backup_fpath = '%s_backup%s' % (fname, ext)
         utool.copy(db_fpath, db_backup_fpath)
     valid_versions = sorted(db_versions.keys(), compare_string_versions)
     try:
@@ -167,7 +201,7 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
             logging.exception(msg)
             raise
         else:
-            utool.printex(ex, 'The database update failed, and no backup was made. I hope you didnt need that data', iswarning=False)
+            utool.printex(ex, 'The database update failed, and no backup was made. I hope you didnt need that data :P', iswarning=False)
             raise
     if dobackup:
         utool.remove_file(db_backup_fpath)

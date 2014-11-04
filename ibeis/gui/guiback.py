@@ -863,6 +863,12 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.db.dump_tables_to_csv()
 
     @blocking_slot()
+    def backup_database(back):
+        """ File -> Backup Database"""
+        print('[back] backup_database')
+        back.ibs.backup_database()
+
+    @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None, refresh=True):
         """ File -> Import Images (ctrl + i)"""
         print('[back] import_images')

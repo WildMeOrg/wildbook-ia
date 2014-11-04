@@ -42,6 +42,12 @@ def setup_file_menu(mainwin, back):
         slot_fn=back.open_database)
     mainwin.menuFile.addSeparator()
     mainwin.menuFile.newAction(
+        name='actionBackup_Database',
+        tooltip='Backup the current main database.',
+        text='Backup Database',
+        shortcut='Ctrl+B',
+        slot_fn=back.backup_database)
+    mainwin.menuFile.newAction(
         name='actionExport_Database',
         tooltip='Dumps and exports database as csv tables.',
         text='Export Database',
