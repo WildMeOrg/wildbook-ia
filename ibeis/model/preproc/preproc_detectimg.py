@@ -35,15 +35,22 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
 def get_image_detectimg_fpath_list(ibs, gid_list):
     r""" Returns detectimg path list
 
-    >>> import ibeis
-    >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
-    >>> ibs = ibeis.opendb('testdb1')
-    >>> valid_gids = ibs.get_valid_gids()
-    >>> gid_list = valid_gids[0:2]
-    >>> new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
-    >>> print("\n".join(new_gfpath_list))
-    /media/raid/work/testdb1/_ibsdb/_ibeis_cache/detectimg/reszd_800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg
-    /media/raid/work/testdb1/_ibsdb/_ibeis_cache/detectimg/reszd_800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg
+    Example:
+        >>> import ibeis
+        >>> from os.path import basename
+        >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_gids = ibs.get_valid_gids()
+        >>> gid_list = valid_gids[0:2]
+        >>> new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
+        >>> result = ('\n'.join(map(basename, new_gfpath_list)))
+        >>> target = utool.codeblock(
+        ...     '''
+                reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg
+                reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg
+                '''
+        ... )
+        >>> assert result == target
 
     """
     utool.assert_all_not_None(gid_list, 'gid_list')
@@ -51,7 +58,7 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
     gext_list    = ibs.get_image_exts(gid_list)
     guuid_list   = ibs.get_image_uuids(gid_list)
     cachedir = ibs.get_detectimg_cachedir()
-    new_gfpath_list = [join(cachedir, 'reszd_' + str(sqrt_area) + '_' + str(guuid) + ext)
+    new_gfpath_list = [join(cachedir, 'reszd_sqrtArea=' + str(sqrt_area) + '_' + str(guuid) + ext)
                        for (guuid, ext) in zip(guuid_list, gext_list)]
     return new_gfpath_list
 
@@ -66,8 +73,6 @@ def compute_and_write_detectimg(ibs, gid_list):
         >>> valid_gids = ibs.get_valid_gids()
         >>> gid_list = valid_gids[0:2]
         >>> result = compute_and_write_detectimg(ibs, gid_list)
-
-
     """
     utool.ensuredir(ibs.get_detectimg_cachedir())
     # Get img configuration information
@@ -93,6 +98,14 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
     """
     Will write a img if it does not exist on disk, regardless of if it exists
     in the SQL database
+
+    Example:
+        >>> import ibeis
+        >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_gids = ibs.get_valid_gids()
+        >>> gid_list = valid_gids[0:2]
+        >>> result = compute_and_write_detectimg_lazy(ibs, gid_list)
     """
     print('[preproc] compute_and_write_detectimg_lazy')
     # Mark which aid's need their detectimg computed

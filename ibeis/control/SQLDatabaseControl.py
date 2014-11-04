@@ -149,7 +149,8 @@ class SQLDatabaseController(object):
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
         from six.moves import cStringIO
-        print('[sql] Copying database into RAM')
+        if not utool.QUIET:
+            print('[sql] Copying database into RAM')
         tempfile = cStringIO()
         for line in db.connection.iterdump():
             tempfile.write('%s\n' % line)
@@ -176,6 +177,11 @@ class SQLDatabaseController(object):
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
+        if not utool.QUIET:
+            print('[sql] running sql pragma optimizions')
+        #db.cur.execute('PRAGMA cache_size = 0;')
+        #db.cur.execute('PRAGMA cache_size = 1024;')
+        #db.cur.execute('PRAGMA page_size = 1024;')
         print('[sql] running sql pragma optimizions')
         db.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
         db.cur.execute('PRAGMA temp_store = MEMORY;')
@@ -1069,7 +1075,14 @@ class SQLDatabaseController(object):
 
         Returns:
             list: superkey_colname_list
+
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> print(ibs.db.get_table_superkeys('lblimage'))
+            ['lbltype_rowid', 'lblimage_value']
         """
+        assert tablename in db.get_table_names(), 'tablename=%r is not a part of this database' % (tablename,)
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         data = [(tablename + '_superkeys',)]

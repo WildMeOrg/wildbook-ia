@@ -5,35 +5,34 @@ from ibeis import constants
 
 
 class SHORTNAMES(object):
-    RVEC = 'residual'
-    #RVEC = 'rvec'
-    FEAT = 'feat'
+    ANNOT      = 'annot'
+    CHIP       = 'chip'
+    FEAT       = 'feat'
+    FEATWEIGHT = 'featweight'
+    RVEC       = 'residual'  # 'rvec'
+    VOCABTRAIN = 'vocabtrain'
+    DETECT     = 'detect'
 
 depends_map = {
-    'annot': None,
-    'chip': 'annot',
-    'feat': 'chip',
-    'featweight': 'feat',
-    SHORTNAMES.RVEC: SHORTNAMES.FEAT
+    SHORTNAMES.ANNOT: None,
+    SHORTNAMES.CHIP: SHORTNAMES.ANNOT,
+    SHORTNAMES.FEAT: SHORTNAMES.CHIP,
+    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,
+    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
 }
 
 # shortened tablenames
 tablename2_tbl = {
-    constants.ANNOTATION_TABLE     : 'annot',
-    constants.CHIP_TABLE           : 'chip',
-    constants.FEATURE_TABLE        : 'feat',
-    constants.FEATURE_WEIGHT_TABLE : 'featweight',
+    constants.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
+    constants.CHIP_TABLE           : SHORTNAMES.CHIP,
+    constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
+    constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
     constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
 }
 
-
-tbl2_TABLE = {
-    'annot'      : 'ANNOTATION_TABLE',
-    'chip'       : 'CHIP_TABLE',
-    'feat'       : 'FEATURE_TABLE',
-    'featweight' : 'FEATURE_WEIGHT_TABLE',
-    SHORTNAMES.RVEC  : 'RESIDUAL_TABLE',
-}
+# mapping to variable names in constants
+tbl2_TABLE = {key: ut.get_varname_from_locals(val, constants.__dict__)
+              for key, val in six.iteritems(ut.invert_dict(tablename2_tbl))}
 
 
 variable_aliases = {
@@ -48,6 +47,24 @@ variable_aliases = {
     'keypoints': 'kpts',
     'vectors': 'vecs',
 }
+
+
+#def test():
+#    from ibeis.control.templates import *  # NOQA
+
+def build_depends_path(child):
+    parent = depends_map[child]
+    if parent is not None:
+        return build_depends_path(parent) + [child]
+    else:
+        return [child]
+    #depends_list = ['annot', 'chip', 'feat', 'featweight']
+
+
+def colname2_col(colname, tablename):
+    # col is a short alias for colname
+    col = colname.replace(ut.singular_string(tablename) + '_', '')
+    return col
 
 
 get_child_config_rowid_template = ut.codeblock(
@@ -99,9 +116,9 @@ add_dependent_child_stub_template = ut.codeblock(
 get_configed_child_rowids_template = ut.codeblock(
     '''
     def get_{parent}_{child}_rowids({self}, {parent}_rowid_list,
-                                      config_rowid=None, all_configs=False,
-                                      ensure=True, eager=True,
-                                      num_params=None):
+                                    config_rowid=None, all_configs=False,
+                                    ensure=True, eager=True,
+                                    num_params=None):
         """
         get_{parent}_{child}_rowids
 
@@ -121,15 +138,14 @@ get_configed_child_rowids_template = ut.codeblock(
             config_rowid = {self}.get_{child}_config_rowid()
         colnames = ({CHILD}_ROWID,)
         if all_configs:
-            config_rowid = {self}.{sqldb}.get(
+            config_rowid = {self}.{dbself}.get(
                 {TABLE}, colnames, {parent}_rowid_list,
                 id_colname={PARENT}_ROWID, eager=eager, num_params=num_params)
         else:
             config_rowid = {self}.get_{child}_config_rowid()
-            # This template could be smoothed out a bit by sql controller
             andwhere_colnames = [{PARENT}_ROWID, CONFIG_ROWID]
             params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
-            {child}_rowid_list = {self}.{sqldb}.get_where2(
+            {child}_rowid_list = {self}.{dbself}.get_where2(
                 {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager,
                 num_params=num_params)
         return {child}_rowid_list
@@ -137,8 +153,7 @@ get_configed_child_rowids_template = ut.codeblock(
 
 get_dependency_template = ut.codeblock(
     '''
-    def get_{parent}_{col}({self}, {parent}_rowid_list,
-                                 config_rowid=None):
+    def get_{parent}_{col}({self}, {parent}_rowid_list, config_rowid=None):
         """
         get_{parent}_{col}
 
@@ -180,29 +195,7 @@ get_column_template = ut.codeblock(
     ''')
 
 
-#def test():
-#    from ibeis.control.templates import *  # NOQA
-
-def build_depends_path(child):
-    parent = depends_map[child]
-    if parent is not None:
-        return build_depends_path(parent) + [child]
-    else:
-        return [child]
-    #depends_list = ['annot', 'chip', 'feat', 'featweight']
-
-
-def singular_string(str_):
-    return str_[:-1] if str_.endswith('s') else str_
-
-
-def colname2_col(colname, tablename):
-    # col is a short alias for colname
-    col = colname.replace(singular_string(tablename) + '_', '')
-    return col
-
-
-def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sqldb_):
+def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, dbself):
     child = tablename2_tbl[tablename]
     depends_list = build_depends_path(child)
 
@@ -216,14 +209,18 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sq
         #'CHILD':  None,
         #'COLNAME': None,  # 'FGWEIGHTS',
         #'parent_rowid_list': 'aid_list',
-        'sqldb': sqldb_,
+        'dbself': dbself,
         #'TABLE': None,
         #'FEATURE_TABLE',
     }
-    func_list = []
+    rowid_func_list = []
+    dep_func_list = []
+    native_func_list = []
+    add_stub_list = []
+    config_rowid_func_list = []
 
     def format_controller_func(func_code):
-        STRIP_DOCSTR = False
+        STRIP_DOCSTR   = True
         USE_SHORTNAMES = False
 
         if STRIP_DOCSTR:
@@ -244,15 +241,14 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sq
             for varname, alias in six.iteritems(variable_aliases):
                 func_code = func_code.replace(varname, alias)
             func_code = ut.modify_quoted_strs(func_code, unpreserve_quoted_str)
-        func_code = ut.autofix_codeblock(func_code)
-        func_code = ut.indent(func_code)
+        func_code = ut.autofix_codeblock(func_code).strip()
+        #func_code = ut.indent(func_code)
+        func_code = '@register_ibs_method\n' + func_code
         return func_code
 
-    def append_func(func_code):
+    def append_func(func_code, func_list):
         func_code = format_controller_func(func_code)
         func_list.append(func_code)
-
-    func_list.append('    # --- %s ROWIDS --- ' % (tablename.upper()))
 
     for parent, child in ut.itertwo(depends_list):
         fmtdict['parent'] = parent
@@ -260,9 +256,7 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sq
         fmtdict['PARENT'] = parent.upper()
         fmtdict['CHILD'] = child.upper()
         fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-        append_func(get_configed_child_rowids_template.format(**fmtdict))
-
-    func_list.append('    # --- %s DEPENDANT PROPERTIES --- ' % (tablename.upper()))
+        append_func(get_configed_child_rowids_template.format(**fmtdict), rowid_func_list)
 
     CONSTANT_COLNAMES.extend(other_colnames)
 
@@ -276,9 +270,7 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sq
             fmtdict['PARENT'] = parent.upper()
             fmtdict['child'] = child
             fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-            #append_func(get_dependency_template.format(**fmtdict))
-
-    func_list.append('    # --- %s NATIVE PROPERTIES --- ' % (tablename.upper()))
+            append_func(get_dependency_template.format(**fmtdict), dep_func_list)
 
     for colname in other_colnames:
         col = colname2_col(colname, tablename)
@@ -288,40 +280,111 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sq
         # tblname is the last child
         fmtdict['tbl'] = child
         fmtdict['TABLE'] = tbl2_TABLE[child]  # [child]
-        append_func(get_column_template.format(**fmtdict))
+        append_func(get_column_template.format(**fmtdict), native_func_list)
 
     fmtdict['child_colnames'] = all_colnames
 
-    append_func(add_dependent_child_stub_template.format(**fmtdict))
+    append_func(add_dependent_child_stub_template.format(**fmtdict), add_stub_list)
+    append_func(get_child_config_rowid_template.format(**fmtdict), config_rowid_func_list)
 
-    append_func(get_child_config_rowid_template.format(**fmtdict))
-    return func_list
+    funcs_tup = (rowid_func_list, dep_func_list, native_func_list, add_stub_list, config_rowid_func_list)
+    return funcs_tup
+
+
+def get_tableinfo(tablename, ibs=None):
+    tableinfo = None
+    if ibs is not None:
+        valid_db_tablenames = ibs.db.get_table_names()
+        valid_dbcache_tablenames = ibs.dbcache.get_table_names()
+
+        sqldb = None
+        if tablename in valid_db_tablenames:
+            sqldb = ibs.db
+            dbself = 'db'
+        elif tablename in valid_dbcache_tablenames:
+            if sqldb is not None:
+                raise AssertionError('Tablename=%r is specified in both schemas' % tablename)
+            sqldb = ibs.dbcache
+            dbself = 'dbcache'
+        else:
+            print('WARNING unknown tablename=%r' % tablename)
+
+        if sqldb is not None:
+            all_colnames = sqldb.get_column_names(tablename)
+            superkey_colnames = sqldb.get_table_superkey_colnames(tablename)
+            primarykey_colnames = sqldb.get_table_primarykey_colnames(tablename)
+            other_colnames = sqldb.get_table_otherkey_colnames(tablename)
+            tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
+    if tableinfo is None:
+        dbself = 'dbunknown'
+        all_colnames        = []
+        superkey_colnames   = []
+        primarykey_colnames = []
+        other_colnames      = []
+        tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
+    return tableinfo
 
 
 def main(ibs):
-    tblname_list = [constants.CHIP_TABLE, constants.FEATURE_TABLE, constants.RESIDUAL_TABLE]
-    sqldb = ibs.dbcache
-    db = sqldb  # NOQA
+    """
+    CommandLine:
+        python dev.py --db testdb1 --cmd
+    """
+    tblname_list = [constants.CHIP_TABLE, constants.FEATURE_TABLE,
+                    constants.FEATURE_WEIGHT_TABLE, constants.RESIDUAL_TABLE]
     #child = 'featweight'
+    big_funcs_tup = (rowid_func_list, dep_func_list, native_func_list, add_stub_list, config_rowid_func_list) = [], [], [], [], []
     for tablename in tblname_list:
-        #print('__')
-        all_colnames = sqldb.get_column_names(tablename)
-        #superkey_colnames = sqldb.get_table_superkey_colnames(tablename)
-        #print(superkey_colnames)
-        #primarykey_colnames = sqldb.get_table_primarykey_colnames(tablename)
-        other_colnames = sqldb.get_table_otherkey_colnames(tablename)
-        #print(other_colnames)
+        tableinfo = get_tableinfo(tablename, ibs)
+        (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames) = tableinfo
 
-        if tablename in ibs.dbcache.get_table_names():
-            sqldb_ = 'dbcache'
-        else:
-            sqldb_ = 'db'
-        func_list = build_dependent_controller_funcs(tablename, other_colnames, all_colnames, sqldb_)
-        print('\n\n'.join(func_list))
+        funcs_tup = build_dependent_controller_funcs(tablename, other_colnames, all_colnames, dbself)
+        for funcs1, funcs2 in zip(big_funcs_tup, funcs_tup):
+            funcs1.extend(funcs2)
+
+    (rowid_func_list, dep_func_list, native_func_list, add_stub_list, config_rowid_func_list) = big_funcs_tup
+    ut.truepath(ibeis.control.__file__)
+
+    from os.path import dirname, join
+    autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
+
+    autogen_header = ut.codeblock(
+        '''
+        from __future__ import absolute_import, division, print_function
+        from ibeis.control.IBEISControll import IBEISController
+        from ibeis import constants
+        from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
+                                     ENCOUNTER_TABLE, EG_RELATION_TABLE,
+                                     AL_RELATION_TABLE, GL_RELATION_TABLE,
+                                     CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
+                                     CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
+                                     METADATA_TABLE, VERSIONS_TABLE, __STR__)
+        # utool inject
+        import utool as ut
+        print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
+        register_ibs_method = ut.classmember(IBEISController)
+        '''
+    )
+
+    autogen_body = '\n\n'
+    autogen_body += ('\n\n\n'.join(rowid_func_list))
+
+    autogen_text = '\n'.join([autogen_header, autogen_body, ''])
+    print(autogen_text)
+
+    ut.write_to(autogen_fpath, autogen_text)
+
+    return locals()
+
+
+def autogenerate_controller_methods():
+    pass
 
 #if __name__ == '__main__':
-if 'ibs' not in vars():
-    import ibeis
-    ibs = ibeis.opendb('ibs')
 #ibs = None
-main(ibs)
+if __name__ == '__main__':
+    if 'ibs' not in vars():
+        import ibeis
+        ibs = ibeis.opendb('testdb1')
+    locals_ = main(ibs)
+    exec(ut.execstr_dict(locals_))

@@ -102,12 +102,8 @@ def prepare_qreq(qreq_, annots_df, memtrack):
     else:
         # Load vocabulary
         qparams = qreq_.qparams
-        nWords = qreq_.qparams.nWords
-        ibs   = qreq_.ibs
         daids = qreq_.get_external_daids()
-        # TODO: Incorporated taids (vocab training ids) into qreq
-        taids = ibs.get_valid_aids()  # exemplar
-        words = smk_index.learn_visual_words(annots_df, taids, nWords, memtrack=memtrack)
+        words = smk_index.learn_visual_words(annots_df, qreq_, memtrack=memtrack)
         memtrack.report('[SMK LEARN VWORDS]')
         # Index database annotations
         with_internals = True

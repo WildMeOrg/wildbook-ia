@@ -410,9 +410,10 @@ class VocabTrainConfig(ConfigBase):
     def __init__(vocabtrain_cfg, **kwargs):
         super(VocabTrainConfig, vocabtrain_cfg).__init__(name='vocabtrain_cfg')
         vocabtrain_cfg.override_vocab = 'default'  # Vocab
+        vocabtrain_cfg.vocab_taids = 'all'  # Vocab
         vocabtrain_cfg.nWords = int(8E3)  #
-        vocabtrain_cfg.init_method = 'akmeans++'
-        vocabtrain_cfg.nIters = 64
+        vocabtrain_cfg.vocab_init_method = 'akmeans++'
+        vocabtrain_cfg.vocab_nIters = 64
         vocabtrain_cfg.vocab_flann_params = {}  # TODO: easy flann params cfgstr
         vocabtrain_cfg.update(**kwargs)
 
@@ -421,8 +422,9 @@ class VocabTrainConfig(ConfigBase):
             vocabtrain_cfg_list = [
                 '_VocabTrain(',
                 'nWords=%d' % (vocabtrain_cfg.nWords,),
-                ',init=', str(vocabtrain_cfg.init_method),
-                ',nIters=%d' % int(vocabtrain_cfg.nIters),
+                ',init=', str(vocabtrain_cfg.vocab_init_method),
+                ',nIters=%d' % int(vocabtrain_cfg.vocab_nIters),
+                'taids=%s' % vocabtrain_cfg.vocab_taids,
                 ')',
             ]
         else:
