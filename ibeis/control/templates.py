@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 from ibeis import constants
+from os.path import dirname, join
 
 
 class SHORTNAMES(object):
@@ -57,48 +58,22 @@ variable_aliases = {
 }
 
 
-#def test():
-#    from ibeis.control.templates import *  # NOQA
-
-def build_depends_path(child):
-    parent = depends_map[child]
-    if parent is not None:
-        return build_depends_path(parent) + [child]
-    else:
-        return [child]
-    #depends_list = ['annot', 'chip', 'feat', 'featweight']
-
-
-def colname2_col(colname, tablename):
-    # col is a short alias for colname
-    col = colname.replace(ut.singular_string(tablename) + '_', '')
-    return col
-
-
 def format_controller_func(func_code):
-    STRIP_DOCSTR   = True
-    USE_SHORTNAMES = True
-
+    STRIP_DOCSTR   = False
+    USE_SHORTNAMES = False
+    # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
+    # good place to look.
     if STRIP_DOCSTR:
-        # might not always work the newline is a hack to remove
-        # that dumb blank line
+        # might not always work. newline hacks away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
-    #func_code = ut.regex_replace('\'[^\']*\'', '', func_code)
     if USE_SHORTNAMES:
-        # Cannot do this until quoted strings are preserved
-        # This should hack it in
-        def preserve_quoted_str(quoted_str):
-            #print(quoted_str)
-            return '\'' + '_'.join(list(quoted_str[1:-1])) + '\''
-        def unpreserve_quoted_str(quoted_str):
-            #print(quoted_str)
-            return '\'' + ''.join(list(quoted_str[1:-1])[::2]) + '\''
-        func_code = ut.modify_quoted_strs(func_code, preserve_quoted_str)
-        for varname, alias in six.iteritems(variable_aliases):
-            func_code = func_code.replace(varname, alias)
-        func_code = ut.modify_quoted_strs(func_code, unpreserve_quoted_str)
+        # Execute search and replaces without changing strings
+        func_code = ut.replace_nonquoted_text(func_code,
+                                              variable_aliases.keys(),
+                                              variable_aliases.values())
+    # ensure pep8 formating
     func_code = ut.autofix_codeblock(func_code).strip()
-    #func_code = ut.indent(func_code)
+    # add decorators
     func_code = '@register_ibs_method\n' + func_code
     return func_code
 
@@ -111,12 +86,12 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, db
 
     fmtdict = {
         'self': 'ibs',
+        'dbself': dbself,
         #'parent': None,
         #'child':  None,
         #'CHILD':  None,
         #'COLNAME': None,  # 'FGWEIGHTS',
         #'parent_rowid_list': 'aid_list',
-        'dbself': dbself,
         #'TABLE': None,
         #'FEATURE_TABLE',
     }
@@ -164,6 +139,24 @@ def build_dependent_controller_funcs(tablename, other_colnames, all_colnames, db
     append_func(getter_template_table_config_rowid.format(**fmtdict), 'config_rowid')
 
     return functype2_func_list, constant_list
+
+
+#def test():
+#    from ibeis.control.templates import *  # NOQA
+
+def build_depends_path(child):
+    parent = depends_map[child]
+    if parent is not None:
+        return build_depends_path(parent) + [child]
+    else:
+        return [child]
+    #depends_list = ['annot', 'chip', 'feat', 'featweight']
+
+
+def colname2_col(colname, tablename):
+    # col is a short alias for colname
+    col = colname.replace(ut.singular_string(tablename) + '_', '')
+    return col
 
 
 def get_tableinfo(tablename, ibs=None):
@@ -270,7 +263,6 @@ def main(ibs):
                 functype_codeblocks.append(func_codeblock)
         body_codeblocks.extend(functype_codeblocks)
 
-    from os.path import dirname, join
     autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
 
     autogen_header = ut.codeblock(
@@ -281,11 +273,21 @@ def main(ibs):
         import six  # NOQA
         from six.moves import map, range  # NOQA
         from ibeis import constants
-        from ibeis.control.IBEISControll import IBEISController
+        from ibeis.control.IBEISControl import IBEISController
         import utool  # NOQA
         import utool as ut  # NOQA
         print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
-        register_ibs_method = ut.classmember(IBEISController)
+
+        # Create dectorator to inject these functions into the IBEISController
+        register_ibs_aliased_method   = ut.make_class_method_decorator((IBEISController, 'autogen'))
+        register_ibs_unaliased_method = ut.make_class_method_decorator((IBEISController, 'autogen'))
+
+
+        def register_ibs_method(func):
+            aliastup = (func, 'autogen_' + ut.get_funcname(func))
+            register_ibs_unaliased_method(func)
+            register_ibs_aliased_method(aliastup)
+
         '''
     ).format(timestamp=ut.get_timestamp('printable'))
     #from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
@@ -305,11 +307,116 @@ def main(ibs):
 
     return locals()
 
+#
+#
+#-----------------
+# --- CONFIG ---
+#-----------------
 
-# Adders
 
-#where_clause = {PARENT}_ROWID + '=? AND ' + CONFIG_ROWID + '=?'
-# Template for a child rowid that depends on a parent rowid + a config
+getter_template_table_config_rowid = ut.codeblock(
+    '''
+    def get_{child}_config_rowid({self}):
+        """
+        returns config_rowid of the current configuration
+        Config rowids are always ensured
+
+        getter_template_table_config_rowid
+
+        Example:
+            >>> import ibeis; ibs = ibeis.opendb('testdb1')
+
+        """
+        {child}_cfg_suffix = {self}.cfg.{child}_cfg.get_cfgstr()
+        {child}_cfg_rowid = {self}.add_config({child}_cfg_suffix)
+        return {child}_cfg_rowid
+    '''
+)
+
+#
+#
+#-----------------
+# --- IDERS ---
+#-----------------
+
+
+ider_template_all_rowids = ut.codeblock(
+    '''
+    @ider
+    def _get_all_{tbl}_rowids({self}):
+        """
+        ider_template_all_rowids
+
+        Returns:
+            list_ (list): unfiltered {tbl}_rowids
+        """
+        all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
+        return all_{tbl}_rowids
+    '''
+)
+
+
+#
+#
+#-----------------
+# --- ADDERS ---
+#-----------------
+
+
+adder_template_dependant_child = ut.codeblock(
+    '''
+    def add_{parent}_{child}({self}, {parent}_rowid_list, config_rowid=None):
+        """
+        Adds / ensures / computes a dependent property
+
+        adder_template_dependant_child
+
+        returns config_rowid of the current configuration
+        """
+        raise NotImplementedError('this code is a stub, you must populate it')
+        if config_rowid is None:
+            config_rowid = {self}.get_{child}_config_rowid()
+        {child}_rowid_list = ibs.get_{parent}_{child}_rowids(
+            {parent}_rowid_list, config_rowid=config_rowid, ensure=False)
+        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {child}_rowid_list)
+        if len(dirty_{parent}_rowid_list) > 0:
+            if utool.VERBOSE:
+                print('[ibs] adding %d / %d {child}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
+
+            # params_iter = preproc_{child}.add_{child}_params_gen(ibs, dirty_{parent}_rowid_list)
+            colnames = {child_colnames}
+            get_rowid_from_superkey = functools.partial(ibs.get_{parent}_{child}_rowids, ensure=False)
+            params_iter = None
+            {child}_rowid_list = ibs.dbcache.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
+        return {child}_rowid_list
+    '''
+)
+
+adder_template_relationship = ut.codeblock(
+    '''
+    @adder
+    def add_image_relationship(ibs, gid_list, eid_list):
+        """
+        Adds a relationship between an image and and encounter
+
+        adder_template_relationship
+        """
+        colnames = ('image_rowid', 'encounter_rowid',)
+        params_iter = list(zip(gid_list, eid_list))
+        get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
+        superkey_paramx = (0, 1)
+        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
+                                        get_rowid_from_superkey, superkey_paramx)
+        return egrid_list
+    ''')
+
+#
+#
+#-----------------
+# --- GETTERS ---
+#-----------------
+
+
 getter_template_dependant_primary_rowid = ut.codeblock(
     '''
     def get_{parent}_{child}_rowids({self}, {parent}_rowid_list,
@@ -348,72 +455,12 @@ getter_template_dependant_primary_rowid = ut.codeblock(
     ''')
 
 
-# Config
-
-getter_template_table_config_rowid = ut.codeblock(
-    '''
-    def get_{child}_config_rowid({self}):
-        """
-        returns config_rowid of the current configuration
-
-        """
-        {child}_cfg_suffix = {self}.cfg.{child}_cfg.get_cfgstr()
-        cfgsuffix_list = [{child}_cfg_suffix]
-        {child}_cfg_rowid = {self}.add_config(cfgsuffix_list)
-        return {child}_cfg_rowid
-    '''
-)
-
-
-# Adders
-
-adder_template_dependant_child = ut.codeblock(
-    '''
-    def add_{parent}_{child}({self}, {parent}_rowid_list, config_rowid=None):
-        """
-        Adds / ensures / computes a dependent property
-
-        returns config_rowid of the current configuration
-        """
-        raise NotImplementedError('this code is a stub, you must populate it')
-        if config_rowid is None:
-            config_rowid = {self}.get_{child}_config_rowid()
-        {child}_rowid_list = ibs.get_{parent}_{child}_rowids(
-            {parent}_rowid_list, config_rowid=config_rowid, ensure=False)
-        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {child}_rowid_list)
-        if len(dirty_{parent}_rowid_list) > 0:
-            if utool.VERBOSE:
-                print('[ibs] adding %d / %d {child}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
-
-            # params_iter = preproc_{child}.add_{child}_params_gen(ibs, dirty_{parent}_rowid_list)
-            colnames = {child_colnames}
-            get_rowid_from_superkey = functools.partial(ibs.get_{parent}_{child}_rowids, ensure=False)
-            params_iter = None
-            {child}_rowid_list = ibs.dbcache.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
-        return {child}_rowid_list
-    '''
-)
-
-adder_template_relationship = ut.codeblock(
-    '''
-    @adder
-    def add_image_relationship(ibs, gid_list, eid_list):
-        """ Adds a relationship between an image and and encounter """
-        colnames = ('image_rowid', 'encounter_rowid',)
-        params_iter = list(zip(gid_list, eid_list))
-        get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
-        superkey_paramx = (0, 1)
-        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_superkey, superkey_paramx)
-        return egrid_list
-    ''')
-
-# Getters
-
 getter_template_dependant_column = ut.codeblock(
     '''
     def get_{parent}_{col}({self}, {parent}_rowid_list, config_rowid=None):
         """ get {col} data of the {parent} table using the dependant {child} table
+
+        getter_template_dependant_column
 
         Args:
             {parent}_rowid_list (list):
@@ -429,8 +476,10 @@ getter_template_dependant_column = ut.codeblock(
 
 getter_template_native_column = ut.codeblock(
     '''
-    def get_{tbl}_{col}({self}, {tbl}_rowid_list):
+    def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
         """gets data from the level 0 column "{col}" in the "{tbl}" table
+
+        getter_template_native_column
 
         Args:
             {tbl}_rowid_list (list):
@@ -438,9 +487,10 @@ getter_template_native_column = ut.codeblock(
         Returns:
             list: {col}_list
         """
-        params_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
+        #id_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
+        id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
-        {col}_list = {self}.dbcache.get({TABLE}, colnames, params_iter)
+        {col}_list = {self}.dbcache.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
         return {col}_list
     ''')
 
@@ -449,6 +499,13 @@ getter_template_native_rowid_from_superkey = ut.codeblock(
     '''
     def get_{tbl}_rowid_from_superkey({self}, {superkey_args},
                                       eager=False, num_params=None):
+        """
+        Args:
+            superkey lists: {superkey_args}
+
+        Returns:
+            {tbl}_rowid_list
+        """
         colnames = ({tbl}_rowid),
         params_iter = zip({superkey_args})
         andwhere_colnames = [{superkey_args}]
@@ -459,14 +516,29 @@ getter_template_native_rowid_from_superkey = ut.codeblock(
     ''')
 
 
+# eg. get_chip_sizes
 getter_template_native_multicolumn = ut.codeblock(
     '''
-    def get_{tbl}_{multicolname}({self}, {tbl}_rowid_list):
-        pass
+    def get_{tbl}_{multicol}({self}, {tbl}_rowid_list):
+        """
+        Returns zipped tuple of information from {multicol} columns
+
+        Args:
+            {tbl}_rowid_list (list):
+
+        Returns:
+            list: {multicol}_list
+        """
+        {multicol}_list  = ibs.dbcache.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
+        return {multicol}_list
     ''')
 
 
-# Setters
+#
+#
+#-----------------
+# --- SETTERS ---
+#-----------------
 
 setter_template_native_column = ut.codeblock(
     '''
@@ -480,7 +552,12 @@ setter_template_native_multicolumn = ut.codeblock(
         pass
     ''')
 
-# Deleters
+#
+#
+#-----------------
+# --- DELETERS ---
+#-----------------
+
 
 deleter_template_native_tbl = ut.codeblock(
     '''
@@ -497,6 +574,17 @@ deleter_template_native_tbl = ut.codeblock(
     '''
 )
 
+deleter_template_table_relation = ut.codeblock(
+    '''
+    @deleter
+    def delete_{tbl}_relations(ibs, {tbl}_rowid_list):
+        """ Deletes the relationship between an {tbl} row and a label """
+        {relation}_rowids_list = ibs.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
+        {relation}_rowid_list = utool.flatten({relation}_rowids_list)
+        ibs.db.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
+    '''
+)
+
 '''
 s/ibs/{self}/gc
 s/db/{dbself}/gc
@@ -510,7 +598,8 @@ def autogenerate_controller_methods():
 #ibs = None
 if __name__ == '__main__':
     """
-    python ibeis/control/templates.py
+    CommandLine:
+        python ibeis/control/templates.py
     """
     if 'ibs' not in vars():
         import ibeis

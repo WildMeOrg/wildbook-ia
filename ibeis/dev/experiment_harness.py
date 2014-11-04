@@ -52,7 +52,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
     # Execute or load query
     qaid2_qres = ibs._query_chips(qaids, daids)
     # Compute measures
-    gtaids_list = ibs.get_annot_groundtruth(qaids)
+    gtaids_list = [np.intersect1d(gtaids, daids) for gtaids in ibs.get_annot_groundtruth(qaids)]
     qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs, gtaids)]
                      for qaid, gtaids in zip(qaids, gtaids_list)]
     qx2_avepercision = [qaid2_qres[qaid].get_average_percision(ibs, gtaids) for

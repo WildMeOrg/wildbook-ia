@@ -308,12 +308,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     unique_gids, unique_names, unique_notes = resolve_name_conflicts(
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
-    aid_list = ibsfuncs.use_images_as_annotations(ibs, unique_gids,
-                                                  name_list=unique_names,
-                                                  notes_list=unique_notes,
-                                                  adjust_percent=adjust_percent)
+    aid_list = ibs.use_images_as_annotations(unique_gids,
+                                             name_list=unique_names,
+                                             notes_list=unique_notes,
+                                             adjust_percent=adjust_percent)
     if localize:
-        ibsfuncs.localize_images(ibs)
+        ibs.localize_images()
     if postingest_func is not None:
         postingest_func(ibs)
     # Print to show success

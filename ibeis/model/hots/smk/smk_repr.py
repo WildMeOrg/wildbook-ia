@@ -69,11 +69,11 @@ class InvertedIndex(object):
 
         # Inject debug function
         from ibeis.model.hots.smk import smk_debug
-        utool.classmember(InvertedIndex)(smk_debug.invindex_dbgstr)
+        utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
         utool.inject_instance(invindex)
 
 
-@utool.classmember(InvertedIndex)
+@utool.make_class_method_decorator(InvertedIndex)
 def report_memory(obj, objname='obj'):
     """
     obj = invindex
@@ -89,7 +89,7 @@ def report_memory(obj, objname='obj'):
         print(sizestr)
 
 
-report_memsize = utool.classmember(InvertedIndex)(utool.report_memsize)
+report_memsize = utool.make_class_method_decorator(InvertedIndex)(utool.report_memsize)
 
 
 QueryIndex = namedtuple(

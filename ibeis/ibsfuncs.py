@@ -2,6 +2,8 @@
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))"
 python -m doctest -v ibeis/model/hots/hots_nn_index.py
 python -m doctest ibeis/model/hots/hots_nn_index.py
+
+rob gp "ibsfuncs\..*\(ibs, "
 """
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
@@ -47,12 +49,6 @@ __INJECTABLE_FUNCS__ = []
 #        return closure_injectable(input_)
 #    else:
 #        return partial(closure_injectable, indent=input_)
-
-#import ibeis
-import utool as ut  # NOQA
-
-from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.classmember(IBEISController)
 #__injectable(utool.inject_func_as_method)
 
 
@@ -63,8 +59,14 @@ __injectable = ut.classmember(IBEISController)
 #        utool.inject_func_as_method(ibs, func)
 #    postinject_func()
 
+#import ibeis
+import utool as ut  # NOQA
 
-@ut.classpostinject(IBEISController)
+from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
+__injectable = ut.make_class_method_decorator(IBEISController)
+
+
+@ut.make_class_postinject_decorator(IBEISController)
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
@@ -597,26 +599,7 @@ def get_annot_bbox_area(ibs, aid_list):
     return area_list
 
 
-@__injectable
-def localize_images(ibs, gid_list_=None):
-    """
-    Moves the images into the ibeis image cache.
-    Images are renamed to img_uuid.ext
-    """
-    if gid_list_ is None:
-        gid_list_  = ibs.get_valid_gids()
-    isnone_list = [gid is None for gid in gid_list_]
-    gid_list = utool.filterfalse_items(gid_list_, isnone_list)
-    gpath_list = ibs.get_image_paths(gid_list)
-    guuid_list = ibs.get_image_uuids(gid_list)
-    gext_list  = ibs.get_image_exts(gid_list)
-    # Build list of image names based on uuid in the ibeis imgdir
-    guuid_strs = (str(guuid) for guuid in guuid_list)
-    loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
-    loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
-    utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
-    ibs.set_image_uris(gid_list, loc_gname_list)
-    assert all(map(exists, loc_gpath_list)), 'not all images copied'
+#@__injectable
 
 
 @__injectable
@@ -1422,19 +1405,6 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
 
 
 @__injectable
-def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
-    aids_hashid = utool.hashstr_arr(aid_list, label)
-    return aids_hashid
-
-
-@__injectable
-def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
-    uuid_list    = ibs.get_annot_uuids(aid_list)
-    uuui_hashid  = utool.hashstr_arr(uuid_list, label)
-    return uuui_hashid
-
-
-@__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     """
     >>> per_name = 1
@@ -1555,3 +1525,11 @@ def get_dbnotes(ibs):
 @__injectable
 def annotstr(ibs, aid):
     return 'aid=%d' % aid
+
+
+def redownload_detection_models():
+    from ibeis.model.detect import grabmodels
+    print('[ibsfuncs] redownload_detection_models')
+    utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
+    grabmodels.ensure_models()
+    print('[ibsfuncs] finished redownload_detection_models')

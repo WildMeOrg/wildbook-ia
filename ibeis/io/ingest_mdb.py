@@ -105,7 +105,7 @@ if __name__ == '__main__':
     assert all(map(exists, image_gpath_list)), 'some images dont exist'
 
     gid_list = ibs.add_images(image_gpath_list)
-    ibsfuncs.localize_images(ibs)
+    ibs.localize_images()
     ibs.set_image_notes(gid_list, notes_list)
     ibs.set_image_unixtime(gid_list, times_list)
     bbox_list = [ (0, 0, w, h) for (w, h) in ibs.get_image_sizes(gid_list) ]

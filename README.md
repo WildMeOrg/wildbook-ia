@@ -545,18 +545,18 @@ python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
  --allgt --index 1:2
 
 # SETTING HARD CASES
-dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
-dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [copypaste from output]  # sorry about this step...
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [copypaste from output]  # sorry about this step...
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110  # Hard as of 2014-11-4
-dev.py -t best --db PZ_MTEST --allhard
+python dev.py -t best --db PZ_MTEST --allhard
 
 # View all hard cases
-dev.py -t best --db PZ_MTEST --allhard --vh --va
+python dev.py -t best --db PZ_MTEST --allhard --vh --va
 
 # 72 is a great testcase
-dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
+python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
 
-dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
+python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
 
 # VSONE TESTS
 python dev.py -t vsone_best --db PZ_Mothers --allgt --index 0:2 --print-all --va

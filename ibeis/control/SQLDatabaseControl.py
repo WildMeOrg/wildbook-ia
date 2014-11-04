@@ -4,6 +4,7 @@ import six
 from six.moves import map, zip
 from os.path import join, exists
 import utool
+import utool as ut
 # Tools
 from ibeis import constants
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
@@ -372,7 +373,8 @@ class SQLDatabaseController(object):
         return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
 
     #@setter_sql
-    def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid', **kwargs):
+    def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
+            duplicate_behavior='error', **kwargs):
         """ setter """
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
@@ -380,14 +382,27 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        assert len(id_list) == len(set(id_list)), "Passing a not-unique list of ids"
-
         if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
             print('[sql] * id_list=%r' % (id_list,))
             print('[sql] * id_colname=%r' % (id_colname,))
+
+        if duplicate_behavior == 'error':
+            try:
+                assert not ut.duplicates_exist(id_list), "Passing a not-unique list of ids"
+            except Exception as ex:
+                ut.debug_duplicate_items(id_list)
+                utool.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' % (len(id_list), len(set(id_list))))
+                raise
+        elif duplicate_behavior == 'filter':
+            # Keep only the first setting of every row
+            isunique_list = utool.flag_unique_items(id_iter)
+            val_list = utool.filter_items(val_list, isunique_list)
+        else:
+            raise AssertionError('unknown duplicate_behavior=%r' % (duplicate_behavior,))
+
         try:
             num_val = len(val_list)
             num_id = len(id_list)
