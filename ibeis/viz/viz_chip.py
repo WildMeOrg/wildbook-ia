@@ -56,7 +56,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         if 'colors' not in kwargs:
             from ibeis.model.preproc import preproc_featweight
             featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[0]
-            kwargs['colors'] = featweights
+            kwargs['color'] = featweights
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
         try:
             del kwargs['kpts']
@@ -74,6 +74,10 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
 
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+         python ibeis/viz/viz_chip.py
+    """
     #from plottool.viz_keypoints import _annotate_kpts
     from ibeis.viz.viz_chip import *  # NOQA
     import ibeis
