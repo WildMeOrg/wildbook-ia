@@ -20,7 +20,7 @@ def make_config_metaclass():
     @_register
     def get_cfgstr_list(cfg):
         item_list = parse_config_items(cfg)
-        return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
+        return ['METACONFIG(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
         #return ['cfg']
 
     # Needed for comparison operators
@@ -43,7 +43,7 @@ def make_config_metaclass():
             supers - bases
             dct - class dictionary
             """
-            assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list.  name=%r' % (name,)
+            #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list.  name=%r' % (name,)
             for func in methods_list:
                 if get_funcname(func) not in dct:
                     funcname = get_funcname(func)
@@ -99,12 +99,12 @@ class GenericConfig(ConfigBase):
     def __init__(cfg, *args, **kwargs):
         super(GenericConfig, cfg).__init__(*args, **kwargs)
 
-    def get_cfgstr_list(cfg):
-        #raise NotImplementedError('abstract')
-        item_list = parse_config_items(cfg)
-        return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
-        #return ['unimplemented']
-        #pass
+    #def get_cfgstr_list(cfg):
+    #    #raise NotImplementedError('abstract')
+    #    item_list = parse_config_items(cfg)
+    #    return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
+    #    #return ['unimplemented']
+    #    #pass
 
     #@abstract():
     #def get_cfgstr_list(cfg):
@@ -942,9 +942,9 @@ class OtherConfig(ConfigBase):
         othercfg.detect_use_chunks = True
         othercfg.update(**kwargs)
 
-    def get_cfgstr_list(nn_cfg):
-        raise NotImplementedError('abstract')
-        return ['unimplemented']
+    #def get_cfgstr_list(nn_cfg):
+    #    raise NotImplementedError('abstract')
+    #    return ['unimplemented']
 
 
 # Convinience

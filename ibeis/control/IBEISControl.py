@@ -16,7 +16,7 @@ import uuid
 import weakref
 from six.moves import zip, map, range
 from functools import partial
-from os.path import join, split
+from os.path import join, split, exists
 # VTool
 from vtool import geometry
 # UTool
@@ -843,6 +843,12 @@ class IBEISController(object):
         # Execute SQL Add
         gid_list = ibs.db.add_cleanly(IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
 
+        if ut.duplicates_exist(gid_list):
+            gpath_list = ibs.get_image_paths(gid_list)
+            guuid_list = ibs.get_image_uuids(gid_list)
+            gext_list  = ibs.get_image_exts(gid_list)
+            ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
+
         if utool.VERBOSE:
             uuid_list = [None if params is None else params[0] for params in params_list]
             gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
@@ -864,6 +870,29 @@ class IBEISController(object):
             aid_list = ibs.use_images_as_annotations(gid_list)
             print('[ibs] added %d annotations' % (len(aid_list),))
         return gid_list
+
+    def localize_images(ibs, gid_list_=None):
+        """
+        Moves the images into the ibeis image cache.
+        Images are renamed to img_uuid.ext
+        """
+        if gid_list_ is None:
+            print('WARNING: you are localizing all gids')
+            gid_list_  = ibs.get_valid_gids()
+        isnone_list = [gid is None for gid in gid_list_]
+        gid_list = utool.unique_keep_order2(utool.filterfalse_items(gid_list_, isnone_list))
+        gpath_list = ibs.get_image_paths(gid_list)
+        guuid_list = ibs.get_image_uuids(gid_list)
+        gext_list  = ibs.get_image_exts(gid_list)
+        # Build list of image names based on uuid in the ibeis imgdir
+        guuid_strs = (str(guuid) for guuid in guuid_list)
+        loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
+        loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
+        # Copy images to local directory
+        utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
+        # Update database uris
+        ibs.set_image_uris(gid_list, loc_gname_list)
+        assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
     @adder
     def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,

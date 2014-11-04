@@ -108,6 +108,9 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 image_reviewed_list.append(reviewed)
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
+
+    import utool as ut
+    ut.debug_duplicate_items(image_gpath_list)
     #print(image_gpath_list)
     flags = list(map(exists, image_gpath_list))
     for image_gpath, flag in zip(image_gpath_list, flags):

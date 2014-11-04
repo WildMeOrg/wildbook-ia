@@ -2,6 +2,8 @@
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))"
 python -m doctest -v ibeis/model/hots/hots_nn_index.py
 python -m doctest ibeis/model/hots/hots_nn_index.py
+
+rob gp "ibsfuncs\..*\(ibs, "
 """
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
@@ -597,26 +599,7 @@ def get_annot_bbox_area(ibs, aid_list):
     return area_list
 
 
-@__injectable
-def localize_images(ibs, gid_list_=None):
-    """
-    Moves the images into the ibeis image cache.
-    Images are renamed to img_uuid.ext
-    """
-    if gid_list_ is None:
-        gid_list_  = ibs.get_valid_gids()
-    isnone_list = [gid is None for gid in gid_list_]
-    gid_list = utool.filterfalse_items(gid_list_, isnone_list)
-    gpath_list = ibs.get_image_paths(gid_list)
-    guuid_list = ibs.get_image_uuids(gid_list)
-    gext_list  = ibs.get_image_exts(gid_list)
-    # Build list of image names based on uuid in the ibeis imgdir
-    guuid_strs = (str(guuid) for guuid in guuid_list)
-    loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
-    loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
-    utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
-    ibs.set_image_uris(gid_list, loc_gname_list)
-    assert all(map(exists, loc_gpath_list)), 'not all images copied'
+#@__injectable
 
 
 @__injectable

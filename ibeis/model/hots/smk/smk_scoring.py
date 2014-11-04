@@ -65,19 +65,20 @@ def sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_t
         rvecs_list = rvecs_list[7:10]
 
     """
+    num_rvecs = len(rvecs_list)
     if DEBUG_SMK:
-        assert maws_list is None or len(maws_list) == len(rvecs_list), 'inconsistent lengths'
-        assert len(rvecs_list) == len(idf_list), 'inconsistent lengths'
-        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list)), 'inconsistent lengths'
-        assert flags_list is None or list(map(len, maws_list)) == list(map(len, flags_list)), 'inconsistent lengths'
-        assert flags_list is None or len(flags_list) == len(rvecs_list), 'inconsistent lengths'
+        assert maws_list is None or len(maws_list) == num_rvecs, 'inconsistent lengths'
+        assert num_rvecs == len(idf_list), 'inconsistent lengths'
+        assert maws_list is None or list(map(len, maws_list)) == list(map(len, rvecs_list)), 'inconsistent per word lengths'
+        assert flags_list is None or list(map(len, maws_list)) == list(map(len, flags_list)), 'inconsistent per word lengths'
+        assert flags_list is None or len(flags_list) == num_rvecs, 'inconsistent lengths'
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
     # List of scores for every word.
     scores_list = score_matches(rvecs_list, rvecs_list, flags_list, flags_list,
                                 maws_list, maws_list, smk_alpha, smk_thresh,
                                 idf_list)
     if DEBUG_SMK:
-        assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
+        assert len(scores_list) == num_rvecs, 'bad rvec and score'
         assert len(idf_list) == len(scores_list), 'bad weight and score'
     # Summation over all residual vector scores
     _count = sum((scores.size for scores in  scores_list))
@@ -85,8 +86,16 @@ def sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_t
     self_rawscore = np.fromiter(_iter, np.float64, _count).sum()
     # Square root inverse to enforce normalized self-score is 1.0
     sccw = np.reciprocal(np.sqrt(self_rawscore))
-    assert not np.isinf(sccw), 'sccw cannot be infinite'
-    assert not np.isnan(sccw), 'sccw cannot be nan'
+    try:
+        assert not np.isinf(sccw), 'sccw cannot be infinite'
+        assert not np.isnan(sccw), 'sccw cannot be nan'
+    except AssertionError as ex:
+        utool.printex(ex, 'problem computing self consistency criterion weight',
+                      keys=['num_rvecs'], iswarning=True)
+        if num_rvecs > 0:
+            raise
+        else:
+            sccw = 1
     return sccw
 
 
