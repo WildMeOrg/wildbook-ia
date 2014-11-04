@@ -66,13 +66,17 @@ def get_test_qaids(ibs):
     if valid_aids_() == 0:
         print('no annotations available')
 
+    # ALL CASES
     if params.args.all_cases:
         available_qaids.extend(valid_aids_())
-    if not params.args.all_cases or utool.get_argflag('--hard'):
+
+    # HARD CASES
+    if params.args.all_hard_cases or utool.get_argflag('--hard'):
         is_hard_list = ibs.get_annot_is_hard(valid_aids_())
         hard_aids = utool.filter_items(valid_aids_(), is_hard_list)
         available_qaids.extend(hard_aids)
 
+    # GROUNDTRUTH CASES
     if params.args.all_gt_cases:
         has_gt_list = ibs.get_annot_has_groundtruth(valid_aids_())
         hasgt_aids = utool.filter_items(valid_aids_(), has_gt_list)
@@ -80,6 +84,7 @@ def get_test_qaids(ibs):
                                                           len(valid_aids_())))
         available_qaids.extend(hasgt_aids)
 
+    # INDEX SUBSET
     # Sample a large pool of chosen query indexes
     # Filter only the ones you want from the large pool
     if params.args.index is not None:
@@ -89,6 +94,7 @@ def get_test_qaids(ibs):
         _test_qaids = [available_qaids[xx] for xx in indexes]
         available_qaids = _test_qaids
         printDBG('available_qaids = %r' % available_qaids)
+    # DEFAULT [0]
     elif len(available_qaids) == 0 and len(valid_aids_()) > 0:
         printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
         available_qaids = valid_aids_()[0:1]
@@ -100,9 +106,24 @@ def get_test_qaids(ibs):
 
 @utool.indent_func
 @profile
-def get_test_daids(ibs):
-    """ Gets database annot_rowids based on command line arguments """
+def get_test_daids(ibs, qaid_list=None):
+    """ Gets database annot_rowids based on command line arguments
+
+
+    CommandLine:
+        python dev.py --db PZ_MTEST -t best --exclude-query --qaid 72 -r 0 -c 0 --show --va --vf --dump-extra
+
+    """
     available_daids = ibs.get_valid_aids()
+
+    if utool.get_argflag('--exclude-singleton'):
+        raise NotImplementedError('')
+        # singleton_aids =
+        #available_daids = list(set(available_daids) - set(singleton_aids))
+
+    if utool.get_argflag('--exclude-query') and qaid_list is not None:
+        available_daids = list(set(available_daids) - set(qaid_list))
+
     if params.args.daid_exclude is not None:
         available_daids = list(set(available_daids) - set(params.args.daid_exclude))
     return available_daids
