@@ -682,6 +682,8 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     if DEBUG:
         print('scores_to_color()')
     assert len(score_list.shape) == 1, 'score must be 1d'
+    if len(score_list) == 0:
+        return []
     if logscale:
         score_list = np.log2(np.log2(score_list + 2) + 1)
     cmap = plt.get_cmap(cmap_)
@@ -942,6 +944,9 @@ def colorbar(scalars, colors, custom=False):
         >>> df2.present()
     """
     printDBG('colorbar()')
+    assert len(scalars) == len(colors), 'scalars and colors must be corresponding'
+    if len(scalars) == 0:
+        return None
     # Parameters
     ax = gca()
     divider = ensure_divider(ax)
