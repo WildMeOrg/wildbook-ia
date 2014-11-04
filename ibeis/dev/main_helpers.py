@@ -106,9 +106,24 @@ def get_test_qaids(ibs):
 
 @utool.indent_func
 @profile
-def get_test_daids(ibs):
-    """ Gets database annot_rowids based on command line arguments """
+def get_test_daids(ibs, qaid_list=None):
+    """ Gets database annot_rowids based on command line arguments
+
+
+    CommandLine:
+        python dev.py --db PZ_MTEST -t best --exclude-query --qaid 72 -r 0 -c 0 --show --va --vf --dump-extra
+
+    """
     available_daids = ibs.get_valid_aids()
+
+    if utool.get_argflag('--exclude-singleton'):
+        raise NotImplementedError('')
+        # singleton_aids =
+        #available_daids = list(set(available_daids) - set(singleton_aids))
+
+    if utool.get_argflag('--exclude-query') and qaid_list is not None:
+        available_daids = list(set(available_daids) - set(qaid_list))
+
     if params.args.daid_exclude is not None:
         available_daids = list(set(available_daids) - set(params.args.daid_exclude))
     return available_daids

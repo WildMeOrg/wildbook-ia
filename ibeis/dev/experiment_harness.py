@@ -66,13 +66,14 @@ def get_qx2_bestrank(ibs, qaids, daids):
 #-----------
 #@utool.indent_func('[harn]')
 #@profile
-def test_configurations(ibs, qaid_list, test_cfg_name_list):
+def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     """
     Test harness driver function
 
     Args:
         ibs (IBEISController):
         qaid_list (int): query annotation id
+        daid_list (int): data annotation id
         test_cfg_name_list (list):
 
     Example:
@@ -89,6 +90,9 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list):
         [harn] experiment_harness.test_configurations()""").strip())
 
     qaids = qaid_list
+    daids = daid_list
+    #if daids is None:
+    #    daids = ibs.get_recognition_database_aids()
 
     # Grab list of algorithm configurations to test
     #cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)
@@ -120,7 +124,6 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list):
     mark_prog = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '+')
     # Run each test configuration
     # Query Config / Col Loop
-    daids = ibs.get_recognition_database_aids()
     #nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     with utool.Timer('experiment_harness'):
         for cfgx, query_cfg in enumerate(cfg_list):

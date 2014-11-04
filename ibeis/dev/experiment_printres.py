@@ -43,6 +43,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
     """
+    print(' --- PRINT RESULTS ---')
     nCfg = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
@@ -334,6 +335,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     #------------
     # Print summary
+    print(' --- SUMMARY ---')
     sumstrs = []
     sumstrs.append('')
     sumstrs.append('||===========================')
@@ -353,6 +355,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
     """
+    print(' --- DRAW RESULTS ---')
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -426,7 +429,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     # Save DEFAULT=True
     def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
-        print('show_chip(aid=%r)' % (aid,))
+        print('[PRINT_RESULTS] show_chip(aid=%r)' % (aid,))
         from ibeis import viz
         if aid in seen:
             return
@@ -477,14 +480,19 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
             continue
 
+        print('[harn] showing analysis')
+
         # Show Figure
         # try to shorten query labels a bit
         query_lbl = query_lbl.replace(' ', '').replace('\'', '')
         qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
+
         # Adjust subplots
         df2.adjust_subplots_safe()
         fpath_orig = ph.dump_figure(figdir, **dumpkw)
         append_copy_task(fpath_orig)
+
+        print('[harn] showing other plots')
 
         if DUMP_QANNOT:
             _show_chip(qres.qaid, 'QUERY_', **dumpkw)
@@ -502,9 +510,14 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 rank = qres.get_aid_ranks(aid)
                 _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
+        if utool.get_argflag('--show'):
+            print('[PRINT_RESULTS] df2.present()')
+            df2.present()
+
     # Copy summary images to query_analysis folder
+    print('[PRINT_RESULTS] copying summaries')
     for src, dst in zip(cp_src_list, cp_dst_list):
         utool.copy(src, dst)
 
     if utool.NOT_QUIET:
-        print('[harn] EXIT EXPERIMENT HARNESS')
+        print('[PRINT_RESULTS] EXIT EXPERIMENT HARNESS')

@@ -405,7 +405,7 @@ def run_devprecmds():
 
 #@utool.indent_func('[dev]')
 #@profile
-def run_devcmds(ibs, qaid_list):
+def run_devcmds(ibs, qaid_list, daid_list):
     """
     This function runs tests passed in with the -t flag
     """
@@ -467,6 +467,7 @@ def run_devcmds(ibs, qaid_list):
             with utool.Indenter('[dev.' + funcname + ']'):
                 with utool.Timer(funcname):
                     print('[dev] qid_list=%r' % (qaid_list,))
+                    # FIXME: , daid_list
                     ret = func(ibs, qaid_list)
                     # Add variables returned by the function to the
                     # "local scope" (the exec scop)
@@ -484,7 +485,7 @@ def run_devcmds(ibs, qaid_list):
             test_cfg_name_list = [test_cfg_name]
             fnum = df2.next_fnum()
             # Should we specify fnum here?
-            experiment_harness.test_configurations(ibs, qaid_list, test_cfg_name_list)
+            experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -719,28 +720,31 @@ def devfunc(ibs, qaid_list):
 
 def run_dev(main_locals):
     """ main command """
-    print('[dev] run_dev')
+    print('[dev] --- RUN DEV ---')
     # Get references to controller
     ibs  = main_locals['ibs']
     if ibs is not None:
         # Get aids marked as test cases
         qaid_list = main_helpers.get_test_qaids(ibs)
-        daid_list = main_helpers.get_test_daids(ibs)
+        daid_list = main_helpers.get_test_daids(ibs, qaid_list)
         print('[run_def] Test Annotations:')
         print('[run_dev] * qaid_list = %s' % utool.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
         print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
         print('[run_dev] * len(daid_list) = %d' % len(daid_list))
+        print('[run_dev] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
         ibs.temporary_state['daid_list'] = daid_list
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
+            assert len(daid_list) > 0, 'daid_list!'
         except AssertionError as ex:
             utool.printex(ex, 'len(qaid_list) = 0', iswarning=True)
+            utool.printex(ex, 'or len(daid_list) = 0', iswarning=True)
             #qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
             # Run the dev experiments
-            expt_locals = run_devcmds(ibs, qaid_list)
+            expt_locals = run_devcmds(ibs, qaid_list, daid_list)
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
