@@ -56,7 +56,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         if 'colors' not in kwargs:
             from ibeis.model.preproc import preproc_featweight
             featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[0]
-            kwargs['color'] = featweights
+            colors = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
+            kwargs['color'] = colors
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
         try:
             del kwargs['kpts']
@@ -71,6 +72,12 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         aid_list = ibs.get_image_aids(gid)
         annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid])
         viz_image2.draw_image_overlay(ax, **annotekw)
+
+    if 'featweights' in vars() and 'color' in kwargs:
+        # HACK HACK HACK
+        if len(featweights) > 0:
+            cb = df2.colorbar(featweights, kwargs['color'])
+            cb.set_label('fg_weights')
 
 
 if __name__ == '__main__':
@@ -88,7 +95,7 @@ if __name__ == '__main__':
     kpts = ibs.get_annot_kpts(aid)
 
     from ibeis.model.preproc import preproc_featweight
-    featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[0]
+    featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[-1]
     colors = featweights
     #import numpy as np
     # plot rf feature weights

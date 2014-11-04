@@ -47,12 +47,6 @@ __INJECTABLE_FUNCS__ = []
 #        return closure_injectable(input_)
 #    else:
 #        return partial(closure_injectable, indent=input_)
-
-#import ibeis
-import utool as ut  # NOQA
-
-from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.classmember(IBEISController)
 #__injectable(utool.inject_func_as_method)
 
 
@@ -63,8 +57,14 @@ __injectable = ut.classmember(IBEISController)
 #        utool.inject_func_as_method(ibs, func)
 #    postinject_func()
 
+#import ibeis
+import utool as ut  # NOQA
 
-@ut.classpostinject(IBEISController)
+from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
+__injectable = ut.make_class_method_decorator(IBEISController)
+
+
+@ut.make_class_postinject_decorator(IBEISController)
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
@@ -1422,19 +1422,6 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
 
 
 @__injectable
-def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
-    aids_hashid = utool.hashstr_arr(aid_list, label)
-    return aids_hashid
-
-
-@__injectable
-def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
-    uuid_list    = ibs.get_annot_uuids(aid_list)
-    uuui_hashid  = utool.hashstr_arr(uuid_list, label)
-    return uuui_hashid
-
-
-@__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     """
     >>> per_name = 1
@@ -1555,3 +1542,11 @@ def get_dbnotes(ibs):
 @__injectable
 def annotstr(ibs, aid):
     return 'aid=%d' % aid
+
+
+def redownload_detection_models():
+    from ibeis.model.detect import grabmodels
+    print('[ibsfuncs] redownload_detection_models')
+    utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
+    grabmodels.ensure_models()
+    print('[ibsfuncs] finished redownload_detection_models')

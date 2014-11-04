@@ -6,6 +6,7 @@ Need to make controller functions have a purely stateless option.
 """
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index as hsnbrx
+from ibeis.model import Config
 import six
 # UTool
 import utool
@@ -300,34 +301,6 @@ class QueryRequest(object):
         assert_uuids(_daids, _dauuids)
 
 
-def parse_config_items(cfg):
-    """
-    Recursively extracts key, val pairs from Config objects
-    into a flat list. (there must not be name conflicts)
-
-    Example:
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cfg = ibs.cfg.query_cfg
-        >>> param_list = parse_config_items(cfg)
-    """
-    import ibeis
-    param_list = []
-    for item in cfg.items():
-        key, val = item
-        if key.startswith('_'):
-            #print(key)
-            pass
-        elif isinstance(val, ibeis.model.Config.ConfigBase):
-            param_list.extend(parse_config_items(val))
-            #print(key)
-            pass
-        else:
-            param_list.append(item)
-            #print(key)
-    return param_list
-
-
 def test_cfg_deepcopy():
     import ibeis
     ibs = ibeis.opendb('testdb1')
@@ -365,7 +338,7 @@ class QueryParams(object):
             cfg2 = cfg.deepcopy()
             cfg2.update_query_cfg(**custom_qparams)
             cfg = cfg2
-        param_list = parse_config_items(cfg)
+        param_list = Config.parse_config_items(cfg)
         seen_ = set()
         for key, val in param_list:
             if key not in seen_:

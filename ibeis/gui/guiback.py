@@ -16,7 +16,6 @@ from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
-from ibeis.model.detect import grabmodels
 # Utool
 import utool
 from ibeis import constants
@@ -734,12 +733,11 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def redownload_detection_models(back):
+        from ibeis import ibsfuncs
         print('[back] redownload_detection_models')
         if not back.are_you_sure():
             return
-        utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
-        grabmodels.ensure_models()
-        pass
+        ibsfuncs.redownload_detection_models()
 
     @slot_()
     def delete_cache(back):

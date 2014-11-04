@@ -400,7 +400,7 @@ class QueryResult(__OBJECT_BASE__):
         #return rank_list
 
     def get_gt_scores(qres, gt_aids=None, ibs=None, return_gtaids=False):
-        'returns the 0 indexed ranking of each groundtruth chip'
+        """ returns the 0 indexed ranking of each groundtruth chip """
         # Ensure correct input
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')
@@ -413,7 +413,7 @@ class QueryResult(__OBJECT_BASE__):
             return gt_scores
 
     def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False):
-        'returns the 0 indexed ranking of each groundtruth chip'
+        """ returns the 0 indexed ranking of each groundtruth chip """
         # Ensure correct input
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')

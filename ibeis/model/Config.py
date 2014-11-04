@@ -19,7 +19,9 @@ def make_config_metaclass():
 
     @_register
     def get_cfgstr_list(cfg):
-        return ['cfg']
+        item_list = parse_config_items(cfg)
+        return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
+        #return ['cfg']
 
     # Needed for comparison operators
     @_register
@@ -31,20 +33,17 @@ def make_config_metaclass():
         return ''.join(cfg.get_cfgstr_list())
 
     class ConfigMetaclass(type):
-        #ConfigBase.__class__):
+        """ Defines extra methods for Configs
         """
-        Defines extra methods for Configs
-        """
-
-        # cls - meta
-        # name - classname
-        # supers - bases
-        # dct - class dictionary
-
         #print(dct)
-        #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list'
 
         def __new__(cls, name, bases, dct):
+            """cls - meta
+            name - classname
+            supers - bases
+            dct - class dictionary
+            """
+            assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list.  name=%r' % (name,)
             for func in methods_list:
                 if get_funcname(func) not in dct:
                     funcname = get_funcname(func)
@@ -67,12 +66,45 @@ def make_config_metaclass():
 ConfigMetaclass = make_config_metaclass()
 
 
+def parse_config_items(cfg):
+    """
+    Recursively extracts key, val pairs from Config objects
+    into a flat list. (there must not be name conflicts)
+
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> param_list = parse_config_items(cfg)
+    """
+    import ibeis
+    param_list = []
+    for item in cfg.items():
+        key, val = item
+        if key.startswith('_'):
+            #print(key)
+            pass
+        elif isinstance(val, ibeis.model.Config.ConfigBase):
+            param_list.extend(parse_config_items(val))
+            #print(key)
+            pass
+        else:
+            param_list.append(item)
+            #print(key)
+    return param_list
+
+
 @six.add_metaclass(ConfigMetaclass)
 class GenericConfig(ConfigBase):
     def __init__(cfg, *args, **kwargs):
         super(GenericConfig, cfg).__init__(*args, **kwargs)
 
-    #def get_cfgstr_list(nn_cfg):
+    def get_cfgstr_list(cfg):
+        #raise NotImplementedError('abstract')
+        item_list = parse_config_items(cfg)
+        return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
+        #return ['unimplemented']
+        #pass
 
     #@abstract():
     #def get_cfgstr_list(cfg):
@@ -306,7 +338,9 @@ class AggregateConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
-    """ FlannConfig """
+    """ FlannConfig
+    TODO: this might not need to be here
+    """
     def __init__(flann_cfg, **kwargs):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
         flann_cfg.algorithm = 'kdtree'
@@ -333,8 +367,6 @@ class FlannConfig(ConfigBase):
 class SMKConfig(ConfigBase):
     """
     SMKConfig
-        #= ibeis.opendb('testdb1')
-
 
     Example:
         >>> from ibeis.model.Config import *  # NOQA
@@ -382,20 +414,7 @@ class SMKConfig(ConfigBase):
         smk_cfgstr_list.extend(smk_cfg.vocabtrain_cfg.get_cfgstr_list())
         return smk_cfgstr_list
 
-    #def get_cfgstr_list(smk_cfg):
-    #    smk_cfgstr = [
-    #        '_SMK(',
-    #        'agg=', str(smk_cfg.aggregate),
-    #        ',t=', str(smk_cfg.smk_thresh),
-    #        ',a=', str(smk_cfg.smk_alpha),
-    #        ',%s' % smk_cfg.vocab_weighting,
-    #        ',SelfOk' if smk_cfg.allow_self_match else '',
-    #        ')',
-    #    ]
-    #    return smk_cfgstr
 
-
-# TODO
 @six.add_metaclass(ConfigMetaclass)
 class VocabTrainConfig(ConfigBase):
     """ VocabTrainConfig
@@ -433,7 +452,6 @@ class VocabTrainConfig(ConfigBase):
         return vocabtrain_cfg_list
 
 
-# TODO
 @six.add_metaclass(ConfigMetaclass)
 class VocabAssignConfig(ConfigBase):
     """ VocabAssignConfig
@@ -493,6 +511,7 @@ class QueryConfig(ConfigBase):
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
         query_cfg.flann_cfg = FlannConfig(**kwargs)
         query_cfg.smk_cfg   = SMKConfig(**kwargs)
+        query_cfg.featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
         # Start of pipeline
@@ -586,6 +605,8 @@ class QueryConfig(ConfigBase):
                 cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
         else:
             raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+        if kwargs.get('use_featweight', True):
+            cfgstr_list += query_cfg.featweight_cfg.get_cfgstr_list(**kwargs)
 
         if kwargs.get('use_feat', True):
             cfgstr_list += query_cfg._feat_cfg.get_cfgstr_list()
@@ -795,16 +816,65 @@ class ChipConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class DisplayConfig(ConfigBase):
-    """ DisplayConfig """
-    def __init__(display_cfg, **kwargs):
-        super(DisplayConfig, display_cfg).__init__(name='display_cfg')
-        display_cfg.N = 6
-        display_cfg.name_scoring = False
-        display_cfg.showanalysis = False
-        display_cfg.annotations  = True
-        display_cfg.vert = True  # None
-        display_cfg.show_results_in_image = False  # None
+class FeatureWeightConfig(ConfigBase):
+    """
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> featweight_cfg = FeatureWeightConfig()
+        >>> print(featweight_cfg.get_cfgstr())
+        _FEATWEIGHT(OFF)
+    """
+
+    def __init__(featweight_cfg, **kwargs):
+        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
+        # Feature weights depend on the detector, but we only need to mirror
+        # some parameters because featweight_cfg should not use the detect_cfg
+        # object
+        featweight_cfg.featweight_on = True
+        featweight_cfg.featweight_species  = 'uselabel'
+        featweight_cfg.featweight_detector = 'rf'
+        featweight_cfg.update(**kwargs)
+
+    def make_feasible(featweight_cfg):
+        #featweight_cfg.featweight_on = False
+        pass
+
+    def get_cfgstr_list(featweight_cfg):
+        featweight_cfg.make_feasible()
+        if featweight_cfg.featweight_on is False:
+            return ['_FEATWEIGHT(OFF)']
+        else:
+            cfgstrs = [
+                '_FEATWEIGHT(ON',
+                ',' + featweight_cfg.featweight_species,
+                ',' + featweight_cfg.featweight_detector,
+                ')']
+        return cfgstrs
+
+
+@six.add_metaclass(ConfigMetaclass)
+class DetectionConfig(ConfigBase):
+    """
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> detect_cfg = DetectionConfig()
+        >>> print(detect_cfg.get_cfgstr())
+        _DETECT(rf,zebra_grevys)
+    """
+    def __init__(detect_cfg, **kwargs):
+        super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
+        detect_cfg.species     = 'zebra_grevys'
+        detect_cfg.detector    = 'rf'
+        detect_cfg.detectimg_sqrt_area = 800
+        detect_cfg.update(**kwargs)
+
+    def get_cfgstr_list(detect_cfg):
+        cfgstrs = ['_DETECT(',
+                   detect_cfg.detector,
+                   ',', detect_cfg.species,
+                   ',sz=%d' % (detect_cfg.detectimg_sqrt_area,),
+                   ')']
+        return cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -836,68 +906,21 @@ class EncounterConfig(ConfigBase):
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
 
-#@six.add_metaclass(ConfigMetaclass)
-#class PreprocConfig(ConfigBase):
-#    def __init__(preproc_cfg, **kwargs):
-#        super(PreprocConfig, preproc_cfg).__init__(name='preproc_cfg')
-#        preproc_cfg.max_image_width  = 1000
-#        preproc_cfg.max_image_height = 1000
-
-#    def get_cfgstr_list(preproc_cfg):
-#        cfgstrs = []
-#        return ['_PREPROC(', ','.join(cfgstrs), ')']
-
-
 @six.add_metaclass(ConfigMetaclass)
-class DetectionConfig(ConfigBase):
-    """
-    Example:
-        >>> from ibeis.model.Config import *  # NOQA
-        >>> detect_cfg = DetectionConfig()
-        >>> print(detect_cfg.get_cfgstr())
-        _DETECT(rf,zebra_grevys)
-    """
-    def __init__(detect_cfg, **kwargs):
-        super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
-        detect_cfg.species     = 'zebra_grevys'
-        detect_cfg.detector    = 'rf'
-        detect_cfg.detectimg_sqrt_area = 800
+class DisplayConfig(ConfigBase):
+    """ DisplayConfig """
+    def __init__(display_cfg, **kwargs):
+        super(DisplayConfig, display_cfg).__init__(name='display_cfg')
+        display_cfg.N = 6
+        display_cfg.name_scoring = False
+        display_cfg.showanalysis = False
+        display_cfg.annotations  = True
+        display_cfg.vert = True  # None
+        display_cfg.show_results_in_image = False  # None
 
-    def get_cfgstr_list(detect_cfg):
-        cfgstrs = ['_DETECT(',
-                   detect_cfg.detector,
-                   ',', detect_cfg.species,
-                   ',sz=%d' % (detect_cfg.detectimg_sqrt_area,),
-                   ')']
-        return cfgstrs
-
-
-@six.add_metaclass(ConfigMetaclass)
-class FeatureWeightConfig(ConfigBase):
-    """
-    Example:
-        >>> from ibeis.model.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig()
-        >>> print(featweight_cfg.get_cfgstr())
-        _FEATWEIGHT(OFF)
-    """
-
-    def __init__(featweight_cfg, _detect_cfg=None, **kwargs):
-        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
-        featweight_cfg.featweight_on = True
-        featweight_cfg._detect_cfg = _detect_cfg
-
-    def make_feasible(featweight_cfg):
-        if featweight_cfg._detect_cfg is None:
-            featweight_cfg.featweight_on = False
-
-    def get_cfgstr_list(featweight_cfg):
-        featweight_cfg.make_feasible()
-        if featweight_cfg.featweight_on is False:
-            return ['_FEATWEIGHT(OFF)']
-        else:
-            cfgstrs = ['_FEATWEIGHT(ON)'] + featweight_cfg._detect_cfg.get_cfgstr_list()
-        return cfgstrs
+    def get_cfgstr_list(nn_cfg):
+        raise NotImplementedError('abstract')
+        return ['unimplemented']
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -909,6 +932,11 @@ class OtherConfig(ConfigBase):
         othercfg.auto_localize  = True
         othercfg.detect_add_after = 1
         othercfg.detect_use_chunks = True
+        othercfg.update(**kwargs)
+
+    def get_cfgstr_list(nn_cfg):
+        raise NotImplementedError('abstract')
+        return ['unimplemented']
 
 
 # Convinience
