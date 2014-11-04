@@ -72,6 +72,8 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
         if not clip_centroids:
             raise ex
+        else:
+            nCentroids = data.shape[0]
     print('+--- START CACHED AKMEANS')
     # filename prefix constants
     if cache_dir == 'default':

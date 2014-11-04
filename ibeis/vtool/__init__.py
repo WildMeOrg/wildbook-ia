@@ -44,6 +44,7 @@ from . import ellipse as etool
 from . import patch as ptool
 from . import chip as ctool
 from . import spatial_verification as svtool
+from . import clustering2 as clustertool
 from . import trig
 from . import math as mtool
 
@@ -84,3 +85,34 @@ C:\MinGW\bin\gcc.exe -w -Wall -m32 -lpython27 -IC:\Python27\Lib\site-packages\nu
 
 python -c "import vtool"
 """
+
+import sys
+__DYNAMIC__ = not '--nodyn' in sys.argv
+
+#__DYNAMIC__ = '--dyn' in sys.argv
+"""
+python -c "import vtool" --dump-vtool-init
+python -c "import vtool" --update-vtool-init
+"""
+
+DOELSE = False
+if __DYNAMIC__:
+    # TODO: import all utool external prereqs. Then the imports will not import
+    # anything that has already in a toplevel namespace
+    # COMMENTED OUT FOR FROZEN __INIT__
+    # Dynamically import listed util libraries and their members.
+    from utool._internal import util_importer
+    # FIXME: this might actually work with rrrr, but things arent being
+    # reimported because they are already in the modules list
+    import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
+    exec(import_execstr)
+    DOELSE = False
+else:
+    # Do the nonexec import (can force it to happen no matter what if alwyas set
+    # to True)
+    DOELSE = True
+
+if DOELSE:
+    pass
+    # <AUTOGEN_INIT>
+    # </AUTOGEN_INIT>
