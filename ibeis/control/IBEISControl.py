@@ -268,7 +268,7 @@ class IBEISController(object):
                                               text_factory=__STR__,
                                               inmemory=False)
         # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.2'
+        ibs.dbcache_version_expected = '1.0.3'
         ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
         # Ensure correct schema versions
         _sql_helpers.ensure_correct_version(
@@ -1098,75 +1098,6 @@ class IBEISController(object):
             fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return fid_list
-
-    def ensure_annot_fg_weights(ibs, aid_list, verbose=True):
-        """
-
-        # FIXME: this depends on the detector cfg
-        # We could make it depend on the annotation species label
-
-        Example:
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> aid_list = ibs.get_valid_aids()
-            >>> fg_weight_list = ibs.ensure_annot_fg_weights(aid_list)
-        """
-        if verbose:
-            print('Ensuring fg weights exist')
-        from ibeis.model.preproc import preproc_featweight
-        orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
-        flag_list = [fgw is None for fgw in orig_fgweight_list]
-        dirty_aids = utool.filter_items(aid_list, flag_list)
-        if len(dirty_aids) > 0:
-            fgweight_list = preproc_featweight.compute_fg_weights(ibs, dirty_aids)
-            ibs.set_annot_fg_weights(dirty_aids, fgweight_list)
-            return ibs.get_annot_fg_weights(aid_list)
-        else:
-            return orig_fgweight_list
-
-    def delete_annot_fg_weights(ibs, aid_list):
-        """
-        Example:
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> aid_list = ibs.get_valid_aids()
-            >>> old_fg_weights = ibs.get_annot_fg_weights(aid_list)
-            >>> if all([fg is None for fg in old_fg_weights]):
-            ...     print('Warning: cannot check delete')
-            >>> ibs.delete_annot_fg_weights(aid_list)
-            >>> fg_weights = ibs.get_annot_fg_weights(aid_list)
-            >>> assert all([fg is None for fg in fg_weights])
-        """
-        fid_list  = ibs.get_annot_fids(aid_list)
-        ibs.set_feat_fg_weights(fid_list, [None] * len(aid_list))
-
-    def set_annot_fg_weights(ibs, aid_list, fgweight_list):
-        """
-        set_annot_fg_weights
-
-        Args:
-            ibs (IBEISController):
-            aid_list (list):
-            fgweight_list (list):
-
-        Example:
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> from ibeis.model.preproc import preproc_featweight
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> aid_list = ibs.get_valid_aids()
-            >>> orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
-            >>> fgweight_list = preproc_featweight.compute_fg_weights(ibs, aid_list)
-            >>> ibs.set_annot_fg_weights(aid_list, fgweight_list)
-        """
-        fid_list  = ibs.get_annot_fids(aid_list)
-        ibs.set_feat_fg_weights(fid_list, fgweight_list)
-
-    def set_feat_fg_weights(ibs, fid_list, fgweight_list):
-        id_iter = fid_list
-        colnames = ('feature_forground_weight',)
-        val_iter = ((fgweight,) for fgweight in fgweight_list)
-        ibs.dbcache.set(FEATURE_TABLE, colnames, val_iter, id_iter)
 
     #
     #
@@ -3836,6 +3767,213 @@ class IBEISController(object):
         uuid_list    = ibs.get_annot_uuids(aid_list)
         uuui_hashid  = utool.hashstr_arr(uuid_list, label)
         return uuui_hashid
+
+    # ____ manual fgweights (bad)
+
+    def ensure_annot_fg_weights(ibs, aid_list, verbose=True):
+        """
+        # FIXME: this depends on the detector cfg
+        # We could make it depend on the annotation species label
+
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> fg_weight_list = ibs.ensure_annot_fg_weights(aid_list)
+        """
+        if verbose:
+            print('Ensuring fg weights exist')
+        from ibeis.model.preproc import preproc_featweight
+        orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
+        flag_list = [fgw is None for fgw in orig_fgweight_list]
+        dirty_aids = utool.filter_items(aid_list, flag_list)
+        if len(dirty_aids) > 0:
+            fgweight_list = preproc_featweight.compute_fg_weights(ibs, dirty_aids)
+            ibs.set_annot_fg_weights(dirty_aids, fgweight_list)
+            return ibs.get_annot_fg_weights(aid_list)
+        else:
+            return orig_fgweight_list
+
+    def delete_annot_fg_weights(ibs, aid_list):
+        """
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> old_fg_weights = ibs.get_annot_fg_weights(aid_list)
+            >>> if all([fg is None for fg in old_fg_weights]):
+            ...     print('Warning: cannot check delete')
+            >>> ibs.delete_annot_fg_weights(aid_list)
+            >>> fg_weights = ibs.get_annot_fg_weights(aid_list)
+            >>> assert all([fg is None for fg in fg_weights])
+        """
+        fid_list  = ibs.get_annot_fids(aid_list)
+        ibs.set_feat_fg_weights(fid_list, [None] * len(aid_list))
+
+    def set_annot_fg_weights(ibs, aid_list, fgweight_list):
+        """
+        set_annot_fg_weights
+
+        Args:
+            ibs (IBEISController):
+            aid_list (list):
+            fgweight_list (list):
+
+        Example:
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> from ibeis.model.preproc import preproc_featweight
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
+            >>> fgweight_list = preproc_featweight.compute_fg_weights(ibs, aid_list)
+            >>> ibs.set_annot_fg_weights(aid_list, fgweight_list)
+        """
+        fid_list  = ibs.get_annot_fids(aid_list)
+        ibs.set_feat_fg_weights(fid_list, fgweight_list)
+
+    def set_feat_fg_weights(ibs, fid_list, fgweight_list):
+        id_iter = fid_list
+        colnames = ('feature_forground_weight',)
+        val_iter = ((fgweight,) for fgweight in fgweight_list)
+        ibs.dbcache.set(FEATURE_TABLE, colnames, val_iter, id_iter)
+
+    # ___________
+
+    def add_feat_featweight(ibs, fid_list, config_rowid=None):
+        """
+        Adds / ensures / computes a dependent property
+
+        adder_template_dependant_child
+
+        returns config_rowid of the current configuration
+        """
+        raise NotImplementedError('this code is a stub, you must populate it')
+        from ibeis.model.preproc import preproc_featweight
+        if config_rowid is None:
+            config_rowid = ibs.get_featweight_config_rowid()
+        featweight_rowid_list = ibs.get_feat_featweight_rowids(
+            fid_list, config_rowid=config_rowid, ensure=False)
+        dirty_fid_list = utool.get_dirty_items(fid_list, featweight_rowid_list)
+        if len(dirty_fid_list) > 0:
+            if utool.VERBOSE:
+                print('[ibs] adding %d / %d featweight' %
+                      (len(dirty_fid_list), len(fid_list)))
+
+            colnames = [
+                'feature_rowid', 'config_rowid', 'featweight_forground_weight']
+            import functools  # NOQA
+            get_rowid_from_superkey = functools.partial(
+                ibs.get_feat_featweight_rowids, ensure=False)
+            #params_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+            ####
+            colnames = [
+                'feature_rowid', 'config_rowid', 'featweight_forground_weight']
+            params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
+                           zip(fid_list, fgweight_list))
+
+            params_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+
+            fgweight_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+            params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
+                           zip(dirty_fid_list, fgweight_list))
+            ####
+            # params_iter = preproc_featweight.add_featweight_params_gen(ibs, dirty_fid_list)
+            #params_iter = params_list
+            featweight_rowid_list = ibs.dbcache.add_cleanly(
+                constants.FEATURE_WEIGHT_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        return featweight_rowid_list
+
+    def get_featweight_config_rowid(ibs):
+        """
+        returns config_rowid of the current configuration
+        Config rowids are always ensured
+
+        getter_template_table_config_rowid
+
+        Example:
+            >>> import ibeis; ibs = ibeis.opendb('testdb1')
+
+        """
+        featweight_cfg_suffix = ibs.cfg.featweight_cfg.get_cfgstr()
+        featweight_cfg_rowid = ibs.add_config(featweight_cfg_suffix)
+        return featweight_cfg_rowid
+
+    def get_annot_fgweight(ibs, aid_list, config_rowid=None):
+        """ get fgweight data of the annot table using the dependant chip table
+
+        getter_template_dependant_column
+
+        Args:
+            aid_list (list):
+
+        Returns:
+            list: fgweight_list
+        """
+        cid_list = ibs.get_annot_cids(aid_list)
+        fid_list = ibs.get_chip_fids(cid_list)
+        featweight_rowid_list = ibs.get_feat_featweight_rowids(fid_list, config_rowid=config_rowid)
+        fgweight_list = ibs.get_featweight_fgweight(featweight_rowid_list)
+        return fgweight_list
+
+    def get_feat_featweight_rowids(ibs, fid_list,
+                                   config_rowid=None, all_configs=False,
+                                   ensure=True, eager=True,
+                                   num_params=None):
+        """
+        get_feat_featweight_rowids
+
+        get featweight rowids of feat under the current state configuration
+
+        Args:
+            fid_list (list):
+
+        Returns:
+            list: featweight_rowid_list
+        """
+        if ensure:
+            ibs.add_featweights(fid_list)
+        if config_rowid is None:
+            config_rowid = ibs.get_featweight_config_rowid()
+        colnames = (FEATWEIGHT_ROWID,)
+        if all_configs:
+            config_rowid = ibs.dbcache.get(
+                constants.FEATURE_WEIGHT_TABLE, colnames, fid_list,
+                id_colname=FEAT_ROWID, eager=eager, num_params=num_params)
+        else:
+            config_rowid = ibs.get_featweight_config_rowid()
+            andwhere_colnames = [FEAT_ROWID, CONFIG_ROWID]
+            params_iter = ((fid, config_rowid,) for fid in fid_list)
+            featweight_rowid_list = ibs.dbcache.get_where2(
+                constants.FEATURE_WEIGHT_TABLE, colnames, params_iter, andwhere_colnames, eager=eager,
+                num_params=num_params)
+        return featweight_rowid_list
+
+    def get_featweight_fgweight(ibs, featweight_rowid_list, eager=True):
+        """gets data from the level 0 column "fgweight" in the "featweight" table
+
+        getter_template_native_column
+
+        Args:
+            featweight_rowid_list (list):
+
+        Returns:
+            list: fgweight_list
+        """
+        id_iter = featweight_rowid_list
+        colnames = (FEATWEIGHT_FORGROUND_WEIGHT,)
+        fgweight_list = ibs.dbcache.get(
+            constants.FEATURE_WEIGHT_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+        return fgweight_list
+
+"""
+python ibeis/control/templates.py
+"""
+
+CONFIG_ROWID                = 'config_rowid'
+FEATWEIGHT_FORGROUND_WEIGHT = 'featweight_forground_weight'
+FEATWEIGHT_ROWID            = 'featweight_rowid'
+FEAT_ROWID                  = 'feat_rowid'
 
 
 # Import modules which define injectable functions

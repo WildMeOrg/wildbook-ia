@@ -343,7 +343,9 @@ def test_dbschema():
 
     CommandLine:
         python ibeis/control/DB_SCHEMA.py
-        python ibeis/control/DB_SCHEMA.py -n 2
+        python ibeis/control/DB_SCHEMA.py -n=0
+        python ibeis/control/DB_SCHEMA.py -n=1
+        python ibeis/control/DB_SCHEMA.py -n=-1
         python ibeis/control/DB_SCHEMA.py --force-incremental-db-update
 
     Example:
