@@ -213,7 +213,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
     centers = data.take(center_indicies, axis=0)
     build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
     num_sample = min(samples_per_iter, len(data))
-    progiter = utool.progiter(range(0, K), lbl='akmeans++ init')
+    progiter = utool.progiter(range(0, K), lbl='akmeans++ init', freq=200)
     _iter = progiter.iter_rate()
     six.next(_iter)
 
