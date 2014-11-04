@@ -50,10 +50,16 @@
 <script src="{{ url_for('static', filename='include/annotorious-0.6.3/annotorious.min.js') }}"></script>
 <script type="text/javascript">
   var image = anno.makeAnnotatable(document.getElementById('detection-image'));
+  anno.addHandler('onAnnotationCreated', function(annotation) {
+    update_annotations(this);
+  });
+  anno.addHandler('onAnnotationRemoved', function(annotation) {
+    update_annotations(this);
+  });
   
-  function update_annotations()
+  function update_annotations(annot)
   {
-    var annotations = image.getAnnotations();
+    var annotations = anno.getAnnotations();
     console.log(annotations);
     alert(1);
   }
