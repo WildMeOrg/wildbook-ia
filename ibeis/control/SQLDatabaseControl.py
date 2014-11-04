@@ -1247,14 +1247,33 @@ class SQLDatabaseController(object):
         for tablename in db.get_table_names():
             print(db.get_table_csv_header(tablename) + '\n')
 
-    def get_db_version(db):
+    def get_db_version(db, ensure=True):
         metadata_key_list = ['database_version']
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
         metadata_value_list = db.get_where(constants.METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+        assert len(metadata_value_list) == 1, 'duplicate database_version keys in database'
         version = metadata_value_list[0]
+        if version is None and ensure:
+            version = constants.BASE_DATABASE_VERSION
+            colnames = ['metadata_key', 'metadata_value']
+            params_iter = zip(['database_version'], [version])
+            get_rowid_from_superkey = (lambda x : [None] * len(x))  # We don't care to find any, because we know there is no version
+            db.add_cleanly(constants.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
+
+    def set_db_version(db, version):
+        # Do things properly, get the metadata_rowid (best because we want to assert anyway)
+        metadata_key_list = ['database_version']
+        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        where_clause = 'metadata_key=?'
+        # list of relationships for each image
+        metadata_rowid_list = db.get_where(constants.METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        assert len(metadata_rowid_list) == 1, 'duplicate database_version keys in database'
+        id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
+        val_list = ((_,) for _ in [version])
+        db.set(constants.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
 
     @default_decorator
     def get_sql_version(db):

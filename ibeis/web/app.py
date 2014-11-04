@@ -42,9 +42,23 @@ def root(filename=''):
 @app.route('/turk')
 @app.route('/turk/<filename>.html')
 def turk(filename=''):
-    if filename == 'viewpoint':
+    if filename == 'detection':
         with SQLAtomicContext(app.db):
-            aid, gpath = appfuncs.get_next_turk_candidate(app)
+            gid, gpath = appfuncs.get_next_detection_turk_candidate(app)
+        finished = gid is None or gpath is None
+        if not finished:
+            image = appfuncs.open_oriented_image(gpath)
+            image_src = appfuncs.embed_image_html(image, filter_width=False)
+        else:
+            image_src = None
+        return template('turk', filename,
+                        gid=gid,
+                        image_path=gpath,
+                        image_src=image_src,
+                        finished=finished)
+    elif filename == 'viewpoint':
+        with SQLAtomicContext(app.db):
+            aid, gpath = appfuncs.get_next_viewpoint_turk_candidate(app)
         finished = aid is None or gpath is None
         if not finished:
             image = appfuncs.open_oriented_image(gpath)
@@ -78,8 +92,8 @@ def turk(filename=''):
         return template('turk', filename)
 
 
-@app.route('/submit/turk.html', methods=['POST'])
-def submit():
+@app.route('/submit/viewpoint.html', methods=['POST'])
+def submit_viewpoint():
     print(request)
     print(request.form)
     aid = int(request.form['viewpoint-aid'])
@@ -112,6 +126,13 @@ def submit():
     print("[web] aid: %d, value: %d | %s %s" % (aid, value, value_1, value_2))
     # Return HTML
     return redirect(url_for('turk', filename='viewpoint'))
+
+
+@app.route('/submit/detection.html', methods=['POST'])
+def submit_detection():
+    print(request)
+    print(request.form)
+    return redirect(url_for('turk', filename='detection'))
 
 
 @app.route('/api')
@@ -196,7 +217,10 @@ def start_tornado(app, port=5000, browser=False, blocking=False, reset_db=True, 
     init_database(app, reset_db=reset_db)
     # Initialize the web server
     logging.getLogger().setLevel(logging.INFO)
-    server_ip_address = socket.gethostbyname(socket.gethostname())
+    try:
+        server_ip_address = socket.gethostbyname(socket.gethostname())
+    except:
+        server_ip_address = '127.0.0.1'
     url = 'http://%s:%s' % (server_ip_address, port)
     print('[web] Tornado server starting at %s' % (url,))
     if browser:

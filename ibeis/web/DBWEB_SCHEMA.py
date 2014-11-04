@@ -12,7 +12,9 @@ except:
     VERSION_CURRENT = None
     print("[dbcache] NO DBWEB_SCHEMA_CURRENT AUTO-GENERATED!")
 
+
 VIEWPOINT_TABLE = 'viewpoints'
+REVIEW_TABLE = 'reviews'
 
 
 # =======================
@@ -30,7 +32,16 @@ def update_1_0_0(db, ibs=None):
     ),
         superkey_colnames=['annot_rowid'],
         docstr='''
-        SQLite table to store the web state''')
+        SQLite table to store the web state for viewpoint turking''')
+
+    db.add_table(REVIEW_TABLE, (
+        ('review_rowid',                 'INTEGER PRIMARY KEY'),
+        ('image_rowid',                  'INTEGER'),
+        ('review_count',                 'INTEGER DEFAULT 0'),
+    ),
+        superkey_colnames=['image_rowid'],
+        docstr='''
+        SQLite table to store the web state for detection review''')
 
 
 # ========================
