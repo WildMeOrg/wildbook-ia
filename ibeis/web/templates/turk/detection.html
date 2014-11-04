@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, turking is completed.  Please report the number of hours you helped us on this project to Chuck Stewart in order to get paid.  Thank you!
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-3"></div>
+    
+    <div class="col-lg-6">
+      Gid: {{ gid }}
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions"></span>
+      <br/>
+      Path: {{ image_path }}
+      <img id="detection-image" src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; display: block;">
+      <br/>
+      <form method="post" action="/submit/detection.html">
+        <input type="text" name="viewpoint-gid" value="{{ gid }}" style="display: none;" readonly>
+        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept" onclick="update_annotations();">
+      </form
+      <br/>
+    </div>
+
+    <div class="col-lg-3"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Detection Review Turking Instructions</h4>
+        </div>
+        <div class="modal-body">
+          TODO
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_javascript %}  
+<script src="{{ url_for('static', filename='javascript/turk.js') }}"></script>
+<script src="{{ url_for('static', filename='include/annotorious-0.6.3/annotorious.min.js') }}"></script>
+<script type="text/javascript">
+  var image = anno.makeAnnotatable(document.getElementById('detection-image'));
+  
+  function update_annotations()
+  {
+    var annotations = image.getAnnotations();
+    console.log(annotations);
+    alert(1);
+  }
+</script>  
+{% endblock %}
+{% block content_custom_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='include/annotorious-0.6.3/css/annotorious.css') }}">
+{% endblock %}
