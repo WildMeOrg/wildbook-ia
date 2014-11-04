@@ -224,6 +224,7 @@ class IBEISController(object):
         ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
         ibs.trashdir    = join(ibs.dbdir, PATH_NAMES.trashdir)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
+        ibs.backupdir   = join(ibs._ibsdb, PATH_NAMES.backups)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
         # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
@@ -242,6 +243,7 @@ class IBEISController(object):
         _verbose = utool.VERBOSE
         utool.ensuredir(ibs._ibsdb)
         utool.ensuredir(ibs.cachedir,    verbose=_verbose)
+        utool.ensuredir(ibs.backupdir,   verbose=_verbose)
         utool.ensuredir(ibs.workdir,     verbose=_verbose)
         utool.ensuredir(ibs.imgdir,      verbose=_verbose)
         utool.ensuredir(ibs.chipdir,     verbose=_verbose)
@@ -253,6 +255,8 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
+        # Before load, ensure database has been backed up for the day
+        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         ibs.db_version_expected = '1.1.1'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
@@ -297,6 +301,10 @@ class IBEISController(object):
         #if ibs.qreq is not None:
         #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
         return ibs2
+
+    @default_decorator
+    def backup_database(ibs):
+        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
 
     #
     #

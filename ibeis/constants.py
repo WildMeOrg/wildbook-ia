@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import utool
+# import utool
 import six
 import numpy as np
 
@@ -10,6 +10,7 @@ class PATH_NAMES(object):
     sqldbcache = '_ibeis_database_cache.sqlite3'
     _ibsdb     = '_ibsdb'
     cache      = '_ibeis_cache'
+    backups    = '_ibeis_backups'
     chips      = 'chips'
     flann      = 'flann'
     images     = 'images'
