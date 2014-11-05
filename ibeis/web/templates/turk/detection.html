@@ -13,14 +13,15 @@
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions"></span>
       <br/>
       Path: {{ image_path }}
-      <img id="detection-image" src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; display: block;">
+      <div id="bbox_annotator"></div>
+<!--       <input id="annotation_data" name="annotation_data" type="hidden" /> -->
       <br/>
       <form method="post" action="/submit/detection.html">
         <input type="text" name="viewpoint-gid" value="{{ gid }}" style="display: none;" readonly>
         <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
-        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept" onclick="update_annotations();">
-      </form
-      <br/>
+        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <textarea id="annotation_data" name="annotation" style="font-family:monospace; margin-top:60px;width: 100%; height: 100px;" readonly=""></textarea>
+      </form>
     </div>
 
     <div class="col-lg-3"></div>
@@ -47,24 +48,17 @@
 {% endblock %}
 {% block content_custom_javascript %}  
 <script src="{{ url_for('static', filename='javascript/turk.js') }}"></script>
-<script src="{{ url_for('static', filename='include/annotorious-0.6.3/annotorious.min.js') }}"></script>
-<script type="text/javascript">
-  var image = anno.makeAnnotatable(document.getElementById('detection-image'));
-  anno.addHandler('onAnnotationCreated', function(annotation) {
-    update_annotations(this);
+<script src="{{ url_for('static', filename='include/bbox_annotator.js') }}"></script>
+<script type="text/javascript">  
+  $(document).ready(function() {
+    // Initialize the bounding-box annotator.
+    var annotator = new BBoxAnnotator({
+      url: "{{ image_src }}",
+      input_method: 'fixed',
+      onchange: function(entries) {
+        $('#annotation_data').text(JSON.stringify(entries, null, "  "));
+      }
+    });
   });
-  anno.addHandler('onAnnotationRemoved', function(annotation) {
-    update_annotations(this);
-  });
-  
-  function update_annotations(annot)
-  {
-    var annotations = anno.getAnnotations();
-    console.log(annotations);
-    alert(1);
-  }
 </script>  
-{% endblock %}
-{% block content_custom_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='include/annotorious-0.6.3/css/annotorious.css') }}">
 {% endblock %}

@@ -109,7 +109,7 @@ def submit_viewpoint():
     elif value_2 is None:
         appfuncs.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_2')
         value_2 = value
-        if value_1 > 0 and value_2 > 0:
+        if value_1 >= 0 and value_2 >= 0:
             # perform check against two viewpoint annotations
             if abs(value_1 - value_2) <= 45:
                 value = (value_1 + value_2) / 2

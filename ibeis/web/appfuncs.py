@@ -188,7 +188,14 @@ def database_init(app):
     viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
     viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
     # Add chips to temporary web viewpoint table
-    colnames = ('annot_rowid', 'viewpoint_value_1')
-    params_iter = zip(aid_list, viewpoint_list)
-    get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
-    app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    redo = False
+    if redo:
+        colnames = ('annot_rowid', 'viewpoint_value_1', 'viewpoint_value_2',  'viewpoint_value_avg')
+        params_iter = zip(aid_list, viewpoint_list, viewpoint_list, viewpoint_list)
+        get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
+        app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    else:
+        colnames = ('annot_rowid', 'viewpoint_value_1')
+        params_iter = zip(aid_list, viewpoint_list)
+        get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
+        app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
