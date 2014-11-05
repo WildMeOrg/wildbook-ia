@@ -164,8 +164,8 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     fmtdict['child_props'] = child_props
     fmtdict['superkey_args'] = superkey_args
 
-    #append_func(template_def.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
-    #append_func(template_def.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
+    append_func(template_def.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
+    append_func(template_def.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
     #append_func(template_def.getter_template_table_config_rowid.format(**fmtdict), 'config_rowid')
 
     return functype2_func_list, constant_list

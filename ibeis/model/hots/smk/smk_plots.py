@@ -624,7 +624,7 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
     # Feature Weight Plots
     if show_featweights:
         from ibeis.model.preproc import preproc_featweight
-        featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[0]
+        featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
         # plot rf feature weights
         detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
         fnum = _plot(featweights, fnum=fnum, lbl='Feature Weights ' + detect_cfgstr, colortype='score')

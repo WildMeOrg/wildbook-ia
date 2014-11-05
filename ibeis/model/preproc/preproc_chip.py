@@ -101,7 +101,7 @@ def add_chips_params_gen(ibs, aid_list):
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
             yield (aid, cfpath, width, height, chip_config_rowid)
     except IOError as ex:
-        utool.printex(ex)
+        utool.printex(ex, 'ERROR IN PREPROC CHIPS')
 
 
 #--------------

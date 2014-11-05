@@ -55,7 +55,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         # Get and draw keypoints
         if 'colors' not in kwargs:
             from ibeis.model.preproc import preproc_featweight
-            featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[0]
+            featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
             colors = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
             kwargs['color'] = colors
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     kpts = ibs.get_annot_kpts(aid)
 
     from ibeis.model.preproc import preproc_featweight
-    featweights = preproc_featweight.compute_fg_weights(ibs, [aid])[-1]
+    featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
     colors = featweights
     #import numpy as np
     # plot rf feature weights

@@ -105,7 +105,7 @@ adder_template_dependant_child = ut.codeblock(
             get_rowid_from_superkey = functools.partial(ibs.get_{parent}_{child}_rowids, ensure=False)
             ###
             colnames = {nonprimary_child_colnames}
-            {child_other_propname_lists} = preproc_{child}.compute_{child_props}s(ibs, {parent}_rowid_list)
+            {child_other_propname_lists} = preproc_{child}.add_{child}_params_gen(ibs, {parent}_rowid_list)
             params_iter = (({parent}_rowid, config_rowid, {child_other_propnames}) for {parent}_rowid, {child_other_propnames} in
                            zip({parent}_rowid_list, {child_other_propname_lists}))
             ###

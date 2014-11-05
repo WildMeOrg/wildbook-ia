@@ -3788,7 +3788,7 @@ class IBEISController(object):
         flag_list = [fgw is None for fgw in orig_fgweight_list]
         dirty_aids = utool.filter_items(aid_list, flag_list)
         if len(dirty_aids) > 0:
-            fgweight_list = preproc_featweight.compute_fg_weights(ibs, dirty_aids)
+            fgweight_list = preproc_featweight.compute_fgweights(ibs, dirty_aids)
             ibs.set_annot_fg_weights(dirty_aids, fgweight_list)
             return ibs.get_annot_fg_weights(aid_list)
         else:
@@ -3826,7 +3826,7 @@ class IBEISController(object):
             >>> ibs = ibeis.opendb('testdb1')
             >>> aid_list = ibs.get_valid_aids()
             >>> orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
-            >>> fgweight_list = preproc_featweight.compute_fg_weights(ibs, aid_list)
+            >>> fgweight_list = preproc_featweight.compute_fgweights(ibs, aid_list)
             >>> ibs.set_annot_fg_weights(aid_list, fgweight_list)
         """
         fid_list  = ibs.get_annot_fids(aid_list)
@@ -3865,16 +3865,16 @@ class IBEISController(object):
             import functools  # NOQA
             get_rowid_from_superkey = functools.partial(
                 ibs.get_feat_featweight_rowids, ensure=False)
-            #params_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+            #params_list = preproc_featweight.compute_fgweights(ibs, fid_list)
             ####
             colnames = [
                 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
             params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
                            zip(fid_list, fgweight_list))
 
-            params_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+            params_list = preproc_featweight.compute_fgweights(ibs, fid_list)
 
-            fgweight_list = preproc_featweight.compute_fg_weights(ibs, fid_list)
+            fgweight_list = preproc_featweight.compute_fgweights(ibs, fid_list)
             params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
                            zip(dirty_fid_list, fgweight_list))
             ####

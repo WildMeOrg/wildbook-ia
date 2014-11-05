@@ -53,7 +53,7 @@ def gen_featweight_worker(tup):
     return (aid, weights)
 
 
-def compute_fg_weights(ibs, aid_list):
+def compute_fgweights(ibs, aid_list):
     """
 
     Example:
@@ -61,7 +61,7 @@ def compute_fg_weights(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> featweight_list = compute_fg_weights(ibs, aid_list)
+        >>> featweight_list = compute_fgweights(ibs, aid_list)
     """
     print('[preproc_featweight] Preparing to compute fgweights')
     probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
@@ -84,6 +84,10 @@ def compute_fg_weights(ibs, aid_list):
     featweight_list = ut.get_list_column(featweight_param_list, 1)
     print('[preproc_featweight] Done computing fgweights')
     return featweight_list
+
+
+def add_featweight_params_gen(ibs, aid_list):
+    return compute_fgweights(ibs, aid_list)
 
 
 #def get_annot_probchip_fname_iter(ibs, aid_list):
