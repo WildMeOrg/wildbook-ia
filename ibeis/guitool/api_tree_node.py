@@ -21,7 +21,7 @@ class TreeNode(TREE_NODE_BASE):
     """
     #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
-        TREE_NODE_BASE.__init__(self)
+        TREE_NODE_BASE.__init__(self, parent=parent_node)
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
