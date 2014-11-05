@@ -562,7 +562,6 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
 
     fnum = 1
 
-    #nWords = ibs.cfg.query_cfg.smk_cfg.nWords
     dbname = ibs.get_dbname()
     def _plot(metric, fnum=1, lbl='', annote=True, darken=.1, colortype='score', **kwargs):
         print('ploting fnum=%r' % fnum)

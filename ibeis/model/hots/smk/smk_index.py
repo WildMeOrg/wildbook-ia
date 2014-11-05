@@ -63,6 +63,8 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
     # TODO: Incorporated taids (vocab training ids) into qreq
     if qreq_.qparams.vocab_taids == 'all':
         taids = annots_df.ibs.get_valid_aids()  # exemplar
+    else:
+        taids = qreq_.qparams.vocab_taids
     initmethod   = qreq_.qparams.vocab_init_method
     max_iters    = qreq_.qparams.vocab_nIters
     flann_params = qreq_.qparams.vocab_flann_params

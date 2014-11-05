@@ -824,8 +824,9 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
         qres.aid2_score = aid2_score
 
         qres.metadata = {}  # dbgstats
-        for key, qaid2_meta in six.iteritems(metadata):
-            qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
+        with utool.EmbedOnException():
+            for key, qaid2_meta in six.iteritems(metadata):
+                qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
     return qaid2_qres
 

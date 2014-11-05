@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import six
 import numpy as np
 import vtool.linalg as ltool
@@ -11,65 +12,6 @@ from ibeis.model.hots import hstypes
 
 NN_WEIGHT_FUNC_DICT = {}
 EPS = 1E-8
-
-
-def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
-    """
-    Weights nearest neighbors using the chosen function
-
-    Args:
-        normweight_fn (func): chosen weight function e.g. lnbnn
-        qaid2_nns (dict): query descriptor nearest neighbors and distances. qaid -> (qfx2_nnx, qfx2_dist)
-        qreq_ (QueryRequest): hyper-parameters
-
-    Returns:
-        dict: qaid2_weight
-
-    Example:
-        >>> from ibeis.model.hots.nn_weights import *
-        >>> from ibeis.model.hots import nn_weights
-        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
-        >>> qaid = qaid_list[0]
-        >>> #----
-        >>> normweight_fn = lnbnn_fn
-        >>> tup1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
-        >>> (qaid2_weight1, qaid2_selnorms1) = tup1
-        >>> weights1 = qaid2_weight1[qaid]
-        >>> selnorms1 = qaid2_selnorms1[qaid]
-        >>> #---
-        >>> # test NN_WEIGHT_FUNC_DICT
-        >>> #---
-        >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
-        >>> tup2 = nn_normonly_weight(qaid2_nns, qreq_)
-        >>> (qaid2_weight2, qaid2_selnorms2) = tup2
-        >>> selnorms2 = qaid2_selnorms2[qaid]
-        >>> weights2 = qaid2_weight2[qaid]
-        >>> assert np.all(weights1 == weights2)
-        >>> assert np.all(selnorms1 == selnorms2)
-
-    Ignore:
-        #from ibeis.model.hots import neighbor_index as hsnbrx
-        #nnindexer = hsnbrx.new_ibeis_nnindexer(ibs, daid_list)
-    """
-    #utool.stash_testdata('qaid2_nns')
-    #
-    K = qreq_.qparams.K
-
-    Knorm = qreq_.qparams.Knorm
-    rule  = qreq_.qparams.normalizer_rule
-    with_metadata = qreq_.qparams.with_metadata
-    # Prealloc output
-    qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
-    # Database feature index to chip index
-    for qaid in six.iterkeys(qaid2_nns):
-        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
-        # Apply normalized weights
-        qfx2_normweight = apply_normweight(
-            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_,
-            metadata, with_metadata)
-        # Output
-        qaid2_weight[qaid] = qfx2_normweight
-    return qaid2_weight
 
 
 def _register_nn_normalized_weight_func(func):
@@ -121,8 +63,73 @@ def fg_match_weighter(qaid2_nns, qreq_, metadata):
     return qaid2_weight
 
 
+def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
+    """
+    Weights nearest neighbors using the chosen function
+
+    Args:
+        normweight_fn (func): chosen weight function e.g. lnbnn
+        qaid2_nns (dict): query descriptor nearest neighbors and distances. qaid -> (qfx2_nnx, qfx2_dist)
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        dict: qaid2_weight
+
+    Example:
+        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots import nn_weights
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
+        >>> qaid = qaid_list[0]
+        >>> #----
+        >>> normweight_fn = lnbnn_fn
+        >>> tup1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
+        >>> (qaid2_weight1, qaid2_selnorms1) = tup1
+        >>> weights1 = qaid2_weight1[qaid]
+        >>> selnorms1 = qaid2_selnorms1[qaid]
+        >>> #---
+        >>> # test NN_WEIGHT_FUNC_DICT
+        >>> #---
+        >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
+        >>> tup2 = nn_normonly_weight(qaid2_nns, qreq_)
+        >>> (qaid2_weight2, qaid2_selnorms2) = tup2
+        >>> selnorms2 = qaid2_selnorms2[qaid]
+        >>> weights2 = qaid2_weight2[qaid]
+        >>> assert np.all(weights1 == weights2)
+        >>> assert np.all(selnorms1 == selnorms2)
+
+    Ignore:
+        #from ibeis.model.hots import neighbor_index as hsnbrx
+        #nnindexer = hsnbrx.new_ibeis_nnindexer(ibs, daid_list)
+    """
+    #utool.stash_testdata('qaid2_nns')
+    #
+    K = qreq_.qparams.K
+
+    Knorm = qreq_.qparams.Knorm
+    rule  = qreq_.qparams.normalizer_rule
+    with_metadata = qreq_.qparams.with_metadata
+    # Prealloc output
+    qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    if with_metadata:
+        metakey = ut.get_funcname(normweight_fn) + '_norm_meta'
+        metadata[metakey] = {}
+        metakey_metadata = metadata[metakey]
+    else:
+        metakey_metadata = None
+    # Database feature index to chip index
+    for qaid in six.iterkeys(qaid2_nns):
+        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
+        # Apply normalized weights
+        qfx2_normweight = apply_normweight(
+            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_,
+            with_metadata, metakey_metadata)
+        # Output
+        qaid2_weight[qaid] = qfx2_normweight
+    return qaid2_weight
+
+
 def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
-                     qreq_, with_metadata, metadata):
+                     qreq_, with_metadata, metakey_metadata):
     """
     helper: applies the normalized weight function to one query annotation
 
@@ -177,7 +184,6 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
     qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
     # build meta
     if with_metadata:
-        metakey = normweight_fn.func_name + '_norm_meta'
         normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
         qfx2_normmeta = np.array(
             [
@@ -185,7 +191,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
                 for (normk, idx) in zip(qfx2_normk, qfx2_normidx)
             ]
         )
-        metadata[metakey] = (normmeta_header, qfx2_normmeta)
+        metakey_metadata[qaid] = (normmeta_header, qfx2_normmeta)
     return qfx2_normweight
 
 

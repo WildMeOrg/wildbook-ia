@@ -48,10 +48,10 @@ def testdata_ibeis(**kwargs):
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
-    ibs.cfg.query_cfg.smk_cfg.nWords = nWords
     ibs.cfg.query_cfg.smk_cfg.smk_alpha = 3
     ibs.cfg.query_cfg.smk_cfg.smk_thresh = 0
-    ibs.cfg.query_cfg.smk_cfg.nAssign = nAssign
+    ibs.cfg.query_cfg.smk_cfg.vocabtrain_cfg.nWords = nWords
+    ibs.cfg.query_cfg.smk_cfg.vocabassign_cfg.nAssign = nAssign
     ibs.cfg.query_cfg.smk_cfg.printme3()
     return ibs
 
@@ -62,6 +62,8 @@ def testdata_ibeis2(**kwargs):
 
     selects training and test set
 
+    Example:
+        >>> from ibeis.model.hots.smk import smk_debug
     """
     from ibeis.model.hots.smk import smk_debug
     print('[smk_debug] testdata_ibeis2')
@@ -77,7 +79,11 @@ def testdata_ibeis2(**kwargs):
     #qaids = [37]  # NOQA new test case for PZ_MTEST
     #qaids = [valid_aids[0], valid_aids[4]]
     qaids = [valid_aids[0]]
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    # FIXME: can't set to a list right now
+    custom_qparams = {
+        'vocab_taids': 'all',
+    }
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, custom_qparams)
     qreq_.ibs = ibs  # Hack
     return ibs, taids, daids, qaids, qreq_
 
@@ -96,7 +102,7 @@ def testdata_words(**kwargs):
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe(**kwargs)
     print('[smk_debug] testdata_words')
-    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    words = smk_index.learn_visual_words(annots_df, qreq_)
     return ibs, annots_df, daids, qaids, qreq_, words
 
 

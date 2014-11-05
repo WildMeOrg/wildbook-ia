@@ -82,7 +82,7 @@ ider_template_all_rowids = ut.codeblock(
 
 adder_template_dependant_child = ut.codeblock(
     '''
-    def add_{parent}_{child}({self}, {parent}_rowid_list, config_rowid=None):
+    def add_{parent}_{child}({self}, {parent}_rowid_list, qreq_=None):
         """
         Adds / ensures / computes a dependant property
 
@@ -92,10 +92,8 @@ adder_template_dependant_child = ut.codeblock(
         """
         raise NotImplementedError('this code is a stub, you must populate it')
         from ibeis.model.preproc import preproc_{child}
-        if config_rowid is None:
-            config_rowid = {self}.get_{child}_config_rowid()
-        {child}_rowid_list = ibs.get_{parent}_{child}_rowids(
-            {parent}_rowid_list, config_rowid=config_rowid, ensure=False)
+        config_rowid = {self}.get_{child}_config_rowid(qreq_=qreq_)
+        {child}_rowid_list = ibs.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
         dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {child}_rowid_list)
         if len(dirty_{parent}_rowid_list) > 0:
             if utool.VERBOSE:
@@ -144,9 +142,9 @@ adder_template_relationship = ut.codeblock(
 getter_template_dependant_primary_rowid = ut.codeblock(
     '''
     def get_{parent}_{child}_rowids({self}, {parent}_rowid_list,
-                                    config_rowid=None, all_configs=False,
+                                    qreq_=None, all_configs=False,
                                     ensure=True, eager=True,
-                                    num_params=None):
+                                    nParams=None):
         """
         get_{parent}_{child}_rowids
 
@@ -162,33 +160,30 @@ getter_template_dependant_primary_rowid = ut.codeblock(
         """
         if ensure:
             {self}.add_{child}s({parent}_rowid_list)
-        if config_rowid is None:
-            config_rowid = {self}.get_{child}_config_rowid()
         colnames = ({CHILD}_ROWID,)
         if all_configs:
-            config_rowid = {self}.{dbself}.get(
+            {child}_rowid_list = {self}.{dbself}.get(
                 {TABLE}, colnames, {parent}_rowid_list,
-                id_colname={PARENT}_ROWID, eager=eager, num_params=num_params)
+                id_colname={PARENT}_ROWID, eager=eager, nParams=nParams)
         else:
-            config_rowid = {self}.get_{child}_config_rowid()
+            config_rowid = {self}.get_{child}_config_rowid(qreq_=qreq_)
             andwhere_colnames = [{PARENT}_ROWID, CONFIG_ROWID]
             params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
             {child}_rowid_list = {self}.{dbself}.get_where2(
-                {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager,
-                num_params=num_params)
+                {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
         return {child}_rowid_list
     ''')
 
 
 line_template_get_dependant_rowid = ut.codeblock(
     '''
-    {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, cfg=cfg)
+    {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_)
     '''
 )
 
 getter_template_rowid_lines_dependant = ut.codeblock(
     '''
-    def get_{root}_{col}({self}, {root}_rowid_list, cfg=None):
+    def get_{root}_{col}({self}, {root}_rowid_list, qreq_=None):
         """ get {col} data of the {parent} table using the dependant {child} table
 
         getter_template_dependant_column
@@ -200,15 +195,16 @@ getter_template_rowid_lines_dependant = ut.codeblock(
             list: {col}_list
         """
         {dependant_rowid_lines}
-        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list, cfg=cfg)
+        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list, qreq_=qreq_)
         return {col}_list
     ''')
 
 
 getter_template_dependant_column = ut.codeblock(
     '''
-    def get_{parent}_{col}({self}, {parent}_rowid_list, config_rowid=None):
-        """ get {col} data of the {parent} table using the dependant {child} table
+    def get_{parent}_{col}({self}, {parent}_rowid_list, qreq_=None):
+        """
+        get {col} data of the {parent} table using the dependant {child} table
 
         getter_template_dependant_column
 
@@ -219,7 +215,7 @@ getter_template_dependant_column = ut.codeblock(
             list: {col}_list
         """
         {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list)
-        {col}_list = {self}.get_{child}_{col}({child}_rowid_list, config_rowid=config_rowid)
+        {col}_list = {self}.get_{child}_{col}({child}_rowid_list, qreq_=qreq_)
         return {col}_list
     ''')
 
@@ -248,7 +244,7 @@ getter_template_native_column = ut.codeblock(
 getter_template_native_rowid_from_superkey = ut.codeblock(
     '''
     def get_{tbl}_rowid_from_superkey({self}, {superkey_args},
-                                      eager=False, num_params=None):
+                                      eager=False, nParams=None):
         """
         Args:
             superkey lists: {superkey_args}
@@ -262,7 +258,7 @@ getter_template_native_rowid_from_superkey = ut.codeblock(
         andwhere_colnames = [{superkey_args}]
         {tbl}_rowid_list = {self}.{dbself}.get_where2(
             {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager,
-            num_params=num_params)
+            nParams=nParams)
         return {tbl}_rowid_list
     ''')
 
