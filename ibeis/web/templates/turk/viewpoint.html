@@ -21,14 +21,14 @@
         <br/>
         <input type="range" name="viewpoint-value" id="slider-viewpoint" value="0" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand">
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up"             ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up rotate-45"   ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right"          ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right rotate-45"></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down"           ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45" ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"           ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45" ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down"            ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right rotate-45"  ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right"           ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up rotate-45" ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
+          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
         </div>
         <br/>
         <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
@@ -51,21 +51,36 @@
         <div class="modal-body">
           To turk a viewpoint, simply adjust the slider for the image based on the following guidelines:
           <br/>
-          <img class="image-center" src="{{ url_for('static', filename='images/guideline.jpg') }}">
+          <img class="image-center" src="{{ url_for('static', filename='images/guideline-inverted.jpg') }}">
           <p style="width:100%; color:#888; text-align:center;"><i>Top-down view (view from above)</i></p>
           <br/>
           <ul style="padding-right:30px;">
             <li>
-              The easiest way to visualize and decide on the correct viewpoint is by thinking of the image as being <b>taken from above</b> and to always select the viewpoint direction that points closest towards the <b>camera</b>.  This will ensure a consistent metric is being used by every turker. 
+              The easiest way to mentally-visualize and decide on the correct viewpoint is by asking <b>"Which way is the head pointing?"</b> in relation to the <b>camera</b>.  This will ensure a consistent metric is being used by every turker. 
               <br/>
-              <i>Example:</i>
+              <i>For example:</i>
             </li>
             <div class="row">
               <div class="col-lg-2"></div>
-              <div class="col-lg-8" style="margin: 20px 0px;">
-                <img src="{{ url_for('static', filename='images/example.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the left side of the animal (looking from above).  Therefore, the viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
-
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above), and the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>back-left side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='images/example3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
             </div>

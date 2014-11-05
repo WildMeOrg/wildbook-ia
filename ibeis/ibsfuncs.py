@@ -91,8 +91,7 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs):
-    offset = 9921
+def export_to_xml(ibs, offset=1):
     target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -155,7 +154,11 @@ def export_to_xml(ibs):
                 #TODO: Change species_name to getter in IBEISControl once implemented
                 #species_name = 'grevys_zebra'
                 species_name = ibs.get_annot_species(aid)
-                annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
+                viewpoint = ibs.get_annot_viewpoints(aid)
+                info = {}
+                if viewpoint != -1:
+                    info['pose'] = "%0.6f" % viewpoint
+                annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
             # Write XML
             xml_data = open(dst_annot, 'w')
@@ -553,7 +556,7 @@ def get_annot_is_hard(ibs, aid_list):
     CmdLine:
         ./dev.py --cmd --db PZ_Mothers
     Example:
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids()  # NOQA
     """
     notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = [constants.HARD_NOTE_TAG in notes.upper().split() for (notes)
