@@ -10,6 +10,7 @@ from os.path import exists, join, splitext
 import os
 # UTool
 import utool
+import utool as ut  # NOQA
 # VTool
 import vtool.chip as ctool
 import vtool.image as gtool
@@ -340,11 +341,14 @@ def compute_and_write_chips(ibs, aid_list):
                             newsize_list, filtlist_iter)
     arg_list = list(arg_prepend_iter)
     chip_async_iter = utool.util_parallel.generate(gen_chip, arg_list)
-    print('Computing %d chips asynchronously' % (len(cfpath_list)))
+    if not utool.QUIET:
+        print('Computing %d chips asynchronously' % (len(cfpath_list)))
     for cfpath in chip_async_iter:
         #print('Wrote chip: %r' % cfpath)
         pass
-    print('Done computing chips')
+    if not utool.QUIET:
+        print('Done computing chips')
+    #ut.print_traceback()
 
 
 @utool.indent_func
@@ -403,8 +407,9 @@ def compute_and_write_probchip(ibs, aid_list):
     randomforest.compute_probability_images(cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks)
     # Fix stupid bug in pyrf
     probchip_fpath_list_ = [fpath + '.png' for fpath in probchip_fpath_list]
+    if not utool.QUIET:
+        print('[preproc_probchip] Done computing probability images')
     return probchip_fpath_list_
-    print('[preproc_probchip] Done computing probability images')
 
 
 #-------------

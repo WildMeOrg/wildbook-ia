@@ -26,6 +26,9 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 IBEIS_WIDGET_BASE = QtGui.QWidget
 
+#WITH_GUILOG = not utool.get_argflag('--noguilog')
+WITH_GUILOG = utool.get_argflag('--guilog')
+
 
 #############################
 ###### Tab Widgets #######
@@ -241,7 +244,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
-        WITH_GUILOG = not utool.get_argflag('--noguilog')
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
                                                   visible=WITH_GUILOG, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
@@ -637,6 +639,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.back.select_aid(aid, eid, show=True)
 
     def _interactannot2_callbacks(ibswgt, model, qtindex):
+        #if not qtindex.isValid():
+        #    raise AssertionError('Bug: qtindex got invalidated')
+        #    # BUG: somewhere qtindex gets invalidated
+        #    #return None, None, -1
         # HACK FOR NEXT AND PREVIOUS CLICK CALLBACKS
         cur_gid = model._get_row_id(qtindex)
         next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
