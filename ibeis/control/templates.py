@@ -82,7 +82,7 @@ def format_controller_func(func_code):
                                               variable_aliases.keys(),
                                               variable_aliases.values())
     # ensure pep8 formating
-    #func_code = ut.autofix_codeblock(func_code).strip()
+    func_code = ut.autofix_codeblock(func_code).strip()
     # add decorators
     func_code = '@register_ibs_method\n' + func_code
     return func_code
