@@ -216,8 +216,8 @@ class APIItemModel(API_MODEL_BASE):
         if len(model.col_level_list) == 0:
             return
         if rebuild_structure:
-            with utool.Timer('%s UPDATE_ROWS: %r' %
-                             ('cython' if _atn.CYTHONIZED else 'python',
+            with utool.Timer('[%s] _update_rows: %r' %
+                             ('cyth' if _atn.CYTHONIZED else 'pyth',
                               model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
             #print('-----')
@@ -234,6 +234,8 @@ class APIItemModel(API_MODEL_BASE):
         #print('ids_ generated')
         nodes = []
         if len(id_list) != 0:
+            if VERBOSE:
+                print('[APIItemModel] lazy_update_rows id_list != 0')
             # start sort
             if model.col_sort_index is not None:
                 getter = model.col_getter_list[sort_index]
@@ -252,6 +254,8 @@ class APIItemModel(API_MODEL_BASE):
         if utool.USE_ASSERT:
             assert nodes is not None, 'no indices'
         model.level_index_list = nodes
+        if VERBOSE:
+            print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
         model._rows_updated.emit(model.name, len(model.level_index_list))
 
         # lazy method didn't work. Eagerly evaluate
@@ -264,6 +268,8 @@ class APIItemModel(API_MODEL_BASE):
         #_atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
         #model.lazy_updater = lazy_update_rows
         #print("Rows updated")
+        if VERBOSE:
+            print('[APIItemModel] finished _update_rows')
 
     def lazy_checks(model):
         if model.lazy_updater is not None:
