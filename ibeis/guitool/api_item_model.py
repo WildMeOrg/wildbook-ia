@@ -8,6 +8,7 @@ from six.moves import zip  # builtins
 #from utool._internal.meta_util_six import get_funcname
 import functools
 import utool
+import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 #import numpy as np
 #profile = lambda func: func
@@ -16,7 +17,7 @@ import utool
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
-VERBOSE = utool.VERBOSE
+VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 
 try:
@@ -120,6 +121,8 @@ class APIItemModel(API_MODEL_BASE):
     #
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
+        if VERBOSE:
+            print('[APIItemModel] __init__')
         model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
         # Internal Flags
@@ -157,6 +160,8 @@ class APIItemModel(API_MODEL_BASE):
     @profile
     @updater
     def _update_headers(model, **headers):
+        if VERBOSE:
+            print('[APIItemModel] _update_headers')
         iders            = headers.get('iders', None)
         name             = headers.get('name', None)
         nice             = headers.get('nice', None)
@@ -197,6 +202,8 @@ class APIItemModel(API_MODEL_BASE):
         Uses the current ider and col_sort_index to create
         row_indicies
         """
+        if VERBOSE:
+            print('[APIItemModel] _update_rows')
         # this is not slow
         #with utool.Timer('update_rows'):
         #printDBG('UPDATE ROWS!')
@@ -208,15 +215,14 @@ class APIItemModel(API_MODEL_BASE):
         if len(model.col_level_list) == 0:
             return
         if rebuild_structure:
-            with utool.Timer('%s BUILD: %r' %
+            with utool.Timer('%s UPDATE_ROWS: %r' %
                              ('cython' if _atn.CYTHONIZED else 'python',
                               model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
-                # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
-                model.scope_hack_list = []
-                _atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
             #print('-----')
         def lazy_update_rows():
+            if VERBOSE:
+                print('[APIItemModel] lazy_update_rows')
             #with utool.Timer('lazy updater: %r' % (model.name,)):
                 #printDBG('[model] calling lazy updater: %r' % (model.name,))
                 model.level_index_list = []
@@ -248,6 +254,11 @@ class APIItemModel(API_MODEL_BASE):
 
         # lazy method didn't work. Eagerly evaluate
         lazy_update_rows()
+        # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
+        if VERBOSE:
+            print('[APIItemModel] build_scope_hack_list')
+        model.scope_hack_list = []
+        _atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
         #model.lazy_updater = lazy_update_rows
         #print("Rows updated")
 
@@ -261,6 +272,8 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def _set_iders(model, iders=None):
         """ sets iders """
+        if VERBOSE:
+            print('[APIItemModel] _set_iders')
         if iders is None:
             iders = []
         if utool.USE_ASSERT:
@@ -272,6 +285,8 @@ class APIItemModel(API_MODEL_BASE):
 
     @updater
     def _set_col_name_type(model, col_name_list=None, col_type_list=None):
+        if VERBOSE:
+            print('[APIItemModel] _set_col_name_type')
         if col_name_list is None:
             col_name_list = []
         if col_type_list is None:
@@ -302,6 +317,8 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _set_col_setter(model, col_setter_list=None):
+        if VERBOSE:
+            print('[APIItemModel] _set_col_setter')
         if col_setter_list is None:
             col_setter_list = []
         if utool.USE_ASSERT:
@@ -311,6 +328,8 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _set_col_getter(model, col_getter_list=None):
+        if VERBOSE:
+            print('[APIItemModel] _set_col_getter')
         if col_getter_list is None:
             col_getter_list = []
         if utool.USE_ASSERT:
@@ -342,6 +361,8 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
+        if VERBOSE:
+            print('[APIItemModel] _set_col_level')
         if col_level_list is None:
             col_level_list = [0] * len(model.col_name_list)
         if utool.USE_ASSERT:
@@ -351,6 +372,8 @@ class APIItemModel(API_MODEL_BASE):
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
+        if VERBOSE:
+            print('[APIItemModel] _set_sort')
         #with utool.Timer('set_sort'):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
