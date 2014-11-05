@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import six
 import copy
 from utool._internal.meta_util_six import get_funcname
@@ -438,12 +439,16 @@ class VocabTrainConfig(ConfigBase):
 
     def get_cfgstr_list(vocabtrain_cfg):
         if vocabtrain_cfg.override_vocab == 'default':
+            if isinstance(vocabtrain_cfg.vocab_taids, six.string_types):
+                taids_cfgstr = 'taids=%s' % vocabtrain_cfg.vocab_taids
+            else:
+                taids_cfgstr = ut.hashstr_arr(vocabtrain_cfg.vocab_taids, 'taids', hashlen=8)
             vocabtrain_cfg_list = [
                 '_VocabTrain(',
                 'nWords=%d' % (vocabtrain_cfg.nWords,),
                 ',init=', str(vocabtrain_cfg.vocab_init_method),
-                ',nIters=%d' % int(vocabtrain_cfg.vocab_nIters),
-                'taids=%s' % vocabtrain_cfg.vocab_taids,
+                ',nIters=%d,' % int(vocabtrain_cfg.vocab_nIters),
+                taids_cfgstr,
                 ')',
             ]
         else:
@@ -500,18 +505,20 @@ class QueryConfig(ConfigBase):
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> cfg = ibs.cfg.query_cfg
-            >>> cfg.printme3()
+            >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
+            >>> print(cfgstr)
 
     """
-    def __init__(query_cfg, feat_cfg=None, **kwargs):
+    def __init__(query_cfg, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
-        query_cfg.nn_cfg   = NNConfig(**kwargs)
-        query_cfg.filt_cfg = FilterConfig(**kwargs)
-        query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
-        query_cfg.agg_cfg  = AggregateConfig(**kwargs)
-        query_cfg.flann_cfg = FlannConfig(**kwargs)
-        query_cfg.smk_cfg   = SMKConfig(**kwargs)
-        query_cfg.featweight_cfg = FeatureWeightConfig(**kwargs)
+        query_cfg.nn_cfg         = NNConfig(**kwargs)
+        query_cfg.filt_cfg       = FilterConfig(**kwargs)
+        query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
+        query_cfg.agg_cfg        = AggregateConfig(**kwargs)
+        query_cfg.flann_cfg      = FlannConfig(**kwargs)
+        query_cfg.smk_cfg        = SMKConfig(**kwargs)
+        # causes some bug in Preference widget if these don't have underscore
+        query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
         # Start of pipeline
@@ -521,10 +528,6 @@ class QueryConfig(ConfigBase):
         #if utool.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
-        if feat_cfg is None:
-            query_cfg._feat_cfg = FeatureConfig(**kwargs)
-        else:
-            query_cfg._feat_cfg = feat_cfg
         query_cfg.update_query_cfg(**kwargs)
         if utool.VERYVERBOSE:
             print('[config] NEW QueryConfig')
@@ -532,14 +535,16 @@ class QueryConfig(ConfigBase):
     def update_query_cfg(query_cfg, **kwargs):
         # Each config paramater should be unique
         # So updating them all should not cause conflicts
-        query_cfg._feat_cfg.update(**kwargs)
-        query_cfg._feat_cfg._chip_cfg.update(**kwargs)
+        query_cfg._featweight_cfg._feat_cfg.update(**kwargs)
+        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**kwargs)
         query_cfg.nn_cfg.update(**kwargs)
         query_cfg.filt_cfg.update(**kwargs)
         query_cfg.sv_cfg.update(**kwargs)
         query_cfg.agg_cfg.update(**kwargs)
         query_cfg.flann_cfg.update(**kwargs)
         query_cfg.smk_cfg.update(**kwargs)
+        query_cfg.smk_cfg.vocabassign_cfg.update(**kwargs)
+        query_cfg.smk_cfg.vocabtrain_cfg.update(**kwargs)
         query_cfg.update(**kwargs)
         # Ensure feasibility of the configuration
         query_cfg.make_feasible()
@@ -550,7 +555,8 @@ class QueryConfig(ConfigBase):
         """
         filt_cfg = query_cfg.filt_cfg
         nn_cfg   = query_cfg.nn_cfg
-        feat_cfg = query_cfg._feat_cfg
+        featweight_cfg = query_cfg._featweight_cfg
+        feat_cfg = query_cfg._featweight_cfg._feat_cfg
         smk_cfg = query_cfg.smk_cfg
         vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
 
@@ -574,6 +580,9 @@ class QueryConfig(ConfigBase):
         if feat_cfg.nogravity_hack is False:
             filt_cfg.gravity_weighting = False
 
+        if featweight_cfg.featweight_on is False:
+            filt_cfg.fg_weight = 0
+
         vocabassign_cfg.make_feasible()
         smk_cfg.make_feasible()
         filt_cfg.make_feasible()
@@ -585,9 +594,6 @@ class QueryConfig(ConfigBase):
         return copy_
 
     def get_cfgstr_list(query_cfg, **kwargs):
-        if query_cfg._feat_cfg is None:
-            raise Exception('Feat / chip config is required')
-
         # Ensure feasibility of the configuration
         query_cfg.make_feasible()
 
@@ -614,11 +620,50 @@ class QueryConfig(ConfigBase):
         else:
             raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
-            cfgstr_list += query_cfg.featweight_cfg.get_cfgstr_list(**kwargs)
-
-        if kwargs.get('use_feat', True):
-            cfgstr_list += query_cfg._feat_cfg.get_cfgstr_list()
+            cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
         return cfgstr_list
+
+
+@six.add_metaclass(ConfigMetaclass)
+class FeatureWeightConfig(ConfigBase):
+    """
+    Example:
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> featweight_cfg = FeatureWeightConfig()
+        >>> print(featweight_cfg.get_cfgstr())
+        _FEATWEIGHT(OFF)
+    """
+
+    def __init__(featweight_cfg, **kwargs):
+        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
+        # Featweights depend on features
+        featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
+        # Feature weights depend on the detector, but we only need to mirror
+        # some parameters because featweight_cfg should not use the detect_cfg
+        # object
+        featweight_cfg.featweight_on = True
+        featweight_cfg.featweight_species  = 'uselabel'
+        featweight_cfg.featweight_detector = 'rf'
+        featweight_cfg.update(**kwargs)
+
+    def make_feasible(featweight_cfg):
+        #featweight_cfg.featweight_on = False
+        pass
+
+    def get_cfgstr_list(featweight_cfg, **kwargs):
+        featweight_cfg.make_feasible()
+        featweight_cfgstrs = []
+        if kwargs.get('use_featweight', True):
+            if featweight_cfg.featweight_on is False:
+                featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
+            else:
+                featweight_cfgstrs.extend([
+                    '_FEATWEIGHT(ON',
+                    ',' + featweight_cfg.featweight_species,
+                    ',' + featweight_cfg.featweight_detector,
+                    ')'])
+        featweight_cfgstrs.extend(featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs))
+        return featweight_cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -634,15 +679,17 @@ class FeatureConfig(ConfigBase):
         >>> print(feat_cfg.get_cfgstr())
         _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
-    def __init__(feat_cfg, chip_cfg=None, **kwargs):
+    def __init__(feat_cfg, **kwargs):
+        import numpy as np
+        import ctypes as C
+        # Features depend on chips
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
+        feat_cfg._chip_cfg = ChipConfig(**kwargs)
         feat_cfg.feat_type = 'hesaff+sift'
         feat_cfg.whiten = False
         #feat_cfg.scale_min = 0  # 0  # 30 # TODO: Put in pref types here
         #feat_cfg.scale_max = 9001  # 9001 # 80
         # Inlineish copy of pyhesaff.hesaff_types_parms
-        import numpy as np
-        import ctypes as C
         PY2 = True
         if PY2:
             int_t     = C.c_int
@@ -678,10 +725,6 @@ class FeatureConfig(ConfigBase):
 
         feat_cfg.use_adaptive_scale = False  # 9001 # 80
         feat_cfg.nogravity_hack = False  # 9001 # 80
-        if chip_cfg is None:
-            feat_cfg._chip_cfg = ChipConfig(**kwargs)
-        else:
-            feat_cfg._chip_cfg = chip_cfg  # Features depend on chips
         feat_cfg.update(**kwargs)
 
     def _iterparams(feat_cfg):
@@ -706,88 +749,76 @@ class FeatureConfig(ConfigBase):
         #}
         return dict_args
 
-    def get_cfgstr_list(feat_cfg):
-        def remove_vowels(str_):
-            for char_ in 'AEOIUaeiou':
-                str_ = str_.replace(char_, '')
-            return str_
-
-        def clipstr(str_, maxlen):
-            if len(str_) > maxlen:
-                str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
-                if len(str2) > maxlen:
-                    return str2[0:maxlen]
-                else:
-                    return str_[0:maxlen]
-            else:
-                return str_
+    def get_cfgstr_list(feat_cfg, **kwargs):
         #if feat_cfg._chip_cfg is None:
         #    raise Exception('Chip config is required')
         #if feat_cfg.scale_min < 0:
         #    feat_cfg.scale_min = None
         #if feat_cfg.scale_max < 0:
         #    feat_cfg.scale_max = None
-        feat_cfgstrs = ['_FEAT(']
-        feat_cfgstrs += [feat_cfg.feat_type]
-        feat_cfgstrs += [',white'] * feat_cfg.whiten
-        #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
-        feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
-        feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
-        # TODO: Named Tuple
-        alias = {
-            'numberOfScales': 'nScales',
-            'edgeEigValRat': 'EdgeEigvRat',
-            'maxIterations': 'nIter',
-            #'whiten':
-        }
-        ignore = []
-        #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
-        #              'nogravity_hack', 'feat_type'])
-        ignore_if_default = set([
-            # 'numberOfScales',
-            # 'threshold',
-            # 'edgeEigenValueRatio',
-            'border',
-            # 'maxIterations',
-            # 'convergenceThreshold',
+        if kwargs.get('use_feat', True):
+            feat_cfgstrs = ['_FEAT(']
+            feat_cfgstrs += [feat_cfg.feat_type]
+            feat_cfgstrs += [',white'] * feat_cfg.whiten
+            #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
+            feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
+            feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
+            # TODO: Named Tuple
+            alias = {
+                'numberOfScales': 'nScales',
+                'edgeEigValRat': 'EdgeEigvRat',
+                'maxIterations': 'nIter',
+                #'whiten':
+            }
+            ignore = []
+            #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
+            #              'nogravity_hack', 'feat_type'])
+            ignore_if_default = set([
+                # 'numberOfScales',
+                # 'threshold',
+                # 'edgeEigenValueRatio',
+                'border',
+                # 'maxIterations',
+                # 'convergenceThreshold',
 
-            'smmWindowSize',
-            'mrSize',
+                'smmWindowSize',
+                'mrSize',
 
-            'spatialBins',
-            'orientationBins',
+                'spatialBins',
+                'orientationBins',
 
-            'maxBinValue',
-            #'initialSigma',
-            'patchSize',
+                'maxBinValue',
+                #'initialSigma',
+                'patchSize',
 
-            'scale_min',
-            'scale_max',
-            'rotation_invariance',
-        ])
+                'scale_min',
+                'scale_max',
+                'rotation_invariance',
+            ])
 
-        def _gen():
-            for param in feat_cfg._iterparams():
-                # a parameter is a type, name, default value, and docstring
-                (type_, name, default, doc) = param
-                if name in ignore:
-                    continue
-                val = feat_cfg[name]
-                if name in ignore_if_default and val == default:
-                    continue
-                if isinstance(val, float):
-                    valstr = '%.2f' % val
-                else:
-                    valstr = str(val)
-
-                #namestr = utool.hashstr(alias.get(name, name), hashlen=6,
-                #                        alphabet=utool.util_hash.ALPHABET_27)
-                namestr = clipstr(alias.get(name, name), 5)
-                str_ = namestr + '=' + valstr
-                yield str_
-        feat_cfgstrs.append('_' + ',' .join(list(_gen())))
-        feat_cfgstrs += [')']
-        feat_cfgstrs += feat_cfg._chip_cfg.get_cfgstr_list()
+            def _gen():
+                for param in feat_cfg._iterparams():
+                    # a parameter is a type, name, default value, and docstring
+                    (type_, name, default, doc) = param
+                    if name in ignore:
+                        continue
+                    val = feat_cfg[name]
+                    if name in ignore_if_default and val == default:
+                        continue
+                    if isinstance(val, float):
+                        valstr = '%.2f' % val
+                    else:
+                        valstr = str(val)
+                    #namestr = utool.hashstr(alias.get(name, name), hashlen=6,
+                    #                        alphabet=utool.util_hash.ALPHABET_27)
+                    namestr = utool.clipstr(alias.get(name, name), 5)
+                    str_ = namestr + '=' + valstr
+                    yield str_
+            feat_cfgstrs.append('_' + ',' .join(list(_gen())))
+            feat_cfgstrs.append(')')
+        else:
+            feat_cfgstrs = []
+        feat_cfgstrs.extend(feat_cfg._chip_cfg.get_cfgstr_list(**kwargs))
         return feat_cfgstrs
 
 
@@ -807,57 +838,21 @@ class ChipConfig(ConfigBase):
         cc_cfg.chipfmt         = '.png'
         cc_cfg.update(**kwargs)
 
-    def get_cfgstr_list(cc_cfg):
+    def get_cfgstr_list(cc_cfg, **kwargs):
         chip_cfgstr = []
-        #assert cc_cfg.chipfmt[0] == '.'
-        chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (cc_cfg.chipfmt != '.png')
-        chip_cfgstr += ['histeq']  * cc_cfg.histeq
-        chip_cfgstr += ['adapteq'] * cc_cfg.adapteq
-        chip_cfgstr += ['grabcut'] * cc_cfg.grabcut
-        chip_cfgstr += ['regnorm'] * cc_cfg.region_norm
-        chip_cfgstr += ['rankeq']  * cc_cfg.rank_eq
-        chip_cfgstr += ['localeq'] * cc_cfg.local_eq
-        chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
-        isOrig = cc_cfg.chip_sqrt_area is None or cc_cfg.chip_sqrt_area  <= 0
-        chip_cfgstr += ['szorig'] if isOrig else ['sz%r' % cc_cfg.chip_sqrt_area]
+        if kwargs.get('use_chip', True):
+            #assert cc_cfg.chipfmt[0] == '.'
+            chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (cc_cfg.chipfmt != '.png')
+            chip_cfgstr += ['histeq']  * cc_cfg.histeq
+            chip_cfgstr += ['adapteq'] * cc_cfg.adapteq
+            chip_cfgstr += ['grabcut'] * cc_cfg.grabcut
+            chip_cfgstr += ['regnorm'] * cc_cfg.region_norm
+            chip_cfgstr += ['rankeq']  * cc_cfg.rank_eq
+            chip_cfgstr += ['localeq'] * cc_cfg.local_eq
+            chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
+            isOrig = cc_cfg.chip_sqrt_area is None or cc_cfg.chip_sqrt_area  <= 0
+            chip_cfgstr += ['szorig'] if isOrig else ['sz%r' % cc_cfg.chip_sqrt_area]
         return ['_CHIP(', (','.join(chip_cfgstr)), ')']
-
-
-@six.add_metaclass(ConfigMetaclass)
-class FeatureWeightConfig(ConfigBase):
-    """
-    Example:
-        >>> from ibeis.model.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig()
-        >>> print(featweight_cfg.get_cfgstr())
-        _FEATWEIGHT(OFF)
-    """
-
-    def __init__(featweight_cfg, **kwargs):
-        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
-        # Feature weights depend on the detector, but we only need to mirror
-        # some parameters because featweight_cfg should not use the detect_cfg
-        # object
-        featweight_cfg.featweight_on = True
-        featweight_cfg.featweight_species  = 'uselabel'
-        featweight_cfg.featweight_detector = 'rf'
-        featweight_cfg.update(**kwargs)
-
-    def make_feasible(featweight_cfg):
-        #featweight_cfg.featweight_on = False
-        pass
-
-    def get_cfgstr_list(featweight_cfg):
-        featweight_cfg.make_feasible()
-        if featweight_cfg.featweight_on is False:
-            return ['_FEATWEIGHT(OFF)']
-        else:
-            cfgstrs = [
-                '_FEATWEIGHT(ON',
-                ',' + featweight_cfg.featweight_species,
-                ',' + featweight_cfg.featweight_detector,
-                ')']
-        return cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)

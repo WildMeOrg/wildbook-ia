@@ -34,7 +34,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
     qparams = QueryParams(cfg, custom_qparams)
-    # Neighbor Indexer
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
     qreq_ = QueryRequest(qaid_list, quuid_list,
@@ -332,6 +331,21 @@ class QueryParams(object):
     """
 
     def __init__(qparams, cfg, custom_qparams=None):
+        """
+        __init__
+
+        Args:
+            cfg (?): query_config
+            custom_qparams (None):
+
+        Example:
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> qparams = '?'
+            >>> cfg = '?'
+            >>> custom_qparams = None
+            >>> result = __init__(qparams, cfg, custom_qparams)
+            >>> print(result)
+        """
         # Ensures that at least everything exits
         # pares nested config structure into this flat one
         if custom_qparams is not None:
@@ -401,7 +415,8 @@ class QueryParams(object):
         ####
 
         # cfgstrs
-        feat_cfgstr  = cfg._feat_cfg.get_cfgstr()
+        featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
+        feat_cfgstr  = cfg._featweight_cfg._feat_cfg.get_cfgstr()
         nn_cfgstr    = cfg.nn_cfg.get_cfgstr()
         filt_cfgstr  = cfg.filt_cfg.get_cfgstr()
         sv_cfgstr    = cfg.sv_cfg.get_cfgstr()

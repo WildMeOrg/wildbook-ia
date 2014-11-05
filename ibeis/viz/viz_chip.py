@@ -32,8 +32,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
             >>> in_image = False
             >>> annote = True
             >>> kpts = ibs.get_annot_kpts(aid)
-            >>> colors = np.array([df2.ORANGE] * len(kpts))
-            >>> kwargs = {'kpts': kpts, 'color': colors}
+            >>> color = np.array([df2.ORANGE] * len(kpts))
+            >>> kwargs = {'kpts': kpts, 'color': color}
             >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
 
     """
@@ -53,11 +53,11 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
     vh.set_ibsdat(ax, 'aid', aid)
     if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
-        if 'colors' not in kwargs:
+        if 'color' not in kwargs:
             from ibeis.model.preproc import preproc_featweight
             featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
-            colors = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
-            kwargs['color'] = colors
+            color = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
+            kwargs['color'] = color
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
         try:
             del kwargs['kpts']
@@ -96,13 +96,13 @@ if __name__ == '__main__':
 
     from ibeis.model.preproc import preproc_featweight
     featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
-    colors = featweights
+    color = featweights
     #import numpy as np
     # plot rf feature weights
     #detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
-    #colors = np.array([df2.ORANGE] * len(kpts))
-    #colors = np.array(np.random.rand(len(kpts), 3))
-    kwargs = {'kpt1s': [kpts], 'color': colors}
+    #color = np.array([df2.ORANGE] * len(kpts))
+    #color = np.array(np.random.rand(len(kpts), 3))
+    kwargs = {'kpt1s': [kpts], 'color': color}
     show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
     if not utool.get_argflag('--noshow'):
         execstr = df2.present()
