@@ -27,9 +27,10 @@ class TreeNode(TREE_NODE_BASE):
         self.child_nodes = []
         self.level = level
 
-    def __del__(self):
+    #def __del__(self):
     #    if utool.VERBOSE:
-            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+    #        print('[guitool] DELETING THE TREE NODE!:')
+    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
         """
@@ -106,6 +107,8 @@ class TreeNode(TREE_NODE_BASE):
         return self.level
 
     def lazy_checks(self):
+        # If the child is a generator, then the TreeNode hasn't been created yet
+        # so create it
         if isinstance(self.child_nodes, GeneratorType):
             printDBG('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
@@ -263,6 +266,12 @@ def build_internal_structure(model):
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
+
+
+def build_scope_hack_list(root_node, scope_hack_list=[]):
+    scope_hack_list.append(root_node)
+    for child in root_node.get_children():
+        build_scope_hack_list(child, scope_hack_list)
 
 
 CYTHONIZED = False

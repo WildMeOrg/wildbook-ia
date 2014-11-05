@@ -144,6 +144,7 @@ class APIItemModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
+        model.scope_hack_list = []
         model.root_node = _atn.TreeNode(-1, None, -1)
         # Initialize member variables
         #model._about_to_change()
@@ -211,6 +212,9 @@ class APIItemModel(API_MODEL_BASE):
                              ('cython' if _atn.CYTHONIZED else 'python',
                               model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
+                # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
+                model.scope_hack_list = []
+                _atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
             #print('-----')
         def lazy_update_rows():
             #with utool.Timer('lazy updater: %r' % (model.name,)):
