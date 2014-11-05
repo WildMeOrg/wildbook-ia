@@ -76,6 +76,8 @@ def parse_args():
                         help='sets the default logging directory')
         parser2.add_flag('--force-incremental-db-update',
                          help='ignores the current database schema and forces an incremental update for new databases')
+        parser2.add_flag('--dump-autogen-schema',
+                         help='dumps (autogenerates) the current database schema based on the expected versions in the controller')
 
     def commands_argparse(parser2):
         parser2 = parser2.add_argument_group('Commands')

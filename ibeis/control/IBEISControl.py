@@ -25,6 +25,7 @@ import utool as ut  # NOQA
 # IBEIS
 # CONSTANTS
 from ibeis import constants
+from ibeis import params
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, GL_RELATION_TABLE,
@@ -271,18 +272,21 @@ class IBEISController(object):
         ibs.dbcache_version_expected = '1.0.3'
         ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
         # Ensure correct schema versions
+        autogenerate = params.args.dump_autogen_schema
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.db,
             ibs.db_version_expected,
-            DB_SCHEMA
+            DB_SCHEMA,
+            autogenerate=autogenerate
         )
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.dbcache,
             ibs.dbcache_version_expected,
             DBCACHE_SCHEMA,
-            dobackup=False  # Everything in dbcache can be regenerated.
+            dobackup=False,  # Everything in dbcache can be regenerated.
+            autogenerate=autogenerate
         )
 
         # ibs.db.dump_schema()
@@ -3869,11 +3873,9 @@ class IBEISController(object):
             ####
             colnames = [
                 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
-            params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
-                           zip(fid_list, fgweight_list))
-
-            params_list = preproc_featweight.compute_fgweights(ibs, fid_list)
-
+            # params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
+            #                zip(fid_list, fgweight_list))
+            # params_list = preproc_featweight.compute_fgweights(ibs, fid_list)
             fgweight_list = preproc_featweight.compute_fgweights(ibs, fid_list)
             params_iter = ((fid, config_rowid, fgweight) for fid, fgweight in
                            zip(dirty_fid_list, fgweight_list))

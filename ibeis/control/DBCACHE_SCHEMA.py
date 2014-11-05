@@ -138,7 +138,8 @@ def test_dbcache_schema():
     """
     from ibeis.control import DBCACHE_SCHEMA
     from ibeis.control import _sql_helpers
-    autogenerate = utool.get_argflag('--dump-autogen-schema')
+    from ibeis import params
+    autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     dbcache = _sql_helpers.get_nth_test_schema_version(DBCACHE_SCHEMA, n=n, autogenerate=autogenerate)
     autogen_str = dbcache.get_schema_current_autogeneration_str()

@@ -354,7 +354,8 @@ def test_dbschema():
     """
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
-    autogenerate = utool.get_argflag('--dump-autogen-schema')
+    from ibeis import params
+    autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
     autogen_str = db.get_schema_current_autogeneration_str()
