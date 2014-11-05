@@ -167,6 +167,10 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     pc_dependant_rowid_lines = []
     for parent, child in ut.itertwo(depends_list):
         set_parent_child(parent, child)
+        # rowid constants
+        append_constant('{CHILD}_ROWID', '{child}_rowid')
+        append_constant('{PARENT}_ROWID', '{parent}_rowid')
+        # depenant rowid lines
         pc_dependant_rowid_lines.append(Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
     fmtdict['pc_dependant_rowid_lines'] = ut.indent(ut.indentjoin(pc_dependant_rowid_lines))
 
@@ -191,8 +195,6 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         append_func(Tdef.Tgetter_rl_pclines_dependant_column, 'rl_table_column')
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         append_constant(COLNAME, colname)
-        append_constant('{CHILD}_ROWID', '{child}_rowid')
-        append_constant('{PARENT}_ROWID', '{parent}_rowid')
 
     append_func(Tdef.Tgetter_native_rowid_from_superkey, 'ider')
     append_func(Tdef.Tcfg_config_rowid_getter, 'config_rowid')
