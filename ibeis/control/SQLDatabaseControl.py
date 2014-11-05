@@ -841,7 +841,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
                    verbose=VERYVERBOSE):
-        with SQLExecutionContext(db, operation, num_params=1) as context:
+        with SQLExecutionContext(db, operation, nParams=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
                 result_list = list(result_iter)
@@ -854,31 +854,31 @@ class SQLDatabaseController(object):
     @default_decorator
     #@utool.memprof
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERYVERBOSE, unpack_scalars=True, num_params=None,
+                    verbose=VERYVERBOSE, unpack_scalars=True, nParams=None,
                     eager=True):
         # --- ARGS PREPROC ---
-        # Aggresively compute iterator if the num_params is not given
-        if num_params is None:
+        # Aggresively compute iterator if the nParams is not given
+        if nParams is None:
             if isinstance(params_iter, (list, tuple)):
-                num_params = len(params_iter)
+                nParams = len(params_iter)
             else:
                 if VERYVERBOSE:
-                    print('[sql!] WARNING: aggressive eval of params_iter because num_params=None')
+                    print('[sql!] WARNING: aggressive eval of params_iter because nParams=None')
                 params_iter = list(params_iter)
-                num_params  = len(params_iter)
+                nParams  = len(params_iter)
         else:
             if VERYVERBOSE:
                 print('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
-        if num_params == 0:
+        if nParams == 0:
             if VERYVERBOSE:
                 print('[sql!] WARNING: dont use executemany'
                       'with no params use executeone instead.')
             return []
         # --- SQL EXECUTION ---
         contextkw = {
-            'num_params': num_params,
+            'nParams': nParams,
             'start_transaction': True,
             'verbose': verbose,
         }
