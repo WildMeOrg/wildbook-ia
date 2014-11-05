@@ -89,6 +89,10 @@ def format_controller_func(func_code):
 
 
 def build_dependent_controller_funcs(tablename, tableinfo):
+    """
+        python ibeis/control/templates.py
+        python ibeis/control/templates.py --dump-autogen-controller
+    """
 
     # -----
     # Setup
@@ -164,12 +168,14 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     # Parent-Child dependant rowid lines
     # ----------------------------
 
+    for tbl in depends_list:
+        set_tbl(tbl)
+        # rowid constants
+        append_constant('{TBL}_ROWID', '{tbl}_rowid')
+
     pc_dependant_rowid_lines = []
     for parent, child in ut.itertwo(depends_list):
         set_parent_child(parent, child)
-        # rowid constants
-        append_constant('{CHILD}_ROWID', '{child}_rowid')
-        append_constant('{PARENT}_ROWID', '{parent}_rowid')
         # depenant rowid lines
         pc_dependant_rowid_lines.append(Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
     fmtdict['pc_dependant_rowid_lines'] = ut.indent(ut.indentjoin(pc_dependant_rowid_lines))
