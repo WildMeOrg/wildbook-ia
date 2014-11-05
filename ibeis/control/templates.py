@@ -4,7 +4,7 @@ import utool  # NOQA
 import utool as ut
 from ibeis import constants
 from os.path import dirname, join
-import ibeis.control.template_definitions as template_def
+import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
@@ -108,23 +108,28 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         func_code = format_controller_func(func_code)
         functype2_func_list[func_type].append(func_code)
 
+    def setupper(fmtdict, key, val):
+        fmtdict[key] = val
+        fmtdict[key.upper()] = val.upper()
+
+    def set_root_leaf(root, leaf, leaf_parent):
+        setupper(fmtdict, 'root', root)
+        setupper(fmtdict, 'leaf', leaf)
+        setupper(fmtdict, 'leaf_parent', leaf_parent)
+        fmtdict['LEAF_TABLE'] = tbl2_TABLE[leaf]  # tblname1_TABLE[child]
+
+    set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
+
     # Getter template: config_rowid
     dependant_rowid_lines = []
     for parent, child in ut.itertwo(depends_list):
         fmtdict['parent'] = parent
         fmtdict['child'] = child
-        fmtdict['PARENT'] = parent.upper()
-        fmtdict['CHILD'] = child.upper()
-        fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-        dependant_rowid_lines.append(template_def.line_template_get_dependant_rowid.format(**fmtdict))
-        #append_func(template_def.getter_template_dependant_primary_rowid.format(**fmtdict), 'child_rowids')
+        dependant_rowid_lines.append(Tdef.line_template_get_dependant_rowid.format(**fmtdict))
 
-    fmtdict['root'] = depends_list[0]
-    fmtdict['leaf'] = depends_list[-1]
+    append_func(Tdef.getter_template_all_dependants_primary_rowid.format(**fmtdict), 'child_rowids')
+    append_func(Tdef.getter_template_dependants_primary_rowid.format(**fmtdict), 'child_rowids')
 
-    #print('')
-    #print('\n'.join(dependant_rowid_lines))
-    #print('')
     # Lines to map root (e.g. annotation) rowid to leaf (e.g featweight) rowids
     fmtdict['dependant_rowid_lines'] = '\n    '.join(dependant_rowid_lines)
 
@@ -142,12 +147,13 @@ def build_dependent_controller_funcs(tablename, tableinfo):
             fmtdict['PARENT'] = parent.upper()
             fmtdict['child'] = child
             fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-            #append_func(template_def.getter_template_dependant_column.format(**fmtdict), 'dependant_property')
+            #append_func(Tdef.getter_template_dependant_column.format(**fmtdict), 'dependant_property')
         # Getter template: native (Level 0) columns
         fmtdict['tbl'] = child  # tblname is the last child in dependency path
+        fmtdict['TBL'] = child.upper()  # tblname is the last child in dependency path
         fmtdict['TABLE'] = tbl2_TABLE[child]
-        #append_func(template_def.getter_template_native_column.format(**fmtdict), 'native_property')
-        append_func(template_def.getter_template_rowid_lines_dependant.format(**fmtdict), 'dependant_property')
+        #append_func(Tdef.getter_template_native_column.format(**fmtdict), 'native_property')
+        append_func(Tdef.getter_template_rowid_lines_dependant.format(**fmtdict), 'dependant_property')
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         constant_list.append('{CHILD}_ROWID = \'{child}_rowid\''.format(child=child, CHILD=child.upper()))
         constant_list.append('{PARENT}_ROWID = \'{parent}_rowid\''.format(parent=parent, PARENT=parent.upper()))
@@ -164,9 +170,9 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     fmtdict['child_props'] = child_props
     fmtdict['superkey_args'] = superkey_args
 
-    append_func(template_def.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
-    append_func(template_def.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
-    #append_func(template_def.getter_template_table_config_rowid.format(**fmtdict), 'config_rowid')
+    append_func(Tdef.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
+    append_func(Tdef.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
+    #append_func(Tdef.getter_template_table_config_rowid.format(**fmtdict), 'config_rowid')
 
     return functype2_func_list, constant_list
 
@@ -295,7 +301,7 @@ def main(ibs):
 
     autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
 
-    autogen_header = template_def.controller_header.format(timestamp=ut.get_timestamp('printable'))
+    autogen_header = Tdef.controller_header.format(timestamp=ut.get_timestamp('printable'))
     #from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
     #                             ENCOUNTER_TABLE, EG_RELATION_TABLE,
     #                             AL_RELATION_TABLE, GL_RELATION_TABLE,

@@ -3972,6 +3972,7 @@ class IBEISController(object):
 
 """
 python ibeis/control/templates.py
+python ibeis/control/templates.py --dump-autogen-controller
 """
 
 CONFIG_ROWID                = 'config_rowid'

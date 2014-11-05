@@ -63,7 +63,8 @@ def testdata_ibeis2(**kwargs):
     selects training and test set
 
     Example:
-        >>> from ibeis.model.hots.smk import smk_debug
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> kwargs = {}
     """
     from ibeis.model.hots.smk import smk_debug
     print('[smk_debug] testdata_ibeis2')
