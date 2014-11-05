@@ -215,6 +215,7 @@ class APIItemModel(API_MODEL_BASE):
         #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) == 0:
             return
+        old_root = model.root_node  # NOQA
         if rebuild_structure:
             with utool.Timer('[%s] _update_rows: %r' %
                              ('cyth' if _atn.CYTHONIZED else 'pyth',
@@ -270,6 +271,7 @@ class APIItemModel(API_MODEL_BASE):
         #print("Rows updated")
         if VERBOSE:
             print('[APIItemModel] finished _update_rows')
+        #del old_root
 
     def lazy_checks(model):
         if model.lazy_updater is not None:
