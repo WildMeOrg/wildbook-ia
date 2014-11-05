@@ -27,9 +27,9 @@ class TreeNode(TREE_NODE_BASE):
         self.child_nodes = []
         self.level = level
 
-    #def __del__(self):
+    def __del__(self):
     #    if utool.VERBOSE:
-    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
         """
