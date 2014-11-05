@@ -84,7 +84,7 @@ adder_template_dependant_child = ut.codeblock(
     '''
     def add_{parent}_{child}({self}, {parent}_rowid_list, config_rowid=None):
         """
-        Adds / ensures / computes a dependent property
+        Adds / ensures / computes a dependant property
 
         adder_template_dependant_child
 
@@ -177,6 +177,31 @@ getter_template_dependant_primary_rowid = ut.codeblock(
                 {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager,
                 num_params=num_params)
         return {child}_rowid_list
+    ''')
+
+
+line_template_get_dependant_rowid = ut.codeblock(
+    '''
+    {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, cfg=cfg)
+    '''
+)
+
+getter_template_rowid_lines_dependant = ut.codeblock(
+    '''
+    def get_{root}_{col}({self}, {root}_rowid_list, cfg=None):
+        """ get {col} data of the {parent} table using the dependant {child} table
+
+        getter_template_dependant_column
+
+        Args:
+            {parent}_rowid_list (list):
+
+        Returns:
+            list: {col}_list
+        """
+        {dependant_rowid_lines}
+        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list, cfg=cfg)
+        return {col}_list
     ''')
 
 

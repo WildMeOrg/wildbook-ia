@@ -109,13 +109,24 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         functype2_func_list[func_type].append(func_code)
 
     # Getter template: config_rowid
+    dependant_rowid_lines = []
     for parent, child in ut.itertwo(depends_list):
         fmtdict['parent'] = parent
         fmtdict['child'] = child
         fmtdict['PARENT'] = parent.upper()
         fmtdict['CHILD'] = child.upper()
         fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
+        dependant_rowid_lines.append(template_def.line_template_get_dependant_rowid.format(**fmtdict))
         #append_func(template_def.getter_template_dependant_primary_rowid.format(**fmtdict), 'child_rowids')
+
+    fmtdict['root'] = depends_list[0]
+    fmtdict['leaf'] = depends_list[-1]
+
+    #print('')
+    #print('\n'.join(dependant_rowid_lines))
+    #print('')
+    # Lines to map root (e.g. annotation) rowid to leaf (e.g featweight) rowids
+    fmtdict['dependant_rowid_lines'] = '\n    '.join(dependant_rowid_lines)
 
     CONSTANT_COLNAMES.extend(other_colnames)
 
@@ -136,6 +147,7 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         fmtdict['tbl'] = child  # tblname is the last child in dependency path
         fmtdict['TABLE'] = tbl2_TABLE[child]
         #append_func(template_def.getter_template_native_column.format(**fmtdict), 'native_property')
+        append_func(template_def.getter_template_rowid_lines_dependant.format(**fmtdict), 'dependant_property')
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         constant_list.append('{CHILD}_ROWID = \'{child}_rowid\''.format(child=child, CHILD=child.upper()))
         constant_list.append('{PARENT}_ROWID = \'{parent}_rowid\''.format(parent=parent, PARENT=parent.upper()))
@@ -152,8 +164,8 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     fmtdict['child_props'] = child_props
     fmtdict['superkey_args'] = superkey_args
 
-    append_func(template_def.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
-    append_func(template_def.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
+    #append_func(template_def.getter_template_native_rowid_from_superkey.format(**fmtdict), 'getter_from_superkey')
+    #append_func(template_def.adder_template_dependant_child.format(**fmtdict), 'adder_dependant_stubs')
     #append_func(template_def.getter_template_table_config_rowid.format(**fmtdict), 'config_rowid')
 
     return functype2_func_list, constant_list
