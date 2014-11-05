@@ -1,14 +1,16 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore
+from .__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
 from six.moves import zip, range
 import utool
+import utool as ut
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
 
 
 TREE_NODE_BASE = QtCore.QObject
 #TREE_NODE_BASE = object
+VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 
 class TreeNode(TREE_NODE_BASE):
@@ -22,15 +24,20 @@ class TreeNode(TREE_NODE_BASE):
     #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
         TREE_NODE_BASE.__init__(self, parent=parent_node)
+        #super(TreeNode, self).__init__(parent_node)
+        #if TREE_NODE_BASE is not object:
+        #if VERBOSE:
+        #    print('[TreeNode] __init__')
+        #super(TreeNode, self).__init__(parent=parent_node)
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
         self.level = level
 
-    #def __del__(self):
-    #    if utool.VERBOSE:
-    #        print('[guitool] DELETING THE TREE NODE!:')
-    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+    def __del__(self):
+        #print('[guitool] DELETING THE TREE NODE!:')
+        if VERBOSE:
+            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
         """

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from .__PYQT__ import QtCore, QtGui, QVariantHack
 from .__PYQT__.QtCore import Qt
 from . import qtype
-from .guitool_decorators import checks_qt_error, signal_
+from .guitool_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins
 #from utool._internal.meta_util_six import get_funcname
 import functools
@@ -13,8 +13,10 @@ import utool as ut
 #import numpy as np
 #profile = lambda func: func
 #printDBG = lambda *args: None
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
-#profile = ut.profile
+# UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
+# DO NOT INJECT THEM IN GUITOOL
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
+profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
@@ -68,7 +70,8 @@ class ChangeLayoutContext(object):
 
 def default_method_decorator(func):
     """ Dummy decorator """
-    return checks_qt_error(profile(func))
+    #return checks_qt_error(profile(func))
+    return func
 
 
 def updater(func):
@@ -196,7 +199,6 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
-    @profile
     @updater
     def _update_rows(model, rebuild_structure=True):
         """
@@ -204,6 +206,7 @@ class APIItemModel(API_MODEL_BASE):
         row_indicies
         """
         if VERBOSE:
+            print('[APIItemModel] +-----------')
             print('[APIItemModel] _update_rows')
         # this is not slow
         #with utool.Timer('update_rows'):
@@ -215,16 +218,16 @@ class APIItemModel(API_MODEL_BASE):
         #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) == 0:
             return
-        old_root = model.root_node  # NOQA
+        #old_root = model.root_node  # NOQA
         if rebuild_structure:
-            with utool.Timer('[%s] _update_rows: %r' %
-                             ('cyth' if _atn.CYTHONIZED else 'pyth',
-                              model.name,), newline=False):
+            #with utool.Timer('[%s] _update_rows: %r' %
+            #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
+            #                  model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
-            #print('-----')
+        #print('-----')
         #def lazy_update_rows():
-            #with utool.Timer('lazy updater: %r' % (model.name,)):
-                #printDBG('[model] calling lazy updater: %r' % (model.name,))
+        #    with utool.Timer('lazy updater: %r' % (model.name,)):
+        #        printDBG('[model] calling lazy updater: %r' % (model.name,))
         # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
         if VERBOSE:
             print('[APIItemModel] lazy_update_rows')
@@ -236,7 +239,7 @@ class APIItemModel(API_MODEL_BASE):
         nodes = []
         if len(id_list) != 0:
             if VERBOSE:
-                print('[APIItemModel] lazy_update_rows id_list != 0')
+                print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
             # start sort
             if model.col_sort_index is not None:
                 getter = model.col_getter_list[sort_index]
@@ -255,8 +258,8 @@ class APIItemModel(API_MODEL_BASE):
         if utool.USE_ASSERT:
             assert nodes is not None, 'no indices'
         model.level_index_list = nodes
-        if VERBOSE:
-            print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
+        #if VERBOSE:
+        #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
         model._rows_updated.emit(model.name, len(model.level_index_list))
 
         # lazy method didn't work. Eagerly evaluate
@@ -271,6 +274,7 @@ class APIItemModel(API_MODEL_BASE):
         #print("Rows updated")
         if VERBOSE:
             print('[APIItemModel] finished _update_rows')
+            print('[APIItemModel] L__________')
         #del old_root
 
     def lazy_checks(model):
@@ -501,7 +505,7 @@ class APIItemModel(API_MODEL_BASE):
                 try:
                     assert isinstance(node, _atn.TreeNode), 'type(node)=%r, node=%r' % (type(node), node)
                 except AssertionError as ex:
-                    utool.printex(ex, 'error in _get_row_id')
+                    utool.printex(ex, 'error in _get_row_id', keys=['model', 'qtindex', 'node'])
                     raise
             try:
                 id_ = node.get_id()

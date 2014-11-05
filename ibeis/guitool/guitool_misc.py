@@ -8,7 +8,7 @@ import sys
 import logging
 from .guitool_decorators import slot_
 from . import guitool_main
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool_misc]')
+#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool_misc]')
 
 
 # Qt object that will send messages (as signals) to the frontend gui_write slot
@@ -39,8 +39,8 @@ class GUILoggingHandler(logging.StreamHandler):
         except:
             self.handleError(record)
 
-#WITH_GUILOG = utool.get_argflag('--guilog')
-WITH_GUILOG = not utool.get_argflag('--noguilog')
+WITH_GUILOG = utool.get_argflag('--guilog')
+#WITH_GUILOG = not utool.get_argflag('--noguilog')
 
 
 class QLoggedOutput(QtGui.QTextEdit):

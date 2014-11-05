@@ -12,12 +12,14 @@ from vtool import geometry
 #from multiprocessing import Process
 #from guitool import guitool_components as comp
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
+import utool as ut
+
+VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 
 DELEGATE_BASE = QtGui.QItemDelegate
 RUNNABLE_BASE = QtCore.QRunnable
 MAX_NUM_THUMB_THREADS = 1
-VERBOSE = utool.VERBOSE
 
 
 def read_thumb_as_qimg(thumb_path):
@@ -50,6 +52,8 @@ class APIThumbDelegate(DELEGATE_BASE):
     to resize the rows to fit the images.  It probably should not resize columns
     but it can get the column width and resize the image to that size.  """
     def __init__(dgt, parent=None):
+        if VERBOSE:
+            print('[ThumbDelegate] __init__')
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = None
         dgt.thumbsize = 128
@@ -98,8 +102,8 @@ class APIThumbDelegate(DELEGATE_BASE):
 
         if not exists(thumb_path):
             if not exists(img_path):
-                #if VERBOSE:
-                #print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
+                if VERBOSE:
+                    print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
                 return None
             # Start computation of thumb if needed
             #qtindex.model()._update()  # should probably be deleted

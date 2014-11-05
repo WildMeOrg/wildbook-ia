@@ -10,6 +10,7 @@ from guitool.api_button_delegate import APIButtonDelegate
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
+import utool as ut
 from functools import partial
 
 # Valid API Models
@@ -20,7 +21,7 @@ from guitool.api_item_model import APIItemModel
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
 
-VERBOSE = utool.VERBOSE
+VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 API_VIEW_BASE = QtGui.QAbstractItemView
 register_view_method = utool.make_class_method_decorator(API_VIEW_BASE)
@@ -54,11 +55,11 @@ def infer_delegates(view, **headers):
     col_type_list = col_type_list * num_duplicates
     for colx, coltype in enumerate(col_type_list):
         if coltype in  qtype.QT_PIXMAP_TYPES:
-            if utool.VERBOSE:
+            if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
             view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
         elif coltype in qtype.QT_BUTTON_TYPES:
-            if utool.VERBOSE:
+            if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
             view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 
@@ -123,7 +124,7 @@ def setModel(view, model):
             ('APIItemViews only accepts APIItemModels (or one of its proxys),'
              'received a %r' % type(model))
     # Learn some things about the model before you fully connect it.
-    if utool.VERBOSE:
+    if VERBOSE:
         print('[view] setting model')
     model._rows_updated.connect(view.on_rows_updated)
     #view.infer_delegates_from_model(model=model)

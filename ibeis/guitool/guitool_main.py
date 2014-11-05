@@ -5,8 +5,7 @@ import sys
 from .__PYQT__ import QtCore, QtGui
 from .__PYQT__.QtCore import pyqtRemoveInputHook
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[guitool]', DEBUG=False)
+#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
 
 
 IS_ROOT = False
