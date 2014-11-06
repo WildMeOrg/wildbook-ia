@@ -134,6 +134,10 @@ class SQLDatabaseController(object):
         db.optimize()
         db._ensure_metadata_table()
 
+    def close(db):
+        db.cur = None
+        db.connection.close()
+
     def _ensure_metadata_table(db):
         # We need this to be done every time so that the update code works correctly.
         db.add_table(constants.METADATA_TABLE, (

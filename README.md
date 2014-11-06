@@ -569,9 +569,9 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.prep
 ```
 
 #---------------
-# Things we are not currently doing
-#---------------
+# Caveats / Things we are not currently doing
 
 * No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
+* Feature weights are never recomputed unless the database cache is deleted
 

@@ -494,10 +494,15 @@ def delete_cachedir(ibs):
     Deletes the cache directory in the database directory.
     """
     print('[ibs] delete_cachedir')
+    # Need to close dbcache before restarting
+    ibs._close_sqldbcache()
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     utool.delete(cachedir)
     print('[ibs] finished delete cachedir')
+    # Reinit cache
+    ibs.ensure_directories()
+    ibs._init_sqldbcache()
 
 
 @__injectable

@@ -261,34 +261,8 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
-        # Before load, ensure database has been backed up for the day
-        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
-        # IBEIS SQL State Database
-        ibs.db_version_expected = '1.1.1'
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
-                                              text_factory=__STR__,
-                                              inmemory=False)
-        # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.3'
-        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
-        # Ensure correct schema versions
-        autogenerate = params.args.dump_autogen_schema
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.db,
-            ibs.db_version_expected,
-            DB_SCHEMA,
-            autogenerate=autogenerate
-        )
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.dbcache,
-            ibs.dbcache_version_expected,
-            DBCACHE_SCHEMA,
-            dobackup=False,  # Everything in dbcache can be regenerated.
-            autogenerate=autogenerate
-        )
-
+        ibs._init_sqldb()
+        ibs._init_sqldbcache()
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
@@ -302,6 +276,41 @@ class IBEISController(object):
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
+
+    def _init_sqldb(ibs):
+        # Before load, ensure database has been backed up for the day
+        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+        # IBEIS SQL State Database
+        ibs.db_version_expected = '1.1.1'
+        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
+                                              text_factory=__STR__,
+                                              inmemory=False)
+        # Ensure correct schema versions
+        _sql_helpers.ensure_correct_version(
+            ibs,
+            ibs.db,
+            ibs.db_version_expected,
+            DB_SCHEMA,
+            autogenerate=params.args.dump_autogen_schema
+        )
+
+    def _init_sqldbcache(ibs):
+        """ Need to reinit this sometimes if cache is ever deleted """
+        # IBEIS SQL Features & Chips database
+        ibs.dbcache_version_expected = '1.0.3'
+        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
+        _sql_helpers.ensure_correct_version(
+            ibs,
+            ibs.dbcache,
+            ibs.dbcache_version_expected,
+            DBCACHE_SCHEMA,
+            dobackup=False,  # Everything in dbcache can be regenerated.
+            autogenerate=params.args.dump_autogen_schema
+        )
+
+    def _close_sqldbcache(ibs):
+        ibs.dbcache.close()
+        ibs.dbcache = None
 
     @default_decorator
     def clone_handle(ibs, **kwargs):
