@@ -71,7 +71,7 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
     else:
         # Multiprocessing parallelization
         featgen = generate_feats(cfpath_list, dict_args=dict_args,
-                                 cid_list=cid_list, nInput=nInput, **kwargs)
+                                 cid_list=cid_list, nInput=nInput)
         return ((cid, nKpts, kpts, desc, feat_config_rowid) for cid, nKpts, kpts, desc in featgen)
 
 
@@ -85,6 +85,9 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
         dict_args (dict):
         cid_list (list):
         nInput (None):
+
+    Kwargs:
+        passed to utool.generate
 
     Returns:
         featgen

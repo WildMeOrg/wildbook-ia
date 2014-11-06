@@ -14,6 +14,7 @@ import vtool.image as gtool  # NOQA
 #import vtool.image as gtool
 import numpy as np
 from ibeis.model.preproc import preproc_chip
+from os.path import exists
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
 
@@ -31,29 +32,33 @@ def gen_featweight_worker(tup):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> ax = 12
+        >>> aid_list = ibs.get_valid_aids()[ax:ax + 1]
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_list = [gtool.imread(fpath, grayscale=False) for fpath in probchip_fpath_list]
-        >>> kpts     = kpts_list[0]
-        >>> aids     = aid_list[0]
+        >>> probchip_list = [gtool.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
+        >>> kpts  = kpts_list[0]
+        >>> aid   = aid_list[0]
         >>> probchip = probchip_list[0]
         >>> tup = (aid, kpts, probchip)
         >>> (aid, weights) = gen_featweight_worker(tup)
         >>> print(weights.sum())
         275.025
-
     """
     (aid, kpts, probchip) = tup
-    #ptool.get_warped_patches()
-    patch_list = [ptool.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
-    weight_list = [patch.sum() / (patch.size) for patch in patch_list]
-    weights = np.array(weight_list, dtype=np.float32)
+    if probchip is None:
+        # hack for undetected chips
+        weights = np.full(len(kpts), .25, dtype=np.float32)
+    else:
+        #ptool.get_warped_patches()
+        patch_list = [ptool.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
+        weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        weights = np.array(weight_list, dtype=np.float32)
     return (aid, weights)
 
 
-def compute_fgweights(ibs, aid_list):
+def compute_fgweights(ibs, aid_list, qreq_=None):
     """
 
     Example:
@@ -61,10 +66,11 @@ def compute_fgweights(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> qreq_ = None
         >>> featweight_list = compute_fgweights(ibs, aid_list)
     """
     print('[preproc_featweight] Preparing to compute fgweights')
-    probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
+    probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
     if ut.DEBUG2:
         from PIL import Image
         probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
@@ -72,7 +78,7 @@ def compute_fgweights(ibs, aid_list):
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list)
-    probchip_list = [gtool.imread(fpath) for fpath in probchip_fpath_list]
+    probchip_list = [gtool.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
 
     print('[preproc_featweight] Computing fgweights')
     arg_iter = zip(aid_list, kpts_list, probchip_list)
@@ -99,7 +105,8 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
 
     Example:
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> ibs = '?'
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
         >>> fid_list = ibs.get_valid_fids()
         >>> result = add_featweight_params_gen(ibs, fid_list)
         >>> print(result)
@@ -108,7 +115,7 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
     from ibeis import constants
     cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
     aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
-    return compute_fgweights(ibs, aid_list)
+    return compute_fgweights(ibs, aid_list, qreq_=qreq_)
 
 
 #def get_annot_probchip_fname_iter(ibs, aid_list):

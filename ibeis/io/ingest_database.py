@@ -10,6 +10,7 @@ from os.path import relpath, split, exists, join
 from ibeis import ibsfuncs
 from ibeis import constants
 import utool
+import utool as ut  # NOQA:
 import parse
 
 
@@ -135,20 +136,37 @@ def __standard(dbname):
 
 
 @__standard('polar_bears')
-def ingest_polar_bears(db):
-    return Ingestable(db, ingest_type='named_folders',
+def ingest_polar_bears(dbname):
+    return Ingestable(dbname, ingest_type='named_folders',
                       adjust_percent=0.00,
                       fmtkey='name')
 
 
 @__standard('testdb1')
-def ingest_testdb1(db):
+def ingest_testdb1(dbname):
+    """
+    ingest_testdb1
+
+    Example:
+        >>> # DOCTEST = OFF
+        >>> from ibeis.io.ingest_database import *  # NOQA
+        >>> from
+        >>> import utool
+        >>> from vtool.tests import grabdata
+        >>> grabdata.ensure_testdata()
+        >>> # DELETE TESTDB1
+        >>> TESTDB1 = join(ibeis.sysres.get_workdir(), 'testdb1')
+        >>> utool.delete(TESTDB1, ignore_errors=False)
+        >>>
+        >>> result = ingest_testdb1(dbname)
+    """
     from vtool.tests import grabdata
     def postingest_tesdb1_func(ibs):
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
         import numpy as np
         gid_list = np.array(ibs.get_valid_gids())
+        # Set image unixtimes
         unixtimes_even = (gid_list[0::2] + 100).tolist()
         unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
         unixtime_list = unixtimes_even + unixtimes_odd
@@ -186,9 +204,24 @@ def ingest_testdb1(db):
         unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
         ibs.set_annot_exemplar_flag(unflagged_aids, exemplar_flags)
-
+        # Set some test species labels
+        from ibeis.constants import Species
+        species_list = ibs.get_annot_species(aid_list)
+        for ix in range(0, 6):
+            species_list[ix] = Species.ZEB_PLAIN
+        # These are actually plains zebras.
+        for ix in range(8, 10):
+            species_list[ix] = Species.ZEB_GREVY
+        for ix in range(10, 12):
+            species_list[ix] = Species.POLAR_BEAR
+        ibs.set_annot_species(aid_list, species_list)
+        ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
+        ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
+        ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
+        ibs.set_annot_notes(aid_list[7:8], ['standard test image'])
+        #ut.embed()
         return None
-    return Ingestable(db, ingest_type='named_images',
+    return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
                       img_dir=grabdata.get_testdata_dir(),
                       adjust_percent=0.00,
@@ -196,8 +229,8 @@ def ingest_testdb1(db):
 
 
 @__standard('snails_drop1')
-def ingest_snails_drop1(db):
-    return Ingestable(db,
+def ingest_snails_drop1(dbname):
+    return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.snails_fmt,
                       #img_dir='/raid/raw/snails_drop1_59MB',
@@ -205,32 +238,46 @@ def ingest_snails_drop1(db):
 
 
 @__standard('JAG_Kieryn')
-def ingest_JAG_Kieryn(db):
-    return Ingestable(db,
+def ingest_JAG_Kieryn(dbname):
+    return Ingestable(dbname,
                       ingest_type='unknown',
                       adjust_percent=0.00)
 
 
 @__standard('Giraffes')
-def ingest_Giraffes1(db):
-    return Ingestable(db,
+def ingest_Giraffes1(dbname):
+    return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.giraffe1_fmt,
                       adjust_percent=0.00)
 
 
-def get_standard_ingestable(db):
-    if db in STANDARD_INGEST_FUNCS:
-        return STANDARD_INGEST_FUNCS[db](db)
+def get_standard_ingestable(dbname):
+    if dbname in STANDARD_INGEST_FUNCS:
+        return STANDARD_INGEST_FUNCS[dbname](dbname)
     else:
-        raise AssertionError('Unknown db=%r' % (db,))
+        raise AssertionError('Unknown dbname=%r' % (dbname,))
 
 
-def ingest_standard_database(db, force_delete=False):
+def ingest_standard_database(dbname, force_delete=False):
+    """
+    ingest_standard_database
+
+    Args:
+        dbname (str): database name
+        force_delete (bool):
+
+    Example:
+        >>> from ibeis.io.ingest_database import *  # NOQA
+        >>> dbname = 'testdb1'
+        >>> force_delete = False
+        >>> result = ingest_standard_database(dbname, force_delete)
+        >>> print(result)
+    """
     from ibeis.control import IBEISControl
-    print('[ingest] Ingest Standard Database: db=%r' % (db,))
-    ingestable = get_standard_ingestable(db)
-    dbdir = ibeis.sysres.db_to_dbdir(ingestable.db, allow_newdir=True, use_sync=False)
+    print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
+    ingestable = get_standard_ingestable(dbname)
+    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True, use_sync=False)
     utool.ensuredir(dbdir, verbose=True)
     if force_delete:
         ibsfuncs.delete_ibeis_database(dbdir)
@@ -243,10 +290,12 @@ def ingest_standard_database(db, force_delete=False):
 
 
 class Ingestable(object):
-    """ Temporary structure representing how to ingest a databases """
-    def __init__(self, db, img_dir=None, ingest_type=None, fmtkey=None,
+    """
+    Temporary structure representing how to ingest a databases
+    """
+    def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None):
-        self.db              = db
+        self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
         self.fmtkey          = fmtkey
@@ -258,8 +307,8 @@ class Ingestable(object):
         rawdir  = ibeis.sysres.get_rawdir()
         if self.img_dir is None:
             # Try to find data either the raw or work dir
-            self.img_dir = ibeis.sysres.db_to_dbdir(self.db, extra_workdirs=[rawdir])
-        msg = 'Cannot find img_dir for db=%r, img_dir=%r' % (self.db, self.img_dir)
+            self.img_dir = ibeis.sysres.db_to_dbdir(self.dbname, extra_workdirs=[rawdir])
+        msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
         assert self.img_dir is not None, msg
         assert exists(self.img_dir), msg
         if self.ingest_type == 'named_folders':
@@ -499,24 +548,25 @@ def ingest_oxford_style_db(dbdir):
 
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python ibeis/ingest/ingest_database.py --db JAG_Kieryn --force-delete
+        python ibeis/ingest/ingest_database.py --db polar_bears --force_delete
+        python ibeis/ingest/ingest_database.py --db snails_drop1
+    """
     import multiprocessing
     multiprocessing.freeze_support()  # win32
     print('__main__ = ingest_database.py')
     print(utool.unindent(
         '''
         usage:
-        ./ibeis/ingest/ingest_database.py --db [dbname]
+        python ibeis/ingest/ingest_database.py --db [dbname]
 
         Valid dbnames:''') + utool.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
-    db = utool.get_argval('--db', str, None)
+    dbname = utool.get_argval('--db', str, None)
     force_delete = utool.get_argflag('--force_delete')
-    ibs = ingest_standard_database(db, force_delete)
+    ibs = ingest_standard_database(dbname, force_delete)
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
     #main_locals = ibeis.main(dbdir=img_dir, gui=False)
     #ibs = main_locals['ibs']
     #ingest_rawdata(ibs, img_dir)
-"""
-python ibeis/ingest/ingest_database.py --db JAG_Kieryn --force-delete
-python ibeis/ingest/ingest_database.py --db polar_bears --force_delete
-python ibeis/ingest/ingest_database.py --db snails_drop1
-"""

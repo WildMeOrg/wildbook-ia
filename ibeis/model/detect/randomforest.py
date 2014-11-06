@@ -132,7 +132,8 @@ def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True, **d
     dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
-        print('[detect.rf] making hough images for %d images' % num_dirty)
+        if utool.VERBOSE:
+            print('[detect.rf] making hough images for %d images' % num_dirty)
         generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths, species,
                                           use_chunks=use_chunks, **detectkw)
         # Execute generator
@@ -162,6 +163,40 @@ def _scale_bbox(bbox, s):
 
 
 def _get_detector(species, quick=True, single=False):
+    """
+    _get_detector
+
+    Args:
+        species (?):
+        quick (bool):
+        single (bool):
+
+    Returns:
+        tuple: (detector, forest)
+
+    Example1:
+        >>> # Test existing model
+        >>> from ibeis.model.detect.randomforest import *  # NOQA
+        >>> from ibeis.model.detect import randomforest
+        >>> species = 'zebra_plains'
+        >>> quick = True
+        >>> single = False
+        >>> (detector, forest) = randomforest._get_detector(species, quick, single)
+        >>> print(list(map(type, (detector, forest))))
+        [<class 'pyrf._pyrf.Random_Forest_Detector'>, <type 'int'>]
+
+    Example2:
+        >>> # Test non-existing model
+        >>> from ibeis.model.detect.randomforest import *  # NOQA
+        >>> from ibeis.model.detect import randomforest
+        >>> species = 'dropbear'
+        >>> quick = True
+        >>> single = False
+        >>> (detector, forest) = randomforest._get_detector(species, quick, single)
+        >>> print(list(map(type, (detector, forest))))
+        [<type 'NoneType'>, <type 'NoneType'>]
+
+    """
     # Ensure all models downloaded and accounted for
     grabmodels.ensure_models()
     # Create detector
@@ -187,9 +222,13 @@ def _get_detector(species, quick=True, single=False):
             }
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species)
-    # Load forest, so we don't have to reload every time
-    forest = detector.load(trees_path, species + '-', num_trees=25)
-    return detector, forest
+    if utool.checkpath(trees_path, verbose=True):
+        # Load forest, so we don't have to reload every time
+        forest = detector.load(trees_path, species + '-', num_trees=25)
+        return detector, forest
+    else:
+        # If the models do not exist return None
+        return None, None
 
 
 def _get_detect_config(**detectkw):
@@ -218,6 +257,8 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
 
     detect_config = _get_detect_config(**detectkw)
     detector, forest = _get_detector(species, quick=quick, single=single)
+    if detector is None:
+        raise StopIteration('species=%s does not have models trained' % (species,))
     detector.set_detect_params(**detect_config)
 
     chunksize = 8

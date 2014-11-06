@@ -19,7 +19,7 @@ def make_config_metaclass():
         return func
 
     @_register
-    def get_cfgstr_list(cfg):
+    def get_cfgstr_list(cfg, **kwargs):
         item_list = parse_config_items(cfg)
         return ['METACONFIG(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
         #return ['cfg']
@@ -30,8 +30,8 @@ def make_config_metaclass():
         return hash(cfg.get_cfgstr())
 
     @_register
-    def get_cfgstr(cfg):
-        return ''.join(cfg.get_cfgstr_list())
+    def get_cfgstr(cfg, **kwargs):
+        return ''.join(cfg.get_cfgstr_list(**kwargs))
 
     class ConfigMetaclass(type):
         """ Defines extra methods for Configs
@@ -100,7 +100,7 @@ class GenericConfig(ConfigBase):
     def __init__(cfg, *args, **kwargs):
         super(GenericConfig, cfg).__init__(*args, **kwargs)
 
-    #def get_cfgstr_list(cfg):
+    #def get_cfgstr_list(cfg, **kwargs):
     #    #raise NotImplementedError('abstract')
     #    item_list = parse_config_items(cfg)
     #    return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
@@ -108,7 +108,7 @@ class GenericConfig(ConfigBase):
     #    #pass
 
     #@abstract():
-    #def get_cfgstr_list(cfg):
+    #def get_cfgstr_list(cfg, **kwargs):
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -126,7 +126,7 @@ class NNConfig(ConfigBase):
         if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
             nn_cfg.normalizer_rule = 'last'
 
-    def get_cfgstr_list(nn_cfg):
+    def get_cfgstr_list(nn_cfg, **kwargs):
         nn_cfgstr  = ['_NN(',
                       'K', str(nn_cfg.K),
                       '+', str(nn_cfg.Knorm),
@@ -224,7 +224,7 @@ class FilterConfig(ConfigBase):
                 active_filters.append(filt)
         return active_filters
 
-    def get_cfgstr_list(filt_cfg):
+    def get_cfgstr_list(filt_cfg, **kwargs):
         if not filt_cfg.filt_on:
             return ['_FILT()']
         on_filters = filt_cfg.get_active_filters()
@@ -277,7 +277,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.sv_on = True
         sv_cfg.update(**kwargs)
 
-    def get_cfgstr_list(sv_cfg):
+    def get_cfgstr_list(sv_cfg, **kwargs):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV()']
         sv_cfgstr = ['_SV(']
@@ -325,7 +325,7 @@ class AggregateConfig(ConfigBase):
         if key in alt_methods:
             agg_cfg.score_method = alt_methods[key]
 
-    def get_cfgstr_list(agg_cfg):
+    def get_cfgstr_list(agg_cfg, **kwargs):
         agg_cfgstr = []
         agg_cfgstr += ['_AGG(']
         agg_cfgstr += [agg_cfg.score_method]
@@ -354,7 +354,7 @@ class FlannConfig(ConfigBase):
             'trees' : flann_cfg.trees,
         }
 
-    def get_cfgstr_list(flann_cfg):
+    def get_cfgstr_list(flann_cfg, **kwargs):
         flann_cfgstrs = ['_FLANN(']
         if flann_cfg.algorithm == 'kdtree':
             flann_cfgstrs += ['%d_kdtrees' % flann_cfg.trees]
@@ -401,7 +401,7 @@ class SMKConfig(ConfigBase):
             for x in smk_cfg._valid_vocab_weighting])
         assert hasvalid_weighting, 'invalid vocab weighting %r' % smk_cfg.vocab_weighting
 
-    def get_cfgstr_list(smk_cfg):
+    def get_cfgstr_list(smk_cfg, **kwargs):
         smk_cfgstr_list = [
             '_SMK(',
             'agg=', str(smk_cfg.aggregate),
@@ -437,7 +437,7 @@ class VocabTrainConfig(ConfigBase):
         vocabtrain_cfg.vocab_flann_params = {}  # TODO: easy flann params cfgstr
         vocabtrain_cfg.update(**kwargs)
 
-    def get_cfgstr_list(vocabtrain_cfg):
+    def get_cfgstr_list(vocabtrain_cfg, **kwargs):
         if vocabtrain_cfg.override_vocab == 'default':
             if isinstance(vocabtrain_cfg.vocab_taids, six.string_types):
                 taids_cfgstr = 'taids=%s' % vocabtrain_cfg.vocab_taids
@@ -485,7 +485,7 @@ class VocabAssignConfig(ConfigBase):
             # massign sigma makes no difference if there are equal weights
             vocabassign_cfg.massign_sigma = None
 
-    def get_cfgstr_list(vocabassign_cfg):
+    def get_cfgstr_list(vocabassign_cfg, **kwargs):
         vocabassign_cfg_list = [
             '_VocabAssign(',
             'nAssign=', str(vocabassign_cfg.nAssign),

@@ -3621,6 +3621,39 @@ class IBEISController(object):
         return nid_list
 
     @getter_1to1
+    def get_species_lblannot_rowid(ibs, species_list, ensure=True):
+        """
+        get_species_lblannot_rowid
+
+        Returns:
+            species_rowid_list (list): Creates one if it doesnt exist
+
+        Example:
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> import utool
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> species_list = [u'jaguar', u'zebra_plains',
+            ...                 u'zebra_plains','____', u'zebra_grevys',
+            ...                 '____', u'zebra_grevys',
+            ...                 u'bear_polar', u'bear_polar', 'TYPO', '____']
+            >>> ensure = False
+            >>> species_rowid_list = ibs.get_species_lblannot_rowid(species_list, ensure)
+            >>> print(utool.list_str(list(zip(species_list, species_rowid_list))))
+            >>> ensure = True
+            >>> species_rowid_list = ibs.get_species_lblannot_rowid(species_list, ensure)
+            >>> print(utool.list_str(list(zip(species_list, species_rowid_list))))
+            >>> ibs.print_lblannot_table()
+        """
+        if ensure:
+            lblannot_rowid_list = ibs.add_species(species_list)
+        else:
+            lbltype_rowid = ibs.lbltype_ids[constants.SPECIES_KEY]
+            lbltype_rowid_list = [lbltype_rowid] * len(species_list)
+            lblannot_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_list)
+        return lblannot_rowid_list
+
+    @getter_1to1
     def get_name_text(ibs, nid_list):
         """
         Returns:
