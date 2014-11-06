@@ -48,7 +48,7 @@ def gen_featweight_worker(tup):
     """
     (aid, kpts, probchip) = tup
     if probchip is None:
-        # hack for undetected chips
+        # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
         weights = np.full(len(kpts), .25, dtype=np.float32)
     else:
         #ptool.get_warped_patches()
