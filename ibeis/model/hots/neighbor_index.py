@@ -159,9 +159,9 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
             flann_params =  qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
             vecs_list = ibs.get_annot_vecs(daid_list)
-            #fgws_list = ibs.get_annot_fg_weights(daid_list)
             if qreq_.qparams.fg_weight != 0:
-                fgws_list = ibs.ensure_annot_fg_weights(daid_list)
+                # HACK
+                fgws_list = ibs.get_annot_fgweights(daid_list)
             else:
                 fgws_list = None
             flann_cachedir = ibs.get_flann_cachedir()

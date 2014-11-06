@@ -270,8 +270,8 @@ class QueryRequest(object):
             qreq_.load_query_keypoints(ibs)
         if qreq_.qparams.fg_weight != 0:
             # Hacky way to ensure fgweights exist
-            #ibs.ensure_annot_fg_weights(qreq_.get_internal_daids())
-            ibs.ensure_annot_fg_weights(qreq_.get_internal_qaids())
+            #ibs.get_annot_fgweights(qreq_.get_internal_daids())
+            ibs.get_annot_fgweights(qreq_.get_internal_qaids())
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))

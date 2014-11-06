@@ -258,8 +258,35 @@ class SQLDatabaseController(object):
 
     #@adder_sql
     def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx=(0,)):
-        """ ADDER Extra input:
-            the first item of params_iter must be a superkey (like a uuid), """
+        """
+        ADDER Extra input:
+        the first item of params_iter must be a superkey (like a uuid),
+
+        add_cleanly
+
+        Args:
+            tblname (str): table name to add into
+            colnames (tuple of strs): columns whos values are specified in params_iter
+            params_iter (iterable): an iterable of tuples where each tuple corresonds to a row
+            get_rowid_from_superkey (func): function that tests if a row needs
+                to be added. It should return None for any new rows to be inserted.
+            superkey_paramx (tuple of ints): indicies of tuples in params_iter which
+                correspond to superkeys. defaults to (0,)
+
+        Returns:
+            iterable: rowid_list_ -- list of newly added or previously added rowids
+
+        Example:
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> db = '?'
+            >>> tblname = '?'
+            >>> colnames = '?'
+            >>> params_iter = '?'
+            >>> get_rowid_from_superkey = '?'
+            >>> superkey_paramx = (0,)
+            >>> rowid_list_ = add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+            >>> print(rowid_list_)
+            """
         # ADD_CLEANLY_1: PREPROCESS INPUT
         params_list = list(params_iter)  # eagerly evaluate for superkeys
         # Extract superkeys from the params list (requires eager eval)

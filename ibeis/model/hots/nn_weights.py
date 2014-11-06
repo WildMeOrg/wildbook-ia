@@ -56,7 +56,7 @@ def fg_match_weighter(qaid2_nns, qreq_, metadata):
         # database forground weights
         qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:K].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fg_weights([qaid])[0]
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False)[0]
         # feature match forground weight
         qfx2_fgweight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
         qaid2_weight[qaid] = qfx2_fgweight

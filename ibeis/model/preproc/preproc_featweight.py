@@ -86,7 +86,28 @@ def compute_fgweights(ibs, aid_list):
     return featweight_list
 
 
-def add_featweight_params_gen(ibs, aid_list):
+def add_featweight_params_gen(ibs, fid_list):
+    """
+    add_featweight_params_gen
+
+    Args:
+        ibs (IBEISController):
+        fid_list (list):
+
+    Returns:
+        featweight_list
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
+        >>> ibs = '?'
+        >>> fid_list = ibs.get_valid_fids()
+        >>> result = add_featweight_params_gen(ibs, fid_list)
+        >>> print(result)
+    """
+    # HACK: TODO AUTOGENERATE THIS
+    from ibeis import constants
+    cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
+    aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
     return compute_fgweights(ibs, aid_list)
 
 

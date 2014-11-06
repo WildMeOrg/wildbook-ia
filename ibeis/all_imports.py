@@ -85,6 +85,7 @@ import simplejson
 import detecttools
 import guitool
 import utool
+import utool as ut
 import vtool
 import plottool
 import guitool

@@ -32,8 +32,26 @@ Theader_ibeiscontrol = ut.codeblock(
         aliastup = (func, 'autogen_' + ut.get_funcname(func))
         register_ibs_unaliased_method(func)
         register_ibs_aliased_method(aliastup)
+        return func
     # ENDBLOCK
     ''')
+
+
+Tfooter_ibeiscontrol = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    if __name__ == '__main__':
+        """
+        {main_docstr_body}
+        """
+        import utool as ut
+        testable_list = [
+            get_annot_featweight_rowids
+        ]
+        ut.doctest_funcs(testable_list)
+    # ENDBLOCK
+    ''')
+
 
 #
 #
@@ -41,27 +59,30 @@ Theader_ibeiscontrol = ut.codeblock(
 # --- CONFIG ---
 #-----------------
 
-Tcfg_config_rowid_getter = ut.codeblock(
+Tcfg_leaf_config_rowid_getter = ut.codeblock(
     r'''
     # STARTBLOCK
     #@ider
-    def get_{child}_config_rowid({self}, qreq_=None):
+    def get_{leaf}_config_rowid({self}, qreq_=None):
         """
         returns config_rowid of the current configuration
         Config rowids are always ensured
 
-        Tcfg_config_rowid_getter
+        leaf = {leaf}
+
+        Tcfg_leaf_config_rowid_getter
 
         Example:
-            >>> import ibeis; ibs = ibeis.opendb('testdb1')
+            >>> import ibeis; {self} = ibeis.opendb('testdb1')
+            >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
         if qreq_ is not None:
-            {child}_cfg_suffix = qreq_.qparams.{child}_cfgstr
+            {leaf}_cfg_suffix = qreq_.qparams.{leaf}_cfgstr
             # TODO store config_rowid in qparams
         else:
-            {child}_cfg_suffix = {self}.cfg.{child}_cfg.get_cfgstr()
-        {child}_cfg_rowid = {self}.add_config({child}_cfg_suffix)
-        return {child}_cfg_rowid
+            {leaf}_cfg_suffix = {self}.cfg.{leaf}_cfg.get_cfgstr()
+        {leaf}_cfg_rowid = {self}.add_config({leaf}_cfg_suffix)
+        return {leaf}_cfg_rowid
     # ENDBLOCK
     '''
 )
@@ -76,7 +97,7 @@ Tcfg_config_rowid_getter = ut.codeblock(
 Tider_all_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
-    @ider
+    #@ider
     def _get_all_{tbl}_rowids({self}):
         """
         Tider_all_rowids
@@ -98,38 +119,82 @@ Tider_all_rowids = ut.codeblock(
 #-----------------
 
 
-Tadder_dependant_child = ut.codeblock(
+Tadder_pl_dependant = ut.codeblock(
     r'''
     # STARTBLOCK
     #@adder
-    def add_{parent}_{child}({self}, {parent}_rowid_list, qreq_=None):
+    def add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=None):
         """
         Adds / ensures / computes a dependant property
 
-        Tadder_dependant_child
+        Tadder_pl_dependant -- CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
+
+        parent={parent}
+        leaf={leaf}
 
         returns config_rowid of the current configuration
+
+        Example:
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
+            >>> qreq_ = None
+            >>> {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
         """
-        raise NotImplementedError('this code is a stub, you must populate it')
-        from ibeis.model.preproc import preproc_{child}
-        config_rowid = {self}.get_{child}_config_rowid(qreq_=qreq_)
-        {child}_rowid_list = ibs.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
-        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {child}_rowid_list)
+        #REM raise NotImplementedError('this code is a stub, you must populate it')
+        from ibeis.model.preproc import preproc_{leaf}
+        # Get requested configuration id
+        config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
+        # Find leaf rowids that need to be computed
+        {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+        # Get corresponding "dirty" parent rowids
+        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {leaf}_rowid_list)
         if len(dirty_{parent}_rowid_list) > 0:
             if utool.VERBOSE:
-                print('[ibs] adding %d / %d {child}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
+                print('[{self}] adding %d / %d {leaf}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
 
-            get_rowid_from_superkey = functools.partial(ibs.get_{parent}_{child}_rowids, ensure=False)
-            ###
-            colnames = {nonprimary_child_colnames}
-            {child_other_propname_lists} = preproc_{child}.add_{child}_params_gen(ibs, {parent}_rowid_list)
-            params_iter = (({parent}_rowid, config_rowid, {child_other_propnames}) for {parent}_rowid, {child_other_propnames} in
-                           zip({parent}_rowid_list, {child_other_propname_lists}))
-            ###
-            # params_iter = preproc_{child}.add_{child}_params_gen(ibs, dirty_{parent}_rowid_list)
-            # params_iter = params_list
-            {child}_rowid_list = ibs.dbcache.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
-        return {child}_rowid_list
+            # Dependant columns do not need true from_superkey getters.
+            # We can use the  Tgetter_rl_dependant_rowids instead
+            get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids, qreq_=qreq_, ensure=False)
+            {leaf_other_propname_lists} = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
+            params_iter = (({parent}_rowid, config_rowid, {leaf_other_propnames})
+                           for {parent}_rowid, {leaf_other_propnames} in
+                           zip({parent}_rowid_list, {leaf_other_propname_lists}))
+            colnames = {nonprimary_leaf_colnames}
+            {leaf}_rowid_list = {self}.dbcache.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
+        return {leaf}_rowid_list
+    # ENDBLOCK
+    '''
+)
+
+
+Tadder_rl_dependant = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@adder
+    def add_{root}_{leaf}s({self}, {root}_rowid_list, qreq_=None):
+        """
+        Adds / ensures / computes a dependant property
+
+        CONVINIENCE FUNCTION
+
+        Tadder_rl_dependant
+
+        root={root}
+        leaf={leaf}
+
+        returns config_rowid of the current configuration
+
+        Example:
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
+            >>> qreq_ = None
+            >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
+        """
+        {leaf_parent}_rowid_list = {self}.get_{root}_{leaf_parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
+        {leaf}_rowid_list = {self}.add_{leaf_parent}_{leaf}s({leaf_parent}_rowid_list, qreq_=qreq_)
+        return {leaf}_rowid_list
     # ENDBLOCK
     '''
 )
@@ -145,7 +210,7 @@ Tadder_dependant_child = ut.codeblock(
 Tline_pc_dependant_rowid = ut.codeblock(
     r'''
     # STARTBLOCK
-    {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_)
+    {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=ensure)
     # ENDBLOCK
     '''
 )
@@ -154,22 +219,121 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{root}_{col}({self}, {root}_rowid_list, qreq_=None):
-        """ get {col} data of the {parent} table using the dependant {child} table
+    def get_{root}_{col}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
+        """ get {col} data of the {root} table using the dependant {leaf} table
 
         Tgetter_rl_pclines_dependant_column
+
+        root = {root}
+        col  = {col}
+        leaf = {leaf}
+
+
+        Args:
+            {root}_rowid_list (list):
+
+        Returns:
+            list: {col}_list
+        """
+        # Get leaf rowids
+        {pc_dependant_rowid_lines}
+        # Get col values
+        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list)
+        return {col}_list
+    # ENDBLOCK
+    ''')
+
+Tgetter_rl_dependant_rowids = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@getter
+    def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=False, eager=True, nParams=None):
+        """
+        get {leaf} rowids of {root} under the current state configuration
+
+        Tgetter_rl_dependant_rowids
+
+        root        = {root}
+        leaf_parent = {leaf_parent}
+        leaf        = {leaf}
+
+        Args:
+            {root}_rowid_list (list):
+
+        Returns:
+            list: {leaf}_rowid_list
+
+        Example:
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
+            >>> qreq_ = None
+            >>> ensure = False
+            >>> {leaf}_rowid_list1 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure)
+            >>> print({leaf}_rowid_list1)
+            >>> ensure = True
+            >>> {leaf}_rowid_list2 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure)
+            >>> print({leaf}_rowid_list2)
+            >>> ensure = False
+            >>> {leaf}_rowid_list3 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure)
+            >>> print({leaf}_rowid_list3)
+        """
+        if ensure:
+            # Ensuring dependant columns is equivilant to adding cleanly
+            return {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
+        else:
+            # Get leaf_parent rowids
+            {leaf_parent}_rowid_list = {self}.get_{root}_{leaf_parent}_rowids(
+                {root}_rowid_list, qreq_=qreq_, ensure=False)
+            colnames = ({LEAF}_ROWID,)
+            config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
+            andwhere_colnames = ({LEAF_PARENT}_ROWID, CONFIG_ROWID,)
+            params_iter = [({leaf_parent}_rowid, config_rowid,) for {leaf_parent}_rowid in {leaf_parent}_rowid_list]
+            {leaf}_rowid_list = {self}.{dbself}.get_where2(
+                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
+            return {leaf}_rowid_list
+    # ENDBLOCK
+    ''')
+
+
+Tgetter_pl_dependant_rowids = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@getter
+    def get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list, qreq_=None, ensure=False, eager=True, nParams=None):
+        """
+        get {leaf} rowids of {parent} under the current state configuration
+
+        Tgetter_pl_dependant_rowids
 
         Args:
             {parent}_rowid_list (list):
 
         Returns:
-            list: {col}_list
+            list: {leaf}_rowid_list
+
+        Example:
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
+            >>> qreq_ = None
+            >>> ensure = False
+            >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_, ensure)
         """
-        {pc_dependant_rowid_lines}
-        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list, qreq_=qreq_)
-        return {col}_list
+        if ensure:
+            {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
+            return {leaf}_rowid_list
+        else:
+            colnames = ({LEAF}_ROWID,)
+            config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
+            andwhere_colnames = ({PARENT}_ROWID, CONFIG_ROWID,)
+            params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
+            {leaf}_rowid_list = {self}.{dbself}.get_where2(
+                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
+            return {leaf}_rowid_list
     # ENDBLOCK
     ''')
+
 
 Tgetter_rl_dependant_all_rowids = ut.codeblock(
     r'''
@@ -177,8 +341,6 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     #@getter
     def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nParams=None):
         """
-        get_{root}_{leaf}_rowids
-
         get {leaf} rowids of {root} under the current state configuration
 
         Tgetter_rl_dependant_all_rowids
@@ -197,42 +359,14 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     # ENDBLOCK
     ''')
 
-Tgetter_rl_dependant_rowids = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@getter
-    def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=True, eager=True, nParams=None):
-        """
-        get_{root}_{leaf}_rowids
-
-        get {leaf} rowids of {root} under the current state configuration
-
-        Tgetter_rl_dependant_rowids
-
-        Args:
-            {root}_rowid_list (list):
-
-        Returns:
-            list: {leaf}_rowid_list
-        """
-        if ensure:
-            {self}.add_{leaf}s({root}_rowid_list)
-        colnames = ({LEAF}_ROWID,)
-        config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
-        andwhere_colnames = [{ROOT}_ROWID, CONFIG_ROWID]
-        params_iter = (({root}_rowid, config_rowid,) for {root}_rowid in {root}_rowid_list)
-        {leaf}_rowid_list = {self}.{dbself}.get_where2(
-            {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
-        return {leaf}_rowid_list
-    # ENDBLOCK
-    ''')
 
 Tgetter_table_column = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
     def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
-        """gets data from the level 0 column "{col}" in the "{tbl}" table
+        """
+        gets data from the "native" column "{col}" in the "{tbl}" table
 
         Tgetter_table_column
 
@@ -275,8 +409,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{tbl}_rowid_from_superkey({self}, {superkey_args},
-                                      eager=False, nParams=None):
+    def get_{tbl}_rowid_from_superkey({self}, {superkey_args}, eager=True, nParams=None):
         """
         Tgetter_native_rowid_from_superkey
 
@@ -291,8 +424,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
         params_iter = zip({superkey_args})
         andwhere_colnames = [{superkey_args}]
         {tbl}_rowid_list = {self}.{dbself}.get_where2(
-            {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager,
-            nParams=nParams)
+            {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
         return {tbl}_rowid_list
     # ENDBLOCK
     ''')
@@ -311,6 +443,61 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
 #-----------------
 # --- DELETERS ---
 #-----------------
+
+Tline_pc_dependant_delete = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    _{child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+    {child}_rowid_list = ut.filter_Nones(_{child}_rowid_list)
+    {self}.delete_{child}({child}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+
+Tdeleter_pc_depenant = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@deleter
+    #@cache_invalidator({TABLE})
+    def delete_{parent}_{child}({self}, {parent}_rowid_list):
+        """
+        deletes {tbl} from the database
+
+        Tdeleter_native_tbl
+        """
+        if utool.VERBOSE:
+            print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
+        _{child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+        {child}_rowid_list = ut.filter_Nones(_{child}_rowid_list)
+        {self}.delete_{child}({child}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+
+Tdeleter_native_tbl = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@deleter
+    #@cache_invalidator({TABLE})
+    def delete_{tbl}({self}, {tbl}_rowid_list):
+        """
+        deletes {tbl} from the database
+
+        Tdeleter_native_tbl
+        """
+        if utool.VERBOSE:
+            print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
+        # Delete any dependants
+        {delete_pc_dependant_lines}
+        # Delete relationships
+        {self}.delete_{tbl}_relations({tbl}_rowid_list)
+        # Delete self
+        {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
+    # ENDBLOCK
+    '''
+)
 
 
 # ========
@@ -335,7 +522,7 @@ Tgetter_native_multicolumn = ut.codeblock(
         Returns:
             list: {multicol}_list
         """
-        {multicol}_list  = ibs.dbcache.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
+        {multicol}_list  = {self}.dbcache.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
         return {multicol}_list
     # ENDBLOCK
     ''')
@@ -352,37 +539,23 @@ Tsetter_native_column = ut.codeblock(
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
     def set_{tbl}_{multicolname}({self}, {tbl}_rowid_list, vals_list):
+        """
+        Tsetter_native_multicolumn
+        """
         pass
     # ENDBLOCK
     ''')
 
 
-Tdeleter_native_tbl = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@deleter
-    #@cache_invalidator({TABLE})
-    def delete_annots({self}, {tbl}_rowid_list):
-        """ deletes annotations from the database """
-        if utool.VERBOSE:
-            print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
-        # Delete dependant properties
-        {self}.delete_{tbl}_chips({tbl}_rowid_list)
-        {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
-        {self}.delete_{tbl}_relations({tbl}_rowid_list)
-    # ENDBLOCK
-    '''
-)
-
 Tdeleter_table_relation = ut.codeblock(
     r'''
     # STARTBLOCK
     #@deleter
-    def delete_{tbl}_relations(ibs, {tbl}_rowid_list):
+    def delete_{tbl}_relations({self}, {tbl}_rowid_list):
         """ Deletes the relationship between an {tbl} row and a label """
-        {relation}_rowids_list = ibs.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
+        {relation}_rowids_list = {self}.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
         {relation}_rowid_list = utool.flatten({relation}_rowids_list)
-        ibs.db.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
+        {self}.db.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
     # ENDBLOCK
     '''
 )
@@ -391,7 +564,7 @@ Tadder_relationship = ut.codeblock(
     r'''
     # STARTBLOCK
     #@adder
-    def add_image_relationship(ibs, gid_list, eid_list):
+    def add_image_relationship({self}, gid_list, eid_list):
         """
         Adds a relationship between an image and and encounter
 
@@ -399,9 +572,9 @@ Tadder_relationship = ut.codeblock(
         """
         colnames = ('image_rowid', 'encounter_rowid',)
         params_iter = list(zip(gid_list, eid_list))
-        get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
+        get_rowid_from_superkey = {self}.get_egr_rowid_from_superkey
         superkey_paramx = (0, 1)
-        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
+        egrid_list = {self}.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
                                         get_rowid_from_superkey, superkey_paramx)
         return egrid_list
     # ENDBLOCK

@@ -54,8 +54,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
     if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
         if 'color' not in kwargs:
-            from ibeis.model.preproc import preproc_featweight
-            featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
+            #from ibeis.model.preproc import preproc_featweight
+            #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
+            featweights = ibs.get_annot_fgweights([aid], ensure=True)[0]
             color = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
             kwargs['color'] = color
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
@@ -88,21 +89,21 @@ if __name__ == '__main__':
     #from plottool.viz_keypoints import _annotate_kpts
     from ibeis.viz.viz_chip import *  # NOQA
     import ibeis
-    ibs = ibeis.opendb('PZ_Mothers')
+    ibs = ibeis.opendb('PZ_MTEST')
     aid = ibs.get_valid_aids()[0]
     in_image = False
     annote = True
     kpts = ibs.get_annot_kpts(aid)
-
-    from ibeis.model.preproc import preproc_featweight
-    featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
-    color = featweights
+    kwargs = {}
+    #from ibeis.model.preproc import preproc_featweight
+    #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
+    #color = featweights
     #import numpy as np
     # plot rf feature weights
     #detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
     #color = np.array([df2.ORANGE] * len(kpts))
     #color = np.array(np.random.rand(len(kpts), 3))
-    kwargs = {'kpt1s': [kpts], 'color': color}
+    #kwargs = {'kpt1s': [kpts], 'color': color}
     show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
     if not utool.get_argflag('--noshow'):
         execstr = df2.present()
