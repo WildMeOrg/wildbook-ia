@@ -59,6 +59,10 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
         qfx2_topidx = qfx2_idx.T[0:K].T
         qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
         qfx2_topnid = qreq_.get_annot_nids(qfx2_topaid)
+        # Don't let current query count as a valid match
+        # Change those names to the unused name
+        qfx2_topnid[qfx2_topaid == qaid] = 0
+
         # A duplicate vote is when any vote for a name after the first
         qfx2_isdupvote =  np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
         qfx2_dupvote_weight = qfx2_isdupvote.astype(np.float32) * (1 - EPS) + EPS

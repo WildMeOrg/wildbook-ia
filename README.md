@@ -548,6 +548,11 @@ python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
 python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
 python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [copypaste from output]  # sorry about this step...
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110  # Hard as of 2014-11-4
+# EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 44 49 50 51 53 54 66 69 89 97 110  # Hard as of 2014-11-6
+# EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 43 45 49 51 53 54 66 97  # FGWEIGHT Hard as of 2014-11-6
+
+
+
 python dev.py -t best --db PZ_MTEST --allhard
 
 # View all hard cases

@@ -10,7 +10,8 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 CommandLine:
 
-python dev.py --wshow -t query --db PZ_MTEST --qaid 72
+python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
+python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
 
 """
 # TODO: ADD COPYRIGHT TAG

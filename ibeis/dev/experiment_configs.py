@@ -17,10 +17,38 @@ def augbase(basedict, updatedict):
 
 exclude_vars = vars().keys()   # this line is before tests
 
-fgweight = {
-    'fg_weight': [1.0, 0.0],
+
+small_best = {
+    'pipeline_root':   ['vsmany'],
+    'checks':          [1024],  # , 8192],
+    'K':               [4],  # 5, 10],
+    'xy_thresh':       [.01],  # [.002],
+    'nShortlist':      [50],
+    'sv_on':           [True],  # True, False],
+    'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
+    'chip_sqrt_area':  [450],
 }
 
+fgweight = augbase(small_best, {
+    'fg_weight': [1.0]  # , 0.0],
+})
+
+
+dupvote = augbase(small_best, {
+    'dupvote_weight': [1.0]  # , 0.0],
+})
+
+nov6 = augbase(small_best, {
+    'K': [4, 5, 6, 7, 8, 9, 10, 20],
+    'dupvote_weight': [1.0, 0.0],
+    'fg_weight': [1.0, 0.0],
+    'score_method':   ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
+})
+
+
+K = augbase(small_best, {
+    'K': [4, 10],
+})
 
 # Feature parameters
 featparams = {
