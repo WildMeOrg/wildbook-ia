@@ -460,9 +460,29 @@ def apply_jagged_grouping(unflat_items, groupxs):
 
 def group_indicies(idx2_groupid):
     """
-    >>> idx2_groupid = np.array(np.random.randint(0, 4, size=100))
+    group_indicies
 
-    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+    Args:
+        idx2_groupid (ndarray): numpy array of group ids (must be numeric)
+
+    Returns:
+        tuple (ndarray, list of ndarrays): (keys, groupxs)
+
+    Example:
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> #np.random.seed(42)
+        >>> #size = 10
+        >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
+        >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
+        >>> (keys, groupxs) = group_indicies(idx2_groupid)
+        >>> print((keys, groupxs))
+        (array([1, 2, 3]), [array([1, 3, 5]), array([0, 2, 4, 6]), array([ 7,  8,  9, 10])])
+
+    SeeAlso:
+        apply_grouping
+
+    References:
+        http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
     """
     # Sort items and idx2_groupid by groupid
     sortx = idx2_groupid.argsort()  # 2.9%
@@ -484,6 +504,32 @@ def group_indicies(idx2_groupid):
 
 
 def apply_grouping(items, groupxs):
+    """
+    apply_grouping
+
+    Args:
+        items (ndarray):
+        groupxs (list of ndarrays):
+
+    Returns:
+        list of ndarrays: grouped items
+
+    SeeAlso:
+        group_indicies
+
+    Example:
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> #np.random.seed(42)
+        >>> #size = 10
+        >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
+        >>> #items = np.random.randint(5, 10, size=size)
+        >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
+        >>> items        = np.array([1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9])
+        >>> (keys, groupxs) = group_indicies(idx2_groupid)
+        >>> grouped_items = apply_grouping(items, groupxs)
+        >>> print(grouped_items)
+        [array([8, 5, 6]), array([1, 5, 8, 7]), array([5, 3, 0, 9])]
+    """
     return [items.take(xs, axis=0) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
 
