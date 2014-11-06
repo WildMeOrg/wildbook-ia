@@ -868,7 +868,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
                    verbose=VERYVERBOSE):
-        with SQLExecutionContext(db, operation, nParams=1) as context:
+        with SQLExecutionContext(db, operation, nInput=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
                 result_list = list(result_iter)
@@ -881,31 +881,31 @@ class SQLDatabaseController(object):
     @default_decorator
     #@utool.memprof
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERYVERBOSE, unpack_scalars=True, nParams=None,
+                    verbose=VERYVERBOSE, unpack_scalars=True, nInput=None,
                     eager=True):
         # --- ARGS PREPROC ---
-        # Aggresively compute iterator if the nParams is not given
-        if nParams is None:
+        # Aggresively compute iterator if the nInput is not given
+        if nInput is None:
             if isinstance(params_iter, (list, tuple)):
-                nParams = len(params_iter)
+                nInput = len(params_iter)
             else:
                 if VERYVERBOSE:
-                    print('[sql!] WARNING: aggressive eval of params_iter because nParams=None')
+                    print('[sql!] WARNING: aggressive eval of params_iter because nInput=None')
                 params_iter = list(params_iter)
-                nParams  = len(params_iter)
+                nInput  = len(params_iter)
         else:
             if VERYVERBOSE:
                 print('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
-        if nParams == 0:
+        if nInput == 0:
             if VERYVERBOSE:
                 print('[sql!] WARNING: dont use executemany'
                       'with no params use executeone instead.')
             return []
         # --- SQL EXECUTION ---
         contextkw = {
-            'nParams': nParams,
+            'nInput': nInput,
             'start_transaction': True,
             'verbose': verbose,
         }

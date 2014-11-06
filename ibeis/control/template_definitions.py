@@ -247,7 +247,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=False, eager=True, nParams=None):
+    def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
         """
         get {leaf} rowids of {root} under the current state configuration
 
@@ -290,7 +290,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
             andwhere_colnames = ({LEAF_PARENT}_ROWID, CONFIG_ROWID,)
             params_iter = [({leaf_parent}_rowid, config_rowid,) for {leaf_parent}_rowid in {leaf_parent}_rowid_list]
             {leaf}_rowid_list = {self}.{dbself}.get_where2(
-                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
+                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
             return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -300,7 +300,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list, qreq_=None, ensure=False, eager=True, nParams=None):
+    def get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
         """
         get {leaf} rowids of {parent} under the current state configuration
 
@@ -329,7 +329,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             andwhere_colnames = ({PARENT}_ROWID, CONFIG_ROWID,)
             params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
             {leaf}_rowid_list = {self}.{dbself}.get_where2(
-                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
+                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
             return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -339,7 +339,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nParams=None):
+    def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nInput=None):
         """
         get {leaf} rowids of {root} under the current state configuration
 
@@ -354,7 +354,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
         colnames = ({LEAF_PARENT}_ROWID,)
         {leaf}_rowid_list = {self}.{dbself}.get(
             {LEAF_TABLE}, colnames, {root}_rowid_list,
-            id_colname={ROOT}_ROWID, eager=eager, nParams=nParams)
+            id_colname={ROOT}_ROWID, eager=eager, nInput=nInput)
         return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -409,7 +409,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
     r'''
     # STARTBLOCK
     #@getter
-    def get_{tbl}_rowid_from_superkey({self}, {superkey_args}, eager=True, nParams=None):
+    def get_{tbl}_rowid_from_superkey({self}, {superkey_args}, eager=True, nInput=None):
         """
         Tgetter_native_rowid_from_superkey
 
@@ -424,7 +424,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
         params_iter = zip({superkey_args})
         andwhere_colnames = [{superkey_args}]
         {tbl}_rowid_list = {self}.{dbself}.get_where2(
-            {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nParams=nParams)
+            {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
         return {tbl}_rowid_list
     # ENDBLOCK
     ''')

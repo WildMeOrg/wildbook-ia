@@ -86,7 +86,7 @@ def compute_fgweights(ibs, aid_list):
     return featweight_list
 
 
-def add_featweight_params_gen(ibs, fid_list):
+def add_featweight_params_gen(ibs, fid_list, qreq_=None):
     """
     add_featweight_params_gen
 

@@ -271,12 +271,12 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
 class SQLExecutionContext(object):
     """ A good with context to use around direct sql calls
     """
-    def __init__(context, db, operation, nParams=None, auto_commit=True,
+    def __init__(context, db, operation, nInput=None, auto_commit=True,
                  start_transaction=False, verbose=PRINT_SQL):
         context.auto_commit = auto_commit
         context.db = db  # Reference to sqldb
         context.operation = operation
-        context.nParams = nParams
+        context.nInput = nInput
         context.start_transaction = start_transaction
         #context.__dict__.update(locals())  # Too mystic?
         context.operation_type = get_operation_type(operation)  # Parse the optype
@@ -285,9 +285,9 @@ class SQLExecutionContext(object):
     def __enter__(context):
         """ Checks to see if the operating will change the database """
         #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
-        if context.nParams is not None:
-            context.operation_lbl = ('[sql] execute nParams=%d optype=%s: '
-                                       % (context.nParams, context.operation_type))
+        if context.nInput is not None:
+            context.operation_lbl = ('[sql] execute nInput=%d optype=%s: '
+                                       % (context.nInput, context.operation_type))
         else:
             context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction

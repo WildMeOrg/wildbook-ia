@@ -141,7 +141,7 @@ def format_controller_func(func_code):
     WITH_DECOR = True
 
     if REMOVE_NPARAMS:
-        func_code = remove_kwarg('nParams', 'None', func_code)
+        func_code = remove_kwarg('nInput', 'None', func_code)
     if REMOVE_EAGER:
         func_code = remove_kwarg('eager', 'True', func_code)
     if REMOVE_QREQ:

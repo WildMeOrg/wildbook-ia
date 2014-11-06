@@ -60,10 +60,10 @@ def TEST_IBS_GETTERS(ibs=None):
     #tblname = FEATURE_TABLE
     #id_iter = fid_list
     #id_colname = 'rowid'
-    #desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nParams=len(fid_list), eager=eager)
+    #desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nInput=len(fid_list), eager=eager)
     #"""
-    #%timeit list(ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nParams=len(fid_list), eager=False))
-    #%timeit ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nParams=len(fid_list), eager=True)
+    #%timeit list(ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nInput=len(fid_list), eager=False))
+    #%timeit ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list, nInput=len(fid_list), eager=True)
     #"""
     #utool.embed()
 

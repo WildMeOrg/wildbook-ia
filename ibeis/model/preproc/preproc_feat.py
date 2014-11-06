@@ -41,7 +41,7 @@ def gen_feat_openmp(cid_list, cfpath_list, dict_args):
         yield cid, len(kpts), kpts, desc
 
 
-def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
+def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
     """
     Computes features and yields results asynchronously: TODO: Remove IBEIS from
     this equation. Move the firewall towards the controller
@@ -52,7 +52,7 @@ def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
         nInput (None):
 
     Returns:
-        <class '_ast.Call'>
+        generator : generates param tups
 
     Example:
         >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
