@@ -80,31 +80,31 @@
     <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_nids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
 
     <span class="n">enctext_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
-    <span class="n">gid_uuids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
-    <span class="n">annotation_uuids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-    <span class="n">names_list</span>     <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_text</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)</span>
+    <span class="n">gid_uuids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)))</span>
+    <span class="n">annotation_uuids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
+    <span class="n">names_list</span>     <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_text</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)))</span>
 
     <span class="c">#target_enctexts = [&#39;E0_ENC(agg,sec_60,1)&#39;, &#39;E1_ENC(agg,sec_60,1)&#39;]</span>
     <span class="n">target_enctexts</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;Encounter 0&#39;</span><span class="p">,</span> <span class="s">u&#39;Encounter 1&#39;</span><span class="p">]</span>
 
-    <span class="n">target_gid_uuids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">),</span>
+    <span class="n">target_gid_uuids</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;d8903434-942f-e0f5-d6c2-0dcbe3137bf7&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;b73b72f4-4acb-c445-e72c-05ce02719d3d&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;0cd05978-3d83-b2ee-2ac9-798dd571c3b3&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;0a9bc03d-a75e-8d14-0153-e2949502aba7&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2deeff06-5546-c752-15dc-2bd0fdb1198a&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;a9b70278-a936-c1dd-8a3b-bc1e9a998bf0&#39;</span><span class="p">)),</span>
-                        <span class="p">(</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;42fdad98-369a-2cbc-67b1-983d6d6a3a60&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;a9b70278-a936-c1dd-8a3b-bc1e9a998bf0&#39;</span><span class="p">)],</span>
+                        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;42fdad98-369a-2cbc-67b1-983d6d6a3a60&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c459d381-fd74-1d99-6215-e42e3f432ea9&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;33fd9813-3a2b-774b-3fcc-4360d1ae151b&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;97e8ea74-873f-2092-b372-f928a7be30fa&#39;</span><span class="p">),</span>
                          <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;588bc218-83a5-d400-21aa-d499832632b0&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;163a890c-36f2-981e-3529-c552b6d668a3&#39;</span><span class="p">)),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;163a890c-36f2-981e-3529-c552b6d668a3&#39;</span><span class="p">)],</span>
                         <span class="p">]</span>
 
     <span class="n">target_name_text</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s">&#39;lena&#39;</span><span class="p">,</span> <span class="s">&#39;occl&#39;</span><span class="p">,</span> <span class="s">&#39;polar&#39;</span><span class="p">,</span> <span class="s">&#39;zebra&#39;</span><span class="p">),</span>
+        <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;lena&#39;</span><span class="p">,</span> <span class="s">&#39;occl&#39;</span><span class="p">,</span> <span class="s">&#39;polar&#39;</span><span class="p">,</span> <span class="s">&#39;zebra&#39;</span><span class="p">],</span>
     <span class="p">]</span>
 
     <span class="n">ibs</span><span class="o">.</span><span class="n">print_lblannot_table</span><span class="p">()</span>
@@ -149,8 +149,8 @@
         <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;failed test_encounter&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
 
-    <span class="n">gids_list2</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_lookup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">gids_list2</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">))</span>
+    <span class="n">gids_list2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_lookup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
+    <span class="k">assert</span> <span class="n">gids_list2</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 

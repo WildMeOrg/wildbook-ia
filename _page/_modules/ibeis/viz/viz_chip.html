@@ -54,15 +54,41 @@
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
 <span class="kn">from</span> <span class="nn">plottool.viz_keypoints</span> <span class="kn">import</span> <span class="n">_annotate_kpts</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">viz_image2</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_chip]&#39;</span><span class="p">,</span>
                                                        <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <span class="nd">@utool.indent_func</span>
-<div class="viewcode-block" id="show_chip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.show_chip">[docs]</a><span class="k">def</span> <span class="nf">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Driver function to show chips &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="show_chip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.show_chip">[docs]</a><span class="k">def</span> <span class="nf">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Driver function to show chips</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ibs (IBEISController):</span>
+<span class="sd">            aid (int): annotation rowid</span>
+<span class="sd">            in_image (bool): displays annotation with the context of its source image</span>
+<span class="sd">            annote (bool): enables overlay annoations</span>
+<span class="sd">            title_suffix (str):</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">            color (3/4-tuple, ndarray, or str): colors for keypoints</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from plottool.viz_keypoints import _annotate_kpts</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz.viz_chip import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_Mothers&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; aid = ibs.get_valid_aids()[0]</span>
+<span class="sd">            &gt;&gt;&gt; in_image = False</span>
+<span class="sd">            &gt;&gt;&gt; annote = True</span>
+<span class="sd">            &gt;&gt;&gt; kpts = ibs.get_annot_kpts(aid)</span>
+<span class="sd">            &gt;&gt;&gt; color = np.array([df2.ORANGE] * len(kpts))</span>
+<span class="sd">            &gt;&gt;&gt; kwargs = {&#39;kpts&#39;: kpts, &#39;color&#39;: color}</span>
+<span class="sd">            &gt;&gt;&gt; show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.viz.viz_chip&#39;, &#39;show_chip&#39;)</span>
     <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[viz] show_chip()&#39;</span><span class="p">)</span>
     <span class="n">vh</span><span class="o">.</span><span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
     <span class="c">#utool.embed()</span>
@@ -70,6 +96,7 @@
     <span class="n">chip</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c"># Create chip title</span>
     <span class="n">chip_text</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">chip_text</span> <span class="o">+</span> <span class="n">title_suffix</span>
     <span class="c"># Draw chip</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c"># Populate axis user data</span>
@@ -77,16 +104,61 @@
     <span class="n">vh</span><span class="o">.</span><span class="n">set_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">annote</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nokpts&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="c"># Get and draw keypoints</span>
-        <span class="n">kpts</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">_annotate_kpts</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;color&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c">#from ibeis.model.preproc import preproc_featweight</span>
+            <span class="c">#featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]</span>
+            <span class="n">featweights</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">featweights</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="s">&#39;hot&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">kpts_</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">_annotate_kpts</span><span class="p">(</span><span class="n">kpts_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">upperleft_text</span><span class="p">(</span><span class="n">chip_text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;text_color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">chip_text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ntitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">chip_title_text</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">in_image</span><span class="p">:</span>
         <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="n">annotekw</span> <span class="o">=</span> <span class="n">viz_image</span><span class="o">.</span><span class="n">get_annot_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
-        <span class="n">viz_image2</span><span class="o">.</span><span class="n">draw_image_overlay</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">annotekw</span><span class="p">)</span></div>
+        <span class="n">viz_image2</span><span class="o">.</span><span class="n">draw_image_overlay</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">annotekw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s">&#39;featweights&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span> <span class="ow">and</span> <span class="s">&#39;color&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="c"># HACK HACK HACK</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">featweights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cb</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">featweights</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">])</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;fg_weights&#39;</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">         python ibeis/viz/viz_chip.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from plottool.viz_keypoints import _annotate_kpts</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">in_image</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">annote</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c">#from ibeis.model.preproc import preproc_featweight</span>
+    <span class="c">#featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]</span>
+    <span class="c">#color = featweights</span>
+    <span class="c">#import numpy as np</span>
+    <span class="c"># plot rf feature weights</span>
+    <span class="c">#detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()</span>
+    <span class="c">#color = np.array([df2.ORANGE] * len(kpts))</span>
+    <span class="c">#color = np.array(np.random.rand(len(kpts), 3))</span>
+    <span class="c">#kwargs = {&#39;kpt1s&#39;: [kpts], &#39;color&#39;: color}</span>
+    <span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--noshow&#39;</span><span class="p">):</span>
+        <span class="n">execstr</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
           </div>

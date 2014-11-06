@@ -231,11 +231,11 @@
         <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="MainWindowBackend.show_hough_image"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.show_hough_image">[docs]</a>    <span class="k">def</span> <span class="nf">show_hough_image</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">viz</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="MainWindowBackend.show_probability_chip"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.show_probability_chip">[docs]</a>    <span class="k">def</span> <span class="nf">show_probability_chip</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">cid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">viz</span><span class="o">.</span><span class="n">show_probability_chip</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">show_probability_chip</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
     <span class="c">#----------------------</span>
@@ -782,12 +782,12 @@
         <span class="k">pass</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
-<div class="viewcode-block" id="MainWindowBackend.delete_detection_models"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.delete_detection_models">[docs]</a>    <span class="k">def</span> <span class="nf">delete_detection_models</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] delete_detection_models&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="MainWindowBackend.redownload_detection_models"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.redownload_detection_models">[docs]</a>    <span class="k">def</span> <span class="nf">redownload_detection_models</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] redownload_detection_models&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;detectmodels&#39;</span><span class="p">))</span>
-        <span class="k">pass</span>
+        <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">()</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.delete_cache"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.delete_cache">[docs]</a>    <span class="k">def</span> <span class="nf">delete_cache</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
@@ -795,7 +795,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] delete_cache&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_cachedir</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] finished delete_cache&#39;</span><span class="p">)</span>
         <span class="k">pass</span>
 </div>
@@ -911,6 +911,12 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] export_database&#39;</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump_tables_to_csv</span><span class="p">()</span>
+</div>
+    <span class="nd">@blocking_slot</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.backup_database"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.backup_database">[docs]</a>    <span class="k">def</span> <span class="nf">backup_database</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; File -&gt; Backup Database&quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] backup_database&#39;</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">backup_database</span><span class="p">()</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.import_images"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.import_images">[docs]</a>    <span class="k">def</span> <span class="nf">import_images</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gpath_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dir_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>

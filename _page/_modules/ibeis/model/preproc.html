@@ -51,12 +51,16 @@
   <h1>Source code for ibeis.model.preproc</h1><div class="highlight"><pre>
 <span class="c"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">utool</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_encounter</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">preproc_image</span>
-<span class="kn">import</span> <span class="nn">utool</span>
+
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc]&#39;</span><span class="p">)</span>
 
@@ -67,6 +71,7 @@
     <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc_detectimg</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc_encounter</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc_feat</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc_featweight</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc_image</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="n">rrr</span><span class="p">()</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>

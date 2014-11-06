@@ -53,6 +53,7 @@
   <h1>Source code for ibeis.model.hots.smk.smk_residuals</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">npl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
@@ -184,7 +185,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
 <span class="sd">        &gt;&gt;&gt; arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)</span>
-<span class="sd">        &gt;&gt;&gt; normalize_vecs_inplace(arr_float)</span>
+<span class="sd">        &gt;&gt;&gt; normalize_vecs2d_inplace(arr_float)</span>
 <span class="sd">        &gt;&gt;&gt; arr_float16 = compress_normvec_float16(arr_float)</span>
 <span class="sd">        &gt;&gt;&gt; print(arr_float16)</span>
 <span class="sd">        [[ 0.49414062  0.11212158  0.27416992  0.62792969  0.5234375 ]</span>
@@ -216,7 +217,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
 <span class="sd">        &gt;&gt;&gt; arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)</span>
-<span class="sd">        &gt;&gt;&gt; normalize_vecs_inplace(arr_float)</span>
+<span class="sd">        &gt;&gt;&gt; normalize_vecs2d_inplace(arr_float)</span>
 <span class="sd">        &gt;&gt;&gt; arr_int8 = compress_normvec_uint8(arr_float)</span>
 <span class="sd">        &gt;&gt;&gt; print(arr_int8)</span>
 <span class="sd">        [[ 127   29   70 -128 -128]</span>
@@ -243,11 +244,27 @@
 
 
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="normalize_vecs_inplace"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_residuals.normalize_vecs_inplace">[docs]</a><span class="k">def</span> <span class="nf">normalize_vecs_inplace</span><span class="p">(</span><span class="n">vecs</span><span class="p">):</span>
+<div class="viewcode-block" id="normalize_vecs2d_inplace"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_residuals.normalize_vecs2d_inplace">[docs]</a><span class="k">def</span> <span class="nf">normalize_vecs2d_inplace</span><span class="p">(</span><span class="n">vecs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        vecs (ndarray): row vectors to normalize in place</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_residuals import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; vecs = np.random.rand(1, 10)</span>
+<span class="sd">        &gt;&gt;&gt; normalize_vecs2d_inplace(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; print(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; vecs = np.random.rand(10)</span>
+<span class="sd">        &gt;&gt;&gt; normalize_vecs2d_inplace(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; print(vecs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">vecs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;vecs.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">,)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
     <span class="c"># Normalize residuals</span>
     <span class="c"># this can easily be sped up by cyth</span>
     <span class="n">norm_</span> <span class="o">=</span> <span class="n">npl</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -275,13 +292,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">rvecs</span>
-    <span class="c"># Prealloc sum output</span>
+    <span class="c"># Prealloc sum output (do not assign the result of sum)</span>
     <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
     <span class="c"># Take weighted average of multi-assigned vectors</span>
-    <span class="n">arr_float</span> <span class="o">=</span> <span class="p">(</span><span class="n">maws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">(</span><span class="n">maws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="c"># Jegou uses mean instead. Sum should be fine because we normalize</span>
     <span class="c">#rvecs.mean(axis=0, out=rvecs_agg[0])</span>
-    <span class="n">normalize_vecs_inplace</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
+    <span class="n">normalize_vecs2d_inplace</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
     <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">compress_normvec</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rvecs_agg</span>
 
@@ -329,7 +346,7 @@
     <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">))</span>
     <span class="c"># Faster, but doesnt work with np.norm</span>
     <span class="c">#rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))</span>
-    <span class="n">normalize_vecs_inplace</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
+    <span class="n">normalize_vecs2d_inplace</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
     <span class="c"># Mark null residuals</span>
     <span class="c">#_rvec_sums = arr_float.sum(axis=1)</span>
     <span class="c">#rvec_flag = np.isnan(_rvec_sums)</span>

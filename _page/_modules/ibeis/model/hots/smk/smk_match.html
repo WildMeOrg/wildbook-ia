@@ -155,12 +155,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Load vocabulary</span>
         <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
-        <span class="n">nWords</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nWords</span>
-        <span class="n">ibs</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
-        <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
-        <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>  <span class="c"># exemplar</span>
-        <span class="n">words</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">nWords</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>
         <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK LEARN VWORDS]&#39;</span><span class="p">)</span>
         <span class="c"># Index database annotations</span>
         <span class="n">with_internals</span> <span class="o">=</span> <span class="bp">True</span>

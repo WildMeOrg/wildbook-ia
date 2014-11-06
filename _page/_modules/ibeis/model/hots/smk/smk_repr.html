@@ -56,7 +56,7 @@
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="c">#import weakref</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#import pandas as pd</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">nearest_neighbors</span> <span class="k">as</span> <span class="n">nntool</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
@@ -69,7 +69,7 @@
 <span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-smk&#39;</span><span class="p">)</span>
 
 
-<span class="c">#@six.add_metaclass(utool.ReloadingMetaclass)</span>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="InvertedIndex"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.InvertedIndex">[docs]</a><span class="k">class</span> <span class="nc">InvertedIndex</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores inverted index state information</span>
@@ -120,7 +120,31 @@
         <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_fweight</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span>     <span class="o">=</span> <span class="bp">None</span>   <span class="c"># stacked index -&gt; word indexes</span>
 
+        <span class="c"># Inject debug function</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">InvertedIndex</span><span class="p">)(</span><span class="n">smk_debug</span><span class="o">.</span><span class="n">invindex_dbgstr</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
+
 </div>
+<span class="nd">@utool.make_class_method_decorator</span><span class="p">(</span><span class="n">InvertedIndex</span><span class="p">)</span>
+<div class="viewcode-block" id="report_memory"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.report_memory">[docs]</a><span class="k">def</span> <span class="nf">report_memory</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">objname</span><span class="o">=</span><span class="s">&#39;obj&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    obj = invindex</span>
+<span class="sd">    objname = &#39;invindex&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Object Memory Usage for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">objname</span><span class="p">)</span>
+    <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;memusage({0}.{1}){2} = &#39;</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+        <span class="n">sizestr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s">&#39;MB&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">sizestr</span><span class="p">)</span>
+
+</div>
+<span class="n">report_memsize</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">InvertedIndex</span><span class="p">)(</span><span class="n">utool</span><span class="o">.</span><span class="n">report_memsize</span><span class="p">)</span>
+
+
 <span class="n">QueryIndex</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s">&#39;QueryIndex&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="s">&#39;wx2_qrvecs&#39;</span><span class="p">,</span>
@@ -157,7 +181,7 @@
         <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;kpts&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;vecs&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;labels&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_class_labels</span><span class="p">)</span>
 
@@ -262,7 +286,7 @@
 
 <span class="c">#@profile</span></div>
 <div class="viewcode-block" id="index_data_annots"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.index_data_annots">[docs]</a><span class="k">def</span> <span class="nf">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">with_internals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                      <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                      <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delete_rawvecs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds the initial inverted index from a dataframe, daids, and words.</span>
 <span class="sd">    Optionally builds the internals of the inverted structure</span>
@@ -323,7 +347,8 @@
     <span class="k">del</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span>
     <span class="k">del</span> <span class="n">_vecs_list</span><span class="p">,</span> <span class="n">_label_list</span>
     <span class="k">if</span> <span class="n">with_internals</span><span class="p">:</span>
-        <span class="n">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>  <span class="c"># 99%</span>
+        <span class="n">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+                                <span class="n">delete_rawvecs</span><span class="o">=</span><span class="n">delete_rawvecs</span><span class="p">)</span>  <span class="c"># 99%</span>
     <span class="k">return</span> <span class="n">invindex</span>
 
 </div>
@@ -421,7 +446,7 @@
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="c"># Compute (normalized) residual vectors and inverse mappings</span>
-    <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_dflags</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_residuals_</span><span class="p">(</span>
+    <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">wx2_dflags</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_residuals_</span><span class="p">(</span>
         <span class="n">words</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span>
         <span class="n">aggregate</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
@@ -432,12 +457,11 @@
         <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">del</span> <span class="n">idx2_vec</span>
     <span class="c"># Compute annotation normalization factor</span>
-    <span class="n">wx2_rvecs</span> <span class="o">=</span> <span class="n">wx2_drvecs</span>  <span class="c"># NOQA</span>
     <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_data_sccw_</span><span class="p">(</span>
-        <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_dflags</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span>
+        <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_dflags</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span>
         <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c"># Cache save</span>
-    <span class="c">#cachetup = (idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws, daid2_sccw)</span>
+    <span class="c">#cachetup = (idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, daid2_sccw)</span>
     <span class="c">#invindex_cache.save(cachetup)</span>
 
     <span class="c"># Store information</span>
@@ -446,9 +470,9 @@
     <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>     <span class="o">=</span> <span class="n">wx2_idf</span>
     <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>  <span class="o">=</span> <span class="n">wx2_drvecs</span>
     <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dflags</span>  <span class="o">=</span> <span class="n">wx2_dflags</span>  <span class="c"># flag nan rvecs</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>    <span class="o">=</span> <span class="n">wx2_aids</span>   <span class="c"># needed for asmk</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>     <span class="o">=</span> <span class="n">wx2_fxs</span>    <span class="c"># needed for asmk</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_maws</span>    <span class="o">=</span> <span class="n">wx2_maws</span>   <span class="c"># needed for awx2_mawssmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>    <span class="o">=</span> <span class="n">wx2_aids</span>    <span class="c"># needed for asmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>     <span class="o">=</span> <span class="n">wx2_fxs</span>     <span class="c"># needed for asmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dmaws</span>   <span class="o">=</span> <span class="n">wx2_dmaws</span>   <span class="c"># needed for awx2_mawssmk</span>
     <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>  <span class="o">=</span> <span class="n">daid2_sccw</span>
     <span class="c">#memtrack.report(&#39;[DATA INTERNALS3]&#39;)</span>
 

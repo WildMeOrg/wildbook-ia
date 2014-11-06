@@ -75,7 +75,7 @@
         <span class="c"># Get the fx-th keypiont</span>
         <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">kp</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
-        <span class="n">sift</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
+        <span class="n">sift</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
         <span class="c"># Draw chip + keypoints + highlighted plots</span>
         <span class="n">_chip_view</span><span class="p">(</span><span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sel_fx</span><span class="o">=</span><span class="n">fx</span><span class="p">)</span>
         <span class="c"># Draw the selected feature plots</span>

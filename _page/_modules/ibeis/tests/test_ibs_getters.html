@@ -110,10 +110,10 @@
     <span class="c">#tblname = FEATURE_TABLE</span>
     <span class="c">#id_iter = fid_list</span>
     <span class="c">#id_colname = &#39;rowid&#39;</span>
-    <span class="c">#desc_list = ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, num_params=len(fid_list), eager=eager)</span>
+    <span class="c">#desc_list = ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nParams=len(fid_list), eager=eager)</span>
     <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#%timeit list(ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, num_params=len(fid_list), eager=False))</span>
-    <span class="c">#%timeit ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, num_params=len(fid_list), eager=True)</span>
+    <span class="c">#%timeit list(ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nParams=len(fid_list), eager=False))</span>
+    <span class="c">#%timeit ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nParams=len(fid_list), eager=True)</span>
     <span class="c">#&quot;&quot;&quot;</span>
     <span class="c">#utool.embed()</span>
 

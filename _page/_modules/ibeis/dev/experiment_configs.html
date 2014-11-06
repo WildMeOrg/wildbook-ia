@@ -68,6 +68,61 @@
 </div>
 <span class="n">exclude_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>   <span class="c"># this line is before tests</span>
 
+<span class="n">fgweight</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="p">}</span>
+
+
+<span class="c"># Feature parameters</span>
+<span class="n">featparams</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c">#&#39;threshold&#39;: [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0</span>
+    <span class="s">&#39;numberOfScales&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="c">#&#39;maxIterations&#39;: [16, 32],</span>
+    <span class="c">#&#39;convergenceThreshold&#39;: [.05, .1],</span>
+    <span class="c">#&#39;initialSigma&#39;: [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],</span>
+    <span class="s">&#39;initialSigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.2</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
+    <span class="c">#&#39;edgeEigenValueRatio&#39;: [10, 5, 3],</span>
+<span class="p">}</span>
+
+<span class="n">featparams_big</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;threshold&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">16.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">32.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">],</span>  <span class="c"># 8.0  / 3.0</span>
+    <span class="s">&#39;numberOfScales&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="s">&#39;maxIterations&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
+    <span class="s">&#39;convergenceThreshold&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">],</span>
+    <span class="c">#&#39;initialSigma&#39;: [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],</span>
+    <span class="s">&#39;initialSigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.2</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
+    <span class="s">&#39;edgeEigenValueRatio&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">smk00</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
+    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
+    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
+<span class="p">}</span>
+
+<span class="c"># HACKED IN</span>
+<span class="n">featparams_big2</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span>
+    <span class="n">featparams_big</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
+        <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="p">})</span>
+<span class="c"># low threshold = more keypoints</span>
+<span class="c"># low initialSigma = more keypoints</span>
+
+
+<span class="n">vsone_best</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">],</span>
+    <span class="s">&#39;checks&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">256</span><span class="p">],</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span>             <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">],</span>
+<span class="p">}</span>
+
+
 <span class="n">smk_test2</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">],</span>
     <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
@@ -99,6 +154,15 @@
     <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
     <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
     <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
+<span class="p">}</span>
+
+
+<span class="c"># Test to make sure things are working for oxford</span>
+<span class="n">oxford</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
+    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
+    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">,</span> <span class="mi">128000</span><span class="p">],</span>
+    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">]</span>
 <span class="p">}</span>
 
 <span class="n">smkd</span> <span class="o">=</span> <span class="p">{</span>

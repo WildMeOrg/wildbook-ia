@@ -117,13 +117,17 @@
     <span class="k">if</span> <span class="n">valid_aids_</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;no annotations available&#39;</span><span class="p">)</span>
 
+    <span class="c"># ALL CASES</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_cases</span><span class="p">:</span>
         <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
-    <span class="k">else</span><span class="p">:</span>
+
+    <span class="c"># HARD CASES</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_hard_cases</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--hard&#39;</span><span class="p">):</span>
         <span class="n">is_hard_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_is_hard</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
         <span class="n">hard_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">(),</span> <span class="n">is_hard_list</span><span class="p">)</span>
         <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hard_aids</span><span class="p">)</span>
 
+    <span class="c"># GROUNDTRUTH CASES</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_gt_cases</span><span class="p">:</span>
         <span class="n">has_gt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
         <span class="n">hasgt_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">(),</span> <span class="n">has_gt_list</span><span class="p">)</span>
@@ -131,6 +135,7 @@
                                                           <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())))</span>
         <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">)</span>
 
+    <span class="c"># INDEX SUBSET</span>
     <span class="c"># Sample a large pool of chosen query indexes</span>
     <span class="c"># Filter only the ones you want from the large pool</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -140,6 +145,7 @@
         <span class="n">_test_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">available_qaids</span><span class="p">[</span><span class="n">xx</span><span class="p">]</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">]</span>
         <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">_test_qaids</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;available_qaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">available_qaids</span><span class="p">)</span>
+    <span class="c"># DEFAULT [0]</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;no hard or gt aids. Defaulting to the first ANNOTATION&#39;</span><span class="p">)</span>
         <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">valid_aids_</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
@@ -151,9 +157,24 @@
 </div>
 <span class="nd">@utool.indent_func</span>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="get_test_daids"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.get_test_daids">[docs]</a><span class="k">def</span> <span class="nf">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Gets database annot_rowids based on command line arguments &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="get_test_daids"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.get_test_daids">[docs]</a><span class="k">def</span> <span class="nf">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets database annot_rowids based on command line arguments</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py --db PZ_MTEST -t best --exclude-query --qaid 72 -r 0 -c 0 --show --va --vf --dump-extra</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--exclude-singleton&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="c"># singleton_aids =</span>
+        <span class="c">#available_daids = list(set(available_daids) - set(singleton_aids))</span>
+
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--exclude-query&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">daid_exclude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">available_daids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">daid_exclude</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">available_daids</span></div>

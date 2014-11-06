@@ -139,6 +139,7 @@
 <span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
 <span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.test_main(db=&#39;testdb1&#39;)  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; ibs.cfg.query_cfg.with_metadata = True</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_qres = request_ibeis_query_L0(ibs, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[1]</span>
@@ -146,23 +147,22 @@
 
     <span class="c"># Load data for nearest neighbors</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c">#</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
         <span class="c"># Alternative to naive bayes matching:</span>
         <span class="c"># Selective match kernel</span>
         <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
-        <span class="n">filt2_meta_</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
         <span class="c"># Nearest neighbors (qaid2_nns)</span>
         <span class="c"># * query descriptors assigned to database descriptors</span>
         <span class="c"># * FLANN used here</span>
-        <span class="n">qaid2_nns_</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qaid2_nns_</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
 
-        <span class="c"># Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)</span>
+        <span class="c"># Nearest neighbors weighting and scoring (filt2_weights, metadata)</span>
         <span class="c"># * feature matches are weighted</span>
-        <span class="n">filt2_weights_</span><span class="p">,</span> <span class="n">filt2_meta_</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_weights_</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
 
         <span class="c"># Thresholding and weighting (qaid2_nnfilter)</span>
         <span class="c"># * feature matches are pruned</span>
@@ -183,7 +183,7 @@
     <span class="c"># Query results format (qaid2_qres)</span>
     <span class="c"># * Final Scoring. Prunes chip results.</span>
     <span class="c"># * packs into a wrapped query result object</span>
-    <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER_</span><span class="p">,</span> <span class="n">filt2_meta_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">qaid2_qres_</span>
 
@@ -193,7 +193,7 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="nearest_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbors">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+<div class="viewcode-block" id="nearest_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbors">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plain Nearest Neighbors</span>
 
@@ -246,6 +246,9 @@
     <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">qaid2_nns_</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="ow">in</span>
                   <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">nn_idxs_arr</span><span class="p">,</span> <span class="n">nn_dists_arr</span><span class="p">)}</span>
+
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">with_metadata</span><span class="p">:</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;nns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_nns_</span>
     <span class="k">return</span> <span class="n">qaid2_nns_</span>
 
 
@@ -254,36 +257,52 @@
 <span class="c">#============================</span>
 
 </div>
-<div class="viewcode-block" id="weight_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.weight_neighbors">[docs]</a><span class="k">def</span> <span class="nf">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+<div class="viewcode-block" id="weight_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.weight_neighbors">[docs]</a><span class="k">def</span> <span class="nf">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        qaid2_nns (dict):</span>
 <span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        metadata (dict): metadata dictionary</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        dict :</span>
+<span class="sd">        dict : filt2_weights</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 2) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_cfgstr</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_on</span><span class="p">:</span>
-        <span class="k">return</span>  <span class="p">{}</span>
+        <span class="n">filt2_weights</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_weights</span> <span class="o">=</span> <span class="n">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filt2_weights</span>
 
 </div>
 <span class="nd">@profile</span>
-<span class="k">def</span> <span class="nf">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_nns (int): query annotation id</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+<span class="sd">        metadata (dict): metadata dictionary</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict : filt2_weights</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
+<span class="sd">        &gt;&gt;&gt; ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nnweight_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">active_filter_list</span>
-    <span class="n">filt2_weights</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Prealloc output</span>
+    <span class="n">filt2_weights</span> <span class="o">=</span> <span class="p">{</span><span class="n">nnweight</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">nnweight</span> <span class="ow">in</span> <span class="n">nnweight_list</span><span class="p">}</span>
+    <span class="c"># Buidl output</span>
     <span class="k">for</span> <span class="n">nnweight</span> <span class="ow">in</span> <span class="n">nnweight_list</span><span class="p">:</span>
         <span class="n">nn_filter_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span>
         <span class="c"># Apply [nnweight] weight to each nearest neighbor</span>
-        <span class="c"># TODO FIX THIS!</span>
-        <span class="n">qaid2_norm_weight</span><span class="p">,</span> <span class="n">qaid2_selnorms</span> <span class="o">=</span> <span class="n">nn_filter_fn</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="c"># FIXME: only compute metadata if requested</span>
+        <span class="n">qaid2_norm_weight</span> <span class="o">=</span> <span class="n">nn_filter_fn</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
         <span class="n">filt2_weights</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_norm_weight</span>
-        <span class="n">filt2_meta</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_selnorms</span>
-    <span class="k">return</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">filt2_meta</span>
+    <span class="k">return</span> <span class="n">filt2_weights</span>
 
 
 <span class="c">#==========================</span>
@@ -293,6 +312,25 @@
 
 <span class="nd">@profile</span>
 <span class="k">def</span> <span class="nf">_threshold_and_scale_weights</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper function _threshold_and_scale_weights</span>
+
+<span class="sd">    qfx2_score is an ndarray containing the score of individual feature matches.</span>
+<span class="sd">    qfx2_valid marks if that score will be thresholded.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid (int): query annotation id</span>
+<span class="sd">        qfx2_nnidx (dict):</span>
+<span class="sd">        filt2_weights (dict):</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (qfx2_score, qfx2_valid)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Baseline is all matches have score 1 and all matches are valid</span>
     <span class="n">qfx2_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
     <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
     <span class="c"># Apply the filter weightings to determine feature validity and scores</span>
@@ -300,10 +338,13 @@
         <span class="n">qfx2_weights</span> <span class="o">=</span> <span class="n">aid2_weights</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">sign</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt2_stw</span><span class="p">[</span><span class="n">filt</span><span class="p">]</span>  <span class="c"># stw = sign, thresh, weight</span>
         <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Filter if threshold is specified</span>
             <span class="n">qfx2_passed</span> <span class="o">=</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">qfx2_weights</span> <span class="o">&lt;=</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">thresh</span>
             <span class="n">qfx2_valid</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_passed</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">qfx2_score</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">qfx2_weights</span>
+            <span class="c"># Score if weight is specified</span>
+            <span class="c"># This used to be an addition. should it still be?</span>
+            <span class="n">qfx2_score</span> <span class="o">*=</span> <span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">qfx2_weights</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span>
 
 
@@ -581,8 +622,8 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qaid = 1</span>
 <span class="sd">        &gt;&gt;&gt; daid = ibs.get_annot_groundtruth(qaid)[0]</span>
-<span class="sd">        &gt;&gt;&gt; qvecs = ibs.get_annot_desc(qaid)</span>
-<span class="sd">        &gt;&gt;&gt; dvecs = ibs.get_annot_desc(daid)</span>
+<span class="sd">        &gt;&gt;&gt; qvecs = ibs.get_annot_vecs(qaid)</span>
+<span class="sd">        &gt;&gt;&gt; dvecs = ibs.get_annot_vecs(daid)</span>
 <span class="sd">        &gt;&gt;&gt; # Simple ratio-test matching</span>
 <span class="sd">        &gt;&gt;&gt; flann = pyflann.FLANN()</span>
 <span class="sd">        &gt;&gt;&gt; flann.build_index(dvecs)</span>
@@ -777,12 +818,12 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="chipmatch_to_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.chipmatch_to_resdict">[docs]</a><span class="k">def</span> <span class="nf">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
+<div class="viewcode-block" id="chipmatch_to_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.chipmatch_to_resdict">[docs]</a><span class="k">def</span> <span class="nf">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
                          <span class="n">qaid2_scores</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        qaid2_chipmatch (dict):</span>
-<span class="sd">        filt2_meta (dict):</span>
+<span class="sd">        metadata (dict):</span>
 <span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
 <span class="sd">        qaid2_scores (dict): optional</span>
 
@@ -834,9 +875,10 @@
         <span class="c"># Populate query result fields</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span> <span class="o">=</span> <span class="n">aid2_score</span>
 
-        <span class="n">qres</span><span class="o">.</span><span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dbgstats</span>
-        <span class="k">for</span> <span class="n">filt</span><span class="p">,</span> <span class="n">qaid2_meta</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_meta</span><span class="p">):</span>
-            <span class="n">qres</span><span class="o">.</span><span class="n">filt2_meta</span><span class="p">[</span><span class="n">filt</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_meta</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>  <span class="c"># things like k+1th</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dbgstats</span>
+        <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qaid2_meta</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+                <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_meta</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>  <span class="c"># things like k+1th</span>
     <span class="c"># Retain original score method</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span>
 

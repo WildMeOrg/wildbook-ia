@@ -51,11 +51,14 @@
   <h1>Source code for ibeis.control._sql_helpers</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__SQLITE3__</span> <span class="k">as</span> <span class="n">lite</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="c">#from ibeis import constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
 
@@ -122,32 +125,156 @@
     <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] Two version numbers are the same along the update path&#39;</span><span class="p">)</span>
 
 
+<span class="c"># =========================</span>
+<span class="c"># Database Backup Functions</span>
+<span class="c"># =========================</span>
+
+</div>
+<div class="viewcode-block" id="ensure_daily_database_backup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.ensure_daily_database_backup">[docs]</a><span class="k">def</span> <span class="nf">ensure_daily_database_backup</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">backup_dir</span><span class="p">,</span> <span class="n">max_keep</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+    <span class="c"># Keep 60 days worth of database backups</span>
+    <span class="n">database_backup</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">backup_dir</span><span class="p">,</span> <span class="n">max_keep</span><span class="o">=</span><span class="n">max_keep</span><span class="p">,</span> <span class="n">manual</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="database_backup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.database_backup">[docs]</a><span class="k">def</span> <span class="nf">database_backup</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">backup_dir</span><span class="p">,</span> <span class="n">max_keep</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">manual</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># Keep 60 days worth of database backups</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fname</span><span class="p">)</span>
+    <span class="n">src_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">manual</span><span class="p">:</span>
+        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_00_00_00&#39;</span><span class="p">)</span>
+    <span class="n">dst_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_backup_</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">now_str</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">dst_fpath</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Daily backup of database: </span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">)</span>
+        <span class="c"># Clean-up old database backups</span>
+        <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">path_list</span> <span class="o">&gt;</span> <span class="n">max_keep</span><span class="p">:</span>
+            <span class="n">path_delete_list</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">max_keep</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">path_delete</span> <span class="ow">in</span> <span class="n">path_delete_list</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Deleting old backup </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">path_delete</span><span class="p">)</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">path_delete</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
 <span class="c"># ========================</span>
 <span class="c"># Schema Updater Functions</span>
 <span class="c"># ========================</span>
 
 </div>
-<div class="viewcode-block" id="ensure_correct_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.ensure_correct_version">[docs]</a><span class="k">def</span> <span class="nf">ensure_correct_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">):</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="ensure_correct_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.ensure_correct_version">[docs]</a><span class="k">def</span> <span class="nf">ensure_correct_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span>
+                           <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autogenerate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</span>
+
+<span class="sd">    ensure_correct_version</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        db (?):</span>
+<span class="sd">        version_expected (str): version you want to be at</span>
+<span class="sd">        schema_spec (module): schema module</span>
+<span class="sd">        dobackup (bool):</span>
+<span class="sd">        autogenerate (bool):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control._sql_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; db = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; version_expected = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; schema_spec = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; dobackup = True</span>
+<span class="sd">        &gt;&gt;&gt; autogenerate = False</span>
+<span class="sd">        &gt;&gt;&gt; result = ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup, autogenerate)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        schema_spec (module): module of schema specifications</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">version</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_correct_version] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">printQUIET</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="n">want_base_version</span> <span class="o">=</span> <span class="n">version_expected</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+    <span class="k">if</span> <span class="n">want_base_version</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SQL_] base version expected... returning&#39;</span><span class="p">)</span>
+        <span class="c"># Nothing to do. autogenerated file is pointless</span>
+        <span class="k">return</span>
+    <span class="n">db_versions</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VALID_VERSIONS</span>
+    <span class="n">version</span>     <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
+    <span class="c"># NEW DATABASE CONDITION</span>
+    <span class="n">force_incremental</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">force_incremental_db_update</span>
+    <span class="n">is_base_version</span> <span class="o">=</span> <span class="p">(</span><span class="n">version</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span><span class="p">)</span>
+    <span class="n">can_skip</span> <span class="o">=</span> <span class="n">is_base_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_incremental</span>
+    <span class="c"># &lt;DEBUG&gt;</span>
+    <span class="c">#if utool.get_flag(&#39;--verbsql&#39;) or utool.VERBOSE or True:</span>
+    <span class="c">#    key_list = locals().keys()</span>
+    <span class="c">#    keystr_list = sorted(ut.parse_locals_keylist(locals(), key_list))</span>
+    <span class="c">#    print(&#39;KEYLIST:&#39; + ut.indentjoin(keystr_list, &#39;\n * &#39;))</span>
+    <span class="c"># &lt;/DEBUG&gt;</span>
+    <span class="c">#+-----------------------------------</span>
+    <span class="c"># SKIP TO CURRENT VERSION IF POSSIBLE</span>
+    <span class="c">#+-----------------------------------</span>
+    <span class="k">if</span> <span class="n">can_skip</span><span class="p">:</span>
+        <span class="n">current_schema_exists</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">current_schema_exists</span><span class="p">:</span>
+            <span class="n">current_schema_compatible</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="o">&lt;=</span> <span class="n">version_expected</span>
+            <span class="k">if</span> <span class="n">current_schema_compatible</span><span class="p">:</span>
+                <span class="c"># Since this is a new database, we do not have to worry about backinng up the</span>
+                <span class="c"># current database.  The subsequent update functions (if needed) will handle</span>
+                <span class="c"># this for us.</span>
+                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] New database and a current schema found&#39;</span><span class="p">)</span>
+                <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">)</span>
+                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (skipped) to </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Current database is not compatible, updating incrementally...&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] New database but current version not exported, updating incrementally...&#39;</span><span class="p">)</span>
+    <span class="c">#+--------------------------------------</span>
+    <span class="c"># INCREMENTAL UPDATE TO EXPECTED VERSION</span>
+    <span class="c">#+--------------------------------------</span>
+    <span class="c"># Check version again for sanity&#39;s sake, update if exported current is behind expected</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
+    <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">version</span> <span class="o">&lt;</span> <span class="n">version_expected</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_correct_version] Database version behind, updating...&#39;</span><span class="p">)</span>
-        <span class="n">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_database_version</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_correct_version] Database version updated to </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version_expected</span><span class="p">))</span>
+        <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
+        <span class="n">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span>
+                              <span class="n">dobackup</span><span class="o">=</span><span class="n">dobackup</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">version_expected</span><span class="p">)</span>
+        <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version_expected</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">version</span> <span class="o">&gt;</span> <span class="n">version_expected</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[ensure_correct_version] ERROR: Expected database version behind&#39;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">((</span><span class="s">&#39;[_SQL] ERROR: &#39;</span>
+                <span class="s">&#39;Expected database version behind. expected: </span><span class="si">%r</span><span class="s">. got: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+               <span class="p">(</span><span class="n">version_expected</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="c">#+--------------------------------------</span>
+    <span class="c"># AUTOGENERATE CURRENT SCHEMA</span>
+    <span class="c">#+--------------------------------------</span>
+    <span class="k">if</span> <span class="n">autogenerate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span> <span class="o">&gt;</span> <span class="n">version_expected</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] WARNING: autogenerated version is going backwards&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] DUMPING  AUTOGENERATED CURRENT SCHEMA&#39;</span><span class="p">)</span>
+        <span class="c"># Auto-generate the version skip schema file</span>
+        <span class="n">schema_spec_dir</span><span class="p">,</span> <span class="n">schema_spec_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">schema_spec_filename</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">schema_spec_filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">dump_schema_current_autogeneration</span><span class="p">(</span><span class="n">schema_spec_dir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_CURRENT.py&#39;</span> <span class="o">%</span> <span class="n">schema_spec_filename</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="update_schema_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.update_schema_version">[docs]</a><span class="k">def</span> <span class="nf">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_target</span><span class="p">):</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="update_schema_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.update_schema_version">[docs]</a><span class="k">def</span> <span class="nf">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_target</span><span class="p">,</span>
+                          <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">db_fpath</span> <span class="o">+</span> <span class="s">&#39;-backup&#39;</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_backup_fpath</span><span class="p">)</span>
+    <span class="n">db_fpath</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
+    <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
+        <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
+        <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_backup</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_backup_fpath</span><span class="p">)</span>
     <span class="n">valid_versions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">db_versions</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">compare_string_versions</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">start_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
@@ -165,21 +292,26 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;Updating database to version: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">next_version</span><span class="p">))</span>
             <span class="n">pre</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">post</span> <span class="o">=</span> <span class="n">db_versions</span><span class="p">[</span><span class="n">next_version</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">pre</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+                <span class="n">pre</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">update</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">update</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+                <span class="n">update</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">post</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+                <span class="n">post</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;The database update failed, rolled back to the original version.&quot;</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
+            <span class="c"># Why are we using the logging module when utool does it for us?</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;The database update failed, and no backup was made. I hope you didnt need that data :P&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
-        <span class="c"># Why are we using the logging module when utool does it for us?</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&quot;&#39;The database update failed, rolled back to the original version.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span>
-
-    <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
 
 
 <span class="c"># =======================</span>
@@ -190,12 +322,12 @@
 <div class="viewcode-block" id="SQLExecutionContext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext">[docs]</a><span class="k">class</span> <span class="nc">SQLExecutionContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A good with context to use around direct sql calls</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nParams</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                  <span class="n">start_transaction</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">PRINT_SQL</span><span class="p">):</span>
         <span class="n">context</span><span class="o">.</span><span class="n">auto_commit</span> <span class="o">=</span> <span class="n">auto_commit</span>
         <span class="n">context</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>  <span class="c"># Reference to sqldb</span>
         <span class="n">context</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">num_params</span> <span class="o">=</span> <span class="n">num_params</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">nParams</span> <span class="o">=</span> <span class="n">nParams</span>
         <span class="n">context</span><span class="o">.</span><span class="n">start_transaction</span> <span class="o">=</span> <span class="n">start_transaction</span>
         <span class="c">#context.__dict__.update(locals())  # Too mystic?</span>
         <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span> <span class="o">=</span> <span class="n">get_operation_type</span><span class="p">(</span><span class="n">operation</span><span class="p">)</span>  <span class="c"># Parse the optype</span>
@@ -204,9 +336,9 @@
 <div class="viewcode-block" id="SQLExecutionContext.__enter__"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Checks to see if the operating will change the database &quot;&quot;&quot;</span>
         <span class="c">#utool.printif(lambda: &#39;[sql] Callers: &#39; + utool.get_caller_name(range(3, 6)), DEBUG)</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">num_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;[sql] execute num_params=</span><span class="si">%d</span><span class="s"> optype=</span><span class="si">%s</span><span class="s">: &#39;</span>
-                                       <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">num_params</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">nParams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;[sql] execute nParams=</span><span class="si">%d</span><span class="s"> optype=</span><span class="si">%s</span><span class="s">: &#39;</span>
+                                       <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">nParams</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="s">&#39;[sql] executeone optype=</span><span class="si">%s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">)</span>
         <span class="c"># Start SQL Transaction</span>
@@ -315,7 +447,31 @@
         <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">_sanitize_sql_helper</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">columns</span></div>
+        <span class="k">return</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">columns</span>
+
+</div>
+<div class="viewcode-block" id="get_nth_test_schema_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.get_nth_test_schema_version">[docs]</a><span class="k">def</span> <span class="nf">get_nth_test_schema_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="p">,</span> <span class="n">n</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">autogenerate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        schema_spec (module): schema module to get nth version of</span>
+<span class="sd">        n (int): version index (-1 is the latest)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] getting n=</span><span class="si">%r</span><span class="s">-th version of </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dbname</span><span class="p">))</span>
+    <span class="n">version_expected</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VALID_VERSIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis_test&#39;</span><span class="p">)</span>
+    <span class="n">db_fname</span> <span class="o">=</span> <span class="s">&#39;test_</span><span class="si">%s</span><span class="s">.sqlite3&#39;</span> <span class="o">%</span> <span class="n">dbname</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">))</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="nb">unicode</span><span class="p">)</span>
+    <span class="n">ensure_correct_version</span><span class="p">(</span>
+        <span class="bp">None</span><span class="p">,</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">version_expected</span><span class="p">,</span>
+        <span class="n">schema_spec</span><span class="p">,</span>
+        <span class="n">autogenerate</span><span class="o">=</span><span class="n">autogenerate</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span></div>
 </pre></div>
 
           </div>

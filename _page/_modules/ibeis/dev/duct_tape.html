@@ -203,7 +203,16 @@
     <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">problem_nids</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="c"># TODO Take unknown_aids and remove any name relationships to make unknown</span>
-    <span class="c"># implicit</span></div>
+    <span class="c"># implicit</span>
+
+</div>
+<div class="viewcode-block" id="fix_nulled_viewpoints"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.duct_tape.fix_nulled_viewpoints">[docs]</a><span class="k">def</span> <span class="nf">fix_nulled_viewpoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">viewpoint</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
+    <span class="n">dirty_aid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;[duct_tape] Nulling </span><span class="si">%d</span><span class="s"> annotation viewpoints&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoint</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span></div>
 </pre></div>
 
           </div>

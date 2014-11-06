@@ -68,10 +68,11 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to search&#39;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to query&#39;</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c">#---</span>
-    <span class="n">qaid2_nns</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">qaid2_nns</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
     <span class="c">#---</span>
-    <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">filt2_meta</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">filt2_weights</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
     <span class="c">#---</span>
     <span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">filter_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="c">#---</span>
@@ -80,7 +81,7 @@
     <span class="n">_tup</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dbginfo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">qaid2_chipmatch_SVER</span><span class="p">,</span> <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">_tup</span>
     <span class="c">#---</span>
-    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="c">#####################</span>
     <span class="c"># Testing components</span>
     <span class="c">#####################</span>
@@ -93,8 +94,8 @@
         <span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">qaid2_nnfilt</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">qaid2_nnfilt_ORIG</span>    <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">identity_filter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_chipmatch_ORIG</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt_ORIG</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="n">qaid2_qres_ORIG</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_ORIG</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="n">qaid2_qres_FILT</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qaid2_qres_ORIG</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_ORIG</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qaid2_qres_FILT</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_qres_SVER</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
     <span class="c">#####################</span>
     <span class="c"># Relevant components</span>
@@ -111,9 +112,9 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;checking qreq.data_index integrity&#39;</span><span class="p">)</span>
 
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">desc_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_desc</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
+    <span class="n">desc_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_vecs</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
 
     <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">desc1</span> <span class="o">==</span> <span class="n">desc2</span><span class="p">)</span> <span class="k">for</span> <span class="n">desc1</span><span class="p">,</span> <span class="n">desc2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">desc_list</span><span class="p">,</span> <span class="n">desc_list2</span><span class="p">)])</span>
 
