@@ -4,11 +4,11 @@ from six.moves import range
 from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
 from . import viz_helpers as vh
-from ibeis.model.hots import query_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx):
+    raise NotImplementedError('this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params')
     from . import match_chips3 as mc3
     ibs._init_query_requestor()
     qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
@@ -25,7 +25,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         fnum = df2.next_fnum()
     try:
         # Flann NN query
-        (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = query_helpers.get_annotfeat_nn_index(ibs, qaid, qfx)
+        (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx)
 
         # Adds metadata to a feature match
         def get_extract_tuple(aid, fx, k=-1):

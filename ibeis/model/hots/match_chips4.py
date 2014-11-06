@@ -21,8 +21,8 @@ MIN_BIGCACHE_BUNDLE = 20
 #----------------------
 
 #@profile
-def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
-                         use_bigcache=USE_BIGCACHE, return_request=False,
+def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
+                         use_bigcache=None, return_request=False,
                          custom_qparams=None):
     """
     The standard query interface.
@@ -52,6 +52,10 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
 
         >>> qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)
     """
+    if use_cache is None:
+        use_cache = USE_CACHE
+    if use_bigcache is None:
+        use_bigcache = USE_BIGCACHE
     # Create new query request object to store temporary state
     if utool.NOT_QUIET:
         print(' --- Submit QueryRequest_ --- ')
@@ -74,7 +78,10 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
             try:
                 qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
                 print('... qaid2_qres bigcache hit')
-                return qaid2_qres
+                if return_request:
+                    return qaid2_qres, qreq_
+                else:
+                    return qaid2_qres
             except IOError:
                 print('... qaid2_qres bigcache miss')
     # Execute query request

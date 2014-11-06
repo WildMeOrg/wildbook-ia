@@ -240,7 +240,7 @@ class FilterConfig(ConfigBase):
                 sstr = '>' if sign == -1 else '<'  # actually <=, >=
                 stw_str += sstr + str(thresh)
             if weight != 0:
-                stw_str += '_' + str(weight)
+                stw_str += ';' + str(weight)
             stw_list.append(stw_str)
         stw_str = ','.join(stw_list)
         if filt_cfg.Krecip != 0 and 'recip' in on_filters:
@@ -250,9 +250,9 @@ class FilterConfig(ConfigBase):
         if len(stw_str) > 0:
             filt_cfgstr += [stw_str]
         if filt_cfg.can_match_sameimg:
-            filt_cfgstr += 'same_img'
+            filt_cfgstr += 'sameimg'
         if not filt_cfg.can_match_samename:
-            filt_cfgstr += 'notsame_name'
+            filt_cfgstr += 'notsamename'
         if filt_cfg.gravity_weighting:
             filt_cfgstr += [',gvweight']
         filt_cfgstr += [')']
@@ -283,7 +283,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfgstr = ['_SV(']
         sv_cfgstr += [str(sv_cfg.nShortlist)]
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = utool.remove_chars(str(thresh_tup), ' ()').replace(',', '_')
+        thresh_str = utool.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr += [',' + thresh_str]
         sv_cfgstr += [',cdl' * sv_cfg.use_chip_extent]  # chip diag len
         sv_cfgstr += [',' + sv_cfg.prescore_method]
@@ -774,12 +774,12 @@ class FeatureConfig(ConfigBase):
             #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
             #              'nogravity_hack', 'feat_type'])
             ignore_if_default = set([
-                # 'numberOfScales',
-                # 'threshold',
-                # 'edgeEigenValueRatio',
+                'numberOfScales',
+                'threshold',
+                'edgeEigenValueRatio',
                 'border',
-                # 'maxIterations',
-                # 'convergenceThreshold',
+                'maxIterations',
+                'convergenceThreshold',
 
                 'smmWindowSize',
                 'mrSize',
@@ -788,7 +788,7 @@ class FeatureConfig(ConfigBase):
                 'orientationBins',
 
                 'maxBinValue',
-                #'initialSigma',
+                'initialSigma',
                 'patchSize',
 
                 'scale_min',

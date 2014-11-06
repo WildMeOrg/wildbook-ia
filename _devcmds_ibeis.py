@@ -44,16 +44,30 @@ def change_names(ibs, qaid_list):
 
 @devcmd('query')
 def query_aids(ibs, qaid_list):
+    """
+    CommandLine:
+        python dev.py -w --show -t query --db PZ_MTEST --qaid 72
+
+    """
+    import ibeis
     valid_aids = ibs.get_valid_aids()
     qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
+        assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
         interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
+        df2.set_figtitle(qres.make_title())
     return qaid2_qres
 
 
 @devcmd('sver')
 def sver_aids(ibs, qaid_list):
+    """
+    CommandLine:
+        python dev.py -w --show -t sver --db PZ_MTEST --qaid 72
+        python dev.py -w --show -t sver --db PZ_MTEST --qaid 1
+
+    """
     valid_aids = ibs.get_valid_aids()
     qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
     for qaid in qaid_list:
@@ -105,6 +119,10 @@ def delete_all_chips(ibs, *args):
 
 @devprecmd('mtest')
 def ensure_mtest():
+    """
+    CommandLine:
+        python dev.py -t mtest
+    """
     import ibeis
     ibeis.ensure_pz_mtest()
 

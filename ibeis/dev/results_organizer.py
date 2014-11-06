@@ -105,9 +105,28 @@ def _score_sorted_ranks_lt(orgres, num):
 
 def qres2_true_and_false(ibs, qres):
     """
-    Organizes results into true positive set and false positive set
+
+    Organizes chip-vs-chip results into true positive set and false positive set
 
     a set is a query, its best match, and a score
+
+    qres2_true_and_false
+
+    Args:
+        ibs (IBEISController):
+        qres (QueryResult): object of feature correspondences and scores
+
+    Returns:
+        tuple: (true_tup, false_tup)
+            * true_tup  = (true_aids,  true_scores,  true_ranks)
+            * false_tup = (false_aids, false_scores, false_ranks)
+
+    Example:
+        >>> from ibeis.dev.results_organizer import *  # NOQA
+        >>> ibs = '?'
+        >>> qres = '?'
+        >>> (true_tup, false_tup) = qres2_true_and_false(ibs, qres)
+        >>> print((true_tup, false_tup))
     """
     # Get top chip indexes and scores
     top_aids  = qres.get_top_aids()
@@ -131,16 +150,16 @@ def organize_results(ibs, qaid2_qres):
     print('organize_results()')
     org_true          = OrganizedResult('true')
     org_false         = OrganizedResult('false')
-    org_top_true      = OrganizedResult('top_true')
-    org_top_false     = OrganizedResult('top_false')
+    org_top_true      = OrganizedResult('top_true')   # highest ranked true matches
+    org_top_false     = OrganizedResult('top_false')  # highest ranked false matches
     org_bot_true      = OrganizedResult('bot_true')
     org_problem_true  = OrganizedResult('problem_true')
     org_problem_false = OrganizedResult('problem_false')
-    # -----------------
-    # Query result loop
 
     def _organize_result(qres):
         # Use ground truth to sort into true/false
+        # * true_tup  = (true_aids,  true_scores,  true_ranks)
+        # * false_tup = (false_aids, false_scores, false_ranks)
         true_tup, false_tup = qres2_true_and_false(ibs, qres)
         last_rank     = -1
         skipped_ranks = set([])
@@ -173,6 +192,8 @@ def organize_results(ibs, qaid2_qres):
                 org_top_false.append(qaid, aid, rank, score)
             topx += 1
 
+    # -----------------
+    # Query result loop
     for qaid, qres in six.iteritems(qaid2_qres):
         if qres is not None:
             _organize_result(qres)
@@ -200,9 +221,27 @@ def organize_results(ibs, qaid2_qres):
 
 
 def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
-    """ Returns a list of matches that should be inspected
-    This function is more lightweight than orgres or allres
-    and will be used in production.
+    """
+    Returns a list of matches that should be inspected
+    This function is more lightweight than orgres or allres.
+
+    Used in inspect_gui and interact_qres2
+
+    Args:
+        qaid2_qres (dict): mapping from query annotaiton id to query result object
+        ranks_lt (int): put all ranks less than this number into the graph
+        directed (bool):
+
+    Returns:
+        tuple: candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
+
+    Example:
+        >>> from ibeis.dev.results_organizer import *  # NOQA
+        >>> qaid2_qres = '?'
+        >>> ranks_lt = 5
+        >>> directed = True
+        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
+        >>> print(candidate_matches)
     """
     qaids_stack  = []
     aids_stack   = []

@@ -44,7 +44,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 
 def train_paris_vocab(ibs):
     """
-    python dev.py --db Paris --cmd
+    CommandLine:
+        python dev.py --db Paris --cmd
     """
     aid_list = []
     # use only one annotion per image
@@ -107,18 +108,22 @@ def center_descriptors():
 
 @devcmd('upsize', 'upscale')
 @profile
-def up_dbsize_expt(ibs, qaid_list):
+def up_dbsize_expt(ibs, qaid_list, daid_list=None):
     """
-    Input:
-        ibs       - IBEISController object
-        qaid_list - list of annotation-ids to query
     Plots the scores/ranks of correct matches while varying the size of the
     database.
 
-    python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 --cmd
-    >>> from ibeis.all_imports import *  # NOQA
-    >>> ibs = ibeis.opendb('PZ_FlankHack')
-    >>> qaid_list = ibs.get_valid_aids()
+    Args:
+        ibs       (list) : IBEISController object
+        qaid_list (list) : list of annotation-ids to query
+
+    CommandLine:
+        python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 --cmd
+
+    Example:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> ibs = ibeis.opendb('PZ_FlankHack')
+        >>> qaid_list = ibs.get_valid_aids()
     """
     print('updbsize_expt')
     # clamp the number of groundtruth to test
@@ -257,15 +262,27 @@ def up_dbsize_expt(ibs, qaid_list):
     return locals_  # return in dict format for execstr_dict
 
 
-@devcmd('dists', 'dist', 'desc_dists')
-def desc_dists(ibs, qaid_list):
-    """ Plots the distances between matching descriptors
-        with groundtruth (true/false) data """
-    print('[dev] desc_dists')
+@devcmd('dists', 'dist', 'vecs_dist')
+def vecs_dist(ibs, qaid_list, daid_list=None):
+    """
+    Plots the distances between matching descriptors
+        with groundtruth (true/false) data
+
+
+    True distances are spatially verified descriptor matches
+    Top false distances distances are spatially verified descriptor matches
+
+    CommandLine:
+        python dev.py -t vecs_dist --db NAUT_Dan --allgt -w --show
+        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
+        python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
+    """
+    print('[dev] vecs_dist')
     allres = get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
     disttype = 'L2'
+    # Get descriptor match distances
     orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
     results_analyzer.print_desc_distances_map(orgres2_distmap)
     #true_desc_dists  = orgres2_distmap['true']['L2']
@@ -273,16 +290,22 @@ def desc_dists(ibs, qaid_list):
     #scores_list = [false_desc_dists, true_desc_dists]
     dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
     dists_lbls = orgtype_list
-    dists_markers = ['x', 'o--']
+    dists_markers = ['x--', 'o--']
     plottool.plots.draw_scores_cdf(dists_list, dists_lbls, dists_markers)
-    #df2.set_figtitle('Descriptor Distance CDF d(x)' + allres.get_cfgstr())
+    df2.set_figtitle('Descriptor Distance CDF d(x)' + allres.get_cfgstr())
     return locals()
 
 
 @devcmd('scores', 'score')
-def annotationmatch_scores(ibs, qaid_list):
+def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+    """
+    CommandLine:
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+    """
     print('[dev] annotationmatch_scores')
-    allres = get_allres(ibs, qaid_list)
+    allres = get_allres(ibs, qaid_list, daid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
@@ -296,12 +319,12 @@ def annotationmatch_scores(ibs, qaid_list):
     scores_lbls = orgtype_list
     scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
     plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    #df2.set_figtitle('Chipmatch Scores ' + allres.get_cfgstr())
+    df2.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
     return locals()
 
 
 @devcmd('inspect')
-def inspect_matches(ibs, qaid_list):
+def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
     from ibeis.viz.interact import interact_qres2  # NOQA
@@ -329,7 +352,7 @@ def inspect_matches(ibs, qaid_list):
 
 
 @devcmd('gv')
-def gvcomp(ibs, qaid_list):
+def gvcomp(ibs, qaid_list, daid_list):
     """
     GV = With gravity vector
     RI = With rotation invariance
@@ -365,7 +388,7 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_annotationmatch_scores(ibs, qaid_list):
+def compgrav_annotationmatch_scores(ibs, qaid_list, daid_list):
     print('[dev] compgrav_annotationmatch_scores')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
@@ -510,16 +533,40 @@ __ALLRES_CACHE__ = {}
 
 
 def get_allres(ibs, qaid_list, daid_list=None):
+    """
+    get_allres
+
+    Args:
+        ibs (IBEISController):
+        qaid_list (int): query annotation id
+        daid_list (list):
+
+    Returns:
+        ?: allres
+
+    Example:
+        >>> from dev import *  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
+        >>> allres = get_allres(ibs, qaid_list, daid_list)
+        >>> print(allres)
+        >>> allres.allorg['top_true'].printme3()
+    """
     print('[dev] get_allres')
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     allres_cfgstr = ibs.cfg.query_cfg.get_cfgstr()
-    allres_key = (qaid_list, daid_list, allres_cfgstr)
+    query_hashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUID')
+    data_hashid  = ibs.get_annot_uuid_hashid(daid_list, '_DAUUID')
+
+    allres_key = (query_hashid, data_hashid, allres_cfgstr)
     try:
         allres = __ALLRES_CACHE__[allres_key]
     except KeyError:
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list)
-        allres = results_all.init_allres(ibs, qaid2_qres)
+        qaid2_qres, qreq_ = ibs._query_chips(qaid_list, daid_list,
+                                             return_request=True)
+        allres = results_all.init_allres(ibs, qaid2_qres, qreq_)
     # Cache save
     __ALLRES_CACHE__[allres_key] = allres
     return allres
@@ -585,13 +632,16 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
 
 
 @devcmd('test_feats')
-def test_feats(ibs, qaid_list):
+def test_feats(ibs, qaid_list, daid_list=None):
     """
     test_feats shows features using several different parameters
 
     Args:
         ibs (IBEISController):
         qaid_list (int): query annotation id
+
+    CommandLine:
+        python dev.py -t test_feats --db PZ_MTEST --all --index 0 --show -w
 
     Example:
         >>> import ibeis

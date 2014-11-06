@@ -50,6 +50,23 @@ def get_orgres_annotationmatch_scores(allres, orgtype_list=['false', 'true']):
 
 
 def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true']):
+    """
+    computes distances between matching descriptors of orgtypes in allres
+
+    Args:
+        allres (?):
+        orgtype_list (list):
+
+    Returns:
+        dict: orgres2_descmatch_dists mapping from orgtype to distances (ndarrays)
+
+    Example:
+        >>> from ibeis.dev.results_analyzer import *  # NOQA
+        >>> allres = '?'
+        >>> orgtype_list = ['false', 'true']
+        >>> orgres2_descmatch_dists = get_orgres_desc_match_dists(allres, orgtype_list)
+        >>> print(orgres2_descmatch_dists)
+    """
     orgres2_descmatch_dists = {}
     for orgtype in orgtype_list:
         printDBG('[rr2] getting orgtype=%r distances between sifts' % orgtype)
@@ -57,46 +74,67 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true']):
         qaids = orgres.qaids
         aids  = orgres.aids
         try:
-            adesc1, adesc2 = get_matching_descriptors(allres, qaids, aids)
-        except Exception:
+            stacked_qvecs, stacked_dvecs = get_matching_descriptors(allres, qaids, aids)
+        except Exception as ex:
             orgres.printme3()
+            utool.printex(ex)
             raise
-        printDBG('[rr2]  * adesc1.shape = %r' % (adesc1.shape,))
-        printDBG('[rr2]  * adesc2.shape = %r' % (adesc2.shape,))
+        printDBG('[rr2]  * stacked_qvecs.shape = %r' % (stacked_qvecs.shape,))
+        printDBG('[rr2]  * stacked_dvecs.shape = %r' % (stacked_dvecs.shape,))
         #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
         #dist_list = ['L1', 'L2', 'hist_isect']
         dist_list = ['L2', 'hist_isect']
-        hist1 = np.asarray(adesc1, dtype=np.float64)
-        hist2 = np.asarray(adesc2, dtype=np.float64)
+        hist1 = np.asarray(stacked_qvecs, dtype=np.float32)
+        hist2 = np.asarray(stacked_dvecs, dtype=np.float32)
         distances = utool.compute_distances(hist1, hist2, dist_list)
         orgres2_descmatch_dists[orgtype] = distances
     return orgres2_descmatch_dists
 
 
-def get_matching_descriptors(allres, qaids, aids):
+def get_matching_descriptors(allres, qaid_list, daid_list):
+    """
+    returns a set of matching descriptors from queries to database annotations
+    in allres
+
+    Args:
+        allres (AllResults): all results object
+        qaid_list (list): query annotation id list
+        daid_list (list): database annotation id list
+
+    Returns:
+        tuple: (stacked_qvecs, stacked_dvecs)
+
+    Example:
+        >>> from ibeis.dev.results_analyzer import *  # NOQA
+        >>> allres = '?'
+        >>> qaid_list = '?'
+        >>> daid_list = '?'
+        >>> (stacked_qvecs, stacked_dvecs) = get_matching_descriptors(allres, qaid_list, daid_list)
+        >>> print((stacked_qvecs, stacked_dvecs))
+    """
     ibs = allres.ibs
-    qdesc_cache = ibsfuncs.get_annot_vecs_cache(ibs, qaids)
-    rdesc_cache = ibsfuncs.get_annot_vecs_cache(ibs, aids)
-    desc1_list = []
-    desc2_list = []
-    for qaid, aid in zip(qaids, aids):
+    qvecs_cache = ibsfuncs.get_annot_vecs_cache(ibs, qaid_list)
+    dvecs_cache = ibsfuncs.get_annot_vecs_cache(ibs, daid_list)
+    qvecs_list = []
+    dvecs_list = []
+    for qaid, daid in zip(qaid_list, daid_list):
         try:
-            fm = get_feat_matches(allres, qaid, aid)
+            fm = get_feat_matches(allres, qaid, daid)
             if len(fm) == 0:
                 continue
         except KeyError:
             continue
-        desc1_m = qdesc_cache[qaid][fm.T[0]]
-        desc2_m = rdesc_cache[aid][fm.T[1]]
-        desc1_list.append(desc1_m)
-        desc2_list.append(desc2_m)
+        qvecs_m = qvecs_cache[qaid][fm.T[0]]
+        dvecs_m = dvecs_cache[daid][fm.T[1]]
+        qvecs_list.append(qvecs_m)
+        dvecs_list.append(dvecs_m)
     try:
-        aggdesc1 = np.vstack(desc1_list)
-        aggdesc2 = np.vstack(desc2_list)
+        stacked_qvecs = np.vstack(qvecs_list)
+        stacked_dvecs = np.vstack(dvecs_list)
     except Exception as ex:
-        utool.printex(ex, '[!!!!] get_matching_descriptors', key_list=['qaids', 'aids', 'desc1_list', 'desc2_list' 'aggdesc1', 'aggdesc2'])
+        utool.printex(ex, '[!!!] get_matching_descriptors', keys=['qaid_list', 'daid_list', 'qvecs_list', 'dvecs_list' 'stacked_qvecs', 'stacked_dvecs'])
         raise
-    return aggdesc1, aggdesc2
+    return stacked_qvecs, stacked_dvecs
 
 
 #def get_score_stuff_pdfish(allres):
