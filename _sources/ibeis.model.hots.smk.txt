@@ -36,6 +36,14 @@ ibeis.model.hots.smk.smk_match module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.smk.smk_plots module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.smk.smk_plots
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.smk.smk_repr module
 ------------------------------------
 
@@ -56,6 +64,14 @@ ibeis.model.hots.smk.smk_scoring module
 ---------------------------------------
 
 .. automodule:: ibeis.model.hots.smk.smk_scoring
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.smk.tmp module
+-------------------------------
+
+.. automodule:: ibeis.model.hots.smk.tmp
     :members:
     :undoc-members:
     :show-inheritance:

@@ -358,12 +358,12 @@
     <span class="n">unique_gids</span><span class="p">,</span> <span class="n">unique_names</span><span class="p">,</span> <span class="n">unique_notes</span> <span class="o">=</span> <span class="n">resolve_name_conflicts</span><span class="p">(</span>
         <span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
     <span class="c"># Add ANNOTATIONs with names and notes</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">use_images_as_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unique_gids</span><span class="p">,</span>
-                                                  <span class="n">name_list</span><span class="o">=</span><span class="n">unique_names</span><span class="p">,</span>
-                                                  <span class="n">notes_list</span><span class="o">=</span><span class="n">unique_notes</span><span class="p">,</span>
-                                                  <span class="n">adjust_percent</span><span class="o">=</span><span class="n">adjust_percent</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">use_images_as_annotations</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">,</span>
+                                             <span class="n">name_list</span><span class="o">=</span><span class="n">unique_names</span><span class="p">,</span>
+                                             <span class="n">notes_list</span><span class="o">=</span><span class="n">unique_notes</span><span class="p">,</span>
+                                             <span class="n">adjust_percent</span><span class="o">=</span><span class="n">adjust_percent</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">localize</span><span class="p">:</span>
-        <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">localize_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">localize_images</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">postingest_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">postingest_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="c"># Print to show success</span>

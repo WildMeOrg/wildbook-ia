@@ -13,6 +13,7 @@ Subpackages
     ibeis.model
     ibeis.tests
     ibeis.viz
+    ibeis.web
 
 Submodules
 ----------

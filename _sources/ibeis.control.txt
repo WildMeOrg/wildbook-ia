@@ -12,10 +12,26 @@ ibeis.control.DBCACHE_SCHEMA module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.DBCACHE_SCHEMA_CURRENT module
+-------------------------------------------
+
+.. automodule:: ibeis.control.DBCACHE_SCHEMA_CURRENT
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control.DB_SCHEMA module
 ------------------------------
 
 .. automodule:: ibeis.control.DB_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.DB_SCHEMA_CURRENT module
+--------------------------------------
+
+.. automodule:: ibeis.control.DB_SCHEMA_CURRENT
     :members:
     :undoc-members:
     :show-inheritance:
@@ -44,6 +60,22 @@ ibeis.control.__SQLITE3__ module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control._autogen_ibeiscontrol_funcs module
+------------------------------------------------
+
+.. automodule:: ibeis.control._autogen_ibeiscontrol_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._grave_template module
+------------------------------------
+
+.. automodule:: ibeis.control._grave_template
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control._sql_helpers module
 ---------------------------------
 
@@ -56,6 +88,22 @@ ibeis.control.accessor_decors module
 ------------------------------------
 
 .. automodule:: ibeis.control.accessor_decors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.template_definitions module
+-----------------------------------------
+
+.. automodule:: ibeis.control.template_definitions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.templates module
+------------------------------
+
+.. automodule:: ibeis.control.templates
     :members:
     :undoc-members:
     :show-inheritance:

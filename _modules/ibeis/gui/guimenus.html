@@ -92,6 +92,12 @@
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBackup_Database&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Backup the current main database.&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Backup Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+B&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">backup_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionExport_Database&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Dumps and exports database as csv tables.&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Export Database&#39;</span><span class="p">,</span>
@@ -283,10 +289,10 @@
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="c"># ---</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Detection_Models&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Detection Models&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionRedownload_Detection_Models&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Redownload Detection Models&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_detection_models</span><span class="p">)</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Precomputed_Results&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Cached Query Results&#39;</span><span class="p">,</span>

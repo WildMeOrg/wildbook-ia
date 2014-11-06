@@ -52,6 +52,8 @@
 <span class="sd">python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))&quot;</span>
 <span class="sd">python -m doctest -v ibeis/model/hots/hots_nn_index.py</span>
 <span class="sd">python -m doctest ibeis/model/hots/hots_nn_index.py</span>
+
+<span class="sd">rob gp &quot;ibsfuncs\..*\(ibs, &quot;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># developer convenience functions for ibs</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -60,13 +62,11 @@
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span> <span class="n">set_funcname</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="c">#from functools import partial  # NOQA</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">commonprefix</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.io</span> <span class="kn">import</span> <span class="n">export_hsdb</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">detecttools.pypascalmarkup</span> <span class="kn">import</span> <span class="n">PascalVOC_Markup_Annotation</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -86,26 +86,39 @@
 <span class="n">__INJECTABLE_FUNCS__</span> <span class="o">=</span> <span class="p">[]</span>
 
 
-<span class="k">def</span> <span class="nf">__injectable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">closure_injectable</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="k">global</span> <span class="n">__INJECTABLE_FUNCS__</span>
-        <span class="k">if</span> <span class="n">indent</span><span class="p">:</span>
-            <span class="n">func_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">func_</span> <span class="o">=</span> <span class="n">func</span>
-        <span class="n">__INJECTABLE_FUNCS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func_</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">func_</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">closure_injectable</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">closure_injectable</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">input_</span><span class="p">)</span>
+<span class="c">#def __injectable(input_):</span>
+<span class="c">#    def closure_injectable(func, indent=True):</span>
+<span class="c">#        global __INJECTABLE_FUNCS__</span>
+<span class="c">#        if indent:</span>
+<span class="c">#            func_ = utool.indent_func(func)</span>
+<span class="c">#        else:</span>
+<span class="c">#            func_ = func</span>
+<span class="c">#        __INJECTABLE_FUNCS__.append(func_)</span>
+<span class="c">#        return func_</span>
+<span class="c">#    if utool.is_funclike(input_):</span>
+<span class="c">#        return closure_injectable(input_)</span>
+<span class="c">#    else:</span>
+<span class="c">#        return partial(closure_injectable, indent=input_)</span>
+<span class="c">#__injectable(utool.inject_func_as_method)</span>
 
 
-<div class="viewcode-block" id="inject_ibeis"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.inject_ibeis">[docs]</a><span class="k">def</span> <span class="nf">inject_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Injects custom functions into an IBEISController &quot;&quot;&quot;</span>
-    <span class="c"># Give the ibeis object the inject_func_as_method</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">)</span>
-    <span class="c"># List of getters to unflatten</span>
+<span class="c">#def inject_ibeis(ibs):</span>
+<span class="c">#    &quot;&quot;&quot; Injects custom functions into an IBEISController &quot;&quot;&quot;</span>
+<span class="c">#    # Give the ibeis object the inject_func_as_method</span>
+<span class="c">#    for func in __INJECTABLE_FUNCS__:</span>
+<span class="c">#        utool.inject_func_as_method(ibs, func)</span>
+<span class="c">#    postinject_func()</span>
+
+<span class="c">#import ibeis</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>  <span class="c"># Must import class before injection</span>
+<span class="n">__injectable</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">IBEISController</span><span class="p">)</span>
+
+
+<span class="nd">@ut.make_class_postinject_decorator</span><span class="p">(</span><span class="n">IBEISController</span><span class="p">)</span>
+<div class="viewcode-block" id="postinject_func"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.postinject_func">[docs]</a><span class="k">def</span> <span class="nf">postinject_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># List of getters to _unflatten</span>
     <span class="n">to_unflatten</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">,</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">,</span>
@@ -116,9 +129,7 @@
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">flat_getter</span> <span class="ow">in</span> <span class="n">to_unflatten</span><span class="p">:</span>
         <span class="n">unflat_getter</span> <span class="o">=</span> <span class="n">_make_unflat_getter_func</span><span class="p">(</span><span class="n">flat_getter</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">unflat_getter</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__INJECTABLE_FUNCS__</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unflat_getter</span><span class="p">)</span>
 
 </div>
 <span class="nd">@__injectable</span>
@@ -127,11 +138,10 @@
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">all_imports</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
     <span class="n">all_imports</span><span class="o">.</span><span class="n">reload_all</span><span class="p">()</span>
-    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">inject_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="export_to_xml"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.export_to_xml">[docs]</a><span class="k">def</span> <span class="nf">export_to_xml</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="n">offset</span> <span class="o">=</span> <span class="mi">9921</span>
+<div class="viewcode-block" id="export_to_xml"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.export_to_xml">[docs]</a><span class="k">def</span> <span class="nf">export_to_xml</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="n">target_size</span> <span class="o">=</span> <span class="mi">900</span>
     <span class="n">information</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;database_name&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
@@ -150,7 +160,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">fulldir</span> <span class="o">=</span> <span class="n">image_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">fulldir</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-            <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># NOQA</span>
             <span class="n">out_name</span> <span class="o">=</span> <span class="s">&quot;2014_</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">offset</span>
             <span class="n">out_img</span> <span class="o">=</span> <span class="n">out_name</span> <span class="o">+</span> <span class="s">&quot;.jpg&quot;</span>
             <span class="n">folder</span> <span class="o">=</span> <span class="s">&quot;IBEIS&quot;</span>
@@ -194,7 +204,11 @@
                 <span class="c">#TODO: Change species_name to getter in IBEISControl once implemented</span>
                 <span class="c">#species_name = &#39;grevys_zebra&#39;</span>
                 <span class="n">species_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-                <span class="n">annotation</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">))</span>
+                <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="n">viewpoint</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s">&#39;pose&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%0.6f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">viewpoint</span>
+                <span class="n">annotation</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="o">**</span><span class="n">info</span><span class="p">)</span>
             <span class="n">dst_annot</span> <span class="o">=</span> <span class="n">annotdir</span> <span class="o">+</span> <span class="n">out_name</span>  <span class="o">+</span> <span class="s">&#39;.xml&#39;</span>
             <span class="c"># Write XML</span>
             <span class="n">xml_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dst_annot</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
@@ -207,6 +221,7 @@
 </div>
 <span class="nd">@__injectable</span>
 <div class="viewcode-block" id="export_to_hotspotter"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.export_to_hotspotter">[docs]</a><span class="k">def</span> <span class="nf">export_to_hotspotter</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.io</span> <span class="kn">import</span> <span class="n">export_hsdb</span>
     <span class="n">export_hsdb</span><span class="o">.</span><span class="n">export_ibeis_to_hotspotter</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 
 </div>
@@ -393,7 +408,7 @@
 <div class="viewcode-block" id="check_annot_size"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.check_annot_size">[docs]</a><span class="k">def</span> <span class="nf">check_annot_size</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;size(aid_list) = &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_object_size</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
@@ -500,19 +515,47 @@
 
 </div>
 <span class="nd">@__injectable</span>
+<div class="viewcode-block" id="delete_all_recomputable_data"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_all_recomputable_data">[docs]</a><span class="k">def</span> <span class="nf">delete_all_recomputable_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_all_recomputable_data&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_features</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_chips</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete_all_recomputable_data&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="delete_cache"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_cache">[docs]</a><span class="k">def</span> <span class="nf">delete_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">remove_from_sql</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deletes the cache directory in the database directory.</span>
+
+<span class="sd">    Also removes features and chips from the sql controller if remove_from_sql is True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_directories</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_cachedir</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">remove_from_sql</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_features</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_chips</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_directories</span><span class="p">()</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="delete_cachedir"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_cachedir">[docs]</a><span class="k">def</span> <span class="nf">delete_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deletes the cache directory in the database directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_cachedir&#39;</span><span class="p">)</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] cachedir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cachedir</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete cachedir&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="delete_all_features"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_all_features">[docs]</a><span class="k">def</span> <span class="nf">delete_all_features</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_all_features&#39;</span><span class="p">)</span>
     <span class="n">all_fids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_fids</span><span class="p">()</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_features</span><span class="p">(</span><span class="n">all_fids</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete_all_features&#39;</span><span class="p">)</span>
-
-</div>
-<span class="nd">@__injectable</span>
-<div class="viewcode-block" id="delete_all_annotations"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_all_annotations">[docs]</a><span class="k">def</span> <span class="nf">delete_all_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_all_annotations&#39;</span><span class="p">)</span>
-    <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">all_aids</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete_all_annotations&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@__injectable</span>
@@ -532,25 +575,73 @@
 
 </div>
 <span class="nd">@__injectable</span>
+<div class="viewcode-block" id="delete_all_annotations"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_all_annotations">[docs]</a><span class="k">def</span> <span class="nf">delete_all_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Carefull with this function. Annotations are not recomputable &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_all_annotations&#39;</span><span class="p">)</span>
+    <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">all_aids</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete_all_annotations&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="vd"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.vd">[docs]</a><span class="k">def</span> <span class="nf">vd</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
 
 </div>
 <span class="nd">@__injectable</span>
-<div class="viewcode-block" id="get_annot_desc_cache"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_desc_cache">[docs]</a><span class="k">def</span> <span class="nf">get_annot_desc_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_vecs_cache"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_vecs_cache">[docs]</a><span class="k">def</span> <span class="nf">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; When you have a list with duplicates and you dont want to copy data</span>
-<span class="sd">    creates a reference to each data object idnexed by a dict &quot;&quot;&quot;</span>
+<span class="sd">    creates a reference to each data object indexed by a dict &quot;&quot;&quot;</span>
     <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
-    <span class="n">unique_desc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">)</span>
+    <span class="n">unique_desc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">)</span>
     <span class="n">desc_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">,</span> <span class="n">unique_desc</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">desc_cache</span>
 
+
+<span class="c"># TODO: move to constants</span>
 </div>
 <span class="nd">@__injectable</span>
 <div class="viewcode-block" id="get_annot_is_hard"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_is_hard">[docs]</a><span class="k">def</span> <span class="nf">get_annot_is_hard</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CmdLine:</span>
+<span class="sd">        ./dev.py --cmd --db PZ_Mothers</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">is_hard_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;hard&#39;</span> <span class="ow">in</span> <span class="n">notes</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="p">(</span><span class="n">notes</span><span class="p">)</span>
+    <span class="n">is_hard_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">HARD_NOTE_TAG</span> <span class="ow">in</span> <span class="n">notes</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="p">(</span><span class="n">notes</span><span class="p">)</span>
                     <span class="ow">in</span> <span class="n">notes_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">is_hard_list</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="set_annot_is_hard"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.set_annot_is_hard">[docs]</a><span class="k">def</span> <span class="nf">set_annot_is_hard</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hack to mark hard cases in the notes column</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; pz_mothers_hard_aids = [27, 43, 44, 49, 50, 51, 54, 66, 89, 97]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = pz_mothers_hard_aids</span>
+<span class="sd">        &gt;&gt;&gt; flag_list = [True] * len(aid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">is_hard_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">HARD_NOTE_TAG</span> <span class="ow">in</span> <span class="n">notes</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="p">(</span><span class="n">notes</span><span class="p">)</span> <span class="ow">in</span> <span class="n">notes_list</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">fix_notes</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="n">is_hard</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+        <span class="s">&quot; Adds or removes hard tag if needed &quot;</span>
+        <span class="k">if</span> <span class="n">flag</span> <span class="ow">and</span> <span class="n">is_hard</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">flag</span> <span class="ow">or</span> <span class="n">is_hard</span><span class="p">):</span>
+            <span class="c"># do nothing</span>
+            <span class="k">return</span> <span class="n">notes</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_hard</span> <span class="ow">and</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="c"># need to add flag</span>
+            <span class="k">return</span> <span class="n">constants</span><span class="o">.</span><span class="n">HARD_NOTE_TAG</span> <span class="o">+</span> <span class="s">&#39; &#39;</span>  <span class="o">+</span> <span class="n">notes</span>
+        <span class="k">elif</span> <span class="n">is_hard</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="c"># need to remove flag</span>
+            <span class="k">return</span> <span class="n">notes</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">HARD_NOTE_TAG</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+
+    <span class="n">new_notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fix_notes</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="n">is_hard</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span> <span class="k">for</span> <span class="n">notes</span><span class="p">,</span> <span class="n">is_hard</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">notes_list</span><span class="p">,</span> <span class="n">is_hard_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">is_hard_list</span>
 
 </div>
@@ -560,27 +651,8 @@
     <span class="n">area_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="n">bbox_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">area_list</span>
 
-</div>
-<span class="nd">@__injectable</span>
-<div class="viewcode-block" id="localize_images"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.localize_images">[docs]</a><span class="k">def</span> <span class="nf">localize_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Moves the images into the ibeis image cache.</span>
-<span class="sd">    Images are renamed to img_uuid.ext</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">gid_list_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">gid_list_</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-    <span class="n">isnone_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">]</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">isnone_list</span><span class="p">)</span>
-    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">guuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">gext_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="c"># Build list of image names based on uuid in the ibeis imgdir</span>
-    <span class="n">guuid_strs</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">guuid</span><span class="p">)</span> <span class="k">for</span> <span class="n">guuid</span> <span class="ow">in</span> <span class="n">guuid_list</span><span class="p">)</span>
-    <span class="n">loc_gname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">guuid</span> <span class="o">+</span> <span class="n">ext</span> <span class="k">for</span> <span class="p">(</span><span class="n">guuid</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">guuid_strs</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)]</span>
-    <span class="n">loc_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">loc_gname_list</span><span class="p">]</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">copy_list</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Localizing Images: &#39;</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">loc_gname_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">)),</span> <span class="s">&#39;not all images copied&#39;</span>
+
+<span class="c">#@__injectable</span>
 
 </div>
 <span class="nd">@__injectable</span>
@@ -687,7 +759,12 @@
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;invalid_unknown_truth_state&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">truth</span>
 
-</div>
+
+<span class="c"># Use new invertable flatten functions</span></div>
+<span class="n">_invertable_flatten</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">invertable_flatten2</span>
+<span class="n">_unflatten</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unflatten2</span>
+
+
 <div class="viewcode-block" id="unflat_map"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.unflat_map">[docs]</a><span class="k">def</span> <span class="nf">unflat_map</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">unflat_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Uses an ibeis lookup function with a non-flat rowid list.</span>
@@ -697,11 +774,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#utool.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))</span>
     <span class="c"># First flatten the list, and remember the original dimensions</span>
-    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
+    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">_invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
     <span class="c"># Then preform the lookup / implicit mapping</span>
     <span class="n">flat_vals</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="c"># Then unflatten the results to the original input dimensions</span>
-    <span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
+    <span class="c"># Then _unflatten the results to the original input dimensions</span>
+    <span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">_unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">unflat_vals</span>
 
 </div>
@@ -709,11 +786,11 @@
     <span class="sd">&quot;&quot;&quot; unflat_map, but allows multiple methods</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># First flatten the list, and remember the original dimensions</span>
-    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
+    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">_invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
     <span class="c"># Then preform the lookup / implicit mapping</span>
     <span class="n">flat_vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">method</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">method_list</span><span class="p">]</span>
-    <span class="c"># Then unflatten the results to the original input dimensions</span>
-    <span class="n">unflat_vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
+    <span class="c"># Then _unflatten the results to the original input dimensions</span>
+    <span class="n">unflat_vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">flat_vals</span> <span class="ow">in</span> <span class="n">flat_vals_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">unflat_vals_list</span>
 
@@ -732,11 +809,11 @@
     <span class="c"># Create new function</span>
     <span class="k">def</span> <span class="nf">unflat_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflat_rowids</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c"># First flatten the list</span>
-        <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
+        <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">_invertable_flatten</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
         <span class="c"># Then preform the lookup</span>
         <span class="n">flat_vals</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flat_rowids</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c"># Then unflatten the list</span>
-        <span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
+        <span class="c"># Then _unflatten the list</span>
+        <span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">_unflatten</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">unflat_vals</span>
     <span class="n">set_funcname</span><span class="p">(</span><span class="n">unflat_getter</span><span class="p">,</span> <span class="n">funcname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;get_&#39;</span><span class="p">,</span> <span class="s">&#39;get_unflat_&#39;</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">unflat_getter</span>
@@ -860,6 +937,7 @@
 
 </div>
 <div class="viewcode-block" id="get_species_dbs"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_species_dbs">[docs]</a><span class="k">def</span> <span class="nf">get_species_dbs</span><span class="p">(</span><span class="n">species_prefix</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="n">ibs_dblist</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_ibsdb_list</span><span class="p">()</span>
     <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">species_prefix</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">ibs_dblist</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">ibs_dblist</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
@@ -868,6 +946,7 @@
 <div class="viewcode-block" id="merge_species_databases"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.merge_species_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_species_databases</span><span class="p">(</span><span class="n">species_prefix</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Build a merged database &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibsfuncs] Merging species with prefix: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">species_prefix</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">ensure_pool</span><span class="p">(</span><span class="n">warn</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;    &#39;</span><span class="p">):</span>
@@ -1015,7 +1094,7 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <span class="nd">@utool.time_func</span>
 <span class="c">#@profile</span>
 <div class="viewcode-block" id="update_special_encounters"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.update_special_encounters">[docs]</a><span class="k">def</span> <span class="nf">update_special_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1126,29 +1205,29 @@
     <span class="k">return</span> <span class="n">infostr</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_annotation_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_annotation_table">[docs]</a><span class="k">def</span> <span class="nf">print_annotation_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps annotation table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotation_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;annotation_verts&#39;</span><span class="p">]))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_chip_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_chip_table">[docs]</a><span class="k">def</span> <span class="nf">print_chip_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_feat_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_feat_table">[docs]</a><span class="k">def</span> <span class="nf">print_feat_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[</span>
-        <span class="s">&#39;feature_keypoints&#39;</span><span class="p">,</span> <span class="s">&#39;feature_sifts&#39;</span><span class="p">]))</span>
+        <span class="s">&#39;feature_keypoints&#39;</span><span class="p">,</span> <span class="s">&#39;feature_vecs&#39;</span><span class="p">]))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_image_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_image_table">[docs]</a><span class="k">def</span> <span class="nf">print_image_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
@@ -1156,46 +1235,46 @@
     <span class="c">#, exclude_columns=[&#39;image_rowid&#39;]))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_lblannot_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_lblannot_table">[docs]</a><span class="k">def</span> <span class="nf">print_lblannot_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_alr_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_alr_table">[docs]</a><span class="k">def</span> <span class="nf">print_alr_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_config_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_config_table">[docs]</a><span class="k">def</span> <span class="nf">print_config_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_encounter_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_encounter_table">[docs]</a><span class="k">def</span> <span class="nf">print_encounter_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_egpairs_table"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_egpairs_table">[docs]</a><span class="k">def</span> <span class="nf">print_egpairs_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps chip table to stdout &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="nd">@__injectable</span>
 <div class="viewcode-block" id="print_tables"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.print_tables">[docs]</a><span class="k">def</span> <span class="nf">print_tables</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_tables</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">exclude_columns</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">exclude_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;annot_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;lblannot_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;annot_verts&#39;</span><span class="p">,</span> <span class="s">&#39;feature_keypoints&#39;</span><span class="p">,</span>
-                           <span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span> <span class="s">&#39;image_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;image_uri&#39;</span><span class="p">]</span>
+                           <span class="s">&#39;feature_vecs&#39;</span><span class="p">,</span> <span class="s">&#39;image_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;image_uri&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">exclude_tables</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">exclude_tables</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;masks&#39;</span><span class="p">,</span> <span class="s">&#39;recognitions&#39;</span><span class="p">,</span> <span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">():</span>
@@ -1272,23 +1351,6 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flag</span><span class="p">(</span><span class="n">small_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">small_aids</span><span class="p">))</span>
 
 </div>
-<span class="nd">@__injectable</span>
-<div class="viewcode-block" id="delete_cachedir"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.delete_cachedir">[docs]</a><span class="k">def</span> <span class="nf">delete_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">removefeat</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Deletes the cache directory in the database directory.</span>
-
-<span class="sd">    Also removes features from the sql controller if removefeat is True</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] delete_cachedir&#39;</span><span class="p">)</span>
-    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] cachedir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cachedir</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] finished delete cachedir&#39;</span><span class="p">)</span>
-    <span class="c"># TODO: features really need to not be in SQL or in a separate SQLDB</span>
-    <span class="k">if</span> <span class="n">removefeat</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_features</span><span class="p">()</span>
-
-</div>
 <div class="viewcode-block" id="draw_thumb_helper"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.draw_thumb_helper">[docs]</a><span class="k">def</span> <span class="nf">draw_thumb_helper</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
     <span class="n">thumb_path</span><span class="p">,</span> <span class="n">thumbsize</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>  <span class="c"># time consuming</span>
@@ -1310,7 +1372,8 @@
 
 </div>
 <span class="nd">@__injectable</span>
-<div class="viewcode-block" id="preprocess_image_thumbs"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.preprocess_image_thumbs">[docs]</a><span class="k">def</span> <span class="nf">preprocess_image_thumbs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="preprocess_image_thumbs"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.preprocess_image_thumbs">[docs]</a><span class="k">def</span> <span class="nf">preprocess_image_thumbs</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Computes thumbs of images in parallel based on kwargs &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1342,7 +1405,7 @@
     <span class="p">}</span>
     <span class="c">#genkw[&#39;force_serial&#39;] = True</span>
     <span class="c">#genkw[&#39;chunksize&#39;] = max(len(gid_list_) // 16, 1)</span>
-    <span class="n">gen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">draw_thumb_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="o">**</span><span class="n">genkw</span><span class="p">)</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">draw_thumb_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="o">**</span><span class="n">genkw</span><span class="p">)</span>
     <span class="c">#for output in gen:</span>
     <span class="c">#    #with utool.Timer(&#39;gentime&#39;):</span>
     <span class="c">#    gtool.imwrite(output[0], output[1])</span>
@@ -1392,19 +1455,6 @@
         <span class="k">for</span> <span class="n">nidgroup</span> <span class="ow">in</span> <span class="n">nidgroup_list</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nidgroup</span><span class="p">),</span> <span class="s">&#39;bad name grouping&#39;</span>
     <span class="k">return</span> <span class="n">known_aids_list</span><span class="p">,</span> <span class="n">unknown_aids</span>
-
-</div>
-<span class="nd">@__injectable</span>
-<div class="viewcode-block" id="get_annot_rowid_hashid"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_rowid_hashid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_rowid_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;_AIDS&#39;</span><span class="p">):</span>
-    <span class="n">aids_hashid</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">aids_hashid</span>
-
-</div>
-<span class="nd">@__injectable</span>
-<div class="viewcode-block" id="get_annot_uuid_hashid"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_uuid_hashid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;_UUIDS&#39;</span><span class="p">):</span>
-    <span class="n">uuid_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">uuui_hashid</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">uuui_hashid</span>
 
 </div>
 <span class="nd">@__injectable</span>
@@ -1527,7 +1577,15 @@
 </div>
 <span class="nd">@__injectable</span>
 <div class="viewcode-block" id="annotstr"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.annotstr">[docs]</a><span class="k">def</span> <span class="nf">annotstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
-    <span class="k">return</span> <span class="s">&#39;aid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid</span></div>
+    <span class="k">return</span> <span class="s">&#39;aid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid</span>
+
+</div>
+<div class="viewcode-block" id="redownload_detection_models"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.redownload_detection_models">[docs]</a><span class="k">def</span> <span class="nf">redownload_detection_models</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibsfuncs] redownload_detection_models&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;detectmodels&#39;</span><span class="p">))</span>
+    <span class="n">grabmodels</span><span class="o">.</span><span class="n">ensure_models</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibsfuncs] finished redownload_detection_models&#39;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

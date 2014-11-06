@@ -74,7 +74,8 @@
 
 <span class="c">#@profile</span>
 <div class="viewcode-block" id="submit_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">USE_CACHE</span><span class="p">,</span>
-                         <span class="n">use_bigcache</span><span class="o">=</span><span class="n">USE_BIGCACHE</span><span class="p">):</span>
+                         <span class="n">use_bigcache</span><span class="o">=</span><span class="n">USE_BIGCACHE</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">custom_qparams</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The standard query interface.</span>
 
@@ -99,12 +100,17 @@
 <span class="sd">        &gt;&gt;&gt; use_bigcache = True</span>
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)  #doctest: +ELLIPSIS</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer = test_nnindexer</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)</span>
+
+<span class="sd">        &gt;&gt;&gt; qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Create new query request object to store temporary state</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- Submit QueryRequest_ --- &#39;</span><span class="p">)</span>
+    <span class="c"># ------------</span>
+    <span class="c"># Build query request</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="c"># --- BIG CACHE ---</span>
     <span class="c"># Do not use bigcache single queries</span>
     <span class="n">use_bigcache_</span> <span class="o">=</span> <span class="p">(</span><span class="n">use_bigcache</span> <span class="ow">and</span> <span class="n">use_cache</span> <span class="ow">and</span>
@@ -123,14 +129,13 @@
                 <span class="k">return</span> <span class="n">qaid2_qres</span>
             <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss&#39;</span><span class="p">)</span>
-    <span class="c"># ------------</span>
-    <span class="c"># Build query request</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="c"># Execute query request</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">)</span>
     <span class="c"># ------------</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span>
 
 

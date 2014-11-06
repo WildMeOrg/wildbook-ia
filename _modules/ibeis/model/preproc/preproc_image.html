@@ -62,7 +62,7 @@
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_img]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="nd">@profile</span>
+<span class="c">#@profile</span>
 <div class="viewcode-block" id="parse_exif"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.parse_exif">[docs]</a><span class="k">def</span> <span class="nf">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Image EXIF helper</span>
 
@@ -185,24 +185,6 @@
     <span class="p">)</span>
     <span class="c">#print(&#39;[ginfo] %r %r&#39; % (image_uuid, orig_gname))</span>
     <span class="k">return</span> <span class="n">param_tup</span>
-
-</div>
-<div class="viewcode-block" id="imgparams_worker2"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.imgparams_worker2">[docs]</a><span class="k">def</span> <span class="nf">imgparams_worker2</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
-    <span class="c">#gpath, kwargs = tup</span>
-    <span class="c">#cache_dir       = kwargs.get(&#39;cache_dir&#39;, None)</span>
-    <span class="c">#max_width       = kwargs.get(&#39;max_image_width&#39;, None)</span>
-    <span class="c">#max_height      = kwargs.get(&#39;max_image_height&#39;, None)</span>
-    <span class="c">#localize_images = kwargs.get(&#39;localize_images&#39;, False)</span>
-
-    <span class="c"># Move images to the cache dir</span>
-    <span class="c">#if localize_images:</span>
-    <span class="c">#    gname = image_uuid + ext</span>
-    <span class="c">#    gpath = &#39;/&#39;.join((cache_dir, gname))</span>
-
-    <span class="c">#if width &gt; max_width or height &gt; max_height:</span>
-    <span class="c">#    pass</span>
-    <span class="c"># TODO: Resize, Filter, and localize Image</span>
-    <span class="k">pass</span>
 
 </div>
 <span class="nd">@profile</span>

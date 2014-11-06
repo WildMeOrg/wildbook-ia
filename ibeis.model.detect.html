@@ -93,7 +93,7 @@
 <p>Interface to pyrf random forest object detection.</p>
 <dl class="function">
 <dt id="ibeis.model.detect.randomforest.compute_hough_images">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_hough_images</tt><big>(</big><em>ibs</em>, <em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>quick=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_hough_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_hough_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_hough_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_hough_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_hough_images" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -107,7 +107,7 @@
 
 <dl class="function">
 <dt id="ibeis.model.detect.randomforest.compute_probability_images">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_probability_images</tt><big>(</big><em>ibs</em>, <em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>quick=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_probability_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_probability_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_probability_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_probability_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_probability_images" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -127,8 +127,8 @@ For each image yeilds a list of bounding boxes</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.detect.randomforest.generate_detection_images">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">generate_detection_images</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>species</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#generate_detection_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.generate_detection_images" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.model.detect.randomforest.ibeis_generate_image_detections">
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">ibeis_generate_image_detections</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>species</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#ibeis_generate_image_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.ibeis_generate_image_detections" title="Permalink to this definition">¶</a></dt>
 <dd><p>detectkw can be: save_detection_images, save_scales, draw_supressed,
 detection_width, detection_height, percentage_left, percentage_top,
 nms_margin_percentage</p>

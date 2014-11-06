@@ -52,9 +52,13 @@
   <h1>Source code for ibeis.model.hots.query_request</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.query_request))&quot;</span>
+
+<span class="sd">FIXME: if cfg changes in controller all bets are off.</span>
+<span class="sd">Need to make controller functions have a purely stateless option.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span> <span class="k">as</span> <span class="n">hsnbrx</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="c"># UTool</span>
 <span class="kn">import</span> <span class="nn">utool</span>
@@ -71,7 +75,7 @@
     <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
 
 </div>
-<div class="viewcode-block" id="new_ibeis_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.new_ibeis_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="new_ibeis_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.new_ibeis_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.query_request import *  # NOQA</span>
@@ -81,8 +85,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- New IBEIS QRequest --- &#39;</span><span class="p">)</span>
     <span class="n">cfg</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
     <span class="n">qresdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_qres_cachedir</span><span class="p">()</span>
-    <span class="n">qparams</span> <span class="o">=</span> <span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-    <span class="c"># Neighbor Indexer</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
     <span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
     <span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">QueryRequest</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">,</span>
@@ -286,7 +289,7 @@
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
-        <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span> <span class="o">=</span> <span class="n">vecs_list</span>
 </div>
 <div class="viewcode-block" id="QueryRequest.load_query_keypoints"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_query_keypoints">[docs]</a>    <span class="k">def</span> <span class="nf">load_query_keypoints</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
@@ -306,7 +309,7 @@
 <div class="viewcode-block" id="QueryRequest.load_indexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_indexer">[docs]</a>    <span class="k">def</span> <span class="nf">load_indexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
-        <span class="n">indexer</span> <span class="o">=</span> <span class="n">hsnbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">())</span>
+        <span class="n">indexer</span> <span class="o">=</span> <span class="n">hsnbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="n">indexer</span>
 </div>
 <div class="viewcode-block" id="QueryRequest.lazy_load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.lazy_load">[docs]</a>    <span class="k">def</span> <span class="nf">lazy_load</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
@@ -317,6 +320,10 @@
             <span class="c"># FIXME: not sure if this is even used</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_vectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_keypoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Hacky way to ensure fgweights exist</span>
+            <span class="c">#ibs.get_annot_fgweights(qreq_.get_internal_daids())</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">())</span>
 </div>
 <div class="viewcode-block" id="QueryRequest.load_annot_nameids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_annot_nameids">[docs]</a>    <span class="k">def</span> <span class="nf">load_annot_nameids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="n">aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)))</span>
@@ -345,33 +352,18 @@
         <span class="n">assert_uuids</span><span class="p">(</span><span class="n">_daids</span><span class="p">,</span> <span class="n">_dauuids</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="parse_config_items"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.parse_config_items">[docs]</a><span class="k">def</span> <span class="nf">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Recursively extracts key, val pairs from Config objects</span>
-<span class="sd">    into a flat list. (there must not be name conflicts)</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
-<span class="sd">        &gt;&gt;&gt; param_list = parse_config_items(cfg)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="test_cfg_deepcopy"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.test_cfg_deepcopy">[docs]</a><span class="k">def</span> <span class="nf">test_cfg_deepcopy</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span>
-        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
-            <span class="c">#print(key)</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ConfigBase</span><span class="p">):</span>
-            <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
-            <span class="c">#print(key)</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-            <span class="c">#print(key)</span>
-    <span class="k">return</span> <span class="n">param_list</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">cfg1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+    <span class="n">cfg2</span> <span class="o">=</span> <span class="n">cfg1</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+    <span class="n">cfg3</span> <span class="o">=</span> <span class="n">cfg2</span>
+    <span class="k">assert</span> <span class="n">cfg1</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="o">==</span> <span class="n">cfg2</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">cfg2</span><span class="o">.</span><span class="n">sv_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">cfg1</span><span class="o">.</span><span class="n">sv_cfg</span>
+    <span class="k">assert</span> <span class="n">cfg3</span><span class="o">.</span><span class="n">sv_cfg</span> <span class="ow">is</span> <span class="n">cfg2</span><span class="o">.</span><span class="n">sv_cfg</span>
+    <span class="n">cfg2</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="n">sv_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">cfg1</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="o">!=</span> <span class="n">cfg2</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">cfg2</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="o">==</span> <span class="n">cfg3</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 
 </div>
 <div class="viewcode-block" id="QueryParams"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryParams">[docs]</a><span class="k">class</span> <span class="nc">QueryParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -382,13 +374,37 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; cfg.pipeline_root = &#39;asmk&#39;</span>
 <span class="sd">        &gt;&gt;&gt; qparams = query_request.QueryParams(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(cfg.get_cfgstr())</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        __init__</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cfg (?): query_config</span>
+<span class="sd">            custom_qparams (None):</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.query_request import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; qparams = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; cfg = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; custom_qparams = None</span>
+<span class="sd">            &gt;&gt;&gt; result = __init__(qparams, cfg, custom_qparams)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Ensures that at least everything exits</span>
         <span class="c"># pares nested config structure into this flat one</span>
-        <span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">custom_qparams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cfg2</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+            <span class="n">cfg2</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">custom_qparams</span><span class="p">)</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg2</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
         <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">param_list</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
@@ -401,38 +417,38 @@
         <span class="c"># Then we explicitly add some items as well that might not be explicit</span>
         <span class="c"># in the configs.</span>
         <span class="n">pipeline_root</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
-        <span class="k">if</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
-            <span class="n">nAssign</span>     <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nAssign</span>
-            <span class="n">aggregate</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span>
-            <span class="n">smk_thresh</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_thresh</span>
-            <span class="n">smk_alpha</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_alpha</span>
-            <span class="n">indexer_key</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">indexer_key</span>
-            <span class="n">nWords</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nWords</span>
-            <span class="n">vocab_weighting</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocab_weighting</span>
-            <span class="n">allow_self_match</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">allow_self_match</span>
-            <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_alpha</span>
-            <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_sigma</span>
-            <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">massign_equal_weights</span>
-        <span class="n">K</span>                  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
-        <span class="n">Knorm</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
-        <span class="n">checks</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span>
-        <span class="n">normalizer_rule</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span>
-        <span class="n">filt_on</span>            <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">filt_on</span>
-        <span class="n">gravity_weighting</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">gravity_weighting</span>
-        <span class="n">Krecip</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">Krecip</span>
-        <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_sameimg</span>
-        <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_samename</span>
-        <span class="n">isWeighted</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span>
-        <span class="n">max_alts</span>           <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span>
-        <span class="n">score_method</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span>
-        <span class="n">min_nInliers</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span>
-        <span class="n">nShortlist</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">nShortlist</span>
-        <span class="n">ori_thresh</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span>
-        <span class="n">prescore_method</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span>
-        <span class="n">scale_thresh</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span>
-        <span class="n">use_chip_extent</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span>
-        <span class="n">xy_thresh</span>          <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span>
-        <span class="n">sv_on</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span>
+        <span class="c">#if pipeline_root == &#39;smk&#39;:</span>
+        <span class="c">#    nAssign     = cfg.smk_cfg.nAssign</span>
+        <span class="c">#    aggregate   = cfg.smk_cfg.aggregate</span>
+        <span class="c">#    smk_thresh  = cfg.smk_cfg.smk_thresh</span>
+        <span class="c">#    smk_alpha   = cfg.smk_cfg.smk_alpha</span>
+        <span class="c">#    indexer_key = cfg.smk_cfg.indexer_key</span>
+        <span class="c">#    nWords      = cfg.smk_cfg.nWords</span>
+        <span class="c">#    vocab_weighting       = cfg.smk_cfg.vocab_weighting</span>
+        <span class="c">#    allow_self_match      = cfg.smk_cfg.allow_self_match</span>
+        <span class="c">#    massign_alpha         = cfg.smk_cfg.massign_alpha</span>
+        <span class="c">#    massign_sigma         = cfg.smk_cfg.massign_sigma</span>
+        <span class="c">#    massign_equal_weights = cfg.smk_cfg.massign_equal_weights</span>
+        <span class="c">#K                  = cfg.nn_cfg.K</span>
+        <span class="c">#Knorm              = cfg.nn_cfg.Knorm</span>
+        <span class="c">#checks             = cfg.nn_cfg.checks</span>
+        <span class="c">#normalizer_rule    = cfg.nn_cfg.normalizer_rule</span>
+        <span class="c">#filt_on            = cfg.filt_cfg.filt_on</span>
+        <span class="c">#gravity_weighting  = cfg.filt_cfg.gravity_weighting</span>
+        <span class="c">#Krecip             = cfg.filt_cfg.Krecip</span>
+        <span class="c">#can_match_sameimg  = cfg.filt_cfg.can_match_sameimg</span>
+        <span class="c">#can_match_samename = cfg.filt_cfg.can_match_samename</span>
+        <span class="c">#isWeighted         = cfg.agg_cfg.isWeighted</span>
+        <span class="c">#max_alts           = cfg.agg_cfg.max_alts</span>
+        <span class="c">#score_method       = cfg.agg_cfg.score_method</span>
+        <span class="c">#min_nInliers       = cfg.sv_cfg.min_nInliers</span>
+        <span class="c">#nShortlist         = cfg.sv_cfg.nShortlist</span>
+        <span class="c">#ori_thresh         = cfg.sv_cfg.ori_thresh</span>
+        <span class="c">#prescore_method    = cfg.sv_cfg.prescore_method</span>
+        <span class="c">#scale_thresh       = cfg.sv_cfg.scale_thresh</span>
+        <span class="c">#use_chip_extent    = cfg.sv_cfg.use_chip_extent</span>
+        <span class="c">#xy_thresh          = cfg.sv_cfg.xy_thresh</span>
+        <span class="c">#sv_on              = cfg.sv_cfg.sv_on</span>
 
         <span class="c"># Params not explicitly represented in Config objects</span>
         <span class="c">###</span>
@@ -451,17 +467,34 @@
         <span class="c">####</span>
 
         <span class="c"># cfgstrs</span>
-        <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">featweight_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">nn_cfgstr</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">filt_cfgstr</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">sv_cfgstr</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">vocabtrain_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 
         <span class="c"># Dynamically set members</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qparams&#39;</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="s">&#39;filt&#39;</span><span class="p">,</span> <span class="s">&#39;key&#39;</span><span class="p">,</span> <span class="s">&#39;val&#39;</span><span class="p">]:</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ~/code/ibeis/ibeis/model/hots/query_request.py</span>
+<span class="sd">        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams</span>
+<span class="sd">        profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Run any doctests</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">testable_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">QueryParams</span>
+    <span class="p">]</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">(</span><span class="n">testable_list</span><span class="p">)</span>
 </pre></div>
 
           </div>

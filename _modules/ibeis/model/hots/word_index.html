@@ -131,7 +131,7 @@
         <span class="c"># Grab the keypoints names and image ids before query time</span>
         <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
         <span class="c"># Get annotation descriptors that will be searched</span>
-        <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
         <span class="n">windex</span> <span class="o">=</span> <span class="n">new_word_index</span><span class="p">(</span>
             <span class="n">daid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">flann_params</span><span class="p">,</span> <span class="n">flann_cachedir</span><span class="p">,</span>
@@ -185,8 +185,8 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS</span>
 <span class="sd">            &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
-<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_desc(new_aid_list)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
+<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list)</span>
 <span class="sd">            &gt;&gt;&gt; K = 2</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)</span>
@@ -205,8 +205,8 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS</span>
 <span class="sd">            &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
-<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_desc(new_aid_list)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
+<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list)</span>
 <span class="sd">            &gt;&gt;&gt; K = 2</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)</span>

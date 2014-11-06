@@ -21,6 +21,14 @@ ibeis.model.Config module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model._grave module
+-------------------------
+
+.. automodule:: ibeis.model._grave
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

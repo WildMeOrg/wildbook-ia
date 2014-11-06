@@ -70,7 +70,7 @@
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr_</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[multi_index]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="new_ibeis_mindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.new_ibeis_mindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+<div class="viewcode-block" id="new_ibeis_mindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.new_ibeis_mindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
                        <span class="n">num_indexers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                        <span class="n">split_method</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -78,6 +78,8 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mindex] make MultiNeighborIndex over </span><span class="si">%d</span><span class="s"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">),))</span>
 
     <span class="c"># Split annotations into groups accorindg to split_method</span>
@@ -121,11 +123,11 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mindex] building forest </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> with </span><span class="si">%d</span><span class="s"> aids&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">tx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_bins</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">nbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">nbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
             <span class="n">nn_indexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">)</span>
     <span class="c">#if len(unknown_aids) &gt; 0:</span>
     <span class="c">#    print(&#39;[mindex] building unknown forest&#39;)</span>
-    <span class="c">#    unknown_vecs_list = ibs.get_annot_desc(overflow_aids)</span>
+    <span class="c">#    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids)</span>
     <span class="c">#    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)</span>
     <span class="c">#    extra_indexes.append(unknown_index)</span>
     <span class="c">##print(&#39;[mindex] building normalizer forest&#39;)  # TODO</span>
@@ -140,13 +142,12 @@
 <div class="viewcode-block" id="test_mindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.test_mindexer">[docs]</a><span class="k">def</span> <span class="nf">test_mindexer</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="n">new_ibeis_query_request</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Mothers&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">num_indexers</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">split_method</span> <span class="o">=</span> <span class="s">&#39;name&#39;</span>
-    <span class="n">mxer</span> <span class="o">=</span> <span class="n">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">(),</span>
-                                  <span class="n">num_indexers</span><span class="p">,</span> <span class="n">split_method</span><span class="p">)</span>
+    <span class="n">mxer</span> <span class="o">=</span> <span class="n">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">num_indexers</span><span class="p">,</span> <span class="n">split_method</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">mxer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
 
 </div>
@@ -170,7 +171,7 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qfx2_idx_list</span>   <span class="o">=</span> <span class="p">[]</span>
@@ -200,7 +201,7 @@
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="p">(</span><span class="n">qfx2_idx_list</span><span class="p">,</span> <span class="n">qfx2_dist_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">multi_knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">checks</span><span class="p">)</span>
@@ -282,7 +283,7 @@
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">offset_list</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">get_offsets</span><span class="p">()</span>
@@ -298,7 +299,7 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_desc(1)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qfx2_idx_list</span>   <span class="o">=</span> <span class="p">[]</span>
