@@ -55,8 +55,8 @@ def query_aids(ibs, qaid_list):
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
-        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
-        df2.set_figtitle(qres.make_title())
+        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1,
+                            make_figtitle=True)
     return qaid2_qres
 
 

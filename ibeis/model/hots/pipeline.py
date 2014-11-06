@@ -237,19 +237,24 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
 
     Example:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> from ibeis.model.hots import pipeline
         >>> from ibeis.model.hots import nn_weights
-        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
+        >>> metadata = {}
+        >>> custom_qparams = {'dupvote_weight': 1.0}
+        >>> tup = nn_weights.testdata_nn_weights(custom_qparams=custom_qparams)
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_  = tup
+        >>> filt2_weights = pipeline._weight_neighbors(qaid2_nns, qreq_, metadata)
     """
     nnweight_list = qreq_.qparams.active_filter_list
     # Prealloc output
     filt2_weights = {nnweight: None for nnweight in nnweight_list}
     # Buidl output
-    for nnweight in nnweight_list:
-        nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweight]
-        # Apply [nnweight] weight to each nearest neighbor
+    for nnweightkey in nnweight_list:
+        nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweightkey]
+        # Apply [nnweightkey] weight to each nearest neighbor
         # FIXME: only compute metadata if requested
         qaid2_norm_weight = nn_filter_fn(qaid2_nns, qreq_, metadata)
-        filt2_weights[nnweight] = qaid2_norm_weight
+        filt2_weights[nnweightkey] = qaid2_norm_weight
     return filt2_weights
 
 
@@ -306,6 +311,9 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
 
     Returns:
         qaid2_nnfilt
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
     """
     qaid2_nnfilt = {}
     # Configs
@@ -320,7 +328,7 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_(count)  # progress
         (qfx2_idx, _) = qaid2_nns[qaid]
-        qfx2_nnidx = qfx2_idx[:, 0:K]
+        qfx2_nnidx = qfx2_idx.T[0:K].T
         # Get a numeric score score and valid flag for each feature match
         qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_)
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
@@ -344,28 +352,28 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
         # dont vote for yourself or another chip in the same image
         if cant_match_self:
             qfx2_notsamechip = qfx2_aid != qaid
-            ####DBG
+            #<DBG>
             if VERBOSE:
                 __self_verbose_check(qfx2_notsamechip, qfx2_valid)
-            ####
+            #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         if cant_match_sameimg:
             qfx2_gid = qreq_.get_annot_gids(qfx2_aid)
             qgid     = qreq_.get_annot_gids(qaid)
             qfx2_notsameimg = qfx2_gid != qgid
-            ####DBG
+            #<DBG>
             if VERBOSE:
                 __samename_verbose_check(qfx2_notsameimg, qfx2_valid)
-            ####
+            #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
         if cant_match_samename:
             qfx2_nid = qreq_.get_annot_nids(qfx2_aid)
             qnid = qreq_.get_annot_nids(qaid)
             qfx2_notsamename = qfx2_nid != qnid
-            ####DBG
+            #<DBG>
             if VERBOSE:
                 __samename_verbose_check(qfx2_notsamename, qfx2_valid)
-            ####
+            #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
         #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)

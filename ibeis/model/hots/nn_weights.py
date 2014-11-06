@@ -38,6 +38,35 @@ def _register_nn_simple_weight_func(func):
 
 
 @_register_nn_simple_weight_func
+def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
+    """
+    Each query feature is only allowed to vote for each name at most once.
+    IE: a query feature can vote for multiple names, but it cannot vote
+    for the same name twice.
+
+    Example:
+        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots import nn_weights
+        >>> tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = tup
+    """
+    # Prealloc output
+    K = qreq_.qparams.K
+    qaid2_dupvote_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    # Database feature index to chip index
+    for qaid in six.iterkeys(qaid2_nns):
+        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
+        qfx2_topidx = qfx2_idx.T[0:K].T
+        qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
+        qfx2_topnid = qreq_.get_annot_nids(qfx2_topaid)
+        # A duplicate vote is when any vote for a name after the first
+        qfx2_isdupvote =  np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
+        qfx2_dupvote_weight = qfx2_isdupvote.astype(np.float32) * (1 - EPS) + EPS
+        qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
+    return qaid2_dupvote_weight
+
+
+@_register_nn_simple_weight_func
 def fg_match_weighter(qaid2_nns, qreq_, metadata):
     """
     Example:
@@ -45,11 +74,11 @@ def fg_match_weighter(qaid2_nns, qreq_, metadata):
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights(dict(fg_weight=1.0))
         >>> metadata = {}
-        >>> qaid2_weight = fg_match_weighter(qaid2_nns, qreq_, metadata)
+        >>> qaid2_fgvote_weight = fg_match_weighter(qaid2_nns, qreq_, metadata)
     """
     # Prealloc output
     K = qreq_.qparams.K
-    qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    qaid2_fgvote_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
@@ -58,9 +87,9 @@ def fg_match_weighter(qaid2_nns, qreq_, metadata):
         # query forground weights
         qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False)[0]
         # feature match forground weight
-        qfx2_fgweight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
-        qaid2_weight[qaid] = qfx2_fgweight
-    return qaid2_weight
+        qfx2_fgvote_weight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
+        qaid2_fgvote_weight[qaid] = qfx2_fgvote_weight
+    return qaid2_fgvote_weight
 
 
 def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
@@ -363,18 +392,21 @@ def normonly_fn(vdist, ndist):
 # normweight_fn = LNBNN_fn
 
 
-def testdata_nn_weights(custom_qparams={}):
+def testdata_nn_weights(dbname='testdb1', qaid_slice=slice(0, 1), daid_slice=slice(0, 5), custom_qparams={}):
     """
     >>> ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
+    >>> qaid_slice=slice(0, 1)
+    >>> daid_slice=slice(0, 5)
+    >>> dbname = 'testdb1'
     >>> custom_qparams = {'fg_weight': 1.0}
     """
     import ibeis
     from ibeis.model.hots import query_request
     from ibeis.model.hots import pipeline
-    ibs = ibeis.opendb('testdb1')
+    ibs = ibeis.opendb(dbname)
     aids = ibs.get_valid_aids()
-    daid_list = aids[1:5]
-    qaid_list = aids[0:1]
+    daid_list = aids[daid_slice]
+    qaid_list = aids[qaid_slice]
     #ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
     qreq_.lazy_load(ibs)

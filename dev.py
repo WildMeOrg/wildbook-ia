@@ -6,6 +6,12 @@ interactions.
 dev.py is supposed to be a developer non-gui interface into the IBEIS software.
 
 dev.py runs experiments and serves as a scratchpad for new code and quick scripts
+
+
+CommandLine:
+
+python dev.py --wshow -t query --db PZ_MTEST --qaid 72
+
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -800,7 +806,7 @@ def run_dev(main_locals):
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
-        if '--devmode' in sys.argv:
+        if ut.get_argflag('--devmode'):
             # Execute the dev-func and add to local namespace
             devfunc_locals = devfunc(ibs, qaid_list)
             exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
@@ -856,7 +862,7 @@ if __name__ == '__main__':
     #
     # Main Loop (IPython interaction, or some exec loop)
     #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
-    if '--show' in sys.argv:
+    if ut.get_argflag('--show', '--wshow'):
         df2.present()
     main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
     exec(main_execstr)
@@ -864,7 +870,7 @@ if __name__ == '__main__':
     #
     #
     # Memory profile
-    if '--memprof' in sys.argv:
+    if ut.get_argflag('--memprof'):
         utool.print_resource_usage()
         utool.memory_profile()
 

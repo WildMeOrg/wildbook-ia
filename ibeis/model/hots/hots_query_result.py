@@ -228,8 +228,8 @@ class QueryResult(__OBJECT_BASE__):
                                remove_chip=remove_chip,
                                remove_feat=remove_feat)
 
-    def make_title(qres, remove_daids=False, remove_chip=False,
-                   remove_feat=False):
+    def make_title(qres, pack=False, remove_daids=False, remove_chip=False,
+                   remove_feat=False, textwidth=80):
         cfgstr = qres.cfgstr
 
         def parse_remove(format_, string_):
@@ -248,6 +248,10 @@ class QueryResult(__OBJECT_BASE__):
             cfgstr, _ = parse_remove('_CHIP({chip_cfgstr})', cfgstr)
         if remove_feat:
             cfgstr, _ = parse_remove('_FEAT({feat_cfgstr})', cfgstr)
+
+        if pack:
+            # Separate into newlines if requested (makes it easier to fit on screen)
+            cfgstr = ut.packstr(cfgstr, textwidth=textwidth, break_words=False, breakchars='_', wordsep='_')
 
         component_list = [
             'qaid={qaid} '.format(qaid=qres.qaid),

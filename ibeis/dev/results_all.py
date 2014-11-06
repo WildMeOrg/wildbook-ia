@@ -23,7 +23,7 @@ class AllResults(utool.DynStruct):
         return orgres
 
     def get_cfgstr(allres):
-        return allres.dbname + allres.cfgstr
+        return allres.cfgstr
 
     def make_title(allres):
         return allres.dbname + '\n' + ut.packstr(allres.get_cfgstr(), textwidth=80, break_words=False, breakchars='_', wordsep='_')

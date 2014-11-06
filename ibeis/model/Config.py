@@ -180,6 +180,7 @@ class FilterConfig(ConfigBase):
         addfilt(+1,    'bursty',   None,    0.0)
         addfilt(-1,     'ratio',   None,    0.0)
         addfilt(-1,     'lnbnn',   None,    1.0)
+        addfilt(-1,   'dupvote',   None,    0.0)
         addfilt(-1,    'lograt',   None,    0.0)
         addfilt(-1,  'normonly',   None,    0.0)
         addfilt(-1,   'logdist',   None,    0.0)

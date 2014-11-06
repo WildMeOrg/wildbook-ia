@@ -14,10 +14,12 @@ from .interact_sver import ishow_sver
     __name__, '[interact_qres]', DEBUG=False)
 
 
-@utool.indent_func
+#@utool.indent_func
 @profile
 def ishow_qres(ibs, qres, **kwargs):
-    """ Displays query chip, groundtruth matches, and top 5 matches"""
+    """
+    Displays query chip, groundtruth matches, and top 5 matches
+    """
     fnum = df2.kwargs_fnum(kwargs)
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
