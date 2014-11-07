@@ -346,7 +346,9 @@ class FlannConfig(ConfigBase):
     def __init__(flann_cfg, **kwargs):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
         flann_cfg.algorithm = 'kdtree'
+        #flann_cfg.algorithm = 'linear'
         flann_cfg.trees = 4
+        #flann_cfg.trees = 16
         flann_cfg.update(**kwargs)
 
     def get_dict_args(flann_cfg):
@@ -359,6 +361,8 @@ class FlannConfig(ConfigBase):
         flann_cfgstrs = ['_FLANN(']
         if flann_cfg.algorithm == 'kdtree':
             flann_cfgstrs += ['%d_kdtrees' % flann_cfg.trees]
+        elif flann_cfg.algorithm == 'linear':
+            flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         flann_cfgstrs += [')']

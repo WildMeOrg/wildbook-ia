@@ -45,7 +45,7 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
     for the same name twice.
 
     Example:
-        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = tup
@@ -74,7 +74,7 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
 def fg_match_weighter(qaid2_nns, qreq_, metadata):
     """
     Example:
-        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights(dict(fg_weight=1.0))
         >>> metadata = {}
@@ -109,7 +109,7 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
         dict: qaid2_weight
 
     Example:
-        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
         >>> qaid = qaid_list[0]
@@ -182,7 +182,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         ndarray: qfx2_normweight
 
     Example:
-        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
         >>> qaid = qaid_list[0]
@@ -243,7 +243,7 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
         ndarray : qfx2_normk
 
     Example:
-        >>> from ibeis.model.hots.nn_weights import *
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
         >>> qaid = qaid_list[0]
@@ -318,7 +318,7 @@ def lnbnn_fn(vdist, ndist):
         >>> print(lnbnn_fn(vdist3, ndist))
         >>> print(lnbnn_fn(vdist4, ndist))
     """
-    return (ndist - vdist)  # / 1000.0
+    return (ndist - vdist) / 1000.0
 
 
 @_register_nn_normalized_weight_func
@@ -398,7 +398,7 @@ def normonly_fn(vdist, ndist):
 
 def testdata_nn_weights(dbname='testdb1', qaid_slice=slice(0, 1), daid_slice=slice(0, 5), custom_qparams={}):
     """
-    >>> ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
+    >>> # ibs.cfg.query_cfg.filt_cfg.fg_weight = 1
     >>> qaid_slice=slice(0, 1)
     >>> daid_slice=slice(0, 5)
     >>> dbname = 'testdb1'

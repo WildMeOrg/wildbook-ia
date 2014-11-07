@@ -65,6 +65,21 @@ START_AFTER = 2
 log_progress = partial(utool.log_progress, startafter=START_AFTER, disable=utool.QUIET)
 
 
+def get_pipeline_testdata(dbname='testdb1', custom_qparams={}):
+    import ibeis
+    from ibeis.model.hots import query_request
+    ibs = ibeis.opendb(dbname)
+    qaid_list = [1]
+    daid_list = [1, 2, 3, 4, 5]
+    ibs = ibeis.test_main(db='testdb1')
+    ibs.cfg.query_cfg.with_metadata = True
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_.lazy_load(ibs)
+    # TODO incorporate metdata into qreq
+    qreq_.metadata = {}
+    return ibs, qreq_
+
+
 # Query Level 0
 #@utool.indent_func('[Q0]')
 #@profile
@@ -571,7 +586,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     make only spatially valid features survive
 
     Example:
-        >>> from ibeis.model.hots.pipeline import *
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> import pyflann
         >>> from ibeis.model.hots import query_request
@@ -753,6 +768,8 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
         aid2_score = vr2.score_chipmatch_csum(chipmatch)
+    elif score_method == 'nsum':
+        aid2_score = vr2.score_chipmatch_nsum(chipmatch, qreq_)
     #elif score_method == 'pl':
     #    aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
     #elif score_method == 'borda':
