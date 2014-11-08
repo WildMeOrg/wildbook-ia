@@ -15,7 +15,8 @@ import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
-STRIP_EXAMPLE   = True
+STRIP_LONGDESC = True
+STRIP_EXAMPLE  = True
 STRIP_COMMENTS = False
 USE_SHORTNAMES = True
 USE_FUNCTYPE_HEADERS = True
@@ -48,8 +49,32 @@ def format_controller_func(func_code):
     if STRIP_DOCSTR:
         # HACKY: might not always work. newline hacks away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
-    if STRIP_EXAMPLE:
-        func_code = ut.regex_replace('Example.*"""', '"""', func_code)
+    else:
+        if STRIP_LONGDESC:
+            func_code_lines = func_code.split('\n')
+
+            new_lines = []
+            begin = False
+            startstrip = False
+            finished = False
+            for line in func_code_lines:
+                if finished is False:
+                    if line.strip().startswith('"""'):
+                        begin = True
+                    elif begin:
+                        if len(line.strip()) == 0:
+                            if startstrip is False:
+                                startstrip = True
+                            else:
+                                finished = True
+                                continue
+                        elif startstrip:
+                            continue
+                new_lines.append(line)
+            func_code = '\n'.join(new_lines)
+
+        if STRIP_EXAMPLE:
+            func_code = ut.regex_replace('Example.*"""', '"""', func_code)
     if USE_SHORTNAMES:
         # Execute search and replaces without changing strings
         func_code = ut.replace_nonquoted_text(func_code,
@@ -342,6 +367,8 @@ def colname2_col(colname, tablename):
 def main(ibs):
     """
     CommandLine:
+        python ibeis/control/templates.py --dump-autogen-controller
+        gvim ibeis/control/_autogen_ibeiscontrol_funcs.py
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
@@ -352,7 +379,7 @@ def main(ibs):
         #constants.FEATURE_TABLE,
         constants.FEATURE_WEIGHT_TABLE,
 
-        #constants.RESIDUAL_TABLE
+        constants.RESIDUAL_TABLE
     ]
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))

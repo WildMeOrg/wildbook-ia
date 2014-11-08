@@ -96,16 +96,15 @@ Tadder_pl_dependant = ut.codeblock(
         if len(dirty_{parent}_rowid_list) > 0:
             if utool.VERBOSE:
                 print('[{self}] adding %d / %d {leaf}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
-
             # Dependant columns do not need true from_superkey getters.
-            # We can use the  Tgetter_rl_dependant_rowids instead
-            get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids, qreq_=qreq_, ensure=False)
+            # We can use the Tgetter_pl_dependant_rowids_ instead
+            get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids_, qreq_=qreq_)
             {leaf_other_propname_lists} = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
             params_iter = (({parent}_rowid, config_rowid, {leaf_other_propnames})
                            for {parent}_rowid, {leaf_other_propnames} in
                            zip({parent}_rowid_list, {leaf_other_propname_lists}))
             colnames = {nonprimary_leaf_colnames}
-            {leaf}_rowid_list = {self}.dbcache.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
+            {leaf}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
         return {leaf}_rowid_list
     # ENDBLOCK
     '''
@@ -446,10 +445,9 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_, ensure)
         """
         if ensure:
-            {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
+            {leaf}_rowid_list = add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=qreq_)
         else:
-            #REM {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
-            {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids_({parent}_rowid_list, qreq_=qreq_)
+            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
         return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -476,6 +474,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
             root = {root}
             leaf = {leaf}
         """
+        # FIXME: broken
         colnames = ({LEAF_PARENT}_ROWID,)
         {leaf}_rowid_list = {self}.{dbself}.get(
             {LEAF_TABLE}, colnames, {root}_rowid_list,
@@ -537,7 +536,7 @@ Tgetter_table_column = ut.codeblock(
         """
         id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
-        {col}_list = {self}.dbcache.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
+        {col}_list = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
         return {col}_list
     # ENDBLOCK
     ''')
@@ -568,7 +567,7 @@ Tsetter_native_column = ut.codeblock(
         """
         id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
-        ibs.db.set({TABLE}, colnames, {col}_list, id_iter)
+        {self}.{dbself}.set({TABLE}, colnames, {col}_list, id_iter)
     # ENDBLOCK
     ''')
 
@@ -597,17 +596,19 @@ Tgetter_native_multicolumn = ut.codeblock(
         Returns:
             list: {multicol}_list
         """
-        {multicol}_list  = {self}.dbcache.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
+        {multicol}_list  = {self}.{dbself}.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
         return {multicol}_list
     # ENDBLOCK
     ''')
 
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
-    def set_{tbl}_{multicolname}({self}, {tbl}_rowid_list, vals_list):
+    # STARTBLOCK
+    def set_{tbl}_{multicol}({self}, {tbl}_rowid_list, vals_list):
         """
         Tsetter_native_multicolumn
         """
+        {self}.{dbself}.set({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
         pass
     # ENDBLOCK
     ''')
@@ -618,10 +619,12 @@ Tdeleter_table_relation = ut.codeblock(
     # STARTBLOCK
     #@deleter
     def delete_{tbl}_relations({self}, {tbl}_rowid_list):
-        """ Deletes the relationship between an {tbl} row and a label """
+        """
+        Deletes the relationship between an {tbl} row and a label
+        """
         {relation}_rowids_list = {self}.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
         {relation}_rowid_list = utool.flatten({relation}_rowids_list)
-        {self}.db.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
+        {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
     # ENDBLOCK
     '''
 )
@@ -630,19 +633,23 @@ Tadder_relationship = ut.codeblock(
     r'''
     # STARTBLOCK
     #@adder
-    def add_image_relationship({self}, gid_list, eid_list):
+    def add_{tbl1}_{tbl2}_relationship({self}, {tbl1}_rowid_list, {tbl2}_rowid_list):
         """
         Adds a relationship between an image and encounter
 
-        Tadder_relationship
+        Returns:
+            {tbl1}_{tbl2}_relation_rowid_list
+
+        TemplateInfo:
+            Tadder_relationship
         """
-        colnames = ('image_rowid', 'encounter_rowid',)
-        params_iter = list(zip(gid_list, eid_list))
-        get_rowid_from_superkey = {self}.get_egr_rowid_from_superkey
+        colnames = ('{tbl1}_rowid', '{tbl2}_rowid',)
+        params_iter = list(zip({tbl1}_rowid_list, {tbl2}_rowid_list))
+        get_rowid_from_superkey = {self}.get_{tbl1}_{tbl2}_relation_rowid_from_superkey
         superkey_paramx = (0, 1)
-        egrid_list = {self}.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_superkey, superkey_paramx)
-        return egrid_list
+        {tbl1}_{tbl2}_relation_rowid_list = {self}.{dbself}.add_cleanly(
+            {TABLE1}_{TABLE2}_RELATION_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+        return {tbl1}_{tbl2}_relation_rowid_list
     # ENDBLOCK
     ''')
 
