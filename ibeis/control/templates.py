@@ -15,6 +15,7 @@ import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
+STRIP_EXAMPLE   = True
 STRIP_COMMENTS = False
 USE_SHORTNAMES = True
 USE_FUNCTYPE_HEADERS = True
@@ -47,6 +48,8 @@ def format_controller_func(func_code):
     if STRIP_DOCSTR:
         # HACKY: might not always work. newline hacks away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
+    if STRIP_EXAMPLE:
+        func_code = ut.regex_replace('Example.*"""', '"""', func_code)
     if USE_SHORTNAMES:
         # Execute search and replaces without changing strings
         func_code = ut.replace_nonquoted_text(func_code,
@@ -261,10 +264,10 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     for parent, child in ut.itertwo(depends_list):
         set_parent_child(parent, child)
         # depenant rowid lines
-        pc_dependant_rowid_lines.append(Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
+        pc_dependant_rowid_lines.append( Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
         pc_dependant_delete_lines.append(Tdef.Tline_pc_dependant_delete.format(**fmtdict))
     # At this point parent = leaf_parent and child=leaf
-    fmtdict['pc_dependant_rowid_lines'] = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
+    fmtdict['pc_dependant_rowid_lines']  = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
     fmtdict['pc_dependant_delete_lines'] = ut.indent(ut.indentjoin(pc_dependant_delete_lines)).strip()
 
     # ----------------------------
@@ -272,10 +275,10 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     # ----------------------------
     if len(depends_list) > 2:
         set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
-        append_func('RL.Tadder',             Tdef.Tadder_rl_dependant)
-        append_func('RL.Tgetter', Tdef.Tgetter_rl_dependant_all_rowids)
-        append_func('RL.Tgetter',     Tdef.Tgetter_rl_dependant_rowids)
-        append_func('RL.Tdeleter',            Tdef.Tdeleter_rl_depenant)
+        append_func('RL.Tadder',   Tdef.Tadder_rl_dependant)
+        append_func('RL.Tgetter',  Tdef.Tgetter_rl_dependant_all_rowids)
+        append_func('RL.Tgetter',  Tdef.Tgetter_rl_dependant_rowids)
+        append_func('RL.Tdeleter', Tdef.Tdeleter_rl_depenant)
 
     # ------------------
     #  Parent Leaf Dependency
@@ -283,16 +286,18 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     if len(depends_list) > 1:
         if len(depends_list) == 2:
             set_root_leaf(depends_list[0], depends_list[-1], depends_list[0])
-        append_func('Native.Tcfg', Tdef.Tcfg_leaf_config_rowid_getter)
-        append_func('PL.Tadder',           Tdef.Tadder_pl_dependant)
-        append_func('PL.Tgetter',   Tdef.Tgetter_pl_dependant_rowids)
+        append_func('PL.Tadder',   Tdef.Tadder_pl_dependant)
+        append_func('PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
 
     # --------
     #  Native
     # --------
-    append_func('Native.Tider', Tdef.Tider_all_rowids)
-    append_func('Native.Tgetter', Tdef.Tgetter_native_rowid_from_superkey)
+    append_func('Native.Tider_all_rowids', Tdef.Tider_all_rowids)
+    append_func('Native.Tget_from_superkey', Tdef.Tgetter_native_rowid_from_superkey)
     append_func('Native.Tdeleter', Tdef.Tdeleter_native_tbl)
+    if len(depends_list) > 1:
+        # Only dependants have native configs
+        append_func('Native.Tcfg', Tdef.Tcfg_rowid_getter)
 
     # For each column property
     for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
@@ -305,8 +310,9 @@ def build_dependent_controller_funcs(tablename, tableinfo):
             #append_func('Tgetter_pc_dependant_column', Tdef.Tgetter_pc_dependant_column)
         # Getter template: native (Level 0) columns
         append_func('Native.Tgetter_native', Tdef.Tgetter_table_column)
+        append_func('Native.Tsetter_native', Tdef.Tsetter_native_column)
         if len(depends_list) > 1:
-            append_func('Native.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
+            append_func('RL.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         append_constant(COLNAME, colname)
 
@@ -340,7 +346,7 @@ def main(ibs):
     tblname_list = [
         #constants.ANNOTATION_TABLE,
 
-        #constants.CHIP_TABLE,
+        constants.CHIP_TABLE,
         #constants.FEATURE_TABLE,
         constants.FEATURE_WEIGHT_TABLE,
 

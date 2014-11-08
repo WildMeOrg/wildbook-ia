@@ -7,6 +7,13 @@ CommandLine:
 import utool as ut
 
 
+#
+#
+#-----------------
+# --- HEADER ---
+#-----------------
+
+
 Theader_ibeiscontrol = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -43,88 +50,6 @@ Theader_ibeiscontrol = ut.codeblock(
     ''')
 
 
-Tfooter_ibeiscontrol = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    if __name__ == '__main__':
-        """
-        {main_docstr_body}
-        """
-        import utool as ut
-        testable_list = [
-            get_annot_featweight_rowids
-        ]
-        ut.doctest_funcs(testable_list)
-    # ENDBLOCK
-    ''')
-
-
-#
-#
-#-----------------
-# --- CONFIG ---
-#-----------------
-
-Tcfg_leaf_config_rowid_getter = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@ider
-    def get_{leaf}_config_rowid({self}, qreq_=None):
-        """
-        {leaf}_cfg_rowid = {leaf}.config_rowid()
-
-        returns config_rowid of the current configuration
-        Config rowids are always ensured
-
-
-        TemplateInfo:
-            Tcfg_leaf_config_rowid_getter
-            leaf = {leaf}
-
-        Example:
-            >>> import ibeis; {self} = ibeis.opendb('testdb1')
-            >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
-        """
-        if qreq_ is not None:
-            {leaf}_cfg_suffix = qreq_.qparams.{leaf}_cfgstr
-            # TODO store config_rowid in qparams
-        else:
-            {leaf}_cfg_suffix = {self}.cfg.{leaf}_cfg.get_cfgstr()
-        {leaf}_cfg_rowid = {self}.add_config({leaf}_cfg_suffix)
-        return {leaf}_cfg_rowid
-    # ENDBLOCK
-    '''
-)
-
-#
-#
-#-----------------
-# --- IDERS ---
-#-----------------
-
-
-Tider_all_rowids = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@ider
-    def _get_all_{tbl}_rowids({self}):
-        """
-        all_{tbl}_rowids <- {tbl}.get_all_rowids()
-
-        Returns:
-            list_ (list): unfiltered {tbl}_rowids
-
-        TemplateInfo:
-            Tider_all_rowids
-            tbl = {tbl}
-        """
-        all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
-        return all_{tbl}_rowids
-    # ENDBLOCK
-    '''
-)
-
-
 #
 #
 #-----------------
@@ -140,14 +65,19 @@ Tadder_pl_dependant = ut.codeblock(
         """
         {parent}.{leaf}.add({parent}_rowid_list)
 
+        CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
         Adds / ensures / computes a dependant property
 
-        Tadder_pl_dependant -- CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
+        Args:
+             {parent}_rowid_list
 
-        parent={parent}
-        leaf={leaf}
+        Returns:
+            returns config_rowid of the current configuration
 
-        returns config_rowid of the current configuration
+        TemplateInfo:
+            Tadder_pl_dependant
+            parent = {parent}
+            leaf = {leaf}
 
         Example:
             >>> import ibeis
@@ -192,10 +122,12 @@ Tadder_rl_dependant = ut.codeblock(
         {leaf}_rowid_list <- {root}.{leaf}.ensure({root}_rowid_list)
 
         Adds / ensures / computes a dependant property
-
         returns config_rowid of the current configuration
 
         CONVINIENCE FUNCTION
+
+        Args:
+            {root}_rowid_list
 
         TemplateInfo:
             Tadder_rl_dependant
@@ -216,14 +148,162 @@ Tadder_rl_dependant = ut.codeblock(
     '''
 )
 
+
+#
+#
+#-----------------
+# --- CONFIG ---
+#-----------------
+
+Tcfg_rowid_getter = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@ider
+    def get_{leaf}_config_rowid({self}, qreq_=None):
+        """
+        {leaf}_cfg_rowid = {leaf}.config_rowid()
+
+        returns config_rowid of the current configuration
+        Config rowids are always ensured
+
+        Returns:
+            {leaf}_cfg_rowid
+
+        TemplateInfo:
+            Tcfg_rowid_getter
+            leaf = {leaf}
+
+        Example:
+            >>> import ibeis; {self} = ibeis.opendb('testdb1')
+            >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
+        """
+        if qreq_ is not None:
+            {leaf}_cfg_suffix = qreq_.qparams.{leaf}_cfgstr
+            # TODO store config_rowid in qparams
+        else:
+            {leaf}_cfg_suffix = {self}.cfg.{leaf}_cfg.get_cfgstr()
+        {leaf}_cfg_rowid = {self}.add_config({leaf}_cfg_suffix)
+        return {leaf}_cfg_rowid
+    # ENDBLOCK
+    '''
+)
+
+
+#
+#
+#-----------------
+# --- DELETERS ---
+#-----------------
+
+# DELETER LINES
+Tline_pc_dependant_delete = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    _{child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+    {child}_rowid_list = ut.filter_Nones(_{child}_rowid_list)
+    {self}.delete_{child}({child}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+
+# DELETER RL_DEPEND
+#{pc_dependant_delete_lines}
+Tdeleter_rl_depenant = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@deleter
+    #@cache_invalidator({ROOT_TABLE})
+    def delete_{root}_{leaf}({self}, {root}_rowid_list, qreq_=None):
+        """
+        {root}.{leaf}.delete({root}_rowid_list)
+
+        Args:
+            {root}_rowid_list
+
+        TemplateInfo:
+            Tdeleter_rl_depenant
+            root = {root}
+            leaf = {leaf}
+        """
+        if utool.VERBOSE:
+            print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))
+        # Delete any dependants
+        _{leaf}_rowid_list = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
+        {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
+        {self}.delete_{leaf}({leaf}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+
+# DELETER NATIVE
+Tdeleter_native_tbl = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@deleter
+    #@cache_invalidator({TABLE})
+    def delete_{tbl}({self}, {tbl}_rowid_list):
+        """
+        {tbl}.delete({tbl}_rowid_list)
+
+        delete {tbl} rows
+
+        Args:
+            {tbl}_rowid_list
+
+        TemplateInfo:
+            Tdeleter_native_tbl
+            tbl = {tbl}
+
+        Tdeleter_native_tbl
+        """
+        from ibeis.model.preproc import preproc_{leaf}
+        if utool.VERBOSE:
+            print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
+        # Prepare: Delete externally stored data (if any)
+        preproc_{leaf}.on_delete({self}, {tbl}_rowid_list)
+        # Finalize: Delete self
+        {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+#
+#
+#-----------------
+# --- IDERS ---
+#-----------------
+
+
+Tider_all_rowids = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@ider
+    def _get_all_{tbl}_rowids({self}):
+        """
+        all_{tbl}_rowids <- {tbl}.get_all_rowids()
+
+        Returns:
+            list_ (list): unfiltered {tbl}_rowids
+
+        TemplateInfo:
+            Tider_all_rowids
+            tbl = {tbl}
+        """
+        all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
+        return all_{tbl}_rowids
+    # ENDBLOCK
+    '''
+)
+
 #
 #
 #-----------------
 # --- GETTERS ---
 #-----------------
 
-# CHILD ROWID GETTERS
-
+# LINES GETTER
 Tline_pc_dependant_rowid = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -232,6 +312,7 @@ Tline_pc_dependant_rowid = ut.codeblock(
     '''
 )
 
+# RL GETTER COLUMN
 Tgetter_rl_pclines_dependant_column = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -253,7 +334,6 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
             root = {root}
             col  = {col}
             leaf = {leaf}
-
         """
         # Get leaf rowids
         {pc_dependant_rowid_lines}
@@ -263,6 +343,7 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
     # ENDBLOCK
     ''')
 
+# RL GETTER ROWID
 Tgetter_rl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -318,6 +399,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
     ''')
 
 
+# PL GETTER ROWID
 Tgetter_pl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -362,6 +444,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
     ''')
 
 
+# PL GETTER ALL ROWID
 Tgetter_rl_dependant_all_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -391,35 +474,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     # ENDBLOCK
     ''')
 
-
-Tgetter_table_column = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@getter
-    def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
-        """
-        {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
-
-        gets data from the "native" column "{col}" in the "{tbl}" table
-
-        Args:
-            {tbl}_rowid_list (list):
-
-        Returns:
-            list: {col}_list
-
-        TemplateInfo:
-            Tgetter_table_column
-            col = {col}
-            tbl = {tbl}
-        """
-        id_iter = {tbl}_rowid_list
-        colnames = ({COLNAME},)
-        {col}_list = {self}.dbcache.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
-        return {col}_list
-    # ENDBLOCK
-    ''')
-
+# PC COLUMN GETTER
 Tgetter_pc_dependant_column = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -448,6 +503,9 @@ Tgetter_pc_dependant_column = ut.codeblock(
     # ENDBLOCK
     ''')
 
+
+# NATIVE ROWID GET FROM SUPERKEY
+#id_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
 Tgetter_native_rowid_from_superkey = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -476,8 +534,34 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
     # ENDBLOCK
     ''')
 
-#id_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
+# NATIVE COLUMN GETTER
+Tgetter_table_column = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@getter
+    def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
+        """
+        {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
 
+        gets data from the "native" column "{col}" in the "{tbl}" table
+
+        Args:
+            {tbl}_rowid_list (list):
+
+        Returns:
+            list: {col}_list
+
+        TemplateInfo:
+            Tgetter_table_column
+            col = {col}
+            tbl = {tbl}
+        """
+        id_iter = {tbl}_rowid_list
+        colnames = ({COLNAME},)
+        {col}_list = {self}.dbcache.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
+        return {col}_list
+    # ENDBLOCK
+    ''')
 
 #
 #
@@ -485,90 +569,37 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
 # --- SETTERS ---
 #-----------------
 
-#
-#
-#-----------------
-# --- DELETERS ---
-#-----------------
 
-# LINES
-Tline_pc_dependant_delete = ut.codeblock(
+# NATIVE COL SETTER
+Tsetter_native_column = ut.codeblock(
     r'''
     # STARTBLOCK
-    _{child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
-    {child}_rowid_list = ut.filter_Nones(_{child}_rowid_list)
-    {self}.delete_{child}({child}_rowid_list)
-    # ENDBLOCK
-    '''
-)
-
-
-# RL_DEPEND
-Tdeleter_rl_depenant = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@deleter
-    #@cache_invalidator({ROOT_TABLE})
-    def delete_{root}_{leaf}({self}, {root}_rowid_list, qreq_=None):
+    #@setter
+    def set_{tbl}_{col}({self}, {tbl}_rowid_list, {col}_list):
         """
-        {root}.{leaf}.delete({root}_rowid_list)
-
-        Args:
-            {root}_rowid_list
-
-        TemplateInfo:
-            Tdeleter_rl_depenant
-            root = {root}
-            leaf = {leaf}
-        """
-        if utool.VERBOSE:
-            print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))
-        # Delete any dependants
-        _{leaf}_rowid_list = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
-        {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
-        {self}.delete_{leaf}({leaf}_rowid_list)
-    # ENDBLOCK
-    '''
-)
-#{pc_dependant_delete_lines}
-
-
-# NATIVE
-Tdeleter_native_tbl = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@deleter
-    #@cache_invalidator({TABLE})
-    def delete_{tbl}({self}, {tbl}_rowid_list):
-        """
-        {tbl}.delete({tbl}_rowid_list)
-
-        delete {tbl} rows
+        {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
             {tbl}_rowid_list
+            {col}_list
 
         TemplateInfo:
-            Tdeleter_native_tbl
+            Tsetter_native_column
             tbl = {tbl}
-
-        Tdeleter_native_tbl
+            col = {col}
         """
-        from ibeis.model.preproc import preproc_{leaf}
-        if utool.VERBOSE:
-            print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
-        # Prepare: Delete externally stored data (if any)
-        preproc_{leaf}.on_delete({self}, {tbl}_rowid_list)
-        # Finalize: Delete self
-        {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
+        id_iter = {tbl}_rowid_list
+        colnames = ({COLNAME},)
+        ibs.db.set({TABLE}, colnames, {col}_list, id_iter)
     # ENDBLOCK
-    '''
-)
+    ''')
 
 
-# ========
-# UNFINISHED
-# ========
+#
+#
+#-------------------------------
+# --- UNFINISHED AND DEFERED ---
+#-------------------------------
 
 
 # eg. get_chip_sizes
@@ -590,15 +621,6 @@ Tgetter_native_multicolumn = ut.codeblock(
         """
         {multicol}_list  = {self}.dbcache.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
         return {multicol}_list
-    # ENDBLOCK
-    ''')
-
-Tsetter_native_column = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@setter
-    def set_{tbl}_{colname}({self}, {tbl}_rowid_list, val_list):
-        pass
     # ENDBLOCK
     ''')
 
@@ -643,5 +665,28 @@ Tadder_relationship = ut.codeblock(
         egrid_list = {self}.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
                                         get_rowid_from_superkey, superkey_paramx)
         return egrid_list
+    # ENDBLOCK
+    ''')
+
+
+#
+#
+#-----------------
+# --- FOOTER ---
+#-----------------
+
+
+Tfooter_ibeiscontrol = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    if __name__ == '__main__':
+        """
+        {main_docstr_body}
+        """
+        import utool as ut
+        testable_list = [
+            get_annot_featweight_rowids
+        ]
+        ut.doctest_funcs(testable_list)
     # ENDBLOCK
     ''')
