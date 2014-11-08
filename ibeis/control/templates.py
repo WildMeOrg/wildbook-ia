@@ -270,34 +270,34 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     fmtdict['pc_dependant_rowid_lines']  = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
     fmtdict['pc_dependant_delete_lines'] = ut.indent(ut.indentjoin(pc_dependant_delete_lines)).strip()
 
-    # ----------------------------
-    # Root Leaf Dependancy
-    # ----------------------------
-    if len(depends_list) > 2:
-        set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
-        append_func('RL.Tadder',   Tdef.Tadder_rl_dependant)
-        append_func('RL.Tgetter',  Tdef.Tgetter_rl_dependant_all_rowids)
-        append_func('RL.Tgetter',  Tdef.Tgetter_rl_dependant_rowids)
-        append_func('RL.Tdeleter', Tdef.Tdeleter_rl_depenant)
-
     # ------------------
     #  Parent Leaf Dependency
     # ------------------
     if len(depends_list) > 1:
         if len(depends_list) == 2:
             set_root_leaf(depends_list[0], depends_list[-1], depends_list[0])
-        append_func('PL.Tadder',   Tdef.Tadder_pl_dependant)
-        append_func('PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
+        append_func('0_PL.Tadder',   Tdef.Tadder_pl_dependant)
+        append_func('0_PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
+
+    # ----------------------------
+    # Root Leaf Dependancy
+    # ----------------------------
+    if len(depends_list) > 2:
+        set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
+        append_func('1_RL.Tadder',   Tdef.Tadder_rl_dependant)
+        append_func('1_RL.Tgetter',  Tdef.Tgetter_rl_dependant_all_rowids)
+        append_func('1_RL.Tgetter',  Tdef.Tgetter_rl_dependant_rowids)
+        append_func('1_RL.Tdeleter', Tdef.Tdeleter_rl_depenant)
 
     # --------
     #  Native
     # --------
-    append_func('Native.Tider_all_rowids', Tdef.Tider_all_rowids)
-    append_func('Native.Tget_from_superkey', Tdef.Tgetter_native_rowid_from_superkey)
-    append_func('Native.Tdeleter', Tdef.Tdeleter_native_tbl)
+    append_func('2_Native.Tider_all_rowids', Tdef.Tider_all_rowids)
+    append_func('2_Native.Tget_from_superkey', Tdef.Tgetter_native_rowid_from_superkey)
+    append_func('2_Native.Tdeleter', Tdef.Tdeleter_native_tbl)
     if len(depends_list) > 1:
         # Only dependants have native configs
-        append_func('Native.Tcfg', Tdef.Tcfg_rowid_getter)
+        append_func('2_Native.Tcfg', Tdef.Tcfg_rowid_getter)
 
     # For each column property
     for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
@@ -307,10 +307,9 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         for parent, child in ut.itertwo(depends_list):
             set_parent_child(parent, child)
             fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-            #append_func('Tgetter_pc_dependant_column', Tdef.Tgetter_pc_dependant_column)
         # Getter template: native (Level 0) columns
-        append_func('Native.Tgetter_native', Tdef.Tgetter_table_column)
-        append_func('Native.Tsetter_native', Tdef.Tsetter_native_column)
+        append_func('2_Native.Tgetter_native', Tdef.Tgetter_table_column)
+        append_func('2_Native.Tsetter_native', Tdef.Tsetter_native_column)
         if len(depends_list) > 1:
             append_func('RL.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
