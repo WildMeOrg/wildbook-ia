@@ -122,7 +122,7 @@ Tadder_rl_dependant = ut.codeblock(
         Adds / ensures / computes a dependant property
         returns config_rowid of the current configuration
 
-        CONVINIENCE FUNCTION
+        CONVENIENCE FUNCTION
 
         Args:
             {root}_rowid_list
@@ -314,7 +314,7 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
     def get_{root}_{col}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
         """ {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
 
-        get {col} data of the {root} table using the dependant {leaf} table
+        Get {col} data of the {root} table using the dependant {leaf} table
 
         Args:
             {root}_rowid_list (list):
@@ -344,7 +344,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
     def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
         """ {leaf}_rowid_list = {root}.{leaf}.rowids[{root}_rowid_list]
 
-        get {leaf} rowids of {root} under the current state configuration
+        Get {leaf} rowids of {root} under the current state configuration.
 
         Args:
             {root}_rowid_list (list):
@@ -374,7 +374,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
             >>> print({leaf}_rowid_list3)
         """
         if ensure:
-            # Ensuring dependant columns is equivilant to adding cleanly
+            # Ensuring dependant columns is equivalent to adding cleanly
             return {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
         else:
             # Get leaf_parent rowids
@@ -392,6 +392,29 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
 
 
 # PL GETTER ROWID
+Tgetter_pl_dependant_rowids_ = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    #@getter
+    def get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=None, eager=True, nInput=None):
+        """
+        equivalent to get_{parent}_{leaf}_rowids_ except ensure cannot be specified
+
+        You basically save a stack frame by calling this, because
+        get_{parent}_{leaf}_rowids just calls this function if ensure is False
+        """
+        colnames = ({LEAF}_ROWID,)
+        config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
+        andwhere_colnames = ({PARENT}_ROWID, CONFIG_ROWID,)
+        params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
+        {leaf}_rowid_list = {self}.{dbself}.get_where2(
+            {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
+        return {leaf}_rowid_list
+    # ENDBLOCK
+    ''')
+
+
+# PL GETTER ROWID
 Tgetter_pl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -400,9 +423,11 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         """ {leaf}_rowid_list <- {parent}.{leaf}.rowids[{parent}_rowid_list]
 
         get {leaf} rowids of {parent} under the current state configuration
+        if ensure is True, this function is equivalent to add_{parent}_{leaf}s
 
         Args:
             {parent}_rowid_list (list):
+            ensure (bool): default false
 
         Returns:
             list: {leaf}_rowid_list
@@ -422,15 +447,10 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         """
         if ensure:
             {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
-            return {leaf}_rowid_list
         else:
-            colnames = ({LEAF}_ROWID,)
-            config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
-            andwhere_colnames = ({PARENT}_ROWID, CONFIG_ROWID,)
-            params_iter = (({parent}_rowid, config_rowid,) for {parent}_rowid in {parent}_rowid_list)
-            {leaf}_rowid_list = {self}.{dbself}.get_where2(
-                {LEAF_TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
-            return {leaf}_rowid_list
+            #REM {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
+            {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids_({parent}_rowid_list, qreq_=qreq_)
+        return {leaf}_rowid_list
     # ENDBLOCK
     ''')
 
@@ -443,7 +463,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nInput=None):
         """ {leaf}_rowid_list <- {root}.{leaf}.all_rowids([{root}_rowid_list])
 
-        get {leaf} rowids of {root} under the current state configuration
+        Gets {leaf} rowids of {root} under the current state configuration.
 
         Args:
             {root}_rowid_list (list):
@@ -556,7 +576,7 @@ Tsetter_native_column = ut.codeblock(
 #
 #
 #-------------------------------
-# --- UNFINISHED AND DEFERED ---
+# --- UNFINISHED AND DEFERRED ---
 #-------------------------------
 
 
@@ -612,7 +632,7 @@ Tadder_relationship = ut.codeblock(
     #@adder
     def add_image_relationship({self}, gid_list, eid_list):
         """
-        Adds a relationship between an image and and encounter
+        Adds a relationship between an image and encounter
 
         Tadder_relationship
         """

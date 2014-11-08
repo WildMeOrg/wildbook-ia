@@ -276,8 +276,11 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     if len(depends_list) > 1:
         if len(depends_list) == 2:
             set_root_leaf(depends_list[0], depends_list[-1], depends_list[0])
+        else:
+            set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
         append_func('0_PL.Tadder',   Tdef.Tadder_pl_dependant)
         append_func('0_PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
+        append_func('0_PL.Tgetter_rowids_',  Tdef.Tgetter_pl_dependant_rowids_)
 
     # ----------------------------
     # Root Leaf Dependancy
@@ -345,7 +348,7 @@ def main(ibs):
     tblname_list = [
         #constants.ANNOTATION_TABLE,
 
-        constants.CHIP_TABLE,
+        #constants.CHIP_TABLE,
         #constants.FEATURE_TABLE,
         constants.FEATURE_WEIGHT_TABLE,
 
