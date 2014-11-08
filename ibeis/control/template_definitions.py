@@ -62,8 +62,7 @@ Tadder_pl_dependant = ut.codeblock(
     # STARTBLOCK
     #@adder
     def add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=None):
-        """
-        {parent}.{leaf}.add({parent}_rowid_list)
+        """ {parent}.{leaf}.add({parent}_rowid_list)
 
         CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
         Adds / ensures / computes a dependant property
@@ -118,8 +117,7 @@ Tadder_rl_dependant = ut.codeblock(
     # STARTBLOCK
     #@adder
     def add_{root}_{leaf}s({self}, {root}_rowid_list, qreq_=None):
-        """
-        {leaf}_rowid_list <- {root}.{leaf}.ensure({root}_rowid_list)
+        """ {leaf}_rowid_list <- {root}.{leaf}.ensure({root}_rowid_list)
 
         Adds / ensures / computes a dependant property
         returns config_rowid of the current configuration
@@ -160,8 +158,7 @@ Tcfg_rowid_getter = ut.codeblock(
     # STARTBLOCK
     #@ider
     def get_{leaf}_config_rowid({self}, qreq_=None):
-        """
-        {leaf}_cfg_rowid = {leaf}.config_rowid()
+        """ {leaf}_cfg_rowid = {leaf}.config_rowid()
 
         returns config_rowid of the current configuration
         Config rowids are always ensured
@@ -215,8 +212,7 @@ Tdeleter_rl_depenant = ut.codeblock(
     #@deleter
     #@cache_invalidator({ROOT_TABLE})
     def delete_{root}_{leaf}({self}, {root}_rowid_list, qreq_=None):
-        """
-        {root}.{leaf}.delete({root}_rowid_list)
+        """ {root}.{leaf}.delete({root}_rowid_list)
 
         Args:
             {root}_rowid_list
@@ -244,8 +240,7 @@ Tdeleter_native_tbl = ut.codeblock(
     #@deleter
     #@cache_invalidator({TABLE})
     def delete_{tbl}({self}, {tbl}_rowid_list):
-        """
-        {tbl}.delete({tbl}_rowid_list)
+        """ {tbl}.delete({tbl}_rowid_list)
 
         delete {tbl} rows
 
@@ -281,8 +276,7 @@ Tider_all_rowids = ut.codeblock(
     # STARTBLOCK
     #@ider
     def _get_all_{tbl}_rowids({self}):
-        """
-        all_{tbl}_rowids <- {tbl}.get_all_rowids()
+        """ all_{tbl}_rowids <- {tbl}.get_all_rowids()
 
         Returns:
             list_ (list): unfiltered {tbl}_rowids
@@ -318,8 +312,7 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{root}_{col}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
-        """
-        {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
+        """ {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
 
         get {col} data of the {root} table using the dependant {leaf} table
 
@@ -349,8 +342,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{root}_{leaf}_rowids({self}, {root}_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
-        """
-        {leaf}_rowid_list = {root}.{leaf}.rowids[{root}_rowid_list]
+        """ {leaf}_rowid_list = {root}.{leaf}.rowids[{root}_rowid_list]
 
         get {leaf} rowids of {root} under the current state configuration
 
@@ -405,8 +397,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
-        """
-        {leaf}_rowid_list <- {parent}.{leaf}.rowids[{parent}_rowid_list]
+        """ {leaf}_rowid_list <- {parent}.{leaf}.rowids[{parent}_rowid_list]
 
         get {leaf} rowids of {parent} under the current state configuration
 
@@ -450,8 +441,7 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nInput=None):
-        """
-        {leaf}_rowid_list <- {root}.{leaf}.all_rowids([{root}_rowid_list])
+        """ {leaf}_rowid_list <- {root}.{leaf}.all_rowids([{root}_rowid_list])
 
         get {leaf} rowids of {root} under the current state configuration
 
@@ -474,35 +464,6 @@ Tgetter_rl_dependant_all_rowids = ut.codeblock(
     # ENDBLOCK
     ''')
 
-# PC COLUMN GETTER
-Tgetter_pc_dependant_column = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    #@getter
-    def get_{parent}_{col}({self}, {parent}_rowid_list, qreq_=None):
-        """
-        {col}_list <- {parent}.{child}.{col}[{parent}_rowid_list]
-
-        get {col} data of the {parent} table using the dependant {child} table
-
-        Args:
-            {parent}_rowid_list (list):
-
-        Returns:
-            list: {col}_list
-
-        TemplateInfo:
-            Tgetter_pc_dependant_column
-            col = {col}
-            parent = {parent}
-            child = {child}
-        """
-        {child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list)
-        {col}_list = {self}.get_{child}_{col}({child}_rowid_list, qreq_=qreq_)
-        return {col}_list
-    # ENDBLOCK
-    ''')
-
 
 # NATIVE ROWID GET FROM SUPERKEY
 #id_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
@@ -511,8 +472,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{tbl}_rowid_from_superkey({self}, {superkey_args}, eager=True, nInput=None):
-        """
-        {tbl}_rowid_list <- {tbl}[{superkey_args}]
+        """ {tbl}_rowid_list <- {tbl}[{superkey_args}]
 
         Args:
             superkey lists: {superkey_args}
@@ -540,8 +500,7 @@ Tgetter_table_column = ut.codeblock(
     # STARTBLOCK
     #@getter
     def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
-        """
-        {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
+        """ {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
 
         gets data from the "native" column "{col}" in the "{tbl}" table
 
@@ -576,8 +535,7 @@ Tsetter_native_column = ut.codeblock(
     # STARTBLOCK
     #@setter
     def set_{tbl}_{col}({self}, {tbl}_rowid_list, {col}_list):
-        """
-        {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
+        """ {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
             {tbl}_rowid_list
