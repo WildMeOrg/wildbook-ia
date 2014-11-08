@@ -155,3 +155,7 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
 #    # TODO: Put this in a config
 #    def __init__(fw_cfg):
 #        fw_cfg.sqrt_area   = 800
+
+
+def on_delete(ibs, featweight_rowid_list):
+    print('Warning: Not Implemented')
