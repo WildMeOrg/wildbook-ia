@@ -10,17 +10,18 @@
     
     <div class="col-lg-6">
       Gid: {{ gid }}
+      <br/>
+      Species: {{ species }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions"></span>
       <br/>
       Path: {{ image_path }}
       <div id="bbox_annotator"></div>
-<!--       <input id="annotation_data" name="annotation_data" type="hidden" /> -->
       <br/>
-      <form method="post" action="/submit/detection.html">
-        <input type="text" name="viewpoint-gid" value="{{ gid }}" style="display: none;" readonly>
-        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
-        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <textarea id="annotation_data" name="annotation" style="font-family:monospace; margin-top:60px;width: 100%; height: 100px;" readonly=""></textarea>
+      <form method="post" action="/submit/detection.html" id="detection-form">
+        <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
+        <input type="submit" name="detection-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+        <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none" readonly="" form="detection-form"></textarea>
       </form>
     </div>
 
@@ -36,7 +37,48 @@
           <h4 class="modal-title" id="myModalLabel">Detection Review Turking Instructions</h4>
         </div>
         <div class="modal-body">
-          TODO
+          To review the detections for an image, simply draw new rectangle bounding boxes (annotations) around animals that are missing annotations and delete annotations that should not exist based on the following guidelines:
+          <br/>
+          <br/>
+          <ul style="padding-right:30px;">
+            <li>
+              A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.  
+            </li>
+            <li>
+              An annotation can be deleted by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span>
+              button in the top right corner of the annotation.  Annotations that are deleted cannot be recovered.  If an annotation is deleted by accident, refresh the screen to get a new image to review or re-add the annotation by selecting a new bounding box around the animal.   
+              <br/>
+              <i>For example:</i>
+            </li>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This image has no annotations and one should be added around the animal.  Once the annotation has been added, simply save the new annotation by clicking Accept.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This image has one (correct) annotation and nothing should be done.  The correct action is to click Accept to mark the image has having been processed correctly. </p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This image has two (one correct and one incorrect) annotations and the incorrect annotation should be deleted.  Once the incorrect annotation has been deleted, the image can be saved up clicking Accept.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <li><b>It is vitally important that only animals that belong to the species are annotated - at the top of every image, the species will be specified.</b></li>
+            <li>Always annotate the animals regardless of viewpoint.</li>
+            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
+            <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
+          </ul>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-dismiss="modal">Got it!</button>
@@ -55,10 +97,24 @@
     var annotator = new BBoxAnnotator({
       url: "{{ image_src }}",
       input_method: 'fixed',
+      show_label: true,
+      labels: ['{{ species }}'],
       onchange: function(entries) {
-        $('#annotation_data').text(JSON.stringify(entries, null, "  "));
+        $('#detection_data').text(JSON.stringify(entries, null, "  "));
       }
     });
+
+    {% for annot in annotation_list %}
+      annotator.add_entry({
+        left:   {{ annot['left'] }}, 
+        top:    {{ annot['top'] }},
+        width:  {{ annot['width'] }},
+        height: {{ annot['height'] }},
+        label:  '{{ annot['label'] }}',
+      });
+    {% endfor %}
+    
+    annotator.refresh();
   });
 </script>  
 {% endblock %}

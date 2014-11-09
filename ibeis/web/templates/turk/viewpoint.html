@@ -31,8 +31,8 @@
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
         </div>
         <br/>
-        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-skip"   class="btn btn-default pull-left"  value="Skip">
-        <input type="submit" name="viewpoint-submit" id="viewpoint-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <input type="submit" name="viewpoint-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+        <input type="submit" name="viewpoint-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
       </form
       <br/>
     </div>
@@ -63,7 +63,7 @@
             <div class="row">
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
                 <p>For this example, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above), and the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
@@ -71,7 +71,7 @@
             <div class="row">
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
                 <p>For this example, the <b>camera</b> is on the <b>back-left side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
@@ -79,7 +79,7 @@
             <div class="row">
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px; margin-bottom: 20px;">
-                <img src="{{ url_for('static', filename='images/example3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
                 <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
