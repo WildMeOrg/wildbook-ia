@@ -4,38 +4,38 @@ from __future__ import absolute_import, division, print_function
 __version__ = '1.0.0.dev1'
 
 #print('__guitool__1')
-from . import __PYQT__
+from guitool import __PYQT__
 #print('__guitool__2')
 
-from . import api_item_model
-from . import api_table_view
-from . import api_tree_view
-from . import api_item_widget
-from . import stripe_proxy_model
+from guitool import api_item_model
+from guitool import api_table_view
+from guitool import api_tree_view
+from guitool import api_item_widget
+from guitool import stripe_proxy_model
 
-from . import guitool_tables
-from . import guitool_dialogs
-from . import guitool_decorators
-from . import guitool_delegates
-from . import guitool_components
-from . import guitool_main
-from . import guitool_misc
-from . import qtype
+from guitool import guitool_tables
+from guitool import guitool_dialogs
+from guitool import guitool_decorators
+from guitool import guitool_delegates
+from guitool import guitool_components
+from guitool import guitool_main
+from guitool import guitool_misc
+from guitool import qtype
 
-from .guitool_tables import *
-from .guitool_dialogs import *
-from .guitool_decorators import *
-from .guitool_delegates import *
-from .guitool_components import *
-from .guitool_main import *
-from .guitool_misc import *
-from .api_item_model import *
-from .api_table_view import *
-from .api_tree_view import *
-from .api_item_widget import *
-from .stripe_proxy_model import *
-from .filter_proxy_model import *
-from .qtype import *
+from guitool.guitool_tables import *
+from guitool.guitool_dialogs import *
+from guitool.guitool_decorators import *
+from guitool.guitool_delegates import *
+from guitool.guitool_components import *
+from guitool.guitool_main import *
+from guitool.guitool_misc import *
+from guitool.api_item_model import *
+from guitool.api_table_view import *
+from guitool.api_tree_view import *
+from guitool.api_item_widget import *
+from guitool.stripe_proxy_model import *
+from guitool.filter_proxy_model import *
+from guitool.qtype import *
 
 import utool
 
