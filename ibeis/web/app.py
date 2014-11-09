@@ -43,23 +43,49 @@ def root(filename=''):
 @app.route('/turk/<filename>.html')
 def turk(filename=''):
     if filename == 'detection':
-        with SQLAtomicContext(app.db):
-            gid, gpath = appfuncs.get_next_detection_turk_candidate(app)
-        finished = gid is None or gpath is None
+        if 'gid' in request.args.keys():
+            gid = int(request.args['gid'])
+        else:
+            with SQLAtomicContext(app.db):
+                gid = appfuncs.get_next_detection_turk_candidate(app)
+        gpath = app.ibeis.get_image_paths(gid)
+        finished = gid is None
         if not finished:
             image = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image, filter_width=False)
+            # Get annotations
+            width, height = app.ibeis.get_image_sizes(gid)
+            scale_factor = 500.0 / float(width)
+            aid_list = app.ibeis.get_image_aids(gid)
+            annot_bbox_list = app.ibeis.get_annot_bboxes(aid_list)
+            species_list = app.ibeis.get_annot_species(aid_list)
+            # Get annotation bounding boxes
+            annotation_list = []
+            for annot_bbox, species in zip(annot_bbox_list, species_list):
+                temp = {}
+                temp['left']   = int(scale_factor * annot_bbox[0])
+                temp['top']    = int(scale_factor * annot_bbox[1])
+                temp['width']  = int(scale_factor * (annot_bbox[2]))
+                temp['height'] = int(scale_factor * (annot_bbox[3]))
+                temp['label']  = species
+                annotation_list.append(temp)
+            species = max(set(species_list), key=species_list.count)  # Get most common species
         else:
             image_src = None
+            species = None
+            annotation_list = []
         return template('turk', filename,
                         gid=gid,
+                        species=species,
                         image_path=gpath,
                         image_src=image_src,
-                        finished=finished)
+                        finished=finished,
+                        annotation_list=annotation_list)
     elif filename == 'viewpoint':
         with SQLAtomicContext(app.db):
-            aid, gpath = appfuncs.get_next_viewpoint_turk_candidate(app)
-        finished = aid is None or gpath is None
+            aid = appfuncs.get_next_viewpoint_turk_candidate(app)
+        gpath = app.ibeis.get_annot_chip_paths(aid)
+        finished = aid is None
         if not finished:
             image = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
@@ -70,7 +96,7 @@ def turk(filename=''):
                         image_path=gpath,
                         image_src=image_src,
                         finished=finished)
-    elif filename == 'commit':
+    elif filename == 'viewpoint-commit':
         # Things that need to be committed
         where_clause = "viewpoint_value_avg>=?"
         viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[0.0])
@@ -94,8 +120,6 @@ def turk(filename=''):
 
 @app.route('/submit/viewpoint.html', methods=['POST'])
 def submit_viewpoint():
-    print(request)
-    print(request.form)
     aid = int(request.form['viewpoint-aid'])
     value = int(request.form['viewpoint-value'])
     if request.form['viewpoint-submit'].lower() == 'skip':
@@ -120,7 +144,6 @@ def submit_viewpoint():
         else:
             print('[web] SKIPPED - VIEWPOINTS UNSURE')
             appfuncs.set_viewpoint_values_from_aids(app, [aid], [-2], 'viewpoint_value_avg')
-
     else:
         print('[web] SKIPPED - TOO MANY VIEWPOINTS')
     print("[web] aid: %d, value: %d | %s %s" % (aid, value, value_1, value_2))
@@ -130,8 +153,33 @@ def submit_viewpoint():
 
 @app.route('/submit/detection.html', methods=['POST'])
 def submit_detection():
-    print(request)
-    print(request.form)
+    gid = int(request.form['detection-gid'])
+    count = 1
+    if request.form['detection-submit'].lower() == 'skip':
+        count = -1
+    appfuncs.set_review_count_from_gids(app, [gid], [count])
+    if count == 1:
+        width, height = app.ibeis.get_image_sizes(gid)
+        scale_factor = float(width) / 500.0
+        # Get aids
+        aid_list = app.ibeis.get_image_aids(gid)
+        app.ibeis.delete_annots(aid_list)
+        annotation_list = json.loads(request.form['detection-annotations'])
+        bbox_list = [
+            (
+                int(scale_factor * annot['left']),
+                int(scale_factor * annot['top']),
+                int(scale_factor * annot['width']),
+                int(scale_factor * annot['height']),
+            )
+            for annot in annotation_list
+        ]
+        species_list = [
+            annot['label']
+            for annot in annotation_list
+        ]
+        print("[web] gid: %d, bbox_list: %r, species_list: %r" % (gid, annotation_list, species_list))
+        app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, species_list=species_list)
     return redirect(url_for('turk', filename='detection'))
 
 

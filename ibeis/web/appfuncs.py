@@ -73,7 +73,7 @@ def get_next_detection_turk_candidate(app):
     review_rowid_list = get_review_rowids_where(app, where_clause=where_clause, params=[0])
     count = len(review_rowid_list)
     if count == 0:
-        return None, None
+        return None
     else:
         status = 'Stage 1 - %s' % count
     print('[web] %s' % status)
@@ -81,8 +81,7 @@ def get_next_detection_turk_candidate(app):
     # Decide out of the candidates
     index = random.randint(0, len(gid_list) - 1)
     gid = gid_list[index]
-    gpath = app.ibeis.get_image_paths(gid)
-    return gid, gpath
+    return gid
 
 
 def get_next_viewpoint_turk_candidate(app):
@@ -95,7 +94,7 @@ def get_next_viewpoint_turk_candidate(app):
         viewpoint_rowid_list = get_viewpoint_rowids_where(app, where_clause=where_clause, params=[-1.0])
         count = len(viewpoint_rowid_list)
         if count == 0:
-            return None, None
+            return None
         else:
             status = 'Stage 2 - %s' % count
     else:
@@ -105,8 +104,7 @@ def get_next_viewpoint_turk_candidate(app):
     # Decide out of the candidates
     index = random.randint(0, len(aid_list) - 1)
     aid = aid_list[index]
-    gpath = app.ibeis.get_annot_chip_paths(aid)
-    return aid, gpath
+    return aid
 
 
 ################################################################################
@@ -157,7 +155,7 @@ def get_viewpoint_values_from_aids(app, aid_list, value_type):
 
 
 def set_review_count_from_gids(app, gid_list, count_list):
-    app.db.set(VIEWPOINT_TABLE, ('review_count',), count_list, gid_list, id_colname='image_rowid')
+    app.db.set(REVIEW_TABLE, ('review_count',), count_list, gid_list, id_colname='image_rowid')
 
 
 def set_viewpoint_values_from_aids(app, aid_list, value_list, value_type):

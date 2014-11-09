@@ -9,16 +9,16 @@ function update_label()
 
 $("body").keydown(function(event) {
   key = event.which;
-//   console.log(key);
+  console.log(key);
   if(key == 13)
   {
     // Enter key pressed, submit form as accept
-    $('input#viewpoint-submit-accept').click();
+    $('input#turk-submit-accept').click();
   }
   else if(key == 32)
   {
     // Space key pressed, submit form as skip
-    $('input#viewpoint-submit-skip').click();
+    $('input#turk-submit-skip').click();
   }
   else if(49 <= key && key <= 56)
   {

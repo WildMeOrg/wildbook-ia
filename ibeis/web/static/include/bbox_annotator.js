@@ -171,15 +171,15 @@
         options.height || (options.height = image_element.height);
         annotator.annotator_element.css({
           "width": '100%',
-          "height": (options.height + annotator.border_width * 2) + 'px',
-          "cursor": "crosshair"
+          "height": (options.height + annotator.border_width * 2) + 'px'
         });
         annotator.image_frame.css({
           "background-image": "url('" + image_element.src + "')",
           "width": options.width + "px",
           "height": options.height + "px",
           "position": "relative",
-          "margin": "0px auto"
+          "margin": "0px auto",
+          "cursor": "crosshair"
         });
         annotator.selector = new BBoxSelector(annotator.image_frame, options);
         return annotator.initialize_events(annotator.selector, options);
@@ -270,6 +270,14 @@
       });
     };
 
+    BBoxAnnotator.prototype.refresh = function() {
+      var annotator;
+      annotator = this;
+      if (annotator.onchange) {
+        return annotator.onchange(annotator.entries);
+      }
+    };
+
     BBoxAnnotator.prototype.add_entry = function(entry) {
       var annotator, box_element, close_button, text_box;
       this.entries.push(entry);
@@ -287,9 +295,9 @@
       });
       close_button = $('<div></div>').appendTo(box_element).css({
         "position": "absolute",
-        "top": "-8px",
-        "right": "-8px",
-        "width": "16px",
+        "top": "-10px",
+        "right": "-10px",
+        "width": "20px",
         "height": "0",
         "padding": "16px 0 0 0",
         "overflow": "visible",
