@@ -751,6 +751,8 @@ if __name__ == '__main__':
         profiler.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
         python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
     """
+    import multiprocessing
+    multiprocessing.freeze_support()
     # Run any doctests
     testable_list = [
         akmeans_plusplus_init
