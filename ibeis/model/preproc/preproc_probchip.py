@@ -173,6 +173,8 @@ if __name__ == '__main__':
     """
     python ibeis/model/preproc/preproc_probchip.py
     """
+    import multiprocessing
+    multiprocessing.freeze_support()
     import ut as ut  # NOQA
     testable_list = [
     ]

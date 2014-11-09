@@ -1,21 +1,19 @@
 #!/usr/bin/env python2.7
 """
+DEV SCRIPT
+
 This is a hacky script meant to be run mostly automatically with the option of
 interactions.
 
 dev.py is supposed to be a developer non-gui interface into the IBEIS software.
-
 dev.py runs experiments and serves as a scratchpad for new code and quick scripts
 
 
 CommandLine:
-
-python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum
-python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
-python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
-python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
-
-
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -23,8 +21,10 @@ import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 from utool.util_six import get_funcname
-from utool.util_six import *  # NOQA
 import utool
+print('-!!')
+#from ibeis.model.hots import smk
+import plottool
 import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -769,7 +769,7 @@ def devfunc(ibs, qaid_list):
     print('[dev] devfunc')
     import ibeis  # NOQA
     from ibeis.model import Config  # NOQA
-    from ibeis.model.Config import *  # NOQA
+    #from ibeis.model.Config import *  # NOQA
     feat_cfg = Config.FeatureConfig()
     #feat_cfg.printme3()
     print('\ncfgstr..')

@@ -15,6 +15,8 @@ def on_delete(ibs, featweight_rowid_list):
 
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
     testable_list = [
     ]
     ut.doctest_funcs(testable_list)

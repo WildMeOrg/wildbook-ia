@@ -3,7 +3,7 @@
 Exports subset of an IBEIS database to a new IBEIS database
 
 Example:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.io.export_subset))"
+    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.dbio.export_subset))"
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -861,7 +861,7 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             +---
     Example:
         >>> import ibeis
-        >>> from ibeis.io import export_subset
+        >>> from ibeis.dbio import export_subset
         >>> ibs_src = ibeis.opendb(dbdir='testdb1')
         >>> ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
         >>> print(ibs_src.get_infostr())

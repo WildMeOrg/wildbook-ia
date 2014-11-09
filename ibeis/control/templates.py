@@ -59,15 +59,20 @@ def format_controller_func(func_code):
             finished = False
             for line in func_code_lines:
                 if finished is False:
-                    if line.strip().startswith('"""'):
+                    # Find the start of the docstr
+                    striped_line = line.strip()
+                    if not begin and striped_line.startswith('"""') or striped_line.startswith('r"""'):
                         begin = True
                     elif begin:
-                        if len(line.strip()) == 0:
+                        # A blank line signals the start and end of the long
+                        # description
+                        if len(striped_line) == 0 or striped_line.startswith('"""'):
                             if startstrip is False:
+                                # Found first blank line, start stripping
                                 startstrip = True
                             else:
                                 finished = True
-                                continue
+                                #continue
                         elif startstrip:
                             continue
                 new_lines.append(line)

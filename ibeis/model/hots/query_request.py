@@ -437,6 +437,8 @@ if __name__ == '__main__':
         python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
         profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
     """
+    import multiprocessing
+    multiprocessing.freeze_support()
     # Run any doctests
     import utool as ut
     testable_list = [

@@ -119,20 +119,17 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
         >>> qaid = qaid_list[0]
         >>> #----
         >>> normweight_fn = lnbnn_fn
-        >>> tup1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
-        >>> (qaid2_weight1, qaid2_selnorms1) = tup1
+        >>> metadata = {}
+        >>> qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata)
         >>> weights1 = qaid2_weight1[qaid]
-        >>> selnorms1 = qaid2_selnorms1[qaid]
+        >>> #selnorms1 = qaid2_selnorms1[qaid]
         >>> #---
         >>> # test NN_WEIGHT_FUNC_DICT
         >>> #---
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
-        >>> tup2 = nn_normonly_weight(qaid2_nns, qreq_)
-        >>> (qaid2_weight2, qaid2_selnorms2) = tup2
-        >>> selnorms2 = qaid2_selnorms2[qaid]
+        >>> qaid2_weight2 = nn_normonly_weight(qaid2_nns, qreq_, metadata)
         >>> weights2 = qaid2_weight2[qaid]
         >>> assert np.all(weights1 == weights2)
-        >>> assert np.all(selnorms1 == selnorms2)
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
@@ -317,12 +314,13 @@ def lnbnn_fn(vdist, ndist):
     Example:
         >>> # ENABLE_DOCTEST
         >>> import numpy as np
-        >>> ndist = np.array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])
+        >>> ndists = np.array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6]])
+        >>> ndist = ndists.T[0:1].T
         >>> vdist = np.array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])
-        >>> vdist1 = vdist[:,0:1]
-        >>> vdist2 = vdist[:,0:2]
-        >>> vdist3 = vdist[:,0:3]
-        >>> vdist4 = vdist[:,0:4]
+        >>> vdist1 = vdist[:, 0:1]
+        >>> vdist2 = vdist[:, 0:2]
+        >>> vdist3 = vdist[:, 0:3]
+        >>> vdist4 = vdist[:, 0:4]
         >>> print(lnbnn_fn(vdist1, ndist))
         >>> print(lnbnn_fn(vdist2, ndist))
         >>> print(lnbnn_fn(vdist3, ndist))

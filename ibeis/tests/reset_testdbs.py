@@ -2,7 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from ibeis.dev import sysres
-from ibeis.io import ingest_database
+from ibeis.dbio import ingest_database
 from os.path import join
 from vtool.tests import grabdata
 import ibeis
@@ -11,21 +11,19 @@ import utool
 __test__ = False  # This is not a test
 
 
-workdir = ibeis.sysres.get_workdir()
-
-
-TESTDB0 = join(workdir, 'testdb0')
-TESTDB1 = join(workdir, 'testdb1')
-TESTDB_GUIALL = join(workdir, 'testdb_guiall')
-
-
 def delete_testdbs():
+    workdir = ibeis.sysres.get_workdir()
+    TESTDB0 = join(workdir, 'testdb0')
+    TESTDB1 = join(workdir, 'testdb1')
+    TESTDB_GUIALL = join(workdir, 'testdb_guiall')
     utool.delete(TESTDB0, ignore_errors=False)
     utool.delete(TESTDB1, ignore_errors=False)
     utool.delete(TESTDB_GUIALL, ignore_errors=False)
 
 
 def make_testdb0():
+    workdir = ibeis.sysres.get_workdir()
+    TESTDB0 = join(workdir, 'testdb0')
     main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
     ibs = main_locals['ibs']
     assert ibs is not None, str(main_locals)
@@ -58,10 +56,13 @@ def reset_testdbs():
     make_testdb0()
     print("\n\nMAKE TESTDB1\n\n")
     ingest_database.ingest_standard_database('testdb1')
+    workdir = ibeis.sysres.get_workdir()
+    TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
 
 
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
+    #ibeis._preload()
     reset_testdbs()
