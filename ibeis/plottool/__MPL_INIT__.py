@@ -3,10 +3,12 @@ import sys
 import os
 
 __IS_INITIALIZED__ = False
+__WHO_INITIALIZED__ = None
 
 
 def init_matplotlib():
     global __IS_INITIALIZED__
+    global __WHO_INITIALIZED__
     import matplotlib as mpl
     import utool
     try:
@@ -24,9 +26,15 @@ def init_matplotlib():
         TARGET_BACKEND = 'Qt4Agg'
     if utool.in_main_process():
         if __IS_INITIALIZED__:
-            print('[!plottool] matplotlib has already been initialized')
+            print('[!plottool] matplotlib has already been initialized.  backend=%r' % backend)
+            print('[!plottool] Initially initialized by %r' % __WHO_INITIALIZED__)
+            print('[!plottool] Trying to be init by %r' % (utool.get_caller_name(N=range(0, 5))))
             return False
-        __IS_INITIALIZED__ = True
+        else:
+            __WHO_INITIALIZED__ = utool.get_caller_name(N=range(0, 5))
+            print('[plottool] matplotlib initialized by %r' % __WHO_INITIALIZED__)
+            #__WHO_INITIALIZED__ = utool.get_caller_name()
+            __IS_INITIALIZED__ = True
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
             print('[pt] current backend is: %r' % backend)

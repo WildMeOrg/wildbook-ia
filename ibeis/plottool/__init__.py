@@ -11,29 +11,29 @@ __MPL_INIT__.init_matplotlib()
 import matplotlib as mpl
 #mpl.use('Qt4Agg')
 
-from . import plot_helpers as ph
-from . import plot_helpers
-from . import mpl_keypoint
-from . import mpl_keypoint as mpl_kp
-from . import mpl_sift as mpl_sift
-from . import draw_func2
-from . import draw_func2 as df2
-from . import draw_sv
-from . import viz_featrow
-from . import viz_keypoints
-from . import viz_image2
-from . import plots
-from . import interact_annotations
-from . import interact_keypoints
-from . import interact_multi_image
+from plottool import plot_helpers as ph
+from plottool import plot_helpers
+from plottool import mpl_keypoint
+from plottool import mpl_keypoint as mpl_kp
+from plottool import mpl_sift as mpl_sift
+from plottool import draw_func2
+from plottool import draw_func2 as df2
+from plottool import draw_sv
+from plottool import viz_featrow
+from plottool import viz_keypoints
+from plottool import viz_image2
+from plottool import plots
+from plottool import interact_annotations
+from plottool import interact_keypoints
+from plottool import interact_multi_image
 
 # The other module shouldn't exist.
 # Functions in it need to be organized
-from .plots import draw_hist_subbin_maxima
-from .draw_func2 import *
-from .mpl_keypoint import draw_keypoints
-from .mpl_sift import draw_sifts
-from . import fig_presenter
+from plottool.plots import draw_hist_subbin_maxima
+from plottool.draw_func2 import *  # NOQA
+from plottool.mpl_keypoint import draw_keypoints
+from plottool.mpl_sift import draw_sifts
+from plottool import fig_presenter
 
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
