@@ -481,3 +481,7 @@ def test_setup_preproc_chip():
     ibs = ibeis.opendb('testdb1')
     aid_list = ibs.get_valid_aids()
     return ibs, aid_list
+
+
+def on_delete(ibs, cid_list, qreq_=None):
+    print('Warning: Not Implemented')

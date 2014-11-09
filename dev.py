@@ -10,8 +10,11 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 CommandLine:
 
+python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum
 python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
 python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
+python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
+
 
 """
 # TODO: ADD COPYRIGHT TAG
@@ -47,6 +50,67 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 #------------------
 # This is where you write all of the functions that will become pristine
 # and then go in _devcmds_ibeis.py
+
+def test_hdf5():
+    try:
+        import h5py
+        import numpy as np
+        data = np.array([(1, 1), (2, 2), (3, 3)], dtype=[('x', float), ('y', float)])
+        h5file = h5py.File('FeatTable.h5', 'w')
+        h5file.create_group('feats')
+        h5file.create_dataset('FeatsTable', data=data)
+        h5file['feats'].attrs['rowid'] = np.ones((4, 3, 2), 'f')
+    except Exception:
+        pass
+    finally:
+        h5file.close()
+
+
+def pytable_test(cid_list, kpts_list, desc_list, weights_list):
+    """
+    Example:
+        >>> cid_list = [1, 2]
+        >>> kpts_list = [1, 2]
+        >>> desc_list = [1, 2]
+        >>> weights_list = [1, 2]
+    """
+    import tables
+
+    # Define a user record to characterize some kind of particles
+    class FeatureVector(tables.IsDescription):
+        feat_rowid = tables.Int32Col()
+        chip_rowid = tables.Int32Col()
+        feat_vecs = tables.Array
+        feat_kpts = tables.Array
+        feat_nKpts  = tables.Int32Col
+        feat_weights = tables.Array
+
+    filename = "test.h5"
+    # Open a file in "w"rite mode
+    h5file = tables.open_file(filename, mode="w", title="Test file")
+    # Create a new group under "/" (root)
+    group = h5file.create_group("/", 'detector', 'Detector information')
+    # Create one table on it
+    table = h5file.create_table(group, 'readout', FeatureVector, "Readout example")
+    # Fill the table with 10 particles
+    feature = table.row
+    for rowid, cid, kpts, desc, weights in enumerate(zip(cid_list, kpts_list, desc_list,
+                                                         weights_list)):
+        feature['feat_rowid'] = rowid
+        feature['chip_rowid'] = cid
+        feature['feat_vecs'] = kpts
+        feature['feat_kpts'] = desc
+        feature['feat_nKpts'] = len(feature['feat_kpts'])
+        feature['feat_weights'] = weights
+        # Insert a new feature record
+        feature.append()
+    # Close (and flush) the file
+    h5file.close()
+
+    f = tables.open_file("test.h5")
+    f.root
+    f.root.detector.readout
+    f.root.detector.readout.attrs.TITLE
 
 
 def train_paris_vocab(ibs):

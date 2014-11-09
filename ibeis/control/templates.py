@@ -15,7 +15,78 @@ import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
+STRIP_LONGDESC = True
+STRIP_EXAMPLE  = True
+STRIP_COMMENTS = False
 USE_SHORTNAMES = True
+USE_FUNCTYPE_HEADERS = True
+
+
+def format_controller_func(func_code):
+    """
+    CommandLine:
+        python ibeis/control/templates.py
+    """
+    func_code = remove_sentinals(func_code)
+    # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
+    # good place to look.
+    REMOVE_NPARAMS = True
+    REMOVE_EAGER = True
+    REMOVE_QREQ = False
+    WITH_PEP8 = True
+    WITH_DECOR = True
+
+    if REMOVE_NPARAMS:
+        func_code = remove_kwarg('nInput', 'None', func_code)
+    if REMOVE_EAGER:
+        func_code = remove_kwarg('eager', 'True', func_code)
+    if REMOVE_QREQ:
+        func_code = remove_kwarg('qreq_', 'None', func_code)
+    if STRIP_COMMENTS:
+        #func_code = ut.regex_replace(r'  # .*$', '', func_code)
+        #func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
+        pass
+    if STRIP_DOCSTR:
+        # HACKY: might not always work. newline hacks away dumb blank line
+        func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
+    else:
+        if STRIP_LONGDESC:
+            func_code_lines = func_code.split('\n')
+
+            new_lines = []
+            begin = False
+            startstrip = False
+            finished = False
+            for line in func_code_lines:
+                if finished is False:
+                    if line.strip().startswith('"""'):
+                        begin = True
+                    elif begin:
+                        if len(line.strip()) == 0:
+                            if startstrip is False:
+                                startstrip = True
+                            else:
+                                finished = True
+                                continue
+                        elif startstrip:
+                            continue
+                new_lines.append(line)
+            func_code = '\n'.join(new_lines)
+
+        if STRIP_EXAMPLE:
+            func_code = ut.regex_replace('Example.*"""', '"""', func_code)
+    if USE_SHORTNAMES:
+        # Execute search and replaces without changing strings
+        func_code = ut.replace_nonquoted_text(func_code,
+                                              variable_aliases.keys(),
+                                              variable_aliases.values())
+    # add decorators
+    if WITH_DECOR:
+        func_code = '@register_ibs_method\n' + func_code
+    # ensure pep8 formating
+    if WITH_PEP8:
+        func_code = ut.autofix_codeblock(func_code).strip()
+    return func_code
 
 
 class SHORTNAMES(object):
@@ -126,55 +197,15 @@ def remove_kwarg(kwname, kwdefault, func_code):
     return func_code
 
 
-def format_controller_func(func_code):
-    """
-    CommandLine:
-        python ibeis/control/templates.py
-    """
-    func_code = remove_sentinals(func_code)
-    # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
-    # good place to look.
-    REMOVE_NPARAMS = True
-    REMOVE_EAGER = True
-    REMOVE_QREQ = False
-    WITH_PEP8 = True
-    WITH_DECOR = True
-
-    if REMOVE_NPARAMS:
-        func_code = remove_kwarg('nInput', 'None', func_code)
-    if REMOVE_EAGER:
-        func_code = remove_kwarg('eager', 'True', func_code)
-    if REMOVE_QREQ:
-        func_code = remove_kwarg('qreq_', 'None', func_code)
-    if STRIP_DOCSTR:
-        # might not always work. newline hacks away dumb blank line
-        func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
-    if USE_SHORTNAMES:
-        # Execute search and replaces without changing strings
-        func_code = ut.replace_nonquoted_text(func_code,
-                                              variable_aliases.keys(),
-                                              variable_aliases.values())
-    # add decorators
-    if WITH_DECOR:
-        func_code = '@register_ibs_method\n' + func_code
-    # ensure pep8 formating
-    if WITH_PEP8:
-        func_code = ut.autofix_codeblock(func_code).strip()
-    return func_code
-
-
 def build_dependent_controller_funcs(tablename, tableinfo):
     """
         python ibeis/control/templates.py
         python ibeis/control/templates.py --dump-autogen-controller
     """
-
-    # -----
+    # +-----
     # Setup
-    # -----
-
+    # +-----
     (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames) = tableinfo
-    #
     other_cols = list(map(lambda colname: colname2_col(colname, tablename), other_colnames))
     other_COLNAMES = list(map(lambda colname: colname.upper(), other_colnames))
     nonprimary_leaf_colnames = ut.setdiff_ordered(all_colnames, primarykey_colnames)
@@ -196,13 +227,14 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     fmtdict['dbself'] = dbself
 
     CONSTANT_COLNAMES = []
+    CONSTANT_COLNAMES.extend(other_colnames)
     functype2_func_list = ut.ddict(list)
     constant_list = []
+    # L_____
 
-    # ----------------------------
-    # Format dict helper functions
-    # ----------------------------
-
+    # +----------------------------
+    # | Format dict helper functions
+    # +----------------------------
     def _setupper(fmtdict, key, val):
         fmtdict[key] = val
         fmtdict[key.upper()] = val.upper()
@@ -216,12 +248,14 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         _setupper(fmtdict, 'leaf', leaf)
         _setupper(fmtdict, 'leaf_parent', leaf_parent)
         fmtdict['LEAF_TABLE'] = tbl2_TABLE[leaf]  # tblname1_TABLE[child]
+        fmtdict['ROOT_TABLE'] = tbl2_TABLE[root]  # tblname1_TABLE[child]
 
     def set_tbl(tbl):
         _setupper(fmtdict, 'tbl', tbl)
         fmtdict['TABLE'] = tbl2_TABLE[tbl]
 
     def append_func(func_type, func_code_fmtstr, tablename=tablename):
+        func_type = func_type
         try:
             func_code = func_code_fmtstr.format(**fmtdict)
             func_code = format_controller_func(func_code)
@@ -233,16 +267,14 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     def append_constant(varname, valstr):
         const_fmtstr = varname + ' = \'%s\'' % (valstr,)
         constant_list.append(const_fmtstr.format(**fmtdict))
+    # L____________________________
 
-    CONSTANT_COLNAMES.extend(other_colnames)
-
-    # ----------------------------
     # Build dependency path
-    # ----------------------------
-
     tbl = tablename2_tbl[tablename]
     depends_list = build_depends_path(tbl)
     print('depends_list = %r' % depends_list)
+
+    # set native variables
     for tbl_ in depends_list:
         set_tbl(tbl_)
         # rowid constants
@@ -250,37 +282,50 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     # set table
     set_tbl(tbl)
 
+    # Build pc dependeant lines
     pc_dependant_rowid_lines = []
     pc_dependant_delete_lines = []
-
-    # ----------------------------
     # For each parent child dependancy
-    # ----------------------------
     for parent, child in ut.itertwo(depends_list):
         set_parent_child(parent, child)
         # depenant rowid lines
-        pc_dependant_rowid_lines.append(Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
+        pc_dependant_rowid_lines.append( Tdef.Tline_pc_dependant_rowid.format(**fmtdict))
         pc_dependant_delete_lines.append(Tdef.Tline_pc_dependant_delete.format(**fmtdict))
     # At this point parent = leaf_parent and child=leaf
-    fmtdict['pc_dependant_rowid_lines'] = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
+    fmtdict['pc_dependant_rowid_lines']  = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
+    fmtdict['pc_dependant_delete_lines'] = ut.indent(ut.indentjoin(pc_dependant_delete_lines)).strip()
 
-    append_func('ider', Tdef.Tider_all_rowids)
-    append_func('getter_superkey', Tdef.Tgetter_native_rowid_from_superkey)
+    # ------------------
+    #  Parent Leaf Dependency
+    # ------------------
+    if len(depends_list) > 1:
+        if len(depends_list) == 2:
+            set_root_leaf(depends_list[0], depends_list[-1], depends_list[0])
+        else:
+            set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
+        append_func('0_PL.Tadder',   Tdef.Tadder_pl_dependant)
+        append_func('0_PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
+        append_func('0_PL.Tgetter_rowids_',  Tdef.Tgetter_pl_dependant_rowids_)
 
     # ----------------------------
     # Root Leaf Dependancy
     # ----------------------------
     if len(depends_list) > 2:
         set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
-        append_func('adder_rl_dependant', Tdef.Tadder_rl_dependant)
-        #append_func('getter_rl_dependant', Tdef.Tgetter_rl_dependant_all_rowids)
-        append_func('getter_rl_dependant', Tdef.Tgetter_rl_dependant_rowids)
-    elif len(depends_list) > 1:
-        set_root_leaf(depends_list[0], depends_list[-1], depends_list[0])
+        append_func('1_RL.Tadder',   Tdef.Tadder_rl_dependant)
+        append_func('1_RL.Tgetter',  Tdef.Tgetter_rl_dependant_all_rowids)
+        append_func('1_RL.Tgetter',  Tdef.Tgetter_rl_dependant_rowids)
+        append_func('1_RL.Tdeleter', Tdef.Tdeleter_rl_depenant)
+
+    # --------
+    #  Native
+    # --------
+    append_func('2_Native.Tider_all_rowids', Tdef.Tider_all_rowids)
+    append_func('2_Native.Tget_from_superkey', Tdef.Tgetter_native_rowid_from_superkey)
+    append_func('2_Native.Tdeleter', Tdef.Tdeleter_native_tbl)
     if len(depends_list) > 1:
-        append_func('config_rowid', Tdef.Tcfg_leaf_config_rowid_getter)
-        append_func('adder_pl_dependant', Tdef.Tadder_pl_dependant)
-        append_func('getter_pl_dependant', Tdef.Tgetter_pl_dependant_rowids)
+        # Only dependants have native configs
+        append_func('2_Native.Tcfg', Tdef.Tcfg_rowid_getter)
 
     # For each column property
     for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
@@ -290,11 +335,11 @@ def build_dependent_controller_funcs(tablename, tableinfo):
         for parent, child in ut.itertwo(depends_list):
             set_parent_child(parent, child)
             fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
-            #append_func('dependant_property', Tdef.Tgetter_pc_dependant_column)
         # Getter template: native (Level 0) columns
-        append_func('getter_table_column', Tdef.Tgetter_table_column)
+        append_func('2_Native.Tgetter_native', Tdef.Tgetter_table_column)
+        append_func('2_Native.Tsetter_native', Tdef.Tsetter_native_column)
         if len(depends_list) > 1:
-            append_func('getter_rl_table_column', Tdef.Tgetter_rl_pclines_dependant_column)
+            append_func('RL.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         append_constant(COLNAME, colname)
 
@@ -322,6 +367,8 @@ def colname2_col(colname, tablename):
 def main(ibs):
     """
     CommandLine:
+        python ibeis/control/templates.py --dump-autogen-controller
+        gvim ibeis/control/_autogen_ibeiscontrol_funcs.py
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
@@ -332,7 +379,7 @@ def main(ibs):
         #constants.FEATURE_TABLE,
         constants.FEATURE_WEIGHT_TABLE,
 
-        #constants.RESIDUAL_TABLE
+        constants.RESIDUAL_TABLE
     ]
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
@@ -362,14 +409,15 @@ def main(ibs):
     seen = set([])
     for count1, functype in enumerate(functype_list):
         functype_codeblocks = []
-        functype_section_header = ut.codeblock(
-            '''
-            # =========================
-            # {FUNCTYPE} METHODS
-            # =========================
-            '''
-        ).format(FUNCTYPE=functype.upper())
-        functype_codeblocks.append(functype_section_header)
+        if USE_FUNCTYPE_HEADERS:
+            functype_section_header = ut.codeblock(
+                '''
+                # =========================
+                # {FUNCTYPE} METHODS
+                # =========================
+                '''
+            ).format(FUNCTYPE=functype.upper())
+            functype_codeblocks.append(functype_section_header)
         for count, item in enumerate(six.iteritems(tblname2_functype2_func_list)):
             tblname, val = item
             #functype_table_section_header = ut.codeblock(

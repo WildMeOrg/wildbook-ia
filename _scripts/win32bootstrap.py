@@ -33,6 +33,8 @@ def get_win_python_packages():
         pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3, spoof=True)
         pkg_exe_list += [pkg_exe]
     print('\n'.join(href_list))
+    print('Please Run:')
+    print('\n'.join(pkg_exe_list))
 
 
 def _get_win_packages_href(py_version):
@@ -65,7 +67,7 @@ def _get_win_packages_href(py_version):
     href_list1, missing  = filter_href_list(all_href_list, win_pkg_list, OS_VERSION, py_version)
     href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
     href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
-
+dd
     href_list = href_list1 + href_list2 + href_list3
     return href_list
 

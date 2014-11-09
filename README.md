@@ -121,6 +121,14 @@ DISABLE THESE ERRORS
 
 flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
 
+( Dev comment: my laptop seemst to report these flake8 errors while my desktops
+  don't. I'm going to list errors that might need to be explicitly enabled here:
+
+* 'F821',  # undefined name
+* 'F403',  # import * used, unable to detect names
+
+)
+
 For C++ code use astyle to format your code:
 atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
 

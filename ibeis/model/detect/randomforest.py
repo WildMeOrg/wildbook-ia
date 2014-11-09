@@ -8,6 +8,7 @@ from os.path import splitext, exists
 # UTool
 from six.moves import zip, map, range
 import utool
+import utool as ut
 from vtool import image as gtool
 from ibeis.model.detect import grabmodels
 import pyrf
@@ -220,11 +221,15 @@ def _get_detector(species, quick=True, single=False):
             config = {
                 'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20',
             }
+    print('[randomforest] building detector')
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species)
     if utool.checkpath(trees_path, verbose=True):
         # Load forest, so we don't have to reload every time
+        print('[randomforest] loading forest')
         forest = detector.load(trees_path, species + '-', num_trees=25)
+        # TODO: WE NEED A WAY OF ASKING IF THE LOAD WAS SUCCESSFUL
+        # SO WE CAN HANDLE IT GRACEFULLY FROM PYTHON
         return detector, forest
     else:
         # If the models do not exist return None
@@ -264,8 +269,8 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     chunksize = 8
     use_chunks_ = use_chunks and nImgs >= chunksize
 
-    print(src_gpath_list)
-    print(dst_gpath_list)
+    print('[rf] src_gpath_list = ' + ut.truncate_str(ut.list_str(src_gpath_list)))
+    print('[rf] dst_gpath_list = ' + ut.truncate_str(ut.list_str(dst_gpath_list)))
     if use_chunks_:
         print('[rf] detect in chunks')
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
@@ -318,3 +323,15 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
 
             yield bboxes, confidences, image_confidence
     end_prog()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ibeis/model/detect/randomforest.py --test-_get_detector
+
+    """
+    testable_list = [
+        _get_detector
+    ]
+    ut.doctest_funcs(testable_list)

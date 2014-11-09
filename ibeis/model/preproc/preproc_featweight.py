@@ -155,3 +155,14 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
 #    # TODO: Put this in a config
 #    def __init__(fw_cfg):
 #        fw_cfg.sqrt_area   = 800
+
+
+def on_delete(ibs, featweight_rowid_list):
+    print('Warning: Not Implemented')
+    print('TODO: Delete probability chips, or should that be its own preproc?')
+
+if __name__ == '__main__':
+    testable_list = [
+        gen_featweight_worker
+    ]
+    ut.doctest_funcs(testable_list)

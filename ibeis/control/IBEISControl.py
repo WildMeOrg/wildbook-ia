@@ -3684,14 +3684,38 @@ class IBEISController(object):
         return name_list
 
     @getter_1toM
-    def get_name_aids(ibs, nid_list):
+    def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
         """
         Returns:
-            aids_list (list):  a list of list of aids in each name """
+            aids_list (list):  a list of list of aids in each name
+
+        Example:
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> # Map annotations to name ids
+            >>> aid_list = ibs.get_valid_aids()
+            >>> nid_list = ibs.get_annot_nids(aid_list)
+            >>> # Get annotation ids for each name
+            >>> aids_list = ibs.get_name_aids(nid_list)
+            >>> # Run Assertion Test
+            >>> groupid2_items = ut.group_items(aids_list, nid_list)
+            >>> grouped_items = list(six.itervalues(groupid2_items))
+            >>> passed_iter = map(ut.list_allsame, grouped_items)
+            >>> passed_list = list(passed_iter)
+            >>> assert all(passed_list), 'problem in get_name_aids'
+            >>> # Print gropued items
+            >>> print(ut.dict_str(groupid2_items, newlines=False))
+        """
         # TODO: Optimize
         nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
         #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         aids_list = ibs.get_lblannot_aids(nid_list_)
+        # TODO: QUESTION: Should negative nids return the empty list
+        # when asked for their member aids? Because we know that it should be
+        # the negated nid and have 1 member. Here is code to fix it if we should
+        if enable_unknown_fix:
+            aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]
         return aids_list
 
     @getter_1toM

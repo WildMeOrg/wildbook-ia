@@ -102,11 +102,18 @@ __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 def assert_qres(qres):
     try:
-        assert len(qres.aid2_fm) == len(qres.aid2_fs)
-        assert len(qres.aid2_fm) == len(qres.aid2_fk)
-        assert len(qres.aid2_fm) == len(qres.aid2_score)
-    except AssertionError:
-        raise AssertionError('[!qr] matching dicts do not agree')
+        assert len(qres.aid2_fm) == len(qres.aid2_fs), 'fm and fs do not agree'
+        assert len(qres.aid2_fm) == len(qres.aid2_fk), 'fm and fk do not agree'
+        assert len(qres.aid2_fm) == len(qres.aid2_score), 'fm and score do not agree'
+    except AssertionError as ex:
+        ut.printex(ex, '[!qr]  matching dicts do not agree',
+                   keys=[
+                       (ut.dictinfo, 'qres.aid2_fm'),
+                       (ut.dictinfo, 'qres.aid2_fs'),
+                       (ut.dictinfo, 'qres.aid2_fk'),
+                       (ut.dictinfo, 'qres.aid2_score'),
+                   ])
+        raise
     nFeatMatch_list = get_num_feats_in_matches(qres)
     assert all([num1 == num2 for (num1, num2) in
                 zip(nFeatMatch_list, (len(fm) for fm in six.itervalues(qres.aid2_fm)))])

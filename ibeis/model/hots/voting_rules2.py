@@ -7,14 +7,87 @@ from numpy.linalg import svd
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
 
 
+def get_chipmatch_testdata(**kwargs):
+    from ibeis.model.hots import pipeline
+    custom_qparams = {'dupvote_weight': 1.0}
+    ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', custom_qparams)
+    # Run first four pipeline steps
+    qaid2_nns_      = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
+    filt2_weights_  = pipeline.weight_neighbors(qaid2_nns_, qreq_, qreq_.metadata)
+    qaid2_nnfilt_   = pipeline.filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
+    qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
+    # Get a single chipmatch
+    chipmatch = qaid2_chipmatch[six.next(six.iterkeys(qaid2_chipmatch))]
+    return ibs, qreq_, chipmatch
+
+
 def score_chipmatch_csum(chipmatch):
+    """
+    score_chipmatch_csum
+
+    Args:
+        chipmatch (tuple):
+
+    Returns:
+        dict: aid2_score
+
+    Example:
+        >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
+        >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
+        >>> aid2_score = score_chipmatch_csum(chipmatch)
+        >>> print(aid2_score)
+    """
     (_, aid2_fs, _) = chipmatch
     aid2_score = {aid: np.sum(fs) for (aid, fs) in six.iteritems(aid2_fs)}
     return aid2_score
 
 
-def score_chipmatch_nsum(ibs, qaid, chipmatch, qreq):
-    raise NotImplementedError('nsum')
+def score_chipmatch_nsum(chipmatch, qreq_):
+    """
+    score_chipmatch_nsum
+
+    Args:
+        chipmatch (tuple):
+
+    Returns:
+        dict: nid2_score
+
+    Example:
+        >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
+        >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
+        >>> nid2_score = score_chipmatch_nsum(ibs, chipmatch, qreq)
+    """
+    import vtool
+    (_, aid2_fs, _) = chipmatch
+    aid_list = list(six.iterkeys(aid2_fs))
+    score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
+    nid_list = np.array(qreq_.ibs.get_annot_nids(aid_list))
+    unique_nids, groupxs = vtool.group_indicies(nid_list)
+    grouped_scores = vtool.apply_grouping(score_list, groupxs)
+    nid2_score = {nid: scores.sum() for nid, scores in zip(unique_nids, grouped_scores)}
+    #return nid2_score
+    # for now apply a hack to return aid scores
+    aid2_csum = score_chipmatch_csum(chipmatch)
+    aids_list = qreq_.ibs.get_name_aids(unique_nids, enable_unknown_fix=True)
+    aid2_nscore = {}
+    daids = np.intersect1d(list(six.iterkeys(aid2_csum)),
+                           qreq_.get_external_daids())
+    for (nid, nsum), aids in zip(six.iteritems(nid2_score), aids_list):
+        aids_ = np.intersect1d(aids, daids)
+        if len(aids_) == 1:
+            aid2_nscore[aids_[0]] = nsum
+        elif len(aids_) > 1:
+            csum_arr = np.array([aid2_csum[aid] for aid in aids_])
+            sortx = csum_arr.argsort()
+            # Give the best scoring annotation the score
+            aid2_nscore[aids_[sortx[0]]] = nsum
+            # All other annotations receive 0 score
+            for aid in aids_[sortx[1:]]:
+                aid2_nscore[aid] = 0
+        else:
+            print('warning in voting rules nsum')
+    return aid2_nscore
+    #raise NotImplementedError('nsum')
 
 
 def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):
@@ -22,8 +95,9 @@ def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):
 
 
 def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
-    """ this is a hack to make the same name only show up once in the top ranked
-        list
+    """
+    this is a hack to make the same name only show up once in the top ranked
+    list
     """
     if chipmatch is not None:
         (_, aid2_fs, _) = chipmatch
