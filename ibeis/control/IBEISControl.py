@@ -3902,9 +3902,15 @@ FEAT_ROWID                  = 'feat_rowid'
 
 
 # Import modules which define injectable functions
+# Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
 try:
     pass
     from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
 except Exception as ex:
     utool.printex(ex, 'cannot import autogen funcs', tb=True, iswarning=True)
+try:
+    pass
+    from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
+except Exception as ex:
+    utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)

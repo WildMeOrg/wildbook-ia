@@ -45,6 +45,7 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
     for the same name twice.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
@@ -72,11 +73,13 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
 
 @_register_nn_simple_weight_func
 def fg_match_weighter(qaid2_nns, qreq_, metadata):
-    """
+    r"""
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
-        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights(dict(fg_weight=1.0))
+        >>> tup = nn_weights.testdata_nn_weights(custom_qparams=dict(fg_weight=1.0))
+        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = tup
         >>> metadata = {}
         >>> qaid2_fgvote_weight = fg_match_weighter(qaid2_nns, qreq_, metadata)
     """
@@ -109,6 +112,7 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
         dict: qaid2_weight
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
@@ -182,6 +186,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         ndarray: qfx2_normweight
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
@@ -191,7 +196,11 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         >>> normweight_fn = lnbnn_fn
         >>> rule  = qreq_.qparams.normalizer_rule
         >>> (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
-        >>> tup = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_)
+        >>> with_metadata = True
+        >>> metakey_metadata = {}
+        >>> tup = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
+        ...         qfx2_dist, rule, K, Knorm, qreq_, with_metadata,
+        ...         metakey_metadata)
 
     Timeits:
         %timeit qfx2_dist.T[0:K].T
@@ -306,6 +315,7 @@ def lnbnn_fn(vdist, ndist):
     Locale Naive Bayes Nearest Neighbor weighting
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import numpy as np
         >>> ndist = np.array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])
         >>> vdist = np.array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])
@@ -404,6 +414,7 @@ def testdata_nn_weights(dbname='testdb1', qaid_slice=slice(0, 1), daid_slice=sli
     >>> dbname = 'testdb1'
     >>> custom_qparams = {'fg_weight': 1.0}
     """
+    assert isinstance(dbname, str), 'dbname is not string. instead=%r' % (dbname,)
     import ibeis
     from ibeis.model.hots import query_request
     from ibeis.model.hots import pipeline
@@ -442,3 +453,17 @@ def test_all_weights():
 
     for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
         nn_weights.test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
+
+
+if __name__ == '__main__':
+    """
+    python utool/util_tests.py
+    python -c "import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)"
+    python ibeis/model/hots/nn_weights.py --testall
+    python ibeis/model/hots/nn_weights.py
+
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

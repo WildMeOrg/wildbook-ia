@@ -99,12 +99,15 @@ def _init_gui():
     guitool.activate_qwindow(back.mainwin)
     return back
 
+__IBEIS_CONTROLLER_CACHE__ = {}
+
 
 #@profile
-def _init_ibeis(dbdir=None, verbose=True):
+def _init_ibeis(dbdir=None, verbose=True, use_cache=True):
     import utool
     from ibeis import params
     from ibeis.control import IBEISControl
+    global IBEIS_CONTROLLER_CACHE
     if verbose and not utool.QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
@@ -112,7 +115,12 @@ def _init_ibeis(dbdir=None, verbose=True):
         ibs = None
         utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
-        ibs = IBEISControl.IBEISController(dbdir=dbdir)
+        if dbdir in __IBEIS_CONTROLLER_CACHE__:
+            ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
+        else:
+            ibs = IBEISControl.IBEISController(dbdir=dbdir)
+            __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
+
         if params.args.webapp:
             from ibeis.web import app
             app.start_from_ibeis(ibs)

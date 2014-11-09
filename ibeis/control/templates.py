@@ -43,8 +43,8 @@ def format_controller_func(func_code):
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
     if STRIP_COMMENTS:
-        #func_code = ut.regex_replace(r'  # .*$', '', func_code)
-        #func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
+        func_code = ut.regex_replace('  # .*$', '', func_code)
+        func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
         pass
     if STRIP_DOCSTR:
         # HACKY: might not always work. newline hacks away dumb blank line
