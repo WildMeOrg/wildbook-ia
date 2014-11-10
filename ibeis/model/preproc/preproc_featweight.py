@@ -13,7 +13,7 @@ import vtool.patch as ptool
 import vtool.image as gtool  # NOQA
 #import vtool.image as gtool
 import numpy as np
-from ibeis.model.preproc import preproc_chip
+from ibeis.model.preproc import preproc_probchip
 from os.path import exists
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
@@ -36,7 +36,7 @@ def gen_featweight_worker(tup):
         >>> aid_list = ibs.get_valid_aids()[ax:ax + 1]
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
-        >>> probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
+        >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
         >>> probchip_list = [gtool.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
         >>> kpts  = kpts_list[0]
         >>> aid   = aid_list[0]
@@ -70,7 +70,7 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         >>> featweight_list = compute_fgweights(ibs, aid_list)
     """
     print('[preproc_featweight] Preparing to compute fgweights')
-    probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
     if ut.DEBUG2:
         from PIL import Image
         probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
@@ -162,6 +162,8 @@ def on_delete(ibs, featweight_rowid_list):
     print('TODO: Delete probability chips, or should that be its own preproc?')
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
     testable_list = [
         gen_featweight_worker
     ]

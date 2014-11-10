@@ -438,7 +438,7 @@ class VocabTrainConfig(ConfigBase):
         vocabtrain_cfg.vocab_taids = 'all'  # Vocab
         vocabtrain_cfg.nWords = int(8E3)  #
         vocabtrain_cfg.vocab_init_method = 'akmeans++'
-        vocabtrain_cfg.vocab_nIters = 64
+        vocabtrain_cfg.vocab_nIters = 128
         vocabtrain_cfg.vocab_flann_params = {}  # TODO: easy flann params cfgstr
         vocabtrain_cfg.update(**kwargs)
 

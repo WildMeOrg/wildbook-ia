@@ -79,6 +79,7 @@ Tadder_pl_dependant = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
@@ -90,7 +91,7 @@ Tadder_pl_dependant = ut.codeblock(
         # Get requested configuration id
         config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
         # Find leaf rowids that need to be computed
-        {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+        {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
         # Get corresponding "dirty" parent rowids
         dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {leaf}_rowid_list)
         if len(dirty_{parent}_rowid_list) > 0:
@@ -132,6 +133,7 @@ Tadder_rl_dependant = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
@@ -139,7 +141,7 @@ Tadder_rl_dependant = ut.codeblock(
             >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
         """
         {leaf_parent}_rowid_list = {self}.get_{root}_{leaf_parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
-        {leaf}_rowid_list = {self}.add_{leaf_parent}_{leaf}s({leaf_parent}_rowid_list, qreq_=qreq_)
+        {leaf}_rowid_list = add_{leaf_parent}_{leaf}s({self}, {leaf_parent}_rowid_list, qreq_=qreq_)
         return {leaf}_rowid_list
     # ENDBLOCK
     '''
@@ -170,6 +172,7 @@ Tcfg_rowid_getter = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis; {self} = ibeis.opendb('testdb1')
             >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
@@ -195,7 +198,7 @@ Tcfg_rowid_getter = ut.codeblock(
 Tline_pc_dependant_delete = ut.codeblock(
     r'''
     # STARTBLOCK
-    _{child}_rowid_list = {self}.get_{parent}_{child}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+    _{child}_rowid_list = get_{parent}_{child}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
     {child}_rowid_list = ut.filter_Nones(_{child}_rowid_list)
     {self}.delete_{child}({child}_rowid_list)
     # ENDBLOCK
@@ -358,6 +361,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
             leaf        = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
@@ -377,8 +381,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
             return {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
         else:
             # Get leaf_parent rowids
-            {leaf_parent}_rowid_list = {self}.get_{root}_{leaf_parent}_rowids(
-                {root}_rowid_list, qreq_=qreq_, ensure=False)
+            {leaf_parent}_rowid_list = {self}.get_{root}_{leaf_parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
             colnames = ({LEAF}_ROWID,)
             config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
             andwhere_colnames = ({LEAF_PARENT}_ROWID, CONFIG_ROWID,)
@@ -437,6 +440,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
@@ -668,10 +672,9 @@ Tfooter_ibeiscontrol = ut.codeblock(
         """
         {main_docstr_body}
         """
+        import multiprocessing
+        multiprocessing.freeze_support()
         import utool as ut
-        testable_list = [
-            get_annot_featweight_rowids
-        ]
-        ut.doctest_funcs(testable_list)
+        ut.doctest_funcs()
     # ENDBLOCK
     ''')

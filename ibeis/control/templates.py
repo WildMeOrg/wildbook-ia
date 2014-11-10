@@ -15,8 +15,8 @@ import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
-STRIP_LONGDESC = True
-STRIP_EXAMPLE  = True
+STRIP_LONGDESC = False  # True
+STRIP_EXAMPLE  = False  # True
 STRIP_COMMENTS = False
 USE_SHORTNAMES = True
 USE_FUNCTYPE_HEADERS = True
@@ -43,8 +43,8 @@ def format_controller_func(func_code):
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
     if STRIP_COMMENTS:
-        #func_code = ut.regex_replace(r'  # .*$', '', func_code)
-        #func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
+        func_code = ut.regex_replace('  # .*$', '', func_code)
+        func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
         pass
     if STRIP_DOCSTR:
         # HACKY: might not always work. newline hacks away dumb blank line
@@ -59,15 +59,20 @@ def format_controller_func(func_code):
             finished = False
             for line in func_code_lines:
                 if finished is False:
-                    if line.strip().startswith('"""'):
+                    # Find the start of the docstr
+                    striped_line = line.strip()
+                    if not begin and striped_line.startswith('"""') or striped_line.startswith('r"""'):
                         begin = True
                     elif begin:
-                        if len(line.strip()) == 0:
+                        # A blank line signals the start and end of the long
+                        # description
+                        if len(striped_line) == 0 or striped_line.startswith('"""'):
                             if startstrip is False:
+                                # Found first blank line, start stripping
                                 startstrip = True
                             else:
                                 finished = True
-                                continue
+                                #continue
                         elif startstrip:
                             continue
                 new_lines.append(line)
@@ -435,7 +440,7 @@ def main(ibs):
         body_codeblocks.extend(functype_codeblocks)
 
     # Make main docstr
-    testable_name_list = ['get_annot_featweight_rowids']
+    #testable_name_list = ['get_annot_featweight_rowids']
     autogen_rel_fpath = join(relpath(dirname(ibeis.control.__file__), dirname(dirname(ibeis.__file__))), '_autogen_ibeiscontrol_funcs.py')
     autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
     autogen_fpath2 = autogen_fpath.replace(ut.truepath('~'), '~')
@@ -443,9 +448,8 @@ def main(ibs):
     main_commandline_block_lines = [
         'python ' + autogen_rel_fpath,
     ]
-    for testable_name in testable_name_list:
-        main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --test-' + testable_name)
-        pass
+    #for testable_name in testable_name_list:
+    main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
     main_commandline_block = '\n'.join(main_commandline_block_lines)
     main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
     main_docstr_blocks = [main_commandline_docstr]

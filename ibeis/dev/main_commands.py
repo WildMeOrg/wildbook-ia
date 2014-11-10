@@ -46,7 +46,7 @@ def parse_cfgstr_list(cfgstr_list):
 
 def preload_convert_hsdb(dbdir):
     """ Convert the database before loading (A bit hacky) """
-    from ibeis.io import ingest_hsdb
+    from ibeis.dbio import ingest_hsdb
     ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
 
 

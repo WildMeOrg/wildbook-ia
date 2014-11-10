@@ -298,9 +298,13 @@ def add_images_params_gen(gpath_list, **kwargs):
     generates values for add_images sqlcommands asychronously
 
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.all_imports import *
         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
         >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+        >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
+        >>> assert str(params_list[0][2]) == 'easy1.JPG', 'orig name is different'
+        >>> assert params_list[3] is None
 
     Cyth::
         cdef:
@@ -316,3 +320,13 @@ def add_images_params_gen(gpath_list, **kwargs):
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
     print('Warning: Not Implemented')
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/preproc/preproc_image.py
+    python ibeis/model/preproc/preproc_image.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

@@ -82,10 +82,9 @@ import flask
 import simplejson
 
 # Tools
-import detecttools
-import guitool
 import utool
 import utool as ut
+import detecttools
 import vtool
 import plottool
 import guitool
@@ -131,10 +130,10 @@ from ibeis.dev import experiment_harness
 from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
 # IBEIS EXPORT
-from ibeis.io import export_hsdb
+from ibeis.dbio import export_hsdb
 # IBEIS INGEST
-from ibeis.io import ingest_hsdb
-from ibeis.io import ingest_database
+from ibeis.dbio import ingest_hsdb
+from ibeis.dbio import ingest_database
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc
@@ -238,8 +237,6 @@ def class_reload():
     utool.printvar2('class_id_1')
     utool.printvar2('mod_id_0')
     utool.printvar2('class_id_0')
-
-
 
 def embed(back):
     """ Allows for embedding in an environment with all imports """

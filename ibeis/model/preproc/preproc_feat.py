@@ -5,6 +5,7 @@ from six.moves import zip, range
 import pyhesaff
 # UTool
 import utool
+import utool as ut
 
 
 # Inject utool functions
@@ -119,3 +120,13 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
 
 def on_delete(ibs, gid_list, qreq_=None):
     print('Warning: Not Implemented')
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/preproc/preproc_feat.py
+    python ibeis/model/preproc/preproc_feat.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

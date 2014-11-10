@@ -316,3 +316,14 @@ def plot_annotaiton_gps(X_Data):
     x1, y1 = m(lon, lat)  # convert to meters # lon==X, lat==Y
     m.plot(x1, y1, 'o')
     fig.show()
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/preproc/preproc_encounter.py
+    python ibeis/model/preproc/preproc_encounter.py --allexamples
+    """
+    import utool as ut
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

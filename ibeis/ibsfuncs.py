@@ -171,7 +171,7 @@ def export_to_xml(ibs, offset=1):
 
 @__injectable
 def export_to_hotspotter(ibs):
-    from ibeis.io import export_hsdb
+    from ibeis.dbio import export_hsdb
     export_hsdb.export_ibeis_to_hotspotter(ibs)
 
 
@@ -1491,7 +1491,7 @@ def export_encounters(ibs, eid_list, new_dbdir=None):
 @__injectable
 def export_images(ibs, gid_list, new_dbdir_):
     """ See ibeis/tests/test_ibs_export.py """
-    from ibeis.io import export_subset
+    from ibeis.dbio import export_subset
     print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
     print('[ibsfuncs] opening database')
     ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)

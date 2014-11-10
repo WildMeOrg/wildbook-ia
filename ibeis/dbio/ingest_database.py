@@ -149,7 +149,7 @@ def ingest_testdb1(dbname):
 
     Example:
         >>> # DOCTEST = OFF
-        >>> from ibeis.io.ingest_database import *  # NOQA
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> from
         >>> import utool
         >>> from vtool.tests import grabdata
@@ -268,7 +268,7 @@ def ingest_standard_database(dbname, force_delete=False):
         force_delete (bool):
 
     Example:
-        >>> from ibeis.io.ingest_database import *  # NOQA
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> dbname = 'testdb1'
         >>> force_delete = False
         >>> result = ingest_standard_database(dbname, force_delete)
@@ -378,12 +378,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 def ingest_oxford_style_db(dbdir):
     """
 
-    >>> from ibeis.io.ingest_database import *  # NOQA
+    >>> from ibeis.dbio.ingest_database import *  # NOQA
     >>> import ibeis
     >>> dbdir = '/raid/work/Oxford'
     >>> dbdir = '/raid/work/Paris'
     >>>
-    #>>> ibeis.io.convert_db.ingest_oxford_style_db(dbdir)
+    #>>> ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)
     """
     from PIL import Image
     import os
@@ -550,9 +550,14 @@ def ingest_oxford_style_db(dbdir):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/ingest/ingest_database.py --db JAG_Kieryn --force-delete
-        python ibeis/ingest/ingest_database.py --db polar_bears --force_delete
-        python ibeis/ingest/ingest_database.py --db snails_drop1
+        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose
+        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict
+
+
+        python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete
+        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
+        python ibeis/dbio/ingest_database.py --db snails_drop1
+        python ibeis/dbio/ingest_database.py --db testdb1
     """
     import multiprocessing
     multiprocessing.freeze_support()  # win32
@@ -566,6 +571,7 @@ if __name__ == '__main__':
     dbname = utool.get_argval('--db', str, None)
     force_delete = utool.get_argflag('--force_delete')
     ibs = ingest_standard_database(dbname, force_delete)
+    print('finished db injest')
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
     #main_locals = ibeis.main(dbdir=img_dir, gui=False)
     #ibs = main_locals['ibs']

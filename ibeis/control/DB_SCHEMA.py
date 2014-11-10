@@ -349,6 +349,7 @@ def test_dbschema():
         python ibeis/control/DB_SCHEMA.py --force-incremental-db-update
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DB_SCHEMA import *  # NOQA
         >>> test_dbschema()
     """
@@ -364,10 +365,11 @@ def test_dbschema():
 
 
 if __name__ == '__main__':
-    test_dbschema()
-    # Run any doctests
-    #import utool as ut
-    #testable_list = [
-    #    test_dbschema
-    #]
-    #ut.doctest_funcs(testable_list)
+    """
+    python ibeis/model/preproc/preproc_chip.py
+    python ibeis/control/DB_SCHEMA.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import utool as ut
+    ut.doctest_funcs()

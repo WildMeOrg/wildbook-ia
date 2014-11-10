@@ -56,6 +56,7 @@ def ingest_unconverted_hsdbs_in_workdir():
 
 def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     from ibeis.control import IBEISControl
+    import utool as ut
     assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
     if force_delete:
         print('FORCE DELETE: %r' % (hsdb_dir,))
@@ -109,7 +110,6 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
 
-    import utool as ut
     ut.debug_duplicate_items(image_gpath_list)
     #print(image_gpath_list)
     flags = list(map(exists, image_gpath_list))
@@ -183,6 +183,6 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
-    db = utool.get_argval('--db', str, None)
+    db = utool.get_argval('--db', type_=str, default=None)
     dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
     convert_hsdb_to_ibeis(dbdir)

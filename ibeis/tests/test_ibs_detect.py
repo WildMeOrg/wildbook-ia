@@ -24,7 +24,7 @@ def TEST_DETECT(ibs):
         'save_detection_images': SPECIAL,
         'save_scales': SPECIAL,
     }
-    detect_gen = randomforest.generate_detection_images(ibs, gid_list, species, **detectkw)
+    detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **detectkw)
     gid_list2 = []
     bbox_list2 = []
     for gid, bboxes, confidences, img_conf in detect_gen:
