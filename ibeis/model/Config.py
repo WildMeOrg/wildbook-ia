@@ -585,6 +585,9 @@ class QueryConfig(ConfigBase):
         if feat_cfg.nogravity_hack is False:
             filt_cfg.gravity_weighting = False
 
+        if filt_cfg.fg_weight == 0:
+            featweight_cfg.featweight_on = False
+
         if featweight_cfg.featweight_on is False:
             filt_cfg.fg_weight = 0
 

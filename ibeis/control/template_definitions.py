@@ -439,14 +439,24 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             parent = {parent}
             leaf = {leaf}
 
+        Timeit:
+            >>> from {autogen_modname} import *  # NOQA
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> # Test to see if there is any overhead to injected vs native functions
+            >>> %timeit get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list)
+            >>> %timeit {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list)
+
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
             >>> qreq_ = None
             >>> ensure = False
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_, ensure)
+            >>> assert len({leaf}_rowid_list) == len({parent}_rowid_list)
         """
         if ensure:
             {leaf}_rowid_list = add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=qreq_)

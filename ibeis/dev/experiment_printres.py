@@ -119,15 +119,20 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     new_qaids = []
     new_hardtup_list = []
 
+    worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
+
     for qx in range(nQuery):
         ranks = rank_mat[qx]
-        min_rank = ranks.min()
+        ranks[ranks == -1] = worst_possible_rank
+        valid_ranks = ranks[ranks < 0]
+        min_rank = ranks.min() if len(valid_ranks) > 0 else -3
         bestCFG_X = np.where(ranks == min_rank)[0]
         qx2_min_rank.append(min_rank)
         # Find the best rank over all configurations
         qx2_argmin_rank.append(bestCFG_X)
         # Mark examples as hard
-        if ranks.max() > 0:
+        worst_rank = ranks.max()
+        if worst_rank > 0 or worst_rank < 0:
             new_hard_qx_list += [qx]
     for qx in new_hard_qx_list:
         # New list is in aid format instead of cx format
@@ -220,6 +225,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         ranks = rank_mat[:, cfgx]
         for X in X_list:
             #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
+            # Ranks less than 0 are invalid
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
             nLessX_dict[int(X)][cfgx] = nLessX_
 
@@ -367,6 +373,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag(('--view-hard', '--vh')):
         sel_rows = new_hard_qx_list
+        sel_cols = list(range(len(cfg_list)))
+    if utool.get_argflag(('--view-easy', '--vz')):
+        sel_rows = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list)
         sel_cols = list(range(len(cfg_list)))
 
     # It is very inefficient to turn off caching when view_all is true

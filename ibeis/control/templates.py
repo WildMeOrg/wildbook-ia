@@ -202,7 +202,7 @@ def remove_kwarg(kwname, kwdefault, func_code):
     return func_code
 
 
-def build_dependent_controller_funcs(tablename, tableinfo):
+def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     """
         python ibeis/control/templates.py
         python ibeis/control/templates.py --dump-autogen-controller
@@ -224,6 +224,7 @@ def build_dependent_controller_funcs(tablename, tableinfo):
     }
 
     fmtdict['nonprimary_leaf_colnames'] = nonprimary_leaf_colnames
+    fmtdict['autogen_modname'] = autogen_modname
     fmtdict['leaf_other_propnames'] = leaf_other_propnames
     fmtdict['leaf_other_propname_lists'] = leaf_other_propname_lists
     fmtdict['leaf_props'] = leaf_props
@@ -377,6 +378,9 @@ def main(ibs):
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
+
+    # --- PREPROCESSING ---
+
     tblname_list = [
         #constants.ANNOTATION_TABLE,
 
@@ -386,19 +390,37 @@ def main(ibs):
 
         constants.RESIDUAL_TABLE
     ]
+
+    # Build output filenames and info
+    autogen_mod_fname = '_autogen_ibeiscontrol_funcs.py'
+    root_module = ibeis
+    parent_module = ibeis.control
+    # Parent info
+    root_modpath = dirname(root_module.__file__)
+    parent_modpath = dirname(parent_module.__file__)
+    autogen_modpath = relpath(parent_modpath, parent_modpath)
+    # Relative and truth fpaths
+    autogen_rel_fpath = join(autogen_modpath, autogen_mod_fname)
+    autogen_fpath = join(ut.truepath(parent_modpath), autogen_mod_fname)
+    # Autogen module path
+    autogen_modname = ut.get_modname_from_modpath(autogen_fpath)
+
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
     constant_list_ = [
         'CONFIG_ROWID = \'config_rowid\'',
         'FEATWEIGHT_ROWID = \'featweight_rowid\'',
     ]
+    # --- AUTOGENERATE FUNCTION TEXT ---
     for tablename in tblname_list:
         tableinfo = get_tableinfo(tablename, ibs)
 
-        functype2_func_list, constant_list = build_dependent_controller_funcs(tablename, tableinfo)
+        tup = build_dependent_controller_funcs(tablename, tableinfo, autogen_modname)
+        functype2_func_list, constant_list = tup
         constant_list_.extend(constant_list)
         tblname2_functype2_func_list[tablename] = functype2_func_list
 
+    # --- POSTPROCESSING ---
     functype_set = set([])
     for tblname, val in six.iteritems(tblname2_functype2_func_list):
         for functype in six.iterkeys(val):
@@ -441,14 +463,11 @@ def main(ibs):
 
     # Make main docstr
     #testable_name_list = ['get_annot_featweight_rowids']
-    autogen_rel_fpath = join(relpath(dirname(ibeis.control.__file__), dirname(dirname(ibeis.__file__))), '_autogen_ibeiscontrol_funcs.py')
-    autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
-    autogen_fpath2 = autogen_fpath.replace(ut.truepath('~'), '~')
-    autogen_module_name = ut.get_absolute_import(autogen_fpath)
+
+    # Create main doctest
     main_commandline_block_lines = [
         'python ' + autogen_rel_fpath,
     ]
-    #for testable_name in testable_name_list:
     main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
     main_commandline_block = '\n'.join(main_commandline_block_lines)
     main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
