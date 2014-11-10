@@ -43,6 +43,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    CommandLine:
+        python dev.py -t best --db seals2 --allgt --vz
+
     """
     print(' --- PRINT RESULTS ---')
     nCfg = len(cfg_list)
@@ -361,8 +365,17 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    CommandLine:
+        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy
+        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard
     """
     print(' --- DRAW RESULTS ---')
+    VIEW_FIG_DIR         = utool.get_argflag(('--view-fig-dir', '--vf'))
+    query_analysis_dname = utool.get_argval('--fig-dname', str, 'query_analysis')
+    DUMP_EXTRA           = utool.get_argflag('--dump-extra')
+    quality              = utool.get_argflag('--quality')
+    SHOW                 = utool.get_argflag('--show')
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -419,18 +432,16 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     #DELETE              = False
     USE_FIGCACHE = False
-    DUMP_EXTRA   = utool.get_argflag('--dump-extra')
     DUMP_QANNOT         = DUMP_EXTRA
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA
 
-    figdir = join(ibs.get_fig_dir(), 'query_analysis')
+    figdir = join(ibs.get_fig_dir(), query_analysis_dname)
     utool.ensuredir(ibs.get_fig_dir())
     utool.ensuredir(figdir)
 
     #utool.view_directory(figdir, verbose=True)
 
-    VIEW_FIG_DIR = utool.get_argflag(('--view-fig-dir', '--vf'))
     if VIEW_FIG_DIR:
         utool.view_directory(figdir, verbose=True)
 
@@ -455,6 +466,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     chunksize = 10
     # <FOR RCITER_CHUNK>
+    #with ut.EmbedOnException():
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
         # First load a chunk of query results
         qres_list = []
@@ -492,7 +504,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             # Draw Result
             dumpkw = {
                 'subdir'    : subdir,
-                'quality'   : utool.get_argflag('--quality'),
+                'quality'   : quality,
                 'overwrite' : True,
                 'verbose'   : 0,
             }
@@ -508,7 +520,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
                 continue
 
-            print('[harn] showing analysis')
+            print('[harn] drawing analysis plot')
 
             # Show Figure
             # try to shorten query labels a bit
@@ -520,7 +532,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             fpath_orig = ph.dump_figure(figdir, **dumpkw)
             append_copy_task(fpath_orig)
 
-            print('[harn] showing other plots')
+            print('[harn] drawing extra plots')
 
             if DUMP_QANNOT:
                 _show_chip(qres.qaid, 'QUERY_', **dumpkw)
@@ -538,7 +550,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                     rank = qres.get_aid_ranks(aid)
                     _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
-            if utool.get_argflag('--show'):
+            if SHOW:
                 print('[PRINT_RESULTS] df2.present()')
                 df2.present()
     # </FOR RCITER>
