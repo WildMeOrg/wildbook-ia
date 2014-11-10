@@ -26,8 +26,17 @@ def get_test_qreq():
 def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
-        >>> qreq_, ibs = get_test_qreq()   #doctest: +ELLIPSIS
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> custom_qparams = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=custom_qparams)
+        >>> print(qreq_.qparams.query_cfgstr)
+        >>> assert qreq_.qparams.fg_weight == 1.0
+        >>> assert qreq_.qparams.sv_on is False
     """
     if utool.NOT_QUIET:
         print(' --- New IBEIS QRequest --- ')
@@ -318,13 +327,18 @@ class QueryParams(object):
     # TODO: Use setattr to dynamically set all of these via config names
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import query_request
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> cfg.pipeline_root = 'asmk'
-        >>> qparams = query_request.QueryParams(cfg)
-        >>> print(cfg.get_cfgstr())
+        >>> custom_qparams = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> qparams = query_request.QueryParams(cfg, custom_qparams)
+        >>> print(qparams.query_cfgstr)
+        >>> assert qparams.fg_weight == 1.0
+        >>> assert qparams.pipeline_root == 'smk'
+        >>> assert qparams.featweight_on is True
 
     CommandLine:
         python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
@@ -335,23 +349,14 @@ class QueryParams(object):
         __init__
 
         Args:
-            cfg (?): query_config
-            custom_qparams (None):
-
-        Example:
-            >>> from ibeis.model.hots.query_request import *  # NOQA
-            >>> qparams = '?'
-            >>> cfg = '?'
-            >>> custom_qparams = None
-            >>> result = __init__(qparams, cfg, custom_qparams)
-            >>> print(result)
+            cfg (QueryConfig): query_config
+            custom_qparams (dict or None):
         """
         # Ensures that at least everything exits
         # pares nested config structure into this flat one
         if custom_qparams is not None:
-            cfg2 = cfg.deepcopy()
-            cfg2.update_query_cfg(**custom_qparams)
-            cfg = cfg2
+            cfg = cfg.deepcopy()
+            cfg.update_query_cfg(**custom_qparams)
         param_list = Config.parse_config_items(cfg)
         seen_ = set()
         for key, val in param_list:
@@ -442,6 +447,5 @@ if __name__ == '__main__':
     # Run any doctests
     import utool as ut
     testable_list = [
-        QueryParams
     ]
     ut.doctest_funcs(testable_list)

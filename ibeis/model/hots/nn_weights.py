@@ -87,8 +87,11 @@ def fg_match_weighter(qaid2_nns, qreq_, metadata):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
-        >>> tup = nn_weights.testdata_nn_weights(custom_qparams=dict(fg_weight=1.0))
+        >>> tup = nn_weights.testdata_nn_weights(custom_qparams=dict(featweight_on=True, fg_weight=1.0))
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = tup
+        >>> print(ut.dict_str((qreq_.qparams.__dict__)))
+        >>> assert qreq_.qparams.featweight_on == True, 'bug setting custom params featweight_on'
+        >>> assert qreq_.qparams.fg_weight == 1, 'bug setting custom params fg_weight'
         >>> metadata = {}
         >>> qaid2_fgvote_weight = fg_match_weighter(qaid2_nns, qreq_, metadata)
     """

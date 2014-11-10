@@ -453,97 +453,94 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         fpath_clean = ph.dump_figure(figdir, **dumpkw)
         return fpath_clean
 
-    ut.embed()
-    chunkiter = ut.ichunks(enumerate(rciter), 10)
-    for chunk in chunkiter:
+    chunksize = 10
+    # <FOR RCITER_CHUNK>
+    for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
         # First load a chunk of query results
         qres_list = []
-        for count, (r, c) in chunk:
+        # <FOR RCITER>
+        for count, rctup in rciter_chunk:
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
                 qres_list.append(None)
                 continue
             else:
                 # Get row and column index
+                (r, c) = rctup
                 qaid      = qaids[r]
                 query_cfg = cfg_list[c]
                 qres = load_qres(ibs, qaid, daids, query_cfg)
                 qres_list.append(qres)
         # Iterate over chunks a second time, but
         # with loaded query results
-        for item, qres in zip(chunk, qres_list):
+        for item, qres in zip(rciter_chunk, qres_list):
             count, rctup = item
-            (r, c) = rctup
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
                 continue
+            (r, c) = rctup
+            # Get row and column index
+            qaid      = qaids[r]
+            query_cfg = cfg_list[c]
+            query_lbl = cfgx2_lbl[c]
+            print(utool.unindent('''
+            __________________________________
+            --- VIEW %d / %d --- (r=%r, c=%r)
+            ----------------------------------
+            ''')  % (count + 1, total, r, c))
+            #qres = load_qres(ibs, qaid, daids, query_cfg)
+            qres_cfg = qres.get_fname(ext='')
+            subdir = qres_cfg
+            # Draw Result
+            dumpkw = {
+                'subdir'    : subdir,
+                'quality'   : utool.get_argflag('--quality'),
+                'overwrite' : True,
+                'verbose'   : 0,
+            }
+            show_kwargs = {
+                'N': 3,
+                'ori': True,
+                'ell_alpha': .9,
+            }
 
-    # <FOR RCITER>
-    for count, (r, c) in enumerate(rciter):
-        if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
-            continue
-        # Get row and column index
-        qaid      = qaids[r]
-        query_cfg = cfg_list[c]
-        query_lbl = cfgx2_lbl[c]
-        print(utool.unindent('''
-        __________________________________
-        --- VIEW %d / %d --- (r=%r, c=%r)
-        ----------------------------------
-        ''')  % (count + 1, total, r, c))
-        qres = load_qres(ibs, qaid, daids, query_cfg)
-        qres_cfg = qres.get_fname(ext='')
-        subdir = qres_cfg
-        # Draw Result
-        dumpkw = {
-            'subdir'    : subdir,
-            'quality'   : utool.get_argflag('--quality'),
-            'overwrite' : True,
-            'verbose'   : 0,
-        }
-        show_kwargs = {
-            'N': 3,
-            'ori': True,
-            'ell_alpha': .9,
-        }
+            if not SAVE_FIGURES:
+                continue
 
-        if not SAVE_FIGURES:
-            continue
+            if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
+                continue
 
-        if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
-            continue
+            print('[harn] showing analysis')
 
-        print('[harn] showing analysis')
+            # Show Figure
+            # try to shorten query labels a bit
+            query_lbl = query_lbl.replace(' ', '').replace('\'', '')
+            qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
 
-        # Show Figure
-        # try to shorten query labels a bit
-        query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-        qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
+            # Adjust subplots
+            df2.adjust_subplots_safe()
+            fpath_orig = ph.dump_figure(figdir, **dumpkw)
+            append_copy_task(fpath_orig)
 
-        # Adjust subplots
-        df2.adjust_subplots_safe()
-        fpath_orig = ph.dump_figure(figdir, **dumpkw)
-        append_copy_task(fpath_orig)
+            print('[harn] showing other plots')
 
-        print('[harn] showing other plots')
+            if DUMP_QANNOT:
+                _show_chip(qres.qaid, 'QUERY_', **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, **dumpkw)
 
-        if DUMP_QANNOT:
-            _show_chip(qres.qaid, 'QUERY_', **dumpkw)
-            _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, **dumpkw)
+            if DUMP_QANNOT_DUMP_GT:
+                gtaids = ibs.get_annot_groundtruth(qres.qaid)
+                for aid in gtaids:
+                    rank = qres.get_aid_ranks(aid)
+                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, **dumpkw)
 
-        if DUMP_QANNOT_DUMP_GT:
-            gtaids = ibs.get_annot_groundtruth(qres.qaid)
-            for aid in gtaids:
-                rank = qres.get_aid_ranks(aid)
-                _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, **dumpkw)
+            if DUMP_TOP_CONTEXT:
+                topids = qres.get_top_aids(num=3)
+                for aid in topids:
+                    rank = qres.get_aid_ranks(aid)
+                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
-        if DUMP_TOP_CONTEXT:
-            topids = qres.get_top_aids(num=3)
-            for aid in topids:
-                rank = qres.get_aid_ranks(aid)
-                _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
-
-        if utool.get_argflag('--show'):
-            print('[PRINT_RESULTS] df2.present()')
-            df2.present()
+            if utool.get_argflag('--show'):
+                print('[PRINT_RESULTS] df2.present()')
+                df2.present()
     # </FOR RCITER>
 
     # Copy summary images to query_analysis folder

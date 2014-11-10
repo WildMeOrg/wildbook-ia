@@ -80,16 +80,21 @@ def parse_config_items(cfg):
     """
     import ibeis
     param_list = []
+    seen = set([])
     for item in cfg.items():
         key, val = item
-        if key.startswith('_'):
+        if isinstance(val, ibeis.model.Config.ConfigBase):
+            child_cfg = val
+            param_list.extend(parse_config_items(child_cfg))
             #print(key)
             pass
-        elif isinstance(val, ibeis.model.Config.ConfigBase):
-            param_list.extend(parse_config_items(val))
+        elif key.startswith('_'):
             #print(key)
             pass
         else:
+            if key in seen:
+                print('[Config] WARNING: key=%r appears more than once' % (key,))
+            seen.add(key)
             param_list.append(item)
             #print(key)
     return param_list
@@ -540,8 +545,7 @@ class QueryConfig(ConfigBase):
     def update_query_cfg(query_cfg, **kwargs):
         # Each config paramater should be unique
         # So updating them all should not cause conflicts
-        query_cfg._featweight_cfg._feat_cfg.update(**kwargs)
-        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**kwargs)
+        # FIXME: Should be able to infer all the children that need updates
         query_cfg.nn_cfg.update(**kwargs)
         query_cfg.filt_cfg.update(**kwargs)
         query_cfg.sv_cfg.update(**kwargs)
@@ -550,6 +554,9 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg.update(**kwargs)
         query_cfg.smk_cfg.vocabassign_cfg.update(**kwargs)
         query_cfg.smk_cfg.vocabtrain_cfg.update(**kwargs)
+        query_cfg._featweight_cfg.update(**kwargs)
+        query_cfg._featweight_cfg._feat_cfg.update(**kwargs)
+        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**kwargs)
         query_cfg.update(**kwargs)
         # Ensure feasibility of the configuration
         query_cfg.make_feasible()
@@ -585,11 +592,9 @@ class QueryConfig(ConfigBase):
         if feat_cfg.nogravity_hack is False:
             filt_cfg.gravity_weighting = False
 
-        if filt_cfg.fg_weight == 0:
+        if featweight_cfg.featweight_on is False or filt_cfg.fg_weight == 0.0:
+            filt_cfg.fg_weight = 0.0
             featweight_cfg.featweight_on = False
-
-        if featweight_cfg.featweight_on is False:
-            filt_cfg.fg_weight = 0
 
         vocabassign_cfg.make_feasible()
         smk_cfg.make_feasible()
