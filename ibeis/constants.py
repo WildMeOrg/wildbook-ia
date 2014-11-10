@@ -105,26 +105,27 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 
 class Species(object):
-    ZEB_PLAIN    = 'zebra_plains'
-    ZEB_GREVY    = 'zebra_grevys'
-    GIRAFFE      = 'giraffe'
-    ELEPHANT_SAV = 'elephant_savanna'
-    JAG          = 'jaguar'
-    LEOPARD      = 'leopard'
-    LION         = 'lion'
-    WILDDOG      = 'wild_dog'
-    WHALESHARK   = 'whale_shark'
-    SNAILS       = 'snails'
-    SEALS        = 'seals_spotted'
-    POLAR_BEAR   = 'bear_polar'
-    FROGS        = 'frogs'
-    LIONFISH     = 'lionfish'
-    WYTOADS      = 'toads_wyoming'
-    RHINO_BLACK  = 'rhino_black'
-    RHINO_WHITE  = 'rhino_white'
-    WILDEBEEST   = 'wildebeest'
+    ZEB_PLAIN     = 'zebra_plains'
+    ZEB_GREVY     = 'zebra_grevys'
+    GIRAFFE       = 'giraffe'
+    ELEPHANT_SAV  = 'elephant_savanna'
+    JAG           = 'jaguar'
+    LEOPARD       = 'leopard'
+    LION          = 'lion'
+    WILDDOG       = 'wild_dog'
+    WHALESHARK    = 'whale_shark'
+    SNAILS        = 'snails'
+    SEALS_SPOTTED = 'seals_spotted'
+    SEALS_RINGED  = 'seals_saimma_ringed'
+    POLAR_BEAR    = 'bear_polar'
+    FROGS         = 'frogs'
+    LIONFISH      = 'lionfish'
+    WYTOADS       = 'toads_wyoming'
+    RHINO_BLACK   = 'rhino_black'
+    RHINO_WHITE   = 'rhino_white'
+    WILDEBEEST    = 'wildebeest'
     WATER_BUFFALO = 'water_buffalo'
-    UNKNOWN      = UNKNOWN
+    UNKNOWN       = UNKNOWN
 
 SPECIES_TUPS = [
     (Species.ZEB_PLAIN,    'Zebra (Plains)'),
@@ -139,6 +140,8 @@ SPECIES_TUPS = [
     (Species.WHALESHARK,   'Whale Shark'),
     (Species.POLAR_BEAR,   'Polar Bear'),
     (Species.WILDEBEEST,   'Wildebeest'),
+    (Species.SEALS_SPOTTED, 'Seal (spotted)'),
+    (Species.SEALS_RINGED,  'Seal (Siamaa Ringed))'),
     (Species.UNKNOWN,      'Unknown'),
 ]
 

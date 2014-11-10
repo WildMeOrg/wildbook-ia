@@ -45,6 +45,7 @@ class FMT_KEYS:
     name_fmt = '{name:*}[id:d].{ext}'
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
     giraffe1_fmt = '{name:*}_{id:d}.{ext}'
+    seal2_fmt = '{name:Phsd*}{id:[A-Z]}.{ext}'
 
 
 def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
@@ -68,9 +69,16 @@ def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}
         ]),
 
         FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
-            ('name',  r'G\d+'),  # species and 2 numbers
-            ('under', r'_'),     # 2 more numbers
-            ('id',    r'\d+'),   # 2 more numbers
+            ('name',  r'G\d+'),
+            ('under', r'_'),
+            ('id',    r'\d+'),
+            ( None,   r'\.'),
+            ('ext',   r'\w+'),
+        ]),
+
+        FMT_KEYS.seal2_fmt: utool.named_field_regex([
+            ('name',  r'Phs\d+'),  # Phs and then numbers
+            ('id',    r'[A-Z]+'),  # 1 or more letters
             ( None,   r'\.'),
             ('ext',   r'\w+'),
         ]),
@@ -237,6 +245,18 @@ def ingest_snails_drop1(dbname):
                       adjust_percent=.20)
 
 
+@__standard('seals_drop2')
+def ingest_seals_drop2(dbname):
+    return Ingestable(dbname,
+                      zipfile='../raw/hiby_Phs_photos.zip',
+                      ingest_type='named_images',
+                      fmtkey=FMT_KEYS.seal2_fmt,
+                      #img_dir='/raid/raw/snails_drop1_59MB',
+                      adjust_percent=.20,
+                      species=constants.Species.SEALS_RINGED
+                      )
+
+
 @__standard('JAG_Kieryn')
 def ingest_JAG_Kieryn(dbname):
     return Ingestable(dbname,
@@ -294,20 +314,24 @@ class Ingestable(object):
     Temporary structure representing how to ingest a databases
     """
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
-                 adjust_percent=0.0, postingest_func=None):
+                 adjust_percent=0.0, postingest_func=None, zipfile=None,
+                 species=None):
         self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
         self.fmtkey          = fmtkey
+        self.zipfile         = zipfile
         self.adjust_percent  = adjust_percent
         self.postingest_func = postingest_func
+        self.species         = species
         self.ensure_feasibility()
 
     def ensure_feasibility(self):
         rawdir  = ibeis.sysres.get_rawdir()
         if self.img_dir is None:
             # Try to find data either the raw or work dir
-            self.img_dir = ibeis.sysres.db_to_dbdir(self.dbname, extra_workdirs=[rawdir])
+            self.img_dir = ibeis.sysres.db_to_dbdir(
+                self.dbname, extra_workdirs=[rawdir], allow_newdir=True)
         msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
         assert self.img_dir is not None, msg
         assert exists(self.img_dir), msg
@@ -323,7 +347,15 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         Converts folder structure where folders = name, to ibsdb
     if ingest_type == 'named_images':
         Converts imgname structure where imgnames = name_id.ext, to ibsdb
+
+
+    CommandLine:
+        python ibeis/dbio/ingest_database.py --db seals_drop2
     """
+    if ingestable.zipfile is not None:
+        zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
+        ingestable.img_dir = ut.unarchive_file(zipfile_fpath)
+
     img_dir         = ingestable.img_dir
     ingest_type     = ingestable.ingest_type
     fmtkey          = ingestable.fmtkey

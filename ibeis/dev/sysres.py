@@ -120,7 +120,7 @@ def get_dbalias_dict():
             'MOTHERS':          'PZ_MOTHERS',
             'FROGS':            'Frogs',
             'TOADS':            'WY_Toads',
-            'SEALS':            'Seals',
+            'SEALS_SPOTTED':    'Seals',
 
             'OXFORD':           'Oxford_Buildings',
             'PARIS':            'Paris_Buildings',
@@ -208,8 +208,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, 
-                   cache_priority=True):
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cache_priority=True):
     """ Machinery for finding a database directory """
     '''
         # LEGACY DB ARG PARSING:
