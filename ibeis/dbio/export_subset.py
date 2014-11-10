@@ -860,16 +860,20 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             WARNING - this may cause an exception to be raised
             +---
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset
         >>> ibs_src = ibeis.opendb(dbdir='testdb1')
-        >>> ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
+        >>> #ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
         >>> print(ibs_src.get_infostr())
-        >>> print(ibs_src2.get_infostr())
+        >>> #print(ibs_src2.get_infostr())
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=True)
+        >>> assert ibs_dst.get_num_names() == 0
+        >>> assert ibs_dst.get_num_images() == 0
+        >>> assert ibs_dst.get_num_annotations() == 0
         >>> #ibs_dst = ibs
         >>> export_subset.merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
-        >>> export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
+        >>> #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
         >>> print(ibs_dst.get_infostr())
     """
     # Export source database
@@ -959,3 +963,14 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
 #     for count, (averts1, averts2) in enumerate(verts_pair_iter):
 #         assert averts1 == averts2, msg.format(
 #             count=count, averts1=averts1, averts2=averts2,)
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/dbio/export_subset.py
+    python ibeis/dbio/export_subset.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import utool as ut
+    ut.doctest_funcs()

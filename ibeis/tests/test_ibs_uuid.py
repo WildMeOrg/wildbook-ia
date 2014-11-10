@@ -1052,22 +1052,24 @@ def test_specs():
 
 
 def TEST_UUID():
-    print('Machine Name: %r' % MACHINE_NAME)
-    test_specs()
-    right = 'http://i.imgur.com/QqSkNZe.png'
-    test_image_keys = ['lena', 'jeff', 'easy1', right]
-    test_image_passed = {}
-
-    for key in test_image_keys:
-        flag = test_uuid(key)
-        test_image_passed[key] = flag
-
-    # Write out all that buffered info
-    sys.stdout.write('\n'.join(lines) + '\n')
-    sys.stdout.flush()
-
-    assert all(test_image_passed.values()), 'this test is hard'
+    print('This test is disabled. UUIDS cannot be generated from jpeg pixels, even if there is no write')
     return locals()
+    #print('Machine Name: %r' % MACHINE_NAME)
+    #test_specs()
+    #right = 'http://i.imgur.com/QqSkNZe.png'
+    #test_image_keys = ['lena', 'jeff', 'easy1', right]
+    #test_image_passed = {}
+
+    #for key in test_image_keys:
+    #    flag = test_uuid(key)
+    #    test_image_passed[key] = flag
+
+    ## Write out all that buffered info
+    #sys.stdout.write('\n'.join(lines) + '\n')
+    #sys.stdout.flush()
+
+    #assert all(test_image_passed.values()), 'this test is hard'
+    #return locals()
 
 
 if __name__ == '__main__':

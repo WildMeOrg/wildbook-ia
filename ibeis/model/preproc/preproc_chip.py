@@ -331,7 +331,7 @@ def on_delete(ibs, cid_list, qreq_=None):
 if __name__ == '__main__':
     """
     python ibeis/model/preproc/preproc_chip.py
-    python ibeis/model/preproc/preproc_chip.py --testall
+    python ibeis/model/preproc/preproc_chip.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

@@ -94,12 +94,15 @@ class ImageModelSQL(APIItemModel):
     def __init__(model, col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=None, *args):
         model.db = db
         model.encounter_id = '-1'
-        super(ImageModelSQL, model).__init__(col_name_list=col_name_list,
-                                             col_type_list=col_type_list, col_nice_list=col_nice_list,
-                                             col_edit_list=col_edit_list,
-                                             col_getter_list=model._getter, col_setter_list=model._setter,
-                                             row_index_callback=model._row_index_callback,
-                                             paernt=parent)
+        #row_index_callback=model._row_index_callback
+        headers = dict(col_name_list=col_name_list,
+                       col_type_list=col_type_list,
+                       col_nice_list=col_nice_list,
+                       col_edit_list=col_edit_list,
+                       #col_getter_list=model._getter,
+                       #col_setter_list=model._setter
+                       )
+        super(ImageModelSQL, model).__init__(headers, parent)
 
     def _change_encounter(model, encounter_id):
         model.encounter_id = encounter_id

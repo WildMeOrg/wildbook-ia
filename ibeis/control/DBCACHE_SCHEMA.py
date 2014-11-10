@@ -128,6 +128,7 @@ def test_dbcache_schema():
     test_dbcache_schema
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DBCACHE_SCHEMA import *  # NOQA
         >>> test_dbcache_schema()
 
@@ -148,9 +149,11 @@ def test_dbcache_schema():
 
 
 if __name__ == '__main__':
-    test_dbcache_schema()
-    #import utool as ut
-    #testable_list = [
-    #    test_dbcache_schema
-    #]
-    #ut.doctest_funcs(testable_list)
+    """
+    python ibeis/control/DBCACHE_SCHEMA.py
+    python ibeis/control/DBCACHE_SCHEMA.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import utool as ut
+    ut.doctest_funcs()

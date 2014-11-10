@@ -45,6 +45,7 @@ from ibeis.model.hots import nn_weights
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import exceptions as hsexcept
 import utool
+import utool as ut
 from functools import partial
 #profile = utool.profile
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=False)
@@ -251,6 +252,7 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
         dict : filt2_weights
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> from ibeis.model.hots import nn_weights
@@ -898,3 +900,13 @@ def save_resdict(qreq_, qaid2_qres):
     qresdir = qreq_.get_qresdir()
     for qres in six.itervalues(qaid2_qres):
         qres.save(qresdir)
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/hots/pipeline.py
+    python ibeis/model/hots/pipeline.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

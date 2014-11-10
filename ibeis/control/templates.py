@@ -15,8 +15,8 @@ import ibeis.control.template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
-STRIP_LONGDESC = True
-STRIP_EXAMPLE  = True
+STRIP_LONGDESC = False  # True
+STRIP_EXAMPLE  = False  # True
 STRIP_COMMENTS = False
 USE_SHORTNAMES = True
 USE_FUNCTYPE_HEADERS = True
@@ -440,7 +440,7 @@ def main(ibs):
         body_codeblocks.extend(functype_codeblocks)
 
     # Make main docstr
-    testable_name_list = ['get_annot_featweight_rowids']
+    #testable_name_list = ['get_annot_featweight_rowids']
     autogen_rel_fpath = join(relpath(dirname(ibeis.control.__file__), dirname(dirname(ibeis.__file__))), '_autogen_ibeiscontrol_funcs.py')
     autogen_fpath = join(ut.truepath(dirname(ibeis.control.__file__)), '_autogen_ibeiscontrol_funcs.py')
     autogen_fpath2 = autogen_fpath.replace(ut.truepath('~'), '~')
@@ -448,9 +448,8 @@ def main(ibs):
     main_commandline_block_lines = [
         'python ' + autogen_rel_fpath,
     ]
-    for testable_name in testable_name_list:
-        main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --test-' + testable_name)
-        pass
+    #for testable_name in testable_name_list:
+    main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
     main_commandline_block = '\n'.join(main_commandline_block_lines)
     main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
     main_docstr_blocks = [main_commandline_docstr]

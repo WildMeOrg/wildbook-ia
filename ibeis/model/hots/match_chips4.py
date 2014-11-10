@@ -4,8 +4,9 @@ DoctestCMD:
 """
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 from ibeis.model.hots import query_request
-from ibeis.model.hots import pipeline as hspipe
+from ibeis.model.hots import pipeline
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
 
 
@@ -41,6 +42,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         qaid2_qres (dict): dict of QueryResult objects
 
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> import ibeis
         >>> qaid_list = [1]
@@ -49,7 +51,6 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> use_cache = True
         >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
         >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
-
         >>> qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)
     """
     if use_cache is None:
@@ -110,7 +111,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
         if utool.DEBUG2:
             qreq_.assert_self(ibs)  # SANITY CHECK
         # Try loading as many cached results as possible
-        qaid2_qres_hit, cachemiss_qaids = hspipe.try_load_resdict(qreq_)
+        qaid2_qres_hit, cachemiss_qaids = pipeline.try_load_resdict(qreq_)
         cachemiss_quuids = ibs.get_annot_uuids(cachemiss_qaids)
         qreq_.set_external_qaids(cachemiss_qaids, cachemiss_quuids)  # FIXME: changes qreq_ state
         #if utool.DEBUG2:
@@ -120,18 +121,28 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     else:
         print('[mc4] cache-query is off')
         #if __debug__:
-        #    hspipe.try_load_resdict(qreq_, force_miss=True)
+        #    pipeline.try_load_resdict(qreq_, force_miss=True)
         qaid2_qres_hit = {}
     qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
-    qaid2_qres = hspipe.request_ibeis_query_L0(ibs, qreq_)  # execute queries
+    qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
     # Cache save only misses
     if utool.DEBUG2:
         qreq_.assert_self(ibs)  # SANITY CHECK
     if SAVE_CACHE:
-        hspipe.save_resdict(qreq_, qaid2_qres)
+        pipeline.save_resdict(qreq_, qaid2_qres)
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)
     del qreq_  # the query request is no longer needed
     return qaid2_qres
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/hots/match_chips4.py
+    python ibeis/model/hots/match_chips4.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

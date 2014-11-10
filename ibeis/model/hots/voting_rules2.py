@@ -4,6 +4,7 @@ import six
 from six.moves import zip, range, map
 import numpy as np
 from numpy.linalg import svd
+import utool as ut
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
 
 
@@ -32,6 +33,7 @@ def score_chipmatch_csum(chipmatch):
         dict: aid2_score
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
         >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
         >>> aid2_score = score_chipmatch_csum(chipmatch)
@@ -53,9 +55,10 @@ def score_chipmatch_nsum(chipmatch, qreq_):
         dict: nid2_score
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
         >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
-        >>> nid2_score = score_chipmatch_nsum(ibs, chipmatch, qreq)
+        >>> nid2_score = score_chipmatch_nsum(chipmatch, qreq_)
     """
     import vtool
     (_, aid2_fs, _) = chipmatch
@@ -420,3 +423,13 @@ def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
     # HACK HACK HACK!!!
     #aid2_score = enforce_one_name_per_cscore(ibs, aid2_score, chipmatch)
     return aid2_score, nid2_score
+
+
+if __name__ == '__main__':
+    """
+    python ibeis/model/hots/voting_rules2.py
+    python ibeis/model/hots/voting_rules2.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    ut.doctest_funcs()

@@ -79,6 +79,7 @@ Tadder_pl_dependant = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
@@ -132,6 +133,7 @@ Tadder_rl_dependant = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
@@ -170,6 +172,7 @@ Tcfg_rowid_getter = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis; {self} = ibeis.opendb('testdb1')
             >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
@@ -358,6 +361,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
             leaf        = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
@@ -436,6 +440,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> {self} = ibeis.opendb('testdb1')
             >>> {parent}_rowid_list = {self}.get_valid_{parent}_rowids()
@@ -667,10 +672,9 @@ Tfooter_ibeiscontrol = ut.codeblock(
         """
         {main_docstr_body}
         """
+        import multiprocessing
+        multiprocessing.freeze_support()
         import utool as ut
-        testable_list = [
-            get_annot_featweight_rowids
-        ]
-        ut.doctest_funcs(testable_list)
+        ut.doctest_funcs()
     # ENDBLOCK
     ''')

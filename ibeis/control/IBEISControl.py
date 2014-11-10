@@ -47,6 +47,18 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
 
 
+def new_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True):
+    global __IBEIS_CONTROLLER_CACHE__
+    if dbdir in __IBEIS_CONTROLLER_CACHE__:
+        if verbose:
+            print('[new_IBEISController] returning cached controller')
+        ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
+    else:
+        ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
+        __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
+    return ibs
+
+
 @atexit.register
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
@@ -3924,14 +3936,3 @@ try:
 except Exception as ex:
     utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)
     raise
-
-
-def new_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True):
-    #global __IBEIS_CONTROLLER_CACHE__
-    #if dbdir in __IBEIS_CONTROLLER_CACHE__:
-    #    ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
-    #else:
-    # no cache for now
-    ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
-    #    __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
-    return ibs

@@ -38,7 +38,7 @@ def _register_nn_simple_weight_func(func):
 
 
 @_register_nn_simple_weight_func
-def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
+def dupvote_match_weighter(qaid2_nns, qreq_, metadata):
     """
     Each query feature is only allowed to vote for each name at most once.
     IE: a query feature can vote for multiple names, but it cannot vote
@@ -50,6 +50,15 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata, qnid=None):
         >>> from ibeis.model.hots import nn_weights
         >>> tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = tup
+        >>> metadata = {}
+        >>> # Test Function Call
+        >>> qaid2_dupvote_weight = dupvote_match_weighter(qaid2_nns, qreq_, metadata)
+        >>> # Check consistency
+        >>> qaid = qaid_list[0]
+        >>> flags = qaid2_dupvote_weight[qaid] > .5
+        >>> qfx2_topnid = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
+        >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
+        >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
     """
     # Prealloc output
     K = qreq_.qparams.K
@@ -117,15 +126,10 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata):
         >>> from ibeis.model.hots import nn_weights
         >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
         >>> qaid = qaid_list[0]
-        >>> #----
         >>> normweight_fn = lnbnn_fn
         >>> metadata = {}
         >>> qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata)
         >>> weights1 = qaid2_weight1[qaid]
-        >>> #selnorms1 = qaid2_selnorms1[qaid]
-        >>> #---
-        >>> # test NN_WEIGHT_FUNC_DICT
-        >>> #---
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
         >>> qaid2_weight2 = nn_normonly_weight(qaid2_nns, qreq_, metadata)
         >>> weights2 = qaid2_weight2[qaid]
@@ -428,7 +432,12 @@ def testdata_nn_weights(dbname='testdb1', qaid_slice=slice(0, 1), daid_slice=sli
     return ibs, daid_list, qaid_list, qaid2_nns, qreq_
 
 
-def test_all_weights():
+def test_all_normalized_weights():
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> test_all_normalized_weights()
+    """
     from ibeis.model.hots import nn_weights
     import six
     ibs, daid_list, qaid_list, qaid2_nns, qreq_ = nn_weights.testdata_nn_weights()
@@ -437,29 +446,32 @@ def test_all_weights():
     def test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid):
         from ibeis.model.hots import nn_weights
         #----
+        metadata = {}
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
-        qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_)
+        qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qreq_, metadata)
         weights1 = qaid2_weight1[qaid]
         #---
         # test NN_WEIGHT_FUNC_DICT
         #---
         nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
-        qaid2_weight2 = nn_normonly_weight(qaid2_nns, qreq_)
+        qaid2_weight2 = nn_normonly_weight(qaid2_nns, qreq_, metadata)
         weights2 = qaid2_weight2[qaid]
         assert np.all(weights1 == weights2)
         print(nn_weight + ' passed')
 
     for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
-        nn_weights.test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
+        normweight_key = nn_weight + '_fn'
+        if normweight_key not in nn_weights.__dict__:
+            continue
+        test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
 
 
 if __name__ == '__main__':
     """
     python utool/util_tests.py
     python -c "import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)"
-    python ibeis/model/hots/nn_weights.py --testall
+    python ibeis/model/hots/nn_weights.py --allexamples
     python ibeis/model/hots/nn_weights.py
-
     """
     import multiprocessing
     multiprocessing.freeze_support()

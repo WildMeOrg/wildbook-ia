@@ -16,7 +16,7 @@ __test__ = False  # This is not a test
 def get_test_kpts(ibs, n=11):
     aid = ibs.get_valid_aids()[0]
     kpts = ibs.get_annot_kpts(aid)
-    kpts_samp = utool.util_list.spaced_items(kpts, n=n)
+    kpts_samp = utool.spaced_items(kpts, n=n)
     return kpts_samp
 
 
@@ -55,7 +55,7 @@ def SAMPLE_DATA(ibs):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     import ibeis
-    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
+    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
     test_locals = utool.run_test(SAMPLE_DATA, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')

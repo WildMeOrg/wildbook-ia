@@ -176,12 +176,12 @@ cat <<EOF
     |  |  |  |  | |  | |        |  |___ [__   |  [__  
      \/   |  |__| |__| |___     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST $VTOOL_DIR/vtool/tests/test_draw_keypoint.py 
-    RUN_TEST $VTOOL_DIR/vtool/tests/test_spatial_verification.py 
-    RUN_TEST $VTOOL_DIR/vtool/tests/test_exhaustive_ori_extract.py 
-    RUN_TEST $VTOOL_DIR/vtool/tests/test_vtool.py 
     RUN_TEST $VTOOL_DIR/vtool/tests/test_akmeans.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_draw_keypoint.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_exhaustive_ori_extract.py 
     RUN_TEST $VTOOL_DIR/vtool/tests/test_pyflann.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_spatial_verification.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_vtool.py 
 fi
 #---------------------------------------------
 #GUI TESTS
@@ -191,11 +191,11 @@ cat <<EOF
     | __ |  | |     |  |___ [__   |  [__  
     |__] |__| |     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_gui_selection.py 
-    RUN_TEST ibeis/tests/test_gui_open_database.py 
     RUN_TEST ibeis/tests/test_gui_add_annotation.py 
     RUN_TEST ibeis/tests/test_gui_all.py 
     RUN_TEST ibeis/tests/test_gui_import_images.py 
+    RUN_TEST ibeis/tests/test_gui_open_database.py 
+    RUN_TEST ibeis/tests/test_gui_selection.py 
 fi
 #---------------------------------------------
 #IBEIS TESTS
@@ -205,33 +205,32 @@ cat <<EOF
     | |__] |___ | [__      |  |___ [__   |  [__  
     | |__] |___ | ___]     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_ibs_detect.py 
-    RUN_TEST ibeis/tests/test_ibs_query_components.py 
     RUN_TEST ibeis/tests/test_ibs.py 
-    RUN_TEST ibeis/tests/test_ibs_query.py 
-    RUN_TEST ibeis/tests/test_ibs_encounters.py 
-    RUN_TEST ibeis/tests/test_ibs_control.py 
-    RUN_TEST ibeis/tests/test_ibs_feat_compute.py 
-    RUN_TEST ibeis/tests/test_ibs_uuid.py 
-    RUN_TEST ibeis/tests/test_ibs_localize_images.py 
     RUN_TEST ibeis/tests/test_ibs_add_images.py 
-    RUN_TEST ibeis/tests/test_ibs_chip_compute.py 
-    RUN_TEST ibeis/tests/test_ibs_info.py 
     RUN_TEST ibeis/tests/test_ibs_add_name.py 
-    RUN_TEST ibeis/tests/test_ibs_getters.py 
-    RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py 
-    RUN_TEST ibeis/tests/test_ibs_export.py 
-    RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py 
     RUN_TEST ibeis/tests/test_ibs_annotation_uuid.py 
-    RUN_TEST ibeis/tests/test_delete_names.py 
-    RUN_TEST ibeis/tests/test_delete_features.py 
-    RUN_TEST ibeis/tests/test_delete_enc.py 
-    RUN_TEST ibeis/tests/test_delete_image.py 
+    RUN_TEST ibeis/tests/test_ibs_chip_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_control.py 
+    RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py 
+    RUN_TEST ibeis/tests/test_ibs_detect.py 
+    RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_encounters.py 
+    RUN_TEST ibeis/tests/test_ibs_feat_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_getters.py 
+    RUN_TEST ibeis/tests/test_ibs_info.py 
+    RUN_TEST ibeis/tests/test_ibs_localize_images.py 
+    RUN_TEST ibeis/tests/test_ibs_query.py 
+    RUN_TEST ibeis/tests/test_ibs_query_components.py 
+    RUN_TEST ibeis/tests/test_ibs_uuid.py 
     RUN_TEST ibeis/tests/test_delete_annotation.py 
-    RUN_TEST ibeis/tests/test_delete_image_thumbtups.py 
-    RUN_TEST ibeis/tests/test_delete_annotation_chips.py 
     RUN_TEST ibeis/tests/test_delete_annotation_all.py 
+    RUN_TEST ibeis/tests/test_delete_annotation_chips.py 
     RUN_TEST ibeis/tests/test_delete_chips.py 
+    RUN_TEST ibeis/tests/test_delete_enc.py 
+    RUN_TEST ibeis/tests/test_delete_features.py 
+    RUN_TEST ibeis/tests/test_delete_image.py 
+    RUN_TEST ibeis/tests/test_delete_image_thumbtups.py 
+    RUN_TEST ibeis/tests/test_delete_names.py 
 fi
 #---------------------------------------------
 #SQL TESTS
@@ -241,12 +240,12 @@ cat <<EOF
     [__  |  | |        |  |___ [__   |  [__  
     ___] |_\| |___     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_sql_numpy.py 
-    RUN_TEST ibeis/tests/test_sql_modify.py 
-    RUN_TEST ibeis/tests/test_sql_revert.py 
-    RUN_TEST ibeis/tests/test_sql_names.py 
-    RUN_TEST ibeis/tests/test_sql_ids.py 
     RUN_TEST ibeis/tests/test_sql_control.py 
+    RUN_TEST ibeis/tests/test_sql_ids.py 
+    RUN_TEST ibeis/tests/test_sql_modify.py 
+    RUN_TEST ibeis/tests/test_sql_names.py 
+    RUN_TEST ibeis/tests/test_sql_numpy.py 
+    RUN_TEST ibeis/tests/test_sql_revert.py 
 fi
 #---------------------------------------------
 #VIEW TESTS
@@ -256,8 +255,8 @@ cat <<EOF
     |  | | |___ | | |     |  |___ [__   |  [__  
      \/  | |___ |_|_|     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_view_viz.py 
     RUN_TEST ibeis/tests/test_view_interact.py 
+    RUN_TEST ibeis/tests/test_view_viz.py 
 fi
 #---------------------------------------------
 #MISC TESTS
@@ -278,17 +277,14 @@ cat <<EOF
     |  |  |  |__| |___ |__/     |  |___ [__   |  [__  
     |__|  |  |  | |___ |  \     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/assert_modules.py 
-    RUN_TEST ibeis/tests/make_big_database.py 
-    RUN_TEST ibeis/tests/test_qt_lazy.py 
-    RUN_TEST ibeis/tests/test_qt_thumb.py 
-    RUN_TEST ibeis/tests/sample_data.py 
+    RUN_TEST ibeis/tests/test_weakref.py 
+    RUN_TEST ibeis/tests/test_uuid_consistency.py 
+    RUN_TEST ibeis/tests/test_new_schema.py 
     RUN_TEST ibeis/tests/reset_testdbs.py 
     RUN_TEST ibeis/tests/test_qt_tree.py 
-    RUN_TEST ibeis/tests/test_hots_split_trees.py 
-    RUN_TEST ibeis/tests/test_new_schema.py 
-    RUN_TEST ibeis/tests/demo.py 
-    RUN_TEST ibeis/tests/test_uuid_consistency.py 
+    RUN_TEST ibeis/tests/sample_data.py 
+    RUN_TEST ibeis/tests/make_big_database.py 
+    RUN_TEST ibeis/tests/assert_modules.py 
 fi
 #---------------------------------------------
 #HESAFF TESTS
@@ -298,17 +294,29 @@ cat <<EOF
     |__| |___ [__  |__| |___ |___     |  |___ [__   |  [__  
     |  | |___ ___] |  | |    |        |  |___ ___]  |  ___]
 EOF
-    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_draw_keypoint.py 
-    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_parallel.py 
-    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_cpp_rotation_invariance.py 
     RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_adaptive_scale.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_cpp_rotation_invariance.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_draw_keypoint.py 
     RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_ellipse.py 
     RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_exhaustive_ori_extract.py 
-    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_iterative.py 
     RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_patch_orientation.py 
     RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_iterative.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_parallel.py 
 fi
 
 #---------------------------------------------
-# END TESTING
+# EXTRA DOCTESTS
+RUN_TEST ibeis/model/hots/nn_weights.py --allexamples
+RUN_TEST ibeis/control/DBCACHE_SCHEMA.py --allexamples
+RUN_TEST ibeis/control/DB_SCHEMA.py --allexamples
+RUN_TEST ibeis/model/preproc/preproc_image.py --allexamples
+RUN_TEST ibeis/model/preproc/preproc_chip.py --allexamples
+RUN_TEST ibeis/model/preproc/preproc_feat.py --allexamples
+RUN_TEST ibeis/model/preproc/preproc_encounter.py --allexamples
+RUN_TEST ibeis/model/hots/match_chips4.py --allexamples
+RUN_TEST ibeis/model/hots/voting_rules2.py --allexamples
+RUN_TEST ibeis/model/hots/pipeline.py --allexamples
+RUN_TEST ibeis/dbio/export_subset.py --allexamples
+
 END_TESTS
