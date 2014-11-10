@@ -370,10 +370,12 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
 @devcmd('scores', 'score')
 def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """
+    TODO: plot the difference between the top true score and the next best false score
     CommandLine:
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg sv_on:False dupvote_weight=1.0 score_method:nsum prescore_method:nsum
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     """
