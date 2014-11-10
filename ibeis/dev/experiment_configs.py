@@ -45,6 +45,11 @@ nov6 = augbase(small_best, {
     'score_method':   ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
 })
 
+nsum = augbase(small_best, {
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
 
 K = augbase(small_best, {
     'K': [4, 10],
