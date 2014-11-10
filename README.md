@@ -581,8 +581,9 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.prep
 
 
 # NEW DATABASE TEST
-python dev.py -t best --db seals2
-python dev.py -t best --db seals2 --vh --vf
+python dev.py -t best --db seals2 --allgt
+python dev.py -t best --db seals2 --allgt --vh --vf
+python dev.py -t best --db seals2 --allgt
 
 ```
 
