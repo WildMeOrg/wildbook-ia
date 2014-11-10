@@ -6,6 +6,7 @@ import itertools
 import numpy as np
 import six
 import utool
+import utool as ut  # NOQA
 from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
 from ibeis.model.hots import match_chips4 as mc4
@@ -452,11 +453,32 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         fpath_clean = ph.dump_figure(figdir, **dumpkw)
         return fpath_clean
 
-    for count, (r, c) in enumerate(rciter):
-        if SKIP_TO is not None:
-            if count < SKIP_TO:
+    ut.embed()
+    chunkiter = ut.ichunks(enumerate(rciter), 10)
+    for chunk in chunkiter:
+        # First load a chunk of query results
+        qres_list = []
+        for count, (r, c) in chunk:
+            if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
+                qres_list.append(None)
                 continue
-        if count in skip_list:
+            else:
+                # Get row and column index
+                qaid      = qaids[r]
+                query_cfg = cfg_list[c]
+                qres = load_qres(ibs, qaid, daids, query_cfg)
+                qres_list.append(qres)
+        # Iterate over chunks a second time, but
+        # with loaded query results
+        for item, qres in zip(chunk, qres_list):
+            count, rctup = item
+            (r, c) = rctup
+            if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
+                continue
+
+    # <FOR RCITER>
+    for count, (r, c) in enumerate(rciter):
+        if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
             continue
         # Get row and column index
         qaid      = qaids[r]
@@ -522,6 +544,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         if utool.get_argflag('--show'):
             print('[PRINT_RESULTS] df2.present()')
             df2.present()
+    # </FOR RCITER>
 
     # Copy summary images to query_analysis folder
     print('[PRINT_RESULTS] copying summaries')

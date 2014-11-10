@@ -12,7 +12,7 @@ CHMOD_PATTERNS = [
 ]
 
 PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
-                'ibeis/dev', 'ibeis/gui', 'ibeis/ingest', 'ibeis/model',
+                'ibeis/dev', 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
                 'ibeis/hots', 'ibeis/preproc', 'ibeis/viz',
                 'ibeis/viz/interact', ]
 
@@ -34,6 +34,7 @@ CLUTTER_DIRS = [
     'ibeis/export',
     'ibeis/ingest',
     'ibeis/injest',
+    'ibeis/io',
     'testsuite',
     '__pycache__/',
 ]
