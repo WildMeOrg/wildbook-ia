@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import six
+import utool as ut
 from six.moves import zip
 import numpy as np
 # Tools
@@ -28,9 +29,9 @@ class OrganizedResult(DynStruct):
         super(DynStruct, self).__init__()
         self.orgtype = orgtype
         self.qaids   = []  # query annotation indexes
-        self.aids    = []  # their top matching result
-        self.scores  = []  # their score
-        self.ranks   = []  # their rank
+        self.aids    = []  # a matching result
+        self.scores  = []  # the matching score
+        self.ranks   = []  # the matching rank
 
     def append(self, qaid, aid, rank, score):
         self.qaids.append(qaid)
@@ -122,9 +123,14 @@ def qres2_true_and_false(ibs, qres):
             * false_tup = (false_aids, false_scores, false_ranks)
 
     Example:
-        >>> from ibeis.dev.results_organizer import *  # NOQA
-        >>> ibs = '?'
-        >>> qres = '?'
+        >>> from ibeis.dev.results_organizer import *   # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> custom_qparams = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
+        >>> qaid_list = aid_list[0:1]
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, aid_list, custom_qparams=custom_qparams)
+        >>> qres = qaid2_qres[qaid_list[0]]
         >>> (true_tup, false_tup) = qres2_true_and_false(ibs, qres)
         >>> print((true_tup, false_tup))
     """
@@ -140,13 +146,54 @@ def qres2_true_and_false(ibs, qres):
     false_aids   = [-1 if rank is None else top_aids[rank]  for rank in false_ranks]
     false_scores = [-1 if rank is None else top_score[rank] for rank in false_ranks]
     # Construct the true positive tuple
-    true_tup     = (true_aids, true_scores, true_ranks)
-    false_tup    = (false_aids, false_scores, false_ranks)
+    NEW = True
+    if NEW:
+        def sort_tup(tup):
+            # Sort tup by rank
+            (aids, scores, ranks) = tup
+            aids   = np.array(aids)
+            scores = np.array(scores)
+            ranks  = np.array(ranks)
+            sortx  = ranks.argsort()
+            aids   = aids[sortx].tolist()
+            scores = scores[sortx].tolist()
+            ranks  = ranks[sortx].tolist()
+            sorted_tup = (aids, scores, ranks)
+            return sorted_tup
+        true_tup     = sort_tup((true_aids, true_scores, true_ranks))
+        false_tup    = sort_tup((false_aids, false_scores, false_ranks))
+    else:
+        true_tup     = (true_aids, true_scores, true_ranks)
+        false_tup    = (false_aids, false_scores, false_ranks)
     # Return tuples
     return true_tup, false_tup
 
 
 def organize_results(ibs, qaid2_qres):
+    """
+    Sorts query result annotations, score, and ranks.
+
+
+    TODO:
+        somehow use the ratio of scores to try and make a prediction
+
+    CommandLine:
+        ib
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+    Example:
+        >>> from ibeis.dev.results_organizer import *   # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> custom_qparams = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
+        >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, custom_qparams=custom_qparams)
+    """
     print('organize_results()')
     org_true          = OrganizedResult('true')
     org_false         = OrganizedResult('false')
@@ -155,6 +202,8 @@ def organize_results(ibs, qaid2_qres):
     org_bot_true      = OrganizedResult('bot_true')
     org_problem_true  = OrganizedResult('problem_true')
     org_problem_false = OrganizedResult('problem_false')
+    org_rank0_true    = OrganizedResult('rank0_true')
+    org_rank0_false   = OrganizedResult('rank0_false')
 
     def _organize_result(qres):
         # Use ground truth to sort into true/false
@@ -166,7 +215,8 @@ def organize_results(ibs, qaid2_qres):
         #
         # Record: all_true, missed_true, top_true, bot_true
         topx = 0
-        for topx, (aid, score, rank) in enumerate(zip(*true_tup)):
+        for topx, truetup in enumerate(zip(*true_tup)):
+            (aid, score, rank) = truetup
             # Record all true results
             org_true.append(qaid, aid, rank, score)
             # Record non-top (a.k.a problem) true results
@@ -177,6 +227,8 @@ def organize_results(ibs, qaid2_qres):
             # Record the best results
             if topx == 0:
                 org_top_true.append(qaid, aid, rank, score)
+            if rank == 0:
+                org_rank0_true.append(qaid, aid, rank, score)
             last_rank = rank
         # Record the worse true result
         if topx > 1:
@@ -190,6 +242,8 @@ def organize_results(ibs, qaid2_qres):
                 org_problem_false.append(qaid, aid, rank, score)
             if topx == 0:
                 org_top_false.append(qaid, aid, rank, score)
+            if rank == 0:
+                org_rank0_false.append(qaid, aid, rank, score)
             topx += 1
 
     # -----------------
@@ -213,6 +267,8 @@ def organize_results(ibs, qaid2_qres):
         ('bot_true',      org_bot_true),
         ('problem_true',  org_problem_true),
         ('problem_false', org_problem_false),
+        ('rank0_true',    org_rank0_true),
+        ('rank0_false',   org_rank0_false),
     ])
 
     for org in six.itervalues(allorg):

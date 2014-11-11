@@ -591,7 +591,6 @@ class QueryConfig(ConfigBase):
             nn_cfg.Knorm = 1
             filt_cfg.ratio_thresh = 1.6
             filt_cfg.ratio_weight = 1.0
-
         elif codename == 'asmk':
             query_cfg.pipeline_root = 'asmk'
         elif codename == 'smk':

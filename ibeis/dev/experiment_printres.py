@@ -18,7 +18,7 @@ from six.moves import map, range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
-SKIP_TO = utool.get_argval('--skip-to', default=None)
+SKIP_TO = utool.get_argval('--skip-to', type_=int, default=None)
 #SAVE_FIGURES = utool.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not utool.get_argflag(('--nosave-figures', '--nosf'))
 
@@ -452,7 +452,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         return qres
 
     #DELETE              = False
-    USE_FIGCACHE = False
+    USE_FIGCACHE = ut.get_argflag('--use-figcache')
     DUMP_QANNOT         = DUMP_EXTRA
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA

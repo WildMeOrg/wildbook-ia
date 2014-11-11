@@ -376,7 +376,9 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg sv_on:False dupvote_weight=1.0 score_method:nsum prescore_method:nsum
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     """
@@ -385,6 +387,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
+    #orgtype_list = ['rank0_false', 'rank0_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
     cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)

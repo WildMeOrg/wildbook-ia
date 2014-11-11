@@ -47,13 +47,22 @@ nsum = augbase(small_best, {
     'prescore_method':   ['nsum'],
 })
 
-nov11 = augbase(small_best, {
-    'use_chip_extent': [False, True],
-    'xy_thresh':     [.1, .01, .001],
-    'fg_weight': [1.0],
-    'featweight_on': [True],
-    'algorithm': ['linear'],
+vary_sver = augbase(small_best, {
+    'sv_on'          : [False, True],
+    'use_chip_extent' : [False, True],
+    'xy_thresh'       : [.1, .01, .001],
+    'fg_weight'       : [1.0],
+    'featweight_on'   : [True],
+    'algorithm'       : ['linear'],
+})
 
+sver_new = augbase(small_best, {
+    'sv_on'           : [True],
+    'use_chip_extent' : [True],
+    'xy_thresh'       : [.001],
+    'fg_weight'       : [1.0],
+    'featweight_on'   : [True],
+    #'algorithm'       : ['linear'],
 })
 
 nov6 = augbase(small_best, {

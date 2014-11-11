@@ -575,9 +575,9 @@ python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -
 python dev.py -t vsone_best --db PZ_Mothers --allgt --qindex 0:2 --print-all --va
 
 # DOCTESTS
-TODO: ~~make these tests work~~ use utool to make these work
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))" --quiet
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
+python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_chip))" --quiet
+python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_featweight))" --quiet
+python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_feat))" --quiet --allexamples
 
 
 # NEW DATABASE TEST
@@ -587,8 +587,17 @@ python dev.py -t best --db seals2 --allgt
 
 
 # DEBUGGING
-python dev.py --allgt -t nsum vsmany vsone --print-all --db NAUT_Dan
+# Make sure things are working on Naut_Dan
+python dev.py --allgt -t nsum vsmany vsone smk --print-all --db NAUT_Dan
+# Debug spatial verification
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
 
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
+python dev.py --db PZ_MTEST -t sver_new --allhard  --print-rankmat
+python dev.py --db PZ_MTEST -t sver_new best --allgt
+python dev.py --db GZ_ALL -t sver_new best --allgt
 
 ```
 
