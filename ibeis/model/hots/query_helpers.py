@@ -29,6 +29,7 @@ def get_query_components(ibs, qaids):
     qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
     #---
     qaid2_chipmatch_SVER = pipeline.spatial_verification(qaid2_chipmatch_FILT, qreq_)
+    qaid2_svtups = qreq_.metadata['qaid2_svtups']
     #---
     qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, metadata, qreq_)
     #####################

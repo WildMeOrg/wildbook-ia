@@ -54,6 +54,7 @@ def ingest_unconverted_hsdbs_in_workdir():
             raise
 
 
+@utool.indent_func
 def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     from ibeis.control import IBEISControl
     import utool as ut
@@ -86,8 +87,8 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 
     # ADD NAMES TABLE
     nid_list = ibs.add_names(names_name_list)
-    print(names_name_list)
-    print(nid_list)
+    #print(names_name_list)
+    #print(nid_list)
 
     assert len(nid_list) == len(names_name_list), 'bad name adder'
 

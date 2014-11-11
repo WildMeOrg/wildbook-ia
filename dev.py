@@ -953,7 +953,7 @@ if __name__ == '__main__':
     INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
     INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
 
-    EXAMPLE_STR = ut.codeblock(EXAMPLE_TEXT)
+    EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
     print(INTRO_STR)
     print(EXAMPLE_STR)

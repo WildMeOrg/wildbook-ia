@@ -97,7 +97,7 @@ def list_unconverted_hsdbs(*args):
     print('\n'.join(needs_convert_hsdbs))
 
 
-@devcmd('convert')
+@devcmd('convertall')
 def convert_hsdbs(*args):
     ingest_hsdb.ingest_unconverted_hsdbs_in_workdir()
 

@@ -326,6 +326,9 @@ class Ingestable(object):
         self.species         = species
         self.ensure_feasibility()
 
+    def __str__(self):
+        return ut.dict_str(self.__dict__)
+
     def ensure_feasibility(self):
         rawdir  = ibeis.sysres.get_rawdir()
         if self.img_dir is None:
@@ -352,6 +355,9 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     CommandLine:
         python ibeis/dbio/ingest_database.py --db seals_drop2
     """
+
+    print('[ingest_rawdata] Ingestable' + str(ingestable))
+
     if ingestable.zipfile is not None:
         zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
         ingestable.img_dir = ut.unarchive_file(zipfile_fpath)

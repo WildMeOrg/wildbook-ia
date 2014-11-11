@@ -144,7 +144,8 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
     if _aids is not None:
         daid_list = _aids
     else:
-        daid_list = qreq_.get_external_daids()
+        #daid_list = qreq_.get_external_daids()
+        daid_list = qreq_.get_internal_daids()
     daids_hashid = ibs.get_annot_uuid_hashid(daid_list, '_DUUIDS')
     flann_cfgstr = qreq_.qparams.flann_cfgstr
     feat_cfgstr  = qreq_.qparams.feat_cfgstr

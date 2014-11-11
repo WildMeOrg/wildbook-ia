@@ -5,9 +5,9 @@ import six
 import numpy as np
 import vtool.linalg as ltool
 from six.moves import zip
-print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 import functools
 from ibeis.model.hots import hstypes
+print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 
 
 NN_WEIGHT_FUNC_DICT = {}
