@@ -40,7 +40,7 @@ class IBEIS_Data(object):
         ibsd.categories_rois = []
 
         for image in ibsd.images:
-            temp = image.categories(unique=False)
+            temp = image.categories(unique=False, patches=True)
             ibsd.categories_rois += temp
             ibsd.categories_images += set(temp)
 

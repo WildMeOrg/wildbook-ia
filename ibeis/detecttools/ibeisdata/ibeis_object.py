@@ -7,8 +7,8 @@ from .ibeis_part import IBEIS_Part
 
 class IBEIS_Object(object):
 
-    def __init__(ibso, _xml, width, height, implicit=True, **kwargs):
-        if implicit:
+    def __init__(ibso, _xml, width, height, name=None, **kwargs):
+        if name is None:
             ibso.name = com.get(_xml, 'name')
             ibso.pose = com.get(_xml, 'pose')
             ibso.truncated = com.get(_xml, 'truncated') == "1"
@@ -22,7 +22,7 @@ class IBEIS_Object(object):
 
             ibso.parts = [ IBEIS_Part(part) for part in com.get(_xml, 'part', text=False, singularize=False)]
         else:
-            ibso.name = 'MINED'
+            ibso.name = name
             ibso.pose = 'Unspecified'
             ibso.truncated = False
             ibso.difficult = False

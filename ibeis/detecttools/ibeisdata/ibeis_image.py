@@ -33,6 +33,7 @@ class IBEIS_Image(object):
             ibsi.segmented = com.get(size, 'segmented') == "1"
 
             ibsi.objects = []
+            ibsi.objects_patches = []
             ibsi.objects_invalid = []
             for obj in com.get(_xml, 'object', text=False, singularize=False):
                 temp = IBEIS_Object(obj, ibsi.width, ibsi.height)
@@ -47,27 +48,6 @@ class IBEIS_Image(object):
                     flag = False
 
             if kwargs['mine_negatives'] and flag:
-
-                def _overlaps(objects, obj, margin):
-                    for _obj in objects:
-                        leftA   = obj['xmin']
-                        rightA  = obj['xmax']
-                        bottomA = obj['ymin']
-                        topA    = obj['ymax']
-                        widthA = rightA - leftA
-                        heightA = topA - bottomA
-
-                        leftB   = _obj.xmin + 0.25 * min(_obj.width, widthA)
-                        rightB  = _obj.xmax - 0.25 * min(_obj.width, widthA)
-                        bottomB = _obj.ymin + 0.25 * min(_obj.height, heightA)
-                        topB    = _obj.ymax - 0.25 * min(_obj.height, heightA)
-
-                        if (leftA < rightB) and (rightA > leftB) and \
-                           (topA > bottomB) and (bottomA < topB):
-                            return True
-
-                    return False
-
                 negatives = 0
                 for i in range(kwargs['mine_max_attempts']):
                     if negatives >= kwargs['mine_max_keep']:
@@ -85,11 +65,44 @@ class IBEIS_Image(object):
                         'ymin': y,
                     }
 
-                    if _overlaps(ibsi.objects, obj, kwargs["mine_overlap_margin"]):
+                    overlap_names = ibsi._overlaps(ibsi.objects, obj, kwargs["mine_overlap_margin"])
+                    if len(overlap_names) > 0:
                         continue
 
-                    ibsi.objects.append(IBEIS_Object(obj, ibsi.width, ibsi.height, implicit=False))
+                    ibsi.objects.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name='MINED'))
                     negatives += 1
+
+            if kwargs['mine_patches']:
+                patch_width = kwargs['mine_patch_width']
+                patch_height = kwargs['mine_patch_height']
+                x_length = float(ibsi.width  - patch_width  - 1)
+                y_length = float(ibsi.height - patch_height - 1)
+                x_bins = int(x_length / kwargs['mine_patch_stride_suggested'])
+                y_bins = int(y_length / kwargs['mine_patch_stride_suggested'])
+                patch_stride_x = x_length / x_bins
+                patch_stride_y = y_length / y_bins
+                # ibsi.show()
+                for x in range(x_bins + 1):
+                    for y in range(y_bins + 1):
+                        x_min = int(x * patch_stride_x)
+                        y_min = int(y * patch_stride_y)
+                        x_max = x_min + patch_width
+                        y_max = y_min + patch_height
+                        assert 0 <= x_min and x_max < ibsi.width and 0 <= y_min and y_max < ibsi.height
+                        # Add patch
+                        obj = {
+                            'xmax': x_max,
+                            'xmin': x_min,
+                            'ymax': y_max,
+                            'ymin': y_min,
+                        }
+                        overlap_names = ibsi._overlaps(ibsi.objects, obj, kwargs["mine_patch_overlap_margin"])
+                        if len(overlap_names) > 0:
+                            for overlap_name in overlap_names:
+                                name = '%s' % overlap_name.upper()
+                                ibsi.objects_patches.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name=name))
+                        else:
+                            ibsi.objects_patches.append(IBEIS_Object(obj, ibsi.width, ibsi.height, name='NEGATIVE'))
 
     def __str__(ibsi):
         return "<IBEIS Image Object | %s | %d objects>" \
@@ -101,11 +114,68 @@ class IBEIS_Image(object):
     def __len__(ibsi):
         return len(ibsi.objects)
 
+    def _distance((x1, y1), (x2, y2)):
+        return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
+
+    def _overlaps(ibsi, objects, obj, margin=0.50, bins=['left', 'front', 'right', 'back']):
+        bins = ['left', 'front_left', 'front', 'front_right', 'right', 'back_right', 'back', 'back_left']
+        names = []
+        for _obj in objects:
+            # leftA   = obj['xmin']
+            # rightA  = obj['xmax']
+            # bottomA = obj['ymin']
+            # topA    = obj['ymax']
+            # widthA = rightA - leftA
+            # heightA = topA - bottomA
+
+            # leftB   = _obj.xmin + (margin * min(_obj.width, widthA))
+            # rightB  = _obj.xmax - (margin * min(_obj.width, widthA))
+            # bottomB = _obj.ymin + (margin * min(_obj.height, heightA))
+            # topB    = _obj.ymax - (margin * min(_obj.height, heightA))
+
+            # print(leftA < rightB, rightA > leftB, topA > bottomB, bottomA < topB)
+
+            # if (leftA < rightB) and (rightA > leftB) and \
+            #    (topA > bottomB) and (bottomA < topB):
+            #     bin_size = 2.0 * math.pi / len(bins)
+            #     pose = float(_obj.pose) + 0.5 * bin_size
+            #     pose %= 2.0 * math.pi
+            #     bin_ = int(pose / bin_size)
+            #     pose_str = bins[bin_]
+            #     print(pose, bin_, pose_str)
+            #     names.append(_obj.name + "_" + pose_str)
+
+            # leftA   = obj['xmin']
+            # rightA  = obj['xmax']
+            # bottomA = obj['ymin']
+            # topA    = obj['ymax']
+            # widthA = rightA - leftA
+            # heightA = topA - bottomA
+            x_overlap = max(0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin))
+            y_overlap = max(0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin))
+            area_overlap = float(x_overlap * y_overlap)
+            width = obj['xmax'] - obj['xmin']
+            height =  obj['ymax'] - obj['ymin']
+            area_total = min(width * height, _obj.area)
+            score = area_overlap / area_total
+            # print(score)
+            if score >= margin:
+                bin_size = 2.0 * math.pi / len(bins)
+                pose = float(_obj.pose) + 0.5 * bin_size
+                pose %= 2.0 * math.pi
+                bin_ = int(pose / bin_size)
+                pose_str = bins[bin_]
+                # print(pose, bin_, pose_str)
+                names.append(_obj.name + ":" + pose_str)
+        return list(set(names))
+
     def image_path(ibsi):
         return os.path.join(ibsi.absolute_dataset_path, "JPEGImages", ibsi.filename)
 
-    def categories(ibsi, unique=True):
+    def categories(ibsi, unique=True, patches=False):
         temp = [ _object.name for _object in ibsi.objects ]
+        if patches:
+            temp += [ _object.name for _object in ibsi.objects_patches ]
         if unique:
             temp = set(temp)
         return sorted(temp)
@@ -114,8 +184,6 @@ class IBEIS_Image(object):
         return [ _object.bounding_box(parts) for _object in ibsi.objects ]
 
     def _accuracy_match(ibsi, prediction, object_list):
-        def _distance((x1, y1), (x2, y2)):
-            return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
 
         # For this non-supressed prediction, compute and assign to the closest bndbox
         centerx, centery, minx, miny, maxx, maxy, confidence, supressed = prediction
@@ -139,8 +207,8 @@ class IBEIS_Image(object):
                     assert index_best is not None  # Just to be sure
                     _object_best = object_list[index_best]
 
-                    a = _distance((centerx, centery), (_object_best.xcenter, _object_best.ycenter))
-                    b = _distance((centerx, centery), (_object.xcenter, _object.ycenter))
+                    a = ibsi._distance((centerx, centery), (_object_best.xcenter, _object_best.ycenter))
+                    b = ibsi._distance((centerx, centery), (_object.xcenter, _object.ycenter))
                     if a < b:
                         # Not a better candidate based on distance
                         continue
@@ -211,6 +279,19 @@ class IBEIS_Image(object):
 
         for _object in ibsi.objects_invalid:
             color = [0, 0, 0]
+            color_dict[_object] = color
+            _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
+
+            if parts:
+                for part in _object.parts:
+                    _draw_box(original, part.name.upper(), part.xmin, part.ymin, part.xmax, part.ymax, color)
+
+        for _object in ibsi.objects_patches:
+            if _object.name.upper() == 'NEGATIVE':
+                continue
+                color = [255, 0, 0]
+            else:
+                color = [0, 0, 255]
             color_dict[_object] = color
             _draw_box(original, _object.name.upper(), _object.xmin, _object.ymin, _object.xmax, _object.ymax, color)
 
