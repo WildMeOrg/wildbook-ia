@@ -161,7 +161,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid2_qres = {}
 
         qres_gen = generate_vsone_queries(ibs, qreq_, qaid_list, chunksize)
-        qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), lbl='vsone query: ', backspace=False)
+        qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
+                                backspace=False, lbl='vsone query: ',
+                                use_rate=True)
         qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
 
         for qres_chunk in qres_chunk_iter:

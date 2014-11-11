@@ -56,7 +56,16 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
         generator : generates param tups
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> cid_list = ibs.get_annot_cids(aid_list)
+        >>> qreq_ = None
+        >>> nInput = None
+        >>> featgen = add_feat_params_gen(ibs, cid_list, qreq_, nInput)
+        >>> feat_list = list(featgen)
     """
     if nInput is None:
         nInput = len(cid_list)
@@ -92,9 +101,6 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
 
     Returns:
         featgen
-
-    Example:
-        >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
 
     Cyth:
         cdef:
