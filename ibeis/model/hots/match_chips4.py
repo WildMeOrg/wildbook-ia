@@ -125,7 +125,16 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
         qaid2_qres_hit = {}
     qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
-    qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
+    if qreq_.qparams.pipeline_root == 'vsone':
+        qaid_list = qreq_.get_external_qaids()
+        qreq_shallow_list = [query_request.qreq_shallow_copy(qreq_, qx) for qx in range(len(qaid_list))]
+        qaid2_qres = {
+            qaid: pipeline.request_ibeis_query_L0(ibs, __qreq)[qaid]
+            for __qreq, qaid in zip(qreq_shallow_list, qaid_list)
+        }
+        del qreq_shallow_list
+    else:
+        qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
     # Cache save only misses
     if utool.DEBUG2:
         qreq_.assert_self(ibs)  # SANITY CHECK

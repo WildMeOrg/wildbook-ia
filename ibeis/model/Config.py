@@ -346,6 +346,8 @@ class AggregateConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
     """ FlannConfig
+
+    this flann is only for neareset neighbors in vsone/many
     TODO: this might not need to be here
     """
     def __init__(flann_cfg, **kwargs):
@@ -546,6 +548,8 @@ class QueryConfig(ConfigBase):
         # Each config paramater should be unique
         # So updating them all should not cause conflicts
         # FIXME: Should be able to infer all the children that need updates
+        query_cfg.codename = 'None'
+        query_cfg.species_code = '____'
         query_cfg.nn_cfg.update(**kwargs)
         query_cfg.filt_cfg.update(**kwargs)
         query_cfg.sv_cfg.update(**kwargs)
@@ -565,12 +569,37 @@ class QueryConfig(ConfigBase):
         """
         removes invalid parameter settings over all cfgs (move to QueryConfig)
         """
+        codename = query_cfg.codename
         filt_cfg = query_cfg.filt_cfg
         nn_cfg   = query_cfg.nn_cfg
         featweight_cfg = query_cfg._featweight_cfg
         feat_cfg = query_cfg._featweight_cfg._feat_cfg
         smk_cfg = query_cfg.smk_cfg
         vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+        agg_cfg = query_cfg.agg_cfg
+        sv_cfg = query_cfg.sv_cfg
+        # TODO:
+        if codename == 'nsum':
+            filt_cfg.dupvote_weight = 1.0
+            agg_cfg.score_method = 'nsum'
+            sv_cfg.prescore_method = 'nsum'
+        elif codename == 'vsmany':
+            filt_cfg.pipeline_root = 'vsmany'
+        elif codename == 'vsone':
+            filt_cfg.pipeline_root = 'vsone'
+        elif codename == 'asmk':
+            filt_cfg.pipeline_root = 'asmk'
+        elif codename == 'smk':
+            filt_cfg.pipeline_root = 'smk'
+        elif codename == 'None':
+            pass
+        if query_cfg.species_code == '____':
+            filt_cfg.fg_weight = 0.0
+        if query_cfg.species_code == 'zebra_plains':
+            filt_cfg.fg_weight = 1.0
+        if query_cfg.species_code == 'zebra_grevys':
+            filt_cfg.fg_weight = 1.0
+            # TODO:
 
         if query_cfg.pipeline_root == 'asmk':
             query_cfg.pipeline_root = 'smk'

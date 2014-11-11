@@ -44,6 +44,11 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata):
     IE: a query feature can vote for multiple names, but it cannot vote
     for the same name twice.
 
+    CommandLine:
+        python dev.py --allgt -t best --db PZ_MTEST
+        python dev.py --allgt -t nsum --db PZ_MTEST
+        python dev.py --allgt -t dupvote --db PZ_MTEST
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA

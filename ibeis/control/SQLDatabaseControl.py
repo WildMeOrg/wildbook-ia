@@ -182,12 +182,12 @@ class SQLDatabaseController(object):
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        if not utool.QUIET:
+        if utool.VERBOSE and not utool.QUIET:
             print('[sql] running sql pragma optimizions')
         #db.cur.execute('PRAGMA cache_size = 0;')
         #db.cur.execute('PRAGMA cache_size = 1024;')
         #db.cur.execute('PRAGMA page_size = 1024;')
-        print('[sql] running sql pragma optimizions')
+        #print('[sql] running sql pragma optimizions')
         db.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
         db.cur.execute('PRAGMA temp_store = MEMORY;')
         db.cur.execute('PRAGMA synchronous = OFF;')

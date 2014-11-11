@@ -35,7 +35,16 @@ fgweight = augbase(small_best, {
 
 
 dupvote = augbase(small_best, {
-    'dupvote_weight': [1.0]  # , 0.0],
+    'dupvote_weight': [1.0],  # , 0.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+    'algorithm': ['linear', 'kdtree']
+})
+
+nsum = augbase(small_best, {
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
 })
 
 nov6 = augbase(small_best, {
@@ -43,11 +52,6 @@ nov6 = augbase(small_best, {
     'dupvote_weight': [1.0, 0.0],
     'fg_weight': [1.0, 0.0],
     'score_method':   ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
-})
-
-nsum = augbase(small_best, {
-    'score_method':      ['nsum'],
-    'prescore_method':   ['nsum'],
 })
 
 
@@ -93,16 +97,21 @@ featparams_big2 = augbase(
 # low initialSigma = more keypoints
 
 
-vsone_best = {
+vsone = {
     'pipeline_root':  ['vsone'],
     'checks':        [256],
     'K':             [1],
     'Knorm':         [1],
     'Krecip':        [0],
-    'ratio_weight':  [0, 1],
+    'ratio_weight':  [1.0],
+    'fg_weight':     [1.0],
     'lnbnn_weight':  [0],
-    'ratio_thresh':  [1.5, 1.8],
+    'ratio_thresh':  [1.6],
+    'sv_on':         [False, True],  # True, False],
 }
+
+
+vsone_best = augbase(vsone, { })
 
 
 smk_test2 = {

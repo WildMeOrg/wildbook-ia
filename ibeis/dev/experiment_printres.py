@@ -376,6 +376,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     DUMP_EXTRA           = utool.get_argflag('--dump-extra')
     quality              = utool.get_argflag('--quality')
     SHOW                 = utool.get_argflag('--show')
+
+    sel_rows = []
+    sel_cols = []
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -386,11 +389,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag(('--view-hard', '--vh')):
-        sel_rows = new_hard_qx_list
-        sel_cols = list(range(len(cfg_list)))
+        sel_rows += np.array(new_hard_qx_list).tolist()
+        sel_cols += list(range(len(cfg_list)))
     if utool.get_argflag(('--view-easy', '--vz')):
-        sel_rows = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list)
-        sel_cols = list(range(len(cfg_list)))
+        sel_rows += np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
+        sel_cols += list(range(len(cfg_list)))
+    sel_rows = ut.unique_keep_order2(sel_rows)
+    sel_cols = ut.unique_keep_order2(sel_cols)
 
     # It is very inefficient to turn off caching when view_all is true
     if not mc4.USE_CACHE:

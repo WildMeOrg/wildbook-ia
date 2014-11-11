@@ -10,7 +10,7 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 
 CommandLine:
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum dupvote_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
+import utool as ut
 from utool.util_six import get_funcname
 import utool
 print('-!!')
@@ -576,14 +577,20 @@ def run_devcmds(ibs, qaid_list, daid_list):
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
+    # ------
+    # RUNS EXPERIMENT HARNESS OVER VALID TESTNAMES SPECIFIED WITH -t
+    # ------
+
     # Config driven test functions
     # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
+    test_cfg_name_list = []
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
-            test_cfg_name_list = [test_cfg_name]
-            fnum = df2.next_fnum()
-            # Should we specify fnum here?
-            experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
+            test_cfg_name_list.append(test_cfg_name)
+    if len(test_cfg_name_list):
+        fnum = df2.next_fnum()
+        # Run Experiments
+        experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -883,6 +890,41 @@ def run_dev(main_locals):
     return locals()
 
 
+EXAMPLE_TEXT = '''
+# DOWNLOAD A TEST DATABASE (IF REQUIRED)
+python dev.py --t mtest
+./resetdbs.sh  # FIXME
+python ibeis/dbio/ingest_database.py  <- see module for usage
+
+# CHOOSE A DATABASE
+python dev.py --db PZ_GZALL --setdb
+python dev.py --db PZ_MTEST --setdb
+python dev.py --db testdb1 --setdb
+python dev.py --db seals2 --setdb
+
+# DATABASE INFORMATION
+python dev.py -t dbinfo
+python dev.py --allgt -t best
+
+# Compare two configs
+python dev.py --allgt -t best nsum vsmany vsone
+python dev.py --allgt -t best nsum vsmany vsone smk
+
+python dev.py -t query --qaid 110 -w
+#python dev.py --allgt -t vsone vsmany
+#python dev.py --allgt -t vsone --vz --vh
+
+# Run a small amount of vsone tests
+python dev.py --allgt -t  vsone --index 0:1 --vz --vh --vf --noqcache
+
+python dev.py --allgt -t best --vz --fig-dname query_analysis_easy
+python dev.py --allgt -t best --vh --fig-dname query_analysis_hard
+
+python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110
+python dev.py --hard -t best vsone nsum
+>>>
+'''
+
 if __name__ == '__main__':
     """
         The Developer Script
@@ -893,11 +935,35 @@ if __name__ == '__main__':
             -t     # run list of tests
 
             Examples:
-                ./dev.py -t query -w
     """
+
     multiprocessing.freeze_support()  # for win32
+
+    helpstr = ut.codeblock(
+        '''
+        Dev is meant to be run as an interactive script.
+
+        The dev.py script runs any test you regiter with @devcmd in any combination
+        of configurations specified by a Config object.
+
+        Dev caches information in order to get quicker results.  # FIXME: Provide quicker results  # FIXME: len(line)
+        ''')
+
+    INTRO_TITLE = 'The dev.py Script'
+    INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+    INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
+
+    EXAMPLE_STR = ut.codeblock(EXAMPLE_TEXT)
+
+    print(INTRO_STR)
+    print(EXAMPLE_STR)
+
     CMD   = '--cmd' in sys.argv
     NOGUI = '--gui' not in sys.argv
+
+    if len(sys.argv) == 1:
+        print('Run dev.py with arguments!')
+        sys.exit(1)
 
     # Run Precommands
     run_devprecmds()

@@ -127,6 +127,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         # Nearest neighbors weighting and scoring (filt2_weights, metadata)
         # * feature matches are weighted
         filt2_weights_ = weight_neighbors(qaid2_nns_, qreq_, qreq_.metadata)
+        print(filt2_weights_)
 
         # Thresholding and weighting (qaid2_nnfilter)
         # * feature matches are pruned
@@ -896,8 +897,11 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
         >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
         >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
         >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-        >>> qaid2_chipmatch = pipeline.spatial_verification(qaid2_chipmatch, qreq_)
+        >>> qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+        >>> qaid2_chipmatch_SVER = pipeline.spatial_verification(qaid2_chipmatch_FILT, qreq_)
+        >>> qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, qreq_.metadata, qreq_)
+        >>> qres = qaid2_qres[1]
+
     """
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')

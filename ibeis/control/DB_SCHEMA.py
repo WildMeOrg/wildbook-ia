@@ -274,6 +274,7 @@ def update_1_1_0(db, ibs=None):
         (1, 'contributor_uuid', 'UUID', None),
     ),
         table_constraints=[],
+        # FIXME: This change may have broken things
         superkey_colnames=['contributor_uuid', 'config_suffix']
     )
 
