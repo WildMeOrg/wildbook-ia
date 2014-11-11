@@ -6,7 +6,7 @@ __IS_INITIALIZED__ = False
 __WHO_INITIALIZED__ = None
 
 
-def init_matplotlib():
+def init_matplotlib(verbose=False):
     global __IS_INITIALIZED__
     global __WHO_INITIALIZED__
     import matplotlib as mpl
@@ -26,9 +26,10 @@ def init_matplotlib():
         TARGET_BACKEND = 'Qt4Agg'
     if utool.in_main_process():
         if __IS_INITIALIZED__:
-            print('[!plottool] matplotlib has already been initialized.  backend=%r' % backend)
-            print('[!plottool] Initially initialized by %r' % __WHO_INITIALIZED__)
-            print('[!plottool] Trying to be init by %r' % (utool.get_caller_name(N=range(0, 5))))
+            if verbose:
+                print('[!plottool] matplotlib has already been initialized.  backend=%r' % backend)
+                print('[!plottool] Initially initialized by %r' % __WHO_INITIALIZED__)
+                print('[!plottool] Trying to be init by %r' % (utool.get_caller_name(N=range(0, 5))))
             return False
         else:
             __WHO_INITIALIZED__ = utool.get_caller_name(N=range(0, 5))
@@ -36,9 +37,10 @@ def init_matplotlib():
             #__WHO_INITIALIZED__ = utool.get_caller_name()
             __IS_INITIALIZED__ = True
         if not utool.QUIET and utool.VERBOSE:
-            print('--- INIT MPL---')
-            print('[pt] current backend is: %r' % backend)
-            print('[pt] mpl.use(%r)' % TARGET_BACKEND)
+            if verbose:
+                print('--- INIT MPL---')
+                print('[pt] current backend is: %r' % backend)
+                print('[pt] mpl.use(%r)' % TARGET_BACKEND)
         if backend != TARGET_BACKEND:
             if utool.get_argflag('--leave-mpl-backend-alone'):
                 print('[pt] LEAVE THE BACKEND ALONE !!! was specified')
