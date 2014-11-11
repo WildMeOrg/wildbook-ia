@@ -278,7 +278,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.xy_thresh = .01
         sv_cfg.nShortlist = 50
         sv_cfg.prescore_method = 'csum'
-        sv_cfg.use_chip_extent = False
+        sv_cfg.use_chip_extent = False  # BAD CONFIG?
         sv_cfg.min_nInliers = 4
         sv_cfg.sv_on = True
         sv_cfg.update(**kwargs)

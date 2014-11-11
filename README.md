@@ -505,52 +505,52 @@ python dev.py --db PZ_RoseMary --setdb
 python dev.py --delete-cache --postload-exit
 # EXPERIMENT PARTIAL COMMANDS
 python dev.py -t best --qaids 27:110
-python dev.py -t best --allgt --index 20:100
+python dev.py -t best --allgt --qindex 20:100
 python dev.py -t best --allgt --echo-hardcase
-python dev.py -t best --allgt --index 24 39 44 45 --view-hard  --sf
+python dev.py -t best --allgt --qindex 24 39 44 45 --view-hard  --sf
 python dev.py -t best --allgt --view-hard --vdd
 # EXPERIMENT FULL COMMANDS
 python dev.py -t best --allgt --view-hard 
 python dev.py -t upsize --allgt 
 
 
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
-./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
-./dev.py -t asmk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
+./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
+./dev.py -t asmk --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
 
-dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
 
 
 ./dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query
 
 
-./dev.py -t smk1 --allgt --index 0:2 --db Oxford
+./dev.py -t smk1 --allgt --qindex 0:2 --db Oxford
 
 # SMK TESTS
-python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
-python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --index 0:20
+python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
+python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --qindex 0:20
 
-python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30 --va
+python dev.py -t smk2 --allgt --db PZ_Mothers --qindex 20:30 --va
 python dev.py -t smk2 --allgt --db PZ_Master0
 
-python -m memory_profiler dev.py -t smk2 --allgt --db PZ_Mothers --index 0
+python -m memory_profiler dev.py -t smk2 --allgt --db PZ_Mothers --qindex 0
 
-python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --index 0 --nocache-query --nogui 
+python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --qindex 0 --nocache-query --nogui 
 
 python dev.py -t smk_64k --allgt --db PZ_Master0
 python dev.py -t smk_128k --allgt --db PZ_Master0
 
-python dev.py -t oxford --allgt --db Oxford --index 0:55
+python dev.py -t oxford --allgt --db Oxford --qindex 0:55
  
 
 # Feature Tuning
-python dev.py -t test_feats -w --show --db PZ_Mothers --allgt --index 1:2
+python dev.py -t test_feats -w --show --db PZ_Mothers --allgt --qindex 1:2
 
 python dev.py -t featparams -w --show --db PZ_Mothers --allgt
 python dev.py -t featparams_big -w --show --db PZ_Mothers --allgt
 python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
- --allgt --index 1:2
+ --allgt --qindex 1:2
 
 # SETTING HARD CASES
 python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
@@ -572,7 +572,7 @@ python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -
 python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
 
 # VSONE TESTS
-python dev.py -t vsone_best --db PZ_Mothers --allgt --index 0:2 --print-all --va
+python dev.py -t vsone_best --db PZ_Mothers --allgt --qindex 0:2 --print-all --va
 
 # DOCTESTS
 TODO: ~~make these tests work~~ use utool to make these work
@@ -584,6 +584,11 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.prep
 python dev.py -t best --db seals2 --allgt
 python dev.py -t best --db seals2 --allgt --vh --vf
 python dev.py -t best --db seals2 --allgt
+
+
+# DEBUGGING
+python dev.py --allgt -t nsum vsmany vsone --print-all --db NAUT_Dan
+
 
 ```
 

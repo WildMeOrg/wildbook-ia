@@ -896,7 +896,7 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         topx2_dlen_sqrd
     """
     if use_chip_extent:
-        topx2_chipsize = list(qreq_.get_annot_chipsizes(topx2_aid))
+        topx2_chipsize = list(qreq_.ibs.get_annot_chipsizes(topx2_aid))
         def chip_dlen_sqrd(tx):
             (chipw, chiph) = topx2_chipsize[tx]
             dlen_sqrd = chipw ** 2 + chiph ** 2

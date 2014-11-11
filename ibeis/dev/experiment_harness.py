@@ -11,6 +11,7 @@ import textwrap
 import numpy as np
 # Tools
 import utool
+import utool as ut
 # IBEIS
 from ibeis import params
 from ibeis.dev import experiment_helpers as eh
@@ -42,9 +43,20 @@ def get_qx2_bestrank(ibs, qaids, daids):
         qx2_bestranks
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.dev.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaids = ibs.get_valid_aids()[0:15]
+        >>> daids = ibs.get_valid_aids()
+        >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:15]
         >>> daids = ibs.get_valid_aids()
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
@@ -149,3 +161,7 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
                                       bestranks_list, cfgx2_aveprecs, testnameid, sel_rows,
                                       sel_cols, cfgx2_lbl)
+
+
+if __name__ == '__main__':
+    ut.doctest_funcs()

@@ -723,7 +723,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
         qaid_list (int): query annotation id
 
     CommandLine:
-        python dev.py -t test_feats --db PZ_MTEST --all --index 0 --show -w
+        python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
 
     Example:
         >>> import ibeis
@@ -903,6 +903,9 @@ python dev.py --t mtest
 ./resetdbs.sh  # FIXME
 python ibeis/dbio/ingest_database.py  <- see module for usage
 
+### LIST AVAIABLE DATABASES ###
+python dev.py -t list_dbs
+
 ### CHOOSE A DATABASE ###
 python dev.py --db PZ_Master0 --setdb
 python dev.py --db GZ_ALL --setdb
@@ -929,11 +932,13 @@ python dev.py --db PZ_MTEST -t query --qaid 72 110 -w
 #python dev.py --allgt -t vsone --vz --vh
 
 ### RUN A SMALL AMOUNT OF VSONE TESTS ###
-python dev.py --allgt -t  vsone --index 0:1 --vz --vh --vf --noqcache
+python dev.py --allgt -t  vsone --qindex 0:1 --vz --vh --vf --noqcache
+python dev.py --allgt --qindex 0:20 --
 
-### DUMP EASY AND HARD CASES TO DISK ###
-python dev.py --allgt -t best --vz --fig-dname query_analysis_easy
-python dev.py --allgt -t best --vh --fig-dname query_analysis_hard
+### DUMP ANALYSIS FIGURES TO DISK ###
+python dev.py --allgt -t best --vf --vz --fig-dname query_analysis_easy
+python dev.py --allgt -t best --vf --vh --fig-dname query_analysis_hard
+python dev.py --allgt -t best --vf --va --fig-dname query_analysis_all
 
 python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110
 python dev.py --hard -t best vsone nsum
@@ -969,6 +974,7 @@ if __name__ == '__main__':
 
     INTRO_TITLE = 'The dev.py Script'
     INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+
     INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
 
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))

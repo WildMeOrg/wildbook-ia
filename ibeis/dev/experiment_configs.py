@@ -47,6 +47,15 @@ nsum = augbase(small_best, {
     'prescore_method':   ['nsum'],
 })
 
+nov11 = augbase(small_best, {
+    'use_chip_extent': [False, True],
+    'xy_thresh':     [.1, .01, .001],
+    'fg_weight': [1.0],
+    'featweight_on': [True],
+    'algorithm': ['linear'],
+
+})
+
 nov6 = augbase(small_best, {
     'K': [4, 5, 6, 7, 8, 9, 10, 20],
     'dupvote_weight': [1.0, 0.0],
@@ -158,10 +167,11 @@ smk2 = {
 
 # Test to make sure things are working for oxford
 oxford = {
-    'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'sv_on':         [False, True],  # True, False],
-    'nWords':        [64000, 128000],
-    'xy_thresh':     [.1, .01, .001]
+    'pipeline_root':    ['smk', 'asmk', 'vsmany'],
+    'sv_on':            [False, True],  # True, False],
+    'nWords':           [64000, 128000],
+    'xy_thresh':        [.1, .01, .001],
+    'use_chip_extent':  [True, False],
 }
 
 smkd = {

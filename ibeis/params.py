@@ -25,10 +25,11 @@ def parse_args():
         parser2.add_flag(('--wait', '-w'),  help='wait for user to press enter')
         parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
         parser2.add_flag(('--all-cases', '--all'))
-        parser2.add_flag(('--all-gt-cases', '--allgt'))
+        parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
         parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
-        parser2.add_ints(('--index', '-x'), None, help='test only this index')
+        parser2.add_ints(('--qindex', '-qx'), None, help='test only these query indicies. Out of bounds errors are clipped')
+        parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indicies. . Out of bounds errors are clipped')
         parser2.add_ints(('--sel-rows', '-r'), help='view row')
         parser2.add_ints(('--sel-cols', '-c'), help='view col')
         parser2.add_ints('--qaid', default=[], help='investigate match aid')

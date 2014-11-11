@@ -48,6 +48,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         python dev.py -t best --db seals2 --allgt --vz
 
     """
+
     print(' --- PRINT RESULTS ---')
     #X_LIST = [1, 5]  # Num of ranks less than to score
     X_LIST = [1]  # Num of ranks less than to score
@@ -57,6 +58,11 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     #--------------------
     # Print Best Results
     rank_mat = np.hstack(bestranks_list)  # concatenate each query rank across configs
+
+    # Set invalid ranks to the worse possible rank
+    worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
+    rank_mat[rank_mat == -1] =  worst_possible_rank
+
     # Label the rank matrix:
     _colxs = np.arange(nCfg)
     lbld_mat = utool.debug_vstack([_colxs, rank_mat])
@@ -81,7 +87,6 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     #        cfgx2_lbl.append(cfg_lbl)
     #    cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
-    indent = utool.indent
 
     @utool.argv_flag_dec
     def print_rowlbl():
@@ -127,12 +132,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     new_qaids = []
     new_hardtup_list = []
 
-    worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
-
     for qx in range(nQuery):
         ranks = rank_mat[qx]
         ranks[ranks == -1] = worst_possible_rank
-        valid_ranks = ranks[ranks < 0]
+        valid_ranks = ranks[ranks >= 0]
         min_rank = ranks.min() if len(valid_ranks) > 0 else -3
         bestCFG_X = np.where(ranks == min_rank)[0]
         qx2_min_rank.append(min_rank)
@@ -159,7 +162,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         for qx in range(nQuery):
             bestCFG_X = qx2_argmin_rank[qx]
             min_rank = qx2_min_rank[qx]
-            minimizing_cfg_str = indent('\n'.join(cfgx2_lbl[bestCFG_X]), '    ')
+            minimizing_cfg_str = ut.indentjoin(cfgx2_lbl[bestCFG_X], '\n  * ')
             #minimizing_cfg_str = str(bestCFG_X)
 
             print('-------')
@@ -201,7 +204,8 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
-        print('--index ' + (' '.join(map(str, new_hard_qx_list))))
+        # Show index for current query where hardids reside
+        #print('--index ' + (' '.join(map(str, new_hard_qx_list))))
         #print('--take new_hard_qx_list')
         #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_qaids))
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_qaids))
@@ -282,7 +286,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         #latex_formater.render(tabular_str)
         print(tabular_str)
         print('--- /LaTeX ---')
-    print_latexsum()
+    #print_latexsum()
 
     #------------
     best_rankscore_summary = []
@@ -330,10 +334,18 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('-------------')
         print('RankMat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
-        print(' labled rank matrix: rows=queries, cols=cfgs:')
+        header = (' labled rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '') for lbl in cfgx2_lbl]
+        column_lbls = map(str, range(nCfg))
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
-            print(lbld_mat)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
         print('[harn]-------------')
     print_rankmat()
 
@@ -357,6 +369,8 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     sumstrs.append(utool.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('||===========================')
     print('\n' + '\n'.join(sumstrs) + '\n')
+
+    print('To enable all printouts add --print-all to the commandline')
 
     # Draw result figures
     draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list)

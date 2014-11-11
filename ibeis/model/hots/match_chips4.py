@@ -171,6 +171,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
             # Save chunk of vsone queries
             if save_cache:
                 pipeline.save_resdict(qreq_, qaid2_qres_)
+            # Add current chunk to results
+            qaid2_qres.update(qaid2_qres_)
     else:
         qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
         if save_cache:
