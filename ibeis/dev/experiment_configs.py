@@ -97,6 +97,15 @@ featparams_big2 = augbase(
 # low initialSigma = more keypoints
 
 
+vsmany = {
+    'pipeline_root':   ['vsmany'],
+    'checks':          [1024],  # , 8192],
+    'K':               [4],  # 5, 10],
+    'Knorm':           [1],  # 2, 3],
+    'lnbnn_weight':    [1],  # 1,]
+    'chip_sqrt_area':  [450],
+}
+
 vsone = {
     'pipeline_root':  ['vsone'],
     'checks':        [256],
@@ -106,7 +115,7 @@ vsone = {
     #'fg_weight':     [1.0],
     'lnbnn_weight':  [0],
     'ratio_thresh':  [1.6],
-    'sv_on':         [False, True],  # True, False],
+    'sv_on':         [True],  # True, False],
 }
 
 

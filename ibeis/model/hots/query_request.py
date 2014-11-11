@@ -49,7 +49,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
                          daid_list, duuid_list,
                          qparams, qresdir)
     if utool.NOT_QUIET:
-        print(' * qreq_.qparams.query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+        print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
     return qreq_
 
 

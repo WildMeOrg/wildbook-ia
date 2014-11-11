@@ -27,6 +27,7 @@ Module Concepts::
     * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
              = qaid2_nnfilt[qaid]
 """
+
 from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip, range
@@ -53,8 +54,9 @@ print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=Fa
 
 TAU = 2 * np.pi  # tauday.com
 NOT_QUIET = utool.NOT_QUIET and not utool.get_argflag('--quiet-query')
-VERB_PIPELINE = True
-VERBOSE = utool.VERBOSE or utool.get_argflag('--verbose-query') or VERB_PIPELINE
+VERB_PIPELINE = utool.get_argflag(('--verbose-pipeline', '--verb-pipe'))
+VERYVERBOSE_PIPELINE = utool.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
+VERBOSE = utool.VERBOSE or VERB_PIPELINE
 
 #=================
 # Globals
@@ -69,7 +71,7 @@ log_progress = partial(utool.log_progress, startafter=START_AFTER, disable=utool
 
 # Query Level 0
 #@profile
-@utool.indent_func('[Q0]')
+#@utool.indent_func('[Q0]')
 @profile
 def request_ibeis_query_L0(ibs, qreq_):
     r"""
@@ -175,7 +177,7 @@ def request_ibeis_query_L0(ibs, qreq_):
 #============================
 
 
-@ut.indent_func('[nn]')
+#@ut.indent_func('[nn]')
 @profile
 def nearest_neighbors(qreq_, metadata):
     """
@@ -255,7 +257,7 @@ def nearest_neighbors(qreq_, metadata):
 #============================
 
 
-@ut.indent_func('[wn]')
+#@ut.indent_func('[wn]')
 def weight_neighbors(qaid2_nns, qreq_, metadata):
     """
     Args:
@@ -283,7 +285,7 @@ def weight_neighbors(qaid2_nns, qreq_, metadata):
     return filt2_weights
 
 
-@ut.indent_func('[_wn]')
+#@ut.indent_func('[_wn]')
 @profile
 def _weight_neighbors(qaid2_nns, qreq_, metadata):
     """
@@ -324,7 +326,7 @@ def _weight_neighbors(qaid2_nns, qreq_, metadata):
 #==========================
 
 
-@ut.indent_func('[_tsw]')
+#@ut.indent_func('[_tsw]')
 @profile
 def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
     """
@@ -370,7 +372,7 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
     return qfx2_score, qfx2_valid
 
 
-@ut.indent_func('[fn]')
+#@ut.indent_func('[fn]')
 @profile
 def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
     """
@@ -434,7 +436,7 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
         if cant_match_self:
             qfx2_notsamechip = qfx2_aid != qaid
             #<DBG>
-            if VERBOSE or VERB_PIPELINE:
+            if VERYVERBOSE_PIPELINE:
                 __self_verbose_check(qfx2_notsamechip, qfx2_valid)
             #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
@@ -443,7 +445,7 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
             qgid     = qreq_.get_annot_gids(qaid)
             qfx2_notsameimg = qfx2_gid != qgid
             #<DBG>
-            if VERBOSE:
+            if VERYVERBOSE_PIPELINE:
                 __sameimg_verbose_check(qfx2_notsameimg, qfx2_valid)
             #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
@@ -452,7 +454,7 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
             qnid = qreq_.get_annot_nids(qaid)
             qfx2_notsamename = qfx2_nid != qnid
             #<DBG>
-            if VERBOSE:
+            if VERYVERBOSE_PIPELINE:
                 __samename_verbose_check(qfx2_notsamename, qfx2_valid)
             #</DBG>
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
@@ -541,7 +543,7 @@ def new_fmfsfk():
     return aid2_fm, aid2_fs, aid2_fk
 
 
-@ut.indent_func('[bc]')
+#@ut.indent_func('[bc]')
 @profile
 def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     """
@@ -677,7 +679,7 @@ def assert_qaid2_chipmatch(ibs, qreq_, qaid2_chipmatch):
 #============================
 
 
-@ut.indent_func('[sv]')
+#@ut.indent_func('[sv]')
 def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     """
     Args:
@@ -707,7 +709,7 @@ def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         return _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=dbginfo)
 
 
-@ut.indent_func('[_sv]')
+#@ut.indent_func('[_sv]')
 @profile
 def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     """
@@ -875,7 +877,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         return qaid2_chipmatchSV
 
 
-@ut.indent_func('[pdls]')
+#@ut.indent_func('[pdls]')
 def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
                                 nRerank, use_chip_extent):
     """
@@ -920,7 +922,7 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 # Scoring Mechanism
 #============================
 
-@ut.indent_func('[scm]')
+#@ut.indent_func('[scm]')
 @profile
 def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     """
@@ -962,7 +964,7 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 #============================
 
 
-@ut.indent_func('[ctr]')
+#@ut.indent_func('[ctr]')
 @profile
 def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
                          qaid2_scores=None):
@@ -1044,7 +1046,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
     return qaid2_qres
 
 
-@ut.indent_func('[tlr]')
+#@ut.indent_func('[tlr]')
 @profile
 def try_load_resdict(qreq_, force_miss=False):
     """

@@ -49,6 +49,9 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     """
     print(' --- PRINT RESULTS ---')
+    #X_LIST = [1, 5]  # Num of ranks less than to score
+    X_LIST = [1]  # Num of ranks less than to score
+
     nCfg = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
@@ -223,12 +226,11 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     #------------
     # Build Colscore
-    X_list = [1, 5]
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_list}
+    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_LIST}
     for cfgx in range(nCfg):
         ranks = rank_mat[:, cfgx]
-        for X in X_list:
+        for X in X_LIST:
             #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
             # Ranks less than 0 are invalid
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
@@ -241,12 +243,12 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('==================')
         #for cfgx in range(nCfg):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
-        #    for X in X_list:
+        #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
         #        print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
 
         print('\n[harn] ... sorted scores')
-        for X in X_list:
+        for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             for cfgx in sortx:
@@ -264,10 +266,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('[harn] LaTeX: %s' % testnameid)
         print('==========================')
         # Create configuration latex table
-        criteria_lbls = ['#ranks < %d' % X for X in X_list]
+        criteria_lbls = ['#ranks < %d' % X for X in X_LIST]
         dbname = ibs.get_dbname()
         cfg_score_title = dbname + ' rank scores'
-        cfgscores = np.array([nLessX_dict[int(X)] for X in X_list]).T
+        cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
 
         replace_rowlbl = [(' *cfgx *', ' ')]
         tabular_kwargs = dict(title=cfg_score_title, out_of=nQuery,
@@ -298,7 +300,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     for ix in range(1, len(to_intersect_list)):
         intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
-    @utool.argv_flag_dec_true
+    @utool.argv_flag_dec
     def print_bestcfg():
         print('==========================')
         print('[harn] Best Configurations: %s' % testnameid)

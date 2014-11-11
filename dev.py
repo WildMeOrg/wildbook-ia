@@ -862,7 +862,10 @@ def run_dev(main_locals):
         qaid_list = main_helpers.get_test_qaids(ibs)
         daid_list = main_helpers.get_test_daids(ibs, qaid_list)
         print('[run_def] Test Annotations:')
-        print('[run_dev] * qaid_list = %s' % utool.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
+        print('[run_dev] * qaid_list = %s' % bigstr(str(qaid_list)))
+        print('[run_dev] * daid_list = %s' % bigstr(str(daid_list)))
         print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
         print('[run_dev] * len(daid_list) = %d' % len(daid_list))
         print('[run_dev] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
@@ -890,33 +893,45 @@ def run_dev(main_locals):
     return locals()
 
 
+#-------------
+# EXAMPLE TEXT
+#-------------
+
 EXAMPLE_TEXT = '''
-# DOWNLOAD A TEST DATABASE (IF REQUIRED)
+### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
 python dev.py --t mtest
 ./resetdbs.sh  # FIXME
 python ibeis/dbio/ingest_database.py  <- see module for usage
 
-# CHOOSE A DATABASE
-python dev.py --db PZ_GZALL --setdb
+### CHOOSE A DATABASE ###
+python dev.py --db PZ_Master0 --setdb
+python dev.py --db GZ_ALL --setdb
 python dev.py --db PZ_MTEST --setdb
+python dev.py --db NAUT_Dan --setdb
 python dev.py --db testdb1 --setdb
 python dev.py --db seals2 --setdb
 
-# DATABASE INFORMATION
+### DATABASE INFORMATION ###
 python dev.py -t dbinfo
 python dev.py --allgt -t best
+python dev.py --allgt -t vsone
+python dev.py --allgt -t vsmany
+python dev.py --allgt -t nsum
 
-# Compare two configs
-python dev.py --allgt -t best nsum vsmany vsone
-python dev.py --allgt -t best nsum vsmany vsone smk
+### COMPARE TWO CONFIGS ###
+python dev.py --allgt -t nsum vsmany vsone
+python dev.py --allgt -t nsum vsmany
+python dev.py --allgt -t nsum vsmany vsone smk
 
-python dev.py -t query --qaid 110 -w
+### VIZ A SET OF MATCHES ###
+python dev.py --db PZ_MTEST -t query --qaid 72 110 -w
 #python dev.py --allgt -t vsone vsmany
 #python dev.py --allgt -t vsone --vz --vh
 
-# Run a small amount of vsone tests
+### RUN A SMALL AMOUNT OF VSONE TESTS ###
 python dev.py --allgt -t  vsone --index 0:1 --vz --vh --vf --noqcache
 
+### DUMP EASY AND HARD CASES TO DISK ###
 python dev.py --allgt -t best --vz --fig-dname query_analysis_easy
 python dev.py --allgt -t best --vh --fig-dname query_analysis_hard
 
@@ -924,6 +939,9 @@ python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 
 python dev.py --hard -t best vsone nsum
 >>>
 '''
+
+#L______________
+
 
 if __name__ == '__main__':
     """
