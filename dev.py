@@ -10,7 +10,7 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 
 CommandLine:
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum dupvote_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
+import utool as ut
 from utool.util_six import get_funcname
 import utool
 print('-!!')
@@ -375,7 +376,9 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg sv_on:False dupvote_weight=1.0 score_method:nsum prescore_method:nsum
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     """
@@ -384,6 +387,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
+    #orgtype_list = ['rank0_false', 'rank0_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
     cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
@@ -576,14 +580,20 @@ def run_devcmds(ibs, qaid_list, daid_list):
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
+    # ------
+    # RUNS EXPERIMENT HARNESS OVER VALID TESTNAMES SPECIFIED WITH -t
+    # ------
+
     # Config driven test functions
     # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
+    test_cfg_name_list = []
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
-            test_cfg_name_list = [test_cfg_name]
-            fnum = df2.next_fnum()
-            # Should we specify fnum here?
-            experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
+            test_cfg_name_list.append(test_cfg_name)
+    if len(test_cfg_name_list):
+        fnum = df2.next_fnum()
+        # Run Experiments
+        experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -716,7 +726,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
         qaid_list (int): query annotation id
 
     CommandLine:
-        python dev.py -t test_feats --db PZ_MTEST --all --index 0 --show -w
+        python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
 
     Example:
         >>> import ibeis
@@ -855,7 +865,10 @@ def run_dev(main_locals):
         qaid_list = main_helpers.get_test_qaids(ibs)
         daid_list = main_helpers.get_test_daids(ibs, qaid_list)
         print('[run_def] Test Annotations:')
-        print('[run_dev] * qaid_list = %s' % utool.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
+        bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
+        print('[run_dev] * qaid_list = %s' % bigstr(str(qaid_list)))
+        print('[run_dev] * daid_list = %s' % bigstr(str(daid_list)))
         print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
         print('[run_dev] * len(daid_list) = %d' % len(daid_list))
         print('[run_dev] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
@@ -883,6 +896,61 @@ def run_dev(main_locals):
     return locals()
 
 
+#-------------
+# EXAMPLE TEXT
+#-------------
+
+EXAMPLE_TEXT = '''
+### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
+python dev.py --t mtest
+./resetdbs.sh  # FIXME
+python ibeis/dbio/ingest_database.py  <- see module for usage
+
+### LIST AVAIABLE DATABASES ###
+python dev.py -t list_dbs
+
+### CHOOSE A DATABASE ###
+python dev.py --db PZ_Master0 --setdb
+python dev.py --db GZ_ALL --setdb
+python dev.py --db PZ_MTEST --setdb
+python dev.py --db NAUT_Dan --setdb
+python dev.py --db testdb1 --setdb
+python dev.py --db seals2 --setdb
+
+### DATABASE INFORMATION ###
+python dev.py -t dbinfo
+python dev.py --allgt -t best
+python dev.py --allgt -t vsone
+python dev.py --allgt -t vsmany
+python dev.py --allgt -t nsum
+
+### COMPARE TWO CONFIGS ###
+python dev.py --allgt -t nsum vsmany vsone
+python dev.py --allgt -t nsum vsmany
+python dev.py --allgt -t nsum vsmany vsone smk
+
+### VIZ A SET OF MATCHES ###
+python dev.py --db PZ_MTEST -t query --qaid 72 110 -w
+#python dev.py --allgt -t vsone vsmany
+#python dev.py --allgt -t vsone --vz --vh
+
+### RUN A SMALL AMOUNT OF VSONE TESTS ###
+python dev.py --allgt -t  vsone --qindex 0:1 --vz --vh --vf --noqcache
+python dev.py --allgt --qindex 0:20 --
+
+### DUMP ANALYSIS FIGURES TO DISK ###
+python dev.py --allgt -t best --vf --vz --fig-dname query_analysis_easy
+python dev.py --allgt -t best --vf --vh --fig-dname query_analysis_hard
+python dev.py --allgt -t best --vf --va --fig-dname query_analysis_all
+
+python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110
+python dev.py --hard -t best vsone nsum
+>>>
+'''
+
+#L______________
+
+
 if __name__ == '__main__':
     """
         The Developer Script
@@ -893,11 +961,36 @@ if __name__ == '__main__':
             -t     # run list of tests
 
             Examples:
-                ./dev.py -t query -w
     """
+
     multiprocessing.freeze_support()  # for win32
+
+    helpstr = ut.codeblock(
+        '''
+        Dev is meant to be run as an interactive script.
+
+        The dev.py script runs any test you regiter with @devcmd in any combination
+        of configurations specified by a Config object.
+
+        Dev caches information in order to get quicker results.  # FIXME: Provide quicker results  # FIXME: len(line)
+        ''')
+
+    INTRO_TITLE = 'The dev.py Script'
+    INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+
+    INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
+
+    EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
+
+    print(INTRO_STR)
+    print(EXAMPLE_STR)
+
     CMD   = '--cmd' in sys.argv
     NOGUI = '--gui' not in sys.argv
+
+    if len(sys.argv) == 1:
+        print('Run dev.py with arguments!')
+        sys.exit(1)
 
     # Run Precommands
     run_devprecmds()

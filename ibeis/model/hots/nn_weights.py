@@ -5,9 +5,9 @@ import six
 import numpy as np
 import vtool.linalg as ltool
 from six.moves import zip
-print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 import functools
 from ibeis.model.hots import hstypes
+print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 
 
 NN_WEIGHT_FUNC_DICT = {}
@@ -43,6 +43,11 @@ def dupvote_match_weighter(qaid2_nns, qreq_, metadata):
     Each query feature is only allowed to vote for each name at most once.
     IE: a query feature can vote for multiple names, but it cannot vote
     for the same name twice.
+
+    CommandLine:
+        python dev.py --allgt -t best --db PZ_MTEST
+        python dev.py --allgt -t nsum --db PZ_MTEST
+        python dev.py --allgt -t dupvote --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST

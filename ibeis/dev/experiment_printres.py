@@ -18,7 +18,7 @@ from six.moves import map, range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
-SKIP_TO = utool.get_argval('--skip-to', default=None)
+SKIP_TO = utool.get_argval('--skip-to', type_=int, default=None)
 #SAVE_FIGURES = utool.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not utool.get_argflag(('--nosave-figures', '--nosf'))
 
@@ -43,13 +43,26 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    CommandLine:
+        python dev.py -t best --db seals2 --allgt --vz
+
     """
+
     print(' --- PRINT RESULTS ---')
+    #X_LIST = [1, 5]  # Num of ranks less than to score
+    X_LIST = [1]  # Num of ranks less than to score
+
     nCfg = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
     # Print Best Results
     rank_mat = np.hstack(bestranks_list)  # concatenate each query rank across configs
+
+    # Set invalid ranks to the worse possible rank
+    worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
+    rank_mat[rank_mat == -1] =  worst_possible_rank
+
     # Label the rank matrix:
     _colxs = np.arange(nCfg)
     lbld_mat = utool.debug_vstack([_colxs, rank_mat])
@@ -74,7 +87,6 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     #        cfgx2_lbl.append(cfg_lbl)
     #    cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
-    indent = utool.indent
 
     @utool.argv_flag_dec
     def print_rowlbl():
@@ -120,12 +132,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     new_qaids = []
     new_hardtup_list = []
 
-    worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
-
     for qx in range(nQuery):
         ranks = rank_mat[qx]
         ranks[ranks == -1] = worst_possible_rank
-        valid_ranks = ranks[ranks < 0]
+        valid_ranks = ranks[ranks >= 0]
         min_rank = ranks.min() if len(valid_ranks) > 0 else -3
         bestCFG_X = np.where(ranks == min_rank)[0]
         qx2_min_rank.append(min_rank)
@@ -152,7 +162,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         for qx in range(nQuery):
             bestCFG_X = qx2_argmin_rank[qx]
             min_rank = qx2_min_rank[qx]
-            minimizing_cfg_str = indent('\n'.join(cfgx2_lbl[bestCFG_X]), '    ')
+            minimizing_cfg_str = ut.indentjoin(cfgx2_lbl[bestCFG_X], '\n  * ')
             #minimizing_cfg_str = str(bestCFG_X)
 
             print('-------')
@@ -194,7 +204,8 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
-        print('--index ' + (' '.join(map(str, new_hard_qx_list))))
+        # Show index for current query where hardids reside
+        #print('--index ' + (' '.join(map(str, new_hard_qx_list))))
         #print('--take new_hard_qx_list')
         #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_qaids))
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_qaids))
@@ -219,12 +230,11 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     #------------
     # Build Colscore
-    X_list = [1, 5]
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_list}
+    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_LIST}
     for cfgx in range(nCfg):
         ranks = rank_mat[:, cfgx]
-        for X in X_list:
+        for X in X_LIST:
             #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
             # Ranks less than 0 are invalid
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
@@ -237,12 +247,12 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('==================')
         #for cfgx in range(nCfg):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
-        #    for X in X_list:
+        #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
         #        print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
 
         print('\n[harn] ... sorted scores')
-        for X in X_list:
+        for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             for cfgx in sortx:
@@ -260,10 +270,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('[harn] LaTeX: %s' % testnameid)
         print('==========================')
         # Create configuration latex table
-        criteria_lbls = ['#ranks < %d' % X for X in X_list]
+        criteria_lbls = ['#ranks < %d' % X for X in X_LIST]
         dbname = ibs.get_dbname()
         cfg_score_title = dbname + ' rank scores'
-        cfgscores = np.array([nLessX_dict[int(X)] for X in X_list]).T
+        cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
 
         replace_rowlbl = [(' *cfgx *', ' ')]
         tabular_kwargs = dict(title=cfg_score_title, out_of=nQuery,
@@ -276,7 +286,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         #latex_formater.render(tabular_str)
         print(tabular_str)
         print('--- /LaTeX ---')
-    print_latexsum()
+    #print_latexsum()
 
     #------------
     best_rankscore_summary = []
@@ -294,7 +304,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     for ix in range(1, len(to_intersect_list)):
         intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
-    @utool.argv_flag_dec_true
+    @utool.argv_flag_dec
     def print_bestcfg():
         print('==========================')
         print('[harn] Best Configurations: %s' % testnameid)
@@ -324,10 +334,18 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('-------------')
         print('RankMat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
-        print(' labled rank matrix: rows=queries, cols=cfgs:')
+        header = (' labled rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '') for lbl in cfgx2_lbl]
+        column_lbls = map(str, range(nCfg))
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
-            print(lbld_mat)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
         print('[harn]-------------')
     print_rankmat()
 
@@ -352,6 +370,8 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     sumstrs.append('||===========================')
     print('\n' + '\n'.join(sumstrs) + '\n')
 
+    print('To enable all printouts add --print-all to the commandline')
+
     # Draw result figures
     draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list)
 
@@ -361,8 +381,20 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    CommandLine:
+        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy
+        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard
     """
     print(' --- DRAW RESULTS ---')
+    VIEW_FIG_DIR         = utool.get_argflag(('--view-fig-dir', '--vf'))
+    query_analysis_dname = utool.get_argval('--fig-dname', str, 'query_analysis')
+    DUMP_EXTRA           = utool.get_argflag('--dump-extra')
+    quality              = utool.get_argflag('--quality')
+    SHOW                 = utool.get_argflag('--show')
+
+    sel_rows = []
+    sel_cols = []
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -373,11 +405,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag(('--view-hard', '--vh')):
-        sel_rows = new_hard_qx_list
-        sel_cols = list(range(len(cfg_list)))
+        sel_rows += np.array(new_hard_qx_list).tolist()
+        sel_cols += list(range(len(cfg_list)))
     if utool.get_argflag(('--view-easy', '--vz')):
-        sel_rows = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list)
-        sel_cols = list(range(len(cfg_list)))
+        sel_rows += np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
+        sel_cols += list(range(len(cfg_list)))
+    sel_rows = ut.unique_keep_order2(sel_rows)
+    sel_cols = ut.unique_keep_order2(sel_cols)
 
     # It is very inefficient to turn off caching when view_all is true
     if not mc4.USE_CACHE:
@@ -418,19 +452,17 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         return qres
 
     #DELETE              = False
-    USE_FIGCACHE = False
-    DUMP_EXTRA   = utool.get_argflag('--dump-extra')
+    USE_FIGCACHE = ut.get_argflag('--use-figcache')
     DUMP_QANNOT         = DUMP_EXTRA
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA
 
-    figdir = join(ibs.get_fig_dir(), 'query_analysis')
+    figdir = join(ibs.get_fig_dir(), query_analysis_dname)
     utool.ensuredir(ibs.get_fig_dir())
     utool.ensuredir(figdir)
 
     #utool.view_directory(figdir, verbose=True)
 
-    VIEW_FIG_DIR = utool.get_argflag(('--view-fig-dir', '--vf'))
     if VIEW_FIG_DIR:
         utool.view_directory(figdir, verbose=True)
 
@@ -455,6 +487,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     chunksize = 10
     # <FOR RCITER_CHUNK>
+    #with ut.EmbedOnException():
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
         # First load a chunk of query results
         qres_list = []
@@ -492,7 +525,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             # Draw Result
             dumpkw = {
                 'subdir'    : subdir,
-                'quality'   : utool.get_argflag('--quality'),
+                'quality'   : quality,
                 'overwrite' : True,
                 'verbose'   : 0,
             }
@@ -508,7 +541,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
                 continue
 
-            print('[harn] showing analysis')
+            print('[harn] drawing analysis plot')
 
             # Show Figure
             # try to shorten query labels a bit
@@ -520,7 +553,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             fpath_orig = ph.dump_figure(figdir, **dumpkw)
             append_copy_task(fpath_orig)
 
-            print('[harn] showing other plots')
+            print('[harn] drawing extra plots')
 
             if DUMP_QANNOT:
                 _show_chip(qres.qaid, 'QUERY_', **dumpkw)
@@ -538,7 +571,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                     rank = qres.get_aid_ranks(aid)
                     _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
-            if utool.get_argflag('--show'):
+            if SHOW:
                 print('[PRINT_RESULTS] df2.present()')
                 df2.present()
     # </FOR RCITER>

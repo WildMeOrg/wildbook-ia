@@ -27,7 +27,7 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, GL_RELATION_TABLE,
                              CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
-                             CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
+                             CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
                              METADATA_TABLE, VERSIONS_TABLE, __STR__)
 from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
@@ -1087,7 +1087,7 @@ class IBEISController(object):
         # FIXME: Configs are still handled poorly. This function is an ensure
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
         get_rowid_from_superkey = ibs.get_config_rowid_from_suffix
-        config_rowid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
+        config_rowid_list = ibs.db.add_cleanly(constants.CONFIG_TABLE, ('config_suffix',),
                                                params_iter, get_rowid_from_superkey)
         if contrib_rowid_list is not None:
             ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
@@ -1168,7 +1168,7 @@ class IBEISController(object):
         """ Sets the config's contributor rowid """
         id_iter = ((config_rowid,) for config_rowid in config_rowid_list)
         val_list = ((contrib_rowid,) for contrib_rowid in contrib_rowid_list)
-        ibs.db.set(CONFIG_TABLE, ('contributor_rowid',), val_list, id_iter)
+        ibs.db.set(constants.CONFIG_TABLE, ('contributor_rowid',), val_list, id_iter)
 
     def set_config_contributor_unassigned(ibs, contrib_rowid):
         config_rowid_list = ibs.get_valid_configids()
@@ -2273,7 +2273,7 @@ class IBEISController(object):
         """
         Returns:
             config_rowid_list (list):  config rowids for a contributor """
-        config_rowid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
+        config_rowid_list = ibs.db.get(constants.CONFIG_TABLE, ('config_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
         return config_rowid_list
 
     @getter_1to1
@@ -2299,8 +2299,12 @@ class IBEISController(object):
         """
         Gets an algorithm configuration as a string
         """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        config_rowid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
+        # FIXME: This is causing a crash when converting old hotspotter databses.
+        # probably because the superkey changed
+        # SEE DBSchema.
+
+        # TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        config_rowid_list = ibs.db.get(constants.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
         # executeone always returns a list
         #if config_rowid_list is not None and len(config_rowid_list) == 1:
@@ -2319,7 +2323,7 @@ class IBEISController(object):
         """
         Returns:
             cfgsuffix_list (list):  contributor's rowid for algorithm configs """
-        cfgsuffix_list = ibs.db.get(CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
+        cfgsuffix_list = ibs.db.get(constants.CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
         return cfgsuffix_list
 
     @getter_1to1
@@ -2327,7 +2331,7 @@ class IBEISController(object):
         """
         Returns:
             cfgsuffix_list (list):  suffixes for algorithm configs """
-        cfgsuffix_list = ibs.db.get(CONFIG_TABLE, ('config_suffix',), config_rowid_list)
+        cfgsuffix_list = ibs.db.get(constants.CONFIG_TABLE, ('config_suffix',), config_rowid_list)
         return cfgsuffix_list
 
     #
@@ -2527,7 +2531,7 @@ class IBEISController(object):
         """ deletes images from the database that belong to fids"""
         if utool.VERBOSE:
             print('[ibs] deleting %d configs' % len(config_rowid_list))
-        ibs.db.delete_rowids(CONFIG_TABLE, config_rowid_list)
+        ibs.db.delete_rowids(constants.CONFIG_TABLE, config_rowid_list)
 
     @deleter
     def delete_contributors(ibs, contrib_rowid_list):

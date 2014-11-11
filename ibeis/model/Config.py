@@ -278,7 +278,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.xy_thresh = .01
         sv_cfg.nShortlist = 50
         sv_cfg.prescore_method = 'csum'
-        sv_cfg.use_chip_extent = False
+        sv_cfg.use_chip_extent = False  # BAD CONFIG?
         sv_cfg.min_nInliers = 4
         sv_cfg.sv_on = True
         sv_cfg.update(**kwargs)
@@ -346,6 +346,8 @@ class AggregateConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
     """ FlannConfig
+
+    this flann is only for neareset neighbors in vsone/many
     TODO: this might not need to be here
     """
     def __init__(flann_cfg, **kwargs):
@@ -535,6 +537,8 @@ class QueryConfig(ConfigBase):
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
+        query_cfg.codename = 'None'
+        query_cfg.species_code = '____'
         #if utool.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
@@ -565,12 +569,41 @@ class QueryConfig(ConfigBase):
         """
         removes invalid parameter settings over all cfgs (move to QueryConfig)
         """
+        codename = query_cfg.codename
         filt_cfg = query_cfg.filt_cfg
         nn_cfg   = query_cfg.nn_cfg
         featweight_cfg = query_cfg._featweight_cfg
         feat_cfg = query_cfg._featweight_cfg._feat_cfg
         smk_cfg = query_cfg.smk_cfg
         vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+        agg_cfg = query_cfg.agg_cfg
+        sv_cfg = query_cfg.sv_cfg
+        # TODO:
+        if codename == 'nsum':
+            filt_cfg.dupvote_weight = 1.0
+            agg_cfg.score_method = 'nsum'
+            sv_cfg.prescore_method = 'nsum'
+        elif codename == 'vsmany':
+            query_cfg.pipeline_root = 'vsmany'
+        elif codename == 'vsone':
+            query_cfg.pipeline_root = 'vsone'
+            nn_cfg.K = 2
+            nn_cfg.Knorm = 1
+            filt_cfg.ratio_thresh = 1.6
+            filt_cfg.ratio_weight = 1.0
+        elif codename == 'asmk':
+            query_cfg.pipeline_root = 'asmk'
+        elif codename == 'smk':
+            query_cfg.pipeline_root = 'smk'
+        elif codename == 'None':
+            pass
+        #if query_cfg.species_code == '____':
+        #    query_cfg.fg_weight = 0.0
+        #if query_cfg.species_code == 'zebra_plains':
+        #    query_cfg.fg_weight = 1.0
+        #if query_cfg.species_code == 'zebra_grevys':
+        #    query_cfg.fg_weight = 1.0
+            # TODO:
 
         if query_cfg.pipeline_root == 'asmk':
             query_cfg.pipeline_root = 'smk'

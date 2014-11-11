@@ -15,6 +15,7 @@ from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
 from ibeis.control import _sql_helpers
 import utool
+import utool as ut
 # Web Internal
 from ibeis.web import appfuncs, navbar, DBWEB_SCHEMA
 # Others
@@ -22,6 +23,7 @@ from datetime import date
 from os.path import join
 
 
+BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 app = flask.Flask(__name__)
 global_args = {
@@ -256,7 +258,7 @@ def init_database(app, reset_db):
     )
 
 
-def start_tornado(app, port=5000, browser=False, blocking=False, reset_db=True, database_init=None):
+def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True, database_init=None):
     def _start_tornado():
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))

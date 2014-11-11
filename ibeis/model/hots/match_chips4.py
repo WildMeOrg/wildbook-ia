@@ -95,8 +95,24 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     return qaid2_qres
 
 
+def generate_vsone_queries(ibs, qreq_, qaid_list, chunksize):
+    """
+    helper
+
+    Generate vsone quries one at a time, but create shallow qreqs in chunks.
+    """
+    qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
+                         for qx, qaid in enumerate(qaid_list))
+    qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
+    for qreq_chunk in qreq_chunk_iter:
+        for __qreq, qaid in qreq_chunk:
+            print('Generating vsone for qaid=%d' % (qaid,))
+            qres = pipeline.request_ibeis_query_L0(ibs, __qreq)[qaid]
+            yield (qaid, qres)
+
+
 #@profile
-def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
+def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_CACHE, chunksize=4):
     """
     Args:
         ibs (IBEISController):
@@ -105,6 +121,19 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
 
     Returns:
         qaid2_qres
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> import utool as ut
+        >>> from ibeis.model.hots import pipeline
+        >>> custom_qparams1 = dict(codename='vsone', sv_on=True)
+        >>> chunksize = 2
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams1, qaid_list = [1, 2, 3, 4])
+        >>> use_cache = False
+        >>> save_cache = False
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache, chunksize)
+        >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
@@ -125,12 +154,32 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
         qaid2_qres_hit = {}
     qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
-    qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
+    if qreq_.qparams.pipeline_root == 'vsone':
+        # Make sure that only one external query is requested per pipeline call
+        # when doing vsone
+        qaid_list = qreq_.get_external_qaids()
+        qaid2_qres = {}
+
+        qres_gen = generate_vsone_queries(ibs, qreq_, qaid_list, chunksize)
+        qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
+                                backspace=False, lbl='vsone query: ',
+                                use_rate=True)
+        qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
+
+        for qres_chunk in qres_chunk_iter:
+            qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
+            # Save chunk of vsone queries
+            if save_cache:
+                pipeline.save_resdict(qreq_, qaid2_qres_)
+            # Add current chunk to results
+            qaid2_qres.update(qaid2_qres_)
+    else:
+        qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)  # execute queries
+        if save_cache:
+            pipeline.save_resdict(qreq_, qaid2_qres)
     # Cache save only misses
     if utool.DEBUG2:
         qreq_.assert_self(ibs)  # SANITY CHECK
-    if SAVE_CACHE:
-        pipeline.save_resdict(qreq_, qaid2_qres)
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)
@@ -142,6 +191,7 @@ if __name__ == '__main__':
     """
     python ibeis/model/hots/match_chips4.py
     python ibeis/model/hots/match_chips4.py --allexamples
+    python ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1
     """
     import multiprocessing
     multiprocessing.freeze_support()

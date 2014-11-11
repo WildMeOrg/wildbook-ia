@@ -31,7 +31,7 @@ def ensure_flatiterable(input_):
     if isinstance(input_, int) or not utool.isiterable(input_):
         return [input_]
     elif isinstance(input_, list):
-        print(input_)
+        #print(input_)
         if len(input_) > 0 and utool.isiterable(input_[0]):
             return utool.flatten(input_)
         return input_
@@ -58,8 +58,8 @@ def get_test_qaids(ibs):
             args_qaid = ensure_flatlistlike(params.args.qaid)
         except Exception:
             args_qaid = params.args.qaid
-        if __debug__:
-            printDBG('Testing qaid=%r' % params.args.qaid)
+        #if __debug__:
+        #    printDBG('Testing qaid=%r' % params.args.qaid)
         available_qaids.extend(args_qaid)
 
     valid_aids_ = utool.lazyfunc(ibs.get_valid_aids)
@@ -85,15 +85,15 @@ def get_test_qaids(ibs):
         available_qaids.extend(hasgt_aids)
 
     # INDEX SUBSET
-    # Sample a large pool of chosen query indexes
+    # Sample a large pool of chosen query qindexes
     # Filter only the ones you want from the large pool
-    if params.args.index is not None:
-        indexes = ensure_flatlistlike(params.args.index)
-        printDBG('Chosen indexes=%r' % (indexes,))
-        printDBG('available_qaids = %r' % available_qaids[0:5])
-        _test_qaids = [available_qaids[xx] for xx in indexes]
+    if params.args.qindex is not None:
+        qindexes = ensure_flatlistlike(params.args.qindex)
+        #printDBG('Chosen qindexes=%r' % (qindexes,))
+        #printDBG('available_qaids = %r' % available_qaids[0:5])
+        _test_qaids = [available_qaids[qx] for qx in qindexes if qx < len(available_qaids)]
         available_qaids = _test_qaids
-        printDBG('available_qaids = %r' % available_qaids)
+        #printDBG('available_qaids = %r' % available_qaids)
     # DEFAULT [0]
     elif len(available_qaids) == 0 and len(valid_aids_()) > 0:
         printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
@@ -126,4 +126,12 @@ def get_test_daids(ibs, qaid_list=None):
 
     if params.args.daid_exclude is not None:
         available_daids = list(set(available_daids) - set(params.args.daid_exclude))
+
+    if params.args.dindex is not None:
+        dindexes = ensure_flatlistlike(params.args.dindex)
+        #printDBG('Chosen dindexes=%r' % (dindexes,))
+        #printDBG('available_daids = %r' % available_daids[0:5])
+        _test_daids = [available_daids[dx] for dx in dindexes if dx < len(available_daids)]
+        available_daids = _test_daids
+        #printDBG('available_daids = %r' % available_daids)
     return available_daids

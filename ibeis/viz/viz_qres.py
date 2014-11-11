@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from plottool import draw_func2 as df2
+#import utool as ut
 import numpy as np
 from ibeis import ibsfuncs
 from . import viz_helpers as vh
@@ -80,7 +81,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
             # This could be something complex or simple like (was able to be matched)
             # Hack to not show too many unmatched groundtruths
             _isexmp = ibs.get_annot_exemplar_flag(_gtaids)
-            _gtaids, = utool.sortedby(_gtaids, _isexmp, reverse=True)
+            _gtaids = utool.sortedby(_gtaids, _isexmp, reverse=True)
             _gtaids = _gtaids[0:4]
         showgt_aids = _gtaids
 

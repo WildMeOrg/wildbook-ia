@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import plottool.draw_sv as draw_sv
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_misc]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sver]', DEBUG=False)
 
 
 WRITE_SV_DEBUG = utool.get_argflag('--write-sv-debug')
@@ -34,7 +35,25 @@ def _compute_svvars(ibs, aid1):
 
 @utool.indent_func
 def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
-    """ Compiles IBEIS information and sends it to plottool """
+    """
+    Compiles IBEIS information and sends it to plottool
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_sver import *   # NOQA
+        >>> import ibeis
+        >>> import utool as ut
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid1, aid2 = aid_list[0:2]
+        >>> chipmatch_FILT = None
+        >>> aid2_svtup = None
+        >>> kwargs = {}
+        >>> show_sver(ibs, aid1, aid2)
+        >>> if ut.get_argflag('--show') or ut.inIPython():
+        ...     from plottool import df2
+        ...     exec(df2.present())
+    """
     print('\n[show_sver] ====================== [show_sver]')
     #print(utool.func_str(show_sv, kwargs=locals()))
     if chipmatch_FILT is None or aid2_svtup is None:
@@ -47,3 +66,12 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
         print('[vizsv] write test info')
         utool.qflag()
     draw_sv.show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ibeis/viz/viz_sver.py --allexamples
+        python ibeis/viz/viz_sver.py --allexamples --show
+    """
+    ut.doctest_funcs()

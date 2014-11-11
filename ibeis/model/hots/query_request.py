@@ -48,15 +48,29 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
     qreq_ = QueryRequest(qaid_list, quuid_list,
                          daid_list, duuid_list,
                          qparams, qresdir)
+    if utool.NOT_QUIET:
+        print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
     return qreq_
+
+
+def qreq_shallow_copy(qreq_, qx=None, dx=None):
+    qaid_list  = qreq_.get_external_qaids()
+    quuid_list = qreq_.get_external_quuids()
+    daid_list  = qreq_.get_external_daids()
+    duuid_list = qreq_.get_external_duuids()
+    #[qx:qx + 1]
+    #[qx:qx + 1]
+    qaid_list  =  qaid_list if qx is None else  qaid_list[qx:qx + 1]
+    quuid_list = quuid_list if qx is None else quuid_list[qx:qx + 1]
+    daid_list  =  daid_list if dx is None else  daid_list[dx:dx + 1]
+    duuid_list = duuid_list if dx is None else duuid_list[dx:dx + 1]
+    qreq_copy  = QueryRequest(qaid_list, quuid_list, daid_list, duuid_list, qreq_.qparams, qreq_.qresdir)
+    return qreq_copy
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class QueryRequest(object):
-    def __init__(qreq_,
-                 qaid_list, quuid_list,
-                 daid_list, duuid_list,
-                 qparams, qresdir):
+    def __init__(qreq_, qaid_list, quuid_list, daid_list, duuid_list, qparams, qresdir):
         qreq_.qparams = qparams
         qreq_.qresdir = qresdir
         qreq_.internal_qaids = None
@@ -72,6 +86,8 @@ class QueryRequest(object):
         qreq_.internal_qgid_list  = None
         qreq_.internal_qnid_list  = None
         qreq_.aid2_nid = None
+        qreq_.hasloaded = False
+        #qreq_.ibs = ibs  # HACK
         qreq_.set_external_daids(daid_list, duuid_list)
         qreq_.set_external_qaids(qaid_list, quuid_list)
 
@@ -271,6 +287,7 @@ class QueryRequest(object):
 
     def lazy_load(qreq_, ibs):
         print('[qreq] lazy loading')
+        qreq_.hasloaded = True
         qreq_.ibs = ibs  # HACK
         if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
             qreq_.load_indexer(ibs)

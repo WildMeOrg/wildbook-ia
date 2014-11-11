@@ -8,28 +8,30 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[query_helpers]'
 
 
 def get_query_components(ibs, qaids):
-    from . import pipeline as hspipe
+    from . import pipeline
     from . import query_request
     daids = ibs.get_valid_aids()
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    custom_qparams = dict(with_metadata=True)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, custom_qparams)
     qaid = qaids[0]
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
     qreq_.lazy_load(ibs)
     metadata = {}
+    qreq_.metadata = metadata
     #---
-    qaid2_nns = hspipe.nearest_neighbors(qreq_, metadata)
+    qaid2_nns = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
     #---
-    filt2_weights = hspipe.weight_neighbors(qaid2_nns, qreq_, metadata)
+    filt2_weights = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
     #---
-    qaid2_nnfilt = hspipe.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
+    qaid2_nnfilt = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
     #---
-    qaid2_chipmatch_FILT = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
     #---
-    _tup = hspipe.spatial_verification(qaid2_chipmatch_FILT, qreq_, dbginfo=True)
-    qaid2_chipmatch_SVER, qaid2_svtups = _tup
+    qaid2_chipmatch_SVER = pipeline.spatial_verification(qaid2_chipmatch_FILT, qreq_)
+    qaid2_svtups = qreq_.metadata['qaid2_svtups']
     #---
-    qaid2_qres = hspipe.chipmatch_to_resdict(qaid2_chipmatch_SVER, metadata, qreq_)
+    qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, metadata, qreq_)
     #####################
     # Testing components
     #####################
@@ -40,10 +42,10 @@ def get_query_components(ibs, qaids):
         qfx2_gid = ibs.get_annot_gids(qfx2_aid)  # NOQA
         qfx2_nid = ibs.get_annot_nids(qfx2_aid)  # NOQA
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
-        qaid2_nnfilt_ORIG    = hspipe.identity_filter(qaid2_nns, qreq_)
-        qaid2_chipmatch_ORIG = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
-        qaid2_qres_ORIG = hspipe.chipmatch_to_resdict(qaid2_chipmatch_ORIG, metadata, qreq_)
-        qaid2_qres_FILT = hspipe.chipmatch_to_resdict(qaid2_chipmatch_FILT, metadata, qreq_)
+        qaid2_nnfilt_ORIG    = pipeline.identity_filter(qaid2_nns, qreq_)
+        qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
+        qaid2_qres_ORIG = pipeline.chipmatch_to_resdict(qaid2_chipmatch_ORIG, metadata, qreq_)
+        qaid2_qres_FILT = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT, metadata, qreq_)
         qaid2_qres_SVER = qaid2_qres
     #####################
     # Relevant components
@@ -95,15 +97,15 @@ def data_index_integrity(ibs, qreq):
 #    """ quick and dirty test to score by number of assignments """
 #    import six
 #    from . import match_chips3 as mc3
-#    from . import matching_functions as hspipe
+#    from . import matching_functions as pipeline
 #    qreq = ibs.qreq
 #    qaids = ibs.get_valid_aids()
 #    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)
 #    mc3.pre_exec_checks(ibs, qreq)
-#    qaid2_nns = hspipe.nearest_neighbors(ibs, qaids, qreq)
-#    hspipe.rrr()
-#    qaid2_nnfilt = hspipe.identity_filter(qaid2_nns, qreq)
-#    qaid2_chipmatch_FILT = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
+#    qaid2_nns = pipeline.nearest_neighbors(ibs, qaids, qreq)
+#    pipeline.rrr()
+#    qaid2_nnfilt = pipeline.identity_filter(qaid2_nns, qreq)
+#    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
 #    qaid2_ranked_list = {}
 #    qaid2_ranked_scores = {}
 #    for qaid, chipmatch in six.iteritems(qaid2_chipmatch_FILT):

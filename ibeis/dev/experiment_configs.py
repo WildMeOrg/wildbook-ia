@@ -35,7 +35,34 @@ fgweight = augbase(small_best, {
 
 
 dupvote = augbase(small_best, {
-    'dupvote_weight': [1.0]  # , 0.0],
+    'dupvote_weight': [1.0],  # , 0.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+    'algorithm': ['linear', 'kdtree']
+})
+
+nsum = augbase(small_best, {
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
+vary_sver = augbase(small_best, {
+    'sv_on'          : [False, True],
+    'use_chip_extent' : [False, True],
+    'xy_thresh'       : [.1, .01, .001],
+    'fg_weight'       : [1.0],
+    'featweight_on'   : [True],
+    'algorithm'       : ['linear'],
+})
+
+sver_new = augbase(small_best, {
+    'sv_on'           : [True],
+    'use_chip_extent' : [True],
+    'xy_thresh'       : [.001],
+    'fg_weight'       : [1.0],
+    'featweight_on'   : [True],
+    #'algorithm'       : ['linear'],
 })
 
 nov6 = augbase(small_best, {
@@ -88,16 +115,29 @@ featparams_big2 = augbase(
 # low initialSigma = more keypoints
 
 
-vsone_best = {
+vsmany = {
+    'pipeline_root':   ['vsmany'],
+    'checks':          [1024],  # , 8192],
+    'K':               [4],  # 5, 10],
+    'Knorm':           [1],  # 2, 3],
+    'lnbnn_weight':    [1],  # 1,]
+    'chip_sqrt_area':  [450],
+}
+
+vsone = {
     'pipeline_root':  ['vsone'],
     'checks':        [256],
-    'K':             [1],
+    'K':             [2],
     'Knorm':         [1],
-    'Krecip':        [0],
-    'ratio_weight':  [0, 1],
+    'ratio_weight':  [1.0],
+    #'fg_weight':     [1.0],
     'lnbnn_weight':  [0],
-    'ratio_thresh':  [1.5, 1.8],
+    'ratio_thresh':  [1.6],
+    'sv_on':         [True],  # True, False],
 }
+
+
+vsone_best = augbase(vsone, { })
 
 
 smk_test2 = {
@@ -136,10 +176,11 @@ smk2 = {
 
 # Test to make sure things are working for oxford
 oxford = {
-    'pipeline_root': ['smk', 'asmk', 'vsmany'],
-    'sv_on':         [False, True],  # True, False],
-    'nWords':        [64000, 128000],
-    'xy_thresh':     [.1, .01, .001]
+    'pipeline_root':    ['smk', 'asmk', 'vsmany'],
+    'sv_on':            [False, True],  # True, False],
+    'nWords':           [64000, 128000],
+    'xy_thresh':        [.1, .01, .001],
+    'use_chip_extent':  [True, False],
 }
 
 smkd = {

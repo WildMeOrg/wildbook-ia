@@ -18,6 +18,8 @@ MAX_FNAME_LEN = 64 if utool.WIN32 else 200
 TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
     utool.is_developer() and not utool.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
 
+VERBOSE = utool.get_argflag(('--verbose-query-result', '--verb-qres')) or ut.VERBOSE
+
 #=========================
 # Query Result Class
 #=========================
@@ -152,7 +154,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.metadata = None  # messy (meta information of query)
         #qres.daid_list = None  # matchable daids
 
-    def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
+    def load(qres, qresdir, verbose=VERBOSE, force_miss=False):
         """ Loads the result from the given database """
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
