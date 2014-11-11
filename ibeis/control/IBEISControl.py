@@ -2299,7 +2299,11 @@ class IBEISController(object):
         """
         Gets an algorithm configuration as a string
         """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        # FIXME: This is causing a crash when converting old hotspotter databses.
+        # probably because the superkey changed
+        # SEE DBSchema.
+
+        # TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         config_rowid_list = ibs.db.get(constants.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
         # executeone always returns a list

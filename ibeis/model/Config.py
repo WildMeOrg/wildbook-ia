@@ -537,6 +537,8 @@ class QueryConfig(ConfigBase):
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
+        query_cfg.codename = 'None'
+        query_cfg.species_code = '____'
         #if utool.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
@@ -548,8 +550,6 @@ class QueryConfig(ConfigBase):
         # Each config paramater should be unique
         # So updating them all should not cause conflicts
         # FIXME: Should be able to infer all the children that need updates
-        query_cfg.codename = 'None'
-        query_cfg.species_code = '____'
         query_cfg.nn_cfg.update(**kwargs)
         query_cfg.filt_cfg.update(**kwargs)
         query_cfg.sv_cfg.update(**kwargs)
@@ -584,21 +584,26 @@ class QueryConfig(ConfigBase):
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
         elif codename == 'vsmany':
-            filt_cfg.pipeline_root = 'vsmany'
+            query_cfg.pipeline_root = 'vsmany'
         elif codename == 'vsone':
-            filt_cfg.pipeline_root = 'vsone'
+            query_cfg.pipeline_root = 'vsone'
+            nn_cfg.K = 2
+            nn_cfg.Knorm = 1
+            filt_cfg.ratio_thresh = 1.6
+            filt_cfg.ratio_weight = 1.0
+
         elif codename == 'asmk':
-            filt_cfg.pipeline_root = 'asmk'
+            query_cfg.pipeline_root = 'asmk'
         elif codename == 'smk':
-            filt_cfg.pipeline_root = 'smk'
+            query_cfg.pipeline_root = 'smk'
         elif codename == 'None':
             pass
-        if query_cfg.species_code == '____':
-            filt_cfg.fg_weight = 0.0
-        if query_cfg.species_code == 'zebra_plains':
-            filt_cfg.fg_weight = 1.0
-        if query_cfg.species_code == 'zebra_grevys':
-            filt_cfg.fg_weight = 1.0
+        #if query_cfg.species_code == '____':
+        #    query_cfg.fg_weight = 0.0
+        #if query_cfg.species_code == 'zebra_plains':
+        #    query_cfg.fg_weight = 1.0
+        #if query_cfg.species_code == 'zebra_grevys':
+        #    query_cfg.fg_weight = 1.0
             # TODO:
 
         if query_cfg.pipeline_root == 'asmk':

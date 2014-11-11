@@ -100,11 +100,10 @@ featparams_big2 = augbase(
 vsone = {
     'pipeline_root':  ['vsone'],
     'checks':        [256],
-    'K':             [1],
+    'K':             [2],
     'Knorm':         [1],
-    'Krecip':        [0],
     'ratio_weight':  [1.0],
-    'fg_weight':     [1.0],
+    #'fg_weight':     [1.0],
     'lnbnn_weight':  [0],
     'ratio_thresh':  [1.6],
     'sv_on':         [False, True],  # True, False],
