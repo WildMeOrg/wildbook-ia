@@ -199,6 +199,7 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
+    #@profile
     @updater
     def _update_rows(model, rebuild_structure=True):
         """
@@ -220,9 +221,9 @@ class APIItemModel(API_MODEL_BASE):
             return
         #old_root = model.root_node  # NOQA
         if rebuild_structure:
-            #with utool.Timer('[%s] _update_rows: %r' %
-            #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
-            #                  model.name,), newline=False):
+            with utool.Timer('[%s] _update_rows: %r' %
+                             ('cyth' if _atn.CYTHONIZED else 'pyth',
+                              model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
         #print('-----')
         #def lazy_update_rows():
@@ -260,6 +261,8 @@ class APIItemModel(API_MODEL_BASE):
         model.level_index_list = nodes
         #if VERBOSE:
         #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
+
+        # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
         model._rows_updated.emit(model.name, len(model.level_index_list))
 
         # lazy method didn't work. Eagerly evaluate
