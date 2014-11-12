@@ -2007,7 +2007,8 @@ class IBEISController(object):
         return groundfalse_list
 
     @getter_1toM
-    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True):
+    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
+            daid_list=None):
         """
         gets all annotations with the same names
 
@@ -2037,6 +2038,11 @@ class IBEISController(object):
                                 for aids, aid in zip(groundtruth_list_, aid_list)]
         else:
             groundtruth_list = groundtruth_list_
+
+        if daid_list is not None:
+            # filter out any groundtruth that isn't allowed
+            daid_set = set(daid_list)
+            groundtruth_list = [list(daid_set.intersection(set(aids))) for aids in groundtruth_list]
         return groundtruth_list
 
     @getter_1to1

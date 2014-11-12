@@ -39,7 +39,10 @@ class AllResults(utool.DynStruct):
 
 
 def init_allres(ibs, qaid2_qres, qreq_=None):
-    allres_cfgstr = qreq_.get_cfgstr()
+    if qreq_ is not None:
+        allres_cfgstr = qreq_.get_cfgstr()
+    else:
+        allres_cfgstr = '???'
     print('Building allres')
     allres = AllResults()
     allres.qaid2_qres = qaid2_qres

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import six
-import utool as ut
+import utool as ut  # NOQA
 from six.moves import zip
 import numpy as np
 # Tools
@@ -50,6 +50,19 @@ class OrganizedResult(DynStruct):
         """ get new orgres where all the ranks are less or equal to """
         # Remove None ranks
         return _where_ranks_lt(orgres, num)
+
+    def iter_sorted(self):
+        qaids  = np.array(self.qaids)
+        aids   = np.array(self.aids)
+        scores = np.array(self.scores)
+        ranks  = np.array(self.ranks)
+        #
+        sortx  = ranks.argsort()
+        sorted_qaids  =  qaids[sortx]
+        sorted_aids   =   aids[sortx]
+        sorted_scores = scores[sortx]
+        sorted_ranks  =  ranks[sortx]
+        return (sorted_qaids, sorted_aids, sorted_scores, sorted_ranks)
 
     def __len__(self):
         num_qcxs   = len(self.qaids)
@@ -154,11 +167,11 @@ def qres2_true_and_false(ibs, qres):
             aids   = np.array(aids)
             scores = np.array(scores)
             ranks  = np.array(ranks)
-            sortx  = ranks.argsort()
-            aids   = aids[sortx].tolist()
-            scores = scores[sortx].tolist()
-            ranks  = ranks[sortx].tolist()
-            sorted_tup = (aids, scores, ranks)
+            sortx  = scores.argsort()[::-1]
+            sorted_aids   = aids[sortx].tolist()
+            sorted_scores = scores[sortx].tolist()
+            sorted_ranks  = ranks[sortx].tolist()
+            sorted_tup = (sorted_aids, sorted_scores, sorted_ranks)
             return sorted_tup
         true_tup     = sort_tup((true_aids, true_scores, true_ranks))
         false_tup    = sort_tup((false_aids, false_scores, false_ranks))
@@ -215,8 +228,8 @@ def organize_results(ibs, qaid2_qres):
         #
         # Record: all_true, missed_true, top_true, bot_true
         topx = 0
-        for topx, truetup in enumerate(zip(*true_tup)):
-            (aid, score, rank) = truetup
+        for topx, ttup in enumerate(zip(*true_tup)):
+            (aid, score, rank) = ttup
             # Record all true results
             org_true.append(qaid, aid, rank, score)
             # Record non-top (a.k.a problem) true results
@@ -235,8 +248,8 @@ def organize_results(ibs, qaid2_qres):
             org_bot_true.append(qaid, aid, rank, score)
         #
         # Record the all_false, false_positive, top_false
-        topx = 0
-        for aid, score, rank in zip(*false_tup):
+        for topx, ftup in enumerate(zip(*false_tup)):
+            (aid, score, rank) = ftup
             org_false.append(qaid, aid, rank, score)
             if rank in skipped_ranks:
                 org_problem_false.append(qaid, aid, rank, score)
@@ -244,7 +257,6 @@ def organize_results(ibs, qaid2_qres):
                 org_top_false.append(qaid, aid, rank, score)
             if rank == 0:
                 org_rank0_false.append(qaid, aid, rank, score)
-            topx += 1
 
     # -----------------
     # Query result loop

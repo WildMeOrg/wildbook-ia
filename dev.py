@@ -368,6 +368,32 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     return locals()
 
 
+@devcmd('vsone_gt')
+def vsone_gt(ibs, qaid_list, daid_list):
+    """
+    dev.py --db PZ_MTEST --allgt --cmd
+    """
+    custom_qparams = dict(featweight_on=True, fg_weight=1.0)
+    allres = get_allres(ibs, qaid_list, daid_list, custom_qparams)
+    #orgtype_list = ['top_false', 'top_true']
+    org_top_false = allres.get_orgtype('top_false')
+    top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
+    gtaids_list = ibs.get_annot_groundtruth(qaid_list, daid_list=daid_list)
+    # Add groundtruth pairs to query
+    qaid2_vsoneaids = dict(zip(qaid_list, gtaids_list))
+    # Add problem cases
+    for qaid, daid in top_false_aid_pairs:
+        qaid2_vsoneaids[qaid].append(daid)
+    custom_qparams = dict(codename='vsone')
+    qaid2_vsoneqres = {}
+    for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
+        qres = ibs._query_chips4([qaid], vsoneaids, custom_qparams=custom_qparams)[qaid]
+        qaid2_vsoneqres[qaid] = qres
+    vsone_allres = results_all.init_allres(ibs, qaid2_vsoneqres)
+    viz_allres_annotation_scores(vsone_allres)
+    #cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
+
+
 @devcmd('scores', 'score')
 def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """
@@ -384,10 +410,15 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """
     print('[dev] annotationmatch_scores')
     allres = get_allres(ibs, qaid_list, daid_list)
+    locals_ = viz_allres_annotation_scores(allres)
+    return locals_
+
+
+def viz_allres_annotation_scores(allres):
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
-    #orgtype_list = ['rank0_false', 'rank0_true']
+    orgtype_list = ['rank0_false', 'rank0_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
     cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
@@ -617,7 +648,7 @@ def run_devcmds(ibs, qaid_list, daid_list):
 __ALLRES_CACHE__ = {}
 
 
-def get_allres(ibs, qaid_list, daid_list=None):
+def get_allres(ibs, qaid_list, daid_list=None, custom_qparams=None):
     """
     get_allres
 
@@ -650,7 +681,8 @@ def get_allres(ibs, qaid_list, daid_list=None):
         allres = __ALLRES_CACHE__[allres_key]
     except KeyError:
         qaid2_qres, qreq_ = ibs._query_chips(qaid_list, daid_list,
-                                             return_request=True)
+                                             return_request=True,
+                                             custom_qparams=custom_qparams)
         allres = results_all.init_allres(ibs, qaid2_qres, qreq_)
     # Cache save
     __ALLRES_CACHE__[allres_key] = allres
