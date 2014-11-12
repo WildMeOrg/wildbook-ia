@@ -19,19 +19,16 @@ def get_query_components(ibs, qaids):
     qreq_.lazy_load(ibs)
     metadata = {}
     qreq_.metadata = metadata
-    #---
-    qaid2_nns = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-    #---
-    filt2_weights = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-    #---
-    qaid2_nnfilt = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-    #---
-    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-    #---
-    qaid2_chipmatch_SVER = pipeline.spatial_verification(qaid2_chipmatch_FILT, qreq_)
+    pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, None)
+    qaid2_nns            = pipeline_locals_['qaid2_nns']
+    qaid2_nnfilt0        = pipeline_locals_['qaid2_nnfilt0']
+    filt2_weights        = pipeline_locals_['filt2_weights']
+    qaid2_nnfilt         = pipeline_locals_['qaid2_nnfilt']
+    qaid2_chipmatch_FILT = pipeline_locals_['qaid2_chipmatch_FILT']
+    qaid2_chipmatch_SVER = pipeline_locals_['qaid2_chipmatch_SVER']
     qaid2_svtups = qreq_.metadata['qaid2_svtups']
     #---
-    qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, metadata, qreq_)
+    qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, qreq_)
     #####################
     # Testing components
     #####################
@@ -44,8 +41,8 @@ def get_query_components(ibs, qaids):
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
         qaid2_nnfilt_ORIG    = pipeline.identity_filter(qaid2_nns, qreq_)
         qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
-        qaid2_qres_ORIG = pipeline.chipmatch_to_resdict(qaid2_chipmatch_ORIG, metadata, qreq_)
-        qaid2_qres_FILT = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT, metadata, qreq_)
+        qaid2_qres_ORIG = pipeline.chipmatch_to_resdict(qaid2_chipmatch_ORIG, qreq_)
+        qaid2_qres_FILT = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT, qreq_)
         qaid2_qres_SVER = qaid2_qres
     #####################
     # Relevant components

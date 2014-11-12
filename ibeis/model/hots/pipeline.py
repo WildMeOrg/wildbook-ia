@@ -17,7 +17,7 @@ Module Concepts::
      * fs     - a score of a corresponding feature
      * valid  - a valid bit for a corresponding feature
 
-    REALIZATIONS::
+    PIPELINE_VARS::
     qaid2_nns - maping from query chip index to nns
     {
      * qfx2_idx   - ranked list of query feature indexes to database feature indexes
@@ -36,6 +36,7 @@ from collections import defaultdict
 import sys
 # Scientific
 import numpy as np
+import vtool as vt
 from vtool import keypoint as ktool
 from vtool import spatial_verification as sver
 # Hotspotter
@@ -90,8 +91,8 @@ def request_ibeis_query_L0(ibs, qreq_):
         >>> import ibeis
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
-        >>> custom_qparams = dict(codename='vsmany')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams)
+        >>> cfgdict = dict(codename='vsmany')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
         >>> print(qreq_.qparams.query_cfgstr)
         >>> qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)
         >>> qres = qaid2_qres[list(qaid2_qres.keys())[0]]
@@ -106,8 +107,8 @@ def request_ibeis_query_L0(ibs, qreq_):
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
         >>> # pipeline.rrr()
-        >>> custom_qparams1 = dict(codename='vsone', sv_on=False)
-        >>> ibs1, qreq_1 = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams1)
+        >>> cfgdict1 = dict(codename='vsone', sv_on=False)
+        >>> ibs1, qreq_1 = pipeline.get_pipeline_testdata(cfgdict=cfgdict1)
         >>> print(qreq_1.qparams.query_cfgstr)
         >>> qaid2_qres1 = pipeline.request_ibeis_query_L0(ibs1, qreq_1)
         >>> qres1 = qaid2_qres1[list(qaid2_qres1.keys())[0]]
@@ -139,16 +140,18 @@ def request_ibeis_query_L0(ibs, qreq_):
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
-        qaid2_nns_ = nearest_neighbors(qreq_, qreq_.metadata)
+        qaid2_nns_ = nearest_neighbors(qreq_)
 
-        # Nearest neighbors weighting and scoring (filt2_weights, metadata)
+        # Remove Impossible Votes
+        qaid2_nnfilt0_ = baseline_neighbor_filter(qaid2_nns_, qreq_)
+
+        # Nearest neighbors weighting / scoring (filt2_weights)
         # * feature matches are weighted
-        filt2_weights_ = weight_neighbors(qaid2_nns_, qreq_, qreq_.metadata)
-        #print(filt2_weights_)
+        filt2_weights_ = weight_neighbors(qaid2_nns_, qaid2_nnfilt0_, qreq_)
 
-        # Thresholding and weighting (qaid2_nnfilter)
-        # * feature matches are pruned
-        qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
+        # Thresholding and combine weights into a score
+        # * nnfilt = (qfx2_valid, qfx2_score)
+        qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, qaid2_nnfilt0_, filt2_weights_, qreq_)
 
         # Nearest neighbors to chip matches (qaid2_chipmatch)
         # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
@@ -165,7 +168,7 @@ def request_ibeis_query_L0(ibs, qreq_):
     # Query results format (qaid2_qres)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, metadata, qreq_)
+    qaid2_qres_ = chipmatch_to_resdict(qaid2_chipmatch_SVER_, qreq_)
 
     if VERB_PIPELINE:
         print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
@@ -179,7 +182,7 @@ def request_ibeis_query_L0(ibs, qreq_):
 
 #@ut.indent_func('[nn]')
 @profile
-def nearest_neighbors(qreq_, metadata):
+def nearest_neighbors(qreq_):
     """
     Plain Nearest Neighbors
 
@@ -197,10 +200,12 @@ def nearest_neighbors(qreq_, metadata):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
         >>> pipeline.rrr()
-        >>> custom_qparams = dict(custom_qparams=dict(codename='vsone'))
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams)
+        >>> #cfgdict = dict(codename='vsone')
+        >>> cfgdict = dict(codename='nsum')
+        >>> dbname = 'testdb1'
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
         >>> # Run Test
-        >>> qaid2_nns = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
+        >>> qaid2_nns = pipeline.nearest_neighbors(qreq_)
         >>> # Asserts
         >>> assert list(qaid2_nns.keys()) == qreq_.get_external_qaids().tolist()
         >>> tup = list(qaid2_nns.values())[0]
@@ -248,220 +253,88 @@ def nearest_neighbors(qreq_, metadata):
                   zip(qaids, nn_idxs_arr, nn_dists_arr)}
 
     if qreq_.qparams.with_metadata:
-        metadata['nns'] = qaid2_nns_
+        qreq_.metadata['nns'] = qaid2_nns_
     return qaid2_nns_
 
-
 #============================
-# 2) Nearest Neighbor weights
+# 1.5) Remove Impossible Weights
 #============================
 
 
-#@ut.indent_func('[wn]')
-def weight_neighbors(qaid2_nns, qreq_, metadata):
+def baseline_neighbor_filter(qaid2_nns, qreq_):
     """
-    Args:
-        qaid2_nns (dict):
-        qreq_ (QueryRequest): hyper-parameters
-        metadata (dict): metadata dictionary
-
     Returns:
-        dict : filt2_weights
+        qaid2_nnfilt0 : mapping from qaid to (qfx2_valid, qfx2_score) tuple
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *   # NOQA
         >>> from ibeis.model.hots import pipeline
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata()
+        >>> import ibeis
+        >>> cfgdict = dict(codename='nsum')
+        >>> dbname = 'testdb1'
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> pipeline.test_pipeline_upto(ibs, qreq_, stop_node='baseline_neighbor_filter')
         >>> # Run Test
-        >>> qaid2_nns = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights = weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
+        >>> args = [locals_[key] for key in ['qaid2_nns']]
+        >>> qaid2_nns, = args
+        >>> qaid2_nnfilt0 = baseline_neighbor_filter(qaid2_nns, qreq_)
+
+    Removes matches to self, the same image, or the same name.
     """
-    if NOT_QUIET:
-        print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
-    if not qreq_.qparams.filt_on:
-        filt2_weights = {}
-    else:
-        filt2_weights = _weight_neighbors(qaid2_nns, qreq_, metadata)
-    return filt2_weights
-
-
-#@ut.indent_func('[_wn]')
-@profile
-def _weight_neighbors(qaid2_nns, qreq_, metadata):
-    """
-    Args:
-        qaid2_nns (int): query annotation id
-        qreq_ (QueryRequest): hyper-parameters
-        metadata (dict): metadata dictionary
-
-    Returns:
-        dict : filt2_weights
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> from ibeis.model.hots import pipeline
-        >>> from ibeis.model.hots import nn_weights
-        >>> metadata = {}
-        >>> custom_qparams = {'dupvote_weight': 1.0}
-        >>> tup = nn_weights.testdata_nn_weights(custom_qparams=custom_qparams)
-        >>> ibs, daid_list, qaid_list, qaid2_nns, qreq_  = tup
-        >>> filt2_weights = pipeline._weight_neighbors(qaid2_nns, qreq_, metadata)
-    """
-    nnweight_list = qreq_.qparams.active_filter_list
-    # Prealloc output
-    filt2_weights = {nnweight: None for nnweight in nnweight_list}
-    # Buidl output
-    for nnweightkey in nnweight_list:
-        nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweightkey]
-        # Apply [nnweightkey] weight to each nearest neighbor
-        # FIXME: only compute metadata if requested
-        qaid2_norm_weight = nn_filter_fn(qaid2_nns, qreq_, metadata)
-        filt2_weights[nnweightkey] = qaid2_norm_weight
-    return filt2_weights
-
-
-#==========================
-# 3) Neighbor scoring (Voting Profiles)
-#==========================
-
-
-#@ut.indent_func('[_tsw]')
-@profile
-def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
-    """
-    helper function _threshold_and_scale_weights
-
-    qfx2_score is an ndarray containing the score of individual feature matches.
-    qfx2_valid marks if that score will be thresholded.
-
-    Args:
-        qaid (int): query annotation id
-        qfx2_nnidx (dict):
-        filt2_weights (dict):
-        qreq_ (QueryRequest): hyper-parameters
-
-    Return:
-        tuple : (qfx2_score, qfx2_valid)
-
-    Example:
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-    """
-    # Baseline is all matches have score 1 and all matches are valid
-    qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
-    qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
-    # Apply the filter weightings to determine feature validity and scores
-    for filt, aid2_weights in six.iteritems(filt2_weights):
-        qfx2_weights = aid2_weights[qaid]
-        sign, thresh, weight = qreq_.qparams.filt2_stw[filt]  # stw = sign, thresh, weight
-        if thresh is not None:
-            # Filter if threshold is specified
-            qfx2_trueweights = sign * qfx2_weights
-            truethresh = sign * thresh
-            qfx2_passed = qfx2_trueweights <= truethresh
-            #if VERB_PIPELINE:
-            #    print('[pipe.thresh] TEST(%r): (truethresh:%r) <= (qfx2_trueweights.min()=%r)' %
-            #            (filt, truethresh, qfx2_trueweights.min()))
-            #    print('[pipe.thresh] * %d matches passed' % (qfx2_passed.sum()))
-            #    print('[pipe.thresh] * and %d matches are now valid' % (qfx2_valid.sum(),))
-            qfx2_valid  = np.logical_and(qfx2_valid, qfx2_passed)
-        if not weight == 0:
-            # Score if weight is specified
-            # This used to be an addition. should it still be?
-            qfx2_score *= (weight * qfx2_weights)
-    return qfx2_score, qfx2_valid
-
-
-#@ut.indent_func('[fn]')
-@profile
-def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
-    """
-    Args:
-        qaid2_nns (dict):
-        filt2_weights (dict):
-        qreq_ (QueryRequest): hyper-parameters
-
-    Returns:
-        qaid2_nnfilt
-
-    Example:
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots import pipeline
-        >>> pipeline.rrr()
-        >>> custom_qparams = dict(dupvote_weight=1.0)
-        >>> custom_qparams = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams)
-        >>> # Run Test
-        >>> qaid2_nns     = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt  = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-    """
-    qaid2_nnfilt = {}
-    # Configs
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
     cant_match_samename = not qreq_.qparams.can_match_samename
     cant_match_self     = not cant_match_sameimg
     K = qreq_.qparams.K
-    if NOT_QUIET:
-        print('[hs] Step 3) Filter neighbors: ')
-    # Filter matches based on config and weights
-    mark_, end_ = log_progress('Filter NN: ', len(qaid2_nns))
+
+    qaid2_nnfilt0 = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
-        mark_(count)  # progress
         (qfx2_idx, _) = qaid2_nns[qaid]
         qfx2_nnidx = qfx2_idx.T[0:K].T
-        # Get a numeric score score and valid flag for each feature match
-        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_)
-        qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
-        if VERBOSE or VERB_PIPELINE:
-            print('')
-            print('[hs] * %d assignments are invalid by filter thresholds' %
-                  ((True - qfx2_valid).sum()))
-        if qreq_.qparams.gravity_weighting:
-            raise NotImplementedError('have not finished gv weighting')
-            #from vtool import linalg as ltool
-            #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
-            #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-            #qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient
-            #qfx2_oris  = ktool.get_oris(qfx2_kpts)
-            ## Get the orientation distance
-            #qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
-            ## Normalize into a weight (close orientations are 1, far are 0)
-            #qfx2_gvweight = (TAU - qfx2_oridist) / TAU
-            ## Apply gravity vector weight to the score
-            #qfx2_score *= qfx2_gvweight
-        # Remove Impossible Votes:
-        # dont vote for yourself or another chip in the same image
-        if cant_match_self:
-            qfx2_notsamechip = qfx2_aid != qaid
-            #<DBG>
-            if VERYVERBOSE_PIPELINE:
-                __self_verbose_check(qfx2_notsamechip, qfx2_valid)
-            #</DBG>
-            qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
-        if cant_match_sameimg:
-            qfx2_gid = qreq_.get_annot_gids(qfx2_aid)
-            qgid     = qreq_.get_annot_gids(qaid)
-            qfx2_notsameimg = qfx2_gid != qgid
-            #<DBG>
-            if VERYVERBOSE_PIPELINE:
-                __sameimg_verbose_check(qfx2_notsameimg, qfx2_valid)
-            #</DBG>
-            qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
-        if cant_match_samename:
-            qfx2_nid = qreq_.get_annot_nids(qfx2_aid)
-            qnid = qreq_.get_annot_nids(qaid)
-            qfx2_notsamename = qfx2_nid != qnid
-            #<DBG>
-            if VERYVERBOSE_PIPELINE:
-                __samename_verbose_check(qfx2_notsamename, qfx2_valid)
-            #</DBG>
-            qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
-        #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
-        qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
-    end_()
-    return qaid2_nnfilt
+        nnfilt = remove_impossible_votes(qaid, qfx2_nnidx, qreq_, cant_match_self,
+                                         cant_match_sameimg, cant_match_samename)
+        qaid2_nnfilt0[qaid] = nnfilt
+    return qaid2_nnfilt0
+
+
+def remove_impossible_votes(qaid, qfx2_nnidx, qreq_, cant_match_self, cant_match_sameimg, cant_match_samename):
+    # Baseline is all matches have score 1 and all matches are valid
+    qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
+    qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
+
+    # Get neighbor annotation information
+    qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
+    # dont vote for yourself or another chip in the same image
+    if cant_match_self:
+        qfx2_notsamechip = qfx2_aid != qaid
+        #<DBG>
+        if VERYVERBOSE_PIPELINE:
+            __self_verbose_check(qfx2_notsamechip, qfx2_valid)
+        #</DBG>
+        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
+    if cant_match_sameimg:
+        qfx2_gid = qreq_.get_annot_gids(qfx2_aid)
+        qgid     = qreq_.get_annot_gids(qaid)
+        qfx2_notsameimg = qfx2_gid != qgid
+        #<DBG>
+        if VERYVERBOSE_PIPELINE:
+            __sameimg_verbose_check(qfx2_notsameimg, qfx2_valid)
+        #</DBG>
+        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
+    if cant_match_samename:
+        # This should probably be off
+        qfx2_nid = qreq_.get_annot_nids(qfx2_aid)
+        qnid = qreq_.get_annot_nids(qaid)
+        qfx2_notsamename = qfx2_nid != qnid
+        #<DBG>
+        if VERYVERBOSE_PIPELINE:
+            __samename_verbose_check(qfx2_notsamename, qfx2_valid)
+        #</DBG>
+        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
+    nnfilt = (qfx2_score, qfx2_valid)
+    return nnfilt
 
 
 def __self_verbose_check(qfx2_notsamechip, qfx2_valid):
@@ -505,6 +378,174 @@ def identity_filter(qaid2_nns, qreq_):
         qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
     return qaid2_nnfilt
+
+
+#============================
+# 2) Nearest Neighbor weights
+#============================
+
+
+#@ut.indent_func('[wn]')
+def weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_):
+    """
+    PIPELINE NODE 3
+
+    Args:
+        qaid2_nns (dict):
+        qaid2_nnfilt0 (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        dict : filt2_weights
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import pipeline
+        >>> pipeline.rrr()
+        >>> #cfgdict = dict(codename='vsone')
+        >>> cfgdict = dict(codename='nsum')
+        >>> dbname = 'GZ_ALL'  # 'testdb1'
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+        >>> # Run Test
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'weight_neighbors')
+        >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt0']]
+        >>> qaid2_nns, qaid2_nnfilt0  = args
+        >>> filt2_weights = pipeline.weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_)
+    """
+    if NOT_QUIET:
+        print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
+    if not qreq_.qparams.filt_on:
+        filt2_weights = {}
+    else:
+        # Remove impossible votes (votes for chips is the same image)
+        nnweight_list = qreq_.qparams.active_filter_list
+        # Prealloc output
+        filt2_weights = {nnweight: None for nnweight in nnweight_list}
+        # Buidl output
+        for nnweightkey in nnweight_list:
+            nn_filter_fn = nn_weights.NN_WEIGHT_FUNC_DICT[nnweightkey]
+            # Apply [nnweightkey] weight to each nearest neighbor
+            qaid2_norm_weight = nn_filter_fn(qaid2_nns, qaid2_nnfilt0, qreq_)
+            filt2_weights[nnweightkey] = qaid2_norm_weight
+    return filt2_weights
+
+
+#==========================
+# 3) Neighbor scoring (Voting Profiles)
+#==========================
+
+
+#@ut.indent_func('[fn]')
+@profile
+def filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_):
+    """
+    Args:
+        qaid2_nns (dict):
+        filt2_weights (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        qaid2_nnfilt
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import pipeline
+        >>> pipeline.rrr()
+        >>> cfgdict = dict(dupvote_weight=1.0)
+        >>> cfgdict = dict(codename='vsone')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
+        >>> # Run Test
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'filter_neighbors')
+        >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt0', 'filt2_weights']]
+        >>> qaid2_nns, qaid2_nnfilt0, filt2_weights = args
+        >>> qaid2_nnfilt = filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_)
+    """
+    qaid2_nnfilt = {}
+    # Configs
+    K = qreq_.qparams.K
+    if NOT_QUIET:
+        print('[hs] Step 3) Filter neighbors: ')
+    # Filter matches based on config and weights
+    mark_, end_ = log_progress('Filter NN: ', len(qaid2_nns))
+    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
+        mark_(count)  # progress
+        (qfx2_idx, _) = qaid2_nns[qaid]
+        qfx2_nnidx = qfx2_idx.T[0:K].T
+        # Baseline is all matches have score 1 and all matches are valid
+
+        #if qreq_.qparams.score_method == 'nsum':
+        qfx2_score0, qfx2_valid0 = qaid2_nnfilt0[qaid]
+
+        # Get a numeric score score and valid flag for each feature match
+        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights,
+                                                              qfx2_score0, qfx2_valid0, qreq_)
+        if VERBOSE or VERB_PIPELINE:
+            print('')
+            print('[hs] * %d assignments are invalid by filter thresholds' %
+                  ((True - qfx2_valid).sum()))
+        if qreq_.qparams.gravity_weighting:
+            raise NotImplementedError('have not finished gv weighting')
+            #from vtool import linalg as ltool
+            #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
+            #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
+            #qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient
+            #qfx2_oris  = ktool.get_oris(qfx2_kpts)
+            ## Get the orientation distance
+            #qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
+            ## Normalize into a weight (close orientations are 1, far are 0)
+            #qfx2_gvweight = (TAU - qfx2_oridist) / TAU
+            ## Apply gravity vector weight to the score
+            #qfx2_score *= qfx2_gvweight
+        #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
+        nnfilt = (qfx2_score, qfx2_valid)
+        qaid2_nnfilt[qaid] = nnfilt
+    end_()
+    return qaid2_nnfilt
+
+
+#@ut.indent_func('[_tsw]')
+@profile
+def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
+                                 qfx2_valid0, qreq_):
+    """
+    helper function _threshold_and_scale_weights
+
+    qfx2_score is an ndarray containing the score of individual feature matches.
+    qfx2_valid marks if that score will be thresholded.
+
+    Args:
+        qaid (int): query annotation id
+        qfx2_nnidx (dict):
+        filt2_weights (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Return:
+        tuple : (qfx2_score, qfx2_valid)
+    """
+    qfx2_score = qfx2_score0.copy()
+    qfx2_valid = qfx2_valid0.copy()
+    # Apply the filter weightings to determine feature validity and scores
+    for filt, aid2_weights in six.iteritems(filt2_weights):
+        qfx2_weights = aid2_weights[qaid]
+        sign, thresh, weight = qreq_.qparams.filt2_stw[filt]  # stw = sign, thresh, weight
+        if thresh is not None:
+            # Filter if threshold is specified
+            qfx2_trueweights = sign * qfx2_weights
+            truethresh = sign * thresh
+            qfx2_passed = qfx2_trueweights <= truethresh
+            #if VERB_PIPELINE:
+            #    print('[pipe.thresh] TEST(%r): (truethresh:%r) <= (qfx2_trueweights.min()=%r)' %
+            #            (filt, truethresh, qfx2_trueweights.min()))
+            #    print('[pipe.thresh] * %d matches passed' % (qfx2_passed.sum()))
+            #    print('[pipe.thresh] * and %d matches are now valid' % (qfx2_valid.sum(),))
+            qfx2_valid  = np.logical_and(qfx2_valid, qfx2_passed)
+        if weight != 0:
+            # Score if weight is specified
+            # This used to be an addition. should it still be?
+            qfx2_score *= (weight * qfx2_weights)
+    nnfilt = (qfx2_score, qfx2_valid)
+    return nnfilt
 
 
 #============================
@@ -567,14 +608,13 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
-        >>> custom_qparams = dict(dupvote_weight=1.0)
-        >>> custom_qparams = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', custom_qparams=custom_qparams)
+        >>> cfgdict = dict(dupvote_weight=1.0)
+        >>> cfgdict = dict(codename='vsone')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', cfgdict=cfgdict)
         >>> # Run Test
-        >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'build_chipmatches')
+        >>> qaid2_nns, qaid2_nnfilt = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt']]
+        >>> qaid2_chipmatch = build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
     """
 
     # Config
@@ -680,7 +720,7 @@ def assert_qaid2_chipmatch(ibs, qreq_, qaid2_chipmatch):
 
 
 #@ut.indent_func('[sv]')
-def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
+def spatial_verification(qaid2_chipmatch, qreq_):
     """
     Args:
         qaid2_chipmatch (dict):
@@ -693,25 +733,24 @@ def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
-        >>> custom_qparams = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', custom_qparams=custom_qparams)
+        >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> # Run Test
-        >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-        >>> qaid2_chipmatch = pipeline.spatial_verification(qaid2_chipmatch, qreq_)
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
+        >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
+        >>> spatial_verification(qaid2_chipmatch, qreq_)
     """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         print('[hs] Step 5) Spatial verification: off')
-        return (qaid2_chipmatch, {}) if dbginfo else qaid2_chipmatch
+        return qaid2_chipmatch
     else:
-        return _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=dbginfo)
+        qaid2_chipmatchSV = _spatial_verification(qaid2_chipmatch, qreq_)
+        return qaid2_chipmatchSV
 
 
 #@ut.indent_func('[_sv]')
 @profile
-def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
+def _spatial_verification(qaid2_chipmatch, qreq_):
     """
     make only spatially valid features survive
 
@@ -735,32 +774,21 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         >>> qaid2_chipmatch = {qaid: ({daid: fm}, {daid: fs}, {daid: fk})}
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, [qaid], [daid])
         >>> qreq_.ibs = ibs
-        >>> dbginfo = False
 
     Example:
         >>> # VSOne
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> import ibeis
-        >>> custom_qparams = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', custom_qparams=custom_qparams, daid_list='all')
-        >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-        >>> qaid2_chipmatchSV = pipeline._spatial_verification(qaid2_chipmatch, qreq_)
+        >>> cfgdict = dict(codename='vsone')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', cfgdict=cfgdict, daid_list='all')
 
     Example:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> import ibeis
-        >>> custom_qparams = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', custom_qparams=custom_qparams, daid_list='all')
-        >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-        >>> qaid2_chipmatchSV = pipeline._spatial_verification(qaid2_chipmatch, qreq_)
+        >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, daid_list='all')
 
     """
     # TODO: Make sure vsone isn't being messed up by some stupid assumption here
@@ -777,7 +805,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
     nFeatSVTotal = 0
     nFeatMatchSV = 0
     #nFeatMatchSVAff = 0
-    if qreq_.qparams.with_metadata or dbginfo:
+    if qreq_.qparams.with_metadata:
         qaid2_svtups = {}  # dbg info (can remove if there is a speed issue)
     def print_(msg, count=0):
         """ temp print_. Using count in this way is a hack """
@@ -792,26 +820,13 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         #print('Prescore: %r' % (daid2_prescore,))
         (daid2_fm, daid2_fs, daid2_fk) = chipmatch
         if prescore_method == 'nsum':
-            daids_list = np.array(daid2_prescore.keys())
-            dnids_list = np.array(qreq_.ibs.get_annot_nids(daids_list))
-            prescore_arr = np.array(daid2_prescore.values())
-            import vtool as vt
-            unique_nids, groupxs = vt.group_indicies(dnids_list)
-            grouped_prescores = vt.apply_grouping(prescore_arr, groupxs)
-            dnid2_prescore = dict(zip(unique_nids, [arr.max() for arr in grouped_prescores]))
-            # Ensure that you verify each member of the top shortlist names
-            topx2_nid = utool.util_dict.keys_sorted_by_value(dnid2_prescore)[::-1]
-            # Use shortlist of names instead of annots
-            nNamesRerank = min(len(topx2_nid), nShortlist)
-            topx2_aids = [daids_list[dnids_list == nid] for nid in topx2_nid[:nNamesRerank]]
-            # override shortlist because we already selected a subset of names
-            topx2_aid = utool.flatten(topx2_aids)
+            topx2_aid = prescore_nsum(qreq_, daid2_prescore, nShortlist)
             nRerank = len(topx2_aid)
         else:
             topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
             nRerank = min(len(topx2_aid), nShortlist)
         # Precompute output container
-        if dbginfo or qreq_.qparams.with_metadata:
+        if qreq_.qparams.with_metadata:
             daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         daid2_fm_V, daid2_fs_V, daid2_fk_V = new_fmfsfk()
         # Query Keypoints
@@ -835,7 +850,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
             try:
                 sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
                                                    xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
-                                                   min_nInliers, returnAff=dbginfo or qreq_.qparams.with_metadata)
+                                                   min_nInliers, returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 utool.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
@@ -850,7 +865,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
             else:
                 # Return the inliers to the homography
                 homog_inliers, H, aff_inliers, Aff = sv_tup
-                if dbginfo or qreq_.qparams.with_metadata:
+                if qreq_.qparams.with_metadata:
                     daid2_svtup[daid] = sv_tup
                 daid2_fm_V[daid] = fm[homog_inliers, :]
                 daid2_fs_V[daid] = fs[homog_inliers]
@@ -862,19 +877,33 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
                     print_('.')  # verified something
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(daid2_fm_V, daid2_fs_V, daid2_fk_V)
-        if dbginfo or qreq_.qparams.with_metadata:
+        if qreq_.qparams.with_metadata:
             qaid2_svtups[qaid] = daid2_svtup
         qaid2_chipmatchSV[qaid] = chipmatchSV
     print_('\n')
     if NOT_QUIET:
         #print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
         print('[hs] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
-    if dbginfo or qreq_.qparams.with_metadata:
+    if qreq_.qparams.with_metadata:
         qreq_.metadata['qaid2_svtups'] = qaid2_svtups
-    if dbginfo:
-        return qaid2_chipmatchSV, qaid2_svtups
-    else:
-        return qaid2_chipmatchSV
+    return qaid2_chipmatchSV
+
+
+def prescore_nsum(qreq_, daid2_prescore, nShortlist):
+    daids_list = np.array(daid2_prescore.keys())
+    dnids_list = np.array(qreq_.ibs.get_annot_nids(daids_list))
+    prescore_arr = np.array(daid2_prescore.values())
+    unique_nids, groupxs = vt.group_indicies(dnids_list)
+    grouped_prescores = vt.apply_grouping(prescore_arr, groupxs)
+    dnid2_prescore = dict(zip(unique_nids, [arr.max() for arr in grouped_prescores]))
+    # Ensure that you verify each member of the top shortlist names
+    topx2_nid = utool.util_dict.keys_sorted_by_value(dnid2_prescore)[::-1]
+    # Use shortlist of names instead of annots
+    nNamesRerank = min(len(topx2_nid), nShortlist)
+    topx2_aids = [daids_list[dnids_list == nid] for nid in topx2_nid[:nNamesRerank]]
+    # override shortlist because we already selected a subset of names
+    topx2_aid = utool.flatten(topx2_aids)
+    return topx2_aid
 
 
 #@ut.indent_func('[pdls]')
@@ -966,8 +995,7 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 
 #@ut.indent_func('[ctr]')
 @profile
-def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
-                         qaid2_scores=None):
+def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
     """
     Args:
         qaid2_chipmatch (dict):
@@ -984,15 +1012,13 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
-        >>> custom_qparams = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', custom_qparams=custom_qparams)
+        >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> # Run Test
-        >>> qaid2_nns       = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-        >>> filt2_weights   = pipeline.weight_neighbors(qaid2_nns, qreq_, qreq_.metadata)
-        >>> qaid2_nnfilt    = pipeline.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
-        >>> qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-        >>> qaid2_chipmatch_SVER = pipeline.spatial_verification(qaid2_chipmatch_FILT, qreq_)
-        >>> qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, qreq_.metadata, qreq_)
+        >>> qaid2_nns = pipeline.nearest_neighbors(qreq_)
+        >>> locals_ = testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
+        >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+        >>> qaid2_qres = chipmatch_to_resdict(qaid2_chipmatch, qreq_)
         >>> qres = qaid2_qres[1]
 
     """
@@ -1028,6 +1054,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
             qres.aid2_fk = aid2_fk
 
         # Perform final scoring
+        qaid2_scores = None  # HACK. Used to be arg, still in in case smk breaks
         if qaid2_scores is None:
             daid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         else:
@@ -1040,6 +1067,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, metadata, qreq_,
 
         qres.metadata = {}  # dbgstats
         with utool.EmbedOnException():
+            metadata = qreq_.metadata
             for key, qaid2_meta in six.iteritems(metadata):
                 qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
@@ -1091,13 +1119,50 @@ def save_resdict(qreq_, qaid2_qres):
         qres.save(qresdir)
 
 
-def get_pipeline_testdata(dbname=None, custom_qparams={}, qaid_list=None, daid_list=None):
+def testrun_pipeline_upto(qreq_, stop_node=None):
+    #---
+    if stop_node == 'nearest_neighbors':
+        return locals()
+    qaid2_nns = nearest_neighbors(qreq_)
+    #---
+    if stop_node == 'baseline_neighbor_filter':
+        return locals()
+    qaid2_nnfilt0 = baseline_neighbor_filter(qaid2_nns, qreq_)
+    #---
+    if stop_node == 'weight_neighbors':
+        return locals()
+    filt2_weights = weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_)
+    #---
+    if stop_node == 'filter_neighbors':
+        return locals()
+    qaid2_nnfilt = filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_)
+    #---
+    if stop_node == 'build_chipmatches':
+        return locals()
+    qaid2_chipmatch_FILT = build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+    #---
+    if stop_node == 'spatial_verification':
+        return locals()
+    qaid2_chipmatch_SVER = spatial_verification(qaid2_chipmatch_FILT, qreq_)
+    #---
+    if stop_node == 'chipmatch_to_resdict':
+        return locals()
+    qaid2_qres = chipmatch_to_resdict(qaid2_chipmatch_SVER, qreq_)
+
+    #qaid2_svtups = qreq_.metadata['qaid2_svtups']
+    return locals()
+
+
+def get_pipeline_testdata(dbname=None, custom_qparams={}, qaid_list=None,
+                          daid_list=None, cfgdict=None):
     """
-    >>> import ibeis
-    >>> from ibeis.model.hots import pipeline
-    >>> custom_qparams = custom_qparams=dict(pipeline_root='vsone', codename='vsone')
-    >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams)
-    >>> print(qreq_.qparams.query_cfgstr)
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.model.hots import pipeline
+        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
+        >>> print(qreq_.qparams.query_cfgstr)
     """
     import ibeis
     from ibeis.model.hots import query_request
@@ -1105,16 +1170,25 @@ def get_pipeline_testdata(dbname=None, custom_qparams={}, qaid_list=None, daid_l
         dbname = ut.get_argval('--db', str, 'testdb1')
     ibs = ibeis.opendb(dbname)
     if qaid_list is None:
-        qaid_list = [1]
+        if dbname == 'testdb1':
+            qaid_list = [1]
+        if dbname == 'GZ_ALL':
+            qaid_list = [1032]
+        else:
+            qaid_list = [1]
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-        daid_list = daid_list[0:min(5, len(daid_list))]
+        if dbname == 'testdb1':
+            daid_list = daid_list[0:min(5, len(daid_list))]
     elif daid_list == 'all':
         daid_list = ibs.get_valid_aids()
     ibs = ibeis.test_main(db=dbname)
     ibs.cfg.query_cfg.with_metadata = True
+    if cfgdict is not None:
+        custom_qparams = cfgdict
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
     qreq_.lazy_load(ibs)
+    qreq_.ibs = ibs
     # TODO incorporate metdata into qreq
     qreq_.metadata = {}
     return ibs, qreq_

@@ -63,12 +63,31 @@ def get_qx2_bestrank(ibs, qaids, daids):
     """
     # Execute or load query
     qaid2_qres = ibs._query_chips(qaids, daids)
+    # Get the groundtruth that could have been matched in this experiment
+    qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
+    # Get the groundtruth ranks
+    #
+    # <TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER>
+    # Pick a good max rank that isn't None
+    #worst_possible_value = max(9001, len(daids) + len(qaids) + 2)
+    #ut.embed()
+    #qx2_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)
+    #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
+    #qx2_sorted_gtaids = [np.array(ut.sortedby(gt_aids, gt_ranks))
+    #                     for gt_aids, gt_ranks in zip(qx2_gtaids, qx2_gtranks)]
+    #qx2_sorted_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)
+    #                      for qaid, gt_aids in zip(qaids, qx2_sorted_gtaids)]
+    #qx2_gtaids = qx2_sorted_gtaids
+    #qx2_gtranks = qx2_sorted_gtranks
+    # </TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER>
+    #
     # Compute measures
-    gtaids_list = [np.intersect1d(gtaids, daids) for gtaids in ibs.get_annot_groundtruth(qaids)]
-    qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs, gtaids)]
-                     for qaid, gtaids in zip(qaids, gtaids_list)]
-    qx2_avepercision = [qaid2_qres[qaid].get_average_percision(ibs, gtaids) for
-                        (qaid, gtaids) in zip(qaids, gtaids_list)]
+    #with ut.EmbedOnException():
+    # qres = qaid2_qres[qaid]
+    qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs=ibs, gt_aids=gt_aids)]
+                     for qaid, gt_aids in zip(qaids, qx2_gtaids)]
+    qx2_avepercision = [qaid2_qres[qaid].get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+                        (qaid, gt_aids) in zip(qaids, qx2_gtaids)]
     # Compute mAP score  # TODO: use mAP score
     qx2_avepercision = np.array(qx2_avepercision)
     mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA

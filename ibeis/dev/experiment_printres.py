@@ -18,9 +18,15 @@ from six.moves import map, range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
-SKIP_TO = utool.get_argval('--skip-to', type_=int, default=None)
+SKIP_TO = utool.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = utool.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not utool.get_argflag(('--nosave-figures', '--nosf'))
+
+VIEW_FIG_DIR         = utool.get_argflag(('--view-fig-dir', '--vf'))
+QUERY_ANALYSIS_DNAME = utool.get_argval('--fig-dname', str, 'query_analysis')
+DUMP_EXTRA           = utool.get_argflag('--dump-extra')
+QUALITY              = utool.get_argflag('--quality')
+SHOW                 = utool.get_argflag('--show')
 
 
 def get_diffmat_str(rank_mat, qaids, nCfg):
@@ -387,11 +393,6 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard
     """
     print(' --- DRAW RESULTS ---')
-    VIEW_FIG_DIR         = utool.get_argflag(('--view-fig-dir', '--vf'))
-    query_analysis_dname = utool.get_argval('--fig-dname', str, 'query_analysis')
-    DUMP_EXTRA           = utool.get_argflag('--dump-extra')
-    quality              = utool.get_argflag('--quality')
-    SHOW                 = utool.get_argflag('--show')
 
     sel_rows = []
     sel_cols = []
@@ -457,7 +458,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA
 
-    figdir = join(ibs.get_fig_dir(), query_analysis_dname)
+    figdir = join(ibs.get_fig_dir(), QUERY_ANALYSIS_DNAME)
     utool.ensuredir(ibs.get_fig_dir())
     utool.ensuredir(figdir)
 
@@ -525,7 +526,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             # Draw Result
             dumpkw = {
                 'subdir'    : subdir,
-                'quality'   : quality,
+                'quality'   : QUALITY,
                 'overwrite' : True,
                 'verbose'   : 0,
             }

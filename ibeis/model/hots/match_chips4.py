@@ -12,7 +12,7 @@ from ibeis.model.hots import pipeline
 
 # TODO: Move to params
 USE_CACHE    = not utool.get_argflag(('--nocache-query', '--noqcache'))
-USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache'))
+USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
 SAVE_CACHE   = not utool.get_argflag('--nocache-save')
 MIN_BIGCACHE_BUNDLE = 20
 

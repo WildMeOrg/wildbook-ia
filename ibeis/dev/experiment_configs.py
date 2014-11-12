@@ -22,15 +22,53 @@ small_best = {
     'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [4],  # 5, 10],
-    'xy_thresh':       [.01],  # [.002],
+    #'xy_thresh':       [.01],  # [.002],
+    'xy_thresh':       [.005],  # # [.002],
     'nShortlist':      [50],
+    #'use_chip_extent': [False, True],
+    'use_chip_extent': [True],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'chip_sqrt_area':  [450],
+
+    'fg_weight'       : [1.0],
+    'featweight_on'   : [True],
 }
 
+
+vsmany = augbase(small_best, {
+    'pipeline_root':   ['vsmany'],
+    'K':               [4],  # 5, 10],
+    'Knorm':           [1],  # 2, 3],
+    'lnbnn_weight':    [1],  # 1,]
+})
+
+vsone = augbase(small_best, {
+    'pipeline_root':  ['vsone'],
+    'checks':        [256],
+    'K':             [2],
+    'Knorm':         [1],
+    'lnbnn_weight':  [0],
+    'ratio_weight':  [1.0],
+    'ratio_thresh':  [1.6],
+})
+
+nsum = augbase(small_best, {
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
+nsum_nosv = augbase(nsum, {
+    'sv_on':    [False],
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
 fgweight = augbase(small_best, {
-    'fg_weight': [1.0]  # , 0.0],
+    'fg_weight': [1.0],  # , 0.0],
+    'featweight_on':  [True]  # , 0.0],
 })
 
 
@@ -39,12 +77,6 @@ dupvote = augbase(small_best, {
     'score_method':      ['nsum'],
     'prescore_method':   ['nsum'],
     'algorithm': ['linear', 'kdtree']
-})
-
-nsum = augbase(small_best, {
-    'dupvote_weight':    [1.0],
-    'score_method':      ['nsum'],
-    'prescore_method':   ['nsum'],
 })
 
 vary_sver = augbase(small_best, {
@@ -113,28 +145,6 @@ featparams_big2 = augbase(
     })
 # low threshold = more keypoints
 # low initialSigma = more keypoints
-
-
-vsmany = {
-    'pipeline_root':   ['vsmany'],
-    'checks':          [1024],  # , 8192],
-    'K':               [4],  # 5, 10],
-    'Knorm':           [1],  # 2, 3],
-    'lnbnn_weight':    [1],  # 1,]
-    'chip_sqrt_area':  [450],
-}
-
-vsone = {
-    'pipeline_root':  ['vsone'],
-    'checks':        [256],
-    'K':             [2],
-    'Knorm':         [1],
-    'ratio_weight':  [1.0],
-    #'fg_weight':     [1.0],
-    'lnbnn_weight':  [0],
-    'ratio_thresh':  [1.6],
-    'sv_on':         [True],  # True, False],
-}
 
 
 vsone_best = augbase(vsone, { })

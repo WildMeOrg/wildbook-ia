@@ -190,7 +190,7 @@ class FilterConfig(ConfigBase):
         addfilt(-1,  'normonly',   None,    0.0)
         addfilt(-1,   'logdist',   None,    0.0)
         addfilt(-1,  'loglnbnn',   None,    0.0)
-        addfilt(-1,        'fg',   None,    0.0)
+        addfilt(-1,        'fg',   None,    1.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
 
@@ -625,7 +625,7 @@ class QueryConfig(ConfigBase):
         if feat_cfg.nogravity_hack is False:
             filt_cfg.gravity_weighting = False
 
-        if featweight_cfg.featweight_on is False or filt_cfg.fg_weight == 0.0:
+        if featweight_cfg.featweight_on is not True or filt_cfg.fg_weight == 0.0:
             filt_cfg.fg_weight = 0.0
             featweight_cfg.featweight_on = False
 
@@ -700,8 +700,11 @@ class FeatureWeightConfig(ConfigBase):
         featweight_cfg.make_feasible()
         featweight_cfgstrs = []
         if kwargs.get('use_featweight', True):
-            if featweight_cfg.featweight_on is False:
-                featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
+            if featweight_cfg.featweight_on is not True:
+                if featweight_cfg.featweight_on == 'ERR':
+                    featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
+                else:
+                    featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
             else:
                 featweight_cfgstrs.extend([
                     '_FEATWEIGHT(ON',

@@ -17,7 +17,6 @@ from ibeis.model.hots import exceptions as hsexcept
 MAX_FNAME_LEN = 64 if utool.WIN32 else 200
 TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
     utool.is_developer() and not utool.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
-
 VERBOSE = utool.get_argflag(('--verbose-query-result', '--verb-qres')) or ut.VERBOSE
 
 #=========================
@@ -97,6 +96,154 @@ def _qres_dicteq(aid2_xx1, aid2_xx2):
     except AssertionError:
         return False
     return True
+
+
+def get_average_percision_(qres, ibs=None, gt_aids=None):
+    """
+    gets average percision using the PASCAL definition
+
+    FIXME: Use only the groundtruth that could have been matched in the
+    database. (shouldn't be an issue until we start using daid subsets)
+
+    References:
+        http://en.wikipedia.org/wiki/Information_retrieval
+
+    """
+    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
+
+    if recall_range_ is None:
+        ave_p = np.nan
+    else:
+        ave_p = p_interp_curve.sum() / p_interp_curve.size
+
+    return ave_p
+
+
+def get_interpolated_precision_vs_recall_(qres, ibs=None, gt_aids=None):
+    ofrank_curve, precision_curve, recall_curve = get_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids)
+    if precision_curve is None:
+        return None, None
+
+    nSamples = 11
+    recall_range_ = np.linspace(0, 1, nSamples)
+
+    def p_interp(r):
+        precision_candidates = precision_curve[recall_curve >= r]
+        if len(precision_candidates) == 0:
+            return 0
+        return precision_candidates.max()
+
+    p_interp_curve = np.array([p_interp(r) for r in recall_range_])
+    return recall_range_, p_interp_curve
+
+
+def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
+    """
+    Example:
+        >>> from ibeis.model.hots.hots_query_result import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaids = ibs.get_valid_aids()[14:15]
+        >>> daids = ibs.get_valid_aids()
+        >>> qaid2_qres = ibs._query_chips(qaids, daids)
+        >>> qres = qaid2_qres[qaids[0]]
+        >>> gt_aids = None
+        >>> atrank  = 18
+        >>> precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)
+
+    References:
+        http://en.wikipedia.org/wiki/Precision_and_recall
+    """
+    gt_ranks = np.array(qres.get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=None))
+    was_retrieved = np.array([rank is not None for rank in gt_ranks])
+    nGroundTruth = len(gt_ranks)
+
+    if nGroundTruth == 0:
+        return None, None, None
+
+    # From oxford:
+    #Precision is defined as the ratio of retrieved positive images to the total number retrieved.
+    #Recall is defined as the ratio of the number of retrieved positive images to the total
+    #number of positive images in the corpus.
+
+    def get_nTruePositive(atrank):
+        """ the number of documents we got right """
+        TP = (np.logical_and(was_retrieved, gt_ranks <= atrank)).sum()
+        return TP
+
+    def get_nFalseNegative(TP, atrank):
+        """ the number of documents we should have retrieved but didn't """
+        #FN = min((atrank + 1) - TP, nGroundTruth - TP)
+        #nRetreived = (atrank + 1)
+        FN = nGroundTruth - TP
+        #min(atrank, nGroundTruth - TP)
+        return FN
+
+    def get_nFalsePositive(TP, atrank):
+        """ the number of documents we should not have retrieved """
+        #FP = min((atrank + 1) - TP, nGroundTruth)
+        nRetreived = (atrank + 1)
+        FP = nRetreived - TP
+        return FP
+
+    def get_precision(TP, FP):
+        """ precision positive predictive value """
+        precision = TP / (TP + FP)
+        return precision
+
+    def get_recall(TP, FN):
+        """ recall, true positive rate, sensitivity, hit rate """
+        recall = TP / (TP + FN)
+        return recall
+
+    #with ut.EmbedOnException():
+    max_rank = gt_ranks.max()
+    if max_rank is None:
+        max_rank = 0
+    ofrank_curve = np.arange(max_rank + 1)
+
+    truepos_curve  = np.array(list(map(get_nTruePositive, ofrank_curve)))
+
+    falsepos_curve = np.array(
+        [get_nFalsePositive(TP, atrank)
+         for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
+
+    falseneg_curve = np.array([
+        get_nFalseNegative(TP, atrank)
+        for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
+
+    precision_curve = get_precision(truepos_curve, falsepos_curve)
+    recall_curve    = get_precision(truepos_curve, falseneg_curve)
+
+    #print(np.vstack([precision_curve, recall_curve]).T)
+    return ofrank_curve, precision_curve, recall_curve
+
+
+def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
+    """
+    Example:
+        >>> from ibeis.model.hots.hots_query_result import *  # NOQA
+    """
+    from plottool import df2
+    recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
+    if recall_range_ is None:
+        recall_range_ = np.array([])
+        p_interp_curve = np.array([])
+    fig = df2.figure(fnum=fnum, docla=True, doclf=True)  # NOQA
+
+    if recall_range_ is None:
+        ave_p = np.nan
+    else:
+        ave_p = p_interp_curve.sum() / p_interp_curve.size
+
+    df2.plot2(recall_range_, p_interp_curve, marker='o--',
+              x_label='recall', y_label='precision', unitbox=True,
+              flipx=False, color='r',
+              title_pref=qres.make_smaller_title() + '\n',
+              title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
+    print('Interplated Precision')
+    print(utool.list_str(list(zip(recall_range_, p_interp_curve))))
+    #fig.show()
 
 
 __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
@@ -390,13 +537,13 @@ class QueryResult(__OBJECT_BASE__):
         return inspect_str
 
     @utool.accepts_scalar_input
-    def get_aid_ranks(qres, aid_arr):
-        """ get ranks of chip indexes in aid_arr """
+    def get_aid_ranks(qres, aid_arr, fillvalue=None):
+        """ get ranks of annotation ids """
         if isinstance(aid_arr, (tuple, list)):
             aid_arr = np.array(aid_arr)
         top_aids = qres.get_top_aids()
         foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
-        ranks_   = [ranks if len(ranks) > 0 else [None] for ranks in foundpos]
+        ranks_   = [ranks if len(ranks) > 0 else [fillvalue] for ranks in foundpos]
         assert all([len(ranks) == 1 for ranks in ranks_]), 'len(aid_ranks) != 1'
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
@@ -425,14 +572,14 @@ class QueryResult(__OBJECT_BASE__):
         else:
             return gt_scores
 
-    def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False):
+    def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False, fillvalue=None):
         """ returns the 0 indexed ranking of each groundtruth chip """
         # Ensure correct input
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')
         if gt_aids is None:
             gt_aids = ibs.get_annot_groundtruth(qres.qaid)
-        gt_ranks = qres.get_aid_ranks(gt_aids)
+        gt_ranks = qres.get_aid_ranks(gt_aids, fillvalue=fillvalue)
         if return_gtaids:
             return gt_ranks, gt_aids
         else:
@@ -456,148 +603,16 @@ class QueryResult(__OBJECT_BASE__):
         return best_rank
 
     def get_average_percision(qres, ibs=None, gt_aids=None):
-        """
-        gets average percision using the PASCAL definition
-
-        FIXME: Use only the groundtruth that could have been matched in the
-        database. (shouldn't be an issue until we start using daid subsets)
-
-        References:
-            http://en.wikipedia.org/wiki/Information_retrieval
-
-        """
-        recall_range_, p_interp_curve = qres.get_interpolated_precision_vs_recall(ibs=ibs, gt_aids=gt_aids)
-
-        if recall_range_ is None:
-            ave_p = np.nan
-        else:
-            ave_p = p_interp_curve.sum() / p_interp_curve.size
-
-        return ave_p
+        return get_average_percision_(qres, ibs=ibs, gt_aids=gt_aids)
 
     def get_interpolated_precision_vs_recall(qres, ibs=None, gt_aids=None):
-        ofrank_curve, precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)
-        if precision_curve is None:
-            return None, None
-
-        nSamples = 11
-        recall_range_ = np.linspace(0, 1, nSamples)
-
-        def p_interp(r):
-            precision_candidates = precision_curve[recall_curve >= r]
-            if len(precision_candidates) == 0:
-                return 0
-            return precision_candidates.max()
-
-        p_interp_curve = np.array([p_interp(r) for r in recall_range_])
-        return recall_range_, p_interp_curve
+        return get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
 
     def show_precision_recall_curve(qres, ibs=None, gt_aids=None, fnum=1):
-        """
-        Example:
-            >>> from ibeis.model.hots.hots_query_result import *  # NOQA
-        """
-        from plottool import df2
-        recall_range_, p_interp_curve = qres.get_interpolated_precision_vs_recall(ibs=ibs, gt_aids=gt_aids)
-        if recall_range_ is None:
-            recall_range_ = np.array([])
-            p_interp_curve = np.array([])
-        fig = df2.figure(fnum=fnum, docla=True, doclf=True)  # NOQA
-
-        if recall_range_ is None:
-            ave_p = np.nan
-        else:
-            ave_p = p_interp_curve.sum() / p_interp_curve.size
-
-        df2.plot2(recall_range_, p_interp_curve, marker='o--',
-                  x_label='recall', y_label='precision', unitbox=True,
-                  flipx=False, color='r',
-                  title_pref=qres.make_smaller_title() + '\n',
-                  title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
-        print('Interplated Precision')
-        print(utool.list_str(list(zip(recall_range_, p_interp_curve))))
-        #fig.show()
+        return show_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids, fnum=fnum)
 
     def get_precision_recall_curve(qres, ibs=None, gt_aids=None):
-        """
-        Example:
-            >>> from ibeis.model.hots.hots_query_result import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> qaids = ibs.get_valid_aids()[14:15]
-            >>> daids = ibs.get_valid_aids()
-            >>> qaid2_qres = ibs._query_chips(qaids, daids)
-            >>> qres = qaid2_qres[qaids[0]]
-            >>> gt_aids = None
-            >>> atrank  = 18
-            >>> precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)
-
-        References:
-            http://en.wikipedia.org/wiki/Precision_and_recall
-        """
-        gt_ranks = np.array(qres.get_gt_ranks(ibs=ibs, gt_aids=gt_aids))
-        was_retrieved = np.array([rank is not None for rank in gt_ranks])
-        nGroundTruth = len(gt_ranks)
-
-        if nGroundTruth == 0:
-            return None, None, None
-
-        # From oxford:
-        #Precision is defined as the ratio of retrieved positive images to the total number retrieved.
-        #Recall is defined as the ratio of the number of retrieved positive images to the total
-        #number of positive images in the corpus.
-
-        def get_nTruePositive(atrank):
-            """ the number of documents we got right """
-            TP = (np.logical_and(was_retrieved, gt_ranks <= atrank)).sum()
-            return TP
-
-        def get_nFalseNegative(TP, atrank):
-            """ the number of documents we should have retrieved but didn't """
-            #FN = min((atrank + 1) - TP, nGroundTruth - TP)
-            #nRetreived = (atrank + 1)
-            FN = nGroundTruth - TP
-            #min(atrank, nGroundTruth - TP)
-            return FN
-
-        def get_nFalsePositive(TP, atrank):
-            """ the number of documents we should not have retrieved """
-            #FP = min((atrank + 1) - TP, nGroundTruth)
-            nRetreived = (atrank + 1)
-            FP = nRetreived - TP
-            return FP
-
-        def get_precision(TP, FP):
-            """ precision positive predictive value """
-            precision = TP / (TP + FP)
-            return precision
-
-        def get_recall(TP, FN):
-            """ recall, true positive rate, sensitivity, hit rate """
-            recall = TP / (TP + FN)
-            return recall
-
-        #with ut.EmbedOnException():
-        max_rank = gt_ranks.max()
-        if max_rank is None:
-            max_rank = 0
-        ofrank_curve = np.arange(max_rank + 1)
-
-        truepos_curve  = np.array(list(map(get_nTruePositive, ofrank_curve)))
-
-        falsepos_curve = np.array(
-            [get_nFalsePositive(TP, atrank)
-             for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
-
-        falseneg_curve = np.array([
-            get_nFalseNegative(TP, atrank)
-            for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
-
-        precision_curve = get_precision(truepos_curve, falsepos_curve)
-        recall_curve    = get_precision(truepos_curve, falseneg_curve)
-
-        #print(np.vstack([precision_curve, recall_curve]).T)
-        return ofrank_curve, precision_curve, recall_curve
+        return get_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids)
 
     def get_classified_pos(qres):
         top_aids = np.array(qres.get_top_aids())

@@ -10,13 +10,11 @@ import utool as ut
 
 def get_chipmatch_testdata(**kwargs):
     from ibeis.model.hots import pipeline
-    custom_qparams = {'dupvote_weight': 1.0}
-    ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', custom_qparams)
+    cfgdict = {'dupvote_weight': 1.0}
+    ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict)
     # Run first four pipeline steps
-    qaid2_nns_      = pipeline.nearest_neighbors(qreq_, qreq_.metadata)
-    filt2_weights_  = pipeline.weight_neighbors(qaid2_nns_, qreq_, qreq_.metadata)
-    qaid2_nnfilt_   = pipeline.filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
-    qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
+    locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
+    qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
     # Get a single chipmatch
     chipmatch = qaid2_chipmatch[six.next(six.iterkeys(qaid2_chipmatch))]
     return ibs, qreq_, chipmatch

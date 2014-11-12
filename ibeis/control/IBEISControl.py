@@ -2008,7 +2008,7 @@ class IBEISController(object):
 
     @getter_1toM
     def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
-            daid_list=None):
+                              daid_list=None):
         """
         gets all annotations with the same names
 

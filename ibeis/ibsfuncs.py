@@ -668,6 +668,41 @@ def get_match_text(ibs, aid1, aid2):
 
 
 @__injectable
+def get_database_species(ibs, aid_list=None):
+    """
+    Example:
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb('GZ_ALL')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.get_database_species()
+        {'____', u'bear_polar', u'zebra_grevys', u'zebra_plains'}
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species(aid_list)
+    unique_species = list(set(species_list))
+    return unique_species
+
+
+@__injectable
+def get_database_species_count(ibs, aid_list=None):
+    """
+    Example:
+        >>> import ibeis
+        >>> import utool as ut
+        >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.get_database_species_count()
+        {'____': 3, u'bear_polar': 2, u'zebra_grevys': 2, u'zebra_plains': 6}
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species(aid_list)
+    species_count_dict = ut.item_hist(species_list)
+    return species_count_dict
+
+
+@__injectable
 def set_annot_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
     ibs.set_annot_names(aid_list, [next_name] * len(aid_list))

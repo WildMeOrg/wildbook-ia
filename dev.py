@@ -369,21 +369,23 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
 
 
 @devcmd('vsone_gt')
-def vsone_gt(ibs, qaid_list, daid_list):
+def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
     custom_qparams = dict(featweight_on=True, fg_weight=1.0)
     allres = get_allres(ibs, qaid_list, daid_list, custom_qparams)
     #orgtype_list = ['top_false', 'top_true']
-    org_top_false = allres.get_orgtype('top_false')
+    org_top_false = allres.get_orgtype('rank0_false')
     top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
     gtaids_list = ibs.get_annot_groundtruth(qaid_list, daid_list=daid_list)
     # Add groundtruth pairs to query
-    qaid2_vsoneaids = dict(zip(qaid_list, gtaids_list))
+    qaid2_vsoneaids_ = dict(zip(qaid_list, gtaids_list))
+    qaid2_vsoneaids = ut.ddict(list)
     # Add problem cases
     for qaid, daid in top_false_aid_pairs:
         qaid2_vsoneaids[qaid].append(daid)
+        qaid2_vsoneaids[qaid].extend(qaid2_vsoneaids_.get(qaid, []))
     custom_qparams = dict(codename='vsone')
     qaid2_vsoneqres = {}
     for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
@@ -418,7 +420,7 @@ def viz_allres_annotation_scores(allres):
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
-    orgtype_list = ['rank0_false', 'rank0_true']
+    #orgtype_list = ['rank0_false', 'rank0_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
     cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)

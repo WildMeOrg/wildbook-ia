@@ -295,6 +295,17 @@ class NeighborIndex(object):
         Returns:
             qfx2_aid : (N x K) qfx2_fx[n][k] is the annotation id index of the
                                 kth approximate nearest data vector
+
+        Example:
+            >>> from ibeis.model.hots import pipeline
+            >>> qparams = dict()
+            >>> dbname = 'testdb1'
+            >>> nnindexer = qreq_.indexer
+            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, qparams=qparams)
+            >>> qfx2_vec = qreq_.get_internal_qvecs()[0]
+            >>> num_neighbors = 4
+            >>> checks = 1024
+            >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors, checks)
         """
         #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
         #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]

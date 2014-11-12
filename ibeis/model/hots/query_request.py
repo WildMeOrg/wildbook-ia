@@ -42,6 +42,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
+    species_list = ibs.get_database_species()
+    from ibeis import constants
+    # HACK OFF FEATUREWEIGHTS WHEN NOT ABSOLUTELY SURE THEY ARE OK TO USE
+    if len(species_list) != 1 or species_list[0] not in [constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN]:
+        print('HACKING FG_WEIGHT OFF')
+        cfg._featweight_cfg.featweight_on = 'ERR'
     qparams = QueryParams(cfg, custom_qparams)
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
@@ -207,6 +213,7 @@ class QueryRequest(object):
         return qreq_.ibs.get_annot_nids(aids)
 
     def get_annot_gids(qreq_, aids):
+        assert qreq_.ibs is not qreq_
         return qreq_.ibs.get_annot_gids(aids)
 
     def get_annot_kpts(qreq_, aids):
