@@ -124,5 +124,6 @@ if __name__ == '__main__':
     CommandLine:
         python ibeis/model/preproc/preproc_detectimg.py
         python ibeis/model/preproc/preproc_detectimg.py --allexamples
+        python ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy
     """
     ut.doctest_funcs()

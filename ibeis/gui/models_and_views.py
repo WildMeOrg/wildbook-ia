@@ -119,6 +119,8 @@ class IBEISTreeView(APITreeView):
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:
+            # FIXME: should defer the change of encounter until
+            # the view becomes visible
             model._change_enc(eid)
 
 

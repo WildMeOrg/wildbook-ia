@@ -22,7 +22,7 @@ small_best = {
     'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [4],  # 5, 10],
-    #'xy_thresh':       [.01],  # [.002],
+    #'xy_thresh':      [.01],  # [.002],
     'xy_thresh':       [.005],  # # [.002],
     'nShortlist':      [50],
     #'use_chip_extent': [False, True],
@@ -57,6 +57,11 @@ nsum = augbase(small_best, {
     'dupvote_weight':    [1.0],
     'score_method':      ['nsum'],
     'prescore_method':   ['nsum'],
+})
+
+pzmastertest = augbase(small_best, {
+    'K': [4, 8, 10, 16, 29],
+    'Knorm': [1, 4, 7, 10],
 })
 
 nsum_nosv = augbase(nsum, {

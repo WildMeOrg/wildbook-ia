@@ -20,6 +20,7 @@ from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         IBEISTableWidget, IBEISTreeWidget,
                                         EncTableWidget)
 import guitool
+import utool as ut  # NOQA
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
@@ -185,25 +186,55 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [
-            IMAGE_TABLE,
-            IMAGE_GRID,
-            ANNOTATION_TABLE,
-            #NAME_TABLE,
-            NAMES_TREE
-        ]
+
         # FIXME: Duplicate models
         # Create models and views
         # Define the abstract item models and views for the tables
-        ibswgt.modelview_defs = [
-            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
-            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            #(NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
-            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
-        ]
+        ibswgt.tblname_list = []
+        ibswgt.modelview_defs = []
+
+        # OLD STATIC WAY OF USING TABS AND API VIEWS
+        #ibswgt.tblname_list = [
+        #    IMAGE_TABLE,
+        #    IMAGE_GRID,
+        #    ANNOTATION_TABLE,
+        #    #
+        #    #NAME_TABLE,
+        #    #
+        #    NAMES_TREE,
+        #]
+        #ibswgt.modelview_defs = [
+        #    (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
+        #    (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
+        #    #
+        #    #(NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
+        #    #
+        #    (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
+        #    (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
+        #]
+
+        # NEW DYNAMIC WAY OF USING TABS AND API VIEWS
+        if True:
+            # ADD IMAGE TABLE
+            ibswgt.tblname_list.append(IMAGE_TABLE)
+            ibswgt.modelview_defs.append((IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView))
+        if not ut.get_argflag('--onlyimgtbl'):
+            # ADD IMAGE GRID
+            ibswgt.tblname_list.append(IMAGE_GRID)
+            ibswgt.modelview_defs.append((IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView))
+        if not (ut.get_argflag('--noannottbl') or ut.get_argflag('--onlyimgtbl')):
+            # ADD ANNOT GRID
+            ibswgt.tblname_list.append(ANNOTATION_TABLE)
+            ibswgt.modelview_defs.append((ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView))
+        if not (ut.get_argflag('--nonametree') or ut.get_argflag('--onlyimgtbl')):
+            # ADD NAME TREE
+            ibswgt.tblname_list.append(NAMES_TREE)
+            ibswgt.modelview_defs.append((NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView))
+        # ADD ENCOUNTER TABLE
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
+        ibswgt.modelview_defs.append((ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView))
+
+        # DO INITALIZATION
         # Create and layout components
         ibswgt._init_components()
         ibswgt._init_layout()
@@ -390,7 +421,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         if tblnames is None:
             tblnames = ibswgt.super_tblname_list
-        print('[newgui] change models: %r' % (tblnames,))
+        print('[newgui] changing_models_gen(tblnames=%r)' % (tblnames,))
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
         with ChangeLayoutContext(model_list):
@@ -435,20 +466,29 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if utool.VERBOSE:
                 print('[newgui] Calling model _update_headers')
             block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
-            with utool.Timer('update models'):
+            with utool.Timer('[newgui] update models'):
                 for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                     model = ibswgt.models[tblname]
                     view = ibswgt.views[tblname]
+                    #if not view.isVisible():
+                    #    print(view)
+                    #ut.embed()
                     header = header_dict[tblname]
                     #widget = ibswgt.widgets[tblname]
                     #widget.change_headers(header)
+                    #
+                    # NOT SURE IF THESE BLOCKERS SHOULD BE COMMENTED
                     block_model_flag = model.blockSignals(True)
                     model._update_headers(**header)
                     view._update_headers(**header)  # should use model headers
                     model.blockSignals(block_model_flag)
+                    #
                     #view.infer_delegates_from_model()
                 for tblname in ibswgt.super_tblname_list:
                     view = ibswgt.views[tblname]
+                    #if not view.isVisible():
+                    #    print(view)
+                    #    continue
                     view.hide_cols()
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
@@ -498,6 +538,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
             tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
+            # CONNECT HOOK TO GET NUM ROWS
             tblview.rows_updated.connect(ibswgt.on_rows_updated)
             #front.printSignal.connect(back.backend_print)
             #front.raiseExceptionSignal.connect(back.backend_exception)
@@ -508,7 +549,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
-        """ When the rows are updated change the tab names """
+        """
+        When the rows are updated change the tab names
+        """
         #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:  # Hack
             return
@@ -518,6 +561,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt._tab_table_wgt.indexOf(view)
         text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
+        # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
         ibswgt._tab_table_wgt.setTabText(index, text)
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)

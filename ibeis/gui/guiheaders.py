@@ -64,11 +64,11 @@ TABLE_COLNAMES = {
         'annot_gname',
         'name',
         'exemplar',
-        'species',
+        #'species',  ### <put back in
         'viewpoint',
         #'rdconf',
-        'nGt',
-        'annotnotes',
+        #'nGt',  ### <put back in
+        #'annotnotes',  ### <put back in
         #'nFeats',
         #'bbox',
         #'theta',
