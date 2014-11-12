@@ -101,6 +101,7 @@
       labels: ['{{ species }}'],
       onchange: function(entries) {
         $('#detection_data').text(JSON.stringify(entries, null, "  "));
+        $( ".annotated_bounding_box" ).resizable({handles: 'n, s, e, w, ne, se, nw, sw'}).draggable().rotatable();
       }
     });
 
