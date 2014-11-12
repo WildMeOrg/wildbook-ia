@@ -36,3 +36,21 @@
   margin-right: auto;
   display: block;
 }
+
+.ui-widget-content
+{
+  background: transparent;
+}
+
+.ui-rotatable-handle
+{
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  margin-left:-8px;
+}
+
+.ui-icon, .ui-widget-content .ui-icon
+{
+  background-image: none;
+}

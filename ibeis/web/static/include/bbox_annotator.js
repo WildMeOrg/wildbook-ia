@@ -281,7 +281,7 @@
     BBoxAnnotator.prototype.add_entry = function(entry) {
       var annotator, box_element, close_button, text_box;
       this.entries.push(entry);
-      box_element = $('<div class="annotated_bounding_box"></div>');
+      box_element = $('<div class="ui-widget-content annotated_bounding_box"></div>');
       box_element.appendTo(this.image_frame).css({
         "border": this.border_width + "px solid rgb(127,255,127)",
         "position": "absolute",
@@ -295,8 +295,9 @@
       });
       close_button = $('<div></div>').appendTo(box_element).css({
         "position": "absolute",
-        "top": "-10px",
-        "right": "-10px",
+        "top": "-20px",
+        "left": "50%",
+        "margin-left": "-10px",
         "width": "20px",
         "height": "0",
         "padding": "16px 0 0 0",
