@@ -24,7 +24,8 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
 
     src_gpath_list = list(map(str, ibs.get_image_detectpaths([gid])))
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    hough_gpath_list = [gpath + '_hough' for gpath in dst_gpath_list]
+    # FIXME and add species to output path in randomforest as well
+    hough_gpath_list = [gpath + '_' + species + '_hough' for gpath in dst_gpath_list]
     randomforest.compute_hough_images(src_gpath_list, hough_gpath_list, species, use_chunks=use_chunks)
     # HACK: THIS SHOULD BE DONE PREVIOUSLY NOT IN PYRF
     hough_gpath = hough_gpath_list[0] + '.png'
@@ -55,7 +56,7 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
     title = 'Probability Chip: ' + ', '.join(vh.get_annot_text(ibs, [aid], True))
     print(title)
 
-    OLD_WAY = True
+    OLD_WAY = False
     if OLD_WAY:
         if species is None:
             species = ibs.cfg.detect_cfg.species

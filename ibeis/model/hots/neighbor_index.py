@@ -283,8 +283,12 @@ class NeighborIndex(object):
     def num_indexed_annots(nnindexer):
         return len(nnindexer.ax2_aid)
 
+    def get_nn_vecs(nnindexer, qfx2_nnidx):
+        """ gets matching vectors """
+        return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)
+
     def get_nn_axs(nnindexer, qfx2_nnidx):
-        #return nnindexer.idx2_ax[qfx2_nnidx]
+        """ gets matching internal annotation indicies """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
     def get_nn_aids(nnindexer, qfx2_nnidx):

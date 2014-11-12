@@ -46,6 +46,10 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
     Yeilds:
         tuple: tuples of image ids and bounding boxes
     """
+    if True or ut.VERBOSE:
+        print('[randomforest] +--- BEGIN ibeis_generate_image_detections')
+        print('[randomforest] * species = %r' % (species,))
+        print('[randomforest] * len(gid_list) = %r' % (len(gid_list),))
     #
     # Resize to a standard image size prior to detection
     src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
@@ -72,6 +76,8 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
             bbox = unscaled_bboxes[index]
             confidence = float(confidences[index])
             yield gid, bbox, confidence, img_conf
+    if True or ut.VERBOSE:
+        print('[randomforest] L___ FINISH ibeis_generate_image_detections')
 
 
 def compute_hough_images(src_gpath_list, dst_gpath_list, species, use_chunks=True, quick=True):

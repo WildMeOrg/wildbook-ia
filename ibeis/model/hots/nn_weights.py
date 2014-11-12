@@ -40,6 +40,8 @@ def _register_nn_simple_weight_func(func):
 @_register_nn_simple_weight_func
 def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     """
+    dupvotes gives duplicate name votes a weight close to 0.
+
     Each query feature is only allowed to vote for each name at most once.
     IE: a query feature can vote for multiple names, but it cannot vote
     for the same name twice.
@@ -54,16 +56,23 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> #tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
-        >>> tup = nn_weights.testdata_nn_weights('testdb1')
+        >>> dbname = 'GZ_ALL'  # 'testdb1'
+        >>> cfgdict = dict(K=10, Knorm=10, codename='nsum')
+        >>> tup = nn_weights.testdata_nn_weights(dbname, cfgdict=cfgdict)
         >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
         >>> # Test Function Call
-        >>> qaid2_dupvote_weight = dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_dupvote_weight = nn_weights.dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> flags = qaid2_dupvote_weight[qaid] > .5
         >>> qfx2_topnid = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
         >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
         >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
+
+    CommandLine:
+        ./dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032
+        ./dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032
+
     """
     # Prealloc output
     K = qreq_.qparams.K
@@ -79,12 +88,93 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         # Change those names to the unused name
         # qfx2_topnid[qfx2_topaid == qaid] = 0
         qfx2_topnid[~qfx2_valid] = 0
-
         # A duplicate vote is when any vote for a name after the first
-        qfx2_isdupvote =  np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
-        qfx2_dupvote_weight = qfx2_isdupvote.astype(np.float32) * (1 - EPS) + EPS
+        qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
+        # set invalids to be duplicates as well (for testing)
+        qfx2_isnondup[~qfx2_valid] = False
+        qfx2_dupvote_weight = (qfx2_isnondup.astype(np.float32) * (1 - 1E-7)) + 1E-7
         qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
     return qaid2_dupvote_weight
+
+
+PSEUDO_UINT8_MAX_SQRD = 512.0 ** 2
+
+
+def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
+    """ a dot product is a componentwise multiplication of
+    two vector and then a sum. Do that for arbitary vectors.
+    Remember to cast uint8 to float32 and then divide by 255**2.
+    BUT THESE ARE SIFT DESCRIPTORS WHICH USE THE SMALL UINT8 TRICK
+    DIVIDE BY 512**2 instead
+    """
+    arr1 = qfx2_qvec.astype(np.float32)
+    arr2 = qfx2_dvec.astype(np.float32)
+    cosangle = np.multiply(arr1, arr2).sum(axis=-1).T / PSEUDO_UINT8_MAX_SQRD
+    return cosangle
+
+
+@_register_nn_simple_weight_func
+def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
+    r"""
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> cfgdict = dict(cos_weight=1.0, K=10, Knorm=10)
+        >>> tup = nn_weights.testdata_nn_weights('PZ_MTEST', cfgdict=cfgdict)
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> assert qreq_.qparams.cos_weight == 1, 'bug setting custom params cos_weight'
+        >>> qaid2_cos_weight = nn_weights.cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+
+
+    Dev:
+        qnid = ibs.get_annot_nids(qaid)
+        qfx2_nids = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
+
+        # remove first match
+        qfx2_nids_ = qfx2_nids.T[1:].T
+        qfx2_cos_  = qfx2_cos.T[1:].T
+
+        # flags of unverified 'correct' matches
+        qfx2_samename = qfx2_nids_ == qnid
+
+        for k in [1, None]:
+            for alpha in [.01, .1, 1, 3, 10, 20, 50]:
+                print('-------')
+                print('alpha = %r' % alpha)
+                print('k = %r' % k)
+                qfx2_cosweight = np.multiply(np.sign(qfx2_cos_), np.power(qfx2_cos_, alpha))
+                if k is None:
+                    qfx2_weight = qfx2_cosweight
+                    flag = qfx2_samename
+                else:
+                    qfx2_weight = qfx2_cosweight.T[0:k].T
+                    flag = qfx2_samename.T[0:k].T
+                #print(qfx2_weight)
+                #print(flag)
+                good_stats_ = ut.get_stats(qfx2_weight[flag])
+                bad_stats_ = ut.get_stats(qfx2_weight[~flag])
+                print('good_matches = ' + ut.dict_str(good_stats_))
+                print('bad_matchees = ' + ut.dict_str(bad_stats_))
+                print('diff_mean = ' + str(good_stats_['mean'] - bad_stats_['mean']))
+
+    """
+    # Prealloc output
+    K = qreq_.qparams.K
+    qaid2_cos_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    # Database feature index to chip index
+    for qaid in six.iterkeys(qaid2_nns):
+        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
+        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid)[np.newaxis, :, :]
+        # database forground weights
+        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[0:K])
+        # Component-wise dot product
+        qfx2_cos = componentwise_uint8_dot(qfx2_qvec, qfx2_dvec)
+        # Selectivity function
+        alpha = 3
+        qfx2_cosweight = np.multiply(np.sign(qfx2_cos), np.power(qfx2_cos, alpha))
+        qaid2_cos_weight[qaid] = qfx2_cosweight
+    return qaid2_cos_weight
 
 
 @_register_nn_simple_weight_func
@@ -100,7 +190,7 @@ def fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> print(ut.dict_str(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.featweight_on == True, 'bug setting custom params featweight_on'
         >>> assert qreq_.qparams.fg_weight == 1, 'bug setting custom params fg_weight'
-        >>> qaid2_fgvote_weight = fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_fgvote_weight = nn_weights.fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
     """
     # Prealloc output
     K = qreq_.qparams.K

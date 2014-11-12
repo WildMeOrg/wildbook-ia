@@ -15,7 +15,7 @@ class PATH_NAMES(object):
     flann      = 'flann'
     images     = 'images'
     qres       = 'qres'
-    bigcache   = 'bigcache'
+    bigcache   = 'qres_bigcache'
     detectimg  = 'detectimg'
     thumbs     = 'thumbs'
     trashdir   = 'trashed_images'
@@ -36,6 +36,8 @@ KEY_DEFAULTS   = {
     SPECIES_KEY    : '____',
 }
 
+# <UNFINISHED METADATA>
+# We are letting wildbook do this metadata instead
 # Define the special metadata for annotation
 
 ROSEMARY_ANNOT_METADATA = [
@@ -54,6 +56,7 @@ ROSEMARY_ANNOT_METADATA = [
 
 #ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)
 #KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})
+# </UNFINISHED METADATA>
 
 BASE_DATABASE_VERSION = '0.0.0'
 

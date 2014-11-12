@@ -108,6 +108,7 @@ def parse_args():
         parser2.add_str(('--set-all-species'), help='careful. overwrites all species info.')
         parser2.add_flag(('--dump-schema', '--print-schema'), help='dumps schema to stdout')
         parser2.add_flag(('--delete-cache'), help='deletes the cache')
+        parser2.add_flag(('--delete-query-cache', '--delete-qres-cache', '--clear_qres'), help='deletes the query result cache')
 
     behavior_argparse(parser2)
     database_argparse(parser2)

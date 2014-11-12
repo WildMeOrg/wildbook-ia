@@ -96,10 +96,8 @@ def postload_commands(ibs, back):
         utool.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:
         ibs.delete_cache()
-    if utool.get_argflag('--delete-query-cache'):
-        qreq_cachedir = ibs.get_qres_cachedir()
-        utool.delete(qreq_cachedir)
-        utool.ensuredir(qreq_cachedir)
+    if params.args.delete_query_cache:
+        ibs.delete_qres_cache()
     if params.args.set_notes is not None:
         ibs.set_dbnotes(params.args.set_notes)
     if params.args.set_aids_as_hard is not None:

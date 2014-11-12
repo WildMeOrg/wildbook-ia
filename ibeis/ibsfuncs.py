@@ -506,6 +506,20 @@ def delete_cachedir(ibs):
 
 
 @__injectable
+def delete_qres_cache(ibs):
+    print('[ibs] delete delete_qres_cache')
+    qreq_cachedir = ibs.get_qres_cachedir()
+    qreq_bigcachedir = ibs.get_big_cachedir()
+    utool.ensuredir(qreq_bigcachedir)
+    utool.ensuredir(qreq_cachedir)
+    utool.delete(qreq_cachedir, verbose=ut.VERBOSE)
+    utool.delete(qreq_bigcachedir, verbose=ut.VERBOSE)
+    utool.ensuredir(qreq_bigcachedir)
+    utool.ensuredir(qreq_cachedir)
+    print('[ibs] finished delete_qres_cache')
+
+
+@__injectable
 def delete_all_features(ibs):
     print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()

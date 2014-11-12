@@ -299,6 +299,11 @@ class MainWindowBackend(QtCore.QObject):
             back.show_image(gid, sel_aids=sel_aids)
 
     @backblock
+    def select_gid_from_aid(back, aid, eid=None, show=True):
+        gid = back.ibs.get_annot_gids(aid)
+        back.select_gid(gid, eid=eid, show=show, sel_aids=[aid])
+
+    @backblock
     def select_aid(back, aid, eid=None, show=True, show_annotation=True, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))

@@ -536,11 +536,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 'ell_alpha': .9,
             }
 
-            if not SAVE_FIGURES:
-                continue
+            #if not SAVE_FIGURES:
+            #    continue
 
-            if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
-                continue
+            #if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
+            #    pass
 
             print('[harn] drawing analysis plot')
 
@@ -551,6 +551,14 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
             # Adjust subplots
             df2.adjust_subplots_safe()
+
+            if SHOW:
+                print('[DRAW_RESULT] df2.present()')
+                #exec(df2.present(), globals(), locals())
+                execstr = df2.present()
+                print(execstr)
+                six.exec_(execstr, globals(), locals())
+
             fpath_orig = ph.dump_figure(figdir, **dumpkw)
             append_copy_task(fpath_orig)
 
@@ -571,16 +579,12 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 for aid in topids:
                     rank = qres.get_aid_ranks(aid)
                     _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
-
-            if SHOW:
-                print('[PRINT_RESULTS] df2.present()')
-                df2.present()
     # </FOR RCITER>
 
     # Copy summary images to query_analysis folder
-    print('[PRINT_RESULTS] copying summaries')
+    print('[DRAW_RESULT] copying summaries')
     for src, dst in zip(cp_src_list, cp_dst_list):
         utool.copy(src, dst)
 
     if utool.NOT_QUIET:
-        print('[PRINT_RESULTS] EXIT EXPERIMENT HARNESS')
+        print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')

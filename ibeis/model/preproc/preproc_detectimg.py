@@ -5,6 +5,7 @@ from os.path import exists, join
 # UTool
 import utool
 # VTool
+import utool as ut  # NOQA
 import vtool.chip as ctool
 import vtool.image as gtool
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -36,6 +37,7 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
     r""" Returns detectimg path list
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from os.path import basename
         >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
@@ -44,13 +46,10 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
         >>> gid_list = valid_gids[0:2]
         >>> new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
         >>> result = ('\n'.join(map(basename, new_gfpath_list)))
-        >>> target = utool.codeblock(
-        ...     '''
-                reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg
-                reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg
-                '''
-        ... )
-        >>> assert result == target
+        >>> target = '\n'.join((
+        ...    'reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg',
+        ...    'reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg'))
+        >>> assert result == target, 'got result=\n%s' % result
 
     """
     utool.assert_all_not_None(gid_list, 'gid_list')
@@ -67,6 +66,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     """
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
@@ -100,6 +100,7 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
     in the SQL database
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
@@ -107,7 +108,7 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
         >>> gid_list = valid_gids[0:2]
         >>> result = compute_and_write_detectimg_lazy(ibs, gid_list)
     """
-    print('[preproc] compute_and_write_detectimg_lazy')
+    print('[preproc_detectimg] compute_and_write_detectimg_lazy')
     # Mark which aid's need their detectimg computed
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
     exists_flags = [exists(gfpath) for gfpath in new_gfpath_list]
@@ -116,3 +117,12 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
           (len(invalid_gids), len(gid_list)))
     compute_and_write_detectimg(ibs, invalid_gids)
     return new_gfpath_list
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ibeis/model/preproc/preproc_detectimg.py
+        python ibeis/model/preproc/preproc_detectimg.py --allexamples
+    """
+    ut.doctest_funcs()

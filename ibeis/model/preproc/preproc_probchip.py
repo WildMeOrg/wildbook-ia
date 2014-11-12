@@ -48,7 +48,7 @@ def get_probchip_cachedir(ibs):
     return join(ibs.get_cachedir(), 'probchip')
 
 
-def get_probchip_fname_fmt(ibs, qreq_=None):
+def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
     """ Returns format of probability chip file names
 
     Args:
@@ -79,14 +79,19 @@ def get_probchip_fname_fmt(ibs, qreq_=None):
         probchip_cfgstr = ibs.cfg.featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
     else:
         raise NotImplementedError('qreq_ is not None')
-    #probchip_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()   # algo settings cfgstr
+
     suffix = probchip_cfgstr
+    if species is not None:
+        # HACK, we sortof know the species here already from the
+        # config string, but this helps in case we mess the config up
+        suffix += '_' + species
+    #probchip_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()   # algo settings cfgstr
     fname_noext, ext = splitext(cfname_fmt)
     probchip_fname_fmt = ''.join(['prob', fname_noext, suffix, ext])
     return probchip_fname_fmt
 
 
-def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None):
+def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     """ Build probability chip file paths based on the current IBEIS configuration
 
     Args:
@@ -110,8 +115,9 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None):
 
     #grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
 
-    probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_)
+    probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_, species=species)
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
     #for aids, species in zip(grouped_aids, unique_species):
     probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
                            for auuid in annot_uuid_list)
@@ -154,11 +160,11 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
             print('[preproc_probchip] Computing probchips for species=%r' % species)
         if len(aids) == 0:
             continue
-        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids)
+        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
         cfpath_list  = ibs.get_annot_cpaths(aids)
         preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         # Ensure that all chips are computed
-        # randomforest only computes probchips that it needs to
+        # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to
         randomforest.compute_probability_images(cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks)
         # Fix stupid bug in pyrf
         fixed_probchip_fpath_list = [fpath + '.png' for fpath in probchip_fpath_list]

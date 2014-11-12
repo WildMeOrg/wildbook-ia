@@ -5,6 +5,7 @@ from six.moves import zip, range, map
 import numpy as np
 from numpy.linalg import svd
 import utool as ut
+import vtool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
 
 
@@ -16,11 +17,12 @@ def get_chipmatch_testdata(**kwargs):
     locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
     qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
     # Get a single chipmatch
-    chipmatch = qaid2_chipmatch[six.next(six.iterkeys(qaid2_chipmatch))]
-    return ibs, qreq_, chipmatch
+    qaid = six.next(six.iterkeys(qaid2_chipmatch))
+    chipmatch = qaid2_chipmatch[qaid]
+    return ibs, qreq_, qaid, chipmatch
 
 
-def score_chipmatch_csum(chipmatch):
+def score_chipmatch_csum(qaid, chipmatch, qreq_):
     """
     score_chipmatch_csum
 
@@ -33,8 +35,8 @@ def score_chipmatch_csum(chipmatch):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
-        >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
-        >>> aid2_score = score_chipmatch_csum(chipmatch)
+        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
+        >>> aid2_score = score_chipmatch_csum(qaid, chipmatch, qreq_)
         >>> print(aid2_score)
     """
     (_, aid2_fs, _) = chipmatch
@@ -42,7 +44,7 @@ def score_chipmatch_csum(chipmatch):
     return aid2_score
 
 
-def score_chipmatch_nsum(chipmatch, qreq_):
+def score_chipmatch_nsum(qaid, chipmatch, qreq_):
     """
     score_chipmatch_nsum
 
@@ -52,34 +54,43 @@ def score_chipmatch_nsum(chipmatch, qreq_):
     Returns:
         dict: nid2_score
 
+    Dev:
+        ibs = qreq_.ibs
+        aid2_score = score_chipmatch_csum(qaid, chipmatch, qreq_)
+        nid2_score = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        ut.dict_take_list(aid2_score, ibs.get_annot_groundtruth(qaid))
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
-        >>> ibs, qreq_, chipmatch = get_chipmatch_testdata()
-        >>> nid2_score = score_chipmatch_nsum(chipmatch, qreq_)
+        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
+        >>> nid2_score = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+
+    CommandLine:
+        python dev.py -t nsum_nosv --db GZ_ALL --allgt --noqcache
+        python dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+        python dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+        qaid=1032_res_gooc+f4msr4ouy9t_quuid=c4f78a6d.npz
+        qaid=1032_res_5ujbs8h&%vw1olnx_quuid=c4f78a6d.npz
     """
-    import vtool
-    (_, aid2_fs, _) = chipmatch
-    aid_list = list(six.iterkeys(aid2_fs))
-    score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
-    nid_list = np.array(qreq_.ibs.get_annot_nids(aid_list))
-    unique_nids, groupxs = vtool.group_indicies(nid_list)
-    grouped_scores = vtool.apply_grouping(score_list, groupxs)
-    nid2_score = {nid: scores.sum() for nid, scores in zip(unique_nids, grouped_scores)}
+    #ut.embed()
     #return nid2_score
+    nid2_score = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
+    unique_nids = list(nid2_score.keys())
     # for now apply a hack to return aid scores
-    aid2_csum = score_chipmatch_csum(chipmatch)
+    aid2_csum = score_chipmatch_csum(qaid, chipmatch, qreq_)
     aids_list = qreq_.ibs.get_name_aids(unique_nids, enable_unknown_fix=True)
     aid2_nscore = {}
     daids = np.intersect1d(list(six.iterkeys(aid2_csum)),
                            qreq_.get_external_daids())
-    for (nid, nsum), aids in zip(six.iteritems(nid2_score), aids_list):
+    for nitem, aids in zip(six.iteritems(nid2_score), aids_list):
+        (nid, nsum) = nitem
         aids_ = np.intersect1d(aids, daids)
         if len(aids_) == 1:
             aid2_nscore[aids_[0]] = nsum
         elif len(aids_) > 1:
             csum_arr = np.array([aid2_csum[aid] for aid in aids_])
-            sortx = csum_arr.argsort()
+            sortx = csum_arr.argsort()[::-1]
             # Give the best scoring annotation the score
             aid2_nscore[aids_[sortx[0]]] = nsum
             # All other annotations receive 0 score
@@ -89,6 +100,18 @@ def score_chipmatch_nsum(chipmatch, qreq_):
             print('warning in voting rules nsum')
     return aid2_nscore
     #raise NotImplementedError('nsum')
+
+
+def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
+    # Nonhacky version of name scoring
+    (_, aid2_fs, _) = chipmatch
+    aid_list = list(six.iterkeys(aid2_fs))
+    score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
+    nid_list = np.array(qreq_.ibs.get_annot_nids(aid_list))
+    unique_nids, groupxs = vtool.group_indicies(nid_list)
+    grouped_scores = vtool.apply_grouping(score_list, groupxs)
+    nid2_score = {nid: scores.sum() for nid, scores in zip(unique_nids, grouped_scores)}
+    return nid2_score
 
 
 def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):

@@ -77,6 +77,7 @@ def autogen_ibeis_runtest():
         RUN_TEST ibeis/model/preproc/preproc_chip.py --allexamples
         RUN_TEST ibeis/model/preproc/preproc_feat.py --allexamples
         RUN_TEST ibeis/model/preproc/preproc_encounter.py --allexamples
+        RUN_TEST ibeis/model/preproc/preproc_detectimg.py --allexamples
         RUN_TEST ibeis/model/hots/match_chips4.py --allexamples
         RUN_TEST ibeis/model/hots/voting_rules2.py --allexamples
         RUN_TEST ibeis/model/hots/pipeline.py --allexamples

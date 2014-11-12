@@ -73,16 +73,16 @@ def show_qres_analysis(ibs, qres, **kwargs):
         # Get the missed groundtruth annotations
         #matchable_aids = ibs.get_recognition_database_aids()
         matchable_aids = list(qres.aid2_fm.keys())
-        _gtaids = ibs.get_annot_groundtruth(qres.qaid)
-        _gtaids = np.intersect1d(_gtaids, matchable_aids)
+        # FIXME: should be with respect to qres.daids which doesn't yet exist
+        _gtaids = ibs.get_annot_groundtruth(qres.qaid, daid_list=matchable_aids)
         _gtaids = np.setdiff1d(_gtaids, top_aids)
-        if len(_gtaids) > 4:
+        if len(_gtaids) > 3:
             # FIXME: Get only the ones that "should have matched"
             # This could be something complex or simple like (was able to be matched)
             # Hack to not show too many unmatched groundtruths
             _isexmp = ibs.get_annot_exemplar_flag(_gtaids)
             _gtaids = utool.sortedby(_gtaids, _isexmp, reverse=True)
-            _gtaids = _gtaids[0:4]
+            _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,

@@ -277,7 +277,7 @@ def baseline_neighbor_filter(qaid2_nns, qreq_):
         >>> aid_list = ibs.get_valid_aids()
         >>> pipeline.test_pipeline_upto(ibs, qreq_, stop_node='baseline_neighbor_filter')
         >>> # Run Test
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
         >>> args = [locals_[key] for key in ['qaid2_nns']]
         >>> qaid2_nns, = args
         >>> qaid2_nnfilt0 = baseline_neighbor_filter(qaid2_nns, qreq_)
@@ -407,7 +407,7 @@ def weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> dbname = 'GZ_ALL'  # 'testdb1'
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
         >>> # Run Test
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'weight_neighbors')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
         >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt0']]
         >>> qaid2_nns, qaid2_nnfilt0  = args
         >>> filt2_weights = pipeline.weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_)
@@ -456,7 +456,7 @@ def filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_):
         >>> cfgdict = dict(codename='vsone')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
         >>> # Run Test
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'filter_neighbors')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'filter_neighbors')
         >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt0', 'filt2_weights']]
         >>> qaid2_nns, qaid2_nnfilt0, filt2_weights = args
         >>> qaid2_nnfilt = filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_)
@@ -612,7 +612,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         >>> cfgdict = dict(codename='vsone')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', cfgdict=cfgdict)
         >>> # Run Test
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'build_chipmatches')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
         >>> qaid2_nns, qaid2_nnfilt = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt']]
         >>> qaid2_chipmatch = build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
     """
@@ -736,7 +736,7 @@ def spatial_verification(qaid2_chipmatch, qreq_):
         >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> # Run Test
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
         >>> spatial_verification(qaid2_chipmatch, qreq_)
     """
@@ -970,9 +970,9 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
         score_method = score_method[:-1]
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
-        daid2_score = vr2.score_chipmatch_csum(chipmatch)
+        daid2_score = vr2.score_chipmatch_csum(qaid, chipmatch, qreq_)
     elif score_method == 'nsum':
-        daid2_score = vr2.score_chipmatch_nsum(chipmatch, qreq_)
+        daid2_score = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
     #elif score_method == 'pl':
     #    daid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
     #elif score_method == 'borda':
@@ -1016,7 +1016,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> # Run Test
         >>> qaid2_nns = pipeline.nearest_neighbors(qreq_)
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
         >>> qaid2_qres = chipmatch_to_resdict(qaid2_chipmatch, qreq_)
         >>> qres = qaid2_qres[1]

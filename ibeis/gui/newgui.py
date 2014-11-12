@@ -554,10 +554,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ])
         elif model.name == ANNOTATION_TABLE:
             if len(id_list) == 1:
-                cid = id_list[0]
+                eid = model.eid
+                aid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
-                    ('view probability chip', lambda: ibswgt.back.show_probability_chip(cid)),
-                    ('delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Select annotation (default)', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    ('View and select image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
+                    ('----', lambda: None),
+                    ('Delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
             else:
                 guitool.popup_menu(tblview, pos, [

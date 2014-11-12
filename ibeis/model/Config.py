@@ -191,6 +191,7 @@ class FilterConfig(ConfigBase):
         addfilt(-1,   'logdist',   None,    0.0)
         addfilt(-1,  'loglnbnn',   None,    0.0)
         addfilt(-1,        'fg',   None,    1.0)
+        addfilt(-1,       'cos',   None,    0.0)
         #addfilt(+1, 'scale' )
         filt_cfg.update(**kwargs)
 
@@ -538,7 +539,7 @@ class QueryConfig(ConfigBase):
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
         query_cfg.codename = 'None'
-        query_cfg.species_code = '____'
+        query_cfg.species_code = '____'  # TODO: make use of this
         #if utool.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
