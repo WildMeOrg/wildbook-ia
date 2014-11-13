@@ -15,6 +15,8 @@ python dev.py -t small_best --db PZ_MTEST --allgt
 
 # Test if feature weights do something
 
+python dev.py -t pzmastertest --db PZ_Master0 --allgt --noqcache
+
 python dev.py -t fgweight --db PZ_Master0 --allgt --noqcache
 python dev.py -t fgweight --db GZ_ALL --allgt
 python dev.py -t fgweight --db PZ_MTEST --allgt
