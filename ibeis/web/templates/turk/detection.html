@@ -6,9 +6,9 @@
   </div>
   {% else %}
   <div class="row">
-    <div class="col-lg-3"></div>
+    <div class="col-lg-1"></div>
     
-    <div class="col-lg-6">
+    <div class="col-lg-10">
       Gid: {{ gid }}
       <br/>
       Species: {{ species }}
@@ -21,11 +21,11 @@
         <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
         <input type="submit" name="detection-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip">
         <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none" readonly="" form="detection-form"></textarea>
+        <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px;/*  display: none */" readonly="" form="detection-form"></textarea>
       </form>
     </div>
 
-    <div class="col-lg-3"></div>
+    <div class="col-lg-1"></div>
   </div>
 
   <!-- Modal -->
@@ -101,7 +101,6 @@
       labels: ['{{ species }}'],
       onchange: function(entries) {
         $('#detection_data').text(JSON.stringify(entries, null, "  "));
-        $( ".annotated_bounding_box" ).resizable({handles: 'n, s, e, w, ne, se, nw, sw'}).draggable().rotatable();
       }
     });
 
@@ -112,6 +111,7 @@
         width:  {{ annot['width'] }},
         height: {{ annot['height'] }},
         label:  '{{ annot['label'] }}',
+        angle:  {{ annot['angle'] }},
       });
     {% endfor %}
     

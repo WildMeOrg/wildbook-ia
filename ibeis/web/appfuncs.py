@@ -48,10 +48,10 @@ def embed_image_html(image, filter_width=True):
     image_pil = Image.fromarray((255 * image).astype('uint8'))
     width, height = image_pil.size
     if filter_width:
-        _height = 300
+        _height = 350
         _width = int((float(_height) / height) * width)
     else:
-        _width = 500
+        _width = 700
         _height = int((float(_width) / width) * height)
     image_pil = image_pil.resize((_width, _height))
     string_buf = StringIO.StringIO()

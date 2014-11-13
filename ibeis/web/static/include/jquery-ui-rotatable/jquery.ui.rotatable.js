@@ -103,8 +103,23 @@ $.widget("ui.rotatable", $.ui.mouse, {
 
         return false;
     },
-
+    
     rotateElement: function(event) {
+        function _binAngle(angleRadians, binTotal, angleOffset) {
+            // By default, bin into the 8 cardinal and sub-cardinal directions
+            if(binTotal === undefined) { binTotal = 8; }
+            // By default, we want to offset by half a bin by default for the correct behavior
+            if(angleOffset === undefined) { angleOffset = (Math.PI / binTotal); } 
+            // Calculate the size (in radians) of each angle bin
+            binSize = 2.0 * Math.PI / binTotal;
+            // Add the offset to angleRadians
+            angleRadiansOffset = angleRadians + angleOffset
+            // Calculate the correct bin the angle should be *downgraded* to and the corresponding new radian angle
+            angleBin = Math.floor(angleRadiansOffset / binSize)
+            angleRadiansBinned = angleBin * binSize;
+            return angleRadiansBinned;
+        }
+        
         if (!this.element || this.element.disabled) {
             return false;
         }
@@ -116,6 +131,10 @@ $.widget("ui.rotatable", $.ui.mouse, {
         var mouseAngle = Math.atan2(yFromCenter, xFromCenter);
         var rotateAngle = mouseAngle - this.mouseStartAngle + this.elementStartAngle;
 
+        if(event.shiftKey) {
+          rotateAngle = _binAngle(rotateAngle);
+        }
+                
         this.performRotation(rotateAngle);
         var previousRotateAngle = this.elementCurrentAngle;
         this.elementCurrentAngle = rotateAngle;

@@ -12,13 +12,14 @@
       this.border_width = options.border_width || 2;
       this.selector = $('<div class="bbox_selector"></div>');
       this.selector.css({
-        "border": this.border_width + "px dotted rgb(127,255,127)",
+        "border": this.border_width + "px dotted rgb(255, 255, 255)",
         "position": "absolute"
       });
       this.image_frame.append(this.selector);
       this.selector.css({
         "border-width": this.border_width
       });
+      this.adding = false;
       this.selector.hide();
       this.create_label_box(options);
     }
@@ -111,10 +112,14 @@
       this.label_box.hide();
       this.selector.hide();
       data = this.rectangle();
+      // data.width = Math.max(50, data.width)
+      // data.height = Math.max(50, data.height)
       data.label = $.trim(this.label_input.val().toLowerCase());
+      data.angle = 0.0;
       if (options.input_method !== 'fixed') {
         this.label_input.val('');
       }
+      
       return data;
     };
 
@@ -125,9 +130,9 @@
       x2 = Math.max(this.offset.x, this.pointer.x);
       y2 = Math.max(this.offset.y, this.pointer.y);
       return rect = {
-        left: x1,
-        top: y1,
-        width: x2 - x1 + 1,
+        left:   x1,
+        top:    y1,
+        width:  x2 - x1 + 1,
         height: y2 - y1 + 1
       };
     };
@@ -170,8 +175,10 @@
         options.width || (options.width = image_element.width);
         options.height || (options.height = image_element.height);
         annotator.annotator_element.css({
-          "width": '100%',
-          "height": (options.height + annotator.border_width * 2) + 'px'
+          "width": '700px',
+          "height": (options.height + annotator.border_width * 2) + 'px',
+          "margin-left": 'auto',
+          "margin-right": 'auto',
         });
         annotator.image_frame.css({
           "background-image": "url('" + image_element.src + "')",
@@ -179,7 +186,8 @@
           "height": options.height + "px",
           "position": "relative",
           "margin": "0px auto",
-          "cursor": "crosshair"
+          "cursor": "crosshair",
+          "border": "#333 solid 1px",
         });
         annotator.selector = new BBoxSelector(annotator.image_frame, options);
         return annotator.initialize_events(annotator.selector, options);
@@ -207,6 +215,15 @@
               if (e.which === 1) {
                 selector.start(e.pageX, e.pageY);
                 status = 'hold';
+                annotator.adding = true;
+              }
+              break;
+            case 'hold':
+              selector.update_rectangle(e.pageX, e.pageY);
+              selector.input_label(options);
+              status = 'input';
+              if (options.input_method === 'fixed') {
+                selector.get_input_element().blur();
               }
           }
         }
@@ -221,6 +238,7 @@
         return true;
       });
       $(window).mouseup(function(e) {
+        console.log('up');
         switch (status) {
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
@@ -237,8 +255,9 @@
         switch (status) {
           case 'input':
             data = selector.finish(options);
-            if (data.label) {
+            if (data.label && data.width >= 10 && data.height >= 10) {
               annotator.add_entry(data);
+              annotator.adding = false;
               if (annotator.onchange) {
                 annotator.onchange(annotator.entries);
               }
@@ -247,14 +266,30 @@
         }
         return true;
       });
-      selector.get_input_element().keypress(function(e) {
+      $("body").keydown(function(e) {
+        console.log(status);
         switch (status) {
-          case 'input':
-            if (e.which === 13) {
-              selector.get_input_element().blur();
+          case 'hold':
+            if (e.which === 27) {
+              data = selector.finish(options);
+              annotator.adding = false;
+              status = 'free';
+            }
+            break;
+          case 'free':
+            if (e.which === 27)
+            {
+              var delete_box, index;
+              delete_box = $('.annotated_bounding_box_active');
+              if(delete_box.length > 0)
+              {
+                index = delete_box.prevAll(".annotated_bounding_box").length;
+                delete_box.detach();
+                annotator.entries.splice(index, 1);
+                return annotator.onchange(annotator.entries);
+              }
             }
         }
-        return e.which !== 13;
       });
       selector.get_input_element().mousedown(function(e) {
         return annotator.hit_menuitem = true;
@@ -279,24 +314,111 @@
     };
 
     BBoxAnnotator.prototype.add_entry = function(entry) {
-      var annotator, box_element, close_button, text_box;
+      var annotator, box_element, close_button, rotate_button, text_box, edit_override, edit_cursor_inside;
+      
+      function update_style(hover)
+      {
+        if(hover)
+        {
+          box_element.css('border-color', 'rgb(255, 155, 0)');
+          box_element.addClass('annotated_bounding_box_active');
+          text_box.css('background-color', 'rgb(255, 155, 0)');
+          rotate_button.show();
+          close_button.show();
+          annotator.hit_menuitem = true;
+        }
+        else
+        {
+          box_element.css('border-color', 'rgb(255, 255, 255)');
+          box_element.removeClass('annotated_bounding_box_active');
+          text_box.css('background-color', 'rgb(255, 255, 255)');
+          annotator.hit_menuitem = false;
+          rotate_button.hide();
+          close_button.hide();
+        }
+      }
+      
+      function update_dimensions()
+      {
+        entry['left']   = parseInt(box_element.css('left'));
+        entry['top']    = parseInt(box_element.css('top'));
+        entry['width']  = parseInt(box_element.css('width'));
+        entry['height'] = parseInt(box_element.css('height'));
+        annotator.refresh();
+      }
+      
+      function update_angle(angle)
+      {
+        function mod(x, n) {
+          // Javascript % is not modulus, it is remainder (wtf?)
+          return ((x % n) + n) % n;
+        }
+        
+        entry['angle'] = mod(angle, 2.0 * Math.PI);
+        annotator.refresh();
+      }
+      
       this.entries.push(entry);
+      edit_override = false;
+      edit_cursor_inside = false;
       box_element = $('<div class="ui-widget-content annotated_bounding_box"></div>');
+      var resize_params = {
+          start: function(event, ui) {
+            edit_override = true;
+          },
+          stop: function(event, ui) {
+            edit_override = false;
+            update_dimensions();
+            if( ! edit_cursor_inside)
+            { 
+              update_style(false);
+            }
+          },
+          handles: 'n, s, e, w, ne, se, nw, sw',
+      };
+      var rotate_params = {
+          start: function(event, ui) {
+            edit_override = true;
+          },
+          stop: function(event, ui) {
+            edit_override = false;
+            update_angle(ui.angle.stop);
+            if( ! edit_cursor_inside)
+            { 
+              update_style(false);
+            }
+          },
+          angle: entry.angle,
+      };
+      var drag_params = {
+          stop: function(event, ui) {
+            edit_override = false;
+            update_dimensions();
+            if( ! edit_cursor_inside)
+            { 
+              update_style(false);
+            }
+          },
+          containment: "#bbox_annotator",
+      };
+      box_element.rotatable(rotate_params).resizable(resize_params).draggable(drag_params);
+      rotate_button = box_element.find('.ui-rotatable-handle');
       box_element.appendTo(this.image_frame).css({
-        "border": this.border_width + "px solid rgb(127,255,127)",
+        "border": this.border_width + "px solid rgb(255, 255, 255)",
         "position": "absolute",
         "top": (entry.top - this.border_width) + "px",
         "left": (entry.left - this.border_width) + "px",
         "width": entry.width + "px",
         "height": entry.height + "px",
-        "color": "rgb(127,255,127)",
+        "color": "rgb(255, 255, 255)",
         "font-family": "monospace",
-        "font-size": "small"
+        "font-size": "small",
+        "cursor": "move",
       });
       close_button = $('<div></div>').appendTo(box_element).css({
         "position": "absolute",
-        "top": "-20px",
-        "left": "50%",
+        "top": "10px",
+        "right": "10px",
         "margin-left": "-10px",
         "width": "20px",
         "height": "0",
@@ -326,16 +448,34 @@
         "font-family": '"Helvetica Neue", Consolas, Verdana, Tahoma, Calibri, ' + 'Helvetica, Menlo, "Droid Sans", sans-serif'
       });
       text_box = $('<div></div>').appendTo(box_element).css({
-        "overflow": "visible"
+        "overflow": "visible",
+        "display": "inline-block",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "#333",
+        "padding": "1px 3px",
+        // "position": "absolute",
+        // "top": "-20px",
       });
       if (this.show_label) {
         text_box.text(entry.label);
       }
       annotator = this;
       box_element.hover((function(e) {
-        return close_button.show();
+        edit_cursor_inside = true;
+        if( ! annotator.adding)
+        {
+          update_style(true); 
+        }
+        else
+        {
+          update_style(false);
+        }
       }), (function(e) {
-        return close_button.hide();
+        edit_cursor_inside = false;
+        if( ! edit_override)
+        { 
+          update_style(false);
+        }
       }));
       close_button.mousedown(function(e) {
         return annotator.hit_menuitem = true;
@@ -348,7 +488,8 @@
         annotator.entries.splice(index, 1);
         return annotator.onchange(annotator.entries);
       });
-      return close_button.hide();
+      rotate_button.hide();
+      close_button.hide();
     };
 
     BBoxAnnotator.prototype.clear_all = function(e) {

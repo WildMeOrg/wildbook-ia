@@ -57,19 +57,21 @@ def turk(filename=''):
             image_src = appfuncs.embed_image_html(image, filter_width=False)
             # Get annotations
             width, height = app.ibeis.get_image_sizes(gid)
-            scale_factor = 500.0 / float(width)
+            scale_factor = 700.0 / float(width)
             aid_list = app.ibeis.get_image_aids(gid)
             annot_bbox_list = app.ibeis.get_annot_bboxes(aid_list)
+            annot_thetas_list = app.ibeis.get_annot_thetas(aid_list)
             species_list = app.ibeis.get_annot_species(aid_list)
             # Get annotation bounding boxes
             annotation_list = []
-            for annot_bbox, species in zip(annot_bbox_list, species_list):
+            for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):
                 temp = {}
                 temp['left']   = int(scale_factor * annot_bbox[0])
                 temp['top']    = int(scale_factor * annot_bbox[1])
                 temp['width']  = int(scale_factor * (annot_bbox[2]))
                 temp['height'] = int(scale_factor * (annot_bbox[3]))
                 temp['label']  = species
+                temp['angle']  = float(annot_theta)
                 annotation_list.append(temp)
             species = max(set(species_list), key=species_list.count)  # Get most common species
         else:
@@ -162,7 +164,7 @@ def submit_detection():
     appfuncs.set_review_count_from_gids(app, [gid], [count])
     if count == 1:
         width, height = app.ibeis.get_image_sizes(gid)
-        scale_factor = float(width) / 500.0
+        scale_factor = float(width) / 700.0
         # Get aids
         aid_list = app.ibeis.get_image_aids(gid)
         app.ibeis.delete_annots(aid_list)
@@ -174,6 +176,10 @@ def submit_detection():
                 int(scale_factor * annot['width']),
                 int(scale_factor * annot['height']),
             )
+            for annot in annotation_list
+        ]
+        theta_list = [
+            annot['theta']
             for annot in annotation_list
         ]
         species_list = [
