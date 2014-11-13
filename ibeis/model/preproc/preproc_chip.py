@@ -64,6 +64,8 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
         except IOError:
             print('[preproc_chip] cache must have been deleted from disk')
+            # TODO: WE CAN SEARCH FOR NON EXISTANT PATHS HERE AND CALL
+            # ibs.delete_annot_chips
             compute_and_write_chips_lazy(ibs, aid_list)
             # Try just one more time
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]

@@ -9,39 +9,42 @@ export IBSFLAGS=''
 
 # Current best algorithm 
 
-python dev.py -t small_best --db PZ_Master0 --allgt
 python dev.py -t small_best --db GZ_ALL --allgt
 python dev.py -t small_best --db PZ_MTEST --allgt
+python dev.py -t small_best --db PZ_Master0 --allgt
 
+python dev.py -t nsum --db GZ_ALL --allgt
+python dev.py -t nsum --db PZ_MTEST --allgt
+python dev.py -t nsum --db PZ_Master0 --allgt
+
+python dev.py -t nsum --db GZ_ALL --allgt --vh --fig-dname nsum_hard
+python dev.py -t nsum --db PZ_MTEST --allgt --vh --fig-dname nsum_hard
+python dev.py -t nsum --db PZ_Master0 --allgt --vh --fig-dname nsum_hard
 
 python dev.py -t small_best nsum --db GZ_ALL --allgt
 python dev.py -t small_best nsum --db PZ_MTEST --allgt
 python dev.py -t small_best nsum --db PZ_Master0 --allgt
 
 
-python dev.py -t nsum --db GZ_ALL --allgt --vh --fig-dname nsum_hard
-python dev.py -t nsum --db PZ_MTEST --allgt --vh --fig-dname nsum_hard
-python dev.py -t nsum --db PZ_Master0 --allgt --vh --fig-dname nsum_hard
-
 # Test if feature weights do something
 
-python dev.py -t pzmastertest --db PZ_Master0 --allgt 
+#python dev.py -t pzmastertest --db PZ_Master0 --allgt 
 
-python dev.py -t fgweight --db PZ_Master0 --allgt --noqcache
-python dev.py -t fgweight --db GZ_ALL --allgt
-python dev.py -t fgweight --db PZ_MTEST --allgt
+#python dev.py -t fgweight --db PZ_Master0 --allgt --noqcache
+#python dev.py -t fgweight --db GZ_ALL --allgt
+#python dev.py -t fgweight --db PZ_MTEST --allgt
 
-# Test if dupvote weights do something
+## Test if dupvote weights do something
 
-python dev.py -t dupvote --db PZ_Master0 --allgt --noqcache
-python dev.py -t dupvote --db GZ_ALL --allgt
-python dev.py -t dupvote --db PZ_MTEST --allgt
+#python dev.py -t dupvote --db PZ_Master0 --allgt --noqcache
+#python dev.py -t dupvote --db GZ_ALL --allgt
+#python dev.py -t dupvote --db PZ_MTEST --allgt
 
-# Full tests
+## Full tests
 
-python dev.py -t nov6 --db PZ_Master0 --allgt --noqcache
-python dev.py -t nov6 --db GZ_ALL --allgt
-python dev.py -t nov6 --db PZ_MTEST --allgt
+#python dev.py -t nov6 --db PZ_Master0 --allgt --noqcache
+#python dev.py -t nov6 --db GZ_ALL --allgt
+#python dev.py -t nov6 --db PZ_MTEST --allgt
 
 #export IBSFLAGS=''
 #python dev.py -t smk5 --allgt --db PZ_Master0 $IBSFLAGS
