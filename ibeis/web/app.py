@@ -14,6 +14,7 @@ import ibeis
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
 from ibeis.control import _sql_helpers
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 import utool
 import utool as ut
 # Web Internal
@@ -50,9 +51,9 @@ def turk(filename=''):
         else:
             with SQLAtomicContext(app.db):
                 gid = appfuncs.get_next_detection_turk_candidate(app)
-        gpath = app.ibeis.get_image_paths(gid)
         finished = gid is None
         if not finished:
+            gpath = app.ibeis.get_image_paths(gid)
             image = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image, filter_width=False)
             # Get annotations
@@ -73,8 +74,12 @@ def turk(filename=''):
                 temp['label']  = species
                 temp['angle']  = float(annot_theta)
                 annotation_list.append(temp)
-            species = max(set(species_list), key=species_list.count)  # Get most common species
+            if len(species_list) > 0:
+              species = max(set(species_list), key=species_list.count)  # Get most common species
+            else:
+              species = KEY_DEFAULTS[SPECIES_KEY]
         else:
+            gpath = None
             image_src = None
             species = None
             annotation_list = []
@@ -179,7 +184,7 @@ def submit_detection():
             for annot in annotation_list
         ]
         theta_list = [
-            annot['theta']
+            float(annot['angle'])
             for annot in annotation_list
         ]
         species_list = [
@@ -187,7 +192,7 @@ def submit_detection():
             for annot in annotation_list
         ]
         print("[web] gid: %d, bbox_list: %r, species_list: %r" % (gid, annotation_list, species_list))
-        app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, species_list=species_list)
+        app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
     return redirect(url_for('turk', filename='detection'))
 
 

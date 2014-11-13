@@ -238,7 +238,6 @@
         return true;
       });
       $(window).mouseup(function(e) {
-        console.log('up');
         switch (status) {
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
@@ -267,7 +266,6 @@
         return true;
       });
       $("body").keydown(function(e) {
-        console.log(status);
         switch (status) {
           case 'hold':
             if (e.which === 27) {
@@ -324,14 +322,15 @@
           box_element.addClass('annotated_bounding_box_active');
           text_box.css('background-color', 'rgb(255, 155, 0)');
           rotate_button.show();
-          close_button.show();
+//           close_button.show();
           annotator.hit_menuitem = true;
         }
         else
         {
           box_element.css('border-color', 'rgb(255, 255, 255)');
+          box_element.css('background-color', 'rgba(0, 0, 0, 0.0)');
           box_element.removeClass('annotated_bounding_box_active');
-          text_box.css('background-color', 'rgb(255, 255, 255)');
+          text_box.css('background-color', 'rgba(255, 255, 255, 0.5)');
           annotator.hit_menuitem = false;
           rotate_button.hide();
           close_button.hide();
@@ -391,8 +390,12 @@
           angle: entry.angle,
       };
       var drag_params = {
+          start: function(event, ui) {
+            box_element.css('background-color', 'rgba(0, 0, 0, 0.2)');
+          },
           stop: function(event, ui) {
             edit_override = false;
+            box_element.css('background-color', 'rgba(0, 0, 0, 0.0)');
             update_dimensions();
             if( ! edit_cursor_inside)
             { 
@@ -434,7 +437,7 @@
         "-moz-user-select": "none",
         "-webkit-user-select": "none",
         "user-select": "none",
-        "text-align": "center"
+        "text-align": "center",
       });
       $("<div></div>").appendTo(close_button).html('&#215;').css({
         "display": "block",
@@ -450,7 +453,7 @@
       text_box = $('<div></div>').appendTo(box_element).css({
         "overflow": "visible",
         "display": "inline-block",
-        "background-color": "rgb(255, 255, 255)",
+        "background-color": "rgba(255, 255, 255, 0.50)",
         "color": "#333",
         "padding": "1px 3px",
         // "position": "absolute",
