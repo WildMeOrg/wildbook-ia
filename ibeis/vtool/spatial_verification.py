@@ -45,13 +45,15 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
-        >>> print(utool.hashstr(Mx9))
+        >>> result = utool.hashstr(Mx9)
+        >>> print(result)
         f@2l62+2!ppow8yw
 
     Cyth:
@@ -112,16 +114,28 @@ def compute_homog(xy1_mn, xy2_mn):
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
 
+    Args:
+        xy1_mn (ndarray[ndim=2]): xy points in image1
+        xy2_mn (ndarray[ndim=2]): corresponding xy points in image 2
+
+    Returns:
+        ndarray[shape=(3,3)]: H - homography matrix
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> import vtool.keypoint as ktool
         >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
         >>> xy1_mn = ktool.get_xys(kpts1)
         >>> xy2_mn = ktool.get_xys(kpts2)
-        >>> output = compute_homog(xy1_mn, xy2_mn)
-        >>> print(utool.hashstr(output))
-        xosv18ps9u78@o0u
+        >>> H = compute_homog(xy1_mn, xy2_mn)
+        >>> #result = utool.hashstr(H)
+        >>> result =str(H)
+        >>> print(result)
+        [[  1.83339899e-03   2.84967763e-03   7.11014172e-01]
+         [  2.82477718e-03   1.80000445e-03  -7.03139799e-01]
+         [  1.66839211e-05   1.67525375e-05  -5.52890782e-03]]
 
     Cyth:
         #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
@@ -162,6 +176,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     Critical section code. Inner loop of _test_hypothesis_inliers
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> from vtool.spatial_verification import _test_hypothesis_inliers  # NOQA
         >>> import vtool.tests.dummy as dummy
@@ -188,8 +203,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> print(utool.hashstr(output))
-        v1!dq3v3cu6fhz%r
+        >>> result = utool.hashstr(output)
+        >>> print(result)
+        +%q&%je52nlyli5&
 
     Cyth:
         #if CYTH
@@ -271,6 +287,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         The input invVs = perdoch.invA's
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> import vtool.keypoint as ktool
@@ -280,8 +297,9 @@ def get_affine_inliers(kpts1, kpts2, fm,
         >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
         >>> output = get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> print(utool.hashstr(output))
-        kfvy0iej+56akeb6
+        >>> result = utool.hashstr(output)
+        >>> print(result)
+        89kz8nh6p+66t!+u
 
 
     Cyth:
@@ -311,12 +329,12 @@ def get_affine_inliers(kpts1, kpts2, fm,
 
 
     Ignore::
-        >>> from vtool.spatial_verification import *  # NOQA
-        >>> import vtool.tests.dummy as dummy
-        >>> import vtool.keypoint as ktool
-        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
-        >>> a = kpts1[fm.T[0]]
-        >>> b = kpts1.take(fm.T[0])
+        from vtool.spatial_verification import *  # NOQA
+        import vtool.tests.dummy as dummy
+        import vtool.keypoint as ktool
+        kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
+        a = kpts1[fm.T[0]]
+        b = kpts1.take(fm.T[0])
 
         align = fm.dtype.itemsize * fm.shape[1]
         align2 = [fm.dtype.itemsize, fm.dtype.itemsize]
@@ -370,6 +388,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
+
     #if CYTH
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] kpts1
@@ -411,10 +430,8 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
 
-    %timeit kpts1.take(fm.T[0].astype(np.int32), axis=0)
-    %timeit kpts1[fm.T[0]]
-
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> import vtool.keypoint as ktool
@@ -422,6 +439,9 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
         >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
 
     Timeit::
+        %timeit kpts1.take(fm.T[0].astype(np.int32), axis=0)
+        %timeit kpts1[fm.T[0]]
+
         %timeit kpts1[fm.T[0]]
         %timeit kpts2[fm.T[1]]
         4.23 us per loop
@@ -485,10 +505,22 @@ def spatial_verification(kpts1, kpts2, fm,
     Driver function
     Spatially validates feature matches
 
+    Args:
+        kpts1 (?):
+        kpts2 (?):
+        fm (?):
+        xy_thresh (?):
+        scale_thresh (?):
+        ori_thresh (?):
+        dlen_sqrd2 (None):
+        min_num_inliers (int):
+        returnAff (bool):
+
     Returns:
         (homog_inliers, H, aff_inliers, Aff) if sucess else None
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *
         >>> import ibeis
         >>> import pyflann
@@ -563,3 +595,14 @@ else:
     # Regen command: python -c "import vtool.linalg" --cyth-write
     # </AUTOGEN_CYTH>
     pass
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification, allexamples=True)"
+        python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification)"
+        python vtool/spatial_verification.py
+        python vtool/spatial_verification.py --allexamples
+    """
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
