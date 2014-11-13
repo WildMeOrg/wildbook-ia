@@ -3,6 +3,17 @@
 
 =====
 
+# Note:
+
+IBEIS contains the next generation of HotSpotter. 
+
+However, we have not yet released IBEIS self-installing-executables. 
+
+To download the older HotSpotter executables use: 
+http://cs.rpi.edu/hotspotter/
+
+# Program Description
+
 IBEIS is python module and standalone program for the storage and management of
 images and derived data for use in compute vision algorithms. It aims to compute
 who an animal is, what species an animal is, and where an animal is with the
@@ -15,7 +26,17 @@ description, LNBNN identification using approximate nearest neighbors.
 Algorithms in development are SMK (selective match kernel) for identifiaction
 and deep neural networks for detection and localization. 
 
-Documentation: http://erotemic.github.io/ibeis
+The core of IBEIS is the IBEISController class. It provides an API into IBEIS data management and algorithms. The IBEIS API Documentation can be found here:
+ http://erotemic.github.io/ibeis
+
+The IBEIS GUI (graphical user interface) is built on top of the API. 
+We are also experimenting with a new web frontend that bypasses the older GUI code.
+
+
+# Internal Modules
+
+In the interest of modular code we are actively developing several different modules. 
+
 
 Erotemic's IBEIS module dependencies 
 

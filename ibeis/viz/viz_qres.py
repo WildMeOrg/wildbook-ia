@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from plottool import draw_func2 as df2
-#import utool as ut
+import utool as ut  # NOQA
 import numpy as np
 from ibeis import ibsfuncs
 from . import viz_helpers as vh
@@ -70,18 +70,21 @@ def show_qres_analysis(ibs, qres, **kwargs):
     # Get any groundtruth if you are showing it
     showgt_aids = []
     if show_gt:
+        #ut.embed()
         # Get the missed groundtruth annotations
+        # qres.daids comes from qreq_.get_external_daids()
+        matchable_aids = qres.daids
         #matchable_aids = ibs.get_recognition_database_aids()
-        matchable_aids = list(qres.aid2_fm.keys())
-        # FIXME: should be with respect to qres.daids which doesn't yet exist
+        #matchable_aids = list(qres.aid2_fm.keys())
         _gtaids = ibs.get_annot_groundtruth(qres.qaid, daid_list=matchable_aids)
+        # No need to display highly ranked groundtruth. It will already show up
         _gtaids = np.setdiff1d(_gtaids, top_aids)
+        # Sort missed grountruth by score
+        _gtscores = qres.get_aid_scores(_gtaids)
+        _gtaids = utool.sortedby(_gtaids, _gtscores, reverse=True)
         if len(_gtaids) > 3:
-            # FIXME: Get only the ones that "should have matched"
-            # This could be something complex or simple like (was able to be matched)
             # Hack to not show too many unmatched groundtruths
-            _isexmp = ibs.get_annot_exemplar_flag(_gtaids)
-            _gtaids = utool.sortedby(_gtaids, _isexmp, reverse=True)
+            #_isexmp = ibs.get_annot_exemplar_flag(_gtaids)
             _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
 

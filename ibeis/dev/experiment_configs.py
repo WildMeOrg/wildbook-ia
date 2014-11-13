@@ -36,6 +36,19 @@ small_best = {
 }
 
 
+nsum = augbase(small_best, {
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
+nsum_nosv = augbase(nsum, {
+    'sv_on':    [False],
+    'dupvote_weight':    [1.0],
+    'score_method':      ['nsum'],
+    'prescore_method':   ['nsum'],
+})
+
 vsmany = augbase(small_best, {
     'pipeline_root':   ['vsmany'],
     'K':               [4],  # 5, 10],
@@ -53,22 +66,9 @@ vsone = augbase(small_best, {
     'ratio_thresh':  [1.6],
 })
 
-nsum = augbase(small_best, {
-    'dupvote_weight':    [1.0],
-    'score_method':      ['nsum'],
-    'prescore_method':   ['nsum'],
-})
-
 pzmastertest = augbase(small_best, {
     'K': [4, 8, 10, 16, 29],
-    'Knorm': [1, 4, 7, 10],
-})
-
-nsum_nosv = augbase(nsum, {
-    'sv_on':    [False],
-    'dupvote_weight':    [1.0],
-    'score_method':      ['nsum'],
-    'prescore_method':   ['nsum'],
+    'Knorm': [1, 4, 7],
 })
 
 fgweight = augbase(small_best, {

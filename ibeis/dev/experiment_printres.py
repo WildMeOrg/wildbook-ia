@@ -28,6 +28,10 @@ DUMP_EXTRA           = utool.get_argflag('--dump-extra')
 QUALITY              = utool.get_argflag('--quality')
 SHOW                 = utool.get_argflag('--show')
 
+# only triggered if dump_extra is on
+DUMP_PROBCHIP = True
+DUMP_REGCHIP = True
+
 
 def get_diffmat_str(rank_mat, qaids, nCfg):
     # Find rows which scored differently over the various configs
@@ -471,11 +475,23 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     #    utool.delete(figdir)
 
     # Save DEFAULT=True
+
     def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
-        print('[PRINT_RESULTS] show_chip(aid=%r)' % (aid,))
+        print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
         from ibeis import viz
+        # only dump a chip that hasn't been dumped yet
         if aid in seen:
+            print('[PRINT_RESULTS] SEEN SKIPPING')
             return
+        fulldir = join(figdir, dumpkw['subdir'])
+        if DUMP_PROBCHIP:
+            # just copy it
+            probchip_fpath = ibs.get_annot_probchip_fpaths([aid])[0]
+            ut.copy(probchip_fpath, fulldir, overwrite=False)
+        if DUMP_REGCHIP:
+            chip_fpath = ibs.get_annot_chip_fpaths([aid])[0]
+            ut.copy(chip_fpath, fulldir, overwrite=False)
+
         viz.show_chip(ibs, aid, in_image=in_image)
         if rank is not None:
             prefix += 'rank%d_' % rank
@@ -483,10 +499,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         seen.add(aid)
         if utool.VERBOSE:
             print('[expt] dumping fig to %s' % figdir)
+
         fpath_clean = ph.dump_figure(figdir, **dumpkw)
         return fpath_clean
 
-    chunksize = 10
+    chunksize = 4
     # <FOR RCITER_CHUNK>
     #with ut.EmbedOnException():
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
@@ -582,9 +599,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     # </FOR RCITER>
 
     # Copy summary images to query_analysis folder
-    print('[DRAW_RESULT] copying summaries')
+    print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
     for src, dst in zip(cp_src_list, cp_dst_list):
-        utool.copy(src, dst)
+        utool.copy(src, dst, verbose=False)
 
     if utool.NOT_QUIET:
         print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')

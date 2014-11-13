@@ -1,3 +1,17 @@
+"""
+Preprocess Probability Chips
+
+Uses random forests code to detect the probability that pixel belongs to the
+forground.
+
+TODO:
+    * Create a probchip controller table.
+    * Integrate into the the controller using autogen functions.
+        - get_probchip_fpaths, get_annot_probchip_fpaths, add_annot_probchip
+
+    * User should be able to manually paint on a chip to denote the foreground
+      when the randomforest algorithm messes up.
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 from ibeis.model.preproc import preproc_chip
@@ -13,10 +27,34 @@ import numpy as np
     __name__, '[preproc_probchip]', DEBUG=False)
 
 
+def postprocess_dev():
+    """
+    References:
+        http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+    """
+    from plottool import df2 as df2
+    import cv2
+    import numpy as np
+
+    fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
+    img = cv2.imread(fpath)
+    df2.imshow(img, fnum=1)
+    kernel = np.ones((5, 5), np.uint8)
+    blur = cv2.GaussianBlur(img, (5, 5), 1.6)
+    dilation = cv2.dilate(img, kernel, iterations=10)
+    df2.imshow(blur, fnum=2)
+    df2.imshow(dilation, fnum=3)
+    closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=5)
+    df2.imshow(closing, fnum=4)
+    df2.present()
+    pass
+
+
 def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
     """ helper
 
     Example:
+        >>> # DOCTEST_ENABLE
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -59,15 +97,17 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         probchip_fname_fmt
 
     Example:
-        >>> # DOCTEST ENABLED
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
-        >>> assert probchip_fname_fmt == 'probchip_auuid_%s_CHIP(sz450)_DETECT(rf,zebra_grevys).png', probchip_fname_fmt
-        >>> print(probchip_fname_fmt)
-        probchip_auuid_%s_CHIP(sz450)_DETECT(rf,zebra_grevys).png
+        >>> #want = 'probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
+        >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
+        >>> result = probchip_fname_fmt
+        >>> print(result)
+        probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
 
     """
     cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs)
@@ -103,11 +143,15 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
         probchip_fpath_list
 
     Example:
-        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> # DOCTEST_ENABLE
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> from os.path import basename
         >>> ibs, aid_list = test_setup_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
-        >>> print(probchip_fpath_list[1])
+        >>> result = basename(probchip_fpath_list[1])
+        >>> print(result)
+        probchip_aid=2_auuid=35a418d7-5168-4404-8bce-63d75935b54c_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
     ibs.probchipdir = get_probchip_cachedir(ibs)
     cachedir = get_probchip_cachedir(ibs)
@@ -119,8 +163,10 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
     #for aids, species in zip(grouped_aids, unique_species):
-    probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
-                           for auuid in annot_uuid_list)
+    #probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
+    #                       for auuid in annot_uuid_list)
+    probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in
+                           zip(aid_list, annot_uuid_list))
     probchip_fpath_list = [None if fname is None else join(cachedir, fname)
                            for fname in probchip_fname_iter]
     return probchip_fpath_list
@@ -153,11 +199,12 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
     ut.ensuredir(cachedir)
 
     gropued_probchip_fpath_lists = []
-    print('[preproc_probchip] +--------------------')
+    if ut.VERBOSE:
+        print('[preproc_probchip] +--------------------')
     for aids, species in zip(grouped_aids, unique_species):
-        if not ut.QUIET:
-            print('[preproc_probchip] |--------------------')
+        if ut.VERBOSE:
             print('[preproc_probchip] Computing probchips for species=%r' % species)
+            print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
@@ -170,18 +217,21 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         fixed_probchip_fpath_list = [fpath + '.png' for fpath in probchip_fpath_list]
         gropued_probchip_fpath_lists.append(fixed_probchip_fpath_list)
     probchip_fpath_list_ = ut.flatten(gropued_probchip_fpath_lists)
-    if not ut.QUIET:
+    if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
-    print('[preproc_probchip] L_______________________')
+    if ut.VERBOSE:
+        print('[preproc_probchip] L_______________________')
     return probchip_fpath_list_
 
 if __name__ == '__main__':
     """
-    python ibeis/model/preproc/preproc_probchip.py
+    CommandLine:
+        python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)"
+        python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)"
+        python ibeis/model/preproc/preproc_probchip.py
+        python ibeis/model/preproc/preproc_probchip.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
-    import ut as ut  # NOQA
-    testable_list = [
-    ]
-    ut.doctest_funcs(testable_list)
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

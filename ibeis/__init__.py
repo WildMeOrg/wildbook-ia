@@ -65,7 +65,7 @@ import ibeis.model as model
 from ibeis.dev import sysres
 from ibeis.main_module import main, _preload, main_loop, test_main, opendb
 from ibeis.control.IBEISControl import IBEISController
-from ibeis.dev.sysres import get_workdir, set_workdir, ensure_pz_mtest
+from ibeis.dev.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'

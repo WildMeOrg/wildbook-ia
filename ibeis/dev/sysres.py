@@ -339,3 +339,13 @@ def ensure_pz_mtest():
     mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
     mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
+
+
+def ensure_nauts():
+    """ Ensures that you have the NAUT_test dataset """
+    from ibeis import sysres
+    import utool
+    workdir = sysres.get_workdir()
+    nauts_zipped_url = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
+    nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
+    print('have nauts_dir=%r' % (nauts_dir,))

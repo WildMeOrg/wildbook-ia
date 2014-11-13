@@ -1,7 +1,12 @@
 """
-# DOCTEST ENABLED
-DoctestCMD:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))" --quiet
+Preprocess Chips
+
+Extracts annotation chips from imaages and applies optional image
+normalizations.
+
+TODO:
+    * Have controller delete cached chip_fpath if there is a cache miss.
+    * Implemented funcs based on custom qparams in non None qreq_ objects
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
@@ -161,9 +166,10 @@ def get_chip_fname_fmt(ibs):
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
         >>> cfname_fmt = get_chip_fname_fmt(ibs)
-        >>> assert cfname_fmt == 'chip_auuid_%s_CHIP(sz450).png', cfname_fmt
-        >>> print(cfname_fmt)
-        chip_auuid_%s_CHIP(sz450).png
+        >>> assert cfname_fmt == 'chip_aid=%d_auuid=%s_CHIP(sz450).png', cfname_fmt
+        >>> result = cfname_fmt
+        >>> print(result)
+        chip_aid=%d_auuid=%s_CHIP(sz450).png
     """
     chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
     chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
@@ -171,7 +177,8 @@ def get_chip_fname_fmt(ibs):
     # Chip filenames are a function of annotation_rowid and cfgstr
     # TODO: Use annot uuids, use verts info as well
     #cfname_fmt = ('aid_%d' + suffix)
-    cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
+    #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
+    cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
     return cfname_fmt
 
 
@@ -190,16 +197,20 @@ def get_annot_cfpath_list(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> ibs, aid_list = test_setup_preproc_chip()
+        >>> aid_list = aid_list[0:1]
         >>> cfpath_list = get_annot_cfpath_list(ibs, aid_list)
-        >>> print('cfpath_list = \n' + '\n'.join(cfpath_list))
-        >>> #assert 'chip_auuid_%s_CHIP(sz450).png' == cfpath_list
+        >>> result = '\n'.join(cfpath_list)
+        >>> print(result)
+        /media/raid/work/testdb1/_ibsdb/chips/chip_aid=1_auuid=a39894f2-b599-4b52-b5b4-61f36ac8dafd_CHIP(sz450).png
     """
     # TODO: Use annot uuids, use verts info as well
     #ut.assert_all_not_None(aid_list, 'aid_list')
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     cfname_fmt = get_chip_fname_fmt(ibs)
     #cfname_iter = (None if aid is None else cfname_fmt % aid for aid in iter(aid_list))
-    cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)
+    #cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)
+    cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid) for (aid, auuid) in
+                   zip(aid_list, annot_uuid_list))
     cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname) for cfname in cfname_iter]
     return cfpath_list
 
@@ -298,6 +309,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
         aid_list (list):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> ibs, aid_list = test_setup_preproc_chip()
     """
@@ -335,4 +347,15 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()
+    ut.doctest_funcs()
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip, allexamples=True)"
+        python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip)"
+        python ibeis/model/preproc/preproc_chip.py
+        python ibeis/model/preproc/preproc_chip.py --allexamples
+    """
+    import utool as ut  # NOQA
     ut.doctest_funcs()

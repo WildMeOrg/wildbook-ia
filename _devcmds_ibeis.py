@@ -127,6 +127,16 @@ def ensure_mtest():
     ibeis.ensure_pz_mtest()
 
 
+@devprecmd('nauts')
+def ensure_nauts():
+    """
+    CommandLine:
+        python dev.py -t nauts
+    """
+    import ibeis
+    ibeis.ensure_nauts()
+
+
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [
     [117, 115],
     [72,   70],
