@@ -345,7 +345,7 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     Top false distances distances are spatially verified descriptor matches
 
     CommandLine:
-        python dev.py -t vecs_dist --db NAUT_Dan --allgt -w --show
+        python dev.py -t vecs_dist --db NAUT_test --allgt -w --show
         python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
         python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
     """
@@ -937,6 +937,7 @@ def run_dev(main_locals):
 EXAMPLE_TEXT = '''
 ### DOWNLOAD A TEST DATABASE (IF REQUIRED) ###
 python dev.py --t mtest
+python dev.py --t nauts
 ./resetdbs.sh  # FIXME
 python ibeis/dbio/ingest_database.py  <- see module for usage
 
@@ -947,7 +948,7 @@ python dev.py -t list_dbs
 python dev.py --db PZ_Master0 --setdb
 python dev.py --db GZ_ALL --setdb
 python dev.py --db PZ_MTEST --setdb
-python dev.py --db NAUT_Dan --setdb
+python dev.py --db NAUT_test --setdb
 python dev.py --db testdb1 --setdb
 python dev.py --db seals2 --setdb
 

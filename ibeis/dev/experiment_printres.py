@@ -447,6 +447,14 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         cp_src_list.append(fpath_orig)
         cp_dst_list.append(fdst_clean)
 
+    def flush_copy_tasks():
+        # Execute all copy tasks and empty the lists
+        print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
+        for src, dst in zip(cp_src_list, cp_dst_list):
+            utool.copy(src, dst, verbose=False)
+        del cp_dst_list[:]
+        del cp_src_list[:]
+
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
         ibs.set_query_cfg(query_cfg)
@@ -596,12 +604,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 for aid in topids:
                     rank = qres.get_aid_ranks(aid)
                     _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
+        flush_copy_tasks()
     # </FOR RCITER>
 
     # Copy summary images to query_analysis folder
-    print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
-    for src, dst in zip(cp_src_list, cp_dst_list):
-        utool.copy(src, dst, verbose=False)
+    flush_copy_tasks()
 
     if utool.NOT_QUIET:
         print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')

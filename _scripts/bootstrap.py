@@ -90,6 +90,7 @@ PREREQ_PYPKG_LIST = [
     'matplotlib',
     'scikit-learn',
     'parse',
+    'pyinstaller',
     #'pandas',
     #'openpyxl',
     #'pyzmq',

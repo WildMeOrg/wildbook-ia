@@ -229,7 +229,8 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
-        >>> tup = nn_weights.testdata_nn_weights()
+        >>> dbname = 'PZ_MTEST'
+        >>> tup = nn_weights.testdata_nn_weights(dbname)
         >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
         >>> qaid = qreq_.get_external_daids()[0]
         >>> normweight_fn = lnbnn_fn
@@ -251,6 +252,8 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
     Knorm = qreq_.qparams.Knorm
     rule  = qreq_.qparams.normalizer_rule
     with_metadata = qreq_.qparams.with_metadata
+    #normweight_upper_bound = 30  # TODO:  make this specific to each normweight func
+
     # Prealloc output
     qaid2_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     if with_metadata:
@@ -267,6 +270,10 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
         qfx2_normweight = apply_normweight(
             normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_,
             with_metadata, metakey_metadata)
+
+        #qfx2_normweight[qfx2_normweight > normweight_upper_bound] = normweight_upper_bound
+        #qfx2_normweight /= normweight_upper_bound
+
         # Output
         qaid2_weight[qaid] = qfx2_normweight
     return qaid2_weight

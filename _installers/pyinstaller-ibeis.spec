@@ -10,33 +10,32 @@ import utool
 
 def join_SITE_PACKAGES(*args):
     import site
-    from os.path import join, exists
+    from os.path import join
     import sys
+    import six
+    import utool
     sitepackages = site.getsitepackages()
     if sys.platform.startswith('darwin'):
+        assert six.PY2, 'fix this for python 3'
         macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
         sitepackages = [macports_site] + sitepackages
-    tried_list = []
-    for dir_ in sitepackages:
-        path = join(dir_, *args)
-        tried_list.append(path)
-        if exists(path):
-            return path
-    msg = ('Cannot find: join_SITE_PACKAGES(*%r)\n'  % (args,))
-    msg += 'Tried: \n    ' + '\n    '.join(tried_list)
-    print(msg)
-    raise Exception(msg)
+    fname = join(*args)
+    path, tried_list = utool.search_in_dirs(fname, sitepackages, return_tried=True, strict=True)
+    return path
 
 
 def add_data(a, dst, src):
     global LIB_EXT
-    import textwrap
     from os.path import dirname, exists
     import utool
-    src = utool.platform_path(src)
+    if dst == '':
+        raise ValueError('dst path cannot be the empty string')
+    if src == '':
+        raise ValueError('src path cannot be the empty string')
+    src_ = utool.platform_path(src)
     if not os.path.exists(dirname(dst)) and dirname(dst) != "":
         os.makedirs(dirname(dst))
-    pretty_path = lambda str_: str_.replace('\\', '/')
+    _pretty_path = lambda str_: str_.replace('\\', '/')
     # Default datatype is DATA
     dtype = 'DATA'
     # Infer datatype from extension
@@ -44,14 +43,14 @@ def add_data(a, dst, src):
     #if extension == LIB_EXT.lower():
     if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'
-    print(textwrap.dedent('''
+    print(utool.codeblock('''
     [installer] a.add_data(
     [installer]    dst=%r,
     [installer]    src=%r,
-    [installer]    dtype=%s)''').strip('\n') %
-          (pretty_path(dst), pretty_path(src), dtype))
-    assert exists(src), 'src=%r does not exist'
-    a.datas.append((dst, src, dtype))
+    [installer]    dtype=%s)''') %
+          (_pretty_path(dst), _pretty_path(src_), dtype))
+    assert exists(src_), 'src_=%r does not exist'
+    a.datas.append((dst, src_, dtype))
 
 
 # Build data before running analysis for quick debugging
@@ -129,6 +128,11 @@ elif APPLE:
 DATATUP_LIST.append((libflann_dst, libflann_src))
 
 
+linux_lib_dpaths = [
+    '/usr/lib/x86_64-linux-gnu',
+    '/usr/lib',
+]
+
 # OpenMP
 if APPLE:
     # BSDDB, Fix for the modules that PyInstaller needs and (for some reason)
@@ -139,7 +143,10 @@ if APPLE:
     libgomp_src = '/opt/local/lib/libgomp.1.dylib'
     BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
 if LINUX:
-    libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
+    libgomp_src = utool.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
+    #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
+    #assert utool.checkpath(libgomp_src):
+
     utool.assertpath(libgomp_src)
     BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
@@ -174,7 +181,8 @@ for name in missing_cv_name_list:
     if APPLE:
         src = join('/opt/local/lib', fname)
     elif LINUX:
-        src = join('/usr/lib', fname)
+        #src = join('/usr/lib', fname)
+        src = utool.search_in_dirs(fname, linux_lib_dpaths)
     elif WIN32:
         #src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
         src = join(root_dir, '../opencv/build/bin', fname)
