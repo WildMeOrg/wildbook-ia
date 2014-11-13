@@ -506,15 +506,15 @@ def spatial_verification(kpts1, kpts2, fm,
     Spatially validates feature matches
 
     Args:
-        kpts1 (?):
-        kpts2 (?):
-        fm (?):
-        xy_thresh (?):
-        scale_thresh (?):
-        ori_thresh (?):
-        dlen_sqrd2 (None):
-        min_num_inliers (int):
-        returnAff (bool):
+        kpts1 (ndarray[ndim=2]):
+        kpts2 (ndarray[ndim=2]):
+        fm (ndarray[ndim=2]): matching keypoint indexes [..., (kp1x, kp2x), ...]
+        xy_thresh (float): spatial distance threshold under affine transform to be considered a match
+        scale_thresh (float):
+        ori_thresh (float):
+        dlen_sqrd2 (float): diagonal length squared of image/chip 2
+        min_num_inliers (int): default=4
+        returnAff (bool): returns best affine hypothesis as well
 
     Returns:
         (homog_inliers, H, aff_inliers, Aff) if sucess else None
@@ -528,10 +528,8 @@ def spatial_verification(kpts1, kpts2, fm,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = 1
         >>> daid = ibs.get_annot_groundtruth(qaid)[0]
-        >>> kpts1 = ibs.get_annot_kpts(qaid)
-        >>> kpts2 = ibs.get_annot_kpts(daid)
-        >>> qvecs = ibs.get_annot_vecs(qaid)
-        >>> dvecs = ibs.get_annot_vecs(daid)
+        >>> kpts1, kpts2 = ibs.get_annot_kpts([qaid, daid])
+        >>> qvecs, dvecs = ibs.get_annot_vecs([qaid, daid])
         >>> # Simple ratio-test matching
         >>> flann = pyflann.FLANN()
         >>> flann.build_index(dvecs)
@@ -603,6 +601,9 @@ if __name__ == '__main__':
         python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification)"
         python vtool/spatial_verification.py
         python vtool/spatial_verification.py --allexamples
+
+    SeeAlso:
+        python vtool/tests/test_spatial_verification.py
     """
     import utool as ut  # NOQA
     ut.doctest_funcs()
