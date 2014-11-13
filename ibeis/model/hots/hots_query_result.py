@@ -417,10 +417,10 @@ class QueryResult(__OBJECT_BASE__):
         title_str = ''.join(component_list)
         return title_str
 
-    def save(qres, qresdir):
+    def save(qres, qresdir, verbose=utool.NOT_QUIET and utool.VERBOSE):
         """ saves query result to directory """
         fpath = qres.get_fpath(qresdir)
-        if utool.NOT_QUIET:  # and utool.VERBOSE:
+        if verbose:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
             cPickle.dump(qres.__dict__, file_)

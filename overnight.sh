@@ -9,13 +9,23 @@ export IBSFLAGS=''
 
 # Current best algorithm 
 
-python dev.py -t small_best --db PZ_Master0 --allgt --noqcache
+python dev.py -t small_best --db PZ_Master0 --allgt
 python dev.py -t small_best --db GZ_ALL --allgt
 python dev.py -t small_best --db PZ_MTEST --allgt
 
+
+python dev.py -t small_best nsum --db GZ_ALL --allgt
+python dev.py -t small_best nsum --db PZ_MTEST --allgt
+python dev.py -t small_best nsum --db PZ_Master0 --allgt
+
+
+python dev.py -t nsum --db GZ_ALL --allgt --vh --fig-dname nsum_hard
+python dev.py -t nsum --db PZ_MTEST --allgt --vh --fig-dname nsum_hard
+python dev.py -t nsum --db PZ_Master0 --allgt --vh --fig-dname nsum_hard
+
 # Test if feature weights do something
 
-python dev.py -t pzmastertest --db PZ_Master0 --allgt --noqcache
+python dev.py -t pzmastertest --db PZ_Master0 --allgt 
 
 python dev.py -t fgweight --db PZ_Master0 --allgt --noqcache
 python dev.py -t fgweight --db GZ_ALL --allgt

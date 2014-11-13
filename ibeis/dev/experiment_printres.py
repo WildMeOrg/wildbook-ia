@@ -27,6 +27,7 @@ QUERY_ANALYSIS_DNAME = utool.get_argval('--fig-dname', str, 'query_analysis')
 DUMP_EXTRA           = utool.get_argflag('--dump-extra')
 QUALITY              = utool.get_argflag('--quality')
 SHOW                 = utool.get_argflag('--show')
+DUMP_PROBCHIP = True
 
 
 def get_diffmat_str(rank_mat, qaids, nCfg):
@@ -471,6 +472,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     #    utool.delete(figdir)
 
     # Save DEFAULT=True
+
     def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
         print('[PRINT_RESULTS] show_chip(aid=%r)' % (aid,))
         from ibeis import viz
@@ -483,10 +485,17 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         seen.add(aid)
         if utool.VERBOSE:
             print('[expt] dumping fig to %s' % figdir)
+
         fpath_clean = ph.dump_figure(figdir, **dumpkw)
+
+        if DUMP_PROBCHIP:
+            # just copy it
+            fulldir = join(figdir, dumpkw['subdir'])
+            probchip_fpath = ibs.get_annot_probchip_fpaths([qres.qaid])[0]
+            ut.copy(probchip_fpath, fulldir, overwrite=False)
         return fpath_clean
 
-    chunksize = 10
+    chunksize = 50
     # <FOR RCITER_CHUNK>
     #with ut.EmbedOnException():
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):

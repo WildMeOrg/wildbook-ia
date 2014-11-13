@@ -263,8 +263,8 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     """
     nImgs = len(src_gpath_list)
     print('[detect.rf] Begining %s detection' % (species,))
-    detect_lbl = 'detect %s ' % species
-    mark_prog, end_prog = utool.progress_func(nImgs, detect_lbl, flush_after=1)
+    detect_lbl = 'detect %s: ' % species
+    #mark_prog, end_prog = utool.progress_func(nImgs, detect_lbl, flush_after=1)
 
     detect_config = _get_detect_config(**detectkw)
     detector, forest = _get_detector(species, quick=quick, single=single)
@@ -280,10 +280,13 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     if use_chunks_:
         print('[rf] detect in chunks')
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
-        for ic, chunk in enumerate(utool.ichunks(pathtup_iter, chunksize)):
+        chunk_iter = utool.ichunks(pathtup_iter, chunksize)
+        chunk_progiter = ut.ProgressIter(chunk_iter, lbl=detect_lbl,
+                                         nTotal=int(len(pathtup_iter) / chunksize), freq=1)
+        for ic, chunk in enumerate(chunk_progiter):
             src_gpath_list = [tup[0] for tup in chunk]
             dst_gpath_list = [tup[1] for tup in chunk]
-            mark_prog(ic * chunksize)
+            #mark_prog(ic * chunksize)
             results_list = detector.detect_many(forest, src_gpath_list, dst_gpath_list, use_openmp=True)
 
             for results in results_list:
@@ -311,8 +314,10 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     else:
         print('[rf] detect one image at a time')
         pathtup_iter = zip(src_gpath_list, dst_gpath_list)
-        for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
-            mark_prog(ix)
+        pathtup_progiter = ut.ProgressIter(pathtup_iter, lbl=detect_lbl,
+                                           nTotal=len(pathtup_iter), freq=1)
+        for ix, (src_gpath, dst_gpath) in enumerate(pathtup_progiter):
+            #mark_prog(ix)
             results = detector.detect(forest, src_gpath, dst_gpath)
             bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
                       for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
@@ -328,7 +333,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
                 image_confidence = 0.0
 
             yield bboxes, confidences, image_confidence
-    end_prog()
+    #end_prog()
 
 
 if __name__ == '__main__':

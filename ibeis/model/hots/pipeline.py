@@ -228,8 +228,10 @@ def nearest_neighbors(qreq_):
     # Internal statistics reporting
     nTotalNN, nTotalDesc = 0, 0
     mark_, end_ = log_progress('Assign NN: ', len(qvecs_list))
-    for count, qfx2_vec in enumerate(qvecs_list):
-        mark_(count)  # progress
+    #for count, qfx2_vec in enumerate(qvecs_list):
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl='Assign NN: ', freq=20, time_thresh=2.0)
+    for count, qfx2_vec in enumerate(qvec_iter):
+        #mark_(count)  # progress
         # Check that we can query this annotation
         if len(qfx2_vec) == 0:
             # Assign empty nearest neighbors
@@ -242,7 +244,7 @@ def nearest_neighbors(qreq_):
         # record number of query and result desc
         nn_idxs_arr[count]   = qfx2_idx
         nn_dists_arr[count] = qfx2_dist
-    end_()
+    #end_()
     if NOT_QUIET or VERB_PIPELINE:
         print('[hs] * assigned %d desc (from %d annots) to %r nearest neighbors'
               % (nTotalDesc, nQAnnots, nTotalNN))
@@ -635,8 +637,10 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     mark_, end_ = log_progress('Build Chipmatch: ', len(qaid2_nns))
 
     # Iterate over INTERNAL query annotation ids
-    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
-        mark_(count)  # Mark progress
+    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_nns), nTotal=len(qaid2_nns), lbl='Build Chipmatch: ', freq=20, time_thresh=2.0)
+    #for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
+    #    mark_(count)  # Mark progress
+    for qaid in qaid_iter:
         (qfx2_idx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
         nQKpts = qfx2_idx.shape[0]
@@ -688,7 +692,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
         qaid = qreq_.get_external_qaids()[0]
         qaid2_chipmatch[qaid] = chipmatch
-    end_()
+    #end_()
     if NOT_QUIET:
         print('[hs] * made %d feat matches' % nFeatMatches)
     return qaid2_chipmatch
@@ -814,7 +818,9 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 sys.stdout.write(msg)
             count += 1
     # Find a transform from chip2 to chip1 (the old way was 1 to 2)
-    for qaid in six.iterkeys(qaid2_chipmatch):
+    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch), nTotal=len(qaid2_chipmatch), lbl='SVER: ', freq=20, time_thresh=2.0)
+    #for qaid in six.iterkeys(qaid2_chipmatch):
+    for qaid in qaid_iter:
         chipmatch = qaid2_chipmatch[qaid]
         daid2_prescore = score_chipmatch(qaid, chipmatch, prescore_method, qreq_)
         #print('Prescore: %r' % (daid2_prescore,))
@@ -841,7 +847,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
             daid = topx2_aid[topx]
             fm = daid2_fm[daid]
             if len(fm) == 0:
-                print_('o')  # sv failure
+                #print_('o')  # sv failure
                 continue
             dlen_sqrd = topx2_dlen_sqrd[topx]
             kpts2 = topx2_kpts[topx]
@@ -860,9 +866,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 #    print('Strict is on. Reraising')
                 #    raise
             nFeatSVTotal += len(fm)
-            if sv_tup is None:
-                print_('o')  # sv failure
-            else:
+            if sv_tup is not None:
                 # Return the inliers to the homography
                 homog_inliers, H, aff_inliers, Aff = sv_tup
                 if qreq_.qparams.with_metadata:
@@ -872,15 +876,17 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 daid2_fk_V[daid] = fk[homog_inliers]
                 nFeatMatchSV += len(homog_inliers)
                 #nFeatMatchSVAff += len(aff_inliers)
-                if NOT_QUIET:
-                    #print(inliers)
-                    print_('.')  # verified something
+                #if NOT_QUIET:
+                #    #print(inliers)
+                #    print_('.')  # verified something
+            #else:
+            #    print_('o')  # sv failure
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(daid2_fm_V, daid2_fs_V, daid2_fk_V)
         if qreq_.qparams.with_metadata:
             qaid2_svtups[qaid] = daid2_svtup
         qaid2_chipmatchSV[qaid] = chipmatchSV
-    print_('\n')
+    #print_('\n')
     if NOT_QUIET:
         #print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
         print('[hs] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
@@ -923,14 +929,47 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 
     Returns:
         topx2_dlen_sqrd
+
+    # TODO: decouple example
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import pipeline
+        >>> import utool
+        >>> cfgdict = dict()
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
+        >>> # Run Test
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
+        >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> chipmatch = qaid2_chipmatch[qaid]
+        >>> prescore_method = qreq_.qparams.prescore_method
+        >>> daid2_prescore = pipeline.score_chipmatch(qaid, chipmatch, prescore_method, qreq_)
+        >>> (daid2_fm, daid2_fs, daid2_fk) = chipmatch
+        >>> topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
+        >>> kpts1 = qreq_.get_annot_kpts(qaid)
+        >>> topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
+        >>> use_chip_extent = True
+        >>> nRerank = len(topx2_aid)
+        >>> topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
+
     """
     if use_chip_extent:
-        topx2_chipsize = list(qreq_.ibs.get_annot_chipsizes(topx2_aid))
-        def chip_dlen_sqrd(tx):
-            (chipw, chiph) = topx2_chipsize[tx]
-            dlen_sqrd = chipw ** 2 + chiph ** 2
-            return dlen_sqrd
-        topx2_dlen_sqrd = [chip_dlen_sqrd(tx) for tx in range(nRerank)]
+        #topx2_chipsize = list(qreq_.ibs.get_annot_chipsizes(topx2_aid))
+        #def chip_dlen_sqrd(tx):
+        #    (chipw, chiph) = topx2_chipsize[tx]
+        #    dlen_sqrd = chipw ** 2 + chiph ** 2
+        #    return dlen_sqrd
+        #topx2_dlen_sqrd = [chip_dlen_sqrd(tx) for tx in range(nRerank)]
+        #topx2_chipsize = np.array(qreq_.ibs.get_annot_chipsizes(topx2_aid))
+        #topx2_chipsize = np.array(qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank]))
+        #(np.array(qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank])) ** 2).sum(1)
+        #[w ** 2 + h ** 2
+        #                   for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid)]
+        topx2_dlen_sqrd = [
+            ((w ** 2) + (h ** 2))
+            for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank])
+        ]
+        return topx2_dlen_sqrd
     else:
         # Use extent of matching keypoints
         def kpts_dlen_sqrd(tx):
@@ -955,6 +994,10 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 @profile
 def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     """
+    Assigns scores to database annotation ids for a particualry query's
+    chipmatch
+
+
     Args:
         qaid (int): query annotation id
         chipmatch (tuple):
@@ -997,6 +1040,8 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 @profile
 def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
     """
+    Converts a dictionary of chipmatch tuples into a dictionary of query results
+
     Args:
         qaid2_chipmatch (dict):
         metadata (dict):
@@ -1020,7 +1065,6 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
         >>> qaid2_qres = chipmatch_to_resdict(qaid2_chipmatch, qreq_)
         >>> qres = qaid2_qres[1]
-
     """
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
@@ -1078,15 +1122,15 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
 @profile
 def try_load_resdict(qreq_, force_miss=False):
     """
+    Try and load the result structures for each query.
+    returns a list of failed qaids
+
     Args:
         qreq_ (QueryRequest): hyper-parameters
         force_miss (bool):
 
     Returns:
         tuple : (qaid2_qres_hit, cachemiss_qaids)
-
-    Try and load the result structures for each query.
-    returns a list of failed qaids
     """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
@@ -1107,6 +1151,8 @@ def try_load_resdict(qreq_, force_miss=False):
 
 def save_resdict(qreq_, qaid2_qres):
     """
+    Saves a dictionary of query results to disk
+
     Args:
         qreq_ (QueryRequest): hyper-parameters
         qaid2_qres (dict):
@@ -1115,6 +1161,7 @@ def save_resdict(qreq_, qaid2_qres):
         None
     """
     qresdir = qreq_.get_qresdir()
+    print('[hs] saving %d query results' % len(qaid2_qres))
     for qres in six.itervalues(qaid2_qres):
         qres.save(qresdir)
 

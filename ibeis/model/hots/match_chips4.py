@@ -170,6 +170,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
             qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
             # Save chunk of vsone queries
             if save_cache:
+                print('[mc4] saving vsone chunk')
                 pipeline.save_resdict(qreq_, qaid2_qres_)
             # Add current chunk to results
             qaid2_qres.update(qaid2_qres_)
