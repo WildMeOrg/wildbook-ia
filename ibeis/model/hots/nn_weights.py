@@ -80,6 +80,11 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
         (qfx2_score, qfx2_valid) = qaid2_nnfilt0[qaid]
+        if len(qfx2_valid) == 0:
+            # hack for empty query features (should never happen, but it
+            # inevitably will)
+            qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=np.float32)
+            continue
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_topidx = qfx2_idx.T[0:K].T
         qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)

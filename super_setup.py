@@ -51,6 +51,9 @@ python _ibeis_setup.py -y --gg "git push"
 
 #python _ibeis_setup.py -y --gg "git checkout master"
 #python _ibeis_setup.py -y --gg "git checkout pyqt5"
+
+GitReferences:
+    http://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
 """
 # FUTURE
 from __future__ import absolute_import, division, print_function
