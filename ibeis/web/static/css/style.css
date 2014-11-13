@@ -22,7 +22,7 @@
   display: inline-block;
 }
 
-.rotate-3px5 {
+.rotate-45 {
     -webkit-transform: rotate(45deg);
     -moz-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
@@ -47,7 +47,7 @@
   position: absolute;
   left: 50%;
   top: 10px;
-  margin-left: -4px;
+  margin-left: -3px;
 }
 
 .ui-icon, .ui-widget-content .ui-icon
@@ -62,56 +62,56 @@
   cursor: 'grab';
   background-image: none;
   left: 50%;
-  margin-left: -2px; 
+  margin-left: -1px; 
   top: 10px;
   background-color: rgb(127,255,127);
   border: 1px solid #000000;
 }
 .ui-resizable-handle 
 {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background-color: #ffffff;
   border: 1px solid #000000;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .ui-resizable-nw 
 {
-  left: -3px;
-  top: -3px;
+  left: -4px;
+  top: -4px;
 }
 .ui-resizable-ne 
 {
-  top: -3px;
-  right: -3px;
+  top: -4px;
+  right: -4px;
 }
 .ui-resizable-sw 
 {
-  bottom: -3px;
-  left: -3px;
+  bottom: -4px;
+  left: -4px;
 }
 .ui-resizable-se 
 {
-  bottom: -3px;
-  right:-3px;
+  bottom: -4px;
+  right:-4px;
 }
 .ui-resizable-n
 {
-  top: -3px;
+  top: -4px;
   left:50%;
 }
 .ui-resizable-s 
 {
-  bottom: -3px;
+  bottom: -4px;
   left: 50%;
 }
 .ui-resizable-w 
 {
-  left:-3px;
+  left:-4px;
   top:50%;
 }
 .ui-resizable-e 
 {
-  right:-3px;
+  right:-4px;
   top:50%;
 }

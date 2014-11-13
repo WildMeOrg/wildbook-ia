@@ -322,7 +322,7 @@
           box_element.addClass('annotated_bounding_box_active');
           text_box.css('background-color', 'rgb(255, 155, 0)');
           rotate_button.show();
-//           close_button.show();
+          close_button.show();
           annotator.hit_menuitem = true;
         }
         else
@@ -420,8 +420,8 @@
       });
       close_button = $('<div></div>').appendTo(box_element).css({
         "position": "absolute",
-        "top": "10px",
-        "right": "10px",
+        "top": "5px",
+        "right": "5px",
         "margin-left": "-10px",
         "width": "20px",
         "height": "0",
