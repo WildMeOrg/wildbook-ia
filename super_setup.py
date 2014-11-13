@@ -33,13 +33,13 @@ python _ibeis_setup.py -y --gg "git branch"
 
 #python _ibeis_setup.py -y --gg "git checkout ^HEAD"
 #python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git checkout pyqt5"
+#python _ibeis_setup.py -y --gg "git checkout nesxt"
 
 
 # -- MERGE topic -> next
-##python _ibeis_setup.py -y --gg "git checkout pyqt5"
+##python _ibeis_setup.py -y --gg "git checkout topic"
 ##python _ibeis_setup.py -y --gg "git checkout next"
-##python _ibeis_setup.py -y --gg "git merge pyqt5"
+##python _ibeis_setup.py -y --gg "git merge topic"
 
 
 # -- MERGE next -> master
@@ -50,7 +50,7 @@ python _ibeis_setup.py -y --gg "git merge next"
 python _ibeis_setup.py -y --gg "git push"
 
 #python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git checkout pyqt5"
+#python _ibeis_setup.py -y --gg "git checkout next"
 
 GitReferences:
     http://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
@@ -108,7 +108,7 @@ try:
     utool.set_userid(**userid_prompt())  # FIXME
 except Exception:
     #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
-    UTOOL_BRANCH = ' -b pyqt5'
+    UTOOL_BRANCH = ' -b next'
     UTOOL_REPO = 'git clone https://github.com/Erotemic/utool.git'
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
     os.chdir(os.path.expanduser(CODE_DIR))
