@@ -373,6 +373,7 @@
               update_style(false);
             }
           },
+          containment: "#bbox_annotator",
           handles: 'n, s, e, w, ne, se, nw, sw',
       };
       var rotate_params = {
