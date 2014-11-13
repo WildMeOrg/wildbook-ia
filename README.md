@@ -3,14 +3,12 @@
 
 =====
 
-# Note:
+## Self Installing Executabes:
 
-IBEIS contains the next generation of HotSpotter. 
+Unfortunately we have not released self-installing-executables for IBEIS yet. 
+We plan to release these "soon". 
 
-However, we have not yet released IBEIS self-installing-executables. 
-
-To download the older HotSpotter executables use: 
-http://cs.rpi.edu/hotspotter/
+However there are old HotSpotter (the software which IBEIS is based on) binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
 
 # Program Description
 
