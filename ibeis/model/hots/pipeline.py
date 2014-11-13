@@ -1070,6 +1070,8 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
         print('[hs] Step 6) Convert chipmatch -> qres')
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
+    # Matchable daids
+    daids   = qreq_.get_external_daids()
     cfgstr = qreq_.get_cfgstr()
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
@@ -1079,7 +1081,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
     #for qaid in six.iterkeys(qaid2_chipmatch):
     for qaid, qauuid in zip(qaids, qauuids):
         # Create a query result structure
-        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
         qaid2_qres[qaid] = qres
 
     for qaid, qres in six.iteritems(qaid2_qres):
@@ -1134,6 +1136,7 @@ def try_load_resdict(qreq_, force_miss=False):
     """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
+    daids   = qreq_.get_external_daids()
 
     cfgstr = qreq_.get_cfgstr()
     qresdir = qreq_.get_qresdir()
@@ -1141,7 +1144,7 @@ def try_load_resdict(qreq_, force_miss=False):
     cachemiss_qaids = []
     for qaid, qauuid in zip(qaids, qauuids):
         try:
-            qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+            qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
             qres.load(qresdir, force_miss=force_miss)  # 77.4 % time
             qaid2_qres_hit[qaid] = qres  # cache hit
         except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):

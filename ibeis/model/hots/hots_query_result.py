@@ -284,12 +284,16 @@ class QueryResult(__OBJECT_BASE__):
     #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
     #             'metadata']
-    def __init__(qres, qaid, qauuid, cfgstr):
+    def __init__(qres, qaid, qauuid, cfgstr, daids):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
         qres.qauuid = qauuid  # query annot uuid
+        # TODO: qreq.daids could easilly be a hash of the duuids in the qreq_ so
+        # the daids list can be looked up instead of stored on disk for every
+        # query result.
+        qres.daids = daids  # matchable database chips. external_daids from qreq_. (should this be duuids?)
         #qres.qauuid = qauuid
         qres.cfgstr = cfgstr  # should have database info hashed in from qreq
         qres.eid = None  # encounter id
@@ -306,6 +310,7 @@ class QueryResult(__OBJECT_BASE__):
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
+        daids_good = qres.daids
         try:
             if force_miss:
                 raise hsexcept.HotsCacheMissError('force miss')
@@ -353,6 +358,13 @@ class QueryResult(__OBJECT_BASE__):
             utool.printex(ex, 'unknown exception while loading query result')
             raise
         assert qauuid_good == qres.qauuid
+        if qres.daids is None:
+            qres.daids = daids_good
+        else:
+            if isinstance(daids_good, np.ndarray):
+                assert np.all(daids_good == qres.daids)
+            else:
+                assert daids_good == qres.daids
         qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
@@ -447,7 +459,7 @@ class QueryResult(__OBJECT_BASE__):
         """ Returns matchinfo in table format (qaids, aids, scores, ranks) """
         aid_arr, score_arr = qres.get_aids_and_scores()
         # Sort the scores in rank order
-        sortx = score_arr.argsort()[::-1]
+        sortx     = score_arr.argsort()[::-1]
         score_arr = score_arr[sortx]
         aid_arr   = aid_arr[sortx]
         rank_arr  = np.arange(sortx.size)

@@ -182,6 +182,7 @@ def _get_detector(species, quick=True, single=False):
         tuple: (detector, forest)
 
     Example1:
+        >>> # ENABLE_DOCTEST
         >>> # Test existing model
         >>> from ibeis.model.detect.randomforest import *  # NOQA
         >>> from ibeis.model.detect import randomforest
@@ -193,6 +194,7 @@ def _get_detector(species, quick=True, single=False):
         [<class 'pyrf._pyrf.Random_Forest_Detector'>, <type 'int'>]
 
     Example2:
+        >>> # ENABLE_DOCTEST
         >>> # Test non-existing model
         >>> from ibeis.model.detect.randomforest import *  # NOQA
         >>> from ibeis.model.detect import randomforest
@@ -282,7 +284,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
         chunk_iter = utool.ichunks(pathtup_iter, chunksize)
         chunk_progiter = ut.ProgressIter(chunk_iter, lbl=detect_lbl,
-                                         nTotal=int(len(pathtup_iter) / chunksize), freq=1)
+                                         nTotal=int(nImgs / chunksize), freq=1)
         for ic, chunk in enumerate(chunk_progiter):
             src_gpath_list = [tup[0] for tup in chunk]
             dst_gpath_list = [tup[1] for tup in chunk]
@@ -315,7 +317,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
         print('[rf] detect one image at a time')
         pathtup_iter = zip(src_gpath_list, dst_gpath_list)
         pathtup_progiter = ut.ProgressIter(pathtup_iter, lbl=detect_lbl,
-                                           nTotal=len(pathtup_iter), freq=1)
+                                           nTotal=nImgs, freq=1)
         for ix, (src_gpath, dst_gpath) in enumerate(pathtup_progiter):
             #mark_prog(ix)
             results = detector.detect(forest, src_gpath, dst_gpath)
@@ -335,6 +337,15 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
             yield bboxes, confidences, image_confidence
     #end_prog()
 
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.model.detect.randomforest; utool.doctest_funcs(ibeis.model.detect.randomforest)"
+        python ibeis/model/detect/randomforest.py
+    """
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
 
 if __name__ == '__main__':
     """
