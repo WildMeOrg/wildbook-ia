@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut  # NOQA
 import six
 from six.moves import zip, map
 import re
@@ -183,6 +184,15 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
         print('   * custom cfg_list')
         cfg_list = [ibs.cfg.query_cfg]
         cfgx2_lbl = ['custom']
+    elif 'custom' in test_cfg_name_list:
+        test_cfg_name_list.remove('custom')
+        if len(test_cfg_name_list) > 0:
+            cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
+        else:
+            cfg_list, cfgx2_lbl = [], []
+        cfg_list += [ibs.cfg.query_cfg.deepcopy()]
+        cfgx2_lbl += ['custom()']
+        test_cfg_name_list.append('custom')
     else:
         cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
     return (cfg_list, cfgx2_lbl)

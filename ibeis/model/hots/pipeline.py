@@ -805,6 +805,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
     ori_thresh      = qreq_.qparams.ori_thresh
     use_chip_extent = qreq_.qparams.use_chip_extent
     min_nInliers    = qreq_.qparams.min_nInliers
+    sver_weighting  = qreq_.qparams.sver_weighting
     qaid2_chipmatchSV = {}
     nFeatSVTotal = 0
     nFeatMatchSV = 0
@@ -849,18 +850,18 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
             if len(fm) == 0:
                 #print_('o')  # sv failure
                 continue
-            dlen_sqrd = topx2_dlen_sqrd[topx]
+            dlen_sqrd2 = topx2_dlen_sqrd[topx]
             kpts2 = topx2_kpts[topx]
             fs    = daid2_fs[daid]
             fk    = daid2_fk[daid]
             try:
-                sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
-                                                   xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
-                                                   min_nInliers, returnAff=qreq_.qparams.with_metadata)
+                sv_tup = sver.spatially_verify_kpts(kpts1, kpts2, fm,
+                                                    xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2,
+                                                    min_nInliers, returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 utool.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                                    'scale_thresh', 'dlen_sqrd', 'min_nInliers'])
+                                    'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
                 sv_tup = None
                 #if utool.STRICT:
                 #    print('Strict is on. Reraising')
@@ -868,12 +869,21 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
             nFeatSVTotal += len(fm)
             if sv_tup is not None:
                 # Return the inliers to the homography
-                homog_inliers, H, aff_inliers, Aff = sv_tup
+                homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sv_tup
                 if qreq_.qparams.with_metadata:
                     daid2_svtup[daid] = sv_tup
-                daid2_fm_V[daid] = fm[homog_inliers, :]
-                daid2_fs_V[daid] = fs[homog_inliers]
-                daid2_fk_V[daid] = fk[homog_inliers]
+                fm_SV = fm[homog_inliers]
+                fs_SV = fs[homog_inliers]
+                fk_SV = fk[homog_inliers]
+                if sver_weighting:
+                    #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
+                    xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
+                    homog_xy_errors = homog_errors[0][homog_inliers]
+                    homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
+                    fs_SV *= homog_err_weight
+                daid2_fm_V[daid] = fm_SV
+                daid2_fs_V[daid] = fs_SV
+                daid2_fk_V[daid] = fk_SV
                 nFeatMatchSV += len(homog_inliers)
                 #nFeatMatchSVAff += len(aff_inliers)
                 #if NOT_QUIET:
@@ -1112,10 +1122,9 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
         qres.aid2_score = daid2_score  # FIXME fig qreq name
 
         qres.metadata = {}  # dbgstats
-        with utool.EmbedOnException():
-            metadata = qreq_.metadata
-            for key, qaid2_meta in six.iteritems(metadata):
-                qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
+        metadata = qreq_.metadata
+        for key, qaid2_meta in six.iteritems(metadata):
+            qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
     return qaid2_qres
 

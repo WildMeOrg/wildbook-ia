@@ -91,12 +91,11 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
     idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list)
     if fgws_list is not None:
         idx2_fgw = np.hstack(fgws_list)
-        with ut.EmbedOnException():
-            try:
-                assert len(idx2_fgw) == len(idx2_vec), 'error. weights and vecs do not correspond'
-            except Exception as ex:
-                ut.printex(ex, keys=[(len, 'idx2_fgw'), (len, 'idx2_vec')])
-                raise
+        try:
+            assert len(idx2_fgw) == len(idx2_vec), 'error. weights and vecs do not correspond'
+        except Exception as ex:
+            ut.printex(ex, keys=[(len, 'idx2_fgw'), (len, 'idx2_vec')])
+            raise
     else:
         idx2_fgw = None
     if hash_rowids:
@@ -170,6 +169,7 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
             if qreq_.qparams.fg_weight != 0:
                 # HACK
                 fgws_list = ibs.get_annot_fgweights(daid_list, ensure=True)
+                assert len(fgws_list) == len(vecs_list)
             else:
                 fgws_list = None
             flann_cachedir = ibs.get_flann_cachedir()

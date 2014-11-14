@@ -23,7 +23,6 @@ from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
-print('-!!')
 #from ibeis.model.hots import smk
 import plottool
 import ibeis
@@ -119,6 +118,7 @@ def train_paris_vocab(ibs):
     CommandLine:
         python dev.py --db Paris --cmd
     """
+    # UNFINISHED
     aid_list = []
     # use only one annotion per image
     for aids in ibs.get_image_aids(ibs.get_valid_gids()):
@@ -147,6 +147,7 @@ def train_paris_vocab(ibs):
 
 
 def postprocess_sift(vecs, vec_mean=None):
+    # UNFINISHED
     out = None
     out = vecs.astype(np.float32, copy=True)
     if vec_mean is not None:
@@ -175,6 +176,7 @@ def postprocess_sift(vecs, vec_mean=None):
 
 
 def center_descriptors():
+    # UNFINISHED
     pass
 
 

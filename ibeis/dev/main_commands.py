@@ -3,6 +3,7 @@ TODO: Rename to ibeis/init/commands.py
 """
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut  # NOQA
 import sys
 from ibeis import constants
 from ibeis import params
@@ -91,11 +92,16 @@ def postload_commands(ibs, back):
     if params.args.update_query_cfg is not None:
         # Set query parameters from command line
         cfgdict = parse_cfgstr_list(params.args.update_query_cfg)
+        print('Custom cfgdict specified')
+        print(ut.dict_str(cfgdict))
         ibs.update_query_cfg(**cfgdict)
+        #print(ibs.cfg.query_cfg.get_cfgstr())
     if params.args.edit_notes:
         utool.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:
         ibs.delete_cache()
+    if params.args.delete_cache_complete:
+        ibs.delete_cache(delete_chips=True, delete_encounters=True)
     if params.args.delete_query_cache:
         ibs.delete_qres_cache()
     if params.args.set_notes is not None:

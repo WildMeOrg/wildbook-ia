@@ -696,6 +696,9 @@ vsmany_1 = {
     'max_alts':        [1000],
 }
 
+# Special value used to specify the current IBEIS configuration
+custom = 'custom'
+
 
 include_vars = vars().keys()  # this line is after tests
 

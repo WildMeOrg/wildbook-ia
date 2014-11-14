@@ -274,27 +274,32 @@ class SpatialVerifyConfig(ConfigBase):
     def __init__(sv_cfg, **kwargs):
         super(SpatialVerifyConfig, sv_cfg).__init__(name='sv_cfg')
         tau = 6.28  # 318530
-        sv_cfg.ori_thresh   = tau / 4.0
-        sv_cfg.scale_thresh = 2
+        sv_cfg.sv_on = True
         sv_cfg.xy_thresh = .01
+        sv_cfg.scale_thresh = 2
+        sv_cfg.ori_thresh   = tau / 4.0
+        sv_cfg.min_nInliers = 4
         sv_cfg.nShortlist = 50
         sv_cfg.prescore_method = 'csum'
         sv_cfg.use_chip_extent = False  # BAD CONFIG?
-        sv_cfg.min_nInliers = 4
-        sv_cfg.sv_on = True
+        sv_cfg.sver_weighting = False  # weight feature scores with sver errors
         sv_cfg.update(**kwargs)
 
     def get_cfgstr_list(sv_cfg, **kwargs):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
-            return ['_SV()']
-        sv_cfgstr = ['_SV(']
-        sv_cfgstr += [str(sv_cfg.nShortlist)]
+            return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
         thresh_str = utool.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
-        sv_cfgstr += [',' + thresh_str]
-        sv_cfgstr += [',cdl' * sv_cfg.use_chip_extent]  # chip diag len
-        sv_cfgstr += [',' + sv_cfg.prescore_method]
-        sv_cfgstr += [')']
+        sv_cfgstr = [
+            '_SV(',
+            thresh_str,
+            'minIn=%d,' % (sv_cfg.min_nInliers,),
+            'nRR=%d,' % (sv_cfg.nShortlist,),
+            sv_cfg.prescore_method, ',',
+            'cdl,' * sv_cfg.use_chip_extent,  # chip diag len
+            '+w,' * sv_cfg.sver_weighting,  # chip diag len
+            ')',
+        ]
         return sv_cfgstr
 
 

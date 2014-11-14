@@ -466,32 +466,38 @@ def check_exif_data(ibs, gid_list):
 
 @__injectable
 def delete_all_recomputable_data(ibs):
+    """
+    Delete all cached data including chips and encounters
+    """
     print('[ibs] delete_all_recomputable_data')
-    ibs.delete_all_features()
+    ibs.delete_cachedir()
     ibs.delete_all_chips()
     ibs.delete_all_encounters()
     print('[ibs] finished delete_all_recomputable_data')
 
 
 @__injectable
-def delete_cache(ibs, remove_from_sql=True):
+def delete_cache(ibs, delete_chips=False,
+        delete_encounters=False):
     """
     Deletes the cache directory in the database directory.
-
-    Also removes features and chips from the sql controller if remove_from_sql is True
+    Can specify to delete encoutners and chips as well.
     """
     ibs.ensure_directories()
     ibs.delete_cachedir()
-    if remove_from_sql:
-        ibs.delete_all_features()
-        ibs.delete_all_chips()
     ibs.ensure_directories()
+    if delete_chips:
+        ibs.delete_all_chips()
+    if delete_encounters:
+        ibs.delete_all_encounters()
 
 
 @__injectable
 def delete_cachedir(ibs):
     """
     Deletes the cache directory in the database directory.
+
+    (does not remove chips)
     """
     print('[ibs] delete_cachedir')
     # Need to close dbcache before restarting
@@ -510,10 +516,12 @@ def delete_qres_cache(ibs):
     print('[ibs] delete delete_qres_cache')
     qreq_cachedir = ibs.get_qres_cachedir()
     qreq_bigcachedir = ibs.get_big_cachedir()
+    # Preliminary-ensure
     utool.ensuredir(qreq_bigcachedir)
     utool.ensuredir(qreq_cachedir)
     utool.delete(qreq_cachedir, verbose=ut.VERBOSE)
     utool.delete(qreq_bigcachedir, verbose=ut.VERBOSE)
+    # Re-ensure
     utool.ensuredir(qreq_bigcachedir)
     utool.ensuredir(qreq_cachedir)
     print('[ibs] finished delete_qres_cache')
@@ -530,8 +538,11 @@ def delete_all_features(ibs):
 @__injectable
 def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
+    ut.ensuredir(ibs.chipdir)
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
+    utool.delete(ibs.chipdir)
+    ut.ensuredir(ibs.chipdir)
     print('[ibs] finished delete_all_chips')
 
 
@@ -547,6 +558,9 @@ def delete_all_encounters(ibs):
 def delete_all_annotations(ibs):
     """ Carefull with this function. Annotations are not recomputable """
     print('[ibs] delete_all_annotations')
+    ans = six.moves.input('Are you sure you want to delete all annotations?')
+    if ans != 'yes':
+        return
     all_aids = ibs._get_all_aids()
     ibs.delete_annots(all_aids)
     print('[ibs] finished delete_all_annotations')
