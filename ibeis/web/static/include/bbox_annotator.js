@@ -204,6 +204,14 @@
       status = 'free';
       this.hit_menuitem = false;
       annotator = this;
+      this.annotator_element.dblclick(function(e) {
+        if (e.which === 1) {
+          selector.start(e.pageX, e.pageY);
+          status = 'hold';
+          annotator.adding = true;
+          annotator.hit_menuitem = false;
+        }
+      });
       this.annotator_element.mousedown(function(e) {
         if (!annotator.hit_menuitem) {
           switch (status) {
@@ -221,13 +229,14 @@
             case 'hold':
               selector.update_rectangle(e.pageX, e.pageY);
               selector.input_label(options);
+              annotator.adding = false;
               status = 'input';
               if (options.input_method === 'fixed') {
                 selector.get_input_element().blur();
               }
           }
         }
-        annotator.hit_menuitem = false;
+//         annotator.hit_menuitem = false;
         return true;
       });
       $(window).mousemove(function(e) {
@@ -242,6 +251,7 @@
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
             selector.input_label(options);
+            annotator.adding = false;
             status = 'input';
             if (options.input_method === 'fixed') {
               selector.get_input_element().blur();
@@ -275,16 +285,67 @@
             }
             break;
           case 'free':
-            if (e.which === 27)
-            {
-              var delete_box, index;
-              delete_box = $('.annotated_bounding_box_active');
-              if(delete_box.length > 0)
+            var active_box, index;
+            active_box = $('.annotated_bounding_box_active');
+            if(active_box.length > 0)
+            {   
+              index = active_box.prevAll(".annotated_bounding_box").length; 
+              move = 1     
+              if(event.shiftKey) {
+                move *= 10;
+              }   
+              img_width = parseInt(annotator.image_frame.css('width'));
+              img_height = parseInt(annotator.image_frame.css('height'));
+              if(e.which === 27)
               {
-                index = delete_box.prevAll(".annotated_bounding_box").length;
-                delete_box.detach();
+                // Delete
+                active_box.detach();
                 annotator.entries.splice(index, 1);
-                return annotator.onchange(annotator.entries);
+                annotator.onchange(annotator.entries);
+              }
+              else if(e.which === 37)
+              {
+                // Left
+                proposed = parseInt(active_box.css('left')) - move;
+                proposed = Math.max(0, proposed);
+                active_box.css('left', proposed + "px");
+                entry = annotator.entries[index];
+                entry.left = proposed;
+                annotator.onchange(annotator.entries);
+              }
+              else if(e.which === 38)
+              {
+                // Up
+                proposed = parseInt(active_box.css('top')) - move;
+                proposed = Math.max(0, proposed);
+                active_box.css('top', proposed + "px");
+                entry = annotator.entries[index];
+                entry.top = proposed;
+                annotator.onchange(annotator.entries);           
+          			e.preventDefault();
+                return false;
+              }
+              else if(e.which === 39)
+              {
+                // Right
+                proposed = parseInt(active_box.css('left')) + move;
+                proposed = Math.min(img_width - parseInt(active_box.css('width')) - 1, proposed);
+                active_box.css('left', proposed + "px");
+                entry = annotator.entries[index];
+                entry.left = proposed;   
+                annotator.onchange(annotator.entries);  
+              }
+              else if(e.which === 40)
+              {
+                // Down
+                proposed = parseInt(active_box.css('top')) + move;
+                proposed = Math.min(img_height - parseInt(active_box.css('height')) - 1, proposed);
+                active_box.css('top', proposed + "px");
+                entry = annotator.entries[index];
+                entry.top  = proposed;                
+                annotator.onchange(annotator.entries);
+          			e.preventDefault();
+                return false;
               }
             }
         }
@@ -319,6 +380,7 @@
         if(hover)
         {
           box_element.css('border-color', 'rgb(255, 155, 0)');
+          box_element.css('cursor', 'move');
           box_element.addClass('annotated_bounding_box_active');
           text_box.css('background-color', 'rgb(255, 155, 0)');
           rotate_button.show();
@@ -328,6 +390,7 @@
         else
         {
           box_element.css('border-color', 'rgb(255, 255, 255)');
+          box_element.css('cursor', 'crosshair');
           box_element.css('background-color', 'rgba(0, 0, 0, 0.0)');
           box_element.removeClass('annotated_bounding_box_active');
           text_box.css('background-color', 'rgba(255, 255, 255, 0.5)');
@@ -417,7 +480,6 @@
         "color": "rgb(255, 255, 255)",
         "font-family": "monospace",
         "font-size": "small",
-        "cursor": "move",
       });
       close_button = $('<div></div>').appendTo(box_element).css({
         "position": "absolute",
@@ -466,13 +528,17 @@
       annotator = this;
       box_element.hover((function(e) {
         edit_cursor_inside = true;
-        if( ! annotator.adding)
+        console.log(edit_override + " " + annotator.adding);
+        if( ! edit_override)
         {
-          update_style(true); 
-        }
-        else
-        {
-          update_style(false);
+          if( ! annotator.adding)
+          {
+            update_style(true); 
+          }
+          else
+          {
+            update_style(false);
+          }
         }
       }), (function(e) {
         edit_cursor_inside = false;
