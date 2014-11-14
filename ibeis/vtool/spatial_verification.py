@@ -380,9 +380,9 @@ def get_affine_inliers(kpts1, kpts2, fm,
                                                         scale_thresh_sqrd,
                                                         ori_thresh)
                                for Aff in Aff_mats]
-    inliers_list = [tup[0] for tup in inliers_and_errors_list]
-    errors_list  = [tup[1] for tup in inliers_and_errors_list]
-    return inliers_list, errors_list, Aff_mats
+    aff_inliers_list = [tup[0] for tup in inliers_and_errors_list]
+    aff_errors_list  = [tup[1] for tup in inliers_and_errors_list]
+    return aff_inliers_list, aff_errors_list, Aff_mats
 
 
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
@@ -398,32 +398,27 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
     cdef:
-        list inliers_list
+        list aff_inliers_list
         list aff_inliers
         list Aff_mats
-        list errors_list
+        list aff_errors_list
     #endif
     """
     # Test each affine hypothesis
-    inliers_list, errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
-                                                             xy_thresh_sqrd,
-                                                             scale_thresh,
-                                                             ori_thresh)
-    aff_inliers, Aff = determine_best_inliers(inliers_list, errors_list, Aff_mats)
-    return aff_inliers, Aff
-
-
-def determine_best_inliers(inliers_list, errors_list, Aff_mats):
-    """ Currently this function just uses the number of inliers as a metric
-    """
+    # get list if inliers, errors, the affine matrix for each hypothesis
+    aff_inliers_list, aff_errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
+                                                                     xy_thresh_sqrd,
+                                                                     scale_thresh,
+                                                                     ori_thresh)
     # Determine the best hypothesis using the number of inliers
-    nInliers_list = np.array([len(inliers) for inliers in inliers_list])
-    best_mxs = nInliers_list.argsort()[::-1]
-    # Return inliers and transformation
-    best_mx = best_mxs[0]
-    aff_inliers = inliers_list[best_mx]
-    Aff = Aff_mats[best_mx]
-    return aff_inliers, Aff
+    # TODO: other measures in the error lists could be used as well
+    nInliers_list = np.array([len(inliers) for inliers in aff_inliers_list])
+    sortx = nInliers_list.argsort()[::-1]  # sort by non-inliers
+    best_index = sortx[0]  # chose best
+    aff_inliers = aff_inliers_list[best_index]
+    aff_errors = aff_errors_list[best_index]
+    Aff = Aff_mats[best_index]
+    return aff_inliers, aff_errors, Aff
 
 
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
@@ -489,35 +484,36 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     # You cannot test for scale or orientation easilly here because
     # you no longer have an ellipse when using a projective transformation
     xy_err = ltool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    homog_errors = (xy_err, None, None)
     # Estimate final inliers
     homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0]
-    return homog_inliers, H
+    return homog_inliers, homog_errors, H
 
 
-def spatial_verification(kpts1, kpts2, fm,
-                         xy_thresh,
-                         scale_thresh,
-                         ori_thresh,
-                         dlen_sqrd2=None,
-                         min_num_inliers=4,
-                         returnAff=False):
+def spatially_verify_kpts(kpts1, kpts2, fm,
+                          xy_thresh,
+                          scale_thresh,
+                          ori_thresh,
+                          dlen_sqrd2=None,
+                          min_nInliers=4,
+                          returnAff=False):
     """
     Driver function
     Spatially validates feature matches
 
     Args:
-        kpts1 (ndarray[ndim=2]):
-        kpts2 (ndarray[ndim=2]):
+        kpts1 (ndarray[ndim=2]): all keypoints in image 1
+        kpts2 (ndarray[ndim=2]): all keypoints in image 2
         fm (ndarray[ndim=2]): matching keypoint indexes [..., (kp1x, kp2x), ...]
         xy_thresh (float): spatial distance threshold under affine transform to be considered a match
         scale_thresh (float):
         ori_thresh (float):
         dlen_sqrd2 (float): diagonal length squared of image/chip 2
-        min_num_inliers (int): default=4
+        min_nInliers (int): default=4
         returnAff (bool): returns best affine hypothesis as well
 
     Returns:
-        (homog_inliers, H, aff_inliers, Aff) if sucess else None
+        tuple : (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) if success else None
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -549,6 +545,7 @@ def spatial_verification(kpts1, kpts2, fm,
         >>> scale_thresh = 2.0
 
     """
+    # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
     # Get diagonal length if not provided
@@ -557,15 +554,15 @@ def spatial_verification(kpts1, kpts2, fm,
         dlen_sqrd2 = ktool.get_diag_extent_sqrd(kpts2_m)
     # Determine the best hypothesis transformation and get its inliers
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-    aff_inliers, Aff = get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd,
-                                               scale_thresh, ori_thresh)
+    aff_inliers, aff_errors, Aff = get_best_affine_inliers(
+        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Return if there are not enough inliers to compute homography
-    if len(aff_inliers) < min_num_inliers:
+    if len(aff_inliers) < min_nInliers:
         return None
     # Refine inliers using a projective transformation (homography)
     try:
-        homog_inliers, H = get_homography_inliers(kpts1, kpts2, fm, aff_inliers,
-                                                  xy_thresh_sqrd)
+        homog_inliers, homog_errors, H = get_homography_inliers(
+            kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
     except npl.LinAlgError as ex:
         utool.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
@@ -574,16 +571,63 @@ def spatial_verification(kpts1, kpts2, fm,
         # makeing len(h) = 6.
         utool.printex(ex, 'Unknown error in homog estimation.',
                       keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                            'scale_thresh', 'dlen_sqrd2', 'min_num_inliers'])
+                            'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
         if utool.SUPER_STRICT:
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
     if returnAff:
-        return homog_inliers, H, aff_inliers, Aff
+        return homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff
     else:
-        return homog_inliers, H, None, None
+        return homog_inliers, homog_errors, H, None, None, None
 
+
+def ibeis_test(qreq_):
+    import six
+    from ibeis.model.hots import pipeline
+    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
+    ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
+    locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
+    qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
+    prescore_method = qreq_.qparams.prescore_method
+    nShortlist      = qreq_.qparams.nShortlist
+    xy_thresh       = qreq_.qparams.xy_thresh
+    scale_thresh    = qreq_.qparams.scale_thresh
+    ori_thresh      = qreq_.qparams.ori_thresh
+    use_chip_extent = qreq_.qparams.use_chip_extent
+    min_nInliers    = qreq_.qparams.min_nInliers
+    qaid = six.next(six.iterkeys(qaid2_chipmatch))
+    chipmatch = qaid2_chipmatch[qaid]
+    daid2_prescore = pipeline.score_chipmatch(qaid, chipmatch, prescore_method, qreq_)
+    (daid2_fm, daid2_fs, daid2_fk) = chipmatch
+    if prescore_method == 'nsum':
+        topx2_aid = pipeline.prescore_nsum(qreq_, daid2_prescore, nShortlist)
+        nRerank = len(topx2_aid)
+    else:
+        topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
+        nRerank = min(len(topx2_aid), nShortlist)
+    daid2_fm_V, daid2_fs_V, daid2_fk_V = pipeline.new_fmfsfk()
+    kpts1 = qreq_.get_annot_kpts(qaid)
+    topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
+    topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
+    topx = 0
+    daid = topx2_aid[topx]
+    fm = daid2_fm[daid]
+    dlen_sqrd2 = topx2_dlen_sqrd[topx]
+    kpts2 = topx2_kpts[topx]
+    fs    = daid2_fs[daid]
+    fk    = daid2_fk[daid]
+
+    import vtool.spatial_verification as sver
+    returnAff = True
+
+    homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sver.spatially_verify_kpts(
+        kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
+        dlen_sqrd2=dlen_sqrd2, min_nInliers=min_nInliers, returnAff=returnAff)
+
+    homog_xy_errors = homog_errors[0]
+
+    fs = fs * (1 - np.sqrt(homog_xy_errors / (dlen_sqrd2)))
 
 import cyth
 if cyth.DYNAMIC:

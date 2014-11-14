@@ -55,7 +55,7 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
             errors = pack_errors(*errors_list[mx])  # NOQA
             print(utool.dict_str(errors, strvals=True))
 
-        homog_inliers, H = sver.get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        homog_inliers, homog_errors, H = sver.get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
 
         kpts1_At = ktool.transform_kpts(kpts1, Aff)
         kpts1_Ht = ktool.transform_kpts(kpts1, H)
