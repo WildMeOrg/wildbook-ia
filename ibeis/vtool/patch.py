@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 import six
 from six.moves import zip
-from itertools import product as iprod
+import itertools
 import functools
 if six.PY2:
     from functools32 import lru_cache  # Python2.7 support
@@ -63,7 +63,7 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
     gauss_xs = np.linspace(-half_width,  half_width,  shape[0])
     gauss_ys = np.linspace(-half_height, half_height, shape[1])
     # Iterate over the cartesian coordinate product and get pdf values
-    gauss_xys  = iprod(gauss_xs, gauss_ys)
+    gauss_xys  = itertools.product(gauss_xs, gauss_ys)
     gauss_func = functools.partial(ltool.gauss2d_pdf, sigma=sigma, mu=None)
     gaussvals  = [gauss_func(x, y) for (x, y) in gauss_xys]
     # Reshape pdf values into a 2D image
@@ -76,14 +76,14 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
 
 
 @profile
-def get_unwarped_patches(chip, kpts):
-    """ Returns cropped unwarped patch around a keypoint
+def get_unwarped_patches(img, kpts):
+    """ Returns cropped unwarped (keypoint is still elliptical) patch around a keypoint
 
     Args:
-        chip (ndarray): array representing an image
+        img (ndarray): array representing an image
         kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
     Returns:
-        patches - the unnormalized patches from the chip corresonding to the keypoint
+        tuple : (patches, subkpts) - the unnormalized patches from the img corresonding to the keypoint
 
     """
     _xs, _ys = ktool.get_xys(kpts)
@@ -94,12 +94,12 @@ def get_unwarped_patches(chip, kpts):
     for (kp, x, y, (sfx, sfy)) in zip(kpts, _xs, _ys, xyexnts):
         radius_x = sfx * 1.5
         radius_y = sfy * 1.5
-        (chip_h, chip_w) = chip.shape[0:2]
+        (chip_h, chip_w) = img.shape[0:2]
         # Get integer grid coordinates to crop at
         ix1, ix2, xm = htool.subbin_bounds(x, radius_x, 0, chip_w)
         iy1, iy2, ym = htool.subbin_bounds(y, radius_y, 0, chip_h)
         # Crop the keypoint out of the image
-        patch = chip[iy1:iy2, ix1:ix2]
+        patch = img[iy1:iy2, ix1:ix2]
         subkp = kp.copy()  # subkeypoint in patch coordinates
         subkp[0:2] = (xm, ym)
         patches.append(patch)
@@ -108,14 +108,14 @@ def get_unwarped_patches(chip, kpts):
 
 
 @profile
-def get_warped_patches(chip, kpts):
-    """ Returns warped patch around a keypoint
+def get_warped_patches(img, kpts):
+    """ Returns warped (into a unit circle) patch around a keypoint
 
     Args:
-        chip (ndarray): array representing an image
+        img (ndarray): array representing an image
         kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
     Returns:
-        patches - the normalized 41x41 patches from the chip corresonding to the keypoint
+        tuple : (warped_patches, warped_subkpts) the normalized 41x41 patches from the img corresonding to the keypoint
     """
     # TODO: CLEAN ME
     warped_patches = []
@@ -129,7 +129,7 @@ def get_warped_patches(chip, kpts):
     s = 41  # sf
     for x, y, V, ori in kpts_iter:
         ss = sqrt(s) * 3
-        (h, w) = chip.shape[0:2]
+        (h, w) = img.shape[0:2]
         # Translate to origin(0,0) = (x,y)
         T = ltool.translation_mat3x3(-x, -y)
         R = ltool.rotation_mat3x3(-ori)
@@ -139,7 +139,7 @@ def get_warped_patches(chip, kpts):
         # Prepare to warp
         dsize = np.array(np.ceil(np.array([s, s])), dtype=int)
         # Warp
-        warped_patch = gtool.warpAffine(chip, M, dsize)
+        warped_patch = gtool.warpAffine(img, M, dsize)
         # Build warped keypoints
         wkp = np.array((s / 2, s / 2, ss, 0., ss, 0))
         warped_patches.append(warped_patch)
@@ -149,6 +149,14 @@ def get_warped_patches(chip, kpts):
 
 @profile
 def get_warped_patch(imgBGR, kp, gray=False):
+    """Returns warped (into a unit circle) patch around a keypoint
+
+    Args:
+        img (ndarray): array representing an image
+        kpt (ndarray): keypoint ndarray in [x, y, a, c, d, theta] format
+    Returns:
+        tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
+    """
     kpts = np.array([kp])
     wpatches, wkpts = get_warped_patches(imgBGR, kpts)
     wpatch = wpatches[0]
@@ -156,6 +164,25 @@ def get_warped_patch(imgBGR, kp, gray=False):
     if gray:
         wpatch = gtool.cvt_BGR2L(wpatch)
     return wpatch, wkp
+
+
+@profile
+def get_unwarped_patch(imgBGR, kp, gray=False):
+    """Returns unwarped warped patch around a keypoint
+
+    Args:
+        img (ndarray): array representing an image
+        kpt (ndarray): keypoint ndarray in [x, y, a, c, d, theta] format
+    Returns:
+        tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
+    """
+    kpts = np.array([kp])
+    upatches, ukpts = get_unwarped_patches(imgBGR, kpts)
+    upatch = upatches[0]
+    ukp = ukpts[0]
+    if gray:
+        upatch = gtool.cvt_BGR2L(upatch)
+    return upatch, ukp
 
 
 @profile

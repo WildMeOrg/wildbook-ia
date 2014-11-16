@@ -10,6 +10,7 @@ IMPORT_TUPLES = [
     ('image', None),
     ('exif', None),
     ('keypoint', None),
+    ('features', None),
     ('patch', None),
     ('chip', None),
     ('spatial_verification', None),
@@ -121,6 +122,7 @@ if DOELSE:
     from vtool import image
     from vtool import exif
     from vtool import keypoint
+    from vtool import features
     from vtool import patch
     from vtool import chip
     from vtool import spatial_verification
@@ -180,22 +182,23 @@ if DOELSE:
                                 rectify_invV_mats_are_up_cyth, rollaxis, sqrt, 
                                 transform_kpts, transform_kpts_to_imgspace, 
                                 zeros,) 
+    from vtool.features import (extract_features,) 
     from vtool.patch import (find_kpts_direction, gaussian_patch, 
                              get_orientation_histogram, get_unwarped_patches, 
-                             get_warped_patch, get_warped_patches, iprod, 
-                             lru_cache, patch_gradient, patch_mag, patch_ori,) 
+                             get_warped_patch, get_warped_patches, lru_cache, 
+                             patch_gradient, patch_mag, patch_ori,) 
     from vtool.chip import (compute_chip, get_filter_list, 
                             get_scaled_size_with_area, 
                             get_scaled_sizes_with_area,) 
     from vtool.spatial_verification import (SV_DTYPE, build_lstsqrs_Mx9, 
                                             build_lstsqrs_Mx9_cyth, 
                                             compute_homog, compute_homog_cyth, 
-                                            determine_best_inliers, 
                                             get_affine_inliers, 
                                             get_affine_inliers_cyth, 
                                             get_best_affine_inliers, 
                                             get_best_affine_inliers_cyth, 
-                                            get_homography_inliers,) 
+                                            get_homography_inliers, ibeis_test, 
+                                            spatially_verify_kpts,) 
     from vtool.trig import (atan2,) 
     from vtool.math import (eps, tau,) 
     from vtool.geometry import (bbox_of_verts, bboxes_from_vert_list, 
@@ -216,6 +219,7 @@ if DOELSE:
                                    plot_centroids, refine_akmeans, 
                                    sparse_multiply_rows, sparse_normalize_rows, 
                                    tune_flann2,) 
+    # STARTBLOCK
     import utool
     print, print_, printDBG, rrr, profile = utool.inject(
         __name__, '[vtool]')
@@ -247,6 +251,7 @@ if DOELSE:
         getattr(image, 'rrr', lambda verbose: None)(verbose=verbose)
         getattr(exif, 'rrr', lambda verbose: None)(verbose=verbose)
         getattr(keypoint, 'rrr', lambda verbose: None)(verbose=verbose)
+        getattr(features, 'rrr', lambda verbose: None)(verbose=verbose)
         getattr(patch, 'rrr', lambda verbose: None)(verbose=verbose)
         getattr(chip, 'rrr', lambda verbose: None)(verbose=verbose)
         getattr(spatial_verification, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -261,4 +266,5 @@ if DOELSE:
         except Exception:
             pass
     rrrr = reload_subs
+    # ENDBLOCK
     # </AUTOGEN_INIT>
