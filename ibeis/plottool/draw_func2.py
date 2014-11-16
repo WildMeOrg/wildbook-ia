@@ -836,6 +836,8 @@ def show_all_colormaps():
 
 def test_integral_label_colormap():
     """
+    UNFINISHED
+
     Above 0 use a inverted hot scale and less than that use special colors
 
     References:
@@ -917,7 +919,7 @@ def test_integral_label_colormap():
     plt.show()
 
 
-def colorbar(scalars, colors, custom=False):
+def colorbar(scalars, colors, custom=False, lbl=None):
     """ adds a color bar next to the axes
     Args:
         scalars (ndarray):
@@ -1012,6 +1014,8 @@ def colorbar(scalars, colors, custom=False):
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
     # Sets current axis
     plt.sca(ax)
+    if lbl is not None:
+        cb.set_label(lbl)
     return cb
 
 
@@ -1053,8 +1057,10 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
-               ell_color=None, pts_color=ORANGE, color_list=None, **kwargs):
+               ell_color=None, pts_color=ORANGE, color_list=None, siftkw={}, **kwargs):
     """
+    thin wrapper around mpl_keypoint.draw_keypoints
+
     Args:
         kpts (?):
         offset (tuple):
@@ -1135,11 +1141,17 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         'ell_linewidth': ell_linewidth,
     })
 
-    mpl_kp.draw_keypoints(ax, kpts, **_kwargs)
+    mpl_kp.draw_keypoints(ax, kpts, siftkw=siftkw, **_kwargs)
 
 
-def draw_keypoint_gradient_orientations(rchip, kp, sift=None, mode='vec', **kwargs):
-    wpatch, wkp  = ptool.get_warped_patch(rchip, kp, gray=True)
+def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
+                                        kptkw={}, siftkw={}, **kwargs):
+    """
+    Extracts a keypoint patch from a chip, extract the gradient, and visualizes
+    it with respect to the current mode.
+
+    """
+    wpatch, wkp  = ptool.get_warped_patch(rchip, kpt, gray=True)
     try:
         gradx, grady = ptool.patch_gradient(wpatch)
     except Exception as ex:
@@ -1150,17 +1162,17 @@ def draw_keypoint_gradient_orientations(rchip, kp, sift=None, mode='vec', **kwar
         print('repr(wpatch) = ' + str(repr(wpatch)))
         print('wpatch = ' + str(wpatch))
         raise
-    if mode == 'vec':
+    if mode == 'vec' or mode == 'vecfield':
         draw_vector_field(gradx, grady, **kwargs)
-    elif mode == 'col':
-        import plottool as dtool
+    elif mode == 'col' or mode == 'colors':
+        import plottool
         gmag = ptool.patch_mag(gradx, grady)
         gori = ptool.patch_ori(gradx, grady)
-        gorimag = dtool.color_orimag(gori, gmag)
+        gorimag = plottool.color_orimag(gori, gmag)
         imshow(gorimag, **kwargs)
     wkpts = np.array([wkp])
-    sifts = np.array([sift])
-    draw_kpts2(wkpts, sifts=sifts, ori=True)
+    sifts = np.array([sift]) if sift is not None else None
+    draw_kpts2(wkpts, sifts=sifts, siftkw=siftkw, **kptkw)
 
 
 @utool.indent_func('[df2.dkp]')
@@ -1436,7 +1448,7 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gmag):
+def color_orimag(gori, gmag=None):
     # Turn a 0 to 1 orienation map into hsv colors
     gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
     cmap_ = plt.get_cmap('hsv')
@@ -1445,8 +1457,9 @@ def color_orimag(gori, gmag):
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
     hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
     # Desaturate colors based on magnitude
-    hsv_ori[:, :, 1] = (gmag / 255.0)
-    hsv_ori[:, :, 2] = (gmag / 255.0)
+    if gmag is not None:
+        hsv_ori[:, :, 1] = (gmag / 255.0)
+        hsv_ori[:, :, 2] = (gmag / 255.0)
     # Convert back to bgr
     bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
     return bgr_ori

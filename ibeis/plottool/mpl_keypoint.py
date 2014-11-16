@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib as mpl
 # vtool
 import vtool.keypoint as ktool
-from . import mpl_sift
+from plottool import mpl_sift
 
 
 # TOOD: move to util
@@ -31,8 +31,8 @@ def _draw_patches(ax, patch_list, color, alpha, lw, fcolor='none'):
 
 #----------------------------
 def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
-                   ell=True, pts=False, rect=False, eig=False, ori=False,  sifts=None,
-                   **kwargs):
+                   ell=True, pts=False, rect=False, eig=False, ori=False,
+                   sifts=None, siftkw={}, **kwargs):
     """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
     Args:
@@ -90,9 +90,9 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     try:
         if sifts is not None:
             # SIFT descriptors
-            sift_kwargs = {}
-            pass_props(kwargs, sift_kwargs, 'bin_color', 'arm1_color', 'arm2_color')
-            mpl_sift.draw_sifts(ax, sifts, invV_aff2Ds, **sift_kwargs)
+            pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
+                       'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha')
+            mpl_sift.draw_sifts(ax, sifts, invV_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles
             rect_patches = rectangle_actors(invV_aff2Ds)

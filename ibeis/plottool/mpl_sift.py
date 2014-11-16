@@ -46,15 +46,47 @@ def _arm_collection(patch_list, color, alpha, lw):
     return coll
 
 
-def get_sift_collection(sift,
-                        aff=None,
-                        bin_color=BLACK,
-                        arm1_color=RED,
-                        arm2_color=BLACK):
+def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
+                        arm2_color=BLACK, arm_alpha=1.0, arm1_lw=0.5,
+                        arm2_lw=1.0, circ_alpha=.5, **kwargs):
+    """
+    Creates a collection of SIFT matplotlib patches
+
+    get_sift_collection
+
+    Args:
+        sift (?):
+        aff (None):
+        bin_color (ndarray):
+        arm1_color (ndarray):
+        arm2_color (ndarray):
+        arm_alpha (float):
+        arm1_lw (float):
+        arm2_lw (float):
+        circ_alpha (float):
+
+    Returns:
+        ?: coll_tup
+
+    Example:
+        >>> from plottool.mpl_sift import *  # NOQA
+        >>> sift = '?'
+        >>> aff = None
+        >>> bin_color = array([ 0.,  0.,  0.,  1.])
+        >>> arm1_color = array([ 1.,  0.,  0.,  1.])
+        >>> arm2_color = array([ 0.,  0.,  0.,  1.])
+        >>> arm_alpha = 1.0
+        >>> arm1_lw = 0.5
+        >>> arm2_lw = 1.0
+        >>> circ_alpha = 0.5
+        >>> coll_tup = get_sift_collection(sift, aff, bin_color, arm1_color, arm2_color, arm_alpha, arm1_lw, arm2_lw, circ_alpha)
+        >>> print(coll_tup)
+    """
     # global offset scale adjustments
     if aff is None:
         aff = mpl.transforms.Affine2D()
-    _kwarm = dict(head_width=1e-10, length_includes_head=False, transform=aff)
+    _kwarm = kwargs.copy()
+    _kwarm.update(dict(head_width=1e-10, length_includes_head=False, transform=aff))
     _kwcirc = dict(transform=aff)
     arm_patches1 = []
     arm_patches2 = []
@@ -71,9 +103,7 @@ def get_sift_collection(sift,
     # Arm orientation in dxdy format
     arm_dxy = np.array(list(zip(*_cirlce_rad2xy(arm_ori, arm_mag))))
     # Arm locations and dxdy index
-    yxt_gen = iprod(range(NY),
-                    range(NX),
-                    range(NORI))
+    yxt_gen = iprod(range(NY), range(NX), range(NORI))
     # Circle x,y locations
     yx_gen  = iprod(range(NY), range(NX))
     # Draw 8 directional arms in each of the 4x4 grid cells
@@ -98,14 +128,17 @@ def get_sift_collection(sift,
         circ_radius = DSCALE
         circle_patches += [mpl.patches.Circle(circ_xy, circ_radius, **_kwcirc)]
 
-    circ_coll = _circl_collection(circle_patches,  bin_color, 0.5)
-    arm1_coll = _arm_collection(arm_patches1, arm1_color, 1.0, 0.5)
-    arm2_coll = _arm_collection(arm_patches2, arm2_color, 1.0, 1.0)
+    circ_coll = _circl_collection(circle_patches,  bin_color, circ_alpha)
+    arm1_coll = _arm_collection(arm_patches1, arm1_color, arm_alpha, arm1_lw)
+    arm2_coll = _arm_collection(arm_patches2, arm2_color, arm_alpha, arm2_lw)
     coll_tup = (circ_coll, arm2_coll, arm1_coll)
     return coll_tup
 
 
 def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
+    """
+    Gets sift patch collections, transforms them and then draws them.
+    """
     if invVR_aff2Ds is None:
         invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in range(len(sifts))]
     colltup_list = [get_sift_collection(sift, aff, **kwargs)

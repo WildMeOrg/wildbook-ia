@@ -260,6 +260,7 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         #fig_relative_text(.5, .96, subtitle, fontproperties=FONTS.subtitle)
     else:
         fig.suptitle('')
+    # Set title in the window
     window_figtitle = ('fig(%d) ' % fig.number) + figtitle
     window_figtitle = window_figtitle.replace('\n', ' ')
     fig.canvas.set_window_title(window_figtitle)

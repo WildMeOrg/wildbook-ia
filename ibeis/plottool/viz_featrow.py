@@ -9,9 +9,46 @@ from plottool import plot_helpers as ph
     __name__, '[viz_featrow]', DEBUG=False)
 
 
-@utool.indent_func
+#@utool.indent_func
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
                   aid=None, info='', type_=None):
+    """
+    draw_feat_row
+
+    Args:
+        chip (?):
+        fx (?):
+        kp (?):
+        sift (?):
+        fnum (?):
+        nRows (?):
+        nCols (?):
+        px (?):
+        prevsift (None):
+        aid (None):
+        info (str):
+        type_ (None):
+
+    Returns:
+        int : subplot index
+
+    Example:
+        >>> from plottool.viz_featrow import *  # NOQA
+        >>> chip = '?'
+        >>> fx = '?'
+        >>> kp = '?'
+        >>> sift = '?'
+        >>> fnum = '?'
+        >>> nRows = '?'
+        >>> nCols = '?'
+        >>> px = '?'
+        >>> prevsift = None
+        >>> aid = None
+        >>> info = ''
+        >>> type_ = None
+        >>> result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift, aid, info, type_)
+        >>> print(result)
+    """
 
     pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
 
