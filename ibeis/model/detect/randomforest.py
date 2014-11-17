@@ -190,7 +190,8 @@ def _get_detector(species, quick=True, single=False):
         >>> quick = True
         >>> single = False
         >>> (detector, forest) = randomforest._get_detector(species, quick, single)
-        >>> print(list(map(type, (detector, forest))))
+        >>> result = str(list(map(type, (detector, forest))))
+        >>> print(result)
         [<class 'pyrf._pyrf.Random_Forest_Detector'>, <type 'int'>]
 
     Example2:
@@ -202,7 +203,8 @@ def _get_detector(species, quick=True, single=False):
         >>> quick = True
         >>> single = False
         >>> (detector, forest) = randomforest._get_detector(species, quick, single)
-        >>> print(list(map(type, (detector, forest))))
+        >>> result = str(list(map(type, (detector, forest))))
+        >>> print(result)
         [<type 'NoneType'>, <type 'NoneType'>]
 
     """

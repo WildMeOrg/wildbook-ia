@@ -39,10 +39,37 @@ def gen_feat_openmp(cid_list, cfpath_list, dict_args):
     print('Detecting %r features in parallel: ' % len(cid_list))
     kpts_list, desc_list = pyhesaff.detect_kpts_list(cfpath_list, **dict_args)
     for cid, kpts, desc in zip(cid_list, kpts_list, desc_list):
-        yield cid, len(kpts), kpts, desc
+        nFeat = len(kpts)
+        yield cid, nFeat, kpts, desc
 
 
 def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
+    """
+    still used in manual code
+    DEPRICATE IN FAVOR OF AUTOGEN
+    """
+    if nInput is None:
+        nInput = len(cid_list)
+    # Get config from IBEIS controller
+    feat_cfg          = ibs.cfg.feat_cfg
+    dict_args         = feat_cfg.get_dict_args()
+    feat_config_rowid = ibs.get_feat_config_rowid()
+    cfpath_list       = ibs.get_chip_paths(cid_list)
+    print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
+    if USE_OPENMP:
+        # Use Avi's openmp parallelization
+        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, dict_args)
+        return  ((cid, feat_config_rowid, nFeat, kpts, vecs,)
+                 for (cid, nFeat, kpts, vecs) in featgen_mp)
+    else:
+        # Multiprocessing parallelization
+        featgen = generate_feats(cfpath_list, dict_args=dict_args,
+                                 cid_list=cid_list, nInput=nInput)
+        return ((cid, feat_config_rowid, nKpts, kpts, vecs)
+                for cid, nKpts, kpts, vecs in featgen)
+
+
+def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     """
     Computes features and yields results asynchronously: TODO: Remove IBEIS from
     this equation. Move the firewall towards the controller
@@ -59,30 +86,38 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
         >>> cid_list = ibs.get_annot_cids(aid_list)
         >>> qreq_ = None
         >>> nInput = None
-        >>> featgen = add_feat_params_gen(ibs, cid_list, qreq_, nInput)
+        >>> featgen = generate_feat_properties(ibs, cid_list, qreq_, nInput)
         >>> feat_list = list(featgen)
+        >>> assert len(feat_list) == len(aid_list)
+        >>> (nFeat, kpts, vecs) = feat_list[0]
+        >>> assert nFeat == len(kpts) and nFeat == len(vecs)
+        >>> assert kpts.shape[1] == 6
+        >>> assert vecs.shape[1] == 128
     """
     if nInput is None:
         nInput = len(cid_list)
     # Get config from IBEIS controller
     feat_cfg          = ibs.cfg.feat_cfg
     dict_args         = feat_cfg.get_dict_args()
-    feat_config_rowid = ibs.get_feat_config_rowid()
     cfpath_list       = ibs.get_chip_paths(cid_list)
     print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
     if USE_OPENMP:
         # Use Avi's openmp parallelization
-        return gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_rowid)
+        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, dict_args)
+        for (cid, nFeat, kpts, vecs) in featgen_mp:
+            yield (nFeat, kpts, vecs,)
     else:
         # Multiprocessing parallelization
         featgen = generate_feats(cfpath_list, dict_args=dict_args,
                                  cid_list=cid_list, nInput=nInput)
-        return ((cid, nKpts, kpts, desc, feat_config_rowid) for cid, nKpts, kpts, desc in featgen)
+        for cid, nFeat, kpts, vecs in featgen:
+            yield (nFeat, kpts, vecs,)
+    pass
 
 
 def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwargs):

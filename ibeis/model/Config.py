@@ -73,6 +73,7 @@ def parse_config_items(cfg):
     into a flat list. (there must not be name conflicts)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
@@ -147,12 +148,14 @@ class FilterConfig(ConfigBase):
     Rename to scoring mechanism
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> filt_cfg = FilterConfig()
-        >>> print(filt_cfg.get_cfgstr())
-        _FILT(lnbnn_1.0)
+        >>> result1 = filt_cfg.get_cfgstr()
         >>> filt_cfg.fg_weight = 1
-        >>> print(filt_cfg.get_cfgstr())
+        >>> result2 = filt_cfg.get_cfgstr()
+        >>> result = result1
+        _FILT(lnbnn;1.0,fg;1.0)
     """
 
     def __init__(filt_cfg, **kwargs):
@@ -388,12 +391,14 @@ class SMKConfig(ConfigBase):
     SMKConfig
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> smk_cfg = SMKConfig()
-        >>> result = smk_cfg.get_cfgstr()
-        >>> print(result)
+        >>> result1 = smk_cfg.get_cfgstr()
+        >>> print(result1)
 
     Example2:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
@@ -439,6 +444,7 @@ class VocabTrainConfig(ConfigBase):
     """ VocabTrainConfig
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> vocabtrain_cfg = VocabTrainConfig()
         >>> result = vocabtrain_cfg.get_cfgstr()
@@ -480,6 +486,7 @@ class VocabAssignConfig(ConfigBase):
     """ VocabAssignConfig
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> vocabassign_cfg = VocabAssignConfig()
         >>> result = vocabassign_cfg.get_cfgstr()
@@ -520,6 +527,7 @@ class QueryConfig(ConfigBase):
     """ query configuration parameters
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> cfg = ibs.cfg.query_cfg
@@ -680,10 +688,12 @@ class QueryConfig(ConfigBase):
 class FeatureWeightConfig(ConfigBase):
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> featweight_cfg = FeatureWeightConfig()
-        >>> print(featweight_cfg.get_cfgstr())
-        _FEATWEIGHT(OFF)
+        >>> result = featweight_cfg.get_cfgstr()
+        >>> print(result)
+        _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
     """
 
     def __init__(featweight_cfg, **kwargs):
@@ -727,12 +737,16 @@ class FeatureConfig(ConfigBase):
     Feature configuration object.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.model import Config  # NOQA
         >>> from ibeis.model.Config import *  # NOQA
         >>> feat_cfg = Config.FeatureConfig()
-        >>> print(feat_cfg.get_cfgstr())
-        _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
+        >>> result = (feat_cfg.get_cfgstr())
+        >>> print(result)
+        _FEAT(hesaff+sift_)_CHIP(sz450)
+
+    _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
     def __init__(feat_cfg, **kwargs):
         import numpy as np
@@ -914,10 +928,12 @@ class ChipConfig(ConfigBase):
 class DetectionConfig(ConfigBase):
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> detect_cfg = DetectionConfig()
-        >>> print(detect_cfg.get_cfgstr())
-        _DETECT(rf,zebra_grevys)
+        >>> result = (detect_cfg.get_cfgstr())
+        >>> print(result)
+        _DETECT(rf,zebra_grevys,sz=800)
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
@@ -1029,9 +1045,14 @@ def default_vsone_cfg(ibs, **kwargs):
 
 
 if __name__ == '__main__':
-    print('[Config] main()')
-    utool.VERYVERBOSE = True
-    query_cfg = default_query_cfg()
-    query_cfg.printme3()
-    print(query_cfg.get_cfgstr())
-    print('[Config] end()')
+    """
+    CommandLine:
+        python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config, allexamples=True)"
+        python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config)"
+        python ibeis/model/Config.py
+        python ibeis/model/Config.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -3,7 +3,7 @@ import utool
 import six
 from six.moves import zip, range, map
 import numpy as np
-from numpy.linalg import svd
+import numpy.linalg as npl
 import utool as ut
 import vtool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
@@ -174,7 +174,7 @@ def _optimize(M):
     #print('[vote] optimize')
     if M.size == 0:
         return np.array([])
-    (u, s, v) = svd(M)
+    (u, s, v) = npl.svd(M)
     x = np.abs(v[-1])
     check = np.abs(M.dot(x)) < 1E-9
     if not all(check):

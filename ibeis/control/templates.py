@@ -9,6 +9,7 @@ TODO:
    * autogen testdata function
    * finish autogen chips and features
    * add autogen probchip
+   * consistency check that all chips in the sql table exist
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -33,12 +34,10 @@ constants.PROBCHIP_TABLE = 'probchips'
 
 tblname_list = [
     #constants.ANNOTATION_TABLE,
-
     #constants.CHIP_TABLE,
     #constants.PROBCHIP_TABLE,
     #constants.FEATURE_TABLE,
     constants.FEATURE_WEIGHT_TABLE,
-
     #constants.RESIDUAL_TABLE
 ]
 
@@ -46,18 +45,21 @@ multicolumns_dict = ut.odict([
     (constants.CHIP_TABLE, [
         ('size', ('width', 'height')),
     ]),
+    (constants.ANNOTATION_TABLE, [
+        ('bbox', ('xtl', 'ytl', 'width', 'height')),
+    ]),
 ])
 
 readonly_set = {
     constants.CHIP_TABLE,
-    constants.CHIP_TABLE,
-    constants.PROBCHIP_TABLE,
-    constants.FEATURE_TABLE,
-    constants.FEATURE_WEIGHT_TABLE,
-    constants.RESIDUAL_TABLE
+    #constants.PROBCHIP_TABLE,
+    #constants.FEATURE_TABLE,
+    #constants.FEATURE_WEIGHT_TABLE,
+    #constants.RESIDUAL_TABLE
 }
 
 
+# HACK
 class SHORTNAMES(object):
     ANNOT      = 'annot'
     CHIP       = 'chip'
@@ -87,18 +89,29 @@ tablename2_tbl = {
     constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
 }
 
+
+# FIXME: keys might conflict and need to be ordered
 variable_aliases = {
     #'chip_rowid_list': 'cid_list',
     #'annot_rowid_list': 'aid_list',
     #'feature_rowid_list': 'fid_list',
-    'chip_rowid'                  : 'cid',
+    #
+
+    #'chip_rowid'                  : 'cid',
     'annot_rowid'                 : 'aid',
-    'feat_rowid'                  : 'fid',
+    #'feat_rowid'                  : 'fid',
     'num_feats'                   : 'nFeat',
     'featweight_forground_weight' : 'fgweight',
-    'keypoints'                   : 'kpt_list',
-    'vectors'                     : 'vec_list',
-    'residualvecs'                : 'rvec_list',
+    'keypoints'                   : 'kpt_arr',
+    'vecs'                        : 'vec_arr',
+    'residualvecs'                : 'rvec_arr',
+    'verts'                       : 'vert_arr',
+}
+
+
+func_aliases = {
+    #'get_feat_vec_lists': 'get_feat_vecs',
+    #'get_feat_kpt_lists': 'get_feat_kpts',
 }
 
 # mapping to variable names in constants
@@ -143,10 +156,11 @@ def format_controller_func(func_code):
         func_code = remove_kwarg('eager', 'True', func_code)
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
+        func_code = func_code.replace('if qreq_ is not None', 'if False')
     if STRIP_COMMENTS:
         func_code = ut.strip_line_comments(func_code)
     if STRIP_DOCSTR:
-        # HACKY: might not always work. newline hacks away dumb blank line
+        # HACKY: might not always work. newline HACK away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
     else:
         if STRIP_LONGDESC:
@@ -241,6 +255,12 @@ def remove_kwarg(kwname, kwdefault, func_code):
     return func_code
 
 
+def parse_first_func_name(func_code):
+    parse_result = ut.padded_parse('def {func_name}({args}):', func_code)
+    func_name = parse_result['func_name']
+    return func_name
+
+
 def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     """
     Builds function strings for a single type of table using the template
@@ -258,7 +278,7 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     other_COLNAMES = list(map(lambda colname: colname.upper(), other_colnames))
     nonprimary_leaf_colnames = ut.setdiff_ordered(all_colnames, primarykey_colnames)
     leaf_other_propnames = ', '.join(other_colnames)
-    leaf_other_propname_lists = ', '.join([colname + '_list' for colname in other_colnames])
+    #leaf_other_propname_lists = ', '.join([colname + '_list' for colname in other_colnames])
     # for the preproc_tbe.compute... method
     leaf_props = '_'.join(other_colnames)
     superkey_args = ', '.join([colname + '_list' for colname in superkey_colnames])
@@ -269,7 +289,7 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     fmtdict['nonprimary_leaf_colnames'] = nonprimary_leaf_colnames
     fmtdict['autogen_modname'] = autogen_modname
     fmtdict['leaf_other_propnames'] = leaf_other_propnames
-    fmtdict['leaf_other_propname_lists'] = leaf_other_propname_lists
+    #fmtdict['leaf_other_propname_lists'] = leaf_other_propname_lists
     fmtdict['leaf_props'] = leaf_props
     fmtdict['superkey_args'] = superkey_args
     fmtdict['self'] = 'ibs'
@@ -304,11 +324,29 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
         fmtdict['TABLE'] = tbl2_TABLE[tbl]
 
     def append_func(func_type, func_code_fmtstr, tablename=tablename):
+        # Filter functions that are being added
+        #if func_type.find('add') < 0:
+        #    return
         func_type = func_type
         try:
             func_code = func_code_fmtstr.format(**fmtdict)
             func_code = format_controller_func(func_code)
-            functype2_func_list[func_type].append(func_code)
+            # HACK to remove double table names like: get_chip_chip_width
+            single_tbl = fmtdict['tbl']
+            double_tbl = single_tbl + '_' + single_tbl
+            func_code = func_code.replace(double_tbl, single_tbl)
+            # parse out function name
+            func_name = parse_first_func_name(func_code)
+            func_tup = (func_name, func_code)
+
+            if func_name in func_aliases:
+                func_aliasname = func_aliases[func_name]
+                func_code += ut.codeblock('''
+                @register_ibs_method
+                def {func_aliasname}(*args, **kwargs):
+                    return {func_name}(*args, **kwargs)
+                ''').format(func_aliasname=func_aliasname, func_name=func_name)
+            functype2_func_list[func_type].append(func_tup)
         except Exception as ex:
             utool.printex(ex, keys=['func_type', 'tablename'])
             raise
@@ -327,7 +365,11 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     for tbl_ in depends_list:
         set_tbl(tbl_)
         # rowid constants
-        append_constant('{TBL}_ROWID', '{tbl}_rowid')
+        if tbl_ == 'feat':
+            # HACK: fix feature column names in dbschema
+            append_constant('{TBL}_ROWID', 'feature_rowid')
+        else:
+            append_constant('{TBL}_ROWID', '{tbl}_rowid')
     # set table
     set_tbl(tbl)
 
@@ -416,8 +458,9 @@ def build_depends_path(child):
 
 def colname2_col(colname, tablename):
     # col is a short alias for colname
-    col = colname.replace(ut.singular_string(tablename) + '_', '')
-    return col
+    return colname
+    #col = colname.replace(ut.singular_string(tablename) + '_', '')
+    #return col
 
 
 def get_autogen_modname():
@@ -475,51 +518,78 @@ def main(ibs):
         tblname2_functype2_func_list[tablename] = functype2_func_list
 
     # --- POSTPROCESSING ---
+    func_name_list = []
+    func_type_list = []
+    func_code_list = []
+    func_tbl_list = []
+
     functype_set = set([])
-    for tblname, val in six.iteritems(tblname2_functype2_func_list):
-        for functype in six.iterkeys(val):
-            functype_set.add(functype)
+    for tblname, functype2_funclist in six.iteritems(tblname2_functype2_func_list):
+        for functype, funclist in six.iteritems(functype2_funclist):
+            for func_tup in funclist:
+                func_name, func_code = func_tup
+                # Append code to flat lists
+                func_tbl_list.append(tblname)
+                func_type_list.append(functype)
+                func_name_list.append(func_name)
+                func_code_list.append(func_code)
+
+    # sort by multiple values
+    #sorted_indexes = ut.list_argsort(func_tbl_list, func_name_list, func_type_list)
+    sorted_indexes = ut.list_argsort(func_name_list, func_tbl_list, func_type_list)
+    sorted_func_code = ut.list_take(func_code_list, sorted_indexes)
+    sorted_func_name = ut.list_take(func_name_list, sorted_indexes)
+    sorted_func_type = ut.list_take(func_type_list, sorted_indexes)
+    sorted_func_tbl = ut.list_take(func_tbl_list, sorted_indexes)
+
+    functype_set.add(functype)
     functype_list = sorted(list(functype_set))
+
+    body_codeblocks = []
+    for func_code in sorted_func_code:
+        body_codeblocks.append(func_code)
+    ## Append functions to body
+    #seen = set([])
+    #for count1, functype in enumerate(functype_list):
+    #    functype_codeblocks = []
+    #    if USE_FUNCTYPE_HEADERS:
+    #        functype_section_header = ut.codeblock(
+    #            '''
+    #            # =========================
+    #            # {FUNCTYPE} METHODS
+    #            # =========================
+    #            '''
+    #        ).format(FUNCTYPE=functype.upper())
+    #        functype_codeblocks.append(functype_section_header)
+    #    for count, item in enumerate(six.iteritems(tblname2_functype2_func_list)):
+    #        tblname, val = item
+    #        #functype_table_section_header = ut.codeblock(
+    #        #    '''
+    #        #    #
+    #        #    # {functype} tablename='{tblname}'
+    #        #    '''
+    #        #).format(functype=functype, tblname=tblname)
+    #        #functype_codeblocks.append(functype_table_section_header)
+    #        for func_tup in val[functype]:
+    #            func_name, func_code = func_tup
+    #            if func_code in seen:
+    #                continue
+    #            seen.add(func_code)
+    #            functype_codeblocks.append(func_code)
+    #    body_codeblocks.extend(functype_codeblocks)
+
+    # --- MORE POSTPROCESSING ---
 
     # Append constants to body
     aligned_constants = '\n'.join(ut.align_lines(sorted(list(set(constant_list_)))))
     autogen_constants = ('# AUTOGENED CONSTANTS:\n' + aligned_constants)
-
-    body_codeblocks = []
-    # Append functions to body
-    seen = set([])
-    for count1, functype in enumerate(functype_list):
-        functype_codeblocks = []
-        if USE_FUNCTYPE_HEADERS:
-            functype_section_header = ut.codeblock(
-                '''
-                # =========================
-                # {FUNCTYPE} METHODS
-                # =========================
-                '''
-            ).format(FUNCTYPE=functype.upper())
-            functype_codeblocks.append(functype_section_header)
-        for count, item in enumerate(six.iteritems(tblname2_functype2_func_list)):
-            tblname, val = item
-            #functype_table_section_header = ut.codeblock(
-            #    '''
-            #    #
-            #    # {functype} tablename='{tblname}'
-            #    '''
-            #).format(functype=functype, tblname=tblname)
-            #functype_codeblocks.append(functype_table_section_header)
-            for func_codeblock in val[functype]:
-                if func_codeblock in seen:
-                    continue
-                seen.add(func_codeblock)
-                functype_codeblocks.append(func_codeblock)
-        body_codeblocks.extend(functype_codeblocks)
 
     # Make main docstr
     #testable_name_list = ['get_annot_featweight_rowids']
 
     main_docstr_body = make_doctest_main(autogen_rel_fpath)
 
+    # --- CONCAT ---
     # Contenate autogen parts into autogen_text
 
     autogen_header = remove_sentinals(Tdef.Theader_ibeiscontrol.format(timestamp=ut.get_timestamp('printable')))
@@ -540,11 +610,11 @@ def main(ibs):
     ])
 
     # POSTPROCESSING HACKS:
-    autogen_text = autogen_text.replace('\'feat_rowid\'', '\'feature_rowid\'')
-    autogen_text = ut.regex_replace(r'kptss', 'kpt_lists', autogen_text)
-    autogen_text = ut.regex_replace(r'vecss', 'vec_lists', autogen_text)
-    autogen_text = ut.regex_replace(r'nFeatss', 'nFeat_list', autogen_text)
-    autogen_text = autogen_text.replace('\'feat_rowid\'', '\'feature_rowid\'')
+    #autogen_text = autogen_text.replace('\'feat_rowid\'', '\'feature_rowid\'')
+    #autogen_text = ut.regex_replace(r'kptss', 'kpt_lists', autogen_text)
+    #autogen_text = ut.regex_replace(r'vecss', 'vec_lists', autogen_text)
+    #autogen_text = ut.regex_replace(r'nFeatss', 'nFeat_list', autogen_text)
+    #autogen_text = autogen_text.replace('\'feat_rowid\'', '\'feature_rowid\'')
 
     if ut.get_flag('--dump-autogen-controller'):
         ut.write_to(autogen_fpath, autogen_text)

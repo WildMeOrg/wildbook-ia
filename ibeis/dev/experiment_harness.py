@@ -47,7 +47,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> from ibeis.dev.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaids = ibs.get_valid_aids()[0:15]
+        >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
 
@@ -57,7 +57,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> ibs.cfg.query_cfg.codename = 'vsone'
-        >>> qaids = ibs.get_valid_aids()[0:15]
+        >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
     """
@@ -183,4 +183,14 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
 
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)"
+        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)"
+        python ibeis/dev/experiment_harness.py
+        python ibeis/dev/experiment_harness.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
     ut.doctest_funcs()
