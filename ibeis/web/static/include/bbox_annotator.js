@@ -281,6 +281,13 @@
         return true;
       });
       $("body").keydown(function(e) {
+        if(e.which === 27)
+        {
+          // Esc
+          annotator.adding = false;
+          annotator.editing = false;
+        }
+        
         switch (status) {
           case 'hold':
             if (e.which === 27) {

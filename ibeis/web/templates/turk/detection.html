@@ -45,11 +45,11 @@
               A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.  
             </li>
             <li>
-              An annotation can be deleted by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span>
-              button in the top right corner of the annotation.  Annotations that are deleted cannot be recovered.  If an annotation is deleted by accident, refresh the screen to get a new image to review or re-add the annotation by selecting a new bounding box around the animal.   
+              You can <b>always</b> add a new annotation by <b>double clicking</b>.  This is particularly helpful when adding an annotation on top (inside) of a current annotation.
               <br/>
               <i>For example:</i>
             </li>
+<!--
             <div class="row">
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px;">
@@ -66,16 +66,20 @@
               </div>
               <div class="col-lg-2"></div>
             </div>
-            <div class="row">
-              <div class="col-lg-2"></div>
-              <div class="col-lg-8" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>This image has two (one correct and one incorrect) annotations and the incorrect annotation should be deleted.  Once the incorrect annotation has been deleted, the image can be saved up clicking Accept.</p>
-              </div>
-              <div class="col-lg-2"></div>
-            </div>
+-->
+            <li>When an annotation is highlighted (by hovering the mouse cursor over the annotation), the bounding box will turn orange and the following actions will become available:
+              <ul>
+                <li><u>Translation</u> - by dragging the mouse an annotation can be moved.  An annotation can also be moved (when highlighted) by using the arrow keys on the keyboard.  When using the arrow keys, an annotation will be moved 1 pixel at a time.  When the <b>Shift</b> key is held, the annotation is moved 10 pixels at a time.</li>
+                <li><u>Scaling</u> - by dragging one of the 8 anchors an annotation can be resized.  If the <b>Shift</b> key is held, the annotation's aspect ratio is preserved.</li>
+                <li><u>Rotation</u> - by dragging on the <div class="ui-widget-content annotated_bounding_box ui-resizable ui-draggable ui-draggable-handle annotated_bounding_box_active" style="width: 16px; display: inline-block; border:none;"><div class="ui-rotatable-handle ui-draggable" style="display: block; margin-left: -6px; top: -10px;"></div></div> rotation anchor an annotation can be rotated.  If the <b>Shift</b> key is held, the annotation's angle is constrained to increments of 45 degrees.</li>
+                <li><u>Deletion</u> - by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span> button an annotation can be deleted.  An annotation can also be deleted (when highlighted) by hitting the <b>Esc</b> key.</li>
+                <li><u>Send to Back</u> - when an annotation is highlighted, pressing the <b>b</b> key will send the annotation to the "back".  This is useful (or required) when a large annotation is covering a smaller annotation and makes highlighting the smaller annotation difficult (or impossible).</li>
+              </ul>
+              <br/>
+            </li>
             <li><b>It is vitally important that only animals that belong to the species are annotated - at the top of every image, the species will be specified.</b></li>
             <li>Always annotate the animals regardless of viewpoint.</li>
+            <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
             <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
             <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
           </ul>
