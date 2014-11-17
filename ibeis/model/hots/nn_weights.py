@@ -56,7 +56,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> #tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
-        >>> dbname = 'GZ_ALL'  # 'testdb1'
+        >>> dbname = 'testdb1'  # 'GZ_ALL'  # 'testdb1'
         >>> cfgdict = dict(K=10, Knorm=10, codename='nsum')
         >>> tup = nn_weights.testdata_nn_weights(dbname, cfgdict=cfgdict)
         >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
