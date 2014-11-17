@@ -57,6 +57,7 @@
 <span class="c"># UTool</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="c"># VTool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
 <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
@@ -88,6 +89,7 @@
     <span class="sd">r&quot;&quot;&quot; Returns detectimg path list</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_detectimg import *  # NOQA</span>
@@ -96,13 +98,10 @@
 <span class="sd">        &gt;&gt;&gt; gid_list = valid_gids[0:2]</span>
 <span class="sd">        &gt;&gt;&gt; new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;\n&#39;.join(map(basename, new_gfpath_list)))</span>
-<span class="sd">        &gt;&gt;&gt; target = utool.codeblock(</span>
-<span class="sd">        ...     &#39;&#39;&#39;</span>
-<span class="sd">                reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg</span>
-<span class="sd">                reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg</span>
-<span class="sd">                &#39;&#39;&#39;</span>
-<span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; assert result == target</span>
+<span class="sd">        &gt;&gt;&gt; target = &#39;\n&#39;.join((</span>
+<span class="sd">        ...    &#39;reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg&#39;,</span>
+<span class="sd">        ...    &#39;reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; assert result == target, &#39;got result=\n%s&#39; % result</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s">&#39;gid_list&#39;</span><span class="p">)</span>
@@ -119,6 +118,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_detectimg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
@@ -152,6 +152,7 @@
 <span class="sd">    in the SQL database</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_detectimg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
@@ -159,7 +160,7 @@
 <span class="sd">        &gt;&gt;&gt; gid_list = valid_gids[0:2]</span>
 <span class="sd">        &gt;&gt;&gt; result = compute_and_write_detectimg_lazy(ibs, gid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc] compute_and_write_detectimg_lazy&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] compute_and_write_detectimg_lazy&#39;</span><span class="p">)</span>
     <span class="c"># Mark which aid&#39;s need their detectimg computed</span>
     <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gfpath</span> <span class="ow">in</span> <span class="n">new_gfpath_list</span><span class="p">]</span>
@@ -167,7 +168,17 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> detectimgs need to be computed&#39;</span> <span class="o">%</span>
           <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
     <span class="n">compute_and_write_detectimg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_gids</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">new_gfpath_list</span></div>
+    <span class="k">return</span> <span class="n">new_gfpath_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py</span>
+<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py --allexamples</span>
+<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

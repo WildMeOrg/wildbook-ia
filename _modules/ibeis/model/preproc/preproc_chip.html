@@ -51,59 +51,36 @@
             
   <h1>Source code for ibeis.model.preproc.preproc_chip</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd"># DOCTEST ENABLED</span>
-<span class="sd">DoctestCMD:</span>
-<span class="sd">    python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_chip))&quot; --quiet</span>
+<span class="sd">Preprocess Chips</span>
+
+<span class="sd">Extracts annotation chips from imaages and applies optional image</span>
+<span class="sd">normalizations.</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    * Have controller delete cached chip_fpath if there is a cache miss.</span>
+<span class="sd">    * Implemented funcs based on custom qparams in non None `qreq_` objects</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="c"># UTool</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-<span class="c"># VTool</span>
 <span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
 <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_chip]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-
-
-<span class="c"># TODO: Move to controller:</span>
-<div class="viewcode-block" id="get_probchip_cachedir"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.get_probchip_cachedir">[docs]</a><span class="k">def</span> <span class="nf">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;probchip&#39;</span><span class="p">)</span>
 
 
 <span class="c">#-------------</span>
 <span class="c"># Chip reading</span>
 <span class="c">#-------------</span>
 
-
-<span class="c">#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfgstrs first</span></div>
-<span class="nd">@utool.indent_func</span>
 <div class="viewcode-block" id="compute_or_read_annotation_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips">[docs]</a><span class="k">def</span> <span class="nf">compute_or_read_annotation_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Reads chips and tries to compute them if they do not exist</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):</span>
-<span class="sd">        aid_list (list):</span>
-<span class="sd">        ensure (bool):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        chip_list</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.test_setup_preproc_chip()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#print(&#39;[preproc_chip] compute_or_read_chips&#39;)</span>
     <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;aid_list&#39;</span><span class="p">])</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;aid_list&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
     <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">get_annot_cfpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -112,13 +89,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[preproc_chip] Handing Exception: &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[preproc_chip] Handing Exception: &#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">add_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] cache must have been deleted from disk&#39;</span><span class="p">)</span>
+            <span class="c"># TODO: WE CAN SEARCH FOR NON EXISTANT PATHS HERE AND CALL</span>
+            <span class="c"># ibs.delete_annot_chips</span>
             <span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
             <span class="c"># Try just one more time</span>
             <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
@@ -126,9 +105,9 @@
     <span class="k">return</span> <span class="n">chip_list</span>
 
 </div>
-<span class="nd">@utool.indent_func</span>
-<div class="viewcode-block" id="add_chips_params_gen"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.add_chips_params_gen">[docs]</a><span class="k">def</span> <span class="nf">add_chips_params_gen</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Computes parameters for SQLController</span>
+<span class="nd">@ut.indent_func</span>
+<div class="viewcode-block" id="add_chips_params_gen"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.add_chips_params_gen">[docs]</a><span class="k">def</span> <span class="nf">add_chips_params_gen</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes parameters for SQLController</span>
 
 <span class="sd">    computes chips if they do not exist.</span>
 <span class="sd">    generates values for add_chips sqlcommands</span>
@@ -136,35 +115,44 @@
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
 <span class="sd">        aid_list (list):</span>
+<span class="sd">        qreq_ (QueryRequest):</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.test_setup_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; params_iter = add_chips_params_gen(ibs, aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; params_list = list(params_iter)</span>
+<span class="sd">        &gt;&gt;&gt; (aid, chip_config_rowid, cfpath, width, height,) = params_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; fname = basename(cfpath)</span>
+<span class="sd">        &gt;&gt;&gt; fname_ = ut.regex_replace(&#39;auuid=.*_CHIP&#39;, &#39;auuid={uuid}_CHIP&#39;, fname)</span>
+<span class="sd">        &gt;&gt;&gt; result = (fname_, width, height)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (&#39;chip_aid=1_auuid={uuid}_CHIP(sz450).png&#39;, 545, 372)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="c"># THIS DOESNT ACTUALLY COMPUTE ANYTHING!!!</span>
         <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">get_annot_cfpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
         <span class="n">chip_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_config_rowid</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">cfpath</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
             <span class="n">pil_chip</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">open_pil_image</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span>
             <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">pil_chip</span><span class="o">.</span><span class="n">size</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Yeild Chip Param: aid=</span><span class="si">%r</span><span class="s">, cpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">cfpath</span><span class="p">))</span>
-            <span class="k">yield</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">chip_config_rowid</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">chip_config_rowid</span><span class="p">,</span> <span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,)</span>
     <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ERROR IN PREPROC CHIPS&#39;</span><span class="p">)</span>
-
-
-<span class="c">#--------------</span>
-<span class="c"># Chip deleters</span>
-<span class="c">#--------------</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ERROR IN PREPROC CHIPS&#39;</span><span class="p">)</span>
 
 </div>
-<span class="nd">@utool.indent_func</span>
-<div class="viewcode-block" id="delete_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.delete_chips">[docs]</a><span class="k">def</span> <span class="nf">delete_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Removes chips from disk (does not remove from SQLController)</span>
+<span class="nd">@ut.indent_func</span>
+<div class="viewcode-block" id="delete_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.delete_chips">[docs]</a><span class="k">def</span> <span class="nf">delete_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    Removes chips from disk (does not remove from SQLController)</span>
 <span class="sd">    this action must be performed by you.</span>
 
 <span class="sd">    Args:</span>
@@ -175,7 +163,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.test_setup_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; compute_and_write_chips_lazy(ibs, aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=True)</span>
 <span class="sd">        &gt;&gt;&gt; print(set(cid_list))</span>
@@ -183,21 +171,171 @@
 <span class="sd">        &gt;&gt;&gt; ibs.delete_chips(cid_list)</span>
 <span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: Fixme, depends on current algo config</span>
-    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c">#  ^^ OLD FUNCS ^^</span>
+</div>
+<div class="viewcode-block" id="compute_or_read_chip_images"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_or_read_chip_images">[docs]</a><span class="k">def</span> <span class="nf">compute_or_read_chip_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads chips and tries to compute them if they do not exist</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        cid_list (list):</span>
+<span class="sd">        ensure (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        chip_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [1434, 2274, 12]</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; # Do a bad thing. Remove from disk without removing from sql</span>
+<span class="sd">        &gt;&gt;&gt; preproc_chip.on_delete(ibs, cid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Now compute_or_read_chip_images should catch the bad thing</span>
+<span class="sd">        &gt;&gt;&gt; # we did and correct for it.</span>
+<span class="sd">        &gt;&gt;&gt; chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [1434, 2274, 12]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cid_list&#39;</span><span class="p">])</span>
+                <span class="k">raise</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[preproc_chip] Handing Exception: &#39;</span><span class="p">)</span>
+        <span class="c"># Remove bad annotations from the sql database</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_aids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+        <span class="n">valid_list</span>    <span class="o">=</span> <span class="p">[</span><span class="n">cid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">cid_list</span><span class="p">]</span>
+        <span class="n">valid_aids</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+        <span class="n">valid_cfpaths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+        <span class="n">bad_aids</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">valid_cfpaths</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">bad_aids</span><span class="p">)</span>
+        <span class="c"># Try readding things</span>
+        <span class="n">new_cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">new_cid_list</span><span class="p">)</span>
+        <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">chip_list</span>
+
+</div>
+<div class="viewcode-block" id="generate_chip_properties"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.generate_chip_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_chip_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes parameters for SQLController</span>
+
+<span class="sd">    computes chips if they do not exist.</span>
+<span class="sd">    generates values for add_chips sqlcommands</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        aid_list (list):</span>
+<span class="sd">        qreq_ (QueryRequest):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; params_iter = generate_chip_properties(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; params_list = list(params_iter)</span>
+<span class="sd">        &gt;&gt;&gt; (cfpath, width, height,) = params_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; fname = basename(cfpath)</span>
+<span class="sd">        &gt;&gt;&gt; fname_ = ut.regex_replace(&#39;auuid=.*_CHIP&#39;, &#39;auuid={uuid}_CHIP&#39;, fname)</span>
+<span class="sd">        &gt;&gt;&gt; result = (fname_, width, height)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (&#39;chip_aid=1_auuid={uuid}_CHIP(sz450).png&#39;, 545, 372)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># the old function didn&#39;t even call this</span>
+        <span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">get_annot_cfpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+        <span class="c">#chip_config_rowid = ibs.get_chip_config_rowid()</span>
+        <span class="k">for</span> <span class="n">cfpath</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+            <span class="n">pil_chip</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">open_pil_image</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">pil_chip</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Yeild Chip Param: aid=</span><span class="si">%r</span><span class="s">, cpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">cfpath</span><span class="p">))</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,)</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ERROR IN PREPROC CHIPS&#39;</span><span class="p">)</span>
+
+
+<span class="c">#--------------</span>
+<span class="c"># Chip deleters</span>
+<span class="c">#--------------</span>
+</div>
+<div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cleans up chips on disk.  Called on delete from sql controller.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; compute_and_write_chips_lazy(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(ut.filter_Nones(cid_list)) == len(cid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Run test function</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; strict = True</span>
+<span class="sd">        &gt;&gt;&gt; nRemoved1 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)</span>
+<span class="sd">        &gt;&gt;&gt; assert nRemoved1 == len(cid_list), &#39;nRemoved=%r, target=%r&#39; % (nRemoved1,  len(cid_list))</span>
+<span class="sd">        &gt;&gt;&gt; nRemoved2 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)</span>
+<span class="sd">        &gt;&gt;&gt; assert nRemoved2 == 0, &#39;nRemoved=%r&#39; % (nRemoved2,)</span>
+<span class="sd">        &gt;&gt;&gt; # We have done a bad thing at this point. SQL still thinks chips exist</span>
+<span class="sd">        &gt;&gt;&gt; cid_list2 = ibs.get_annot_cids(aid_list, ensure=False)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_chips(cid_list2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">cid_list_</span><span class="p">)</span>
+    <span class="n">exists_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">chip_fpath_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] deleting </span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
-    <span class="n">needs_delete</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">chip_fpath_list</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] </span><span class="si">%d</span><span class="s"> exist and need to be deleted&#39;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">needs_delete</span><span class="p">))</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">ifilter_items</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">needs_delete</span><span class="p">):</span>
+        <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+        <span class="n">nValid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list_</span><span class="p">)</span>
+        <span class="n">nExist</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">exists_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip.on_delete] requesting delete of </span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTotal</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">nValid</span> <span class="o">!=</span> <span class="n">nTotal</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip.on_delete] trying to delete </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> non None chips &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nValid</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip.on_delete] </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> exist and need to be deleted&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nExist</span><span class="p">,</span> <span class="n">nValid</span><span class="p">))</span>
+    <span class="n">nRemoved</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">existing_cfpath_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ifilter_items</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">exists_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">existing_cfpath_iter</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span>
-            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">nRemoved</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] cannot remove: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">cfpath</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] deleted </span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip.on_delete] !!! cannot remove: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">cfpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+                <span class="k">raise</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] sucesfully deleted </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nRemoved</span><span class="p">,</span> <span class="n">nExist</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">nRemoved</span>
 
 
 <span class="c">#---------------</span>
@@ -206,7 +344,7 @@
 
 </div>
 <div class="viewcode-block" id="get_chip_fname_fmt"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.get_chip_fname_fmt">[docs]</a><span class="k">def</span> <span class="nf">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns format of chip file names</span>
+    <span class="sd">r&quot;&quot;&quot;Returns format of chip file names</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
@@ -215,14 +353,15 @@
 <span class="sd">        cfname_fmt</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST ENABLED</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.test_setup_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; cfname_fmt = get_chip_fname_fmt(ibs)</span>
-<span class="sd">        &gt;&gt;&gt; assert cfname_fmt == &#39;chip_auuid_%s_CHIP(sz450).png&#39;, cfname_fmt</span>
-<span class="sd">        &gt;&gt;&gt; print(cfname_fmt)</span>
-<span class="sd">        chip_auuid_%s_CHIP(sz450).png</span>
+<span class="sd">        &gt;&gt;&gt; assert cfname_fmt == &#39;chip_aid=%d_auuid=%s_CHIP(sz450).png&#39;, cfname_fmt</span>
+<span class="sd">        &gt;&gt;&gt; result = cfname_fmt</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        chip_aid=%d_auuid=%s_CHIP(sz450).png</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">chip_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>   <span class="c"># algo settings cfgstr</span>
     <span class="n">chip_ext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="p">[</span><span class="s">&#39;chipfmt&#39;</span><span class="p">]</span>  <span class="c"># png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)</span>
@@ -230,43 +369,14 @@
     <span class="c"># Chip filenames are a function of annotation_rowid and cfgstr</span>
     <span class="c"># TODO: Use annot uuids, use verts info as well</span>
     <span class="c">#cfname_fmt = (&#39;aid_%d&#39; + suffix)</span>
-    <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;chip_auuid_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="p">,</span> <span class="n">suffix</span><span class="p">])</span>
+    <span class="c">#cfname_fmt = &#39;&#39;.join([&#39;chip_auuid_%s&#39; , suffix])</span>
+    <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;chip_aid=</span><span class="si">%d</span><span class="s">_auuid=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="p">,</span> <span class="n">suffix</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">cfname_fmt</span>
 
 </div>
-<div class="viewcode-block" id="get_probchip_fname_fmt"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.get_probchip_fname_fmt">[docs]</a><span class="k">def</span> <span class="nf">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns format of probability chip file names</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):</span>
-<span class="sd">        suffix (None):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        probchip_fname_fmt</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST ENABLED</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.test_setup_preproc_chip()</span>
-<span class="sd">        &gt;&gt;&gt; probchip_fname_fmt = get_probchip_fname_fmt(ibs)</span>
-<span class="sd">        &gt;&gt;&gt; assert probchip_fname_fmt == &#39;probchip_auuid_%s_CHIP(sz450)_DETECT(rf,zebra_grevys).png&#39;, probchip_fname_fmt</span>
-<span class="sd">        &gt;&gt;&gt; print(probchip_fname_fmt)</span>
-<span class="sd">        probchip_auuid_%s_CHIP(sz450)_DETECT(rf,zebra_grevys).png</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="n">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-
-    <span class="n">probchip_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>   <span class="c"># algo settings cfgstr</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="n">probchip_cfgstr</span>
-    <span class="n">fname_noext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">cfname_fmt</span><span class="p">)</span>
-    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;prob&#39;</span><span class="p">,</span> <span class="n">fname_noext</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">ext</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">probchip_fname_fmt</span>
-
-</div>
 <div class="viewcode-block" id="get_annot_cfpath_list"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.get_annot_cfpath_list">[docs]</a><span class="k">def</span> <span class="nf">get_annot_cfpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Build chip file paths based on the current IBEIS configuration</span>
-
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Build chip file paths based on the current IBEIS configuration</span>
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
 <span class="sd">        aid_list (list):</span>
@@ -276,49 +386,30 @@
 <span class="sd">        cfpath_list</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = test_setup_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = testdata_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = aid_list[0:1]</span>
 <span class="sd">        &gt;&gt;&gt; cfpath_list = get_annot_cfpath_list(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; fname = &#39;\n&#39;.join(map(basename, cfpath_list))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.regex_replace(&#39;auuid=.*_CHIP&#39;, &#39;auuid={uuid}_CHIP&#39;, fname)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        chip_aid=1_auuid={uuid}_CHIP(sz450).png</span>
 
+<span class="sd">    chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: Use annot uuids, use verts info as well</span>
-    <span class="c">#utool.assert_all_not_None(aid_list, &#39;aid_list&#39;)</span>
+    <span class="c">#ut.assert_all_not_None(aid_list, &#39;aid_list&#39;)</span>
     <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="n">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="c">#cfname_iter = (None if aid is None else cfname_fmt % aid for aid in iter(aid_list))</span>
-    <span class="n">cfname_iter</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">auuid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfname_fmt</span> <span class="o">%</span> <span class="n">auuid</span> <span class="k">for</span> <span class="n">auuid</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span><span class="p">)</span>
-    <span class="n">cfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">,</span> <span class="n">cfname</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfname</span> <span class="ow">in</span> <span class="n">cfname_iter</span><span class="p">]</span>
+    <span class="c">#cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)</span>
+    <span class="n">cfname_iter</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">auuid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfname_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">auuid</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">auuid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">))</span>
+    <span class="n">cfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">,</span> <span class="n">cfname</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">cfname</span> <span class="ow">in</span> <span class="n">cfname_iter</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cfpath_list</span>
-
-</div>
-<div class="viewcode-block" id="get_annot_probchip_fpath_list"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.get_annot_probchip_fpath_list">[docs]</a><span class="k">def</span> <span class="nf">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Build probability chip file paths based on the current IBEIS configuration</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):</span>
-<span class="sd">        aid_list (list):</span>
-<span class="sd">        suffix (None):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        probchip_fpath_list</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = test_setup_preproc_chip()</span>
-<span class="sd">        &gt;&gt;&gt; probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(probchip_fpath_list[1])</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">ibs</span><span class="o">.</span><span class="n">probchipdir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="n">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">probchip_fname_iter</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">auuid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">probchip_fname_fmt</span> <span class="o">%</span> <span class="n">auuid</span>
-                           <span class="k">for</span> <span class="n">auuid</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span><span class="p">)</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-                           <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">probchip_fname_iter</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">probchip_fpath_list</span>
 
 
 <span class="c">#---------------</span>
@@ -328,7 +419,7 @@
 
 <span class="c"># Parallelizable Worker</span></div>
 <div class="viewcode-block" id="gen_chip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.gen_chip">[docs]</a><span class="k">def</span> <span class="nf">gen_chip</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Parallel worker. Crops chip out of an image, applies filters, etc</span>
+    <span class="sd">&quot;&quot;&quot;Parallel worker. Crops chip out of an image, applies filters, etc</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        tup (tuple): (cfpath, gfpath, bbox, theta, new_size, filter_list)</span>
@@ -346,24 +437,25 @@
     <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">chipBGR</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfpath</span>
 
-</div>
-<span class="nd">@utool.indent_func</span>
+
+<span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="compute_and_write_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_and_write_chips">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Spawns compute compute chip processess.</span>
+    <span class="sd">&quot;&quot;&quot;Spawns compute compute chip processess.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
 <span class="sd">        aid_list (list):</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = test_setup_preproc_chip()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; ibs.delete_annot_chips(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list, ensure=False)</span>
 <span class="sd">        &gt;&gt;&gt; compute_and_write_chips(ibs, aid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">)</span>
     <span class="c"># Get chip configuration information</span>
     <span class="n">chip_sqrt_area</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="p">[</span><span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">]</span>
     <span class="n">filter_list</span> <span class="o">=</span> <span class="n">ctool</span><span class="o">.</span><span class="n">get_filter_list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
@@ -392,20 +484,20 @@
     <span class="n">arg_prepend_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span>
                             <span class="n">newsize_list</span><span class="p">,</span> <span class="n">filtlist_iter</span><span class="p">)</span>
     <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_prepend_iter</span><span class="p">)</span>
-    <span class="n">chip_async_iter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_chip</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+    <span class="n">chip_async_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_chip</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computing </span><span class="si">%d</span><span class="s"> chips asynchronously&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">)))</span>
     <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">chip_async_iter</span><span class="p">:</span>
         <span class="c">#print(&#39;Wrote chip: %r&#39; % cfpath)</span>
         <span class="k">pass</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Done computing chips&#39;</span><span class="p">)</span>
     <span class="c">#ut.print_traceback()</span>
 
-</div>
-<span class="nd">@utool.indent_func</span>
-<div class="viewcode-block" id="compute_and_write_chips_lazy"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_and_write_chips_lazy">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Spanws compute chip procesess if a chip does not exist on disk</span>
+
+<span class="c">#@ut.indent_func</span></div>
+<div class="viewcode-block" id="compute_and_write_chips_lazy"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_and_write_chips_lazy">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spanws compute chip procesess if a chip does not exist on disk</span>
 
 <span class="sd">    This is regardless of if it exists in the SQL database</span>
 
@@ -414,66 +506,45 @@
 <span class="sd">        aid_list (list):</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; ibs, aid_list = test_setup_preproc_chip()</span>
-
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = testdata_preproc_chip()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] compute_and_write_chips_lazy&#39;</span><span class="p">)</span>
     <span class="c"># Mark which aid&#39;s need their chips computed</span>
     <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">get_annot_cfpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
-    <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+    <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> chips need to be computed&#39;</span> <span class="o">%</span>
           <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
     <span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_aids</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="compute_and_write_probchip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_and_write_probchip">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Computes probability chips using pyrf</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Get probchip dest information (output path)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
-    <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span>
-    <span class="n">use_chunks</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_use_chunks</span>
-    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-
-    <span class="c"># Needs probability chips</span>
-    <span class="n">dirty_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">)))</span>
-    <span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dirty_aids</span><span class="p">)</span>
-
-    <span class="c">#ibs.delete_annot_chips(aid_list)</span>
-    <span class="c">#probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</span>
-
-    <span class="c"># Get img configuration information</span>
-    <span class="c"># Get img source information (image, annotation_bbox, theta)</span>
-    <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_cpaths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="c"># Define &quot;Asynchronous&quot; generator</span>
-    <span class="n">randomforest</span><span class="o">.</span><span class="n">compute_probability_images</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">)</span>
-    <span class="c"># Fix stupid bug in pyrf</span>
-    <span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">probchip_fpath_list_</span>
+    <span class="k">return</span> <span class="n">cfpath_list</span>
 
 
 <span class="c">#-------------</span>
 <span class="c"># Testing</span>
 <span class="c">#-------------</span>
 </div>
-<div class="viewcode-block" id="test_setup_preproc_chip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.test_setup_preproc_chip">[docs]</a><span class="k">def</span> <span class="nf">test_setup_preproc_chip</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; testdata function &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="testdata_preproc_chip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.testdata_preproc_chip">[docs]</a><span class="k">def</span> <span class="nf">testdata_preproc_chip</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;testdata function &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span></div>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">::</span><span class="mi">4</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip)&quot;</span>
+<span class="sd">        python ibeis/model/preproc/preproc_chip.py</span>
+<span class="sd">        python ibeis/model/preproc/preproc_chip.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

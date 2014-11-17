@@ -65,7 +65,7 @@
     <span class="n">flann</span>      <span class="o">=</span> <span class="s">&#39;flann&#39;</span>
     <span class="n">images</span>     <span class="o">=</span> <span class="s">&#39;images&#39;</span>
     <span class="n">qres</span>       <span class="o">=</span> <span class="s">&#39;qres&#39;</span>
-    <span class="n">bigcache</span>   <span class="o">=</span> <span class="s">&#39;bigcache&#39;</span>
+    <span class="n">bigcache</span>   <span class="o">=</span> <span class="s">&#39;qres_bigcache&#39;</span>
     <span class="n">detectimg</span>  <span class="o">=</span> <span class="s">&#39;detectimg&#39;</span>
     <span class="n">thumbs</span>     <span class="o">=</span> <span class="s">&#39;thumbs&#39;</span>
     <span class="n">trashdir</span>   <span class="o">=</span> <span class="s">&#39;trashed_images&#39;</span>
@@ -86,6 +86,8 @@
     <span class="n">SPECIES_KEY</span>    <span class="p">:</span> <span class="s">&#39;____&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
+<span class="c"># &lt;UNFINISHED METADATA&gt;</span>
+<span class="c"># We are letting wildbook do this metadata instead</span>
 <span class="c"># Define the special metadata for annotation</span>
 
 <span class="n">ROSEMARY_ANNOT_METADATA</span> <span class="o">=</span> <span class="p">[</span>
@@ -104,6 +106,7 @@
 
 <span class="c">#ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)</span>
 <span class="c">#KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})</span>
+<span class="c"># &lt;/UNFINISHED METADATA&gt;</span>
 
 <span class="n">BASE_DATABASE_VERSION</span> <span class="o">=</span> <span class="s">&#39;0.0.0&#39;</span>
 
@@ -155,26 +158,27 @@
 
 
 <div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">ZEB_PLAIN</span>    <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
-    <span class="n">ZEB_GREVY</span>    <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
-    <span class="n">GIRAFFE</span>      <span class="o">=</span> <span class="s">&#39;giraffe&#39;</span>
-    <span class="n">ELEPHANT_SAV</span> <span class="o">=</span> <span class="s">&#39;elephant_savanna&#39;</span>
-    <span class="n">JAG</span>          <span class="o">=</span> <span class="s">&#39;jaguar&#39;</span>
-    <span class="n">LEOPARD</span>      <span class="o">=</span> <span class="s">&#39;leopard&#39;</span>
-    <span class="n">LION</span>         <span class="o">=</span> <span class="s">&#39;lion&#39;</span>
-    <span class="n">WILDDOG</span>      <span class="o">=</span> <span class="s">&#39;wild_dog&#39;</span>
-    <span class="n">WHALESHARK</span>   <span class="o">=</span> <span class="s">&#39;whale_shark&#39;</span>
-    <span class="n">SNAILS</span>       <span class="o">=</span> <span class="s">&#39;snails&#39;</span>
-    <span class="n">SEALS</span>        <span class="o">=</span> <span class="s">&#39;seals_spotted&#39;</span>
-    <span class="n">POLAR_BEAR</span>   <span class="o">=</span> <span class="s">&#39;bear_polar&#39;</span>
-    <span class="n">FROGS</span>        <span class="o">=</span> <span class="s">&#39;frogs&#39;</span>
-    <span class="n">LIONFISH</span>     <span class="o">=</span> <span class="s">&#39;lionfish&#39;</span>
-    <span class="n">WYTOADS</span>      <span class="o">=</span> <span class="s">&#39;toads_wyoming&#39;</span>
-    <span class="n">RHINO_BLACK</span>  <span class="o">=</span> <span class="s">&#39;rhino_black&#39;</span>
-    <span class="n">RHINO_WHITE</span>  <span class="o">=</span> <span class="s">&#39;rhino_white&#39;</span>
-    <span class="n">WILDEBEEST</span>   <span class="o">=</span> <span class="s">&#39;wildebeest&#39;</span>
+    <span class="n">ZEB_PLAIN</span>     <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+    <span class="n">ZEB_GREVY</span>     <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
+    <span class="n">GIRAFFE</span>       <span class="o">=</span> <span class="s">&#39;giraffe&#39;</span>
+    <span class="n">ELEPHANT_SAV</span>  <span class="o">=</span> <span class="s">&#39;elephant_savanna&#39;</span>
+    <span class="n">JAG</span>           <span class="o">=</span> <span class="s">&#39;jaguar&#39;</span>
+    <span class="n">LEOPARD</span>       <span class="o">=</span> <span class="s">&#39;leopard&#39;</span>
+    <span class="n">LION</span>          <span class="o">=</span> <span class="s">&#39;lion&#39;</span>
+    <span class="n">WILDDOG</span>       <span class="o">=</span> <span class="s">&#39;wild_dog&#39;</span>
+    <span class="n">WHALESHARK</span>    <span class="o">=</span> <span class="s">&#39;whale_shark&#39;</span>
+    <span class="n">SNAILS</span>        <span class="o">=</span> <span class="s">&#39;snails&#39;</span>
+    <span class="n">SEALS_SPOTTED</span> <span class="o">=</span> <span class="s">&#39;seals_spotted&#39;</span>
+    <span class="n">SEALS_RINGED</span>  <span class="o">=</span> <span class="s">&#39;seals_saimma_ringed&#39;</span>
+    <span class="n">POLAR_BEAR</span>    <span class="o">=</span> <span class="s">&#39;bear_polar&#39;</span>
+    <span class="n">FROGS</span>         <span class="o">=</span> <span class="s">&#39;frogs&#39;</span>
+    <span class="n">LIONFISH</span>      <span class="o">=</span> <span class="s">&#39;lionfish&#39;</span>
+    <span class="n">WYTOADS</span>       <span class="o">=</span> <span class="s">&#39;toads_wyoming&#39;</span>
+    <span class="n">RHINO_BLACK</span>   <span class="o">=</span> <span class="s">&#39;rhino_black&#39;</span>
+    <span class="n">RHINO_WHITE</span>   <span class="o">=</span> <span class="s">&#39;rhino_white&#39;</span>
+    <span class="n">WILDEBEEST</span>    <span class="o">=</span> <span class="s">&#39;wildebeest&#39;</span>
     <span class="n">WATER_BUFFALO</span> <span class="o">=</span> <span class="s">&#39;water_buffalo&#39;</span>
-    <span class="n">UNKNOWN</span>      <span class="o">=</span> <span class="n">UNKNOWN</span>
+    <span class="n">UNKNOWN</span>       <span class="o">=</span> <span class="n">UNKNOWN</span>
 </div>
 <span class="n">SPECIES_TUPS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>    <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">),</span>
@@ -189,6 +193,8 @@
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WHALESHARK</span><span class="p">,</span>   <span class="s">&#39;Whale Shark&#39;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span><span class="p">,</span>   <span class="s">&#39;Polar Bear&#39;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDEBEEST</span><span class="p">,</span>   <span class="s">&#39;Wildebeest&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_SPOTTED</span><span class="p">,</span> <span class="s">&#39;Seal (spotted)&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span><span class="p">,</span>  <span class="s">&#39;Seal (Siamaa Ringed))&#39;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>      <span class="s">&#39;Unknown&#39;</span><span class="p">),</span>
 <span class="p">]</span>
 

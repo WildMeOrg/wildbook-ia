@@ -62,6 +62,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="c"># Tools</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c"># IBEIS</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
@@ -93,21 +94,51 @@
 <span class="sd">        qx2_bestranks</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_harness import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:15]</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_harness import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.cfg.query_cfg.codename = &#39;vsone&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:3]</span>
 <span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
 <span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Execute or load query</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="c"># Get the groundtruth that could have been matched in this experiment</span>
+    <span class="n">qx2_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daids</span><span class="p">)</span>
+    <span class="c"># Get the groundtruth ranks</span>
+    <span class="c">#</span>
+    <span class="c"># &lt;TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER&gt;</span>
+    <span class="c"># Pick a good max rank that isn&#39;t None</span>
+    <span class="c">#worst_possible_value = max(9001, len(daids) + len(qaids) + 2)</span>
+    <span class="c">#ut.embed()</span>
+    <span class="c">#qx2_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)</span>
+    <span class="c">#               for qaid, gt_aids in zip(qaids, qx2_gtaids)]</span>
+    <span class="c">#qx2_sorted_gtaids = [np.array(ut.sortedby(gt_aids, gt_ranks))</span>
+    <span class="c">#                     for gt_aids, gt_ranks in zip(qx2_gtaids, qx2_gtranks)]</span>
+    <span class="c">#qx2_sorted_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)</span>
+    <span class="c">#                      for qaid, gt_aids in zip(qaids, qx2_sorted_gtaids)]</span>
+    <span class="c">#qx2_gtaids = qx2_sorted_gtaids</span>
+    <span class="c">#qx2_gtranks = qx2_sorted_gtranks</span>
+    <span class="c"># &lt;/TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER&gt;</span>
+    <span class="c">#</span>
     <span class="c"># Compute measures</span>
-    <span class="n">gtaids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">gtaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gtaids</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">)]</span>
-    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="p">[[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_best_gt_rank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gtaids</span><span class="p">)]</span>
-                     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">gtaids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gtaids_list</span><span class="p">)]</span>
-    <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_average_percision</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gtaids</span><span class="p">)</span> <span class="k">for</span>
-                        <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">gtaids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gtaids_list</span><span class="p">)]</span>
+    <span class="c">#with ut.EmbedOnException():</span>
+    <span class="c"># qres = qaid2_qres[qaid]</span>
+    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="p">[[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_best_gt_rank</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)]</span>
+                     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">gt_aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qx2_gtaids</span><span class="p">)]</span>
+    <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_average_percision</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span> <span class="k">for</span>
+                        <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qx2_gtaids</span><span class="p">)]</span>
     <span class="c"># Compute mAP score  # TODO: use mAP score</span>
     <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qx2_avepercision</span><span class="p">)</span>
     <span class="n">mAP</span> <span class="o">=</span> <span class="n">qx2_avepercision</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">qx2_avepercision</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c"># NOQA</span>
@@ -199,7 +230,21 @@
         <span class="k">return</span>
     <span class="n">experiment_printres</span><span class="o">.</span><span class="n">print_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span>
                                       <span class="n">bestranks_list</span><span class="p">,</span> <span class="n">cfgx2_aveprecs</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">,</span>
-                                      <span class="n">sel_cols</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span></div>
+                                      <span class="n">sel_cols</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)&quot;</span>
+<span class="sd">        python ibeis/dev/experiment_harness.py</span>
+<span class="sd">        python ibeis/dev/experiment_harness.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

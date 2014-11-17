@@ -51,6 +51,7 @@
   <h1>Source code for ibeis.viz.viz_qres</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
@@ -120,19 +121,22 @@
     <span class="c"># Get any groundtruth if you are showing it</span>
     <span class="n">showgt_aids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">show_gt</span><span class="p">:</span>
+        <span class="c">#ut.embed()</span>
         <span class="c"># Get the missed groundtruth annotations</span>
+        <span class="c"># qres.daids comes from qreq_.get_external_daids()</span>
+        <span class="n">matchable_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span>
         <span class="c">#matchable_aids = ibs.get_recognition_database_aids()</span>
-        <span class="n">matchable_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
-        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">matchable_aids</span><span class="p">)</span>
+        <span class="c">#matchable_aids = list(qres.aid2_fm.keys())</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">matchable_aids</span><span class="p">)</span>
+        <span class="c"># No need to display highly ranked groundtruth. It will already show up</span>
         <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="c"># FIXME: Get only the ones that &quot;should have matched&quot;</span>
-            <span class="c"># This could be something complex or simple like (was able to be matched)</span>
+        <span class="c"># Sort missed grountruth by score</span>
+        <span class="n">_gtscores</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
+        <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_gtscores</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="c"># Hack to not show too many unmatched groundtruths</span>
-            <span class="n">_isexmp</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flag</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
-            <span class="n">_gtaids</span><span class="p">,</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_isexmp</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="c">#_isexmp = ibs.get_annot_exemplar_flag(_gtaids)</span>
+            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">_gtaids</span>
 
     <span class="k">return</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">showgt_aids</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span>
@@ -147,6 +151,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">annote_mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annote_mode&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>  <span class="c"># this is toggled</span>
     <span class="n">figtitle</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">make_figtitle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;make_figtitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">aug</span>         <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aug&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">top_aids</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
     <span class="n">gt_aids</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;gt_aids&#39;</span><span class="p">,</span>   <span class="p">[])</span>
@@ -155,6 +160,9 @@
     <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">sidebyside</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">kwargs_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">make_figtitle</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_title</span><span class="p">(</span><span class="n">pack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 

@@ -68,10 +68,102 @@
 </div>
 <span class="n">exclude_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>   <span class="c"># this line is before tests</span>
 
-<span class="n">fgweight</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+
+<span class="n">small_best</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
+    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
+    <span class="c">#&#39;xy_thresh&#39;:      [.01],  # [.002],</span>
+    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="o">.</span><span class="mo">005</span><span class="p">],</span>  <span class="c"># # [.002],</span>
+    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
+    <span class="c">#&#39;use_chip_extent&#39;: [False, True],</span>
+    <span class="s">&#39;use_chip_extent&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
+    <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
+
+    <span class="s">&#39;fg_weight&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;featweight_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
 <span class="p">}</span>
 
+
+<span class="n">nsum</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;dupvote_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">nsum_nosv</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">nsum</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">False</span><span class="p">],</span>
+    <span class="s">&#39;dupvote_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">vsmany</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
+    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
+    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
+<span class="p">})</span>
+
+<span class="n">vsone</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">],</span>
+    <span class="s">&#39;checks&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">256</span><span class="p">],</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span>             <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.6</span><span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">pzmastertest</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span>
+    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">fgweight</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>  <span class="c"># , 0.0],</span>
+    <span class="s">&#39;featweight_on&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]</span>  <span class="c"># , 0.0],</span>
+<span class="p">})</span>
+
+
+<span class="n">dupvote</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;dupvote_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>  <span class="c"># , 0.0],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;linear&#39;</span><span class="p">,</span> <span class="s">&#39;kdtree&#39;</span><span class="p">]</span>
+<span class="p">})</span>
+
+<span class="n">vary_sver</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;sv_on&#39;</span>          <span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;use_chip_extent&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;xy_thresh&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">],</span>
+    <span class="s">&#39;fg_weight&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;featweight_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;algorithm&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="s">&#39;linear&#39;</span><span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">sver_new</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;sv_on&#39;</span>           <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;use_chip_extent&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
+    <span class="s">&#39;xy_thresh&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mo">001</span><span class="p">],</span>
+    <span class="s">&#39;fg_weight&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="s">&#39;featweight_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
+    <span class="c">#&#39;algorithm&#39;       : [&#39;linear&#39;],</span>
+<span class="p">})</span>
+
+<span class="n">nov6</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
+    <span class="s">&#39;dupvote_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
+<span class="p">})</span>
+
+
+<span class="n">K</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+<span class="p">})</span>
 
 <span class="c"># Feature parameters</span>
 <span class="n">featparams</span> <span class="o">=</span> <span class="p">{</span>
@@ -111,16 +203,7 @@
 <span class="c"># low initialSigma = more keypoints</span>
 
 
-<span class="n">vsone_best</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">256</span><span class="p">],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>             <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">],</span>
-<span class="p">}</span>
+<span class="n">vsone_best</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">vsone</span><span class="p">,</span> <span class="p">{</span> <span class="p">})</span>
 
 
 <span class="n">smk_test2</span> <span class="o">=</span> <span class="p">{</span>
@@ -159,10 +242,11 @@
 
 <span class="c"># Test to make sure things are working for oxford</span>
 <span class="n">oxford</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">,</span> <span class="mi">128000</span><span class="p">],</span>
-    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">]</span>
+    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
+    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>            <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
+    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">64000</span><span class="p">,</span> <span class="mi">128000</span><span class="p">],</span>
+    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">],</span>
+    <span class="s">&#39;use_chip_extent&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
 <span class="p">}</span>
 
 <span class="n">smkd</span> <span class="o">=</span> <span class="p">{</span>
@@ -662,6 +746,9 @@
     <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
 <span class="p">}</span>
+
+<span class="c"># Special value used to specify the current IBEIS configuration</span>
+<span class="n">custom</span> <span class="o">=</span> <span class="s">&#39;custom&#39;</span>
 
 
 <span class="n">include_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c"># this line is after tests</span>

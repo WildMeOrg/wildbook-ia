@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ibeis.io.ingest_hsdb &mdash; ibeis 0.1.0.dev1 documentation</title>
+    <title>ibeis.dbio.ingest_hsdb &mdash; ibeis 0.1.0.dev1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -47,7 +47,7 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>Source code for ibeis.io.ingest_hsdb</h1><div class="highlight"><pre>
+  <h1>Source code for ibeis.dbio.ingest_hsdb</h1><div class="highlight"><pre>
 <span class="c">#!/usr/bin/env python2.7</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Converts a hotspostter database to IBEIS</span>
@@ -71,11 +71,11 @@
 <span class="n">FORCE_DELETE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force-delete&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="is_succesful_convert"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_hsdb.is_succesful_convert">[docs]</a><span class="k">def</span> <span class="nf">is_succesful_convert</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
+<div class="viewcode-block" id="is_succesful_convert"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_succesful_convert">[docs]</a><span class="k">def</span> <span class="nf">is_succesful_convert</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">SUCCESS_FLAG_FNAME</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="get_unconverted_hsdbs"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_hsdb.get_unconverted_hsdbs">[docs]</a><span class="k">def</span> <span class="nf">get_unconverted_hsdbs</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_unconverted_hsdbs"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.get_unconverted_hsdbs">[docs]</a><span class="k">def</span> <span class="nf">get_unconverted_hsdbs</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">os</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">ltool</span>
@@ -93,7 +93,7 @@
     <span class="k">return</span> <span class="n">needs_convert_hsdbs</span>
 
 </div>
-<div class="viewcode-block" id="ingest_unconverted_hsdbs_in_workdir"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_hsdb.ingest_unconverted_hsdbs_in_workdir">[docs]</a><span class="k">def</span> <span class="nf">ingest_unconverted_hsdbs_in_workdir</span><span class="p">():</span>
+<div class="viewcode-block" id="ingest_unconverted_hsdbs_in_workdir"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.ingest_unconverted_hsdbs_in_workdir">[docs]</a><span class="k">def</span> <span class="nf">ingest_unconverted_hsdbs_in_workdir</span><span class="p">():</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">needs_convert_hsdbs</span> <span class="o">=</span> <span class="n">get_unconverted_hsdbs</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">hsdb</span> <span class="ow">in</span> <span class="n">needs_convert_hsdbs</span><span class="p">:</span>
@@ -104,8 +104,10 @@
             <span class="k">raise</span>
 
 </div>
-<div class="viewcode-block" id="convert_hsdb_to_ibeis"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_hsdb.convert_hsdb_to_ibeis">[docs]</a><span class="k">def</span> <span class="nf">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="n">force_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="convert_hsdb_to_ibeis"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.convert_hsdb_to_ibeis">[docs]</a><span class="k">def</span> <span class="nf">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="n">force_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="k">assert</span><span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">is_hsdb</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">)),</span> <span class="s">&#39;not a hotspotter database. cannot even force convert: hsdb_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,)</span>
     <span class="k">if</span> <span class="n">force_delete</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;FORCE DELETE: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,))</span>
@@ -135,8 +137,8 @@
 
     <span class="c"># ADD NAMES TABLE</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c">#print(names_name_list)</span>
+    <span class="c">#print(nid_list)</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">),</span> <span class="s">&#39;bad name adder&#39;</span>
 
@@ -159,7 +161,6 @@
 
     <span class="n">image_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">image_gname_list</span><span class="p">]</span>
 
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">)</span>
     <span class="c">#print(image_gpath_list)</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">image_gpath_list</span><span class="p">))</span>
@@ -233,7 +234,7 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># win32</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 </pre></div>

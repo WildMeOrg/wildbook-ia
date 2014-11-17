@@ -101,6 +101,23 @@
 
 </div>
 <div class="viewcode-block" id="get_orgres_desc_match_dists"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_analyzer.get_orgres_desc_match_dists">[docs]</a><span class="k">def</span> <span class="nf">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    computes distances between matching descriptors of orgtypes in allres</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        allres (?):</span>
+<span class="sd">        orgtype_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: orgres2_descmatch_dists mapping from orgtype to distances (ndarrays)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_analyzer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; allres = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; orgtype_list = [&#39;false&#39;, &#39;true&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; orgres2_descmatch_dists = get_orgres_desc_match_dists(allres, orgtype_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(orgres2_descmatch_dists)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">orgres2_descmatch_dists</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">:</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[rr2] getting orgtype=</span><span class="si">%r</span><span class="s"> distances between sifts&#39;</span> <span class="o">%</span> <span class="n">orgtype</span><span class="p">)</span>
@@ -108,46 +125,67 @@
         <span class="n">qaids</span> <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">qaids</span>
         <span class="n">aids</span>  <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">aids</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">adesc1</span><span class="p">,</span> <span class="n">adesc2</span> <span class="o">=</span> <span class="n">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span> <span class="o">=</span> <span class="n">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">orgres</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
             <span class="k">raise</span>
-        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[rr2]  * adesc1.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">adesc1</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
-        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[rr2]  * adesc2.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">adesc2</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[rr2]  * stacked_qvecs.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stacked_qvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[rr2]  * stacked_dvecs.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stacked_dvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
         <span class="c">#dist_list = [&#39;L1&#39;, &#39;L2&#39;, &#39;hist_isect&#39;, &#39;emd&#39;]</span>
         <span class="c">#dist_list = [&#39;L1&#39;, &#39;L2&#39;, &#39;hist_isect&#39;]</span>
         <span class="n">dist_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;L2&#39;</span><span class="p">,</span> <span class="s">&#39;hist_isect&#39;</span><span class="p">]</span>
-        <span class="n">hist1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">adesc1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-        <span class="n">hist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">adesc2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">hist1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">hist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stacked_dvecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">distances</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">compute_distances</span><span class="p">(</span><span class="n">hist1</span><span class="p">,</span> <span class="n">hist2</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">)</span>
         <span class="n">orgres2_descmatch_dists</span><span class="p">[</span><span class="n">orgtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">distances</span>
     <span class="k">return</span> <span class="n">orgres2_descmatch_dists</span>
 
 </div>
-<div class="viewcode-block" id="get_matching_descriptors"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_analyzer.get_matching_descriptors">[docs]</a><span class="k">def</span> <span class="nf">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+<div class="viewcode-block" id="get_matching_descriptors"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_analyzer.get_matching_descriptors">[docs]</a><span class="k">def</span> <span class="nf">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns a set of matching descriptors from queries to database annotations</span>
+<span class="sd">    in allres</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        allres (AllResults): all results object</span>
+<span class="sd">        qaid_list (list): query annotation id list</span>
+<span class="sd">        daid_list (list): database annotation id list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (stacked_qvecs, stacked_dvecs)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_analyzer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; allres = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; (stacked_qvecs, stacked_dvecs) = get_matching_descriptors(allres, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print((stacked_qvecs, stacked_dvecs))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="n">qdesc_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
-    <span class="n">rdesc_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
-    <span class="n">desc1_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">desc2_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+    <span class="n">qvecs_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">dvecs_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">qvecs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dvecs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">fm</span> <span class="o">=</span> <span class="n">get_feat_matches</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="n">fm</span> <span class="o">=</span> <span class="n">get_feat_matches</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">desc1_m</span> <span class="o">=</span> <span class="n">qdesc_cache</span><span class="p">[</span><span class="n">qaid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-        <span class="n">desc2_m</span> <span class="o">=</span> <span class="n">rdesc_cache</span><span class="p">[</span><span class="n">aid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-        <span class="n">desc1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc1_m</span><span class="p">)</span>
-        <span class="n">desc2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc2_m</span><span class="p">)</span>
+        <span class="n">qvecs_m</span> <span class="o">=</span> <span class="n">qvecs_cache</span><span class="p">[</span><span class="n">qaid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">dvecs_m</span> <span class="o">=</span> <span class="n">dvecs_cache</span><span class="p">[</span><span class="n">daid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">qvecs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qvecs_m</span><span class="p">)</span>
+        <span class="n">dvecs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dvecs_m</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">aggdesc1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">desc1_list</span><span class="p">)</span>
-        <span class="n">aggdesc2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">desc2_list</span><span class="p">)</span>
+        <span class="n">stacked_qvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">)</span>
+        <span class="n">stacked_dvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">dvecs_list</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!!!!] get_matching_descriptors&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">,</span> <span class="s">&#39;aids&#39;</span><span class="p">,</span> <span class="s">&#39;desc1_list&#39;</span><span class="p">,</span> <span class="s">&#39;desc2_list&#39;</span> <span class="s">&#39;aggdesc1&#39;</span><span class="p">,</span> <span class="s">&#39;aggdesc2&#39;</span><span class="p">])</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!!!] get_matching_descriptors&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">,</span> <span class="s">&#39;daid_list&#39;</span><span class="p">,</span> <span class="s">&#39;qvecs_list&#39;</span><span class="p">,</span> <span class="s">&#39;dvecs_list&#39;</span> <span class="s">&#39;stacked_qvecs&#39;</span><span class="p">,</span> <span class="s">&#39;stacked_dvecs&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
-    <span class="k">return</span> <span class="n">aggdesc1</span><span class="p">,</span> <span class="n">aggdesc2</span>
+    <span class="k">return</span> <span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span>
 
 
 <span class="c">#def get_score_stuff_pdfish(allres):</span>

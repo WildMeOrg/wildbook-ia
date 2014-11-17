@@ -7,9 +7,9 @@ Subpackages
 .. toctree::
 
     ibeis.control
+    ibeis.dbio
     ibeis.dev
     ibeis.gui
-    ibeis.io
     ibeis.model
     ibeis.tests
     ibeis.viz

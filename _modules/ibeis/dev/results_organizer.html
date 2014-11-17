@@ -52,6 +52,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="c"># Tools</span>
@@ -79,9 +80,9 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">DynStruct</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orgtype</span> <span class="o">=</span> <span class="n">orgtype</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaids</span>   <span class="o">=</span> <span class="p">[]</span>  <span class="c"># query annotation indexes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aids</span>    <span class="o">=</span> <span class="p">[]</span>  <span class="c"># their top matching result</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scores</span>  <span class="o">=</span> <span class="p">[]</span>  <span class="c"># their score</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ranks</span>   <span class="o">=</span> <span class="p">[]</span>  <span class="c"># their rank</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aids</span>    <span class="o">=</span> <span class="p">[]</span>  <span class="c"># a matching result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scores</span>  <span class="o">=</span> <span class="p">[]</span>  <span class="c"># the matching score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ranks</span>   <span class="o">=</span> <span class="p">[]</span>  <span class="c"># the matching rank</span>
 
 <div class="viewcode-block" id="OrganizedResult.append"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.OrganizedResult.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
@@ -100,6 +101,19 @@
         <span class="sd">&quot;&quot;&quot; get new orgres where all the ranks are less or equal to &quot;&quot;&quot;</span>
         <span class="c"># Remove None ranks</span>
         <span class="k">return</span> <span class="n">_where_ranks_lt</span><span class="p">(</span><span class="n">orgres</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OrganizedResult.iter_sorted"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.OrganizedResult.iter_sorted">[docs]</a>    <span class="k">def</span> <span class="nf">iter_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">qaids</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="n">aids</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="p">)</span>
+        <span class="n">ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ranks</span><span class="p">)</span>
+        <span class="c">#</span>
+        <span class="n">sortx</span>  <span class="o">=</span> <span class="n">ranks</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+        <span class="n">sorted_qaids</span>  <span class="o">=</span>  <span class="n">qaids</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+        <span class="n">sorted_aids</span>   <span class="o">=</span>   <span class="n">aids</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+        <span class="n">sorted_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+        <span class="n">sorted_ranks</span>  <span class="o">=</span>  <span class="n">ranks</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">sorted_qaids</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">,</span> <span class="n">sorted_ranks</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">num_qcxs</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
@@ -156,9 +170,33 @@
 
 <div class="viewcode-block" id="qres2_true_and_false"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.qres2_true_and_false">[docs]</a><span class="k">def</span> <span class="nf">qres2_true_and_false</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Organizes results into true positive set and false positive set</span>
+
+<span class="sd">    Organizes chip-vs-chip results into true positive set and false positive set</span>
 
 <span class="sd">    a set is a query, its best match, and a score</span>
+
+<span class="sd">    qres2_true_and_false</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qres (QueryResult): object of feature correspondences and scores</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (true_tup, false_tup)</span>
+<span class="sd">            * true_tup  = (true_aids,  true_scores,  true_ranks)</span>
+<span class="sd">            * false_tup = (false_aids, false_scores, false_ranks)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; custom_qparams = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = aid_list[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, aid_list, custom_qparams=custom_qparams)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaid_list[0]]</span>
+<span class="sd">        &gt;&gt;&gt; (true_tup, false_tup) = qres2_true_and_false(ibs, qres)</span>
+<span class="sd">        &gt;&gt;&gt; print((true_tup, false_tup))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get top chip indexes and scores</span>
     <span class="n">top_aids</span>  <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
@@ -172,33 +210,77 @@
     <span class="n">false_aids</span>   <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">top_aids</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>  <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">false_ranks</span><span class="p">]</span>
     <span class="n">false_scores</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">top_score</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span> <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">false_ranks</span><span class="p">]</span>
     <span class="c"># Construct the true positive tuple</span>
-    <span class="n">true_tup</span>     <span class="o">=</span> <span class="p">(</span><span class="n">true_aids</span><span class="p">,</span> <span class="n">true_scores</span><span class="p">,</span> <span class="n">true_ranks</span><span class="p">)</span>
-    <span class="n">false_tup</span>    <span class="o">=</span> <span class="p">(</span><span class="n">false_aids</span><span class="p">,</span> <span class="n">false_scores</span><span class="p">,</span> <span class="n">false_ranks</span><span class="p">)</span>
+    <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">sort_tup</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+            <span class="c"># Sort tup by rank</span>
+            <span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+            <span class="n">aids</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="n">ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span>
+            <span class="n">sortx</span>  <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sorted_aids</span>   <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">sorted_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">sorted_ranks</span>  <span class="o">=</span> <span class="n">ranks</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">sorted_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">,</span> <span class="n">sorted_ranks</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">sorted_tup</span>
+        <span class="n">true_tup</span>     <span class="o">=</span> <span class="n">sort_tup</span><span class="p">((</span><span class="n">true_aids</span><span class="p">,</span> <span class="n">true_scores</span><span class="p">,</span> <span class="n">true_ranks</span><span class="p">))</span>
+        <span class="n">false_tup</span>    <span class="o">=</span> <span class="n">sort_tup</span><span class="p">((</span><span class="n">false_aids</span><span class="p">,</span> <span class="n">false_scores</span><span class="p">,</span> <span class="n">false_ranks</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">true_tup</span>     <span class="o">=</span> <span class="p">(</span><span class="n">true_aids</span><span class="p">,</span> <span class="n">true_scores</span><span class="p">,</span> <span class="n">true_ranks</span><span class="p">)</span>
+        <span class="n">false_tup</span>    <span class="o">=</span> <span class="p">(</span><span class="n">false_aids</span><span class="p">,</span> <span class="n">false_scores</span><span class="p">,</span> <span class="n">false_ranks</span><span class="p">)</span>
     <span class="c"># Return tuples</span>
     <span class="k">return</span> <span class="n">true_tup</span><span class="p">,</span> <span class="n">false_tup</span>
 
 </div>
 <div class="viewcode-block" id="organize_results"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.organize_results">[docs]</a><span class="k">def</span> <span class="nf">organize_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorts query result annotations, score, and ranks.</span>
+
+
+<span class="sd">    TODO:</span>
+<span class="sd">        somehow use the ratio of scores to try and make a prediction</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ib</span>
+<span class="sd">        python dev.py -t scores --db PZ_MTEST --allgt -w --show</span>
+<span class="sd">        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0</span>
+<span class="sd">        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename=&#39;nsum&#39; fg_weight=1.0 featweight_on:True</span>
+<span class="sd">        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename=&#39;nsum&#39; fg_weight=1.0 featweight_on:True</span>
+<span class="sd">        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename=&#39;nsum&#39; fg_weight=1.0 featweight_on:True</span>
+<span class="sd">        python dev.py -t scores --db GZ_ALL --allgt -w --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; custom_qparams = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(aid_list, aid_list, custom_qparams=custom_qparams)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;organize_results()&#39;</span><span class="p">)</span>
     <span class="n">org_true</span>          <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;true&#39;</span><span class="p">)</span>
     <span class="n">org_false</span>         <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;false&#39;</span><span class="p">)</span>
-    <span class="n">org_top_true</span>      <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;top_true&#39;</span><span class="p">)</span>
-    <span class="n">org_top_false</span>     <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;top_false&#39;</span><span class="p">)</span>
+    <span class="n">org_top_true</span>      <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;top_true&#39;</span><span class="p">)</span>   <span class="c"># highest ranked true matches</span>
+    <span class="n">org_top_false</span>     <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;top_false&#39;</span><span class="p">)</span>  <span class="c"># highest ranked false matches</span>
     <span class="n">org_bot_true</span>      <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;bot_true&#39;</span><span class="p">)</span>
     <span class="n">org_problem_true</span>  <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;problem_true&#39;</span><span class="p">)</span>
     <span class="n">org_problem_false</span> <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;problem_false&#39;</span><span class="p">)</span>
-    <span class="c"># -----------------</span>
-    <span class="c"># Query result loop</span>
+    <span class="n">org_rank0_true</span>    <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;rank0_true&#39;</span><span class="p">)</span>
+    <span class="n">org_rank0_false</span>   <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;rank0_false&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_organize_result</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
         <span class="c"># Use ground truth to sort into true/false</span>
+        <span class="c"># * true_tup  = (true_aids,  true_scores,  true_ranks)</span>
+        <span class="c"># * false_tup = (false_aids, false_scores, false_ranks)</span>
         <span class="n">true_tup</span><span class="p">,</span> <span class="n">false_tup</span> <span class="o">=</span> <span class="n">qres2_true_and_false</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span>
         <span class="n">last_rank</span>     <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="n">skipped_ranks</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="c">#</span>
         <span class="c"># Record: all_true, missed_true, top_true, bot_true</span>
         <span class="n">topx</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">topx</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">true_tup</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">topx</span><span class="p">,</span> <span class="n">ttup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">true_tup</span><span class="p">)):</span>
+            <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">=</span> <span class="n">ttup</span>
             <span class="c"># Record all true results</span>
             <span class="n">org_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
             <span class="c"># Record non-top (a.k.a problem) true results</span>
@@ -209,21 +291,26 @@
             <span class="c"># Record the best results</span>
             <span class="k">if</span> <span class="n">topx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">org_top_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">org_rank0_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
             <span class="n">last_rank</span> <span class="o">=</span> <span class="n">rank</span>
         <span class="c"># Record the worse true result</span>
         <span class="k">if</span> <span class="n">topx</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">org_bot_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
         <span class="c">#</span>
         <span class="c"># Record the all_false, false_positive, top_false</span>
-        <span class="n">topx</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">false_tup</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">topx</span><span class="p">,</span> <span class="n">ftup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">false_tup</span><span class="p">)):</span>
+            <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">=</span> <span class="n">ftup</span>
             <span class="n">org_false</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">skipped_ranks</span><span class="p">:</span>
                 <span class="n">org_problem_false</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">topx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">org_top_false</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
-            <span class="n">topx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">org_rank0_false</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
 
+    <span class="c"># -----------------</span>
+    <span class="c"># Query result loop</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">_organize_result</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span>
@@ -243,6 +330,8 @@
         <span class="p">(</span><span class="s">&#39;bot_true&#39;</span><span class="p">,</span>      <span class="n">org_bot_true</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;problem_true&#39;</span><span class="p">,</span>  <span class="n">org_problem_true</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;problem_false&#39;</span><span class="p">,</span> <span class="n">org_problem_false</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;rank0_true&#39;</span><span class="p">,</span>    <span class="n">org_rank0_true</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;rank0_false&#39;</span><span class="p">,</span>   <span class="n">org_rank0_false</span><span class="p">),</span>
     <span class="p">])</span>
 
     <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">allorg</span><span class="p">):</span>
@@ -251,9 +340,27 @@
 
 </div>
 <div class="viewcode-block" id="get_automatch_candidates"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.get_automatch_candidates">[docs]</a><span class="k">def</span> <span class="nf">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns a list of matches that should be inspected</span>
-<span class="sd">    This function is more lightweight than orgres or allres</span>
-<span class="sd">    and will be used in production.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of matches that should be inspected</span>
+<span class="sd">    This function is more lightweight than orgres or allres.</span>
+
+<span class="sd">    Used in inspect_gui and interact_qres2</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_qres (dict): mapping from query annotaiton id to query result object</span>
+<span class="sd">        ranks_lt (int): put all ranks less than this number into the graph</span>
+<span class="sd">        directed (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
+<span class="sd">        &gt;&gt;&gt; directed = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qaids_stack</span>  <span class="o">=</span> <span class="p">[]</span>
     <span class="n">aids_stack</span>   <span class="o">=</span> <span class="p">[]</span>

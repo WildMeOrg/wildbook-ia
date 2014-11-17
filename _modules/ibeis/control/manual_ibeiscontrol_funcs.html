@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.control.manual_ibeiscontrol_funcs &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.control" href="../control.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.control.manual_ibeiscontrol_funcs</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">functools</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>  <span class="c"># NOQA</span>
+<span class="c">#from ibeis.control.IBEISControl import IBEISController</span>
+<span class="kn">import</span> <span class="nn">utool</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autogen_ibsfuncs]&#39;</span><span class="p">)</span>
+
+<span class="c"># Create dectorator to inject these functions into the IBEISController</span>
+<span class="n">register_ibs_aliased_method</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">((</span><span class="s">&#39;IBEISController&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">))</span>
+<span class="n">register_ibs_unaliased_method</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">((</span><span class="s">&#39;IBEISController&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="register_ibs_method"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.register_ibs_method">[docs]</a><span class="k">def</span> <span class="nf">register_ibs_method</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">aliastup</span> <span class="o">=</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;manual_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="n">register_ibs_unaliased_method</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">register_ibs_aliased_method</span><span class="p">(</span><span class="n">aliastup</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    daid_list = ibs.get_valid_aids()</span>
+<span class="sd">    qaid_list = daid_list[0:1]</span>
+<span class="sd">    custom_qparams = {}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span>
+
+</div>
+<div class="viewcode-block" id="get_vocab_cfgstr"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># TODO: change into config_rowid</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+        <span class="n">vocab_cfgstr_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vocabtrain_cfgstr</span>
+        <span class="n">feat_cfgstr_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span>
+        <span class="n">vocab_cfgstr_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">feat_cfgstr_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">taids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># FIXME Preferences cannot currently handle lists</span>
+            <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
+            <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
+
+    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="s">&#39;_TAIDS&#39;</span><span class="p">)</span>
+    <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">vocab_cfgstr_</span> <span class="o">+</span> <span class="n">tannot_hashid</span> <span class="o">+</span> <span class="n">feat_cfgstr_</span>
+    <span class="k">return</span> <span class="n">vocab_cfgstr</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="get_vocab_words"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_words">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_words</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hackyish way of putting vocab generation into the controller.</span>
+<span class="sd">    Ideally there would be a preproc_vocab in ibeis.model.preproc</span>
+<span class="sd">    and sql would store this under some config</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_ibeiscontrol_funcs import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span>
+
+    <span class="k">if</span> <span class="n">taids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># FIXME Preferences cannot currently handle lists</span>
+            <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
+            <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
+
+    <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">get_vocab_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="n">taids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">vocab_cfgstr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">:</span>
+        <span class="n">nWords</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nWords</span>
+        <span class="n">initmethod</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_init_method</span>
+        <span class="n">max_iters</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_nIters</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_flann_params</span>
+
+        <span class="n">train_vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c"># Stack vectors</span>
+        <span class="n">train_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">train_vecs_list</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">train_vecs_list</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_vocab_words] Train Vocab(nWords=</span><span class="si">%d</span><span class="s">) using </span><span class="si">%d</span><span class="s"> annots and </span><span class="si">%d</span><span class="s"> descriptors&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">nWords</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">taids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">)))</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">max_iters</span><span class="o">=</span><span class="n">max_iters</span><span class="p">,</span> <span class="n">initmethod</span><span class="o">=</span><span class="n">initmethod</span><span class="p">,</span>
+                    <span class="n">appname</span><span class="o">=</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">cached_akmeans</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">,</span> <span class="n">nWords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="c"># Cache words in temporary state</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">[</span><span class="n">vocab_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">words</span>
+        <span class="k">del</span> <span class="n">train_vecs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">[</span><span class="n">vocab_cfgstr</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">words</span>
+
+</div>
+<div class="viewcode-block" id="get_vocab_assignments"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_assignments">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_assignments</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

@@ -171,7 +171,7 @@
             <span class="s">&#39;MOTHERS&#39;</span><span class="p">:</span>          <span class="s">&#39;PZ_MOTHERS&#39;</span><span class="p">,</span>
             <span class="s">&#39;FROGS&#39;</span><span class="p">:</span>            <span class="s">&#39;Frogs&#39;</span><span class="p">,</span>
             <span class="s">&#39;TOADS&#39;</span><span class="p">:</span>            <span class="s">&#39;WY_Toads&#39;</span><span class="p">,</span>
-            <span class="s">&#39;SEALS&#39;</span><span class="p">:</span>            <span class="s">&#39;Seals&#39;</span><span class="p">,</span>
+            <span class="s">&#39;SEALS_SPOTTED&#39;</span><span class="p">:</span>    <span class="s">&#39;Seals&#39;</span><span class="p">,</span>
 
             <span class="s">&#39;OXFORD&#39;</span><span class="p">:</span>           <span class="s">&#39;Oxford_Buildings&#39;</span><span class="p">,</span>
             <span class="s">&#39;PARIS&#39;</span><span class="p">:</span>            <span class="s">&#39;Paris_Buildings&#39;</span><span class="p">,</span>
@@ -259,8 +259,7 @@
     <span class="k">return</span> <span class="n">dbdir</span>
 
 </div>
-<div class="viewcode-block" id="get_args_dbdir"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.sysres.get_args_dbdir">[docs]</a><span class="k">def</span> <span class="nf">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
-                   <span class="n">cache_priority</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="get_args_dbdir"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.sysres.get_args_dbdir">[docs]</a><span class="k">def</span> <span class="nf">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Machinery for finding a database directory &quot;&quot;&quot;</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        # LEGACY DB ARG PARSING:</span>
@@ -390,7 +389,17 @@
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">mtest_zipped_url</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip&#39;</span>
     <span class="n">mtest_dir</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">mtest_zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;have mtest_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mtest_dir</span><span class="p">,))</span></div>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;have mtest_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mtest_dir</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="ensure_nauts"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.sysres.ensure_nauts">[docs]</a><span class="k">def</span> <span class="nf">ensure_nauts</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Ensures that you have the NAUT_test dataset &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">nauts_zipped_url</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip&#39;</span>
+    <span class="n">nauts_dir</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">nauts_zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;have nauts_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nauts_dir</span><span class="p">,))</span></div>
 </pre></div>
 
           </div>

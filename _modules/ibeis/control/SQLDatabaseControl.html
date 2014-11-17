@@ -185,6 +185,10 @@
         <span class="n">db</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
         <span class="n">db</span><span class="o">.</span><span class="n">_ensure_metadata_table</span><span class="p">()</span>
 
+<div class="viewcode-block" id="SQLDatabaseController.close"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
     <span class="k">def</span> <span class="nf">_ensure_metadata_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># We need this to be done every time so that the update code works correctly.</span>
         <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span>
@@ -229,12 +233,12 @@
 <div class="viewcode-block" id="SQLDatabaseController.optimize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] running sql pragma optimizions&#39;</span><span class="p">)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 0;&#39;)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 1024;&#39;)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA page_size = 1024;&#39;)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] running sql pragma optimizions&#39;</span><span class="p">)</span>
+        <span class="c">#print(&#39;[sql] running sql pragma optimizions&#39;)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;PRAGMA cache_size = 10000;&#39;</span><span class="p">)</span>  <span class="c"># Default: 2000</span>
         <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;PRAGMA temp_store = MEMORY;&#39;</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;PRAGMA synchronous = OFF;&#39;</span><span class="p">)</span>
@@ -919,7 +923,7 @@
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.executeone"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">[docs]</a>    <span class="k">def</span> <span class="nf">executeone</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nParams</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">result_iter</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
                 <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result_iter</span><span class="p">)</span>
@@ -932,31 +936,31 @@
     <span class="nd">@default_decorator</span>
     <span class="c">#@utool.memprof</span>
 <div class="viewcode-block" id="SQLDatabaseController.executemany"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nParams</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c"># --- ARGS PREPROC ---</span>
-        <span class="c"># Aggresively compute iterator if the nParams is not given</span>
-        <span class="k">if</span> <span class="n">nParams</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Aggresively compute iterator if the nInput is not given</span>
+        <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-                <span class="n">nParams</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+                <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: aggressive eval of params_iter because nParams=None&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: aggressive eval of params_iter because nInput=None&#39;</span><span class="p">)</span>
                 <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
-                <span class="n">nParams</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
+                <span class="n">nInput</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Taking params_iter as iterator&#39;</span><span class="p">)</span>
 
         <span class="c"># Do not compute executemany without params</span>
-        <span class="k">if</span> <span class="n">nParams</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nInput</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: dont use executemany&#39;</span>
                       <span class="s">&#39;with no params use executeone instead.&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="c"># --- SQL EXECUTION ---</span>
         <span class="n">contextkw</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;nParams&#39;</span><span class="p">:</span> <span class="n">nParams</span><span class="p">,</span>
+            <span class="s">&#39;nInput&#39;</span><span class="p">:</span> <span class="n">nInput</span><span class="p">,</span>
             <span class="s">&#39;start_transaction&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
             <span class="s">&#39;verbose&#39;</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
         <span class="p">}</span>
