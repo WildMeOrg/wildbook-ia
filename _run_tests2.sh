@@ -142,7 +142,6 @@ EOF
     num_passed=0
     num_ran=0
     export FAILED_TESTS=''
-    printf "========" >> failed.txt
 }
 
 RUN_TEST()
@@ -156,7 +155,6 @@ RUN_TEST()
     num_ran=$(($num_ran + 1))
     if [ "$RETURN_CODE" != "0" ] ; then
         export FAILED_TESTS="$FAILED_TESTS\n$TEST"
-        printf "$TEST" >> failed.txt
     fi
 }
 
@@ -167,7 +165,6 @@ END_TESTS()
         echo "-----"
         printf "Failed Tests:"
         printf "$FAILED_TESTS\n"
-        printf "------ " >> failed.txt
         printf "$FAILED_TESTS\n" >> failed.txt
         echo "-----"
     fi

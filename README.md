@@ -157,6 +157,7 @@ atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-mo
 autogen_sphinx_docs.py
 mkdir _page
 cp -r _doc/_build/html/* _page
+touch _page/.nojekyll
 git add _page/.nojekyll
 git add _page/*
 git add _page
