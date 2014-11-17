@@ -6,7 +6,10 @@ __IS_INITIALIZED__ = False
 __WHO_INITIALIZED__ = None
 
 
-def init_matplotlib(verbose=False):
+VERBOSE_MPLINIT = '--verb-mpl' in sys.argv or '--verbose' in sys.argv
+
+
+def init_matplotlib(verbose=VERBOSE_MPLINIT):
     global __IS_INITIALIZED__
     global __WHO_INITIALIZED__
     import matplotlib as mpl
@@ -33,7 +36,8 @@ def init_matplotlib(verbose=False):
             return False
         else:
             __WHO_INITIALIZED__ = utool.get_caller_name(N=range(0, 5))
-            print('[plottool] matplotlib initialized by %r' % __WHO_INITIALIZED__)
+            if verbose:
+                print('[plottool] matplotlib initialized by %r' % __WHO_INITIALIZED__)
             #__WHO_INITIALIZED__ = utool.get_caller_name()
             __IS_INITIALIZED__ = True
         if not utool.QUIET and utool.VERBOSE:
