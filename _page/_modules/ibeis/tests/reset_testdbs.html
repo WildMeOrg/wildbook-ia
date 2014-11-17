@@ -52,7 +52,7 @@
 <span class="c"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.io</span> <span class="kn">import</span> <span class="n">ingest_database</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_database</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
@@ -61,21 +61,19 @@
 <span class="n">__test__</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># This is not a test</span>
 
 
-<span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
-
-
-<span class="n">TESTDB0</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
-<span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="n">TESTDB_GUIALL</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb_guiall&#39;</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="delete_testdbs"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.delete_testdbs">[docs]</a><span class="k">def</span> <span class="nf">delete_testdbs</span><span class="p">():</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">TESTDB0</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
+    <span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">TESTDB_GUIALL</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb_guiall&#39;</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">TESTDB0</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">TESTDB_GUIALL</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="make_testdb0"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.make_testdb0">[docs]</a><span class="k">def</span> <span class="nf">make_testdb0</span><span class="p">():</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">TESTDB0</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
     <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">TESTDB0</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
     <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
@@ -108,12 +106,15 @@
     <span class="n">make_testdb0</span><span class="p">()</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">MAKE TESTDB1</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">)</span>
     <span class="n">ingest_database</span><span class="o">.</span><span class="n">ingest_standard_database</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">)</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="c">#ibeis._preload()</span>
     <span class="n">reset_testdbs</span><span class="p">()</span>
 </pre></div>
 

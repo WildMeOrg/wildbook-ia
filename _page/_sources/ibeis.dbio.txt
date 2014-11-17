@@ -1,0 +1,62 @@
+ibeis.dbio package
+==================
+
+Submodules
+----------
+
+ibeis.dbio.export_hsdb module
+-----------------------------
+
+.. automodule:: ibeis.dbio.export_hsdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dbio.export_subset module
+-------------------------------
+
+.. automodule:: ibeis.dbio.export_subset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dbio.export_wb module
+---------------------------
+
+.. automodule:: ibeis.dbio.export_wb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dbio.ingest_database module
+---------------------------------
+
+.. automodule:: ibeis.dbio.ingest_database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dbio.ingest_hsdb module
+-----------------------------
+
+.. automodule:: ibeis.dbio.ingest_hsdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dbio.ingest_mdb module
+----------------------------
+
+.. automodule:: ibeis.dbio.ingest_mdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.dbio
+    :members:
+    :undoc-members:
+    :show-inheritance:

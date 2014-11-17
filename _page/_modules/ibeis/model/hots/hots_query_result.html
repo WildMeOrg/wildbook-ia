@@ -69,6 +69,7 @@
 <span class="n">MAX_FNAME_LEN</span> <span class="o">=</span> <span class="mi">64</span> <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">WIN32</span> <span class="k">else</span> <span class="mi">200</span>
 <span class="n">TRUNCATE_UUIDS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--truncate-uuids&#39;</span><span class="p">,</span> <span class="s">&#39;--trunc-uuids&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--notruncate-uuids&#39;</span><span class="p">,</span> <span class="s">&#39;--notrunc-uuids&#39;</span><span class="p">)))</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-query-result&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-qres&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
 
 <span class="c">#=========================</span>
 <span class="c"># Query Result Class</span>
@@ -149,16 +150,171 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 
+<div class="viewcode-block" id="get_average_percision_"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.get_average_percision_">[docs]</a><span class="k">def</span> <span class="nf">get_average_percision_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    gets average percision using the PASCAL definition</span>
+
+<span class="sd">    FIXME: Use only the groundtruth that could have been matched in the</span>
+<span class="sd">    database. (shouldn&#39;t be an issue until we start using daid subsets)</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/Information_retrieval</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="k">return</span> <span class="n">ave_p</span>
+
+</div>
+<div class="viewcode-block" id="get_interpolated_precision_vs_recall_"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.get_interpolated_precision_vs_recall_">[docs]</a><span class="k">def</span> <span class="nf">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span> <span class="o">=</span> <span class="n">get_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">precision_curve</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+    <span class="n">nSamples</span> <span class="o">=</span> <span class="mi">11</span>
+    <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nSamples</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+        <span class="n">precision_candidates</span> <span class="o">=</span> <span class="n">precision_curve</span><span class="p">[</span><span class="n">recall_curve</span> <span class="o">&gt;=</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">precision_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">precision_candidates</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recall_range_</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span>
+
+</div>
+<div class="viewcode-block" id="get_precision_recall_curve_"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.get_precision_recall_curve_">[docs]</a><span class="k">def</span> <span class="nf">get_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.hots_query_result import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[14:15]</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips(qaids, daids)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaids[0]]</span>
+<span class="sd">        &gt;&gt;&gt; gt_aids = None</span>
+<span class="sd">        &gt;&gt;&gt; atrank  = 18</span>
+<span class="sd">        &gt;&gt;&gt; precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/Precision_and_recall</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gt_ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+    <span class="n">was_retrieved</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">gt_ranks</span><span class="p">])</span>
+    <span class="n">nGroundTruth</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_ranks</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nGroundTruth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+    <span class="c"># From oxford:</span>
+    <span class="c">#Precision is defined as the ratio of retrieved positive images to the total number retrieved.</span>
+    <span class="c">#Recall is defined as the ratio of the number of retrieved positive images to the total</span>
+    <span class="c">#number of positive images in the corpus.</span>
+
+    <span class="k">def</span> <span class="nf">get_nTruePositive</span><span class="p">(</span><span class="n">atrank</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the number of documents we got right &quot;&quot;&quot;</span>
+        <span class="n">TP</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">was_retrieved</span><span class="p">,</span> <span class="n">gt_ranks</span> <span class="o">&lt;=</span> <span class="n">atrank</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">TP</span>
+
+    <span class="k">def</span> <span class="nf">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the number of documents we should have retrieved but didn&#39;t &quot;&quot;&quot;</span>
+        <span class="c">#FN = min((atrank + 1) - TP, nGroundTruth - TP)</span>
+        <span class="c">#nRetreived = (atrank + 1)</span>
+        <span class="n">FN</span> <span class="o">=</span> <span class="n">nGroundTruth</span> <span class="o">-</span> <span class="n">TP</span>
+        <span class="c">#min(atrank, nGroundTruth - TP)</span>
+        <span class="k">return</span> <span class="n">FN</span>
+
+    <span class="k">def</span> <span class="nf">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the number of documents we should not have retrieved &quot;&quot;&quot;</span>
+        <span class="c">#FP = min((atrank + 1) - TP, nGroundTruth)</span>
+        <span class="n">nRetreived</span> <span class="o">=</span> <span class="p">(</span><span class="n">atrank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">FP</span> <span class="o">=</span> <span class="n">nRetreived</span> <span class="o">-</span> <span class="n">TP</span>
+        <span class="k">return</span> <span class="n">FP</span>
+
+    <span class="k">def</span> <span class="nf">get_precision</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; precision positive predictive value &quot;&quot;&quot;</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FP</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">precision</span>
+
+    <span class="k">def</span> <span class="nf">get_recall</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FN</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; recall, true positive rate, sensitivity, hit rate &quot;&quot;&quot;</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FN</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">recall</span>
+
+    <span class="c">#with ut.EmbedOnException():</span>
+    <span class="n">max_rank</span> <span class="o">=</span> <span class="n">gt_ranks</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">max_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">max_rank</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ofrank_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">truepos_curve</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">get_nTruePositive</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)))</span>
+
+    <span class="n">falsepos_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">falseneg_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">precision_curve</span> <span class="o">=</span> <span class="n">get_precision</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falsepos_curve</span><span class="p">)</span>
+    <span class="n">recall_curve</span>    <span class="o">=</span> <span class="n">get_precision</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falseneg_curve</span><span class="p">)</span>
+
+    <span class="c">#print(np.vstack([precision_curve, recall_curve]).T)</span>
+    <span class="k">return</span> <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span>
+
+</div>
+<div class="viewcode-block" id="show_precision_recall_curve_"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.show_precision_recall_curve_">[docs]</a><span class="k">def</span> <span class="nf">show_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.hots_query_result import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span>
+    <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># NOQA</span>
+
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="n">df2</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o--&#39;</span><span class="p">,</span>
+              <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">,</span> <span class="n">unitbox</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+              <span class="n">flipx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span>
+              <span class="n">title_pref</span><span class="o">=</span><span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span>
+              <span class="n">title</span><span class="o">=</span><span class="s">&#39;Interplated Precision Vs Recall</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;avep = </span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="n">ave_p</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Interplated Precision&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">))))</span>
+    <span class="c">#fig.show()</span>
+
+</div>
 <span class="n">__OBJECT_BASE__</span> <span class="o">=</span> <span class="nb">object</span>  <span class="c"># utool.util_dev.get_object_base()</span>
 
 
 <div class="viewcode-block" id="assert_qres"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.assert_qres">[docs]</a><span class="k">def</span> <span class="nf">assert_qres</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fk</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!qr] matching dicts do not agree&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">),</span> <span class="s">&#39;fm and fs do not agree&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fk</span><span class="p">),</span> <span class="s">&#39;fm and fk do not agree&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">),</span> <span class="s">&#39;fm and score do not agree&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!qr]  matching dicts do not agree&#39;</span><span class="p">,</span>
+                   <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                       <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dictinfo</span><span class="p">,</span> <span class="s">&#39;qres.aid2_fm&#39;</span><span class="p">),</span>
+                       <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dictinfo</span><span class="p">,</span> <span class="s">&#39;qres.aid2_fs&#39;</span><span class="p">),</span>
+                       <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dictinfo</span><span class="p">,</span> <span class="s">&#39;qres.aid2_fk&#39;</span><span class="p">),</span>
+                       <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dictinfo</span><span class="p">,</span> <span class="s">&#39;qres.aid2_score&#39;</span><span class="p">),</span>
+                   <span class="p">])</span>
+        <span class="k">raise</span>
     <span class="n">nFeatMatch_list</span> <span class="o">=</span> <span class="n">get_num_feats_in_matches</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">num1</span> <span class="o">==</span> <span class="n">num2</span> <span class="k">for</span> <span class="p">(</span><span class="n">num1</span><span class="p">,</span> <span class="n">num2</span><span class="p">)</span> <span class="ow">in</span>
                 <span class="nb">zip</span><span class="p">(</span><span class="n">nFeatMatch_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">)))])</span>
@@ -180,12 +336,16 @@
     <span class="c">#__slots__ = [&#39;qaid&#39;, &#39;qauuid&#39;, &#39;cfgstr&#39;, &#39;eid&#39;,</span>
     <span class="c">#             &#39;aid2_fm&#39;, &#39;aid2_fs&#39;, &#39;aid2_fk&#39;, &#39;aid2_score&#39;,</span>
     <span class="c">#             &#39;metadata&#39;]</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
         <span class="c"># THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME</span>
         <span class="c"># TODO: Merge FS and FK</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QueryResult</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span> <span class="o">=</span> <span class="n">qauuid</span>  <span class="c"># query annot uuid</span>
+        <span class="c"># TODO: qreq.daids could easilly be a hash of the duuids in the qreq_ so</span>
+        <span class="c"># the daids list can be looked up instead of stored on disk for every</span>
+        <span class="c"># query result.</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids</span>  <span class="c"># matchable database chips. external_daids from qreq_. (should this be duuids?)</span>
         <span class="c">#qres.qauuid = qauuid</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr</span>  <span class="c"># should have database info hashed in from qreq</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># encounter id</span>
@@ -197,11 +357,12 @@
         <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># messy (meta information of query)</span>
         <span class="c">#qres.daid_list = None  # matchable daids</span>
 
-<div class="viewcode-block" id="QueryResult.load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResult.load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Loads the result from the given database &quot;&quot;&quot;</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span>
         <span class="n">qaid_good</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span>
         <span class="n">qauuid_good</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span>
+        <span class="n">daids_good</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">force_miss</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">hsexcept</span><span class="o">.</span><span class="n">HotsCacheMissError</span><span class="p">(</span><span class="s">&#39;force miss&#39;</span><span class="p">)</span>
@@ -249,6 +410,13 @@
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;unknown exception while loading query result&#39;</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">assert</span> <span class="n">qauuid_good</span> <span class="o">==</span> <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span>
+        <span class="k">if</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids_good</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">daids_good</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">daids_good</span> <span class="o">==</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">daids_good</span> <span class="o">==</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">qauuid</span> <span class="o">=</span> <span class="n">qauuid_good</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_good</span>
 </div>
@@ -280,8 +448,8 @@
                                <span class="n">remove_chip</span><span class="o">=</span><span class="n">remove_chip</span><span class="p">,</span>
                                <span class="n">remove_feat</span><span class="o">=</span><span class="n">remove_feat</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="QueryResult.make_title"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.make_title">[docs]</a>    <span class="k">def</span> <span class="nf">make_title</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">remove_daids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">remove_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                   <span class="n">remove_feat</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResult.make_title"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.make_title">[docs]</a>    <span class="k">def</span> <span class="nf">make_title</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">pack</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">remove_daids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">remove_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                   <span class="n">remove_feat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">cfgstr</span>
 
         <span class="k">def</span> <span class="nf">parse_remove</span><span class="p">(</span><span class="n">format_</span><span class="p">,</span> <span class="n">string_</span><span class="p">):</span>
@@ -301,6 +469,10 @@
         <span class="k">if</span> <span class="n">remove_feat</span><span class="p">:</span>
             <span class="n">cfgstr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">parse_remove</span><span class="p">(</span><span class="s">&#39;_FEAT({feat_cfgstr})&#39;</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">pack</span><span class="p">:</span>
+            <span class="c"># Separate into newlines if requested (makes it easier to fit on screen)</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">packstr</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="n">textwidth</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
+
         <span class="n">component_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s">&#39;qaid={qaid} &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qaid</span><span class="o">=</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">),</span>
             <span class="c">#&#39;qauuid={qauuid}&#39;.format(qauuid=qres.qauuid),</span>
@@ -309,10 +481,10 @@
         <span class="n">title_str</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">component_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">title_str</span>
 </div>
-<div class="viewcode-block" id="QueryResult.save"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResult.save"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; saves query result to directory &quot;&quot;&quot;</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>  <span class="c"># and utool.VERBOSE:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qr] cache save: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">],))</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
             <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">file_</span><span class="p">)</span>
@@ -339,7 +511,7 @@
         <span class="sd">&quot;&quot;&quot; Returns matchinfo in table format (qaids, aids, scores, ranks) &quot;&quot;&quot;</span>
         <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_scores</span><span class="p">()</span>
         <span class="c"># Sort the scores in rank order</span>
-        <span class="n">sortx</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sortx</span>     <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
         <span class="n">aid_arr</span>   <span class="o">=</span> <span class="n">aid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
         <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sortx</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
@@ -429,13 +601,13 @@
         <span class="k">return</span> <span class="n">inspect_str</span>
 </div>
     <span class="nd">@utool.accepts_scalar_input</span>
-<div class="viewcode-block" id="QueryResult.get_aid_ranks"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks">[docs]</a>    <span class="k">def</span> <span class="nf">get_aid_ranks</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">aid_arr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; get ranks of chip indexes in aid_arr &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="QueryResult.get_aid_ranks"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks">[docs]</a>    <span class="k">def</span> <span class="nf">get_aid_ranks</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">aid_arr</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; get ranks of annotation ids &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aid_arr</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
             <span class="n">aid_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_arr</span><span class="p">)</span>
         <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
         <span class="n">foundpos</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">top_aids</span> <span class="o">==</span> <span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_arr</span><span class="p">]</span>
-        <span class="n">ranks_</span>   <span class="o">=</span> <span class="p">[</span><span class="n">ranks</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">foundpos</span><span class="p">]</span>
+        <span class="n">ranks_</span>   <span class="o">=</span> <span class="p">[</span><span class="n">ranks</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">[</span><span class="n">fillvalue</span><span class="p">]</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">foundpos</span><span class="p">]</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">ranks_</span><span class="p">]),</span> <span class="s">&#39;len(aid_ranks) != 1&#39;</span>
         <span class="n">rank_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">ranks_</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">rank_list</span>
@@ -464,14 +636,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">gt_scores</span>
 </div>
-<div class="viewcode-block" id="QueryResult.get_gt_ranks"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_gt_ranks">[docs]</a>    <span class="k">def</span> <span class="nf">get_gt_ranks</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_gtaids</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResult.get_gt_ranks"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_gt_ranks">[docs]</a>    <span class="k">def</span> <span class="nf">get_gt_ranks</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_gtaids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; returns the 0 indexed ranking of each groundtruth chip &quot;&quot;&quot;</span>
         <span class="c"># Ensure correct input</span>
         <span class="k">if</span> <span class="n">gt_aids</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;[qr] must pass in the gt_aids or ibs object&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gt_aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
-        <span class="n">gt_ranks</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span>
+        <span class="n">gt_ranks</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">fillvalue</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_gtaids</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">gt_ranks</span><span class="p">,</span> <span class="n">gt_aids</span>
         <span class="k">else</span><span class="p">:</span>
@@ -495,148 +667,16 @@
         <span class="k">return</span> <span class="n">best_rank</span>
 </div>
 <div class="viewcode-block" id="QueryResult.get_average_percision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_average_percision">[docs]</a>    <span class="k">def</span> <span class="nf">get_average_percision</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        gets average percision using the PASCAL definition</span>
-
-<span class="sd">        FIXME: Use only the groundtruth that could have been matched in the</span>
-<span class="sd">        database. (shouldn&#39;t be an issue until we start using daid subsets)</span>
-
-<span class="sd">        References:</span>
-<span class="sd">            http://en.wikipedia.org/wiki/Information_retrieval</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_interpolated_precision_vs_recall</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
-
-        <span class="k">return</span> <span class="n">ave_p</span>
+        <span class="k">return</span> <span class="n">get_average_percision_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.get_interpolated_precision_vs_recall"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_interpolated_precision_vs_recall">[docs]</a>    <span class="k">def</span> <span class="nf">get_interpolated_precision_vs_recall</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_precision_recall_curve</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">precision_curve</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
-
-        <span class="n">nSamples</span> <span class="o">=</span> <span class="mi">11</span>
-        <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nSamples</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
-            <span class="n">precision_candidates</span> <span class="o">=</span> <span class="n">precision_curve</span><span class="p">[</span><span class="n">recall_curve</span> <span class="o">&gt;=</span> <span class="n">r</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">precision_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mi">0</span>
-            <span class="k">return</span> <span class="n">precision_candidates</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-
-        <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recall_range_</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span>
+        <span class="k">return</span> <span class="n">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.show_precision_recall_curve"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.show_precision_recall_curve">[docs]</a>    <span class="k">def</span> <span class="nf">show_precision_recall_curve</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.hots_query_result import *  # NOQA</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span>
-        <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_interpolated_precision_vs_recall</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-            <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># NOQA</span>
-
-        <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
-
-        <span class="n">df2</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o--&#39;</span><span class="p">,</span>
-                  <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">,</span> <span class="n">unitbox</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                  <span class="n">flipx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span>
-                  <span class="n">title_pref</span><span class="o">=</span><span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span>
-                  <span class="n">title</span><span class="o">=</span><span class="s">&#39;Interplated Precision Vs Recall</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;avep = </span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="n">ave_p</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Interplated Precision&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">))))</span>
-        <span class="c">#fig.show()</span>
+        <span class="k">return</span> <span class="n">show_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.get_precision_recall_curve"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_precision_recall_curve">[docs]</a>    <span class="k">def</span> <span class="nf">get_precision_recall_curve</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.hots_query_result import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; import ibeis</span>
-<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; qaids = ibs.get_valid_aids()[14:15]</span>
-<span class="sd">            &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
-<span class="sd">            &gt;&gt;&gt; qaid2_qres = ibs._query_chips(qaids, daids)</span>
-<span class="sd">            &gt;&gt;&gt; qres = qaid2_qres[qaids[0]]</span>
-<span class="sd">            &gt;&gt;&gt; gt_aids = None</span>
-<span class="sd">            &gt;&gt;&gt; atrank  = 18</span>
-<span class="sd">            &gt;&gt;&gt; precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)</span>
-
-<span class="sd">        References:</span>
-<span class="sd">            http://en.wikipedia.org/wiki/Precision_and_recall</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">gt_ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">))</span>
-        <span class="n">was_retrieved</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">gt_ranks</span><span class="p">])</span>
-        <span class="n">nGroundTruth</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_ranks</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">nGroundTruth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
-
-        <span class="c"># From oxford:</span>
-        <span class="c">#Precision is defined as the ratio of retrieved positive images to the total number retrieved.</span>
-        <span class="c">#Recall is defined as the ratio of the number of retrieved positive images to the total</span>
-        <span class="c">#number of positive images in the corpus.</span>
-
-        <span class="k">def</span> <span class="nf">get_nTruePositive</span><span class="p">(</span><span class="n">atrank</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; the number of documents we got right &quot;&quot;&quot;</span>
-            <span class="n">TP</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">was_retrieved</span><span class="p">,</span> <span class="n">gt_ranks</span> <span class="o">&lt;=</span> <span class="n">atrank</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">TP</span>
-
-        <span class="k">def</span> <span class="nf">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; the number of documents we should have retrieved but didn&#39;t &quot;&quot;&quot;</span>
-            <span class="c">#FN = min((atrank + 1) - TP, nGroundTruth - TP)</span>
-            <span class="c">#nRetreived = (atrank + 1)</span>
-            <span class="n">FN</span> <span class="o">=</span> <span class="n">nGroundTruth</span> <span class="o">-</span> <span class="n">TP</span>
-            <span class="c">#min(atrank, nGroundTruth - TP)</span>
-            <span class="k">return</span> <span class="n">FN</span>
-
-        <span class="k">def</span> <span class="nf">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; the number of documents we should not have retrieved &quot;&quot;&quot;</span>
-            <span class="c">#FP = min((atrank + 1) - TP, nGroundTruth)</span>
-            <span class="n">nRetreived</span> <span class="o">=</span> <span class="p">(</span><span class="n">atrank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">FP</span> <span class="o">=</span> <span class="n">nRetreived</span> <span class="o">-</span> <span class="n">TP</span>
-            <span class="k">return</span> <span class="n">FP</span>
-
-        <span class="k">def</span> <span class="nf">get_precision</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; precision positive predictive value &quot;&quot;&quot;</span>
-            <span class="n">precision</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FP</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">precision</span>
-
-        <span class="k">def</span> <span class="nf">get_recall</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FN</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; recall, true positive rate, sensitivity, hit rate &quot;&quot;&quot;</span>
-            <span class="n">recall</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FN</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">recall</span>
-
-        <span class="c">#with ut.EmbedOnException():</span>
-        <span class="n">max_rank</span> <span class="o">=</span> <span class="n">gt_ranks</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">max_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">max_rank</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">ofrank_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">truepos_curve</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">get_nTruePositive</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)))</span>
-
-        <span class="n">falsepos_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">)</span>
-             <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-        <span class="n">falseneg_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-        <span class="n">precision_curve</span> <span class="o">=</span> <span class="n">get_precision</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falsepos_curve</span><span class="p">)</span>
-        <span class="n">recall_curve</span>    <span class="o">=</span> <span class="n">get_precision</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falseneg_curve</span><span class="p">)</span>
-
-        <span class="c">#print(np.vstack([precision_curve, recall_curve]).T)</span>
-        <span class="k">return</span> <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span>
+        <span class="k">return</span> <span class="n">get_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.get_classified_pos"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_classified_pos">[docs]</a>    <span class="k">def</span> <span class="nf">get_classified_pos</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
         <span class="n">top_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">())</span>

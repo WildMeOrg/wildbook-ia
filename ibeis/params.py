@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from utool import util_arg
+import os
 
 # Global command line arguments
 args = None     # Parsed arguments
@@ -125,7 +126,11 @@ def parse_args():
         args.num_procs = 1
 
 
-parse_args()
+# Dont parse args if environment variable is off
+# We use this to turn off arg parsing when Sphinx is running
+if os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON':
+    parse_args()
+
 
 if __name__ == '__main__':
     import multiprocessing

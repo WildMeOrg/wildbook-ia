@@ -1102,22 +1102,24 @@
 
 </div>
 <div class="viewcode-block" id="TEST_UUID"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_uuid.TEST_UUID">[docs]</a><span class="k">def</span> <span class="nf">TEST_UUID</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Machine Name: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">MACHINE_NAME</span><span class="p">)</span>
-    <span class="n">test_specs</span><span class="p">()</span>
-    <span class="n">right</span> <span class="o">=</span> <span class="s">&#39;http://i.imgur.com/QqSkNZe.png&#39;</span>
-    <span class="n">test_image_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lena&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">,</span> <span class="s">&#39;easy1&#39;</span><span class="p">,</span> <span class="n">right</span><span class="p">]</span>
-    <span class="n">test_image_passed</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">test_image_keys</span><span class="p">:</span>
-        <span class="n">flag</span> <span class="o">=</span> <span class="n">test_uuid</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">test_image_passed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">flag</span>
-
-    <span class="c"># Write out all that buffered info</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">test_image_passed</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="s">&#39;this test is hard&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;This test is disabled. UUIDS cannot be generated from jpeg pixels, even if there is no write&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="c">#print(&#39;Machine Name: %r&#39; % MACHINE_NAME)</span>
+    <span class="c">#test_specs()</span>
+    <span class="c">#right = &#39;http://i.imgur.com/QqSkNZe.png&#39;</span>
+    <span class="c">#test_image_keys = [&#39;lena&#39;, &#39;jeff&#39;, &#39;easy1&#39;, right]</span>
+    <span class="c">#test_image_passed = {}</span>
+
+    <span class="c">#for key in test_image_keys:</span>
+    <span class="c">#    flag = test_uuid(key)</span>
+    <span class="c">#    test_image_passed[key] = flag</span>
+
+    <span class="c">## Write out all that buffered info</span>
+    <span class="c">#sys.stdout.write(&#39;\n&#39;.join(lines) + &#39;\n&#39;)</span>
+    <span class="c">#sys.stdout.flush()</span>
+
+    <span class="c">#assert all(test_image_passed.values()), &#39;this test is hard&#39;</span>
+    <span class="c">#return locals()</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

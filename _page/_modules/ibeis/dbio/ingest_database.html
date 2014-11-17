@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ibeis.io.ingest_database &mdash; ibeis 0.1.0.dev1 documentation</title>
+    <title>ibeis.dbio.ingest_database &mdash; ibeis 0.1.0.dev1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -47,7 +47,7 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>Source code for ibeis.io.ingest_database</h1><div class="highlight"><pre>
+  <h1>Source code for ibeis.dbio.ingest_database</h1><div class="highlight"><pre>
 <span class="c">#!/usr/bin/env python2.7</span>
 <span class="c"># TODO: ADD COPYRIGHT TAG</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -60,10 +60,11 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA:</span>
 <span class="kn">import</span> <span class="nn">parse</span>
 
 
-<div class="viewcode-block" id="normalize_name"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.normalize_name">[docs]</a><span class="k">def</span> <span class="nf">normalize_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="normalize_name"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.normalize_name">[docs]</a><span class="k">def</span> <span class="nf">normalize_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Maps unknonwn names to the standard ____</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -72,14 +73,14 @@
     <span class="k">return</span> <span class="n">name</span>
 
 </div>
-<div class="viewcode-block" id="normalize_names"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.normalize_names">[docs]</a><span class="k">def</span> <span class="nf">normalize_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">):</span>
+<div class="viewcode-block" id="normalize_names"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.normalize_names">[docs]</a><span class="k">def</span> <span class="nf">normalize_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Maps unknonwn names to the standard ____</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">normalize_name</span><span class="p">,</span> <span class="n">name_list</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="get_name_text_from_parent_folder"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.get_name_text_from_parent_folder">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_name_text_from_parent_folder"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_text_from_parent_folder">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input: gpath_list</span>
 <span class="sd">    Output: names based on the parent folder of each image</span>
@@ -90,13 +91,14 @@
     <span class="k">return</span> <span class="n">name_list</span>
 
 </div>
-<div class="viewcode-block" id="FMT_KEYS"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.FMT_KEYS">[docs]</a><span class="k">class</span> <span class="nc">FMT_KEYS</span><span class="p">:</span>
+<div class="viewcode-block" id="FMT_KEYS"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.FMT_KEYS">[docs]</a><span class="k">class</span> <span class="nc">FMT_KEYS</span><span class="p">:</span>
     <span class="n">name_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:*}[id:d].{ext}&#39;</span>
     <span class="n">snails_fmt</span>  <span class="o">=</span> <span class="s">&#39;{name:*dd}{id:dd}.{ext}&#39;</span>
     <span class="n">giraffe1_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:*}_{id:d}.{ext}&#39;</span>
+    <span class="n">seal2_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:Phsd*}{id:[A-Z]}.{ext}&#39;</span>
 
 </div>
-<div class="viewcode-block" id="get_name_text_from_gnames"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.get_name_text_from_gnames">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;{name:*}[aid:d].{ext}&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_name_text_from_gnames"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_text_from_gnames">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;{name:*}[aid:d].{ext}&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input: gpath_list</span>
 <span class="sd">    Output: names based on the parent folder of each image</span>
@@ -117,9 +119,16 @@
         <span class="p">]),</span>
 
         <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">giraffe1_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
-            <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;G\d+&#39;</span><span class="p">),</span>  <span class="c"># species and 2 numbers</span>
-            <span class="p">(</span><span class="s">&#39;under&#39;</span><span class="p">,</span> <span class="s">r&#39;_&#39;</span><span class="p">),</span>     <span class="c"># 2 more numbers</span>
-            <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>    <span class="s">r&#39;\d+&#39;</span><span class="p">),</span>   <span class="c"># 2 more numbers</span>
+            <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;G\d+&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;under&#39;</span><span class="p">,</span> <span class="s">r&#39;_&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>    <span class="s">r&#39;\d+&#39;</span><span class="p">),</span>
+            <span class="p">(</span> <span class="bp">None</span><span class="p">,</span>   <span class="s">r&#39;\.&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>   <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+
+        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">seal2_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
+            <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;Phs\d+&#39;</span><span class="p">),</span>  <span class="c"># Phs and then numbers</span>
+            <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>    <span class="s">r&#39;[A-Z]+&#39;</span><span class="p">),</span>  <span class="c"># 1 or more letters</span>
             <span class="p">(</span> <span class="bp">None</span><span class="p">,</span>   <span class="s">r&#39;\.&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>   <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
@@ -142,7 +151,7 @@
     <span class="k">return</span> <span class="n">name_list</span>
 
 </div>
-<div class="viewcode-block" id="resolve_name_conflicts"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.resolve_name_conflicts">[docs]</a><span class="k">def</span> <span class="nf">resolve_name_conflicts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
+<div class="viewcode-block" id="resolve_name_conflicts"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.resolve_name_conflicts">[docs]</a><span class="k">def</span> <span class="nf">resolve_name_conflicts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
     <span class="c"># Build conflict map</span>
     <span class="n">conflict_gid_to_names</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">build_conflict_dict</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
 
@@ -185,20 +194,37 @@
 
 
 <span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;polar_bears&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="ingest_polar_bears"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_polar_bears">[docs]</a><span class="k">def</span> <span class="nf">ingest_polar_bears</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_folders&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="ingest_polar_bears"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_polar_bears">[docs]</a><span class="k">def</span> <span class="nf">ingest_polar_bears</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_folders&#39;</span><span class="p">,</span>
                       <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span>
                       <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="ingest_testdb1"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_testdb1">[docs]</a><span class="k">def</span> <span class="nf">ingest_testdb1</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+<div class="viewcode-block" id="ingest_testdb1"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_testdb1">[docs]</a><span class="k">def</span> <span class="nf">ingest_testdb1</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ingest_testdb1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST = OFF</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.ingest_database import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; from vtool.tests import grabdata</span>
+<span class="sd">        &gt;&gt;&gt; grabdata.ensure_testdata()</span>
+<span class="sd">        &gt;&gt;&gt; # DELETE TESTDB1</span>
+<span class="sd">        &gt;&gt;&gt; TESTDB1 = join(ibeis.sysres.get_workdir(), &#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; utool.delete(TESTDB1, ignore_errors=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; result = ingest_testdb1(dbname)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
     <span class="k">def</span> <span class="nf">postingest_tesdb1_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;postingest_tesdb1_func&#39;</span><span class="p">)</span>
         <span class="c"># Adjust data as we see fit</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>
+        <span class="c"># Set image unixtimes</span>
         <span class="n">unixtimes_even</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">unixtimes_odd</span>  <span class="o">=</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">9001</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">unixtimes_even</span> <span class="o">+</span> <span class="n">unixtimes_odd</span>
@@ -236,9 +262,24 @@
         <span class="n">unflagged_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">exemplar_flags</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flag</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">,</span> <span class="n">exemplar_flags</span><span class="p">)</span>
-
+        <span class="c"># Set some test species labels</span>
+        <span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">Species</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+        <span class="c"># These are actually plains zebras.</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">):</span>
+            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;this is actually a plains zebra&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;aid 1 and 2 are correct matches&#39;</span><span class="p">])</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;very simple image to debug feature detector&#39;</span><span class="p">])</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;standard test image&#39;</span><span class="p">])</span>
+        <span class="c">#ut.embed()</span>
         <span class="k">return</span> <span class="bp">None</span>
-    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
                       <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">name_fmt</span><span class="p">,</span>
                       <span class="n">img_dir</span><span class="o">=</span><span class="n">grabdata</span><span class="o">.</span><span class="n">get_testdata_dir</span><span class="p">(),</span>
                       <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span>
@@ -246,41 +287,67 @@
 
 </div>
 <span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;snails_drop1&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="ingest_snails_drop1"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_snails_drop1">[docs]</a><span class="k">def</span> <span class="nf">ingest_snails_drop1</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">,</span>
+<div class="viewcode-block" id="ingest_snails_drop1"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_snails_drop1">[docs]</a><span class="k">def</span> <span class="nf">ingest_snails_drop1</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
                       <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
                       <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">snails_fmt</span><span class="p">,</span>
                       <span class="c">#img_dir=&#39;/raid/raw/snails_drop1_59MB&#39;,</span>
                       <span class="n">adjust_percent</span><span class="o">=.</span><span class="mi">20</span><span class="p">)</span>
 
 </div>
+<span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;seals_drop2&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ingest_seals_drop2"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_seals_drop2">[docs]</a><span class="k">def</span> <span class="nf">ingest_seals_drop2</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
+                      <span class="n">zipfile</span><span class="o">=</span><span class="s">&#39;../raw/hiby_Phs_photos.zip&#39;</span><span class="p">,</span>
+                      <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
+                      <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">seal2_fmt</span><span class="p">,</span>
+                      <span class="c">#img_dir=&#39;/raid/raw/snails_drop1_59MB&#39;,</span>
+                      <span class="n">adjust_percent</span><span class="o">=.</span><span class="mi">20</span><span class="p">,</span>
+                      <span class="n">species</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span>
+                      <span class="p">)</span>
+
+</div>
 <span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;JAG_Kieryn&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="ingest_JAG_Kieryn"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_JAG_Kieryn">[docs]</a><span class="k">def</span> <span class="nf">ingest_JAG_Kieryn</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">,</span>
+<div class="viewcode-block" id="ingest_JAG_Kieryn"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_JAG_Kieryn">[docs]</a><span class="k">def</span> <span class="nf">ingest_JAG_Kieryn</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
                       <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;unknown&#39;</span><span class="p">,</span>
                       <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
 
 </div>
 <span class="nd">@__standard</span><span class="p">(</span><span class="s">&#39;Giraffes&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="ingest_Giraffes1"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_Giraffes1">[docs]</a><span class="k">def</span> <span class="nf">ingest_Giraffes1</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">,</span>
+<div class="viewcode-block" id="ingest_Giraffes1"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_Giraffes1">[docs]</a><span class="k">def</span> <span class="nf">ingest_Giraffes1</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
                       <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
                       <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">giraffe1_fmt</span><span class="p">,</span>
                       <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="get_standard_ingestable"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.get_standard_ingestable">[docs]</a><span class="k">def</span> <span class="nf">get_standard_ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">STANDARD_INGEST_FUNCS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">STANDARD_INGEST_FUNCS</span><span class="p">[</span><span class="n">db</span><span class="p">](</span><span class="n">db</span><span class="p">)</span>
+<div class="viewcode-block" id="get_standard_ingestable"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_standard_ingestable">[docs]</a><span class="k">def</span> <span class="nf">get_standard_ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="n">STANDARD_INGEST_FUNCS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">STANDARD_INGEST_FUNCS</span><span class="p">[</span><span class="n">dbname</span><span class="p">](</span><span class="n">dbname</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unknown db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unknown dbname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
 
 </div>
-<div class="viewcode-block" id="ingest_standard_database"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_standard_database">[docs]</a><span class="k">def</span> <span class="nf">ingest_standard_database</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">force_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ingest_standard_database"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_standard_database">[docs]</a><span class="k">def</span> <span class="nf">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ingest_standard_database</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dbname (str): database name</span>
+<span class="sd">        force_delete (bool):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.ingest_database import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; force_delete = False</span>
+<span class="sd">        &gt;&gt;&gt; result = ingest_standard_database(dbname, force_delete)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] Ingest Standard Database: db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,))</span>
-    <span class="n">ingestable</span> <span class="o">=</span> <span class="n">get_standard_ingestable</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">ingestable</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] Ingest Standard Database: dbname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
+    <span class="n">ingestable</span> <span class="o">=</span> <span class="n">get_standard_ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">ingestable</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">force_delete</span><span class="p">:</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
@@ -292,31 +359,40 @@
 <span class="c">#</span>
 
 </div>
-<div class="viewcode-block" id="Ingestable"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.Ingestable">[docs]</a><span class="k">class</span> <span class="nc">Ingestable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Temporary structure representing how to ingest a databases &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">img_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                 <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">postingest_func</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">db</span>              <span class="o">=</span> <span class="n">db</span>
+<div class="viewcode-block" id="Ingestable"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.Ingestable">[docs]</a><span class="k">class</span> <span class="nc">Ingestable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Temporary structure representing how to ingest a databases</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">img_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">postingest_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span>          <span class="o">=</span> <span class="n">dbname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span>         <span class="o">=</span> <span class="n">img_dir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ingest_type</span>     <span class="o">=</span> <span class="n">ingest_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fmtkey</span>          <span class="o">=</span> <span class="n">fmtkey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zipfile</span>         <span class="o">=</span> <span class="n">zipfile</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adjust_percent</span>  <span class="o">=</span> <span class="n">adjust_percent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">postingest_func</span> <span class="o">=</span> <span class="n">postingest_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species</span>         <span class="o">=</span> <span class="n">species</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ensure_feasibility</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Ingestable.ensure_feasibility"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.Ingestable.ensure_feasibility">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_feasibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Ingestable.ensure_feasibility"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.Ingestable.ensure_feasibility">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_feasibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rawdir</span>  <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_rawdir</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Try to find data either the raw or work dir</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">extra_workdirs</span><span class="o">=</span><span class="p">[</span><span class="n">rawdir</span><span class="p">])</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Cannot find img_dir for db=</span><span class="si">%r</span><span class="s">, img_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="n">extra_workdirs</span><span class="o">=</span><span class="p">[</span><span class="n">rawdir</span><span class="p">],</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Cannot find img_dir for dbname=</span><span class="si">%r</span><span class="s">, img_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">)</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="n">msg</span>
         <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">),</span> <span class="n">msg</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_folders&#39;</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmtkey</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span>
 
 </div></div>
-<div class="viewcode-block" id="ingest_rawdata"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_rawdata">[docs]</a><span class="k">def</span> <span class="nf">ingest_rawdata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ingestable</span><span class="p">,</span> <span class="n">localize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ingest_rawdata"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_rawdata">[docs]</a><span class="k">def</span> <span class="nf">ingest_rawdata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ingestable</span><span class="p">,</span> <span class="n">localize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ingests rawdata into an ibeis database.</span>
 
@@ -324,7 +400,18 @@
 <span class="sd">        Converts folder structure where folders = name, to ibsdb</span>
 <span class="sd">    if ingest_type == &#39;named_images&#39;:</span>
 <span class="sd">        Converts imgname structure where imgnames = name_id.ext, to ibsdb</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db seals_drop2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest_rawdata] Ingestable&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ingestable</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">zipfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">zipfile_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">zipfile</span><span class="p">))</span>
+        <span class="n">ingestable</span><span class="o">.</span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unarchive_file</span><span class="p">(</span><span class="n">zipfile_fpath</span><span class="p">)</span>
+
     <span class="n">img_dir</span>         <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">img_dir</span>
     <span class="n">ingest_type</span>     <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">ingest_type</span>
     <span class="n">fmtkey</span>          <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">fmtkey</span>
@@ -376,15 +463,15 @@
     <span class="k">return</span> <span class="n">aid_list</span>
 
 </div>
-<div class="viewcode-block" id="ingest_oxford_style_db"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.ingest_database.ingest_oxford_style_db">[docs]</a><span class="k">def</span> <span class="nf">ingest_oxford_style_db</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
+<div class="viewcode-block" id="ingest_oxford_style_db"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.ingest_oxford_style_db">[docs]</a><span class="k">def</span> <span class="nf">ingest_oxford_style_db</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">    &gt;&gt;&gt; from ibeis.io.ingest_database import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; from ibeis.dbio.ingest_database import *  # NOQA</span>
 <span class="sd">    &gt;&gt;&gt; import ibeis</span>
 <span class="sd">    &gt;&gt;&gt; dbdir = &#39;/raid/work/Oxford&#39;</span>
 <span class="sd">    &gt;&gt;&gt; dbdir = &#39;/raid/work/Paris&#39;</span>
 <span class="sd">    &gt;&gt;&gt;</span>
-<span class="sd">    #&gt;&gt;&gt; ibeis.io.convert_db.ingest_oxford_style_db(dbdir)</span>
+<span class="sd">    #&gt;&gt;&gt; ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
     <span class="kn">import</span> <span class="nn">os</span>
@@ -549,27 +636,34 @@
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict</span>
+
+
+<span class="sd">        python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db snails_drop1</span>
+<span class="sd">        python ibeis/dbio/ingest_database.py --db testdb1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># win32</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;__main__ = ingest_database.py&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        usage:</span>
-<span class="sd">        ./ibeis/ingest/ingest_database.py --db [dbname]</span>
+<span class="sd">        python ibeis/ingest/ingest_database.py --db [dbname]</span>
 
 <span class="sd">        Valid dbnames:&#39;&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">STANDARD_INGEST_FUNCS</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">force_delete</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force_delete&#39;</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished db injest&#39;</span><span class="p">)</span>
     <span class="c">#img_dir = join(ibeis.sysres.get_workdir(), &#39;polar_bears&#39;)</span>
     <span class="c">#main_locals = ibeis.main(dbdir=img_dir, gui=False)</span>
     <span class="c">#ibs = main_locals[&#39;ibs&#39;]</span>
     <span class="c">#ingest_rawdata(ibs, img_dir)</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">python ibeis/ingest/ingest_database.py --db JAG_Kieryn --force-delete</span>
-<span class="sd">python ibeis/ingest/ingest_database.py --db polar_bears --force_delete</span>
-<span class="sd">python ibeis/ingest/ingest_database.py --db snails_drop1</span>
-<span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 
           </div>

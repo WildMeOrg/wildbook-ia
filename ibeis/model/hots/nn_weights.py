@@ -121,6 +121,7 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
 @_register_nn_simple_weight_func
 def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     r"""
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -132,7 +133,7 @@ def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> qaid2_cos_weight = nn_weights.cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
 
 
-    Dev:
+    Dev::
         qnid = ibs.get_annot_nids(qaid)
         qfx2_nids = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
 

@@ -116,12 +116,23 @@ from plottool import viz_keypoints
 from plottool import viz_image2
 from plottool import fig_presenter
 
+# IBEIS
+import ibeis
+from ibeis import constants
+from ibeis import model
+from ibeis import control
+from ibeis import gui
+from ibeis import viz
+from ibeis import main_module
+from ibeis.viz import interact
+from ibeis.model import hots
+from ibeis.model import preproc
 # IBEIS DEV
-from ibeis.dev import main_commands
 from ibeis import params
+from ibeis import ibsfuncs
+from ibeis.dev import main_commands
 from ibeis.dev import dbinfo
 from ibeis.dev import sysres
-from ibeis import ibsfuncs
 from ibeis.dev import results_organizer
 from ibeis.dev import results_analyzer
 from ibeis.dev import results_all
@@ -129,6 +140,12 @@ from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
+# IBEIS CONTROl
+from ibeis.control import SQLDatabaseControl
+from ibeis.control import __SQLITE3__ as lite
+from ibeis.control import DB_SCHEMA
+from ibeis.control import IBEISControl
+from ibeis.control import accessor_decors
 # IBEIS EXPORT
 from ibeis.dbio import export_hsdb
 # IBEIS INGEST
@@ -176,31 +193,14 @@ from ibeis.viz.interact import ishow_qres
 from ibeis.viz.interact import ishow_sver
 from ibeis.viz.interact import ishow_matches
 from ibeis.viz.interact import iselect_bbox
-# IBEIS CONTROl
-from ibeis.control import SQLDatabaseControl
-from ibeis.control import __SQLITE3__ as lite
-from ibeis.control import DB_SCHEMA
-from ibeis.control import IBEISControl
-from ibeis.control import accessor_decors
-# IBEIS
-import ibeis
-from ibeis import constants
-from ibeis import model
-from ibeis import control
-from ibeis import gui
-from ibeis import viz
-from ibeis import main_module
-from ibeis.viz import interact
-from ibeis.model import hots
-from ibeis.model import preproc
-
-
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[all_imports]')
 
 
 def find_unregisterd():
     import sys
     from ibeis import all_imports
+
+    print('\n'.join(sorted(sys.modules.keys())))
+
     sys_module_strs = list(map(lambda x: str(x[1]), six.iteritems(sys.modules)))
     all_module_strs = []
 

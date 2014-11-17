@@ -64,6 +64,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="c"># UTool</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c"># VTool</span>
 <span class="kn">import</span> <span class="nn">atexit</span>
 <span class="kn">import</span> <span class="nn">vtool.nearest_neighbors</span> <span class="kn">as</span> <span class="nn">nntool</span>
@@ -142,6 +143,11 @@
     <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span> <span class="o">=</span> <span class="n">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fgws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">idx2_fgw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">fgws_list</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_fgw</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">),</span> <span class="s">&#39;error. weights and vecs do not correspond&#39;</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[(</span><span class="nb">len</span><span class="p">,</span> <span class="s">&#39;idx2_fgw&#39;</span><span class="p">),</span> <span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="s">&#39;idx2_vec&#39;</span><span class="p">)])</span>
+            <span class="k">raise</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">idx2_fgw</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">hash_rowids</span><span class="p">:</span>
@@ -189,7 +195,8 @@
     <span class="k">if</span> <span class="n">_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">_aids</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+        <span class="c">#daid_list = qreq_.get_external_daids()</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
     <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DUUIDS&#39;</span><span class="p">)</span>
     <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
     <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
@@ -213,7 +220,8 @@
             <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c"># HACK</span>
-                <span class="n">fgws_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+                <span class="n">fgws_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fgws_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fgws_list</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
@@ -327,8 +335,12 @@
 <div class="viewcode-block" id="NeighborIndex.num_indexed_annots"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.num_indexed_annots">[docs]</a>    <span class="k">def</span> <span class="nf">num_indexed_annots</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">ax2_aid</span><span class="p">)</span>
 </div>
+<div class="viewcode-block" id="NeighborIndex.get_nn_vecs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_vecs">[docs]</a>    <span class="k">def</span> <span class="nf">get_nn_vecs</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; gets matching vectors &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</div>
 <div class="viewcode-block" id="NeighborIndex.get_nn_axs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_axs">[docs]</a>    <span class="k">def</span> <span class="nf">get_nn_axs</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">):</span>
-        <span class="c">#return nnindexer.idx2_ax[qfx2_nnidx]</span>
+        <span class="sd">&quot;&quot;&quot; gets matching internal annotation indicies &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_ax</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="NeighborIndex.get_nn_aids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_nn_aids</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">):</span>
@@ -339,6 +351,17 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            qfx2_aid : (N x K) qfx2_fx[n][k] is the annotation id index of the</span>
 <span class="sd">                                kth approximate nearest data vector</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots import pipeline</span>
+<span class="sd">            &gt;&gt;&gt; qparams = dict()</span>
+<span class="sd">            &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
+<span class="sd">            &gt;&gt;&gt; nnindexer = qreq_.indexer</span>
+<span class="sd">            &gt;&gt;&gt; ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, qparams=qparams)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = qreq_.get_internal_qvecs()[0]</span>
+<span class="sd">            &gt;&gt;&gt; num_neighbors = 4</span>
+<span class="sd">            &gt;&gt;&gt; checks = 1024</span>
+<span class="sd">            &gt;&gt;&gt; (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors, checks)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]</span>
         <span class="c">#qfx2_aid = nnindexer.ax2_aid[qfx2_ax]</span>

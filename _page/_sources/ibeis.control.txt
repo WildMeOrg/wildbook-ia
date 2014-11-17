@@ -92,6 +92,14 @@ ibeis.control.accessor_decors module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.manual_ibeiscontrol_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control.manual_ibeiscontrol_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control.template_definitions module
 -----------------------------------------
 

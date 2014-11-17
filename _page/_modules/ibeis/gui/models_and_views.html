@@ -169,6 +169,8 @@
         <span class="n">treeview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">treeview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># FIXME: should defer the change of encounter until</span>
+            <span class="c"># the view becomes visible</span>
             <span class="n">model</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
 
 

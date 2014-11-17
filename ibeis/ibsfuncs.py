@@ -62,11 +62,12 @@ __INJECTABLE_FUNCS__ = []
 #import ibeis
 import utool as ut  # NOQA
 
-from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.make_class_method_decorator(IBEISController)
+# Try to work around circular import
+#from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
+__injectable = ut.make_class_method_decorator('IBEISController')
 
 
-@ut.make_class_postinject_decorator(IBEISController)
+@ut.make_class_postinject_decorator('IBEISController')
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
@@ -477,8 +478,7 @@ def delete_all_recomputable_data(ibs):
 
 
 @__injectable
-def delete_cache(ibs, delete_chips=False,
-        delete_encounters=False):
+def delete_cache(ibs, delete_chips=False, delete_encounters=False):
     """
     Deletes the cache directory in the database directory.
     Can specify to delete encoutners and chips as well.

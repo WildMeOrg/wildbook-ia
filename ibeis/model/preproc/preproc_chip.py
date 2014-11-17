@@ -6,7 +6,7 @@ normalizations.
 
 TODO:
     * Have controller delete cached chip_fpath if there is a cache miss.
-    * Implemented funcs based on custom qparams in non None qreq_ objects
+    * Implemented funcs based on custom qparams in non None `qreq_` objects
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
@@ -63,6 +63,7 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
     Args:
         ibs (IBEISController):
         aid_list (list):
+        qreq_ (QueryRequest):
 
     Example:
         >>> # ENABLE DOCTEST
@@ -191,6 +192,31 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
 
 
 def generate_chip_properties(ibs, aid_list, qreq_=None):
+    """Computes parameters for SQLController
+
+    computes chips if they do not exist.
+    generates values for add_chips sqlcommands
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        qreq_ (QueryRequest):
+
+    Example:
+        >>> # ENABLE DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip
+        >>> from os.path import basename
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> params_iter = generate_chip_properties(ibs, aid_list)
+        >>> params_list = list(params_iter)
+        >>> (cfpath, width, height,) = params_list[0]
+        >>> fname = basename(cfpath)
+        >>> fname_ = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
+        >>> result = (fname_, width, height)
+        >>> print(result)
+        ('chip_aid=1_auuid={uuid}_CHIP(sz450).png', 545, 372)
+    """
     try:
         # the old function didn't even call this
         compute_and_write_chips(ibs, aid_list)

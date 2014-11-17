@@ -56,61 +56,68 @@
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-
-<span class="c">#if &#39;--loadall&#39; in sys.argv:</span>
-<span class="c">#    from ibeis import ibsfuncs</span>
-<span class="c">#    from ibeis import constants</span>
-<span class="c">#    from ibeis import main_module</span>
-<span class="c">#    from ibeis import params</span>
-<span class="c">#    from ibeis import control</span>
-<span class="c">#    from ibeis import dev</span>
-<span class="c">#    from ibeis import io</span>
-<span class="c">#    from ibeis import model</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="c"># relative from ibeis imports</span>
-    <span class="c">#from ibeis import constants</span>
-    <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">constants</span>
-    <span class="kn">import</span> <span class="nn">ibeis.params</span> <span class="kn">as</span> <span class="nn">params</span>
-    <span class="kn">import</span> <span class="nn">ibeis.main_module</span> <span class="kn">as</span> <span class="nn">main_module</span>
-    <span class="kn">import</span> <span class="nn">ibeis.control</span> <span class="kn">as</span> <span class="nn">control</span>
-    <span class="kn">import</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">as</span> <span class="nn">ibsfunc</span>
-    <span class="kn">import</span> <span class="nn">ibeis.dev</span> <span class="kn">as</span> <span class="nn">dev</span>
-    <span class="kn">import</span> <span class="nn">ibeis.io</span> <span class="kn">as</span> <span class="nn">io</span>
-    <span class="kn">import</span> <span class="nn">ibeis.model</span> <span class="kn">as</span> <span class="nn">model</span>
-    <span class="c">#from ibeis import params</span>
-    <span class="c">#from ibeis import main_module</span>
-    <span class="c">#from ibeis import control</span>
-    <span class="c">#from ibeis import ibsfuncs</span>
-    <span class="c">#from ibeis import dev</span>
-    <span class="c">#from ibeis import io</span>
-    <span class="c">#from ibeis import preproc</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ERROR in ibeis</span><span class="se">\&#39;</span><span class="s"> __init__&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">raise</span>
-    <span class="c">#try:</span>
-    <span class="c">#    pass</span>
-    <span class="c">#    #from . import constants</span>
-    <span class="c">#    #from . import main_module</span>
-    <span class="c">#    #from . import params</span>
-    <span class="c">#    #from . import control</span>
-    <span class="c">#    #from . import dev</span>
-    <span class="c">#    #from . import io</span>
-    <span class="c">#    #from . import dev</span>
-    <span class="c">#    #from . import ibsfuncs</span>
-    <span class="c">#    #from . import model</span>
-    <span class="c">#    #from . import web</span>
-    <span class="c">#except ImportError as ex:</span>
-    <span class="c">#    pass</span>
-    <span class="c">#else:</span>
-    <span class="c">#    utool.printex(ex, &#39;ERROR in ibeis\&#39; __init__&#39;, tb=True)</span>
-    <span class="c">#    raise</span>
+<span class="c"># If we dont initialize plottool before &lt;something&gt;</span>
+<span class="c"># then it causes a crash in windows. Its so freaking weird.</span>
+<span class="c">#import plottool</span>
 
 
-<span class="kn">from</span> <span class="nn">.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">.main_module</span> <span class="kn">import</span> <span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span> <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span>
-<span class="kn">from</span> <span class="nn">.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
-<span class="kn">from</span> <span class="nn">.dev.sysres</span> <span class="kn">import</span> <span class="n">get_workdir</span><span class="p">,</span> <span class="n">set_workdir</span><span class="p">,</span> <span class="n">ensure_pz_mtest</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">main_module</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">control</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dev</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dbio</span>
+
+
+<span class="c">#from ibeis import model</span>
+<span class="c">#from ibeis import viz</span>
+<span class="c">#from ibeis import web</span>
+
+<span class="c">#try:</span>
+<span class="c">#    # relative from ibeis imports</span>
+<span class="c">#    #from ibeis import constants</span>
+<span class="c">#import ibeis.constants as constants</span>
+<span class="c">#import ibeis.params as params</span>
+<span class="c">#import ibeis.main_module as main_module</span>
+<span class="c">#import ibeis.control as control</span>
+<span class="c">#import ibeis.ibsfuncs as ibsfunc</span>
+<span class="c">#import ibeis.dev as dev</span>
+<span class="c">#import ibeis.dbio as io</span>
+<span class="c">#import ibeis.model as model</span>
+<span class="c">#    #from ibeis import params</span>
+<span class="c">#    #from ibeis import main_module</span>
+<span class="c">#    #from ibeis import control</span>
+<span class="c">#    #from ibeis import ibsfuncs</span>
+<span class="c">#    #from ibeis import dev</span>
+<span class="c">#    #from ibeis import io</span>
+<span class="c">#    #from ibeis import model</span>
+<span class="c">#except ImportError as ex:</span>
+<span class="c">#    utool.printex(ex, &#39;ERROR in ibeis\&#39; __init__&#39;, iswarning=False, tb=True)</span>
+<span class="c">#    raise</span>
+<span class="c">#    #try:</span>
+<span class="c">#    #    pass</span>
+<span class="c">#    #    #from . import constants</span>
+<span class="c">#    #    #from . import main_module</span>
+<span class="c">#    #    #from . import params</span>
+<span class="c">#    #    #from . import control</span>
+<span class="c">#    #    #from . import dev</span>
+<span class="c">#    #    #from . import io</span>
+<span class="c">#    #    #from . import dev</span>
+<span class="c">#    #    #from . import ibsfuncs</span>
+<span class="c">#    #    #from . import model</span>
+<span class="c">#    #    #from . import web</span>
+<span class="c">#    #except ImportError as ex:</span>
+<span class="c">#    #    pass</span>
+<span class="c">#    #else:</span>
+<span class="c">#    #    utool.printex(ex, &#39;ERROR in ibeis\&#39; __init__&#39;, tb=True)</span>
+<span class="c">#    #    raise</span>
+
+
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span> <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev.sysres</span> <span class="kn">import</span> <span class="n">get_workdir</span><span class="p">,</span> <span class="n">set_workdir</span><span class="p">,</span> <span class="n">ensure_pz_mtest</span><span class="p">,</span> <span class="n">ensure_nauts</span>
 
 <span class="n">__LOADED__</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1.0.dev1&#39;</span>
@@ -119,9 +126,9 @@
     <span class="c"># Weird / Fancy loading.</span>
     <span class="c"># I want to make this simpler</span>
     <span class="k">global</span> <span class="n">__LOADED__</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">model</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">web</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">model</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">web</span>
     <span class="n">__LOADED__</span> <span class="o">=</span> <span class="bp">True</span>
 </div>
 <div class="viewcode-block" id="ensure_subs"><a class="viewcode-back" href="../ibeis.html#ibeis.ensure_subs">[docs]</a><span class="k">def</span> <span class="nf">ensure_subs</span><span class="p">():</span>
@@ -139,14 +146,14 @@
     <span class="nb">getattr</span><span class="p">(</span><span class="n">constants</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">ibsfuncs</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">main_module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
-    <span class="c">#getattr(params, &#39;rrr&#39;, lambda: None)()</span>
-    <span class="c">#getattr(control, &#39;reload_subs&#39;, lambda: None)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
-    <span class="c">#getattr(gui, &#39;reload_subs&#39;, lambda: None)()</span>
-    <span class="c">#getattr(ingest, &#39;reload_subs&#39;, lambda: None)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="c">#getattr(tests, &#39;reload_subs&#39;, lambda: None)()</span>
+    <span class="c">#getattr(params, &#39;rrr&#39;, lambda: None)()</span>
+    <span class="c">#getattr(control, &#39;reload_subs&#39;, lambda: None)()</span>
+    <span class="c">#getattr(gui, &#39;reload_subs&#39;, lambda: None)()</span>
+    <span class="c">#getattr(ingest, &#39;reload_subs&#39;, lambda: None)()</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
     <span class="n">rrr</span><span class="p">()</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>

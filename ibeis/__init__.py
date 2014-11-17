@@ -9,37 +9,40 @@ import sys
 
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
-import plottool
+#import plottool
 
 
-#if '--loadall' in sys.argv:
-#    from ibeis import ibsfuncs
-#    from ibeis import constants
-#    from ibeis import main_module
-#    from ibeis import params
-#    from ibeis import control
-#    from ibeis import dev
-#    from ibeis import io
-#    from ibeis import model
+from ibeis import constants
+from ibeis import params
+from ibeis import main_module
+from ibeis import control
+from ibeis import ibsfuncs
+from ibeis import dev
+from ibeis import dbio
+
+
+#from ibeis import model
+#from ibeis import viz
+#from ibeis import web
 
 #try:
 #    # relative from ibeis imports
 #    #from ibeis import constants
-import ibeis.constants as constants
-import ibeis.params as params
-import ibeis.main_module as main_module
-import ibeis.control as control
-import ibeis.ibsfuncs as ibsfunc
-import ibeis.dev as dev
-import ibeis.dbio as io
-import ibeis.model as model
+#import ibeis.constants as constants
+#import ibeis.params as params
+#import ibeis.main_module as main_module
+#import ibeis.control as control
+#import ibeis.ibsfuncs as ibsfunc
+#import ibeis.dev as dev
+#import ibeis.dbio as io
+#import ibeis.model as model
 #    #from ibeis import params
 #    #from ibeis import main_module
 #    #from ibeis import control
 #    #from ibeis import ibsfuncs
 #    #from ibeis import dev
 #    #from ibeis import io
-#    #from ibeis import preproc
+#    #from ibeis import model
 #except ImportError as ex:
 #    utool.printex(ex, 'ERROR in ibeis\' __init__', iswarning=False, tb=True)
 #    raise

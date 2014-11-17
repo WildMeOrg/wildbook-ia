@@ -26,7 +26,7 @@
     <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="index.html" />
     <link rel="up" title="ibeis package" href="ibeis.html" />
     <link rel="next" title="ibeis.gui package" href="ibeis.gui.html" />
-    <link rel="prev" title="ibeis.control package" href="ibeis.control.html" /> 
+    <link rel="prev" title="ibeis.dbio package" href="ibeis.dbio.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="ibeis.gui.html" title="ibeis.gui package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ibeis.control.html" title="ibeis.control package"
+          <a href="ibeis.dbio.html" title="ibeis.dbio package"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
           <li><a href="ibeis.html" accesskey="U">ibeis package</a> &raquo;</li> 
@@ -174,10 +174,22 @@ python ibeis/dev/experiment_harness.py</dd>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
 </pre></div>
@@ -349,6 +361,11 @@ recomputes test_cfg_name_list_out in case there are any nested lists specified i
 <dd><p>Draws results from an experiment harness run.
 Rows store different qaids (query annotation ids)
 Cols store different configurations (algorithm parameters)</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vz &#8211;fig-dname query_analysis_easy
+python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vh &#8211;fig-dname query_analysis_hard</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -362,6 +379,10 @@ Cols store different configurations (algorithm parameters)</p>
 <dd><p>Prints results from an experiment harness run.
 Rows store different qaids (query annotation ids)
 Cols store different configurations (algorithm parameters)</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vz</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -430,16 +451,20 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <dt id="ibeis.dev.main_helpers.get_test_daids">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_daids</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets database annot_rowids based on command line arguments</p>
-<dl class="docutils">
+<blockquote>
+<div><dl class="docutils">
 <dt>CommandLine:</dt>
 <dd>python dev.py &#8211;db PZ_MTEST -t best &#8211;exclude-query &#8211;qaid 72 -r 0 -c 0 &#8211;show &#8211;va &#8211;vf &#8211;dump-extra</dd>
 </dl>
+</div></blockquote>
+<p>orig_func_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qaid_list&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.main_helpers.get_test_qaids">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_qaids</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets test annot_rowids based on command line arguments</p>
+<dd><p>Gets test annot_rowids based on command line arguments
+orig_func_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 </dd></dl>
 
 <dl class="function">
@@ -456,6 +481,11 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <em class="property">class </em><tt class="descclassname">ibeis.dev.results_all.</tt><tt class="descname">AllResults</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.DynamicStruct.DynStruct</span></tt></p>
 <p>Data container for all compiled results</p>
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.get_cfgstr">
+<tt class="descname">get_cfgstr</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="ibeis.dev.results_all.AllResults.get_orgres_annotationmatch_scores">
 <tt class="descname">get_orgres_annotationmatch_scores</tt><big>(</big><em>allres</em>, <em>orgtype_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_orgres_annotationmatch_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_orgres_annotationmatch_scores" title="Permalink to this definition">¶</a></dt>
@@ -476,11 +506,16 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <tt class="descname">get_qres</tt><big>(</big><em>allres</em>, <em>qaid</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_qres" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.make_title">
+<tt class="descname">make_title</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.make_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.make_title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.results_all.init_allres">
-<tt class="descclassname">ibeis.dev.results_all.</tt><tt class="descname">init_allres</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#init_allres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.init_allres" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.dev.results_all.</tt><tt class="descname">init_allres</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em>, <em>qreq_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#init_allres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.init_allres" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -493,8 +528,38 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 
 <dl class="function">
 <dt id="ibeis.dev.results_analyzer.get_matching_descriptors">
-<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_matching_descriptors</tt><big>(</big><em>allres</em>, <em>qaids</em>, <em>aids</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_matching_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_matching_descriptors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_matching_descriptors</tt><big>(</big><em>allres</em>, <em>qaid_list</em>, <em>daid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_matching_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_matching_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a set of matching descriptors from queries to database annotations
+in allres</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allres</strong> (<em>AllResults</em>) &#8211; all results object</li>
+<li><strong>qaid_list</strong> (<em>list</em>) &#8211; query annotation id list</li>
+<li><strong>daid_list</strong> (<em>list</em>) &#8211; database annotation id list</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(stacked_qvecs, stacked_dvecs)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.results_analyzer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.results_analyzer.get_orgres_annotationmatch_scores">
@@ -504,7 +569,26 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <dl class="function">
 <dt id="ibeis.dev.results_analyzer.get_orgres_desc_match_dists">
 <tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_orgres_desc_match_dists</tt><big>(</big><em>allres, orgtype_list=['false', 'true']</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_orgres_desc_match_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_orgres_desc_match_dists" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>computes distances between matching descriptors of orgtypes in allres</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">orgres2_descmatch_dists mapping from orgtype to distances (ndarrays)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.results_analyzer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgtype_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres2_descmatch_dists</span> <span class="o">=</span> <span class="n">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">orgres2_descmatch_dists</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.results_analyzer.print_annotationmatch_scores_map">
@@ -552,6 +636,11 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.iter_sorted">
+<tt class="descname">iter_sorted</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.iter_sorted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.iter_sorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.dev.results_organizer.OrganizedResult.printme3">
 <tt class="descname">printme3</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.printme3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.printme3" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -568,20 +657,97 @@ the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; charact
 <dt id="ibeis.dev.results_organizer.get_automatch_candidates">
 <tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">get_automatch_candidates</tt><big>(</big><em>qaid2_qres</em>, <em>ranks_lt=5</em>, <em>directed=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#get_automatch_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.get_automatch_candidates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of matches that should be inspected
-This function is more lightweight than orgres or allres
-and will be used in production.</p>
+This function is more lightweight than orgres or allres.</p>
+<p>Used in inspect_gui and interact_qres2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qaid2_qres</strong> (<em>dict</em>) &#8211; mapping from query annotaiton id to query result object</li>
+<li><strong>ranks_lt</strong> (<em>int</em>) &#8211; put all ranks less than this number into the graph</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.results_organizer.organize_results">
 <tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">organize_results</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#organize_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.organize_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sorts query result annotations, score, and ranks.</p>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd>somehow use the ratio of scores to try and make a prediction</dd>
+<dt>CommandLine:</dt>
+<dd>ib
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show &#8211;cfg fg_weight=1.0
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show &#8211;cfg codename=&#8217;nsum&#8217; fg_weight=1.0 featweight_on:True
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show &#8211;cfg codename=&#8217;nsum&#8217; fg_weight=1.0 featweight_on:True
+python dev.py -t scores &#8211;db GZ_ALL &#8211;allgt -w &#8211;show &#8211;cfg codename=&#8217;nsum&#8217; fg_weight=1.0 featweight_on:True
+python dev.py -t scores &#8211;db GZ_ALL &#8211;allgt -w &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">fg_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">featweight_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dev.results_organizer.qres2_true_and_false">
 <tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">qres2_true_and_false</tt><big>(</big><em>ibs</em>, <em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#qres2_true_and_false"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.qres2_true_and_false" title="Permalink to this definition">¶</a></dt>
-<dd><p>Organizes results into true positive set and false positive set</p>
+<dd><p>Organizes chip-vs-chip results into true positive set and false positive set</p>
 <p>a set is a query, its best match, and a score</p>
+<p>qres2_true_and_false</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qres</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(true_tup, false_tup)
+* true_tup  = (true_aids,  true_scores,  true_ranks)
+* false_tup = (false_aids, false_scores, false_ranks)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">fg_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">featweight_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">true_tup</span><span class="p">,</span> <span class="n">false_tup</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres2_true_and_false</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">true_tup</span><span class="p">,</span> <span class="n">false_tup</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -593,6 +759,12 @@ Module for dealing with system resoureces in the context of IBEIS</p>
 <dt id="ibeis.dev.sysres.db_to_dbdir">
 <tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">db_to_dbdir</tt><big>(</big><em>db</em>, <em>allow_newdir=False</em>, <em>extra_workdirs=[]</em>, <em>use_sync=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#db_to_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.db_to_dbdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.ensure_nauts">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">ensure_nauts</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#ensure_nauts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.ensure_nauts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that you have the NAUT_test dataset</p>
 </dd></dl>
 
 <dl class="function">
@@ -737,8 +909,8 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="ibeis.control.html"
-                        title="previous chapter">ibeis.control package</a></p>
+  <p class="topless"><a href="ibeis.dbio.html"
+                        title="previous chapter">ibeis.dbio package</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ibeis.gui.html"
                         title="next chapter">ibeis.gui package</a></p>
@@ -777,7 +949,7 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
           <a href="ibeis.gui.html" title="ibeis.gui package"
              >next</a> |</li>
         <li class="right" >
-          <a href="ibeis.control.html" title="ibeis.control package"
+          <a href="ibeis.dbio.html" title="ibeis.dbio package"
              >previous</a> |</li>
         <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
           <li><a href="ibeis.html" >ibeis package</a> &raquo;</li> 

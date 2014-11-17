@@ -12,34 +12,10 @@ ibeis.tests.assert_modules module
     :undoc-members:
     :show-inheritance:
 
-ibeis.tests.demo module
------------------------
-
-.. automodule:: ibeis.tests.demo
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.tests.make_big_database module
-------------------------------------
-
-.. automodule:: ibeis.tests.make_big_database
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.tests.reset_testdbs module
 --------------------------------
 
 .. automodule:: ibeis.tests.reset_testdbs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.tests.sample_data module
-------------------------------
-
-.. automodule:: ibeis.tests.sample_data
     :members:
     :undoc-members:
     :show-inheritance:
@@ -156,14 +132,6 @@ ibeis.tests.test_gui_selection module
     :undoc-members:
     :show-inheritance:
 
-ibeis.tests.test_hots_split_trees module
-----------------------------------------
-
-.. automodule:: ibeis.tests.test_hots_split_trees
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.tests.test_ibs module
 ---------------------------
 
@@ -244,14 +212,6 @@ ibeis.tests.test_ibs_encounters module
     :undoc-members:
     :show-inheritance:
 
-ibeis.tests.test_ibs_export module
-----------------------------------
-
-.. automodule:: ibeis.tests.test_ibs_export
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.tests.test_ibs_feat_compute module
 ----------------------------------------
 
@@ -320,22 +280,6 @@ ibeis.tests.test_pil_hash module
 --------------------------------
 
 .. automodule:: ibeis.tests.test_pil_hash
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.tests.test_qt_lazy module
--------------------------------
-
-.. automodule:: ibeis.tests.test_qt_lazy
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.tests.test_qt_thumb module
---------------------------------
-
-.. automodule:: ibeis.tests.test_qt_thumb
     :members:
     :undoc-members:
     :show-inheritance:

@@ -3,14 +3,14 @@ import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range  # NOQA
 from ibeis import constants  # NOQA
-from ibeis.control.IBEISControl import IBEISController
+#from ibeis.control.IBEISControl import IBEISController
 import utool  # NOQA
 import utool as ut  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
 
 # Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator((IBEISController, 'manual'))
-register_ibs_unaliased_method = ut.make_class_method_decorator((IBEISController, 'manual'))
+register_ibs_aliased_method   = ut.make_class_method_decorator(('IBEISController', 'manual'))
+register_ibs_unaliased_method = ut.make_class_method_decorator(('IBEISController', 'manual'))
 
 
 def register_ibs_method(func):

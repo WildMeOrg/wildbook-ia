@@ -111,7 +111,7 @@
 <span id="ibeis-model-hots-hots-query-result-module"></span><h2>ibeis.model.hots.hots_query_result module<a class="headerlink" href="#module-ibeis.model.hots.hots_query_result" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult">
-<em class="property">class </em><tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">QueryResult</tt><big>(</big><em>qres</em>, <em>qaid</em>, <em>qauuid</em>, <em>cfgstr</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">QueryResult</tt><big>(</big><em>qres</em>, <em>qaid</em>, <em>qauuid</em>, <em>cfgstr</em>, <em>daids</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.__eq__">
@@ -128,7 +128,7 @@
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks">
 <tt class="descname">get_aid_ranks</tt><big>(</big><em>input_</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_aid_ranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks" title="Permalink to this definition">¶</a></dt>
-<dd><p>get ranks of chip indexes in aid_arr</p>
+<dd><p>get ranks of annotation ids</p>
 </dd></dl>
 
 <dl class="method">
@@ -150,12 +150,7 @@
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_average_percision">
 <tt class="descname">get_average_percision</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_average_percision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_average_percision" title="Permalink to this definition">¶</a></dt>
-<dd><p>gets average percision using the PASCAL definition</p>
-<p>FIXME: Use only the groundtruth that could have been matched in the
-database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
-<p class="rubric">References</p>
-<p><a class="reference external" href="http://en.wikipedia.org/wiki/Information_retrieval">http://en.wikipedia.org/wiki/Information_retrieval</a></p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_best_gt_rank">
@@ -187,7 +182,7 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_gt_ranks">
-<tt class="descname">get_gt_ranks</tt><big>(</big><em>qres</em>, <em>gt_aids=None</em>, <em>ibs=None</em>, <em>return_gtaids=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_gt_ranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_gt_ranks" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_gt_ranks</tt><big>(</big><em>qres</em>, <em>gt_aids=None</em>, <em>ibs=None</em>, <em>return_gtaids=False</em>, <em>fillvalue=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_gt_ranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_gt_ranks" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns the 0 indexed ranking of each groundtruth chip</p>
 </dd></dl>
 
@@ -221,22 +216,7 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_precision_recall_curve">
 <tt class="descname">get_precision_recall_curve</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_precision_recall_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_precision_recall_curve" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gt_aids</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">atrank</span>  <span class="o">=</span> <span class="mi">18</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_precision_recall_curve</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
-</pre></div>
-</div>
-<p class="rubric">References</p>
-<p><a class="reference external" href="http://en.wikipedia.org/wiki/Precision_and_recall">http://en.wikipedia.org/wiki/Precision_and_recall</a></p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_top_aids">
@@ -251,7 +231,7 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.load">
-<tt class="descname">load</tt><big>(</big><em>qres</em>, <em>qresdir</em>, <em>verbose=True</em>, <em>force_miss=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.load" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">load</tt><big>(</big><em>qres</em>, <em>qresdir</em>, <em>verbose=False</em>, <em>force_miss=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the result from the given database</p>
 </dd></dl>
 
@@ -262,12 +242,12 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.make_title">
-<tt class="descname">make_title</tt><big>(</big><em>qres</em>, <em>remove_daids=False</em>, <em>remove_chip=False</em>, <em>remove_feat=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.make_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.make_title" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">make_title</tt><big>(</big><em>qres</em>, <em>pack=False</em>, <em>remove_daids=False</em>, <em>remove_chip=False</em>, <em>remove_feat=False</em>, <em>textwidth=80</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.make_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.make_title" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.save">
-<tt class="descname">save</tt><big>(</big><em>qres</em>, <em>qresdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.save" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">save</tt><big>(</big><em>qres</em>, <em>qresdir</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>saves query result to directory</p>
 </dd></dl>
 
@@ -284,11 +264,7 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.show_precision_recall_curve">
 <tt class="descname">show_precision_recall_curve</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em>, <em>fnum=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.show_precision_recall_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.show_precision_recall_curve" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-</pre></div>
-</div>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.show_top">
@@ -303,6 +279,21 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.model.hots.hots_query_result.get_average_percision_">
+<tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">get_average_percision_</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#get_average_percision_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.get_average_percision_" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets average percision using the PASCAL definition</p>
+<p>FIXME: Use only the groundtruth that could have been matched in the
+database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Information_retrieval">http://en.wikipedia.org/wiki/Information_retrieval</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.hots_query_result.get_interpolated_precision_vs_recall_">
+<tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">get_interpolated_precision_vs_recall_</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#get_interpolated_precision_vs_recall_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.get_interpolated_precision_vs_recall_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.model.hots.hots_query_result.get_num_chip_matches">
 <tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">get_num_chip_matches</tt><big>(</big><em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#get_num_chip_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.get_num_chip_matches" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -311,6 +302,26 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 <dt id="ibeis.model.hots.hots_query_result.get_num_feats_in_matches">
 <tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">get_num_feats_in_matches</tt><big>(</big><em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#get_num_feats_in_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.get_num_feats_in_matches" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.hots_query_result.get_precision_recall_curve_">
+<tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">get_precision_recall_curve_</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#get_precision_recall_curve_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.get_precision_recall_curve_" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gt_aids</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atrank</span>  <span class="o">=</span> <span class="mi">18</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_precision_recall_curve</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Precision_and_recall">http://en.wikipedia.org/wiki/Precision_and_recall</a></p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.hots_query_result.qres_get_matching_keypoints">
@@ -347,6 +358,15 @@ database. (shouldn&#8217;t be an issue until we start using daid subsets)</p>
 <tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">remove_corrupted_queries</tt><big>(</big><em>qresdir</em>, <em>qres</em>, <em>dryrun=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#remove_corrupted_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.remove_corrupted_queries" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="function">
+<dt id="ibeis.model.hots.hots_query_result.show_precision_recall_curve_">
+<tt class="descclassname">ibeis.model.hots.hots_query_result.</tt><tt class="descname">show_precision_recall_curve_</tt><big>(</big><em>qres</em>, <em>ibs=None</em>, <em>gt_aids=None</em>, <em>fnum=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#show_precision_recall_curve_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.show_precision_recall_curve_" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ibeis.model.hots.hstypes">
 <span id="ibeis-model-hots-hstypes-module"></span><h2>ibeis.model.hots.hstypes module<a class="headerlink" href="#module-ibeis.model.hots.hstypes" title="Permalink to this headline">¶</a></h2>
@@ -382,7 +402,7 @@ currently a weight of zero is hacked in</p>
 </dl>
 <dl class="function">
 <dt id="ibeis.model.hots.match_chips4.execute_query_and_save_L1">
-<tt class="descclassname">ibeis.model.hots.match_chips4.</tt><tt class="descname">execute_query_and_save_L1</tt><big>(</big><em>ibs</em>, <em>qreq_</em>, <em>use_cache=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/match_chips4.html#execute_query_and_save_L1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.match_chips4.execute_query_and_save_L1" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.match_chips4.</tt><tt class="descname">execute_query_and_save_L1</tt><big>(</big><em>ibs</em>, <em>qreq_</em>, <em>use_cache=True</em>, <em>save_cache=True</em>, <em>chunksize=4</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/match_chips4.html#execute_query_and_save_L1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.match_chips4.execute_query_and_save_L1" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -391,11 +411,32 @@ currently a weight of zero is hacked in</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.match_chips4</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">sv_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunksize</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams1</span><span class="p">,</span> <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_cache</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="n">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">save_cache</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.match_chips4.generate_vsone_queries">
+<tt class="descclassname">ibeis.model.hots.match_chips4.</tt><tt class="descname">generate_vsone_queries</tt><big>(</big><em>ibs</em>, <em>qreq_</em>, <em>qaid_list</em>, <em>chunksize</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/match_chips4.html#generate_vsone_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.match_chips4.generate_vsone_queries" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper</p>
+<p>Generate vsone quries one at a time, but create shallow qreqs in chunks.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.match_chips4.submit_query_request">
-<tt class="descclassname">ibeis.model.hots.match_chips4.</tt><tt class="descname">submit_query_request</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>use_cache=True</em>, <em>use_bigcache=True</em>, <em>return_request=False</em>, <em>custom_qparams=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/match_chips4.html#submit_query_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.match_chips4.submit_query_request" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.match_chips4.</tt><tt class="descname">submit_query_request</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>use_cache=None</em>, <em>use_bigcache=None</em>, <em>return_request=False</em>, <em>custom_qparams=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/match_chips4.html#submit_query_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.match_chips4.submit_query_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>The standard query interface.</p>
 <p>Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres
 individually.  On an individual cache miss, it preforms the query.</p>
@@ -420,7 +461,8 @@ dict of QueryResult objects</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.match_chips4</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.match_chips4</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
@@ -428,9 +470,7 @@ dict of QueryResult objects</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -636,12 +676,25 @@ kth approximate nearest data vector</td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qparams</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nnindexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span> <span class="n">qparams</span><span class="o">=</span><span class="n">qparams</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qfx2_vec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qvecs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_neighbors</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">checks</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">,</span> <span class="n">checks</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_axs">
 <tt class="descname">get_nn_axs</tt><big>(</big><em>nnindexer</em>, <em>qfx2_nnidx</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/neighbor_index.html#NeighborIndex.get_nn_axs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_axs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>gets matching internal annotation indicies</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_featxs">
@@ -687,6 +740,12 @@ kth forground weight</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qfx2_fgw</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">get_nn_fgws</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_vecs">
+<tt class="descname">get_nn_vecs</tt><big>(</big><em>nnindexer</em>, <em>qfx2_nnidx</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/neighbor_index.html#NeighborIndex.get_nn_vecs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.neighbor_index.NeighborIndex.get_nn_vecs" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets matching vectors</p>
 </dd></dl>
 
 <dl class="method">
@@ -834,16 +893,23 @@ and use params from qparams instead of ibs.cfg</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Knorm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;K&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&#39;normalizer_rule&#39;</span><span class="p">:</span> <span class="s">&#39;name&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">lnbnn_fn</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">with_metadata</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metakey_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qfx2_normweight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">with_metadata</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">metakey_metadata</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -854,14 +920,123 @@ and use params from qparams instead of ibs.cfg</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.hots.nn_weights.fg_match_weighter">
-<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">fg_match_weighter</tt><big>(</big><em>qaid2_nns</em>, <em>qreq_</em>, <em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#fg_match_weighter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.fg_match_weighter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.model.hots.nn_weights.componentwise_uint8_dot">
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">componentwise_uint8_dot</tt><big>(</big><em>qfx2_qvec</em>, <em>qfx2_dvec</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#componentwise_uint8_dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.componentwise_uint8_dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>a dot product is a componentwise multiplication of
+two vector and then a sum. Do that for arbitary vectors.
+Remember to cast uint8 to float32 and then divide by 255**2.
+BUT THESE ARE SIFT DESCRIPTORS WHICH USE THE SMALL UINT8 TRICK
+DIVIDE BY 512**2 instead</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.nn_weights.cos_match_weighter">
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">cos_match_weighter</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#cos_match_weighter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.cos_match_weighter" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fg_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_weight</span> <span class="o">=</span> <span class="n">fg_match_weighter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cos_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Knorm</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">cos_weight</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;bug setting custom params cos_weight&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_cos_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">cos_match_weighter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Dev::</dt>
+<dd><p class="first">qnid = ibs.get_annot_nids(qaid)
+qfx2_nids = ibs.get_annot_nids(<a href="#id3"><span class="problematic" id="id4">qreq_</span></a>.indexer.get_nn_aids(qfx2_idx.T[0:K].T))</p>
+<p># remove first match
+<a href="#id5"><span class="problematic" id="id6">qfx2_nids_</span></a> = qfx2_nids.T[1:].T
+<a href="#id7"><span class="problematic" id="id8">qfx2_cos_</span></a>  = qfx2_cos.T[1:].T</p>
+<p># flags of unverified &#8216;correct&#8217; matches
+qfx2_samename = <a href="#id9"><span class="problematic" id="id10">qfx2_nids_</span></a> == qnid</p>
+<dl class="last docutils">
+<dt>for k in [1, None]:</dt>
+<dd><dl class="first last docutils">
+<dt>for alpha in [.01, .1, 1, 3, 10, 20, 50]:</dt>
+<dd><p class="first">print(&#8216;&#8212;&#8212;-&#8216;)
+print(&#8216;alpha = %r&#8217; % alpha)
+print(&#8216;k = %r&#8217; % k)
+qfx2_cosweight = np.multiply(np.sign(<a href="#id11"><span class="problematic" id="id12">qfx2_cos_</span></a>), np.power(<a href="#id13"><span class="problematic" id="id14">qfx2_cos_</span></a>, alpha))
+if k is None:</p>
+<blockquote>
+<div>qfx2_weight = qfx2_cosweight
+flag = qfx2_samename</div></blockquote>
+<dl class="docutils">
+<dt>else:</dt>
+<dd>qfx2_weight = qfx2_cosweight.T[0:k].T
+flag = qfx2_samename.T[0:k].T</dd>
+</dl>
+<p class="last">#print(qfx2_weight)
+#print(flag)
+<a href="#id15"><span class="problematic" id="id16">good_stats_</span></a> = ut.get_stats(qfx2_weight[flag])
+<a href="#id17"><span class="problematic" id="id18">bad_stats_</span></a> = ut.get_stats(qfx2_weight[~flag])
+print(&#8216;good_matches = &#8216; + ut.dict_str(<a href="#id19"><span class="problematic" id="id20">good_stats_</span></a>))
+print(&#8216;bad_matchees = &#8216; + ut.dict_str(<a href="#id21"><span class="problematic" id="id22">bad_stats_</span></a>))
+print(&#8216;diff_mean = &#8216; + str(good_stats_[&#8216;mean&#8217;] - bad_stats_[&#8216;mean&#8217;]))</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.nn_weights.dupvote_match_weighter">
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">dupvote_match_weighter</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#dupvote_match_weighter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.dupvote_match_weighter" title="Permalink to this definition">¶</a></dt>
+<dd><p>dupvotes gives duplicate name votes a weight close to 0.</p>
+<p>Each query feature is only allowed to vote for each name at most once.
+IE: a query feature can vote for multiple names, but it cannot vote
+for the same name twice.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py &#8211;allgt -t best &#8211;db PZ_MTEST
+python dev.py &#8211;allgt -t nsum &#8211;db PZ_MTEST
+python dev.py &#8211;allgt -t dupvote &#8211;db PZ_MTEST</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#tup = nn_weights.testdata_nn_weights(&#39;testdb1&#39;, slice(0, 1), slice(0, 11))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;GZ_ALL&#39;</span>  <span class="c"># &#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Knorm</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Test Function Call</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_dupvote_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">dupvote_match_weighter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Check consistency</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flags</span> <span class="o">=</span> <span class="n">qaid2_dupvote_weight</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qfx2_topnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">isunique_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">isunique</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">flag</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">flags</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">isunique_list</span><span class="p">),</span> <span class="s">&#39;dupvote should only allow one vote per name&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>./dev.py -t nsum &#8211;db GZ_ALL &#8211;show &#8211;va -w &#8211;qaid 1032
+./dev.py -t nsum_nosv &#8211;db GZ_ALL &#8211;show &#8211;va -w &#8211;qaid 1032</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.nn_weights.fg_match_weighter">
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">fg_match_weighter</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#fg_match_weighter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.fg_match_weighter" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">featweight_on</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fg_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">featweight_on</span> <span class="o">==</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;bug setting custom params featweight_on&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;bug setting custom params fg_weight&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_fgvote_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">fg_match_weighter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -889,10 +1064,11 @@ and use params from qparams instead of ibs.cfg</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Knorm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">lnbnn_fn</span>
@@ -907,13 +1083,15 @@ and use params from qparams instead of ibs.cfg</p>
 <tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">lnbnn_fn</tt><big>(</big><em>vdist</em>, <em>ndist</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#lnbnn_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.lnbnn_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Locale Naive Bayes Nearest Neighbor weighting</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ndist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>  <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span> <span class="p">])</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ndists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>  <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ndist</span> <span class="o">=</span> <span class="n">ndists</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>  <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist1</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist2</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist3</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist4</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist1</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist2</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist3</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vdist4</span> <span class="o">=</span> <span class="n">vdist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">lnbnn_fn</span><span class="p">(</span><span class="n">vdist1</span><span class="p">,</span> <span class="n">ndist</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">lnbnn_fn</span><span class="p">(</span><span class="n">vdist2</span><span class="p">,</span> <span class="n">ndist</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">lnbnn_fn</span><span class="p">(</span><span class="n">vdist3</span><span class="p">,</span> <span class="n">ndist</span><span class="p">))</span>
@@ -950,7 +1128,7 @@ and use params from qparams instead of ibs.cfg</p>
 
 <dl class="function">
 <dt id="ibeis.model.hots.nn_weights.nn_normalized_weight">
-<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">nn_normalized_weight</tt><big>(</big><em>normweight_fn</em>, <em>qaid2_nns</em>, <em>qreq_</em>, <em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#nn_normalized_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.nn_normalized_weight" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">nn_normalized_weight</tt><big>(</big><em>normweight_fn</em>, <em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#nn_normalized_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.nn_normalized_weight" title="Permalink to this definition">¶</a></dt>
 <dd><p>Weights nearest neighbors using the chosen function</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -972,26 +1150,20 @@ and use params from qparams instead of ibs.cfg</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.nn_weights</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#----</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;PZ_MTEST&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">tup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">lnbnn_fn</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup1</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">qaid2_weight1</span><span class="p">,</span> <span class="n">qaid2_selnorms1</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_weight1</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">weights1</span> <span class="o">=</span> <span class="n">qaid2_weight1</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">selnorms1</span> <span class="o">=</span> <span class="n">qaid2_selnorms1</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#---</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># test NN_WEIGHT_FUNC_DICT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#---</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nn_normonly_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="s">&#39;lnbnn&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup2</span> <span class="o">=</span> <span class="n">nn_normonly_weight</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">qaid2_weight2</span><span class="p">,</span> <span class="n">qaid2_selnorms2</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">selnorms2</span> <span class="o">=</span> <span class="n">qaid2_selnorms2</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_weight2</span> <span class="o">=</span> <span class="n">nn_normonly_weight</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">weights2</span> <span class="o">=</span> <span class="n">qaid2_weight2</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">weights1</span> <span class="o">==</span> <span class="n">weights2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">selnorms1</span> <span class="o">==</span> <span class="n">selnorms2</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -1012,14 +1184,19 @@ and use params from qparams instead of ibs.cfg</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.hots.nn_weights.test_all_weights">
-<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">test_all_weights</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#test_all_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.test_all_weights" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ibeis.model.hots.nn_weights.test_all_normalized_weights">
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">test_all_normalized_weights</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#test_all_normalized_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.test_all_normalized_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_all_normalized_weights</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.nn_weights.testdata_nn_weights">
-<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">testdata_nn_weights</tt><big>(</big><em>custom_qparams={}</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#testdata_nn_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.testdata_nn_weights" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">=</span> <span class="mi">1</span>
+<tt class="descclassname">ibeis.model.hots.nn_weights.</tt><tt class="descname">testdata_nn_weights</tt><big>(</big><em>dbname='testdb1'</em>, <em>qaid_list=None</em>, <em>daid_list=None</em>, <em>custom_qparams={}</em>, <em>cfgdict=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/nn_weights.html#testdata_nn_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.nn_weights.testdata_nn_weights" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -1044,7 +1221,7 @@ SCALARS::
  * fs     - a score of a corresponding feature
  * valid  - a valid bit for a corresponding feature
 
-REALIZATIONS::
+PIPELINE_VARS::
 qaid2_nns - maping from query chip index to nns
 {
  * qfx2_idx   - ranked list of query feature indexes to database feature indexes
@@ -1055,6 +1232,45 @@ qaid2_nns - maping from query chip index to nns
          = qaid2_nnfilt[qaid]
 </pre></div>
 </div>
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.assert_qaid2_chipmatch">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">assert_qaid2_chipmatch</tt><big>(</big><em>ibs</em>, <em>qreq_</em>, <em>qaid2_chipmatch</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#assert_qaid2_chipmatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.assert_qaid2_chipmatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs consistency check</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.baseline_neighbor_filter">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">baseline_neighbor_filter</tt><big>(</big><em>qaid2_nns</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#baseline_neighbor_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.baseline_neighbor_filter" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">mapping from qaid to (qfx2_valid, qfx2_score) tuple</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">qaid2_nnfilt0</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.pipeline</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span><span class="o">.</span><span class="n">test_pipeline_upto</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">stop_node</span><span class="o">=</span><span class="s">&#39;baseline_neighbor_filter&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;baseline_neighbor_filter&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="o">=</span> <span class="n">args</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nnfilt0</span> <span class="o">=</span> <span class="n">baseline_neighbor_filter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Removes matches to self, the same image, or the same name.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.build_chipmatches">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">build_chipmatches</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#build_chipmatches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.build_chipmatches" title="Permalink to this definition">¶</a></dt>
@@ -1084,12 +1300,25 @@ nearest features</li>
 <p>vsmany/vsone counts here. also this is where the filter
 weights and thershold are applied to the matches. Essientally
 nearest neighbors are converted into weighted assignments</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dupvote_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="s">&#39;NAUT_test&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;build_chipmatches&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="p">[</span><span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">,</span> <span class="s">&#39;qaid2_nnfilt&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.chipmatch_to_resdict">
-<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">chipmatch_to_resdict</tt><big>(</big><em>qaid2_chipmatch</em>, <em>metadata</em>, <em>qreq_</em>, <em>qaid2_scores=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#chipmatch_to_resdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.chipmatch_to_resdict" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">chipmatch_to_resdict</tt><big>(</big><em>qaid2_chipmatch</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#chipmatch_to_resdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.chipmatch_to_resdict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a dictionary of chipmatch tuples into a dictionary of query results</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -1108,11 +1337,24 @@ nearest neighbors are converted into weighted assignments</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 </pre></div>
 </div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dupvote_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">prescore_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;chipmatch_to_resdict&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_SVER&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.filter_neighbors">
-<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">filter_neighbors</tt><big>(</big><em>qaid2_nns</em>, <em>filt2_weights</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#filter_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.filter_neighbors" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">filter_neighbors</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>filt2_weights</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#filter_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.filter_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1123,6 +1365,35 @@ nearest neighbors are converted into weighted assignments</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dupvote_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;filter_neighbors&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">,</span> <span class="s">&#39;qaid2_nnfilt0&#39;</span><span class="p">,</span> <span class="s">&#39;filt2_weights&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">filt2_weights</span> <span class="o">=</span> <span class="n">args</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="n">filter_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.get_pipeline_testdata">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">get_pipeline_testdata</tt><big>(</big><em>dbname=None</em>, <em>custom_qparams={}</em>, <em>qaid_list=None</em>, <em>daid_list=None</em>, <em>cfgdict=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#get_pipeline_testdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.get_pipeline_testdata" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pipeline_root</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1134,7 +1405,7 @@ this does check that you are not matching yourself</p>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.nearest_neighbors">
-<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbors</tt><big>(</big><em>qreq_</em>, <em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbors" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbors</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plain Nearest Neighbors</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1151,6 +1422,22 @@ annotation, and K is the number of approximate nearest neighbors.</td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#cfgdict = dict(codename=&#39;vsone&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Asserts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1173,7 +1460,40 @@ matching chips</p>
 </tr>
 </tbody>
 </table>
+<p># TODO: decouple example</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;spatial_verification&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chipmatch</span> <span class="o">=</span> <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prescore_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">prescore_method</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid2_prescore</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">score_chipmatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">prescore_method</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">daid2_fm</span><span class="p">,</span> <span class="n">daid2_fs</span><span class="p">,</span> <span class="n">daid2_fk</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topx2_aid</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_dict</span><span class="o">.</span><span class="n">keys_sorted_by_value</span><span class="p">(</span><span class="n">daid2_prescore</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topx2_kpts</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_chip_extent</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nRerank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">precompute_topx2_dlen_sqrd</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid2_fm</span><span class="p">,</span> <span class="n">topx2_aid</span><span class="p">,</span> <span class="n">topx2_kpts</span><span class="p">,</span> <span class="n">nRerank</span><span class="p">,</span> <span class="n">use_chip_extent</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.prescore_nsum">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">prescore_nsum</tt><big>(</big><em>qreq_</em>, <em>daid2_prescore</em>, <em>nShortlist</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#prescore_nsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.prescore_nsum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.remove_impossible_votes">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">remove_impossible_votes</tt><big>(</big><em>qaid</em>, <em>qfx2_nnidx</em>, <em>qreq_</em>, <em>cant_match_self</em>, <em>cant_match_sameimg</em>, <em>cant_match_samename</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#remove_impossible_votes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.remove_impossible_votes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.request_ibeis_query_L0">
@@ -1194,25 +1514,47 @@ matching chips</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VsMany:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">test_main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">with_metadata</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">qres</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">make_figtitle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
 </pre></div>
 </div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VsOne:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># pipeline.rrr()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">sv_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs1</span><span class="p">,</span> <span class="n">qreq_1</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qreq_1</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres1</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">qreq_1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres1</span> <span class="o">=</span> <span class="n">qaid2_qres1</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">qaid2_qres1</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">qres1</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">make_figtitle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qres1</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>python ibeis/model/hots/pipeline.py &#8211;test-request_ibeis_query_L0</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.save_resdict">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">save_resdict</tt><big>(</big><em>qreq_</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#save_resdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.save_resdict" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Saves a dictionary of query results to disk</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -1227,7 +1569,9 @@ matching chips</p>
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.score_chipmatch">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">score_chipmatch</tt><big>(</big><em>qaid</em>, <em>chipmatch</em>, <em>score_method</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#score_chipmatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.score_chipmatch" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Assigns scores to database annotation ids for a particualry query&#8217;s
+chipmatch</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -1237,7 +1581,10 @@ matching chips</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">aid2_score</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">scores for each database id w.r.t. a single query</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">daid2_score</p>
 </td>
 </tr>
 </tbody>
@@ -1246,7 +1593,7 @@ matching chips</p>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.spatial_verification">
-<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">spatial_verification</tt><big>(</big><em>qaid2_chipmatch</em>, <em>qreq_</em>, <em>dbginfo=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#spatial_verification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.spatial_verification" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">spatial_verification</tt><big>(</big><em>qaid2_chipmatch</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#spatial_verification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.spatial_verification" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1257,12 +1604,30 @@ matching chips</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dupvote_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">prescore_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;spatial_verification&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.testrun_pipeline_upto">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">testrun_pipeline_upto</tt><big>(</big><em>qreq_</em>, <em>stop_node=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#testrun_pipeline_upto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.testrun_pipeline_upto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.try_load_resdict">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">try_load_resdict</tt><big>(</big><em>qreq_</em>, <em>force_miss=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#try_load_resdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.try_load_resdict" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Try and load the result structures for each query.
+returns a list of failed qaids</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -1274,31 +1639,39 @@ matching chips</p>
 </tr>
 </tbody>
 </table>
-<p>Try and load the result structures for each query.
-returns a list of failed qaids</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.weight_neighbors">
-<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">weight_neighbors</tt><big>(</big><em>qaid2_nns</em>, <em>qreq_</em>, <em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#weight_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.weight_neighbors" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">weight_neighbors</tt><big>(</big><em>qaid2_nns</em>, <em>qaid2_nnfilt0</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#weight_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.weight_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>PIPELINE NODE 3</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qreq</strong> (<em>QueryRequest</em>) &#8211; hyper-parameters</li>
-<li><strong>metadata</strong> (<em>dict</em>) &#8211; metadata dictionary</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qreq</strong> (<em>QueryRequest</em>) &#8211; hyper-parameters</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">filt2_weights</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">filt2_weights</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#cfgdict = dict(codename=&#39;vsone&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;GZ_ALL&#39;</span>  <span class="c"># &#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run Test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;weight_neighbors&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">,</span> <span class="s">&#39;qaid2_nnfilt0&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span>  <span class="o">=</span> <span class="n">args</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filt2_weights</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -1327,16 +1700,21 @@ returns a list of failed qaids</p>
 Need to make controller functions have a purely stateless option.</p>
 <dl class="class">
 <dt id="ibeis.model.hots.query_request.QueryParams">
-<em class="property">class </em><tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">QueryParams</tt><big>(</big><em>None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryParams" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">QueryParams</tt><big>(</big><em>qparams</em>, <em>cfg</em>, <em>custom_qparams=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryParams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;asmk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qparams</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;featweight_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qparams</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">==</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qparams</span><span class="o">.</span><span class="n">featweight_on</span> <span class="ow">is</span> <span class="bp">True</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -1514,11 +1892,25 @@ Need to make controller functions have a purely stateless option.</p>
 <dt id="ibeis.model.hots.query_request.new_ibeis_query_request">
 <tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">new_ibeis_query_request</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>custom_qparams=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#new_ibeis_query_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.new_ibeis_query_request" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span> <span class="o">=</span> <span class="n">get_test_qreq</span><span class="p">()</span>   
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_qparams</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;fg_weight&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;featweight_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;qreq_.qparams.fg_weight = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;qreq_.qparams.sv_on = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.query_request.qreq_shallow_copy">
+<tt class="descclassname">ibeis.model.hots.query_request.</tt><tt class="descname">qreq_shallow_copy</tt><big>(</big><em>qreq_</em>, <em>qx=None</em>, <em>dx=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#qreq_shallow_copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.qreq_shallow_copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.query_request.test_cfg_deepcopy">
@@ -1534,6 +1926,11 @@ Need to make controller functions have a purely stateless option.</p>
 <dd><p>this is a hack to make the same name only show up once in the top ranked
 list</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.voting_rules2.get_chipmatch_testdata">
+<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">get_chipmatch_testdata</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#get_chipmatch_testdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.get_chipmatch_testdata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.voting_rules2.get_scores_from_altx2_score">
@@ -1553,13 +1950,63 @@ list</p>
 
 <dl class="function">
 <dt id="ibeis.model.hots.voting_rules2.score_chipmatch_csum">
-<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_csum</tt><big>(</big><em>chipmatch</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_csum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_csum" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_csum</tt><big>(</big><em>qaid</em>, <em>chipmatch</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_csum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_csum" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">aid2_score</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.voting_rules2</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">get_chipmatch_testdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2_score</span> <span class="o">=</span> <span class="n">score_chipmatch_csum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">aid2_score</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.voting_rules2.score_chipmatch_nsum">
-<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_nsum</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>chipmatch</em>, <em>qreq</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_nsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_nsum" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_nsum</tt><big>(</big><em>qaid</em>, <em>chipmatch</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_nsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_nsum" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">nid2_score</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Dev:</dt>
+<dd>ibs = <a href="#id23"><span class="problematic" id="id24">qreq_</span></a>.ibs
+aid2_score = score_chipmatch_csum(qaid, chipmatch, <a href="#id25"><span class="problematic" id="id26">qreq_</span></a>)
+nid2_score = score_chipmatch_nsum(qaid, chipmatch, <a href="#id27"><span class="problematic" id="id28">qreq_</span></a>)
+ut.dict_take_list(aid2_score, ibs.get_annot_groundtruth(qaid))</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.voting_rules2</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">get_chipmatch_testdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid2_score</span> <span class="o">=</span> <span class="n">score_chipmatch_nsum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py -t nsum_nosv &#8211;db GZ_ALL &#8211;allgt &#8211;noqcache
+python dev.py -t nsum &#8211;db GZ_ALL &#8211;show &#8211;va -w &#8211;qaid 1032 &#8211;noqcache
+python dev.py -t nsum_nosv &#8211;db GZ_ALL &#8211;show &#8211;va -w &#8211;qaid 1032 &#8211;noqcache
+qaid=1032_res_gooc+f4msr4ouy9t_quuid=c4f78a6d.npz
+qaid=1032_res_5ujbs8h&amp;%vw1olnx_quuid=c4f78a6d.npz</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.voting_rules2.score_chipmatch_nunique">
@@ -1571,6 +2018,11 @@ list</p>
 <tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_pos</tt><big>(</big><em>ibs</em>, <em>qcx</em>, <em>chipmatch</em>, <em>qreq</em>, <em>rule='borda'</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_pos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Positional Scoring Rule</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.voting_rules2.score_chipmatch_true_nsum">
+<tt class="descclassname">ibeis.model.hots.voting_rules2.</tt><tt class="descname">score_chipmatch_true_nsum</tt><big>(</big><em>qaid</em>, <em>chipmatch</em>, <em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/voting_rules2.html#score_chipmatch_true_nsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.voting_rules2.score_chipmatch_true_nsum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.model.hots.word_index">

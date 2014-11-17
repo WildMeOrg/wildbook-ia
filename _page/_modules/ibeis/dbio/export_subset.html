@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ibeis.io.export_subset &mdash; ibeis 0.1.0.dev1 documentation</title>
+    <title>ibeis.dbio.export_subset &mdash; ibeis 0.1.0.dev1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -47,13 +47,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>Source code for ibeis.io.export_subset</h1><div class="highlight"><pre>
+  <h1>Source code for ibeis.dbio.export_subset</h1><div class="highlight"><pre>
 <span class="c">#!/usr/bin/env python2.7</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Exports subset of an IBEIS database to a new IBEIS database</span>
 
 <span class="sd">Example:</span>
-<span class="sd">    python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.io.export_subset))&quot;</span>
+<span class="sd">    python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.dbio.export_subset))&quot;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -179,7 +179,7 @@
         <span class="k">return</span> <span class="bp">None</span>
 
 
-<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">urllib2</span>
         <span class="kn">import</span> <span class="nn">json</span>
@@ -201,7 +201,7 @@
     <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">location_city</span><span class="p">,</span> <span class="n">location_state</span><span class="p">,</span> <span class="n">location_country</span><span class="p">,</span> <span class="n">location_zip</span>
 
 </div>
-<div class="viewcode-block" id="ensure_contributor_rowids"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.ensure_contributor_rowids">[docs]</a><span class="k">def</span> <span class="nf">ensure_contributor_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_contributor_rowids"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.ensure_contributor_rowids">[docs]</a><span class="k">def</span> <span class="nf">ensure_contributor_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="c"># TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -261,7 +261,7 @@
 <span class="c">#############################</span>
 
 </div>
-<div class="viewcode-block" id="export_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="export_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Packs all the data you are going to transfer from ibs_src</span>
 <span class="sd">    info the transfer_data named tuple.</span>
@@ -287,7 +287,7 @@
     <span class="k">return</span> <span class="n">td</span>
 
 </div>
-<div class="viewcode-block" id="export_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">):</span>
+<div class="viewcode-block" id="export_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">):</span>
     <span class="c"># Get configs</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_config_rowids</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">)</span>
     <span class="n">config_td</span> <span class="o">=</span> <span class="n">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
@@ -315,7 +315,7 @@
     <span class="k">return</span> <span class="n">contributor_td</span>
 
 </div>
-<div class="viewcode-block" id="export_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">config_rowid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Create Config TransferData</span>
@@ -325,7 +325,7 @@
     <span class="k">return</span> <span class="n">config_td</span>
 
 </div>
-<div class="viewcode-block" id="export_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get encounter data</span>
@@ -340,7 +340,7 @@
     <span class="k">return</span> <span class="n">encounter_td</span>
 
 </div>
-<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds transfer data for seleted image ids in ibs_src.</span>
 <span class="sd">    NOTE: gid_list, config_rowid_list and eid_list do not correspond</span>
@@ -389,7 +389,7 @@
     <span class="k">return</span> <span class="n">image_td</span>
 
 </div>
-<div class="viewcode-block" id="export_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get annotation parents</span>
@@ -420,7 +420,7 @@
     <span class="k">return</span> <span class="n">annot_td</span>
 
 </div>
-<div class="viewcode-block" id="export_lblimage_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_lblimage_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_lblimage_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_lblimage_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_lblimage_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_lblimage_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">glrid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">glrid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get lblimage config</span>
@@ -442,7 +442,7 @@
     <span class="k">return</span> <span class="n">lblimage_td</span>
 
 </div>
-<div class="viewcode-block" id="export_lblannot_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.export_lblannot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_lblannot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">alrid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_lblannot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_lblannot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_lblannot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">alrid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">alrid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get lblannot config</span>
@@ -469,7 +469,7 @@
 <span class="c">#############################</span>
 
 </div>
-<div class="viewcode-block" id="import_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="import_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">td</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports transfer data from any ibeis database and moves it into ibs_dst</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -492,7 +492,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[import_transfer_data]   Contributors Rejected: </span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rejected</span><span class="p">),))</span>
 
 </div>
-<div class="viewcode-block" id="import_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">contributor_td</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="import_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">contributor_td</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[import_transfer_data] Import Contributor: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">contributor_uuid</span><span class="p">,))</span>
     <span class="c"># Find conflicts</span>
     <span class="n">contributor_rowid</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_contributor_rowid_from_uuid</span><span class="p">([</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">contributor_uuid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -575,7 +575,7 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="import_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_config_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">config_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="import_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_config_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">config_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
         <span class="c"># Find conflicts</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
     <span class="n">config_suffixes_list</span> <span class="o">=</span> <span class="n">config_td</span><span class="o">.</span><span class="n">config_suffixes_list</span>
@@ -613,7 +613,7 @@
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">encounter_td</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="import_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">encounter_td</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
     <span class="n">config_INDEX_list</span>   <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">config_INDEX_list</span>
     <span class="n">encounter_uuid_list</span> <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">encounter_uuid_list</span>
@@ -659,7 +659,7 @@
     <span class="k">return</span> <span class="n">eid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_image_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">image_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span>
+<div class="viewcode-block" id="import_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_image_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">image_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span>
                                <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
     <span class="n">encounter_INDEXs_list</span>      <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">encounter_INDEXs_list</span>
@@ -777,7 +777,7 @@
     <span class="k">return</span> <span class="n">gid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">annot_td</span><span class="p">,</span> <span class="n">parent_gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="import_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">annot_td</span><span class="p">,</span> <span class="n">parent_gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">parent_gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
         <span class="n">parent_gid_list</span><span class="p">,</span>
@@ -816,7 +816,7 @@
     <span class="k">return</span> <span class="n">aid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_lblimage_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_lblimage_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_lblimage_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">lblimage_td</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="import_lblimage_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_lblimage_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_lblimage_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">lblimage_td</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="c"># Add lblimages</span>
     <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_lblimages</span><span class="p">(</span>
         <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_lbltype_rowid_from_text</span><span class="p">(</span><span class="n">lblimage_td</span><span class="o">.</span><span class="n">lbltype_text_list</span><span class="p">),</span>
@@ -846,7 +846,7 @@
     <span class="k">return</span> <span class="n">glrid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_lblannot_transfer_data"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.import_lblannot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_lblannot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">lblannot_td</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="import_lblannot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_lblannot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_lblannot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">lblannot_td</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="c"># Add lblannots</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_lblannots</span><span class="p">(</span>
         <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_lbltype_rowid_from_text</span><span class="p">(</span><span class="n">lblannot_td</span><span class="o">.</span><span class="n">lbltype_text_list</span><span class="p">),</span>
@@ -881,7 +881,7 @@
 <span class="c">#############################</span>
 
 </div>
-<div class="viewcode-block" id="merge_databases"><a class="viewcode-back" href="../../../ibeis.io.html#ibeis.io.export_subset.merge_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="merge_databases"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.merge_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Conflict resolutions are only between contributors, configs, encounters and images.</span>
 <span class="sd">    Annotations, lblannots, lblimages, their respective relationships, and image-encounter</span>
@@ -909,17 +909,22 @@
 <span class="sd">            from the source database (image_height, annotation_verts, etc.)</span>
 <span class="sd">            WARNING - this may cause an exception to be raised</span>
 <span class="sd">            +---</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.io import export_subset</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio import export_subset</span>
 <span class="sd">        &gt;&gt;&gt; ibs_src = ibeis.opendb(dbdir=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(ibs_src.get_infostr())</span>
-<span class="sd">        &gt;&gt;&gt; print(ibs_src2.get_infostr())</span>
+<span class="sd">        &gt;&gt;&gt; #print(ibs_src2.get_infostr())</span>
 <span class="sd">        &gt;&gt;&gt; ibs_dst = ibeis.opendb(dbdir=&#39;testdb_dst&#39;, allow_newdir=True, delete_ibsdir=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs_dst.get_num_names() == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs_dst.get_num_images() == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs_dst.get_num_annotations() == 0</span>
 <span class="sd">        &gt;&gt;&gt; #ibs_dst = ibs</span>
 <span class="sd">        &gt;&gt;&gt; export_subset.merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(ibs_dst.get_infostr())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Export source database</span>
@@ -1008,7 +1013,18 @@
 <span class="c">#            &#39;averts1={averts1} averts2={averts2}&#39;)</span>
 <span class="c">#     for count, (averts1, averts2) in enumerate(verts_pair_iter):</span>
 <span class="c">#         assert averts1 == averts2, msg.format(</span>
-<span class="c">#             count=count, averts1=averts1, averts2=averts2,)</span></div>
+<span class="c">#             count=count, averts1=averts1, averts2=averts2,)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python ibeis/dbio/export_subset.py</span>
+<span class="sd">    python ibeis/dbio/export_subset.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

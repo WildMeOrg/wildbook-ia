@@ -325,6 +325,7 @@
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
         <span class="n">table_constraints</span><span class="o">=</span><span class="p">[],</span>
+        <span class="c"># FIXME: This change may have broken things</span>
         <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;config_suffix&#39;</span><span class="p">]</span>
     <span class="p">)</span>
 
@@ -400,6 +401,7 @@
 <span class="sd">        python ibeis/control/DB_SCHEMA.py --force-incremental-db-update</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.DB_SCHEMA import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; test_dbschema()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -415,13 +417,14 @@
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">test_dbschema</span><span class="p">()</span>
-    <span class="c"># Run any doctests</span>
-    <span class="c">#import utool as ut</span>
-    <span class="c">#testable_list = [</span>
-    <span class="c">#    test_dbschema</span>
-    <span class="c">#]</span>
-    <span class="c">#ut.doctest_funcs(testable_list)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python ibeis/model/preproc/preproc_chip.py</span>
+<span class="sd">    python ibeis/control/DB_SCHEMA.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

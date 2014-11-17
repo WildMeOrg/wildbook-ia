@@ -115,32 +115,6 @@ def autogen_ibeis_runtest():
 
     script_text = ut.make_run_tests_script_text(test_headers, test_argvs, quick_tests, repodir, exclude_list)
 
-    # HACK TO APPEND EXTRA STUFF
-    # TODO Incorporate this more nicely into autogen script
-    #python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"
-
-    # grep -R "doctest_funcs()" *
-    #script_text = '\n'.join(script_text.split('\n')[0:-2])
-
-    #superhack_testline = 'utool.doctest_modules([' + ', '.join(modname_list) + '])'
-    #superhack_testline = '\n'.join(testlines)
-
-    #script_text += '\n' + ut.codeblock(
-    #    '''
-    #    if [ "$IBEIS_TEST" = "ON" ] ; then
-    #    cat <<EOF
-    #        Hacked in doctests
-    #    EOF
-
-    #    # EXTRA DOCTESTS
-    #    python -c "import utool, ibeis, ibeis.control.DBCACHE_SCHEMA, ibeis.dev.experiment_harness, ibeis.viz; %s"
-
-    #    fi
-
-    #    END_TESTS
-    #    ''' % (superhack_testline,)
-    #).replace('python ', 'RUN_TEST ')
-    #print(script_text)
     return script_text
 
 if __name__ == '__main__':

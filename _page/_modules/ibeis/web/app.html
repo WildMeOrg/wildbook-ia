@@ -64,7 +64,9 @@
 <span class="kn">from</span> <span class="nn">ibeis.control.SQLDatabaseControl</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SQLDatabaseController</span><span class="p">,</span>  <span class="c"># NOQA</span>
                                               <span class="n">SQLAtomicContext</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+<span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c"># Web Internal</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span><span class="p">,</span> <span class="n">navbar</span><span class="p">,</span> <span class="n">DBWEB_SCHEMA</span>
 <span class="c"># Others</span>
@@ -72,6 +74,7 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
 
+<span class="n">BROWSER</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--browser&#39;</span><span class="p">)</span>
 <span class="n">DEFAULT_PORT</span> <span class="o">=</span> <span class="mi">5000</span>
 <span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 <span class="n">global_args</span> <span class="o">=</span> <span class="p">{</span>
@@ -92,35 +95,88 @@
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/turk&#39;</span><span class="p">)</span>
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/turk/&lt;filename&gt;.html&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="turk"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.turk">[docs]</a><span class="k">def</span> <span class="nf">turk</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">refer</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">refer</span> <span class="o">=</span> <span class="bp">None</span>
+
     <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;detection&#39;</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
-            <span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_detection_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
-        <span class="n">finished</span> <span class="o">=</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="s">&#39;gid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;gid&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
+                <span class="n">gid</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_detection_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">gpath</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
             <span class="n">image_src</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="c"># Get annotations</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">scale_factor</span> <span class="o">=</span> <span class="mf">700.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">annot_bbox_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">annot_thetas_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">species_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="c"># Get annotation bounding boxes</span>
+            <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">annot_bbox</span><span class="p">,</span> <span class="n">annot_theta</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_bbox_list</span><span class="p">,</span> <span class="n">annot_thetas_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">):</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;left&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">species</span>
+                <span class="n">temp</span><span class="p">[</span><span class="s">&#39;angle&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">annot_theta</span><span class="p">)</span>
+                <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+              <span class="n">species</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">species_list</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>  <span class="c"># Get most common species</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="n">gpath</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
+          
+        <span class="k">if</span> <span class="n">refer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;refer_aid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">refer_aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer_aid&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">refer_aid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
+                        <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
+                        <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+                        <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
+                        <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
+                        <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">,</span>
+                        <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
+                        <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">,</span>
+                        <span class="n">refer_aid</span><span class="o">=</span><span class="n">refer_aid</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;aid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;aid&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_viewpoint_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">gid</span>       <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">gpath</span>     <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_chip_paths</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">image</span>     <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+            <span class="n">image_src</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gid</span>       <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">gpath</span>     <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;VIEW:&quot;</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
+                        <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
                         <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
                         <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
                         <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
-                        <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
-            <span class="n">aid</span><span class="p">,</span> <span class="n">gpath</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_viewpoint_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
-        <span class="n">finished</span> <span class="o">=</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
-            <span class="n">image_src</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">return</span> <span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
-                        <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
-                        <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
-                        <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
-                        <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;commit&#39;</span><span class="p">:</span>
+                        <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">,</span>
+                        <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;viewpoint-commit&#39;</span><span class="p">:</span>
         <span class="c"># Things that need to be committed</span>
         <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&quot;viewpoint_value_avg&gt;=?&quot;</span>
         <span class="n">viewpoint_rowid_list</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_viewpoint_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">])</span>
@@ -144,8 +200,6 @@
 </div>
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/submit/viewpoint.html&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="submit_viewpoint"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.submit_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">submit_viewpoint</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-aid&#39;</span><span class="p">])</span>
     <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-value&#39;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-submit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;skip&#39;</span><span class="p">:</span>
@@ -170,7 +224,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] SKIPPED - VIEWPOINTS UNSURE&#39;</span><span class="p">)</span>
             <span class="n">appfuncs</span><span class="o">.</span><span class="n">set_viewpoint_values_from_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="s">&#39;viewpoint_value_avg&#39;</span><span class="p">)</span>
-
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] SKIPPED - TOO MANY VIEWPOINTS&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] aid: </span><span class="si">%d</span><span class="s">, value: </span><span class="si">%d</span><span class="s"> | </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value_1</span><span class="p">,</span> <span class="n">value_2</span><span class="p">))</span>
@@ -180,9 +233,42 @@
 </div>
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/submit/detection.html&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="submit_detection"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.submit_detection">[docs]</a><span class="k">def</span> <span class="nf">submit_detection</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;detection&#39;</span><span class="p">))</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-gid&#39;</span><span class="p">])</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-submit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;skip&#39;</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">appfuncs</span><span class="o">.</span><span class="n">set_review_count_from_gids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">count</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">scale_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="mf">700.0</span>
+        <span class="c"># Get aids</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">annotation_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-annotations&#39;</span><span class="p">])</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot</span><span class="p">[</span><span class="s">&#39;left&#39;</span><span class="p">]),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot</span><span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">]),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">]),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">scale_factor</span> <span class="o">*</span> <span class="n">annot</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="p">]</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s">&#39;angle&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="p">]</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">annot</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+        <span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] gid: </span><span class="si">%d</span><span class="s">, bbox_list: </span><span class="si">%r</span><span class="s">, species_list: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">annotation_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">))</span>
+        <span class="n">aid_list_new</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">add_annots</span><span class="p">([</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation_list</span><span class="p">),</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">)</span>
+        <span class="n">appfuncs</span><span class="o">.</span><span class="n">replace_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;viewpoint&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;detection&#39;</span><span class="p">))</span>
 
 </div>
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/api&#39;</span><span class="p">)</span>
@@ -253,12 +339,11 @@
         <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="p">,</span>
         <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">,</span>
         <span class="n">app</span><span class="o">.</span><span class="n">dbweb_version_expected</span><span class="p">,</span>
-        <span class="n">DBWEB_SCHEMA</span><span class="p">,</span>
-        <span class="n">autogenerate</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">DBWEB_SCHEMA</span>
     <span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="start_tornado"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_tornado">[docs]</a><span class="k">def</span> <span class="nf">start_tornado</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reset_db</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">database_init</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="start_tornado"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_tornado">[docs]</a><span class="k">def</span> <span class="nf">start_tornado</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">BROWSER</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reset_db</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">database_init</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">_start_tornado</span><span class="p">():</span>
         <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
             <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">app</span><span class="p">))</span>

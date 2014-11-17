@@ -51,8 +51,9 @@
   <h1>Source code for ibeis.viz.viz_sver</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_sv</span> <span class="kn">as</span> <span class="nn">draw_sv</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_misc]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_sver]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <span class="n">WRITE_SV_DEBUG</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--write-sv-debug&#39;</span><span class="p">)</span>
@@ -64,7 +65,7 @@
     <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
     <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">chipmatch_FILT</span>
     <span class="n">fm</span> <span class="o">=</span> <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
-    <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">aid2_svtup</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_err</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">aff_err</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">aid2_svtup</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
     <span class="n">homog_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
     <span class="n">aff_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span>
     <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span>
@@ -85,7 +86,25 @@
 
 <span class="nd">@utool.indent_func</span>
 <div class="viewcode-block" id="show_sver"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_sver">[docs]</a><span class="k">def</span> <span class="nf">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Compiles IBEIS information and sends it to plottool &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compiles IBEIS information and sends it to plottool</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_sver import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = aid_list[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; chipmatch_FILT = None</span>
+<span class="sd">        &gt;&gt;&gt; aid2_svtup = None</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; show_sver(ibs, aid1, aid2)</span>
+<span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--show&#39;) or ut.inIPython():</span>
+<span class="sd">        ...     from plottool import df2</span>
+<span class="sd">        ...     exec(df2.present())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[show_sver] ====================== [show_sver]&#39;</span><span class="p">)</span>
     <span class="c">#print(utool.func_str(show_sv, kwargs=locals()))</span>
     <span class="k">if</span> <span class="n">chipmatch_FILT</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aid2_svtup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -97,7 +116,16 @@
         <span class="n">utool</span><span class="o">.</span><span class="n">save_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">keys</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[vizsv] write test info&#39;</span><span class="p">)</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">qflag</span><span class="p">()</span>
-    <span class="n">draw_sv</span><span class="o">.</span><span class="n">show_sv</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="o">=</span><span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="o">=</span><span class="n">aff_tup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="n">draw_sv</span><span class="o">.</span><span class="n">show_sv</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="o">=</span><span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="o">=</span><span class="n">aff_tup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/viz/viz_sver.py --allexamples</span>
+<span class="sd">        python ibeis/viz/viz_sver.py --allexamples --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
