@@ -45,6 +45,11 @@ def root(filename=''):
 @app.route('/turk')
 @app.route('/turk/<filename>.html')
 def turk(filename=''):
+    if 'refer' in request.args.keys():
+        refer = request.args['refer']
+    else:
+        refer = None
+
     if filename == 'detection':
         if 'gid' in request.args.keys():
             gid = int(request.args['gid'])
@@ -83,28 +88,44 @@ def turk(filename=''):
             image_src = None
             species = None
             annotation_list = []
+          
+        if refer is not None and 'refer_aid' in request.args.keys():
+            refer_aid = request.args['refer_aid']
+        else:
+            refer_aid = None
         return template('turk', filename,
                         gid=gid,
                         species=species,
                         image_path=gpath,
                         image_src=image_src,
                         finished=finished,
-                        annotation_list=annotation_list)
+                        annotation_list=annotation_list,
+                        refer=refer,
+                        refer_aid=refer_aid)
     elif filename == 'viewpoint':
-        with SQLAtomicContext(app.db):
-            aid = appfuncs.get_next_viewpoint_turk_candidate(app)
-        gpath = app.ibeis.get_annot_chip_paths(aid)
+        if 'aid' in request.args.keys():
+            aid = int(request.args['aid'])
+        else:
+            with SQLAtomicContext(app.db):
+                aid = appfuncs.get_next_viewpoint_turk_candidate(app)
         finished = aid is None
         if not finished:
-            image = appfuncs.open_oriented_image(gpath)
+            gid       = app.ibeis.get_annot_gids(aid)
+            gpath     = app.ibeis.get_annot_chip_paths(aid)
+            image     = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
         else:
+            gid       = None
+            gpath     = None
             image_src = None
+        print("VIEW:", aid, gid)
         return template('turk', filename,
                         aid=aid,
+                        gid=gid,
                         image_path=gpath,
                         image_src=image_src,
-                        finished=finished)
+                        finished=finished,
+                        refer=refer)
     elif filename == 'viewpoint-commit':
         # Things that need to be committed
         where_clause = "viewpoint_value_avg>=?"
@@ -192,8 +213,12 @@ def submit_detection():
             for annot in annotation_list
         ]
         print("[web] gid: %d, bbox_list: %r, species_list: %r" % (gid, annotation_list, species_list))
-        app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
-    return redirect(url_for('turk', filename='detection'))
+        aid_list_new = app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+        appfuncs.replace_aids(app, aid_list, aid_list_new)
+    if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
+        return redirect(url_for('turk', filename='viewpoint'))
+    else:
+        return redirect(url_for('turk', filename='detection'))
 
 
 @app.route('/api')
