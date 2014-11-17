@@ -115,7 +115,8 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
     from ibeis import constants
     cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
     aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
-    return compute_fgweights(ibs, aid_list, qreq_=qreq_)
+    featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
+    return featweight_list
 
 
 #def get_annot_probchip_fname_iter(ibs, aid_list):

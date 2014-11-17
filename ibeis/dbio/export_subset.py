@@ -859,6 +859,7 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             from the source database (image_height, annotation_verts, etc.)
             WARNING - this may cause an exception to be raised
             +---
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import ibeis

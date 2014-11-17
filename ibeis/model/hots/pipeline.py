@@ -612,7 +612,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict = dict(dupvote_weight=1.0)
         >>> cfgdict = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', cfgdict=cfgdict)
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_test', cfgdict=cfgdict)
         >>> # Run Test
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
         >>> qaid2_nns, qaid2_nnfilt = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt']]
@@ -785,7 +785,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
         >>> from ibeis.model.hots import pipeline
         >>> import ibeis
         >>> cfgdict = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_Dan', cfgdict=cfgdict, daid_list='all')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_test', cfgdict=cfgdict, daid_list='all')
 
     Example:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
@@ -1259,9 +1259,9 @@ if __name__ == '__main__':
     python ibeis/model/hots/pipeline.py --test-build_chipmatches
     python ibeis/model/hots/pipeline.py --test-spatial-verification
     python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0 --show
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0 --show --subx 0
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0 --show --subx 1 --db NAUT_Dan
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0 --subx 1 --db NAUT_Dan --noindent
+    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:0 --show
+    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1 --show --db NAUT_test
+    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1 --db NAUT_test --noindent
     python ibeis/model/hots/pipeline.py --allexamples
     """
     import multiprocessing

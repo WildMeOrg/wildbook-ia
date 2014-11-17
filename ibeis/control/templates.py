@@ -19,11 +19,44 @@ STRIP_LONGDESC = False  # True
 STRIP_EXAMPLE  = False  # True
 STRIP_COMMENTS = False
 USE_SHORTNAMES = True
-USE_FUNCTYPE_HEADERS = True
+USE_FUNCTYPE_HEADERS = False  # True
+
+#STRIP_DOCSTR   = True
+#STRIP_COMMENTS  = True
+
+readonly_set = {
+    constants.CHIP_TABLE,
+}
+
+tblname_list = [
+    #constants.ANNOTATION_TABLE,
+
+    #constants.CHIP_TABLE,
+    #constants.FEATURE_TABLE,
+    constants.FEATURE_WEIGHT_TABLE,
+
+    #constants.RESIDUAL_TABLE
+]
+
+multicolumns = ut.odict([
+    (constants.CHIP_TABLE, [
+        ('size', ('width', 'height')),
+    ]),
+])
+
+
+def remove_sentinals(code_text):
+    code_text = ut.regex_replace(r'^ *# STARTBLOCK *$\n', '', code_text)
+    code_text = ut.regex_replace(r'^ *# ENDBLOCK *$\n?', '', code_text)
+    code_text = ut.regex_replace(r'^ *# *REM [^\n]*$\n?', '', code_text)
+    code_text = code_text.rstrip()
+    return code_text
 
 
 def format_controller_func(func_code):
     """
+    Applys formatting and filtering to function code strings
+
     CommandLine:
         python ibeis/control/templates.py
     """
@@ -43,16 +76,13 @@ def format_controller_func(func_code):
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
     if STRIP_COMMENTS:
-        func_code = ut.regex_replace('  # .*$', '', func_code)
-        func_code = ut.regex_replace('^ *# .*$\n', '', func_code)
-        pass
+        func_code = ut.strip_line_comments(func_code)
     if STRIP_DOCSTR:
         # HACKY: might not always work. newline hacks away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
     else:
         if STRIP_LONGDESC:
             func_code_lines = func_code.split('\n')
-
             new_lines = []
             begin = False
             startstrip = False
@@ -97,6 +127,7 @@ def format_controller_func(func_code):
 class SHORTNAMES(object):
     ANNOT      = 'annot'
     CHIP       = 'chip'
+    PROBCHIP   = 'probchip'
     FEAT       = 'feat'
     FEATWEIGHT = 'featweight'
     RVEC       = 'residual'  # 'rvec'
@@ -105,9 +136,10 @@ class SHORTNAMES(object):
 
 depends_map = {
     SHORTNAMES.ANNOT: None,
-    SHORTNAMES.CHIP: SHORTNAMES.ANNOT,
-    SHORTNAMES.FEAT: SHORTNAMES.CHIP,
-    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,
+    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
+    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
+    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
+    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
     SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
 }
 
@@ -118,6 +150,20 @@ tablename2_tbl = {
     constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
     constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
     constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
+}
+
+variable_aliases = {
+    #'chip_rowid_list': 'cid_list',
+    #'annot_rowid_list': 'aid_list',
+    #'feature_rowid_list': 'fid_list',
+    'chip_rowid'                  : 'cid',
+    'annot_rowid'                 : 'aid',
+    'feat_rowid'                  : 'fid',
+    'num_feats'                   : 'nFeat',
+    'featweight_forground_weight' : 'fgweight',
+    'keypoints'                   : 'kpt_list',
+    'vectors'                     : 'vec_list',
+    'residualvecs'                : 'rvec_list',
 }
 
 # mapping to variable names in constants
@@ -132,22 +178,10 @@ tbl2_TABLE = {key: 'constants.' + ut.get_varname_from_locals(val, constants.__di
                 for key, val in six.iteritems(tbl2_tablename)}
 
 
-variable_aliases = {
-    #'chip_rowid_list': 'cid_list',
-    #'annot_rowid_list': 'aid_list',
-    #'feature_rowid_list': 'fid_list',
-    'chip_rowid': 'cid',
-    'annot_rowid': 'aid',
-    'feat_rowid': 'fid',
-    'num_feats': 'nFeat',
-    'featweight_forground_weight': 'fgweight',
-    'keypoints': 'kpt_list',
-    'vectors': 'vec_list',
-    'residualvecs': 'rvec_list',
-}
-
-
 def get_tableinfo(tablename, ibs=None):
+    """
+    Gets relevant info from the sql controller and dependency graph
+    """
     dbself = None
     tableinfo = None
     if ibs is not None:
@@ -186,14 +220,6 @@ def get_tableinfo(tablename, ibs=None):
     return tableinfo
 
 
-def remove_sentinals(code_text):
-    code_text = ut.regex_replace(r'^ *# STARTBLOCK *$\n', '', code_text)
-    code_text = ut.regex_replace(r'^ *# ENDBLOCK *$\n?', '', code_text)
-    code_text = ut.regex_replace(r'^ *# *REM [^\n]*$\n?', '', code_text)
-    code_text = code_text.rstrip()
-    return code_text
-
-
 def remove_kwarg(kwname, kwdefault, func_code):
     func_code = ut.regex_replace(r' *>>> *{0} *= *{1} *\n'.format(kwname, kwdefault), '', func_code)
     func_code = ut.regex_replace(r',? *{0} *= *{1}'.format(kwname, kwname), '', func_code)
@@ -204,6 +230,10 @@ def remove_kwarg(kwname, kwdefault, func_code):
 
 def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
     """
+    Builds function strings for a single type of table using the template
+    definitions.
+
+    CommandLine:
         python ibeis/control/templates.py
         python ibeis/control/templates.py --dump-autogen-controller
     """
@@ -310,8 +340,8 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
         else:
             set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
         append_func('0_PL.Tadder',   Tdef.Tadder_pl_dependant)
-        append_func('0_PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
         append_func('0_PL.Tgetter_rowids_',  Tdef.Tgetter_pl_dependant_rowids_)
+        append_func('0_PL.Tgetter_rowids',  Tdef.Tgetter_pl_dependant_rowids)
 
     # ----------------------------
     # Root Leaf Dependancy
@@ -343,7 +373,8 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
             fmtdict['TABLE'] = tbl2_TABLE[child]  # tblname1_TABLE[child]
         # Getter template: native (Level 0) columns
         append_func('2_Native.Tgetter_native', Tdef.Tgetter_table_column)
-        append_func('2_Native.Tsetter_native', Tdef.Tsetter_native_column)
+        if tablename not in readonly_set:
+            append_func('2_Native.Tsetter_native', Tdef.Tsetter_native_column)
         if len(depends_list) > 1:
             append_func('RL.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
@@ -351,9 +382,6 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
 
     return functype2_func_list, constant_list
 
-
-#def test():
-#    from ibeis.control.templates import *  # NOQA
 
 def build_depends_path(child):
     parent = depends_map[child]
@@ -370,6 +398,32 @@ def colname2_col(colname, tablename):
     return col
 
 
+def get_autogen_modname():
+    # Build output filenames and info
+    autogen_mod_fname = '_autogen_ibeiscontrol_funcs.py'
+    # module we will autogenerate next to
+    parent_module = ibeis.control
+    parent_modpath = dirname(parent_module.__file__)
+    # Build autogen paths and modnames
+    autogen_fpath = join(parent_modpath, autogen_mod_fname)
+    autogen_rel_fpath = ut.get_relative_modpath(autogen_fpath)
+    autogen_modname = ut.get_modname_from_modpath(autogen_fpath)
+    return autogen_fpath, autogen_rel_fpath, autogen_modname
+
+
+def make_doctest_main(autogen_rel_fpath):
+    # Create main doctest
+    main_commandline_block_lines = [
+        'python ' + autogen_rel_fpath,
+    ]
+    main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
+    main_commandline_block = '\n'.join(main_commandline_block_lines)
+    main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
+    main_docstr_blocks = [main_commandline_docstr]
+    main_docstr_body = '\n'.join(main_docstr_blocks)
+    return main_docstr_body
+
+
 def main(ibs):
     """
     CommandLine:
@@ -381,29 +435,7 @@ def main(ibs):
 
     # --- PREPROCESSING ---
 
-    tblname_list = [
-        #constants.ANNOTATION_TABLE,
-
-        #constants.CHIP_TABLE,
-        #constants.FEATURE_TABLE,
-        constants.FEATURE_WEIGHT_TABLE,
-
-        constants.RESIDUAL_TABLE
-    ]
-
-    # Build output filenames and info
-    autogen_mod_fname = '_autogen_ibeiscontrol_funcs.py'
-    root_module = ibeis
-    parent_module = ibeis.control
-    # Parent info
-    root_modpath = dirname(root_module.__file__)
-    parent_modpath = dirname(parent_module.__file__)
-    autogen_modpath = relpath(parent_modpath, parent_modpath)
-    # Relative and truth fpaths
-    autogen_rel_fpath = join(autogen_modpath, autogen_mod_fname)
-    autogen_fpath = join(ut.truepath(parent_modpath), autogen_mod_fname)
-    # Autogen module path
-    autogen_modname = ut.get_modname_from_modpath(autogen_fpath)
+    autogen_fpath, autogen_rel_fpath, autogen_modname = get_autogen_modname()
 
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
@@ -464,15 +496,7 @@ def main(ibs):
     # Make main docstr
     #testable_name_list = ['get_annot_featweight_rowids']
 
-    # Create main doctest
-    main_commandline_block_lines = [
-        'python ' + autogen_rel_fpath,
-    ]
-    main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
-    main_commandline_block = '\n'.join(main_commandline_block_lines)
-    main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
-    main_docstr_blocks = [main_commandline_docstr]
-    main_docstr_body = '\n'.join(main_docstr_blocks)
+    main_docstr_body = make_doctest_main(autogen_rel_fpath)
 
     # Contenate autogen parts into autogen_text
 
@@ -486,7 +510,7 @@ def main(ibs):
         autogen_header,
         '',
         autogen_constants,
-        '',
+        '\n',
         autogen_body,
         '',
         autogen_footer,

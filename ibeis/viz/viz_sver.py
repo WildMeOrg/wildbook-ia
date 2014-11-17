@@ -14,7 +14,7 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup):
     kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2])
     aid2_fm, aid2_fs, aid2_fk = chipmatch_FILT
     fm = aid2_fm[aid2]
-    (homog_inliers, H, aff_inliers, Aff) = aid2_svtup[aid2]
+    (homog_inliers, homog_err, H, aff_inliers, aff_err, Aff) = aid2_svtup[aid2]
     homog_tup = (homog_inliers, H)
     aff_tup = (aff_inliers, Aff)
     sv_vartup = chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup

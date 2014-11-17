@@ -70,22 +70,22 @@ def autogen_ibeis_runtest():
         '''
 
         # EXTRA DOCTESTS
-        RUN_TEST ibeis/model/hots/nn_weights.py --allexamples
-        RUN_TEST ibeis/control/DBCACHE_SCHEMA.py --allexamples
-        RUN_TEST ibeis/control/DB_SCHEMA.py --allexamples
-        RUN_TEST ibeis/model/preproc/preproc_image.py --allexamples
-        RUN_TEST ibeis/model/preproc/preproc_chip.py --allexamples
-        RUN_TEST ibeis/model/preproc/preproc_feat.py --allexamples
-        RUN_TEST ibeis/model/preproc/preproc_encounter.py --allexamples
-        RUN_TEST ibeis/model/preproc/preproc_detectimg.py --allexamples
-        RUN_TEST ibeis/model/hots/match_chips4.py --allexamples
-        RUN_TEST ibeis/model/hots/voting_rules2.py --allexamples
-        RUN_TEST ibeis/model/hots/pipeline.py --allexamples
-        RUN_TEST ibeis/dbio/export_subset.py --allexamples
+        python ibeis/model/hots/nn_weights.py --allexamples
+        python ibeis/control/DBCACHE_SCHEMA.py --allexamples
+        python ibeis/control/DB_SCHEMA.py --allexamples
+        python ibeis/model/preproc/preproc_image.py --allexamples
+        python ibeis/model/preproc/preproc_chip.py --allexamples
+        python ibeis/model/preproc/preproc_feat.py --allexamples
+        python ibeis/model/preproc/preproc_encounter.py --allexamples
+        python ibeis/model/preproc/preproc_detectimg.py --allexamples
+        python ibeis/model/hots/match_chips4.py --allexamples
+        python ibeis/model/hots/voting_rules2.py --allexamples
+        python ibeis/model/hots/pipeline.py --allexamples
+        python ibeis/dbio/export_subset.py --allexamples
 
         END_TESTS
         '''
-    )
+    ).replace('python ', 'RUN_TEST ')
     #print(script_text)
     return script_text
 

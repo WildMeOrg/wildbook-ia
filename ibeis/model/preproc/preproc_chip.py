@@ -9,7 +9,7 @@ TODO:
     * Implemented funcs based on custom qparams in non None qreq_ objects
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, range
+from six.moves import zip, range, filter  # NOQA
 from os.path import exists, join
 import os
 import utool as ut  # NOQA
@@ -23,27 +23,7 @@ import vtool.image as gtool
 # Chip reading
 #-------------
 
-
-#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfgstrs first
-@ut.indent_func
 def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
-    """Reads chips and tries to compute them if they do not exist
-
-    Args:
-        ibs (IBEISController):
-        aid_list (list):
-        ensure (bool):
-
-    Returns:
-        chip_list
-
-    Example:
-        >>> # DISABLE DOCTEST
-        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
-    """
-    #print('[preproc_chip] compute_or_read_chips')
     if ensure:
         try:
             ut.assert_all_not_None(aid_list, 'aid_list')
@@ -88,9 +68,14 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         >>> # ENABLE DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
+        >>> from os.path import basename
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> params_iter = add_chips_params_gen(ibs, aid_list)
         >>> params_list = list(params_iter)
+        >>> (aid, chip_config_rowid, cfpath, width, height,) = params_list[0]
+        >>> result = (basename(cfpath), width, height)
+        >>> print(result)
+        ('chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png', 545, 372)
     """
     try:
         cfpath_list = get_annot_cfpath_list(ibs, aid_list)
@@ -100,19 +85,18 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
             width, height = pil_chip.size
             if ut.DEBUG2:
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
-            yield (aid, cfpath, width, height, chip_config_rowid)
+            yield (aid, chip_config_rowid, cfpath, width, height,)
     except IOError as ex:
         ut.printex(ex, 'ERROR IN PREPROC CHIPS')
 
 
-#--------------
-# Chip deleters
-#--------------
-
-
 @ut.indent_func
 def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
-    """Removes chips from disk (does not remove from SQLController)
+    """
+
+    DEPRICATE
+
+    Removes chips from disk (does not remove from SQLController)
     this action must be performed by you.
 
     Args:
@@ -123,7 +107,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
     Example:
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> compute_and_write_chips_lazy(ibs, aid_list)
         >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
         >>> print(set(cid_list))
@@ -131,21 +115,144 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
         >>> ibs.delete_chips(cid_list)
         >>> cid_list = ibs.get_annot_cids(aid_list, ensure=False)
     """
-    # TODO: Fixme, depends on current algo config
-    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    on_delete(ibs, cid_list, qreq_=None, verbose=verbose, strict=False)
+
+
+#  ^^ OLD FUNCS ^^
+
+def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
+    """Reads chips and tries to compute them if they do not exist
+
+    Args:
+        ibs (IBEISController):
+        cid_list (list):
+        ensure (bool):
+
+    Returns:
+        chip_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip
+        >>> import numpy as np
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)
+        >>> result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()
+        >>> print(result)
+        [1434, 2274, 12]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip
+        >>> import numpy as np
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> # Do a bad thing. Remove from disk without removing from sql
+        >>> preproc_chip.on_delete(ibs, cid_list)
+        >>> # Now compute_or_read_chip_images should catch the bad thing
+        >>> # we did and correct for it.
+        >>> chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)
+        >>> result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()
+        >>> print(result)
+        [1434, 2274, 12]
+    """
+    cfpath_list = ibs.get_chip_paths(cid_list)
+    try:
+        if ensure:
+            try:
+                ut.assert_all_not_None(cid_list, 'cid_list')
+            except AssertionError as ex:
+                ut.printex(ex, key_list=['cid_list'])
+                raise
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        else:
+            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
+    except IOError as ex:
+        if not ut.QUIET:
+            ut.printex(ex, '[preproc_chip] Handing Exception: ')
+        # Remove bad annotations from the sql database
+        aid_list = ibs.get_chip_aids(cid_list)
+        valid_list    = [cid is not None for cid in cid_list]
+        valid_aids    = ut.filter_items(aid_list, valid_list)
+        valid_cfpaths = ut.filter_items(cfpath_list, valid_list)
+        bad_aids      = ut.filterfalse_items(valid_aids, map(exists, valid_cfpaths))
+        ibs.delete_annot_chips(bad_aids)
+        # Try readding things
+        new_cid_list = ibs.add_chips(aid_list)
+        cfpath_list = ibs.get_chip_paths(new_cid_list)
+        chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+    return chip_list
+
+
+def generate_chip_properties(ibs, aid_list, qreq_=None):
+    try:
+        cfpath_list = get_annot_cfpath_list(ibs, aid_list)
+        chip_config_rowid = ibs.get_chip_config_rowid()
+        for cfpath, aid in zip(cfpath_list, aid_list):
+            pil_chip = gtool.open_pil_image(cfpath)
+            width, height = pil_chip.size
+            if ut.DEBUG2:
+                print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
+            yield (aid, chip_config_rowid, cfpath, width, height,)
+    except IOError as ex:
+        ut.printex(ex, 'ERROR IN PREPROC CHIPS')
+
+
+#--------------
+# Chip deleters
+#--------------
+
+def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
+    """
+    Cleans up chips on disk.  Called on delete from sql controller.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> compute_and_write_chips_lazy(ibs, aid_list)
+        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> assert len(ut.filter_Nones(cid_list)) == len(cid_list)
+        >>> # Run test function
+        >>> qreq_ = None
+        >>> verbose = True
+        >>> strict = True
+        >>> nRemoved1 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
+        >>> assert nRemoved1 == len(cid_list), 'nRemoved=%r, target=%r' % (nRemoved1,  len(cid_list))
+        >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
+        >>> assert nRemoved2 == 0, 'nRemoved=%r' % (nRemoved2,)
+        >>> # We have done a bad thing at this point. SQL still thinks chips exist
+        >>> cid_list2 = ibs.get_annot_cids(aid_list, ensure=False)
+        >>> ibs.delete_chips(cid_list2)
+    """
+    cid_list_ = ut.filter_Nones(cid_list)
+    chip_fpath_list = ibs.get_chip_paths(cid_list_)
+    exists_list = list(map(exists, chip_fpath_list))
     if verbose:
-        print('[preproc_chip] deleting %d chips' % len(cid_list))
-    needs_delete = list(map(exists, chip_fpath_list))
-    if verbose:
-        print('[preproc_chip] %d exist and need to be deleted' % sum(needs_delete))
-    count = 0
-    for cfpath in ut.ifilter_items(chip_fpath_list, needs_delete):
+        nTotal = len(cid_list)
+        nValid = len(cid_list_)
+        nExist = sum(exists_list)
+        print('[preproc_chip.on_delete] requesting delete of %d chips' % (nTotal,))
+        if nValid != nTotal:
+            print('[preproc_chip.on_delete] trying to delete %d/%d non None chips ' % (nValid, nTotal))
+        print('[preproc_chip.on_delete] %d/%d exist and need to be deleted' % (nExist, nValid))
+    nRemoved = 0
+    existing_cfpath_iter = ut.ifilter_items(chip_fpath_list, exists_list)
+    for cfpath in existing_cfpath_iter:
         try:
             os.remove(cfpath)
-            count += 1
+            nRemoved += 1
         except OSError:
-            print('[preproc_chip] cannot remove: %r ' % cfpath)
-    print('[preproc_chip] deleted %d chips' % count)
+            print('[preproc_chip.on_delete] !!! cannot remove: %r ' % cfpath)
+            if strict:
+                raise
+    if verbose:
+        print('[preproc_chip] sucesfully deleted %d/%d chips' % (nRemoved, nExist))
+    return nRemoved
 
 
 #---------------
@@ -166,7 +273,7 @@ def get_chip_fname_fmt(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> cfname_fmt = get_chip_fname_fmt(ibs)
         >>> assert cfname_fmt == 'chip_aid=%d_auuid=%s_CHIP(sz450).png', cfname_fmt
         >>> result = cfname_fmt
@@ -198,12 +305,13 @@ def get_annot_cfpath_list(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> ibs, aid_list = test_setup_preproc_chip()
+        >>> from os.path import basename
+        >>> ibs, aid_list = testdata_preproc_chip()
         >>> aid_list = aid_list[0:1]
         >>> cfpath_list = get_annot_cfpath_list(ibs, aid_list)
-        >>> result = '\n'.join(cfpath_list)
+        >>> result = '\n'.join(map(basename, cfpath_list))
         >>> print(result)
-        /media/raid/work/testdb1/_ibsdb/chips/chip_aid=1_auuid=a39894f2-b599-4b52-b5b4-61f36ac8dafd_CHIP(sz450).png
+        chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png
     """
     # TODO: Use annot uuids, use verts info as well
     #ut.assert_all_not_None(aid_list, 'aid_list')
@@ -211,9 +319,10 @@ def get_annot_cfpath_list(ibs, aid_list):
     cfname_fmt = get_chip_fname_fmt(ibs)
     #cfname_iter = (None if aid is None else cfname_fmt % aid for aid in iter(aid_list))
     #cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)
-    cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid) for (aid, auuid) in
-                   zip(aid_list, annot_uuid_list))
-    cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname) for cfname in cfname_iter]
+    cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid)
+                   for (aid, auuid) in zip(aid_list, annot_uuid_list))
+    cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname)
+                   for cfname in cfname_iter]
     return cfpath_list
 
 
@@ -255,7 +364,7 @@ def compute_and_write_chips(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = test_setup_preproc_chip()
+        >>> ibs, aid_list = testdata_preproc_chip()
         >>> ibs.delete_annot_chips(aid_list)
         >>> cid_list = ibs.get_annot_cids(aid_list, ensure=False)
         >>> compute_and_write_chips(ibs, aid_list)
@@ -313,7 +422,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> ibs, aid_list = test_setup_preproc_chip()
+        >>> ibs, aid_list = testdata_preproc_chip()
     """
     print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
@@ -330,26 +439,13 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
 # Testing
 #-------------
 
-def test_setup_preproc_chip():
+def testdata_preproc_chip():
     """testdata function """
     import ibeis
     ibs = ibeis.opendb('testdb1')
-    aid_list = ibs.get_valid_aids()
+    aid_list = ibs.get_valid_aids()[0::4]
     return ibs, aid_list
 
-
-def on_delete(ibs, cid_list, qreq_=None):
-    print('Warning: Not Implemented')
-
-
-if __name__ == '__main__':
-    """
-    python ibeis/model/preproc/preproc_chip.py
-    python ibeis/model/preproc/preproc_chip.py --allexamples
-    """
-    import multiprocessing
-    multiprocessing.freeze_support()
-    ut.doctest_funcs()
 
 if __name__ == '__main__':
     """
@@ -359,5 +455,7 @@ if __name__ == '__main__':
         python ibeis/model/preproc/preproc_chip.py
         python ibeis/model/preproc/preproc_chip.py --allexamples
     """
+    import multiprocessing
+    multiprocessing.freeze_support()
     import utool as ut  # NOQA
     ut.doctest_funcs()
