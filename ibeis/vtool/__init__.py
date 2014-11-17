@@ -105,7 +105,8 @@ if __DYNAMIC__:
     from utool._internal import util_importer
     # FIXME: this might actually work with rrrr, but things arent being
     # reimported because they are already in the modules list
-    import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
+    ignore_endswith = ['_cyth']
+    import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES, ignore_endswith=ignore_endswith)
     exec(import_execstr)
     DOELSE = False
 else:
@@ -165,12 +166,8 @@ if DOELSE:
                                 cast_split, diag, flatten_invV_mats_to_kpts, 
                                 get_V_mats, get_Z_mats, get_diag_extent_sqrd, 
                                 get_grid_kpts, get_homog_xyzs, 
-                                get_invVR_mats_oris, get_invVR_mats_oris_cyth, 
-                                get_invVR_mats_shape, 
-                                get_invVR_mats_shape_cyth, 
-                                get_invVR_mats_sqrd_scale, 
-                                get_invVR_mats_sqrd_scale_cyth, 
-                                get_invVR_mats_xys, get_invVR_mats_xys_cyth, 
+                                get_invVR_mats_oris, get_invVR_mats_shape, 
+                                get_invVR_mats_sqrd_scale, get_invVR_mats_xys, 
                                 get_invV_mats, get_invV_mats2x2, 
                                 get_invV_xy_axis_extents, get_invVs, 
                                 get_kpts_bounds, get_kpts_strs, get_ori_mats, 
@@ -178,25 +175,21 @@ if DOELSE:
                                 get_shape_strs, get_sqrd_scales, 
                                 get_xy_axis_extents, get_xy_strs, get_xys, 
                                 invert_invV_mats, matrix_multiply, offset_kpts, 
-                                ones, rectify_invV_mats_are_up, 
-                                rectify_invV_mats_are_up_cyth, rollaxis, sqrt, 
+                                ones, rectify_invV_mats_are_up, rollaxis, sqrt, 
                                 transform_kpts, transform_kpts_to_imgspace, 
                                 zeros,) 
     from vtool.features import (extract_features,) 
     from vtool.patch import (find_kpts_direction, gaussian_patch, 
-                             get_orientation_histogram, get_unwarped_patches, 
-                             get_warped_patch, get_warped_patches, lru_cache, 
-                             patch_gradient, patch_mag, patch_ori,) 
+                             get_orientation_histogram, get_unwarped_patch, 
+                             get_unwarped_patches, get_warped_patch, 
+                             get_warped_patches, lru_cache, patch_gradient, 
+                             patch_mag, patch_ori,) 
     from vtool.chip import (compute_chip, get_filter_list, 
                             get_scaled_size_with_area, 
                             get_scaled_sizes_with_area,) 
     from vtool.spatial_verification import (SV_DTYPE, build_lstsqrs_Mx9, 
-                                            build_lstsqrs_Mx9_cyth, 
-                                            compute_homog, compute_homog_cyth, 
-                                            get_affine_inliers, 
-                                            get_affine_inliers_cyth, 
+                                            compute_homog, get_affine_inliers, 
                                             get_best_affine_inliers, 
-                                            get_best_affine_inliers_cyth, 
                                             get_homography_inliers, ibeis_test, 
                                             spatially_verify_kpts,) 
     from vtool.trig import (atan2,) 
@@ -235,11 +228,18 @@ if DOELSE:
         # Self import
         import vtool
         # Implicit reassignment.
+        seen_ = set([])
         for submodname, fromimports in IMPORT_TUPLES:
             submod = getattr(vtool, submodname)
             for attr in dir(submod):
                 if attr.startswith('_'):
                     continue
+                if attr in seen_:
+                    # This just holds off bad behavior
+                    # but it does mimic normal util_import behavior
+                    # which is good
+                    continue
+                seen_.add(attr)
                 setattr(vtool, attr, getattr(submod, attr))
     
     
@@ -263,8 +263,8 @@ if DOELSE:
         try:
             # hackish way of propogating up the new reloaded submodule attributes
             reassign_submodule_attributes(verbose=verbose)
-        except Exception:
-            pass
+        except Exception as ex:
+            print(ex)
     rrrr = reload_subs
     # ENDBLOCK
     # </AUTOGEN_INIT>

@@ -629,13 +629,16 @@ def ibeis_test(qreq_):
 
     fs = fs * (1 - np.sqrt(homog_xy_errors / (dlen_sqrd2)))
 
-import cyth
-if cyth.DYNAMIC:
-    exec(cyth.import_cyth_execstr(__name__))
-else:
-    # <AUTOGEN_CYTH>
-    # Regen command: python -c "import vtool.linalg" --cyth-write
-    # </AUTOGEN_CYTH>
+try:
+    import cyth
+    if cyth.DYNAMIC:
+        exec(cyth.import_cyth_execstr(__name__))
+    else:
+        # <AUTOGEN_CYTH>
+        # Regen command: python -c "import vtool.linalg" --cyth-write
+        # </AUTOGEN_CYTH>
+        pass
+except Exception as ex:
     pass
 
 if __name__ == '__main__':

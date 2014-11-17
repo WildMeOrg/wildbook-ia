@@ -682,12 +682,14 @@ def get_kpts_strs(kpts):
     kpts_strs = ['\n---\n'.join(tup) for tup in zip(xy_strs, shape_strs, ori_strs)]
     return kpts_strs
 
-
-import cyth
-if cyth.DYNAMIC:
-    exec(cyth.import_cyth_execstr(__name__))
-else:
-    # <AUTOGEN_CYTH>
-    # Regen command: python -c "import vtool.keypoint" --cyth-write
+try:
+    import cyth
+    if cyth.DYNAMIC:
+        exec(cyth.import_cyth_execstr(__name__))
+    else:
+        # <AUTOGEN_CYTH>
+        # Regen command: python -c "import vtool.keypoint" --cyth-write
+        pass
+        # </AUTOGEN_CYTH>
+except ImportError as ex:
     pass
-    # </AUTOGEN_CYTH>
