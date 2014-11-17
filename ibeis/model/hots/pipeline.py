@@ -406,7 +406,8 @@ def weight_neighbors(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> pipeline.rrr()
         >>> #cfgdict = dict(codename='vsone')
         >>> cfgdict = dict(codename='nsum')
-        >>> dbname = 'GZ_ALL'  # 'testdb1'
+        >>> # dbname = 'GZ_ALL'  # 'testdb1'
+        >>> dbname = 'testdb1'
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
         >>> # Run Test
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
