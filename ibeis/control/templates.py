@@ -4,6 +4,11 @@ Templated Autogenerator for the IBEIS Controller
 CommandLine:
     python ibeis/control/templates.py
     python ibeis/control/templates.py --dump-autogen-controller
+
+TODO:
+   * autogen testdata function
+   * finish autogen chips and features
+   * add autogen probchip
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -24,25 +29,88 @@ USE_FUNCTYPE_HEADERS = False  # True
 #STRIP_DOCSTR   = True
 #STRIP_COMMENTS  = True
 
-readonly_set = {
-    constants.CHIP_TABLE,
-}
+constants.PROBCHIP_TABLE = 'probchips'
 
 tblname_list = [
     #constants.ANNOTATION_TABLE,
 
     #constants.CHIP_TABLE,
+    #constants.PROBCHIP_TABLE,
     #constants.FEATURE_TABLE,
     constants.FEATURE_WEIGHT_TABLE,
 
     #constants.RESIDUAL_TABLE
 ]
 
-multicolumns = ut.odict([
+multicolumns_dict = ut.odict([
     (constants.CHIP_TABLE, [
         ('size', ('width', 'height')),
     ]),
 ])
+
+readonly_set = {
+    constants.CHIP_TABLE,
+    constants.CHIP_TABLE,
+    constants.PROBCHIP_TABLE,
+    constants.FEATURE_TABLE,
+    constants.FEATURE_WEIGHT_TABLE,
+    constants.RESIDUAL_TABLE
+}
+
+
+class SHORTNAMES(object):
+    ANNOT      = 'annot'
+    CHIP       = 'chip'
+    PROBCHIP   = 'probchip'
+    FEAT       = 'feat'
+    FEATWEIGHT = 'featweight'
+    RVEC       = 'residual'  # 'rvec'
+    VOCABTRAIN = 'vocabtrain'
+    DETECT     = 'detect'
+
+depends_map = {
+    SHORTNAMES.ANNOT: None,
+    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
+    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
+    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
+    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
+    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
+}
+
+# shortened tablenames
+tablename2_tbl = {
+    constants.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
+    constants.CHIP_TABLE           : SHORTNAMES.CHIP,
+    constants.PROBCHIP_TABLE       : SHORTNAMES.PROBCHIP,
+    constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
+    constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
+    constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
+}
+
+variable_aliases = {
+    #'chip_rowid_list': 'cid_list',
+    #'annot_rowid_list': 'aid_list',
+    #'feature_rowid_list': 'fid_list',
+    'chip_rowid'                  : 'cid',
+    'annot_rowid'                 : 'aid',
+    'feat_rowid'                  : 'fid',
+    'num_feats'                   : 'nFeat',
+    'featweight_forground_weight' : 'fgweight',
+    'keypoints'                   : 'kpt_list',
+    'vectors'                     : 'vec_list',
+    'residualvecs'                : 'rvec_list',
+}
+
+# mapping to variable names in constants
+tbl2_tablename = ut.invert_dict(tablename2_tbl)
+tbl2_TABLE = {key: ut.get_varname_from_locals(val, constants.__dict__)
+              for key, val in six.iteritems(tbl2_tablename)}
+
+# Lets just use strings in autogened files for now: TODO: use constant vars
+# later
+#tbl2_TABLE = {key: '\'%s\'' % (val,) for key, val in six.iteritems(tbl2_tablename)}
+tbl2_TABLE = {key: 'constants.' + ut.get_varname_from_locals(val, constants.__dict__)
+                for key, val in six.iteritems(tbl2_tablename)}
 
 
 def remove_sentinals(code_text):
@@ -107,7 +175,6 @@ def format_controller_func(func_code):
                             continue
                 new_lines.append(line)
             func_code = '\n'.join(new_lines)
-
         if STRIP_EXAMPLE:
             func_code = ut.regex_replace('Example.*"""', '"""', func_code)
     if USE_SHORTNAMES:
@@ -122,60 +189,6 @@ def format_controller_func(func_code):
     if WITH_PEP8:
         func_code = ut.autofix_codeblock(func_code).strip()
     return func_code
-
-
-class SHORTNAMES(object):
-    ANNOT      = 'annot'
-    CHIP       = 'chip'
-    PROBCHIP   = 'probchip'
-    FEAT       = 'feat'
-    FEATWEIGHT = 'featweight'
-    RVEC       = 'residual'  # 'rvec'
-    VOCABTRAIN = 'vocabtrain'
-    DETECT     = 'detect'
-
-depends_map = {
-    SHORTNAMES.ANNOT: None,
-    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
-    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
-    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
-    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
-    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
-}
-
-# shortened tablenames
-tablename2_tbl = {
-    constants.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
-    constants.CHIP_TABLE           : SHORTNAMES.CHIP,
-    constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
-    constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
-    constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
-}
-
-variable_aliases = {
-    #'chip_rowid_list': 'cid_list',
-    #'annot_rowid_list': 'aid_list',
-    #'feature_rowid_list': 'fid_list',
-    'chip_rowid'                  : 'cid',
-    'annot_rowid'                 : 'aid',
-    'feat_rowid'                  : 'fid',
-    'num_feats'                   : 'nFeat',
-    'featweight_forground_weight' : 'fgweight',
-    'keypoints'                   : 'kpt_list',
-    'vectors'                     : 'vec_list',
-    'residualvecs'                : 'rvec_list',
-}
-
-# mapping to variable names in constants
-tbl2_tablename = ut.invert_dict(tablename2_tbl)
-tbl2_TABLE = {key: ut.get_varname_from_locals(val, constants.__dict__)
-              for key, val in six.iteritems(tbl2_tablename)}
-
-# Lets just use strings in autogened files for now: TODO: use constant vars
-# later
-#tbl2_TABLE = {key: '\'%s\'' % (val,) for key, val in six.iteritems(tbl2_tablename)}
-tbl2_TABLE = {key: 'constants.' + ut.get_varname_from_locals(val, constants.__dict__)
-                for key, val in six.iteritems(tbl2_tablename)}
 
 
 def get_tableinfo(tablename, ibs=None):
@@ -379,6 +392,15 @@ def build_dependent_controller_funcs(tablename, tableinfo, autogen_modname):
             append_func('RL.Tgetter_dependant', Tdef.Tgetter_rl_pclines_dependant_column)
         constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
         append_constant(COLNAME, colname)
+
+    if tablename in multicolumns_dict:
+        for multicol, MULTICOLNAMES in multicolumns_dict[tablename]:
+            fmtdict['MULTICOLNAMES'] = str(MULTICOLNAMES)
+            fmtdict['multicol'] = multicol
+            if len(depends_list) > 1:
+                append_func('RL.Tgetter_mutli_dependant', Tdef.Tgetter_rl_pclines_dependant_multicolumn)
+            append_func('2_Native.Tgetter_multi_native', Tdef.Tgetter_native_multicolumn)
+            pass
 
     return functype2_func_list, constant_list
 

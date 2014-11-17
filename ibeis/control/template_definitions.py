@@ -308,6 +308,46 @@ Tline_pc_dependant_rowid = ut.codeblock(
     '''
 )
 
+
+# RL GETTER MULTICOLUMN
+Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @getter
+    def get_{root}_{multicol}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
+        """ {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
+
+        Get {col} data of the {root} table using the dependant {leaf} table
+
+        Args:
+            {root}_rowid_list (list):
+
+        Returns:
+            list: {col}_list
+
+        TemplateInfo:
+            Tgetter_rl_pclines_dependant_column
+            root = {root}
+            col  = {col}
+            leaf = {leaf}
+
+        Example:
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids()
+            >>> qreq_ = None
+            >>> ensure = False
+            >>> {multicol}_list = {self}.get_{root}_{multicol}s({root}_rowid_list, qreq_=qreq_, ensure=ensure)
+
+        """
+        # REM Get leaf rowids
+        {pc_dependant_rowid_lines}
+        # REM Get col values
+        {multicol}_list = {self}.get_{leaf}_{multicol}s({leaf}_rowid_list)
+        return {multicol}_list
+    # ENDBLOCK
+    ''')
+
 # RL GETTER COLUMN
 Tgetter_rl_pclines_dependant_column = ut.codeblock(
     r'''
@@ -330,10 +370,10 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
             col  = {col}
             leaf = {leaf}
         """
-        # Get leaf rowids
+        # REM Get leaf rowids
         {pc_dependant_rowid_lines}
-        # Get col values
-        {col}_list = {self}.get_{leaf}_{col}({leaf}_rowid_list)
+        # REM Get col values
+        {col}_list = {self}.get_{leaf}_{col}s({leaf}_rowid_list)
         return {col}_list
     # ENDBLOCK
     ''')
@@ -401,7 +441,8 @@ Tgetter_pl_dependant_rowids_ = ut.codeblock(
     # REM @getter
     def get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=None, eager=True, nInput=None):
         """
-        equivalent to get_{parent}_{leaf}_rowids_ except ensure cannot be specified
+        equivalent to get_{parent}_{leaf}_rowids_ except ensure is constrained
+        to be False.
 
         You basically save a stack frame by calling this, because
         get_{parent}_{leaf}_rowids just calls this function if ensure is False
@@ -536,7 +577,7 @@ Tgetter_table_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @getter
-    def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True):
+    def get_{tbl}_{col}s({self}, {tbl}_rowid_list, eager=True):
         """ {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
 
         gets data from the "native" column "{col}" in the "{tbl}" table
@@ -551,11 +592,59 @@ Tgetter_table_column = ut.codeblock(
             Tgetter_table_column
             col = {col}
             tbl = {tbl}
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
+            >>> qreq_ = None
+            >>> ensure = False
+            >>> {tbl}_{col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
+            >>> assert len({tbl}_rowid_list) == len({tbl}_{col}_list)
         """
         id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
         {col}_list = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
         return {col}_list
+    # ENDBLOCK
+    ''')
+
+
+# eg. get_chip_sizes
+Tgetter_native_multicolumn = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @getter
+    def get_{tbl}_{multicol}s({self}, {tbl}_rowid_list, eager=True):
+        """
+        Returns zipped tuple of information from {multicol} columns
+
+        Tgetter_native_multicolumn
+
+        Args:
+            {tbl}_rowid_list (list):
+
+        Returns:
+            list: {multicol}_list
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> import ibeis
+            >>> {self} = ibeis.opendb('testdb1')
+            >>> #{tbl}_rowid_list = {self}.get_valid_{tbl}_rowids()
+            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
+            >>> qreq_ = None
+            >>> ensure = False
+            >>> {multicol}_list = {self}.get_{tbl}_{multicol}s({tbl}_rowid_list, eager=eager)
+            >>> assert len({tbl}_rowid_list) == len({multicol}_list)
+        """
+        id_iter = {tbl}_rowid_list
+        colnames = {MULTICOLNAMES}
+        {multicol}_list  = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
+        return {multicol}_list
     # ENDBLOCK
     ''')
 
@@ -571,7 +660,7 @@ Tsetter_native_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @setter
-    def set_{tbl}_{col}({self}, {tbl}_rowid_list, {col}_list):
+    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list):
         """ {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
@@ -596,33 +685,10 @@ Tsetter_native_column = ut.codeblock(
 # --- UNFINISHED AND DEFERRED ---
 #-------------------------------
 
-
-# eg. get_chip_sizes
-Tgetter_native_multicolumn = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    # REM @getter
-    def get_{tbl}_{multicol}({self}, {tbl}_rowid_list):
-        """
-        Returns zipped tuple of information from {multicol} columns
-
-        Tgetter_native_multicolumn
-
-        Args:
-            {tbl}_rowid_list (list):
-
-        Returns:
-            list: {multicol}_list
-        """
-        {multicol}_list  = {self}.{dbself}.get({TABLE}, ({MULTI_COLNAMES},), {tbl}_rowid_list)
-        return {multicol}_list
-    # ENDBLOCK
-    ''')
-
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
     # STARTBLOCK
-    def set_{tbl}_{multicol}({self}, {tbl}_rowid_list, vals_list):
+    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, vals_list):
         """
         Tsetter_native_multicolumn
         """

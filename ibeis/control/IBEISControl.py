@@ -2109,7 +2109,8 @@ class IBEISController(object):
     def get_chip_paths(ibs, cid_list):
         """
         Returns:
-            chip_fpath_list (list): a list of chip paths by their aid """
+            chip_fpath_list (list): a list of chip paths by their aid
+        """
         chip_fpath_list = ibs.dbcache.get(CHIP_TABLE, ('chip_uri',), cid_list)
         return chip_fpath_list
 
