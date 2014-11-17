@@ -100,7 +100,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.test_setup_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
         >>> #want = 'probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
@@ -145,8 +145,9 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     Example:
         >>> # DOCTEST_ENABLE
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip import *  # NOQA
         >>> from os.path import basename
-        >>> ibs, aid_list = test_setup_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = basename(probchip_fpath_list[1])

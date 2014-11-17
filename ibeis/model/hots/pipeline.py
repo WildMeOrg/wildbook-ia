@@ -941,6 +941,7 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         topx2_dlen_sqrd
 
     # TODO: decouple example
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline

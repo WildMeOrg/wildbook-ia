@@ -612,6 +612,10 @@ class IBEISController(object):
         all_fids = ibs.dbcache.get_all_rowids(FEATURE_TABLE)
         return all_fids
 
+    _get_all_feat_rowids = _get_all_fids
+    _get_all_chip_rowids = _get_all_cids
+    _get_all_annot_rowids = _get_all_aids
+
     @ider
     def _get_all_known_lblannot_rowids(ibs, _lbltype):
         """
@@ -1143,8 +1147,8 @@ class IBEISController(object):
             if utool.VERBOSE:
                 print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
-            colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
-                        'feature_vecs', 'config_rowid',)
+            colnames = ('chip_rowid', 'config_rowid', 'feature_num_feats', 'feature_keypoints',
+                        'feature_vecs')
             get_rowid_from_superkey = partial(ibs.get_chip_fids, ensure=False)
             fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
@@ -1868,6 +1872,8 @@ class IBEISController(object):
                 raise
         return cid_list
 
+    get_annot_chip_rowids = get_annot_cids
+
     @getter_1to1
     def get_annot_chip_paths(ibs, aid_list, ensure=True):
         utool.assert_all_not_None(aid_list, 'aid_list')
@@ -1963,6 +1969,8 @@ class IBEISController(object):
         cid_list = ibs.get_annot_cids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
         return fid_list
+
+    get_annot_feat_rowids = get_annot_fids
 
     @utool.accepts_numpy
     @getter_1toM
@@ -2132,6 +2140,8 @@ class IBEISController(object):
                                          where_clause, eager=eager,
                                          nInput=nInput)
         return fid_list
+
+    get_chip_feat_rowids = get_chip_fids
 
     @getter_1to1
     def get_chip_configids(ibs, cid_list):
@@ -3850,102 +3860,9 @@ class IBEISController(object):
         uuui_hashid  = utool.hashstr_arr(uuid_list, label)
         return uuui_hashid
 
-    # ____ manual fgweights (bad)
-
-    #def ensure_annot_fg_weights(ibs, aid_list, verbose=True):
-    #    """
-    #    # FIXME: this depends on the detector cfg
-    #    # We could make it depend on the annotation species label
-
-    #    Example:
-    #        >>> import ibeis
-    #        >>> ibs = ibeis.opendb('testdb1')
-    #        >>> aid_list = ibs.get_valid_aids()
-    #        >>> fg_weight_list = ibs.ensure_annot_fg_weights(aid_list)
-    #    """
-    #    if verbose:
-    #        print('Ensuring fg weights exist')
-    #    from ibeis.model.preproc import preproc_featweight
-    #    orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
-    #    flag_list = [fgw is None for fgw in orig_fgweight_list]
-    #    dirty_aids = utool.filter_items(aid_list, flag_list)
-    #    if len(dirty_aids) > 0:
-    #        fgweight_list = preproc_featweight.compute_fgweights(ibs, dirty_aids)
-    #        ibs.set_annot_fg_weights(dirty_aids, fgweight_list)
-    #        return ibs.get_annot_fg_weights(aid_list)
-    #    else:
-    #        return orig_fgweight_list
-
-    #def delete_annot_fg_weights(ibs, aid_list):
-    #    """
-    #    Example:
-    #        >>> import ibeis
-    #        >>> ibs = ibeis.opendb('testdb1')
-    #        >>> aid_list = ibs.get_valid_aids()
-    #        >>> old_fg_weights = ibs.get_annot_fg_weights(aid_list)
-    #        >>> if all([fg is None for fg in old_fg_weights]):
-    #        ...     print('Warning: cannot check delete')
-    #        >>> ibs.delete_annot_fg_weights(aid_list)
-    #        >>> fg_weights = ibs.get_annot_fg_weights(aid_list)
-    #        >>> assert all([fg is None for fg in fg_weights])
-    #    """
-    #    fid_list  = ibs.get_annot_fids(aid_list)
-    #    ibs.set_feat_fg_weights(fid_list, [None] * len(aid_list))
-
-    #def set_annot_fg_weights(ibs, aid_list, fgweight_list):
-    #    """
-    #    set_annot_fg_weights
-
-    #    Args:
-    #        ibs (IBEISController):
-    #        aid_list (list):
-    #        fgweight_list (list):
-
-    #    Example:
-    #        >>> from ibeis.control.IBEISControl import *  # NOQA
-    #        >>> import ibeis
-    #        >>> from ibeis.model.preproc import preproc_featweight
-    #        >>> ibs = ibeis.opendb('testdb1')
-    #        >>> aid_list = ibs.get_valid_aids()
-    #        >>> orig_fgweight_list = ibs.get_annot_fg_weights(aid_list)
-    #        >>> fgweight_list = preproc_featweight.compute_fgweights(ibs, aid_list)
-    #        >>> ibs.set_annot_fg_weights(aid_list, fgweight_list)
-    #    """
-    #    fid_list  = ibs.get_annot_fids(aid_list)
-    #    ibs.set_feat_fg_weights(fid_list, fgweight_list)
-
-    #def set_feat_fg_weights(ibs, fid_list, fgweight_list):
-    #    id_iter = fid_list
-    #    colnames = ('feature_forground_weight',)
-    #    val_iter = ((fgweight,) for fgweight in fgweight_list)
-    #    ibs.dbcache.set(FEATURE_TABLE, colnames, val_iter, id_iter)
-
-    #@getter_1toM
-    #def get_annot_fgweights(ibs, aid_list, ensure=True, eager=True, nInput=None):
-    #    """
-    #    Forground Weights
-
-    #    Args:
-    #        ibs (IBEISController):
-    #        aid_list (list):
-    #        ensure (bool):
-    #        eager (bool):
-    #        nInput (None):
-
-    #    Returns:
-    #        fgweight_list (list): probability of being a forground keypoint
-
-    #    Example:
-    #        >>> from ibeis.control.IBEISControl import *  # NOQA
-    #    """
-    #    fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
-    #    fgweight_list = ibs.get_feat_fg_weights(fid_list, eager=eager, nInput=nInput)
-    #    return fgweight_list
-
-    ## ___________
-
-
 """
+To Regenerate Templated Funcs:
+
 python ibeis/control/templates.py
 python ibeis/control/templates.py --dump-autogen-controller
 """
@@ -3958,7 +3875,8 @@ try:
     from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
 except Exception as ex:
     utool.printex(ex, 'cannot import autogen funcs', tb=True, iswarning=True)
-    raise
+    if not ut.get_argflag('--notstrict'):
+        raise
 try:
     from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 except Exception as ex:

@@ -73,11 +73,14 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         >>> params_iter = add_chips_params_gen(ibs, aid_list)
         >>> params_list = list(params_iter)
         >>> (aid, chip_config_rowid, cfpath, width, height,) = params_list[0]
-        >>> result = (basename(cfpath), width, height)
+        >>> fname = basename(cfpath)
+        >>> fname_ = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
+        >>> result = (fname_, width, height)
         >>> print(result)
-        ('chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png', 545, 372)
+        ('chip_aid=1_auuid={uuid}_CHIP(sz450).png', 545, 372)
     """
     try:
+        # THIS DOESNT ACTUALLY COMPUTE ANYTHING!!!
         cfpath_list = get_annot_cfpath_list(ibs, aid_list)
         chip_config_rowid = ibs.get_chip_config_rowid()
         for cfpath, aid in zip(cfpath_list, aid_list):
@@ -189,14 +192,16 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
 
 def generate_chip_properties(ibs, aid_list, qreq_=None):
     try:
+        # the old function didn't even call this
+        compute_and_write_chips(ibs, aid_list)
         cfpath_list = get_annot_cfpath_list(ibs, aid_list)
-        chip_config_rowid = ibs.get_chip_config_rowid()
+        #chip_config_rowid = ibs.get_chip_config_rowid()
         for cfpath, aid in zip(cfpath_list, aid_list):
             pil_chip = gtool.open_pil_image(cfpath)
             width, height = pil_chip.size
             if ut.DEBUG2:
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
-            yield (aid, chip_config_rowid, cfpath, width, height,)
+            yield (cfpath, width, height,)
     except IOError as ex:
         ut.printex(ex, 'ERROR IN PREPROC CHIPS')
 
@@ -309,9 +314,12 @@ def get_annot_cfpath_list(ibs, aid_list):
         >>> ibs, aid_list = testdata_preproc_chip()
         >>> aid_list = aid_list[0:1]
         >>> cfpath_list = get_annot_cfpath_list(ibs, aid_list)
-        >>> result = '\n'.join(map(basename, cfpath_list))
+        >>> fname = '\n'.join(map(basename, cfpath_list))
+        >>> result = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
         >>> print(result)
-        chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png
+        chip_aid=1_auuid={uuid}_CHIP(sz450).png
+
+    chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png
     """
     # TODO: Use annot uuids, use verts info as well
     #ut.assert_all_not_None(aid_list, 'aid_list')

@@ -29,25 +29,28 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> custom_qparams = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=custom_qparams)
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 1.0
-        >>> assert qreq_.qparams.sv_on is False
+        >>> assert qreq_.qparams.fg_weight == 1.0, 'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight
+        >>> assert qreq_.qparams.sv_on is False, 'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on
     """
     if utool.NOT_QUIET:
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
     species_list = ibs.get_database_species()
+    # <HACK>
     from ibeis import constants
-    # HACK OFF FEATUREWEIGHTS WHEN NOT ABSOLUTELY SURE THEY ARE OK TO USE
-    if len(species_list) != 1 or species_list[0] not in [constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN]:
+    # turn off featureweights when not absolutely sure they are ok to use
+    species_with_detectors = [constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN]
+    if len(species_list) != 1 or species_list[0] not in species_with_detectors:
         print('HACKING FG_WEIGHT OFF')
         cfg._featweight_cfg.featweight_on = 'ERR'
+    # </HACK>
     qparams = QueryParams(cfg, custom_qparams)
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
@@ -370,8 +373,6 @@ class QueryParams(object):
 
     def __init__(qparams, cfg, custom_qparams=None):
         """
-        __init__
-
         Args:
             cfg (QueryConfig): query_config
             custom_qparams (dict or None):

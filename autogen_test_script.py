@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import sys
+from six.moves import range, map, filter, zip  # NOQA
 
 
 def autogen_ibeis_runtest():
@@ -45,8 +47,58 @@ def autogen_ibeis_runtest():
     repodir = '~/code/ibeis'
     testdir = 'ibeis/tests'
 
-    exclude_list = [
+    exclude_list = []
+
+    # Hacky, but not too bad way of getting in doctests
+    # Test to see if doctest_funcs appears after main
+    # Do not doctest these modules
+    exclude_doctests_fnames = set(['template_definitions.py',
+                                   'autogen_test_script.py'])
+    exclude_dirs = [
+        '_broken',
+        'old',
+        'tests',
+        'timeits',
+        '_scripts',
+        '_timeits',
+        '_doc',
+        'notebook',
     ]
+    dpath_list = ['ibeis']
+    doctest_modname_list = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
+
+    # Verbosity to show which modules at least have some tests
+    #untested_modnames = ut.find_untested_modpaths(dpath_list, exclude_doctests_fnames, exclude_dirs)
+    #print('\nUNTESTED MODULES:' + ut.indentjoin(untested_modnames))
+
+    #print('\nTESTED MODULES:' + ut.indentjoin(doctest_modname_list))
+
+    #doctest_modname_list = ut.codeblock('''
+    #    ibeis.control.DBCACHE_SCHEMA
+    #    ibeis.control.DB_SCHEMA
+    #    ibeis.control._autogen_ibeiscontrol_funcs
+    #    ibeis.dbio.export_subset
+    #    ibeis.dev.experiment_harness
+    #    ibeis.model.detect.randomforest
+    #    ibeis.model.hots.match_chips4
+    #    ibeis.model.hots.nn_weights
+    #    ibeis.model.hots.pipeline
+    #    ibeis.model.hots.voting_rules2
+    #    ibeis.model.preproc.preproc_chip
+    #    ibeis.model.preproc.preproc_detectimg
+    #    ibeis.model.preproc.preproc_encounter
+    #    ibeis.model.preproc.preproc_feat
+    #    ibeis.model.preproc.preproc_image
+    #    ibeis.viz.viz_sver
+    #''').splitlines()
+
+    #module_list = [__import__(name, globals(), locals(), fromlist=[], level=0) for name in modname_list]
+
+    for modname in doctest_modname_list:
+        exec('import ' + modname, globals(), locals())
+    module_list = [sys.modules[name] for name in doctest_modname_list]
+    testcmds = ut.get_module_testlines(module_list, remove_pyc=True, verbose=False, pythoncmd='RUN_TEST')
+    #print('\n'.join(testcmds))
 
     test_headers = [
         # title, default, module, testpattern
@@ -58,44 +110,55 @@ def autogen_ibeis_runtest():
         ut.def_test('MISC',   dpath=testdir, pat=misc_pats),
         ut.def_test('OTHER',  dpath=testdir, pat='OTHER'),
         ut.def_test('HESAFF', dpath='pyhesaff/tests', pat=['test_*.py'], modname='pyhesaff'),
+        ut.def_test('DOC', testcmds=testcmds, default=True)
     ]
 
-    script_text = ut.autogen_run_tests(test_headers, test_argvs, quick_tests, repodir, exclude_list)
+    script_text = ut.make_run_tests_script_text(test_headers, test_argvs, quick_tests, repodir, exclude_list)
 
     # HACK TO APPEND EXTRA STUFF
     # TODO Incorporate this more nicely into autogen script
     #python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"
-    script_text = '\n'.join(script_text.split('\n')[0:-2])
-    script_text += '\n' + ut.codeblock(
-        '''
 
-        # EXTRA DOCTESTS
-        python ibeis/model/hots/nn_weights.py --allexamples
-        python ibeis/control/DBCACHE_SCHEMA.py --allexamples
-        python ibeis/control/DB_SCHEMA.py --allexamples
-        python ibeis/model/preproc/preproc_image.py --allexamples
-        python ibeis/model/preproc/preproc_chip.py --allexamples
-        python ibeis/model/preproc/preproc_feat.py --allexamples
-        python ibeis/model/preproc/preproc_encounter.py --allexamples
-        python ibeis/model/preproc/preproc_detectimg.py --allexamples
-        python ibeis/model/hots/match_chips4.py --allexamples
-        python ibeis/model/hots/voting_rules2.py --allexamples
-        python ibeis/model/hots/pipeline.py --allexamples
-        python ibeis/dbio/export_subset.py --allexamples
+    # grep -R "doctest_funcs()" *
+    #script_text = '\n'.join(script_text.split('\n')[0:-2])
 
-        END_TESTS
-        '''
-    ).replace('python ', 'RUN_TEST ')
+    #superhack_testline = 'utool.doctest_modules([' + ', '.join(modname_list) + '])'
+    #superhack_testline = '\n'.join(testlines)
+
+    #script_text += '\n' + ut.codeblock(
+    #    '''
+    #    if [ "$IBEIS_TEST" = "ON" ] ; then
+    #    cat <<EOF
+    #        Hacked in doctests
+    #    EOF
+
+    #    # EXTRA DOCTESTS
+    #    python -c "import utool, ibeis, ibeis.control.DBCACHE_SCHEMA, ibeis.dev.experiment_harness, ibeis.viz; %s"
+
+    #    fi
+
+    #    END_TESTS
+    #    ''' % (superhack_testline,)
+    #).replace('python ', 'RUN_TEST ')
     #print(script_text)
     return script_text
 
-
 if __name__ == '__main__':
     """
-    python autogen_test_script.py
-    python autogen_test_script.py > _run_tests2.sh
-    reset_dbs.sh && _run_tests2.sh
-    reset_dbs.sh && _run_tests2.sh --testall
+    CommandLine:
+        python autogen_test_script.py
+        python autogen_test_script.py --verbose > _run_tests2.sh
+        python autogen_test_script.py -o _run_tests2.sh
+        reset_dbs.sh && _run_tests2.sh
+        reset_dbs.sh && _run_tests2.sh --testall
     """
-    print(autogen_ibeis_runtest())
-    pass
+    text = autogen_ibeis_runtest()
+
+    runtests_fpath = ut.get_argval(('-o', '--outfile'), type_=str, default=None)
+    if runtests_fpath is None and ut.get_argflag('-w'):
+        runtests_fpath = '_run_tests2.py'
+
+    if runtests_fpath is not None:
+        ut.write_to(runtests_fpath, text)
+    elif ut.get_argflag('--verbose'):
+        print(text)
