@@ -184,7 +184,8 @@ def set_viewpoint_values_from_aids(app, aid_list, value_list, value_type):
 def replace_aids(app, aid_list, aid_list_new):
     print('Replacing %r for %r' %(aid_list, aid_list_new, ))
     # Delete the old aid_list from the cache database
-    app.db.delete_rowids(VIEWPOINT_TABLE, aid_list)
+    viewpoint_rowids = get_viewpoint_rowids_from_aid(aid_list, app)
+    app.db.delete_rowids(VIEWPOINT_TABLE, viewpoint_rowids)
     # Add the new aid_list to the cache database
     colnames = ('annot_rowid', )
     params_iter = zip(aid_list_new)

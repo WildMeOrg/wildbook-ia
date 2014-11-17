@@ -177,14 +177,14 @@
         options.height || (options.height = image_element.height);
         annotator.annotator_element.css({
           "width": '700px',
-          "height": (options.height + annotator.border_width * 2) + 'px',
+          "height": (options.height + annotator.border_width * 2 - 1) + 'px',
           "margin-left": 'auto',
           "margin-right": 'auto',
         });
         annotator.image_frame.css({
           "background-image": "url('" + image_element.src + "')",
           "width": options.width + "px",
-          "height": options.height + "px",
+          "height": (options.height + 2) + "px",
           "position": "relative",
           "margin": "0px auto",
           "cursor": "crosshair",
@@ -482,7 +482,7 @@
           },
           containment: "#bbox_annotator",
       };
-      box_element.rotatable(rotate_params).resizable(resize_params).draggable(drag_params);
+      box_element.resizable(resize_params).rotatable(rotate_params).draggable(drag_params);
       rotate_button = box_element.find('.ui-rotatable-handle');
       box_element.appendTo(this.image_frame).css({
         "border": this.border_width + "px solid rgb(255, 255, 255)",
