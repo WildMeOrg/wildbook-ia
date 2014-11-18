@@ -43,115 +43,7 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Detection Review Turking Instructions</h4>
-        </div>
-        <div class="modal-body">
-          To review the detections for an image, simply draw new rectangle bounding boxes (annotations) around animals that are missing annotations and delete annotations that should not exist based on the following guidelines:
-          <br/>
-          <br/>
-          <ul style="padding-right:30px;">
-            <li>
-              When deciding to add, edit, or remove an annotation, it is important to understand to what ends IBEIS will use annotations.  IBEIS uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in IBEIS use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements: 
-              <ol style="margin: 20px 0px;">
-                <li>An annotation should <i>include</i> as much of the <i>foreground</i> animal as possible; this means cover the <b>entire</b> animal with the bounding box.</li>
-                <li>An annotation should <i>exclude</i> as much of the <i>background</i> landscape or other animals as possible; this means fit the bounding box <b>tightly</b> around the animal.</li>
-                <li>Only annotations for the species specified (top left of the page) should exist.  If the species is '____', annotate the most frequent or predominate species in the image.  If you are uncertain as to what the specified species looks like, ask a graduate student or <span data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples" style="text-decoration: underline; cursor: pointer">click here</span>.</li>
-            
-              </ol>
-              The example images below show how hard it can be to satisfy these three simple requirements.
-              <br/>
-              <i>For example:</i>
-            </li>
-            <div class="row">
-              <div class="col-lg-1"></div>
-              <div class="col-lg-10" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>A bounding box needs to cover the <b>entire</b> animal without being too large or too small - the green bounding box is ideal.  The big red bounding box has too much background and can be fit tighter around the animal, whereas the two small red bounding boxes are losing information that is important (information about the top of the animal's head and its legs).  The orange bounding box is <i>slightly</i> too large, but is also a border-line acceptable bounding box. [7]</p>
-              </div>
-              <div class="col-lg-1"></div>
-            </div>
-            <div class="row">
-              <div class="col-lg-1"></div>
-              <div class="col-lg-10" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really prefer the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive turker, always keep in mind what information these keypoints are trying to capture. [7]</p>
-              </div>
-              <div class="col-lg-1"></div>
-            </div>
-            <div class="row">
-              <div class="col-lg-1"></div>
-              <div class="col-lg-10" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Assigning bounding boxes around an animal with extreme occlusion can be very challenging.  The green bounding boxes are obvious, but the orange and red examples can be harder to decide.  For this example, all of the orange bounding boxes are border-line acceptable cases.  The red bounding boxes, however, do not have very much <b>usable</b> information.  This can be a <u>very</u> difficult decision and the image may have to be reviewed with the help of a graduate student.  For this example, all of the red bounding boxes should be excluded because they are too small or do not capture enough information to be useful. [7]</p>
-              </div>
-              <div class="col-lg-1"></div>
-            </div>
-            <div class="row">
-              <div class="col-lg-1"></div>
-              <div class="col-lg-10" style="margin-top: 20px; margin-bottom: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Whenever there is large overlap in animals that share roughly the same bounding box, always add a bounding box for each animal.  Even if the resulting bounding boxes are almost duplicates, it gives IBEIS a useful notion of how many animals of a particular species are in the image.  For this example, both bounding boxes are necessary. [7]</p>
-              </div>
-              <div class="col-lg-1"></div>
-            </div>
-            <div class="row">
-              <div class="col-lg-1"></div>
-              <div class="col-lg-10" style="margin-top: 20px; margin-bottom: 20px;">
-                <img src="{{ url_for('static', filename='images/example-detection5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>In the event of a significant occlusion of a portion of the animal, try your best to cover as much of the <b>visible portions</b> of the animal as if the occlusion did not exist.  This occlusion can be due to other animals, a bush, tall grass, or (in this example) a tree bisecting the entire animal.  In this example, two bounding boxes would be incorrect because it would signify that there are two animals in the image. [8]</p>
-              </div>
-              <div class="col-lg-1"></div>
-            </div>
-            <li>
-              A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.  
-            </li>
-            <li>
-              You can <b>always</b> add a new annotation by <b>double clicking</b>.  This is particularly helpful when adding an annotation on top (inside) of a current annotation.
-            </li>
-            <li>When an annotation is highlighted (by hovering the mouse cursor over the annotation), the bounding box will turn orange and the following actions will become available:
-              <ul>
-                <li><u>Translation</u> - by dragging the mouse an annotation can be moved.  An annotation can also be moved (when highlighted) by using the arrow keys on the keyboard.  When using the arrow keys, an annotation will be moved 1 pixel at a time.  When using the arrow keys to move an annotation and the <b>Shift</b> key is held, the annotation is moved 10 pixels at a time.</li>
-                <li><u>Scaling</u> - by dragging one of the 8 anchors an annotation can be resized.  If the <b>Shift</b> key is held, the annotation's aspect ratio is preserved.</li>
-                <li><u>Rotation</u> - by dragging on the <div class="ui-resizable" style="width: 16px; display: inline-block; border:none;"><div class="ui-rotatable-handle ui-draggable" style="display: block; margin-left: -6px; top: -10px;"></div></div> rotation anchor an annotation can be rotated.  If the <b>Shift</b> key is held, the annotation's angle is constrained to increments of 45 degrees.</li>
-                <li><u>Deletion</u> - by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span> button an annotation can be deleted.  An annotation can also be deleted (when highlighted) by hitting the <b>Esc</b> key.</li>
-                <li><u>Send to Back</u> - when an annotation is highlighted, pressing the <b>b</b> key will send the annotation to the "back".  This is useful (or required) when a large annotation is covering a smaller annotation and makes highlighting the smaller annotation difficult (or impossible).</li>
-              </ul>
-              <br/>
-            </li>
-            <li>Always annotate the animals regardless of viewpoint.</li>
-            <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
-            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
-            <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
-          </ul>
-          
-          <br/>
-          <span style="color:#888;">
-          <u>Image Credits</u><br/>
-          [1] http://de.wikipedia.org/<br/>
-          [2] http://www.fauna-flora.org/<br/>
-          [3] http://www.napha-namibia.com/<br/>
-          [4] http://www.girrytrust.org/ <br/>
-          [5] http://www.wanderlustasap.com/<br/>
-          [6] Tanzanian Images / Getty Images / iStockphoto<br/>
-          [7] http://en.wikipedia.org/<br/>
-          [8] http://talk2theanimals.net/<br/>
-          </span>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">Got it!</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal -->
-  <div class="modal fade" id="turk-species-examples" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="turk-species-examples" tabindex="-1" role="dialog" aria-labelledby="speciesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -261,7 +153,122 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('detection_species_examples_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Detection Review Turking Instructions</h4>
+        </div>
+        <div class="modal-body">
+          To review the detections for an image, simply draw new rectangle bounding boxes (annotations) around animals that are missing annotations and delete annotations that should not exist based on the following guidelines:
+          <br/>
+          <br/>
+          <ul style="padding-right:30px;">
+            <li>
+              When deciding to add, edit, or remove an annotation, it is important to understand to what ends IBEIS will use annotations.  IBEIS uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in IBEIS use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements: 
+              <ol style="margin: 20px 0px;">
+                <li>An annotation should <i>include</i> as much of the <i>foreground</i> animal as possible; this means cover the <b>entire</b> animal with the bounding box.</li>
+                <li>An annotation should <i>exclude</i> as much of the <i>background</i> landscape or other animals as possible; this means fit the bounding box <b>tightly</b> around the animal.</li>
+                <li>Only annotations for the species specified (top left of the page) should exist.  If the species is '____', annotate the most frequent or predominate species in the image.  If you are uncertain as to what the specified species looks like, ask a graduate student or <span data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples" style="text-decoration: underline; cursor: pointer">click here</span>.</li>
+            
+              </ol>
+              The example images below show how hard it can be to satisfy these three simple requirements.
+              <br/>
+              <i>For example:</i>
+            </li>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>A bounding box needs to cover the <b>entire</b> animal without being too large or too small - the green bounding box is ideal.  The big red bounding box has too much background and can be fit tighter around the animal, whereas the two small red bounding boxes are losing information that is important (information about the top of the animal's head and its legs).  The orange bounding box is <i>slightly</i> too large, but is also a border-line acceptable bounding box. [7]</p>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really prefer the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive turker, always keep in mind what information these keypoints are trying to capture. [7]</p>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>Assigning bounding boxes around an animal with extreme occlusion can be very challenging.  The green bounding boxes are obvious, but the orange and red examples can be harder to decide.  For this example, all of the orange bounding boxes are border-line acceptable cases.  The red bounding boxes, however, do not have very much <b>usable</b> information.  This can be a <u>very</u> difficult decision and the image may have to be reviewed with the help of a graduate student.  For this example, all of the red bounding boxes should be excluded because they are too small or do not capture enough information to be useful. [7]</p>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10" style="margin-top: 20px; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>Whenever there is large overlap in animals that share roughly the same bounding box, always add a bounding box for each animal.  Even if the resulting bounding boxes are almost duplicates, it gives IBEIS a useful notion of how many animals of a particular species are in the image.  For this example, both bounding boxes are necessary. [7]</p>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10" style="margin-top: 20px; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='images/example-detection5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>In the event of a significant occlusion of a portion of the animal, try your best to cover as much of the <b>visible portions</b> of the animal as if the occlusion did not exist.  This occlusion can be due to other animals, a bush, tall grass, or (in this example) a tree bisecting the entire animal.  In this example, two bounding boxes would be incorrect because it would signify that there are two animals in the image. [8]</p>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+            <li>
+              A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.  
+            </li>
+            <li>
+              You can <b>always</b> add a new annotation by <b>double clicking</b>.  This is particularly helpful when adding an annotation on top (inside) of a current annotation.
+            </li>
+            <li>When an annotation is highlighted (by hovering the mouse cursor over the annotation), the bounding box will turn orange and the following actions will become available:
+              <ul>
+                <li><u>Translation</u> - by dragging the mouse an annotation can be moved.  An annotation can also be moved (when highlighted) by using the arrow keys on the keyboard.  When using the arrow keys, an annotation will be moved 1 pixel at a time.  When using the arrow keys to move an annotation and the <b>Shift</b> key is held, the annotation is moved 10 pixels at a time.</li>
+                <li><u>Scaling</u> - by dragging one of the 8 anchors an annotation can be resized.  If the <b>Shift</b> key is held, the annotation's aspect ratio is preserved.</li>
+                <li><u>Rotation</u> - by dragging on the <div class="ui-resizable" style="width: 16px; display: inline-block; border:none;"><div class="ui-rotatable-handle ui-draggable" style="display: block; margin-left: -6px; top: -10px;"></div></div> rotation anchor an annotation can be rotated.  If the <b>Shift</b> key is held, the annotation's angle is constrained to increments of 45 degrees.</li>
+                <li><u>Deletion</u> - by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span> button an annotation can be deleted.  An annotation can also be deleted (when highlighted) by hitting the <b>Esc</b> key.</li>
+                <li><u>Send to Back</u> - when an annotation is highlighted, pressing the <b>b</b> key will send the annotation to the "back".  This is useful (or required) when a large annotation is covering a smaller annotation and makes highlighting the smaller annotation difficult (or impossible).</li>
+              </ul>
+              <br/>
+            </li>
+            <li>Always annotate the animals regardless of viewpoint.</li>
+            <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
+            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
+            <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
+            <li><u>Known issues</u>:
+              <ul>
+                <li>Scaling an annotation that has been rotated does not behave as expected</li>
+                <li>Translating an annotation that has been rotated does not respect the containment region correctly</li>
+                <li>When resizing the left edge of an annotation and the cursor moves off of the image, the annotation is resized</li>
+              </ul>
+            </li>
+          </ul>
+          
+          <br/>
+          <span style="color:#888;">
+          <u>Image Credits</u><br/>
+          [1] http://de.wikipedia.org/<br/>
+          [2] http://www.fauna-flora.org/<br/>
+          [3] http://www.napha-namibia.com/<br/>
+          [4] http://www.girrytrust.org/ <br/>
+          [5] http://www.wanderlustasap.com/<br/>
+          [6] Tanzanian Images / Getty Images / iStockphoto<br/>
+          [7] http://en.wikipedia.org/<br/>
+          [8] http://talk2theanimals.net/<br/>
+          </span>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('detection_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>
@@ -277,13 +284,22 @@
     var annotator = new BBoxAnnotator({
       url: "{{ image_src }}",
       input_method: 'fixed',
+//       default_color: 'rgb(127, 255, 127)', // Green
       show_label: true,
       labels: ['{{ species }}'],
       onchange: function(entries) {
         $('#detection_data').text(JSON.stringify(entries, null, "  "));
       }
     });
-
+    
+    {% if display_instructions %}
+      $('#turk-instructions').modal('show');
+    {% endif %}
+    
+    {% if display_species_examples %}
+      $('#turk-species-examples').modal('show');
+    {% endif %}
+    
     {% for annot in annotation_list %}
       annotator.add_entry({
         left:   {{ annot['left'] }}, 

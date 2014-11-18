@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import tornado.wsgi
 import tornado.httpserver
 import flask
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, make_response
 import optparse
 import logging
 import socket
@@ -88,7 +88,8 @@ def turk(filename=''):
             image_src = None
             species = None
             annotation_list = []
-          
+        display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
+        display_species_examples = False # request.cookies.get('detection_example_species_seen', 0) == 0
         if refer is not None and 'refer_aid' in request.args.keys():
             refer_aid = request.args['refer_aid']
         else:
@@ -101,7 +102,9 @@ def turk(filename=''):
                         finished=finished,
                         annotation_list=annotation_list,
                         refer=refer,
-                        refer_aid=refer_aid)
+                        refer_aid=refer_aid,
+                        display_instructions=display_instructions,
+                        display_species_examples=display_species_examples)
     elif filename == 'viewpoint':
         if 'aid' in request.args.keys():
             aid = int(request.args['aid'])
@@ -118,14 +121,15 @@ def turk(filename=''):
             gid       = None
             gpath     = None
             image_src = None
-        print("VIEW:", aid, gid)
+        display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
         return template('turk', filename,
                         aid=aid,
                         gid=gid,
                         image_path=gpath,
                         image_src=image_src,
                         finished=finished,
-                        refer=refer)
+                        refer=refer,
+                        display_instructions=display_instructions)
     elif filename == 'viewpoint-commit':
         # Things that need to be committed
         where_clause = "viewpoint_value_avg>=?"
@@ -221,6 +225,18 @@ def submit_detection():
         return redirect(url_for('turk', filename='detection'))
 
 
+@app.route('/ajax/cookie.html')
+def set_cookie():
+    response = make_response('true')
+    try:
+        response.set_cookie(request.args['name'], request.args['value'])
+        print("Set Cookie: %r -> %r" % (request.args['name'], request.args['value'], ))
+        return response
+    except:
+        print("COOKIE FAILED: %r" % (request.args, ))
+        return make_response('false')
+    
+    
 @app.route('/api')
 @app.route('/api/<function>.json', methods=['GET', 'POST'])
 def api(function=None):
