@@ -3,6 +3,13 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
+try:
+    # try seeing if importing plottool before any guitool things helps
+    import plottool
+except Exception as ex:
+    raise
+    #pass
+
 #print('__guitool__1')
 from guitool import __PYQT__
 #print('__guitool__2')
