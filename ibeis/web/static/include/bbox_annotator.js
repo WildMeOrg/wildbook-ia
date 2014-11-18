@@ -3,7 +3,7 @@
   var BBoxSelector;
 
   BBoxSelector = (function() {
-    function BBoxSelector(image_frame, options) {
+    function BBoxSelector(image_frame, options, default_color) {
       if (options == null) {
         options = {};
       }
@@ -12,15 +12,13 @@
       this.border_width = options.border_width || 2;
       this.selector = $('<div class="bbox_selector"></div>');
       this.selector.css({
-        "border": this.border_width + "px dotted rgb(255, 255, 255)",
+        "border": this.border_width + "px dotted " + default_color,
         "position": "absolute"
       });
       this.image_frame.append(this.selector);
       this.selector.css({
         "border-width": this.border_width
       });
-      this.adding = false;
-      this.editing = false;
       this.selector.hide();
       this.create_label_box(options);
     }
@@ -170,6 +168,10 @@
       this.show_label = options.show_label || (options.input_method !== "fixed");
       this.image_frame = $('<div class="image_frame"></div>');
       this.annotator_element.append(this.image_frame);
+      if(options.default_color === undefined) { options.default_color = "rgb(255, 255, 255)"; }
+      this.default_color = options.default_color;
+      this.adding = false;
+      this.editing = false;
       image_element = new Image();
       image_element.src = options.url;
       image_element.onload = function() {
@@ -190,7 +192,7 @@
           "cursor": "crosshair",
           "border": "#333 solid 1px",
         });
-        annotator.selector = new BBoxSelector(annotator.image_frame, options);
+        annotator.selector = new BBoxSelector(annotator.image_frame, options, options.default_color);
         return annotator.initialize_events(annotator.selector, options);
       };
       image_element.onerror = function() {
@@ -216,7 +218,6 @@
         }
       });
       this.annotator_element.mousedown(function(e) {
-        console.log(annotator.hit_menuitem + " " + status);
         if (!annotator.hit_menuitem) {
           switch (status) {
             case 'free':
@@ -398,27 +399,31 @@
     BBoxAnnotator.prototype.add_entry = function(entry) {
       var annotator, box_element, close_button, rotate_button, text_box, editing_mouse_inside;
       
-      function update_style(hover)
+      function update_style(hover, annotator)
       {
         if(hover)
         {
           box_element.css('border-color', 'rgb(255, 155, 0)');
+          box_element.css('opacity', '1.0');
           box_element.css('cursor', 'move');
           box_element.css('background-color', 'rgba(0, 0, 0, 0.2)');
           box_element.addClass('annotated_bounding_box_active');
           text_box.css('background-color', 'rgb(255, 155, 0)');
+          text_box.css('opacity', '1.0');
           rotate_button.show();
           close_button.show();
           annotator.hit_menuitem = true;
         }
         else if(annotator.adding || ! editing_mouse_inside)
         {
-          box_element.css('border-color', 'rgb(255, 255, 255)');
+          box_element.css('border-color', annotator.default_color);
+          box_element.css('opacity', '0.8');
           box_element.css('cursor', 'crosshair');
           box_element.css('background-color', 'rgba(0, 0, 0, 0.0)');
           box_element.css('background-color', 'rgba(0, 0, 0, 0.0)');
           box_element.removeClass('annotated_bounding_box_active');
-          text_box.css('background-color', 'rgba(255, 255, 255, 0.5)');
+          text_box.css('background-color', annotator.default_color);
+          text_box.css('opacity', '0.8');
           annotator.hit_menuitem = false;
           rotate_button.hide();
           close_button.hide();
@@ -444,7 +449,7 @@
         entry['angle'] = mod(angle, 2.0 * Math.PI);
         annotator.refresh();
       }
-      
+      annotator = this;
       this.entries.push(entry);
       box_element = $('<div class="ui-widget-content annotated_bounding_box"></div>');
       var resize_params = {
@@ -454,7 +459,7 @@
           stop: function(event, ui) {
             annotator.editing = false;
             update_dimensions();
-            update_style(false);
+            update_style(false, annotator);
           },
           containment: "#bbox_annotator",
           handles: 'n, s, e, w, ne, se, nw, sw',
@@ -466,7 +471,7 @@
           stop: function(event, ui) {
             annotator.editing = false;
             update_angle(ui.angle.stop);
-            update_style(false);
+            update_style(false, annotator);
           },
           angle: entry.angle,
       };
@@ -478,14 +483,14 @@
             console.log("STOP");
             annotator.editing = false;
             update_dimensions();
-            update_style(false);
+            update_style(false, annotator);
           },
           containment: "#bbox_annotator",
       };
-      box_element.resizable(resize_params).rotatable(rotate_params).draggable(drag_params);
+      box_element.rotatable(rotate_params).draggable(drag_params).resizable(resize_params);
       rotate_button = box_element.find('.ui-rotatable-handle');
       box_element.appendTo(this.image_frame).css({
-        "border": this.border_width + "px solid rgb(255, 255, 255)",
+        "border": this.border_width + "px solid " + annotator.default_color,
         "position": "absolute",
         "top": (entry.top - this.border_width) + "px",
         "left": (entry.left - this.border_width) + "px",
@@ -530,7 +535,8 @@
       text_box = $('<div></div>').appendTo(box_element).css({
         "overflow": "visible",
         "display": "inline-block",
-        "background-color": "rgba(255, 255, 255, 0.50)",
+        "background-color": annotator.default_color,
+        "opacity": "0.8",
         "color": "#333",
         "padding": "1px 3px",
         // "position": "absolute",
@@ -539,27 +545,25 @@
       if (this.show_label) {
         text_box.text(entry.label);
       }
-      annotator = this;
       editing_mouse_inside = false;
       box_element.hover((function(e) {
-        console.log(annotator.editing + " " + annotator.adding);
         editing_mouse_inside = true;
         if( ! annotator.adding)
         {
           if( ! annotator.editing)
           {
-            update_style(true); 
+            update_style(true, annotator); 
           }
         }
         else
         {
-          update_style(false);
+          update_style(false, annotator);
         }
       }), (function(e) {
         editing_mouse_inside = false;
         if( ! annotator.editing)
         { 
-          update_style(false);
+          update_style(false, annotator);
         }
       }));
       close_button.mousedown(function(e) {
