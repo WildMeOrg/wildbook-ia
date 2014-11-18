@@ -493,7 +493,10 @@ def show_signature(sig, **kwargs):
     fig.show()
 
 
-def plot_stems(x_data=None, y_data=None):
+def draw_stems(x_data=None, y_data=None):
+    """
+    Draws stem plot
+    """
     if y_data is not None and x_data is None:
         x_data = np.arange(len(y_data))
         pass
@@ -503,12 +506,14 @@ def plot_stems(x_data=None, y_data=None):
         print('[df2] WARNING plot_stems(): len(x_data)=len(y_data)=0')
     x_data_ = np.array(x_data)
     y_data_ = np.array(y_data)
-    x_data_sort = x_data_[y_data_.argsort()[::-1]]
-    y_data_sort = y_data_[y_data_.argsort()[::-1]]
+    y_data_sortx = y_data_.argsort()[::-1]
+    x_data_sort = x_data_[y_data_sortx]
+    y_data_sort = y_data_[y_data_sortx]
 
     markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-')
-    pylab.setp(markerline, 'markerfacecolor', 'b')
-    pylab.setp(baseline, 'linewidth', 0)
+    pylab.setp(markerline, 'markerfacecolor', 'w')
+    pylab.setp(stemlines, 'markerfacecolor', 'w')
+    pylab.setp(baseline, 'linewidth', 0)  # baseline should be invisible
     ax = gca()
     ax.set_xlim(min(x_data) - 1, max(x_data) + 1)
     ax.set_ylim(min(y_data) - 1, max(max(y_data), max(x_data)) + 1)

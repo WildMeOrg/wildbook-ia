@@ -71,8 +71,8 @@ def get_geometry(fnum):
 
 #@profile
 def get_all_figures():
-    all_figures_ = [manager.canvas.figure for manager in
-                    mpl._pylab_helpers.Gcf.get_all_fig_managers()]
+    manager_list = mpl._pylab_helpers.Gcf.get_all_fig_managers()
+    all_figures_ = [manager.canvas.figure for manager in manager_list]
     all_figures = []
     # Make sure you dont show figures that this module closed
     for fig in iter(all_figures_):
@@ -89,7 +89,7 @@ def get_all_qt4_wins():
 
 def all_figures_show():
     if '--noshow' not in sys.argv:
-        for fig in iter(get_all_figures()):
+        for fig in get_all_figures():
             time.sleep(SLEEP_TIME)
             fig.show()
             fig.canvas.draw()
@@ -140,6 +140,11 @@ def all_figures_tile(max_rows=None,
     """
     print('[plottool] all_figures_tile()')
     if no_tile:
+        return
+
+    current_backend = mpl.get_backend()
+    if not current_backend.startswith('Qt'):
+        print('current_backend=%r is not a Qt backend. cannot tile.' % current_backend)
         return
 
     all_wins = get_all_windows()
@@ -232,7 +237,11 @@ iup = iupdate
 
 
 def present(*args, **kwargs):
-    'execing present should cause IPython magic'
+    """
+    execing present should cause IPython magic
+
+    basically calls show if not embeded.
+    """
     if '--noshow' not in sys.argv:
         #print('[df2] Presenting figures...')
         with warnings.catch_warnings():

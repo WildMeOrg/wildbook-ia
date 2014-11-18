@@ -8,7 +8,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
 import utool
-import utool as ut
+import utool as ut  # NOQA
 import numpy as np
 
 
@@ -37,17 +37,39 @@ def draw_hist_subbin_maxima(hist, centers=None):
         plt.plot(x_pts, y_pts, 'g--')         # Draw parabola
 
 
-def draw_scores_cdf(scores_list,
-                    scores_lbls=None,
-                    score_markers=None,
-                    score_colors=None,
-                    markersizes=None,
-                    fnum=None):
+def plot_stems(x_data, y_data, fnum=None):
+    """
+    Example:
+        >>> from plottool import *  # NOQA
+        >>> import plottool as pt
+        >>> from plottool import df2
+        >>> x_data = [1, 1, 2, 3, 3, 3, 4, 4, 5]
+        >>> y_data = [1, 2, 1, 2, 1, 4, 4, 5, 1]
+        >>> pt.plots.plot_stems(x_data, y_data)
+    """
+    if fnum is None:
+        fnum = df2.next_fnum()
+    df2.figure(fnum=fnum, doclf=True, docla=True)
+    df2.draw_stems(x_data, y_data)
+    df2.set_xlabel('query index')
+    df2.set_ylabel('query ranks')
+    df2.dark_background()
+    df2.set_figtitle('plot_stems')
+    df2.legend(loc='upper left')
+    df2.iup()
+
+
+def plot_sorted_scores(scores_list,
+                       scores_lbls=None,
+                       score_markers=None,
+                       score_colors=None,
+                       markersizes=None,
+                       fnum=None):
     """
     Input: a list of scores (either chip or descriptor)
 
     Concatenates and sorts the scores
-    Plots them in a CDF with different types of scores labeled
+    Sorts and plots with different types of scores labeled
     """
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
@@ -56,7 +78,7 @@ def draw_scores_cdf(scores_list,
     if score_colors is None:
         score_colors = df2.distinct_colors(len(scores_list))[::-1]
     if markersizes is None:
-        markersizes = [12 * lblx for lblx in range(len(markersizes))]
+        markersizes = [6 / (1.0 + lblx) for lblx in range(len(scores_list))]
     labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
     agg_scores  = np.hstack(scores_list)
     agg_labelx  = np.hstack(labelx_list)
@@ -75,19 +97,21 @@ def draw_scores_cdf(scores_list,
         label = scores_lbls[lblx]
         color = score_colors[lblx]
         marker = score_markers[lblx]
+        markersize = markersizes[lblx]
         xdata = np.where(sorted_labelx == lblx)[0]
         ydata = sorted_scores[xdata]
-        print('[scores_cdf] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
-        df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7)
-        ut.embed()
-        help(df2.plot)
+        print('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
+        df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
+                 markersize=markersize)
+        #ut.embed()
+        #help(df2.plot)
 
     set_logyscale_from_data(sorted_scores)
 
     df2.set_xlabel('sorted scores')
     df2.set_ylabel('scores')
     df2.dark_background()
-    df2.set_figtitle('draw_scores_cdf')
+    df2.set_figtitle('plot_sorted_scores')
     df2.legend(loc='upper left')
     df2.iup()
 
