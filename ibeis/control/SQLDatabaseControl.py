@@ -134,6 +134,9 @@ class SQLDatabaseController(object):
         db.optimize()
         db._ensure_metadata_table()
 
+    def get_fpath(db):
+        return db.fpath
+
     def close(db):
         db.cur = None
         db.connection.close()
@@ -146,10 +149,30 @@ class SQLDatabaseController(object):
             ('metadata_value',               'TEXT'),
         ),
             superkey_colnames=['metadata_key'],
+            # IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation
             docstr='''
         The table that stores permanently all of the metadata about the
         database (tables, etc)''')
-        # IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation
+        # Ensure that a version number exists
+        db.get_db_version(ensure=True)
+
+    def get_db_version(db, ensure=True):
+        metadata_key_list = ['database_version']
+        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        where_clause = 'metadata_key=?'
+        # list of relationships for each image
+        metadata_value_list = db.get_where(constants.METADATA_TABLE,
+                                           ('metadata_value',), params_iter,
+                                           where_clause, unpack_scalars=True)
+        assert len(metadata_value_list) == 1, 'duplicate database_version keys in database'
+        version = metadata_value_list[0]
+        if version is None and ensure:
+            version = constants.BASE_DATABASE_VERSION
+            colnames = ['metadata_key', 'metadata_value']
+            params_iter = zip(['database_version'], [version])
+            get_rowid_from_superkey = (lambda x : [None] * len(x))  # We don't care to find any, because we know there is no version
+            db.add_cleanly(constants.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        return version
 
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
@@ -1306,21 +1329,14 @@ class SQLDatabaseController(object):
         for tablename in db.get_table_names():
             print(db.get_table_csv_header(tablename) + '\n')
 
-    def get_db_version(db, ensure=True):
-        metadata_key_list = ['database_version']
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_value_list = db.get_where(constants.METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
-        assert len(metadata_value_list) == 1, 'duplicate database_version keys in database'
-        version = metadata_value_list[0]
-        if version is None and ensure:
-            version = constants.BASE_DATABASE_VERSION
-            colnames = ['metadata_key', 'metadata_value']
-            params_iter = zip(['database_version'], [version])
-            get_rowid_from_superkey = (lambda x : [None] * len(x))  # We don't care to find any, because we know there is no version
-            db.add_cleanly(constants.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
-        return version
+    def view_db_in_external_reader(db):
+        import os
+        known_readers = ['sqlitebrowser', 'sqliteman']
+        sqlite3_reader = known_readers[0]
+        sqlite3_db_fpath = db.get_fpath()
+        os.system(sqlite3_reader + ' ' + sqlite3_db_fpath)
+        #ut.cmd(sqlite3_reader, sqlite3_db_fpath)
+        pass
 
     def set_db_version(db, version):
         # Do things properly, get the metadata_rowid (best because we want to assert anyway)

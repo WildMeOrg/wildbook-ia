@@ -6,6 +6,7 @@ from . import __SQLITE3__ as lite
 from os.path import split, splitext, join, exists
 #import six
 import logging
+import datetime
 from ibeis import params
 from ibeis import constants
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -88,7 +89,6 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=60, manual=True):
     # Keep 60 days worth of database backups
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
-    import datetime
     now = datetime.datetime.now()
     if manual:
         now_str = now.strftime('%Y_%m_%d_%H_%M_%S')
@@ -147,6 +147,8 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         if NOT_QUIET:
             print(msg)
 
+    #ut.embed()
+
     want_base_version = version_expected == constants.BASE_DATABASE_VERSION
     if want_base_version:
         print('[SQL_] base version expected... returning')
@@ -170,7 +172,9 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     if can_skip:
         current_schema_exists = schema_spec.UPDATE_CURRENT is not None and schema_spec.VERSION_CURRENT is not None
         if current_schema_exists:
-            current_schema_compatible = schema_spec.VERSION_CURRENT <= version_expected
+            # check to see if more than the metadata table exists
+            is_newdb = db.get_table_names() == [constants.METADATA_TABLE]
+            current_schema_compatible = is_newdb and schema_spec.VERSION_CURRENT <= version_expected
             if current_schema_compatible:
                 # Since this is a new database, we do not have to worry about backinng up the
                 # current database.  The subsequent update functions (if needed) will handle
@@ -269,7 +273,10 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
 
 
 class SQLExecutionContext(object):
-    """ A good with context to use around direct sql calls
+    """
+    Context manager for transactional database calls
+
+    FIXME: has out details
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
                  start_transaction=False, verbose=PRINT_SQL):

@@ -409,6 +409,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     """
