@@ -907,17 +907,18 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
 
 
 def prescore_nsum(qreq_, daid2_prescore, nShortlist):
-    daids_list = np.array(daid2_prescore.keys())
-    dnids_list = np.array(qreq_.ibs.get_annot_nids(daids_list))
+    # TODO : rectify with code in hots_query_result
+    daid_list = np.array(daid2_prescore.keys())
+    dnid_list = np.array(qreq_.ibs.get_annot_nids(daid_list))
     prescore_arr = np.array(daid2_prescore.values())
-    unique_nids, groupxs = vt.group_indicies(dnids_list)
+    unique_nids, groupxs = vt.group_indicies(dnid_list)
     grouped_prescores = vt.apply_grouping(prescore_arr, groupxs)
     dnid2_prescore = dict(zip(unique_nids, [arr.max() for arr in grouped_prescores]))
     # Ensure that you verify each member of the top shortlist names
     topx2_nid = utool.util_dict.keys_sorted_by_value(dnid2_prescore)[::-1]
     # Use shortlist of names instead of annots
     nNamesRerank = min(len(topx2_nid), nShortlist)
-    topx2_aids = [daids_list[dnids_list == nid] for nid in topx2_nid[:nNamesRerank]]
+    topx2_aids = [daid_list[dnid_list == nid] for nid in topx2_nid[:nNamesRerank]]
     # override shortlist because we already selected a subset of names
     topx2_aid = utool.flatten(topx2_aids)
     return topx2_aid

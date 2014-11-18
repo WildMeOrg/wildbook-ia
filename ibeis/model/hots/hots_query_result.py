@@ -98,6 +98,47 @@ def _qres_dicteq(aid2_xx1, aid2_xx2):
     return True
 
 
+def get_one_score_per_name(ibs, aid_list, score_list):
+    # TODO : rectify with code in pipeline
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.hots_query_result import *   # NOQA
+        >>> import ibeis
+        >>> from ibeis.dev import results_all
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> daid_list = ibs.get_valid_aids()
+        >>> qaid_list = daid_list[0:1]
+        >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
+        >>> qres = qaid2_qres[qaid_list[0]]
+        >>> aid_list, score_list = qres.get_aids_and_scores()
+        >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)
+        >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+    """
+    import vtool as vt
+    score_arr = np.array(score_list)
+    aid_list = np.array(aid_list)
+    nid_list = np.array(ibs.get_annot_nids(aid_list))
+    unique_nids, groupxs = vt.group_indicies(nid_list)
+    grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
+    grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))
+    # Build representative score per group
+    group_nscore = np.array([scores.max() for scores in grouped_scores])
+    group_sortx = group_nscore.argsort()[::-1]
+    # Top nids
+    sorted_nids = unique_nids.take(group_sortx)
+    sorted_nscore = group_nscore.take(group_sortx)
+    # Initial sort of aids
+    _sorted_aids = grouped_aids.take(group_sortx)
+    _sorted_scores = grouped_scores.take(group_sortx)
+    # Secondary sort of aids
+    sorted_sortx = [scores.argsort()[::-1] for scores in _sorted_scores]
+    sorted_aids = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
+    sorted_scores = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
+    nscoretup = (sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
+    return nscoretup
+
+
 def get_average_percision_(qres, ibs=None, gt_aids=None):
     """
     gets average percision using the PASCAL definition
@@ -280,6 +321,7 @@ def get_num_feats_in_matches(qres):
     return [len(fm) for fm in six.itervalues(qres.aid2_fm)]
 
 
+@six.add_metaclass(ut.ReloadingMetaclass)
 class QueryResult(__OBJECT_BASE__):
     #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
@@ -479,6 +521,11 @@ class QueryResult(__OBJECT_BASE__):
         #utool.embed()
         return tbldata
 
+    def get_sorted_nids_and_scores(qres, ibs):
+        aid_list, score_list = qres.get_aids_and_scores()
+        (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = get_one_score_per_name(ibs, aid_list, score_list)
+        return sorted_nids, sorted_nscore
+
     def get_aids_and_scores(qres):
         """ returns a chip index list and associated score list """
         aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
@@ -496,8 +543,8 @@ class QueryResult(__OBJECT_BASE__):
             num = num_indexed
         return top_aids[0:min(num, num_indexed)]
 
-    def get_aid_scores(qres, aid_arr):
-        return [qres.aid2_score.get(aid, None) for aid in aid_arr]
+    def get_aid_scores(qres, aid_arr, fillvalue=None):
+        return [qres.aid2_score.get(aid, fillvalue) for aid in aid_arr]
 
     def get_aid_truth(qres, ibs, aid_list):
         # 0: false, 1: True, 2: unknown
@@ -571,18 +618,72 @@ class QueryResult(__OBJECT_BASE__):
         #rank_list = [r[0] for r in ranks_]
         #return rank_list
 
+    def is_nsum(qres):
+        return 'AGG(nsum)' in qres.cfgstr and ',nsum,' in qres.cfgstr
+
+    def get_daids(qres):
+        """ returns database annotation ids this query was run with """
+        # TODO: possibly look this up in a more space efficient way
+        return qres.daids
+
+    def get_qaid(qres):
+        """ returns query database annotation id """
+        return qres.qaid
+
+    def get_worse_possible_rank(qres):
+        """ a good non None value to use for None ranks """
+        #worse_possible_rank = max(len(qres.get_daids()) + 2, 9001)
+        worse_possible_rank = len(qres.get_daids()) + 1
+        return worse_possible_rank
+
+    #def get_groundtruth_aids(qres, ibs):
+    #    """
+    #    returns the groundtruth with respect to what could have been matched for
+    #    this query
+    #    """
+    #    assert ibs is not None, 'must pass in valid ibs controller'
+    #    gt_aids = ibs.get_annot_groundtruth(qres.get_qaid(), daid_list=qres.get_daids())
+    #    return gt_aids
+
+    def get_groundfalse_aids(qres, ibs):
+        assert ibs is not None, 'must pass in valid ibs controller'
+        gf_aids = ibs.get_annot_groundfalse(qres.get_qaid(), daid_list=qres.get_daids())
+        return gf_aids
+
+    def get_groundtruth_aids(qres, ibs):
+        """
+        returns the groundtruth with respect to what could have been matched for
+        this query
+        """
+        assert ibs is not None, 'must pass in valid ibs controller'
+        gt_aids = ibs.get_annot_groundtruth(qres.get_qaid(), daid_list=qres.get_daids())
+        return gt_aids
+
     def get_gt_scores(qres, gt_aids=None, ibs=None, return_gtaids=False):
-        """ returns the 0 indexed ranking of each groundtruth chip """
+        """ returns groundfalse scores """
         # Ensure correct input
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')
         if gt_aids is None:
-            gt_aids = ibs.get_annot_groundtruth(qres.qaid)
+            gt_aids = qres.get_groundtruth_aids(ibs)
         gt_scores = qres.get_aid_scores(gt_aids)
         if return_gtaids:
             return gt_scores, gt_aids
         else:
             return gt_scores
+
+    def get_gf_scores(qres, gf_aids=None, ibs=None, return_gfaids=False):
+        """ returns groundfalse scores """
+        # Ensure correct input
+        if gf_aids is None and ibs is None:
+            raise Exception('[qr] must pass in the gf_aids or ibs object')
+        if gf_aids is None:
+            gf_aids = qres.get_groundfalse_aids(ibs)
+        gf_scores = qres.get_aid_scores(gf_aids)
+        if return_gfaids:
+            return gf_scores, gf_aids
+        else:
+            return gf_scores
 
     def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False, fillvalue=None):
         """ returns the 0 indexed ranking of each groundtruth chip """
@@ -590,7 +691,7 @@ class QueryResult(__OBJECT_BASE__):
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')
         if gt_aids is None:
-            gt_aids = ibs.get_annot_groundtruth(qres.qaid)
+            gt_aids = qres.get_groundtruth_aids(ibs)
         gt_ranks = qres.get_aid_ranks(gt_aids, fillvalue=fillvalue)
         if return_gtaids:
             return gt_ranks, gt_aids
@@ -650,3 +751,17 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_matching_keypoints(qres, ibs, aid2_list):
         return qres_get_matching_keypoints(qres, ibs, aid2_list)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result, allexamples=True)"
+        python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result)"
+        python ibeis/model/hots/hots_query_result.py
+        python ibeis/model/hots/hots_query_result.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

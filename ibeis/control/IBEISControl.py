@@ -2012,16 +2012,21 @@ class IBEISController(object):
 
     @getter_1toM
     def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
-                              filter_unknowns=True):
+                              filter_unknowns=True, daid_list=None):
         """
         gets all annotations with different names
 
         Returns:
             groundfalse_list (list): a list of aids which are known to be different for each
+
         input aid """
         if valid_aids is None:
             # get all valid aids if not specified
+            # really the examplar flag should not be allowed and only daids
+            # should be taken as input
             valid_aids = ibs.get_valid_aids(is_exemplar=is_exemplar)
+        if daid_list is not None:
+            valid_aids = list(set(daid_list).intersection(set(valid_aids)))
         if filter_unknowns:
             # Remove aids which do not have a name
             isunknown_list = ibs.is_aid_unknown(valid_aids)
