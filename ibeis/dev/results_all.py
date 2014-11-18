@@ -141,9 +141,10 @@ def learn_score_normalization(ibs, qaid2_qres):
                 mu = reference_measurements.mean()
                 sigma = reference_measurements.std()
 
-                std_list  = [sorted_nscores[ix:].std() for ix in range(len(sorted_nscores))]
-                mean_list = [sorted_nscores[ix:].mean() for ix in range(len(sorted_nscores))]
-                significance_list = -np.diff()
+                std_list  = np.array([sorted_nscores[ix:].std() for ix in range(len(sorted_nscores))])
+                mean_list = np.array([sorted_nscores[ix:].mean() for ix in range(len(sorted_nscores))])
+                (sorted_nscores - mean_list) / (std_list + 1E-9)
+                significance_list = -np.diff(std_list)
 
             if sorted_nids[0] == qnid:
                 pass
