@@ -174,7 +174,7 @@ def set_viewpoint_values_from_aids(app, aid_list, value_list, value_type):
         # efficiency.  
         # 
         # Essentially, any viewpoint work that was done by A for X is simply ignored because X no longer exists in that form.
-        print('[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE IT NOT LONGER EXISTS')
+        print('[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE AID_LIST: %s NOT LONGER EXISTS' %(aid_list, ))
       
 
 
@@ -203,28 +203,59 @@ def database_init(app):
         radians %= twopi
         return int((radians / twopi) * 360.0)
 
-    # Detection Review
-    gid_list = app.ibeis.get_valid_gids()
-    colnames = ('image_rowid', )
-    params_iter = zip(gid_list)
-    get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
-    app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
-
-    # Viewpoint Annotation
-    # Get data out of ibeis
-    aid_list = app.ibeis.get_valid_aids()
-    # Grab viewpoints
-    viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
-    viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
-    # Add chips to temporary web viewpoint table
-    redo = False
-    if redo:
-        colnames = ('annot_rowid', 'viewpoint_value_1', 'viewpoint_value_2',  'viewpoint_value_avg')
-        params_iter = zip(aid_list, viewpoint_list, viewpoint_list, viewpoint_list)
-        get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
-        app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
-    else:
+    if app.round <= 1:
+        # Detection Review
+        gid_list = app.ibeis.get_valid_gids()
+        image_reviewed_list = app.ibeis.get_image_reviewed(gid_list)
+        if not all([image_reviewed == 0 for image_reviewed in image_reviewed_list]):
+            print("WARNING: NOT ALL IMAGES ARE NOT-REVIEWED")
+            raw_input("Enter to set to not-reviewed...")
+            app.ibeis.set_image_reviewed(gid_list, [0] * len(gid_list))
+            image_reviewed_list = app.ibeis.get_image_reviewed(gid_list)
+        colnames = ('image_rowid', )
+        params_iter = zip(gid_list)
+        get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
+        app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    
+        # Viewpoint Annotation
+        # Get data out of ibeis
+        aid_list = app.ibeis.get_valid_aids()
+        # Grab ALL viewpoints
+        viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
+        viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
+        if not all([image_reviewed == None for image_reviewed in image_reviewed_list]):
+            print("WARNING: NOT ALL ANNOT THETAS ARE NULLED")
+            raw_input("Enter to null annot thetas...")
+            app.ibeis.set_image_reviewed(aid_list, [None] * len(aid_list))        
+            # Grab ALL viewpoints
+            viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
+            viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
+        # Add chips to temporary web viewpoint table
         colnames = ('annot_rowid', 'viewpoint_value_1')
         params_iter = zip(aid_list, viewpoint_list)
         get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
         app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    else:
+        # Detection Review
+        gid_list = app.ibeis.get_valid_gids(reviewed=0)
+        image_reviewed_list = app.ibeis.get_image_reviewed(gid_list)
+        colnames = ('image_rowid', )
+        params_iter = zip(gid_list)
+        get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
+        app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    
+        # Viewpoint Annotation
+        # Get data out of ibeis
+        aid_list = app.ibeis.get_valid_aids(viewpoint=None)
+        # Grab ALL viewpoints
+        viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
+        viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
+        # Add chips to temporary web viewpoint table
+        colnames = ('annot_rowid', 'viewpoint_value_1')
+        params_iter = zip(aid_list, viewpoint_list)
+        get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
+        app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
+      
+    print("ROUND: %d" % (app.round, ))
+    print("WEB CACHED %d IMAGES" % (len(gid_list), ))
+    print("WEB CACHED %d ANNOTATIONS" % (len(aid_list), ))

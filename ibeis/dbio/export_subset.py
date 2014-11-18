@@ -129,11 +129,11 @@ def _index(value, list_, warning=False):
         return None
 
 
-def geo_locate(default="Unknown"):
+def geo_locate(default="Unknown", timeout=5):
     try:
         import urllib2
         import json
-        f = urllib2.urlopen('http://freegeoip.net/json/')
+        f = urllib2.urlopen('http://freegeoip.net/json/', timeout=timeout)
         json_string = f.read()
         f.close()
         location = json.loads(json_string)

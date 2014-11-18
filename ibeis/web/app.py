@@ -22,6 +22,7 @@ from ibeis.web import appfuncs, navbar, DBWEB_SCHEMA
 # Others
 from datetime import date
 from os.path import join
+from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -118,6 +119,7 @@ def turk(filename=''):
             image     = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
         else:
+            print("\nADMIN: http://%s:%s/turk/viewpoint-commit.html\n" %(app.server_ip_address, app.port))
             gid       = None
             gpath     = None
             image_src = None
@@ -188,6 +190,7 @@ def submit_viewpoint():
 @app.route('/submit/detection.html', methods=['POST'])
 def submit_detection():
     gid = int(request.form['detection-gid'])
+    aid_list = app.ibeis.get_image_aids(gid)
     count = 1
     if request.form['detection-submit'].lower() == 'skip':
         count = -1
@@ -196,7 +199,7 @@ def submit_detection():
         width, height = app.ibeis.get_image_sizes(gid)
         scale_factor = float(width) / 700.0
         # Get aids
-        aid_list = app.ibeis.get_image_aids(gid)
+        
         app.ibeis.delete_annots(aid_list)
         annotation_list = json.loads(request.form['detection-annotations'])
         bbox_list = [
@@ -218,7 +221,12 @@ def submit_detection():
         ]
         print("[web] gid: %d, bbox_list: %r, species_list: %r" % (gid, annotation_list, species_list))
         aid_list_new = app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+        app.ibeis.set_image_reviewed([gid], [1])
         appfuncs.replace_aids(app, aid_list, aid_list_new)
+    else:
+        app.ibeis.set_image_reviewed([gid], [0])
+        viewpoint_rowids = appfuncs.get_viewpoint_rowids_from_aid(aid_list, app)
+        app.db.delete_rowids(VIEWPOINT_TABLE, viewpoint_rowids)
     if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
         return redirect(url_for('turk', filename='viewpoint'))
     else:
@@ -320,10 +328,12 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     # Initialize the web server
     logging.getLogger().setLevel(logging.INFO)
     try:
-        server_ip_address = socket.gethostbyname(socket.gethostname())
+        app.server_ip_address = socket.gethostbyname(socket.gethostname())
+        app.port = port
     except:
-        server_ip_address = '127.0.0.1'
-    url = 'http://%s:%s' % (server_ip_address, port)
+        app.server_ip_address = '127.0.0.1'
+        app.port = port
+    url = 'http://%s:%s' % (app.server_ip_address, port)
     print('[web] Tornado server starting at %s' % (url,))
     if browser:
         import webbrowser
@@ -352,8 +362,14 @@ def start_from_terminal():
         '--db',
         help='specify an IBEIS database',
         type='str', default='testdb0')
+    parser.add_option(
+        '--round',
+        help='specify the round of turking',
+        type='int', default='1')
 
     opts, args = parser.parse_args()
+    app.round = opts.round
+    print(app.round)
     app.ibeis = ibeis.opendb(db=opts.db)
     start_tornado(app, opts.port, database_init=appfuncs.database_init)
 
@@ -362,7 +378,9 @@ def start_from_ibeis(ibeis, port=DEFAULT_PORT):
     '''
     Parse command line options and start the server.
     '''
+    from ibeis import params
     app.ibeis = ibeis
+    app.round = params.args.round
     start_tornado(app, port, database_init=appfuncs.database_init)
 
 

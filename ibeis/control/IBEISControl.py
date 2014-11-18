@@ -691,8 +691,10 @@ class IBEISController(object):
         return eid_list
 
     @ider
-    def get_valid_aids(ibs, eid=None, is_exemplar=None):
+    def get_valid_aids(ibs, eid=None, viewpoint='no-filter', is_exemplar=None):
         """
+        Note: The viewpoint value cannot be None as a default because None is used as a
+              filtering value
 
         Returns:
             list_ (list):  a list of valid ANNOTATION unique ids
@@ -710,6 +712,10 @@ class IBEISController(object):
             if enctext == constants.EXEMPLAR_ENCTEXT:
                 is_exemplar = True
             aid_list = ibs.get_encounter_aids(eid)
+        if viewpoint != 'no-filter':
+            viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+            isvalid_list = [viewpoint == flag for flag in viewpoint_list]
+            aid_list = utool.filter_items(aid_list, isvalid_list)
         if is_exemplar:
             flag_list = ibs.get_annot_exemplar_flag(aid_list)
             aid_list = utool.filter_items(aid_list, flag_list)

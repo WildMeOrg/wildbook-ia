@@ -161,4 +161,4 @@ def fix_nulled_viewpoints(ibs):
     valid_list = [viewpoint == 0.0 for viewpoint in viewpoint_list]
     dirty_aid_list = utool.filter_items(aid_list, valid_list)
     print("[duct_tape] Nulling %d annotation viewpoints" % len(dirty_aid_list))
-    ibs.set_annot_viewpoint(dirty_aid_list, [-1.0] * len(dirty_aid_list))
+    ibs.set_annot_viewpoint(dirty_aid_list, [None] * len(dirty_aid_list))
