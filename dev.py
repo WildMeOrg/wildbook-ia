@@ -25,6 +25,7 @@ from utool.util_six import get_funcname
 import utool
 #from ibeis.model.hots import smk
 import plottool
+import plottool as pt
 import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -50,6 +51,60 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 #------------------
 # This is where you write all of the functions that will become pristine
 # and then go in _devcmds_ibeis.py
+
+
+@devcmd('scores', 'score')
+def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+    """
+    TODO: plot the difference between the top true score and the next best false score
+    CommandLine:
+        ib
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum'
+
+
+    """
+    print('[dev] annotationmatch_scores')
+    #allres = results_all.get_allres(ibs, qaid_list, daid_list)
+    #ut.embed()
+    #orgres = allres.allorg['rank0_true']
+    qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
+    x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
+    pt.plots.plot_stems(x_data, y_data)
+    pt.present()
+    pt.show()
+    ut.embed()
+    #locals_ = viz_allres_annotation_scores(allres)
+    locals_ = locals()
+    return locals_
+
+
+def viz_allres_annotation_scores(allres):
+    # Get the descriptor distances of true matches
+    #orgtype_list = ['false', 'true']
+    #orgtype_list = ['top_false', 'top_true']
+    orgtype_list = ['rank0_false', 'rank0_true']
+    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
+    markers_map = defaultdict(lambda: 'o')
+    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
+    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
+    #true_cmatch_scores  = cmatch_scores_map['true']
+    #false_cmatch_scores = cmatch_scores_map['false']
+    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
+    scores_lbls = orgtype_list
+    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
+    plottool.plots.plot_sorted_scores(scores_list, scores_lbls, scores_markers)
+    df2.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
+    return locals()
+
 
 def test_hdf5():
     try:
@@ -352,7 +407,7 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
         python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
     """
     print('[dev] vecs_dist')
-    allres = get_allres(ibs, qaid_list)
+    allres = results_all.get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
     disttype = 'L2'
@@ -365,8 +420,8 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
     dists_lbls = orgtype_list
     dists_markers = ['x--', 'o--']
-    plottool.plots.draw_scores_cdf(dists_list, dists_lbls, dists_markers)
-    df2.set_figtitle('Descriptor Distance CDF d(x)' + allres.get_cfgstr())
+    pt.plots.plot_sorted_scores(dists_list, dists_lbls, dists_markers)
+    df2.set_figtitle('Descriptor Sorted Distance d(x)' + allres.get_cfgstr())
     return locals()
 
 
@@ -376,7 +431,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     dev.py --db PZ_MTEST --allgt --cmd
     """
     custom_qparams = dict(featweight_on=True, fg_weight=1.0)
-    allres = get_allres(ibs, qaid_list, daid_list, custom_qparams)
+    allres = results_all.get_allres(ibs, qaid_list, daid_list, custom_qparams)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')
     top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
@@ -398,52 +453,12 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     #cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
 
 
-@devcmd('scores', 'score')
-def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-    """
-    TODO: plot the difference between the top true score and the next best false score
-    CommandLine:
-        ib
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-    """
-    print('[dev] annotationmatch_scores')
-    allres = get_allres(ibs, qaid_list, daid_list)
-    locals_ = viz_allres_annotation_scores(allres)
-    return locals_
-
-
-def viz_allres_annotation_scores(allres):
-    # Get the descriptor distances of true matches
-    orgtype_list = ['false', 'true']
-    orgtype_list = ['top_false', 'top_true']
-    #orgtype_list = ['rank0_false', 'rank0_true']
-    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
-    markers_map = defaultdict(lambda: 'o')
-    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
-    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
-    #true_cmatch_scores  = cmatch_scores_map['true']
-    #false_cmatch_scores = cmatch_scores_map['false']
-    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
-    scores_lbls = orgtype_list
-    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
-    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
-    return locals()
-
-
 @devcmd('inspect')
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
     from ibeis.viz.interact import interact_qres2  # NOQA
-    allres = get_allres(ibs, qaid_list)
+    allres = results_all.get_allres(ibs, qaid_list)
     guitool.ensure_qapp()
     tblname = 'qres'
     qaid2_qres = allres.qaid2_qres
@@ -475,7 +490,7 @@ def gvcomp(ibs, qaid_list, daid_list):
     print('[dev] gvcomp')
     assert isinstance(ibs, IBEISControl.IBEISController), 'bad input'  # let jedi know whats up
     def testcomp(ibs, qaid_list):
-        allres = get_allres(ibs, qaid_list)
+        allres = results_all.get_allres(ibs, qaid_list)
         for qaid in qaid_list:
             qres = allres.get_qres(qaid)
             interact.ishow_qres(ibs, qres,
@@ -604,9 +619,9 @@ def run_devcmds(ibs, qaid_list, daid_list):
             funcname = get_funcname(func)
             with utool.Indenter('[dev.' + funcname + ']'):
                 with utool.Timer(funcname):
-                    print('[dev] qid_list=%r' % (qaid_list,))
+                    #print('[dev] qid_list=%r' % (qaid_list,))
                     # FIXME: , daid_list
-                    ret = func(ibs, qaid_list)
+                    ret = func(ibs, qaid_list, daid_list)
                     # Add variables returned by the function to the
                     # "local scope" (the exec scop)
                     if hasattr(ret, 'items'):
@@ -648,50 +663,6 @@ def run_devcmds(ibs, qaid_list, daid_list):
 #-------------------
 # CUSTOM DEV FUNCS
 #-------------------
-
-
-__ALLRES_CACHE__ = {}
-
-
-def get_allres(ibs, qaid_list, daid_list=None, custom_qparams=None):
-    """
-    get_allres
-
-    Args:
-        ibs (IBEISController):
-        qaid_list (int): query annotation id
-        daid_list (list):
-
-    Returns:
-        ?: allres
-
-    Example:
-        >>> from dev import *  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_list = ibs.get_valid_aids()
-        >>> daid_list = None
-        >>> allres = get_allres(ibs, qaid_list, daid_list)
-        >>> print(allres)
-        >>> allres.allorg['top_true'].printme3()
-    """
-    print('[dev] get_allres')
-    if daid_list is None:
-        daid_list = ibs.get_valid_aids()
-    allres_cfgstr = ibs.cfg.query_cfg.get_cfgstr()
-    query_hashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUID')
-    data_hashid  = ibs.get_annot_uuid_hashid(daid_list, '_DAUUID')
-
-    allres_key = (query_hashid, data_hashid, allres_cfgstr)
-    try:
-        allres = __ALLRES_CACHE__[allres_key]
-    except KeyError:
-        qaid2_qres, qreq_ = ibs._query_chips(qaid_list, daid_list,
-                                             return_request=True,
-                                             custom_qparams=custom_qparams)
-        allres = results_all.init_allres(ibs, qaid2_qres, qreq_)
-    # Cache save
-    __ALLRES_CACHE__[allres_key] = allres
-    return allres
 
 
 #------------------
@@ -824,7 +795,7 @@ def devfunc(ibs, qaid_list):
     print('\ncfgstr..')
     print(feat_cfg.get_cfgstr())
     print(utool.dict_str(feat_cfg.get_dict_args()))
-    #allres = get_allres(ibs, qaid_list)
+    #allres = results_all.get_allres(ibs, qaid_list)
     from ibeis import viz
     aid = 1
     ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
