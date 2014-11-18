@@ -9,15 +9,20 @@ import sys
 
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
-#import plottool
+# something is not guitool, ibeis.viz
+# has to be before control, can be after constants, params, and main_module
+import plottool
 
 
 from ibeis import constants
 from ibeis import params
 from ibeis import main_module
+from ibeis import dev
+from ibeis.dev import sysres
+#main_module._preload()
+
 from ibeis import control
 from ibeis import ibsfuncs
-from ibeis import dev
 from ibeis import dbio
 
 

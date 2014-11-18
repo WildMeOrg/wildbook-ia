@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
+#import plottool
+
 from . import viz_helpers
 from . import viz_chip
 from . import viz_image
