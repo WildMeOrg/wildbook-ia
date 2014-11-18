@@ -8,6 +8,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
 import utool
+import utool as ut
 import numpy as np
 
 
@@ -40,6 +41,7 @@ def draw_scores_cdf(scores_list,
                     scores_lbls=None,
                     score_markers=None,
                     score_colors=None,
+                    markersizes=None,
                     fnum=None):
     """
     Input: a list of scores (either chip or descriptor)
@@ -50,9 +52,11 @@ def draw_scores_cdf(scores_list,
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
-        score_markers = ['o' for lbl in range(len(scores_list))]
+        score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
         score_colors = df2.distinct_colors(len(scores_list))[::-1]
+    if markersizes is None:
+        markersizes = [12 * lblx for lblx in range(len(markersizes))]
     labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
     agg_scores  = np.hstack(scores_list)
     agg_labelx  = np.hstack(labelx_list)
@@ -75,6 +79,8 @@ def draw_scores_cdf(scores_list,
         ydata = sorted_scores[xdata]
         print('[scores_cdf] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
         df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7)
+        ut.embed()
+        help(df2.plot)
 
     set_logyscale_from_data(sorted_scores)
 
