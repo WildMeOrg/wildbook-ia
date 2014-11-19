@@ -1379,9 +1379,12 @@ class IBEISController(object):
         """ Sets the vertices [(x, y), ...] of a list of chips by aid """
         import numpy as np
         def deg_to_rad(degree):
+            if degree == -1:
+                return -1
             degree %= 360.0
             return (degree / 360.0) * 2 * np.pi
         id_iter = ((aid,) for aid in aid_list)
+        viewpoint_list = [ -1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
         if convert_radians:
             viewpoint_list = [ deg_to_rad(viewpoint) for viewpoint in viewpoint_list]
         assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])

@@ -128,24 +128,26 @@ class Species(object):
     RHINO_WHITE   = 'rhino_white'
     WILDEBEEST    = 'wildebeest'
     WATER_BUFFALO = 'water_buffalo'
+    CHEETAH       = 'cheetah'
     UNKNOWN       = UNKNOWN
 
 SPECIES_TUPS = [
-    (Species.ZEB_PLAIN,    'Zebra (Plains)'),
-    (Species.ZEB_GREVY,    'Zebra (Grevy\'s)'),
-    (Species.GIRAFFE,      'Giraffes'),
-    (Species.ELEPHANT_SAV, 'Elephant (savanna)'),
-    (Species.JAG,          'Jaguar'),
-    (Species.LEOPARD,      'Leopard'),
-    (Species.LION,         'Lion'),
-    (Species.WILDDOG,      'Wild Dog'),
-    (Species.LIONFISH,     'Lionfish'),
-    (Species.WHALESHARK,   'Whale Shark'),
-    (Species.POLAR_BEAR,   'Polar Bear'),
-    (Species.WILDEBEEST,   'Wildebeest'),
+    (Species.ZEB_PLAIN,     'Zebra (Plains)'),
+    (Species.ZEB_GREVY,     'Zebra (Grevy\'s)'),
+    (Species.GIRAFFE,       'Giraffes'),
+    (Species.ELEPHANT_SAV,  'Elephant (savanna)'),
+    (Species.JAG,           'Jaguar'),
+    (Species.LEOPARD,       'Leopard'),
+    (Species.LION,          'Lion'),
+    (Species.WILDDOG,       'Wild Dog'),
+    (Species.LIONFISH,      'Lionfish'),
+    (Species.WHALESHARK,    'Whale Shark'),
+    (Species.POLAR_BEAR,    'Polar Bear'),
+    (Species.WILDEBEEST,    'Wildebeest'),
     (Species.SEALS_SPOTTED, 'Seal (spotted)'),
-    (Species.SEALS_RINGED,  'Seal (Siamaa Ringed))'),
-    (Species.UNKNOWN,      'Unknown'),
+    (Species.SEALS_RINGED,  'Seal (Siamaa Ringed)'),
+    (Species.CHEETAH,       'Cheetah'),
+    (Species.UNKNOWN,       'Unknown'),
 ]
 
 VALID_SPECIES = [tup[0] for tup in SPECIES_TUPS]

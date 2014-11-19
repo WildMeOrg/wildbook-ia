@@ -14,7 +14,7 @@ import ibeis
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
 from ibeis.control import _sql_helpers
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species
 import utool
 import utool as ut
 # Web Internal
@@ -81,16 +81,18 @@ def turk(filename=''):
                 temp['angle']  = float(annot_theta)
                 annotation_list.append(temp)
             if len(species_list) > 0:
-              species = max(set(species_list), key=species_list.count)  # Get most common species
+                species = max(set(species_list), key=species_list.count)  # Get most common species
+            elif app.default_species is not None:
+                species = app.default_species
             else:
-              species = KEY_DEFAULTS[SPECIES_KEY]
+                species = KEY_DEFAULTS[SPECIES_KEY]
         else:
             gpath = None
             image_src = None
             species = None
             annotation_list = []
         display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
-        display_species_examples = False # request.cookies.get('detection_example_species_seen', 0) == 0
+        display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
         if refer is not None and 'refer_aid' in request.args.keys():
             refer_aid = request.args['refer_aid']
         else:
@@ -119,7 +121,7 @@ def turk(filename=''):
             image     = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
         else:
-            print("\nADMIN: http://%s:%s/turk/viewpoint-commit.html\n" %(app.server_ip_address, app.port))
+            print("\nADMIN: http://%s:%s/turk/viewpoint-commit.html\n" % (app.server_ip_address, app.port))
             gid       = None
             gpath     = None
             image_src = None
@@ -199,7 +201,6 @@ def submit_detection():
         width, height = app.ibeis.get_image_sizes(gid)
         scale_factor = float(width) / 700.0
         # Get aids
-        
         app.ibeis.delete_annots(aid_list)
         annotation_list = json.loads(request.form['detection-annotations'])
         bbox_list = [
@@ -243,8 +244,8 @@ def set_cookie():
     except:
         print("COOKIE FAILED: %r" % (request.args, ))
         return make_response('false')
-    
-    
+
+
 @app.route('/api')
 @app.route('/api/<function>.json', methods=['GET', 'POST'])
 def api(function=None):
@@ -379,6 +380,24 @@ def start_from_ibeis(ibeis, port=DEFAULT_PORT):
     Parse command line options and start the server.
     '''
     from ibeis import params
+    dbname = ibeis.dbname
+    if dbname == "CHTA_Master":
+        app.default_species = Species.CHEETAH
+    elif dbname == "ELPH_Master":
+        app.default_species = Species.ELEPHANT_SAV
+    elif dbname == "GIR_Master":
+        app.default_species = Species.GIRAFFE
+    elif dbname == "GZ_Master":
+        app.default_species = Species.ZEB_GREVY
+    elif dbname == "LION_Master":
+        app.default_species = Species.LION
+    elif dbname == "PZ_Master":
+        app.default_species = Species.ZEB_PLAIN
+    elif dbname == "WD_Master":
+        app.default_species = Species.WILDDOG
+    else:
+        app.default_species = None
+    print("DEFAULT SPECIES: %r" % (app.default_species))
     app.ibeis = ibeis
     app.round = params.args.round
     start_tornado(app, port, database_init=appfuncs.database_init)

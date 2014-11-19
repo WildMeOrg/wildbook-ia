@@ -168,21 +168,20 @@ def set_viewpoint_values_from_aids(app, aid_list, value_list, value_type):
         # Alright, this is a state issue.  An annotation, X, was querried for viewpoint and is "checkedout" by person A.
         # Between the time person A checks out X and commits the annotation, person B also checks out X (random chance).
         # Person B makes a judgment call and thinks that the bouding box for X need to be updated.  Person B updates the
-        # bounding box for X, which deletes X and creates X' to replace it.  In the meantime, person A still has the 
+        # bounding box for X, which deletes X and creates X' to replace it.  In the meantime, person A still has the
         # row_id for X (which has not been deleted).  So, when person A commits the viewpoint for X, we simply do nothing.
-        # X' viewpoint annotation will get put back into the random queue for processing and we lose a little bit of 
-        # efficiency.  
-        # 
+        # X' viewpoint annotation will get put back into the random queue for processing and we lose a little bit of
+        # efficiency.
+        #
         # Essentially, any viewpoint work that was done by A for X is simply ignored because X no longer exists in that form.
-        print('[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE AID_LIST: %s NOT LONGER EXISTS' %(aid_list, ))
-      
+        print('[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE AID_LIST: %s NOT LONGER EXISTS' % (aid_list, ))
 
 
 ################################################################################
 
 
 def replace_aids(app, aid_list, aid_list_new):
-    print('Replacing %r for %r' %(aid_list, aid_list_new, ))
+    print('Replacing %r for %r' % (aid_list, aid_list_new, ))
     # Delete the old aid_list from the cache database
     viewpoint_rowids = get_viewpoint_rowids_from_aid(aid_list, app)
     app.db.delete_rowids(VIEWPOINT_TABLE, viewpoint_rowids)
@@ -191,7 +190,7 @@ def replace_aids(app, aid_list, aid_list_new):
     params_iter = zip(aid_list_new)
     get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
     app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
-  
+
 
 ################################################################################
 
@@ -216,17 +215,17 @@ def database_init(app):
         params_iter = zip(gid_list)
         get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
         app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
-    
+
         # Viewpoint Annotation
         # Get data out of ibeis
         aid_list = app.ibeis.get_valid_aids()
         # Grab ALL viewpoints
         viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
         viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
-        if not all([image_reviewed == None for image_reviewed in image_reviewed_list]):
+        if not all([viewpoint is -1 for viewpoint in viewpoint_list]):
             print("WARNING: NOT ALL ANNOT THETAS ARE NULLED")
             raw_input("Enter to null annot thetas...")
-            app.ibeis.set_image_reviewed(aid_list, [None] * len(aid_list))        
+            app.ibeis.set_annot_viewpoint(aid_list, [None] * len(aid_list))
             # Grab ALL viewpoints
             viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
             viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
@@ -243,7 +242,7 @@ def database_init(app):
         params_iter = zip(gid_list)
         get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
         app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
-    
+
         # Viewpoint Annotation
         # Get data out of ibeis
         aid_list = app.ibeis.get_valid_aids(viewpoint=None)
@@ -255,7 +254,7 @@ def database_init(app):
         params_iter = zip(aid_list, viewpoint_list)
         get_rowid_from_superkey = partial(get_viewpoint_rowids_from_aid, app=app)
         app.db.add_cleanly(VIEWPOINT_TABLE, colnames, params_iter, get_rowid_from_superkey)
-      
+
     print("ROUND: %d" % (app.round, ))
     print("WEB CACHED %d IMAGES" % (len(gid_list), ))
     print("WEB CACHED %d ANNOTATIONS" % (len(aid_list), ))

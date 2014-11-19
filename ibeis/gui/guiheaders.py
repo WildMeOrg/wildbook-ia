@@ -64,7 +64,7 @@ TABLE_COLNAMES = {
         'annot_gname',
         'name',
         'exemplar',
-        #'species',  ### <put back in
+        'species',  ### <put back in
         'viewpoint',
         #'rdconf',
         #'nGt',  ### <put back in
