@@ -598,6 +598,21 @@ def get_annot_is_hard(ibs, aid_list):
 
 
 @__injectable
+def get_hard_annot_rowids(ibs):
+    valid_aids = ibs.get_valid_aids()
+    hard_aids = ut.filter_items(valid_aids, ibs.get_annot_is_hard(valid_aids))
+    return hard_aids
+
+
+@__injectable
+def get_easy_annot_rowids(ibs):
+    hard_aids = ibs.get_hard_annot_rowids()
+    easy_aids = ut.setdiff_ordered(ibs.get_valid_aids(), hard_aids)
+    easy_aids = ut.filter_items(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
+    return easy_aids
+
+
+@__injectable
 def set_annot_is_hard(ibs, aid_list, flag_list):
     """
     Hack to mark hard cases in the notes column

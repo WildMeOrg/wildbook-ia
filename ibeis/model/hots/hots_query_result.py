@@ -526,6 +526,15 @@ class QueryResult(__OBJECT_BASE__):
         (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = get_one_score_per_name(ibs, aid_list, score_list)
         return sorted_nids, sorted_nscore
 
+    def get_name_classification(qres, ibs):
+        sorted_nids, sorted_nscore = qres.get_sorted_nids_and_scores(ibs)
+        if len(sorted_nids) == 0:
+            return (None, None)
+        else:
+            nid = sorted_nids[0]
+            nscore = sorted_nscore[0]
+            return (nid, nscore)
+
     def get_aids_and_scores(qres):
         """ returns a chip index list and associated score list """
         aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)

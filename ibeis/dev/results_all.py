@@ -66,18 +66,32 @@ def learn_score_normalization(ibs, qaid2_qres):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = daid_list = ibs.get_valid_aids()
+        >>> hard_aids = ibs.get_hard_annot_rowids()
+        >>> easy_aids = ibs.get_easy_annot_rowids()
+        >>> qaid_list = hard_aids + easy_aids[::8]
         >>> cfgdict = dict(codename='nsum')
         >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
+        >>> qres_list = [qaid2_qres[aid] for aid in qaid_list]
+        >>>
         >>> results_all.learn_score_normalization(ibs, qaid2_qres)
 
 
     valid_aids = ibs.get_valid_aids()
-    hard_aids = ut.filter_items(valid_aids, ibs.get_annot_is_hard(valid_aids))
+    hard_aids = ibs.get_hard_annot_rowids()
     qaid2_qres = ibs._query_chips4(hard_aids, daid_list, custom_qparams=cfgdict)
     """
-    #ut.embed()
-    #unflat_xdata = []
-    unflat_ydata = []
+    #qaid_list = [aid for aid in six.iterkeys(qaid2_qres)]
+    #qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+    #for qres in qres_list:
+    #    qres.rrr(verbose=False)
+
+    true_nid_list = ibs.get_annot_nids(qaid_list)
+    bestaidrank_list = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]
+    decision_tup_list = [qres.get_name_classification(ibs) for qres in qres_list]
+    decision_nid_list = ut.get_list_column(decision_tup_list, 0)
+    decision_score_list = ut.get_list_column(decision_tup_list, 1)
+    iscorrect_list = [nid_target == nid_res
+                      for nid_target, nid_res in zip(decision_nid_list, true_nid_list)]
 
     import scipy.stats as spstats
     def estimate_pdf(data, bw_factor):
@@ -166,15 +180,6 @@ def learn_score_normalization(ibs, qaid2_qres):
         if len(gt_scores) == 0:
             pass
 
-    unflat_max_y = map(sorted, unflat_ydata)
-    unflat_ydata2 = ut.sortedby2(unflat_ydata, unflat_max_y)
-    unflat_xdata2 = [[qx] * len(ydata) for qx, ydata in enumerate(unflat_ydata2)]
-    y_data = ut.flatten(unflat_ydata2)
-    x_data = ut.flatten(unflat_xdata2)
-    #unflat_ydata2 = ut.sortedby2(unflat_ydata, unflat_max_y)
-    #x_data = ut.flatten(unflat_xdata)
-    #x_data = ut.sortedby2(x_data, y_data)
-    #y_data = ut.sortedby2(y_data, y_data)
     return x_data, y_data
 
 
