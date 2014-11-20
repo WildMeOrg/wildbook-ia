@@ -243,9 +243,11 @@
               <br/>
             </li>
             <li>Always annotate the animals regardless of viewpoint.</li>
+            <li>If an image has no animals in it, simply hit <b>Accept</b> with no annotations, because the image <i>should</i> have no annotations.
             <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
             <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
             <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
+            <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
             <li><u>Known issues</u>:
               <ul>
                 <li>Scaling an annotation that has been rotated does not behave as expected</li>
@@ -277,6 +279,16 @@
   </div>
   {% endif %}
 {% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+{% endblock %}
 {% block content_custom_javascript %}  
 <script src="{{ url_for('static', filename='javascript/turk.js') }}"></script>
 <script src="{{ url_for('static', filename='include/bbox_annotator.js') }}"></script>
@@ -286,7 +298,7 @@
     var annotator = new BBoxAnnotator({
       url: "{{ image_src }}",
       input_method: 'fixed',
-//       default_color: 'rgb(127, 255, 127)', // Green
+      default_color: 'rgb(127, 255, 127)', // Green
       show_label: true,
       labels: ['{{ species }}'],
       onchange: function(entries) {
