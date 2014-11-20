@@ -85,6 +85,31 @@ assert '--py3' in sys.argv or python_version.startswith('2.7'), \
 pythoncmd = 'python' if sys.platform.startswith('win32') else 'python2.7'
 
 
+if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
+    def import_module_from_fpath(module_fpath):
+        """ imports module from a file path """
+        import platform
+        from os.path import basename, splitext
+        python_version = platform.python_version()
+        modname = splitext(basename(module_fpath))[0]
+        if python_version.startswith('2.7'):
+            import imp
+            module = imp.load_source(modname, module_fpath)
+        elif python_version.startswith('3'):
+            import importlib.machinery
+            loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
+            module = loader.load_module()
+        else:
+            raise AssertionError('invalid python version')
+        return module
+    #import bootstrap
+    bootstrap_fpath = os.path.abspath('_scripts/bootstrap.py')
+    bootstrap = import_module_from_fpath(bootstrap_fpath)
+    #sys.path.append(os.path.abspath('_scripts'))
+    bootstrap.bootstrap_sysreq()
+    sys.exit(1)
+
+
 # TODO: Make this prompt for the userid
 def userid_prompt():
     if False:

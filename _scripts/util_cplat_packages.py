@@ -87,7 +87,7 @@ PACMAN_PKGMAP = {
     'littlecms' : 'lcms',
     'freetype'  : 'freetype2',
     'fftw3'     : 'fftw',
-    'atlas'     : '$AUR atlas-lapack' # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
+    'atlas'     : '$AUR atlas-lapack'  # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
 }
 
 
@@ -471,6 +471,7 @@ def __update_yum():
 
 # ARCH PACMAN COMMANDS
 
+
 def __check_installed_pacman(pkg):
     out, err, ret = shell('which ' + pkg)
     if ret == 0:
@@ -483,18 +484,22 @@ def __check_installed_pacman(pkg):
     else:
         return False
 
+
 def fix_pkgname_pacman(pkg):
     return PACMAN_PKGMAP.get(pkg, pkg)
+
 
 def __install_command_pacman(pkg):
     pkg = fix_pkgname_pacman(pkg)
     if '$AUR' in pkg:
-        return '#Install %s from the AUR' % pkg.replace('$AUR ','')
+        return '#Install %s from the AUR' % pkg.replace('$AUR ', '')
     return 'sudo pacman -S --needed %s' % pkg
+
 
 def __update_pacman():
     return 'sudo pacman -Sy'
 # PIP COMMANDS
+
 
 def get_pypkg_aliases(pkg):
     alias1 = PIP_PYPKG_MAP.get(pkg, pkg)
@@ -529,7 +534,7 @@ def __install_command_pip(pkg, upgrade=None):
     if CENTOS:
         pipcmd = 'pip27'
     if ARCH:
-        pipcmd = 'pip2' # Otherwise it will default to using Python 3
+        pipcmd = 'pip2'  # Otherwise it will default to using Python 3
     else:
         pipcmd = 'pip'
     fmtstr_install_pip = pipcmd + ' install %s'
@@ -577,7 +582,8 @@ def __install_command_pip(pkg, upgrade=None):
         if pkg in ['setuptools', 'numpy']:
             upgrade = True
         if upgrade:
-            command = [command, command + ' --upgrade']
+            #command = [command, command + ' --upgrade']
+            command = [command + ' --upgrade']
     return command
 
 
@@ -610,7 +616,7 @@ def check_installed(pkg):
     if DEBIAN_FAMILY:
         return __check_installed_apt_get(pkg)
     elif CENTOS:
-        return __check_installled_yum(pkg)
+        return __check_installed_yum(pkg)
     elif ARCH:
         return __check_installed_pacman(pkg)
     else:
@@ -638,8 +644,8 @@ def ensure_package(pkg):
     return cmd(command)
 
 
-def ensure_python_package(pkg):
-    command = __install_command_pip(pkg)
+def ensure_python_package(pkg, upgrade=None):
+    command = __install_command_pip(pkg, upgrade=upgrade)
     return cmd(command)
 
 
@@ -675,10 +681,14 @@ def cmd(command, lbl=None):
         #os.system(command)
 
 
-def make_prereq_script(pkg_list, pypkg_list):
+def make_prereq_script(pkg_list, pypkg_list, with_sysfix=True, with_syspkg=True,
+                       with_pypkg=True, upgrade=None):
     output_list = []
-    output_list.extend(apply_preinstall_fixes())
-    output_list.extend([ensure_package(pkg) for pkg in pkg_list])
-    output_list.extend([ensure_python_package(pypkg) for pypkg in pypkg_list])
+    if with_sysfix:
+        output_list.extend(apply_preinstall_fixes())
+    if with_syspkg:
+        output_list.extend([ensure_package(pkg) for pkg in pkg_list])
+    if with_pypkg:
+        output_list.extend([ensure_python_package(pypkg, upgrade=upgrade) for pypkg in pypkg_list])
     output = ''.join(output_list)
     return output

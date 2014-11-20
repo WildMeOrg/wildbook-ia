@@ -11,123 +11,9 @@ cd ibeis
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 """
-import sys
-import os
-from os.path import dirname, realpath, join
-from util_cplat_packages import make_prereq_script, APPLE, CENTOS, DEBIAN_FAMILY, print_sysinfo
-
-DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
-
-PREREQ_PKG_LIST = [
-    'git',
-    'gcc',  # need a C compiler for numpy
-    'g++',
-    'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
-    'cmake',
-    'ffmpeg',  # need -dev / -devel versions of all these as well / libav
-    'libpng',
-    'libjpg',
-    'libtiff',  # 'libtiff4-dev', libtiff5-dev
-    'littlecms',  # libcms?
-    'openjpeg',
-    'zlib',
-    'freetype',
-    'fftw3',
-    'atlas',
-    'python-qt4',
-    #'jasper',  # hyrule cannot handle this
-    #'zmq',
-    #libgeos-dev
-]
-
-if APPLE:
-    PREREQ_PKG_LIST.extend([
-        'opencv',
-        'libpng',
-        'zlib',
-        'freetype',
-    ])
-
-if DEBIAN_FAMILY:
-    PREREQ_PKG_LIST.extend([
-        'libfftw3-dev',
-        #'libeigen3-dev',
-        'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
-        #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
-        'libfreetype6-dev',  # for matplotlib
-        #'libpng12-dev',
-        #'libjpeg-dev',
-        #'zlib1g-dev',
-        'python-dev',
-        'libopencv-dev',  # Do we need these?
-        'python-opencv',  # Do we really need these~these?
-    ])
-
-if CENTOS:
-    pass
-
-PREREQ_PYPKG_LIST = [
-    'pip',
-    'setuptools',
-    'Pygments',
-    'Cython',
-    'requests',
-    'colorama',
-    'psutil',
-    'functools32',
-    'six',
-    'dateutils',
-    'pyreadline',
-    'pyparsing',
-    #'sip',
-    #'PyQt4',
-    'Pillow',
-    'numpy',
-    'scipy',
-    'statsmodel',
-    'ipython',
-    'tornado',
-    'flask',
-    'matplotlib',
-    'scikit-learn',
-    'parse',
-    'pyinstaller',
-    #'pandas',
-    #'openpyxl',
-    #'pyzmq',
-]
-
-#http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
-'''
-# Install mpl_toolkits.basemap
-sudo apt-get install libgeos-dev -y
-cd ~/tmp
-wget http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
-gunzip -c basemap-1.0.7.tar.gz | tar xvf -
-cd basemap-1.0.7
-sudo checkinstall sudo python setup.py install
-python -c "from mpl_toolkits.basemap import Basemap"
-'''
-
-# Need to do a distribute upgrade before matplotlib on Ubuntu?
-# not sure if that will work yet
-
-print_sysinfo()
-#upgrade()
-output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST)
-if output == '':
-    print('System has all prerequisites!')
-elif not DRYRUN:
-    script_dir = realpath(dirname(__file__))
-    fpath = join(script_dir, '__install_prereqs__.sh')
-    with open(fpath, 'w') as file_:
-        file_.write(output)
-    os.system('chmod +x ' + fpath)
-    print('# wrote: %r' % fpath)
-    #sudo python super_setup.py --build --develop
-
 
 """
+pip list --outdated
 
 python -c
 sudo apt-get remove python-pip
@@ -170,3 +56,182 @@ python setup.py install
 cd ~/code/plottool
 python setup.py install
 """
+import sys
+import os
+from os.path import dirname, realpath, join
+
+
+def import_module_from_fpath(module_fpath):
+    """ imports module from a file path """
+    import platform
+    from os.path import basename, splitext
+    python_version = platform.python_version()
+    modname = splitext(basename(module_fpath))[0]
+    if python_version.startswith('2'):
+        import imp
+        module = imp.load_source(modname, module_fpath)
+    elif python_version.startswith('3'):
+        import importlib.machinery
+        loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
+        module = loader.load_module()
+    else:
+        raise AssertionError('invalid python version')
+    return module
+
+try:
+    import util_cplat_packages
+    #from util_cplat_packages import make_prereq_script, APPLE, CENTOS, DEBIAN_FAMILY, print_sysinfo
+except ImportError as ex:
+    module_fpath = os.path.abspath(join(dirname(__file__), 'util_cplat_packages.py'))
+    util_cplat_packages = import_module_from_fpath(module_fpath)
+
+make_prereq_script = util_cplat_packages.make_prereq_script
+APPLE = util_cplat_packages.APPLE
+CENTOS = util_cplat_packages.CENTOS
+DEBIAN_FAMILY = util_cplat_packages.DEBIAN_FAMILY
+print_sysinfo = util_cplat_packages.print_sysinfo
+
+
+DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
+OPTIONAL = '--optional' in sys.argv
+UPGRADE = '--upgrade' in sys.argv or '-U' in sys.argv
+
+
+def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
+    PREREQ_PKG_LIST = [
+        'git',
+        'gcc',  # need a C compiler for numpy
+        'g++',
+        'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
+        'cmake',
+        'ffmpeg',  # need -dev / -devel versions of all these as well / libav
+        'libpng',
+        'libjpg',
+        'libtiff',  # 'libtiff4-dev', libtiff5-dev
+        'littlecms',  # libcms?
+        'openjpeg',
+        'zlib',
+        'freetype',
+        'fftw3',
+        'atlas',
+        'python-qt4',
+        #'jasper',  # hyrule cannot handle this
+        #'zmq',
+        #libgeos-dev
+    ]
+
+    if APPLE:
+        PREREQ_PKG_LIST.extend([
+            'opencv',
+            'libpng',
+            'zlib',
+            'freetype',
+        ])
+
+    if DEBIAN_FAMILY:
+        PREREQ_PKG_LIST.extend([
+            'libfftw3-dev',
+            #'libeigen3-dev',
+            'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
+            #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
+            'libfreetype6-dev',  # for matplotlib
+            #'libpng12-dev',
+            #'libjpeg-dev',
+            #'zlib1g-dev',
+            'python-dev',
+            'libopencv-dev',  # Do we need these?
+            'python-opencv',  # Do we really need these~these?
+        ])
+
+    if CENTOS:
+        pass
+
+    PREREQ_PYPKG_LIST = [
+        'pip',
+        'setuptools',
+        'Pygments',
+        'Cython',
+        'requests',
+        'colorama',
+        'psutil',
+        'functools32',
+        'six',
+        'dateutils',
+        'pyreadline',
+        'pyparsing',
+        #'sip',
+        #'PyQt4',
+        'Pillow',
+        'numpy',
+        'scipy',
+        'ipython',
+        'tornado',
+        'flask',
+        'matplotlib',
+        'scikit-learn',
+        'parse',
+        'simplejson',
+        'pyinstaller',
+    ]
+
+    OPTIONAL_PYPKG_LIST = [
+        #'pandas',
+        'Sphinx',
+        'astor',
+        'autopep8',
+        'flake8',
+        'guppy',
+        'functools32',
+        'argparse',
+        'h5py',
+        'memory-profiler',
+        'objgraph',
+        'openpyxl',
+        'pyfiglet',
+        'pyflakes',
+        'pyreadline',
+        'pyzmq',
+        'scikit-image',
+        'sphinxcontrib-napoleon',
+        'statsmodel',
+        'virtualenv',
+    ]
+
+    if with_optional:
+        PREREQ_PYPKG_LIST += OPTIONAL_PYPKG_LIST
+
+    #http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
+    '''
+    # Install mpl_toolkits.basemap
+    sudo apt-get install libgeos-dev -y
+    cd ~/tmp
+    wget http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
+    gunzip -c basemap-1.0.7.tar.gz | tar xvf -
+    cd basemap-1.0.7
+    sudo checkinstall sudo python setup.py install
+    python -c "from mpl_toolkits.basemap import Basemap"
+    '''
+
+    # Need to do a distribute upgrade before matplotlib on Ubuntu?
+    # not sure if that will work yet
+
+    print_sysinfo()
+    #upgrade()
+    with_sysfix = True
+    with_syspkg = False
+    with_pypkg  = True
+    output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST, with_sysfix,
+                                with_syspkg, with_pypkg, upgrade=UPGRADE)
+    if output == '':
+        print('System has all prerequisites!')
+    elif not DRYRUN:
+        script_dir = realpath(dirname(__file__))
+        fpath = join(script_dir, '__install_prereqs__.sh')
+        with open(fpath, 'w') as file_:
+            file_.write(output)
+        os.system('chmod +x ' + fpath)
+        print('# wrote: %r' % fpath)
+        #sudo python super_setup.py --build --develop
+
+if __name__ == '__main__':
+    bootstrap_sysreq()

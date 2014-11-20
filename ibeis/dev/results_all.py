@@ -117,9 +117,9 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         gt_rank = np.where(is_true)[0][0]
         gf_rank = np.nonzero(is_false)[0][0]
         if gt_rank == 0 and len(sorted_nscores) > gf_rank:
-            good_tp_nscores.append(sorted_nscores[gt_rank])
-            good_fp_nscores.append(sorted_nscores[gf_rank])
             if len(sorted_ndiff) > gf_rank:
+                good_tp_nscores.append(sorted_nscores[gt_rank])
+                good_fp_nscores.append(sorted_nscores[gf_rank])
                 good_tp_ndiff.append(sorted_ndiff[gt_rank])
                 good_fp_ndiff.append(sorted_ndiff[gf_rank])
 
@@ -132,13 +132,18 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         b_given_a = (a_given_b * prob_b) / prob_a
         return b_given_a
 
-    def inspect_pdfs(good_tp, good_fp, lbl):
+    clip_score = 2000
+    #overshoot_factor = good_tp_nscores.max() / good_fp_nscores.max()
+    #if overshoot_factor > 5:
+    #    clip_score = good_tp_nscores.mean() + good_tp_nscores.std() * 2
+
+    def inspect_pdfs(good_tp, good_fp, lbl, clip_score):
         good_all = np.hstack((good_tp, good_fp))
 
         score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512)
         score_fp_pdf = ut.estimate_pdf(good_fp, gridsize=512)
         score_pdf = ut.estimate_pdf(good_all, gridsize=512)
-        xdata = np.linspace(0, 2000, 1024)
+        xdata = np.linspace(0, clip_score, 1024)
 
         p_score_given_tp = score_tp_pdf.evaluate(xdata)
         p_score_given_fp = score_fp_pdf.evaluate(xdata)
@@ -175,6 +180,42 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
             figtitle='pdf ' + lbl,
             xdata=xdata)
 
+    def inspect_svm_classifier(clip_score):
+        from sklearn import svm
+        # Build SVM Features and targets
+        nTrue = len(good_tp_ndiff)
+        nFalse = len(good_fp_ndiff)
+        good_nscore = np.hstack((good_tp_nscores, good_fp_nscores))
+        good_ndiff = np.hstack((good_tp_ndiff, good_fp_ndiff))
+        # Pack svm features and targets
+        X = svm_features = np.vstack((good_nscore, good_ndiff)).T
+        Y = svm_targets = np.hstack((np.ones(nTrue), -np.ones(nFalse)))
+        # Create support vector classifier
+        svc = svm.LinearSVC(C=1.0, dual=False)
+        with ut.Timer('training SVM'):
+            svc.fit(svm_features, svm_targets)
+
+        def plot_2d_svc(svc, clip_score):
+            # make grid for feature 1 and 2
+            h = 100
+            f1_min = X[:, 0].min() - 1
+            f2_min = X[:, 1].min() - 1
+            f1_max = min(X[:, 0].max() + 1, clip_score)
+            f2_max = min(X[:, 1].max() + 1, clip_score)
+            f1xs, f2xs = np.meshgrid(np.arange(f1_min, f1_max, h),
+                                     np.arange(f2_min, f2_max, h))
+            Z = svc.predict(np.c_[f1xs.ravel(), f2xs.ravel()])
+            Z = Z.reshape(f1xs.shape)
+            # Plot decision boundary
+            pt.figure()
+            cmap = pt.get_binary_svm_cmap()
+            pt.plt.contourf(f1xs, f2xs, Z, cmap=cmap, alpha=0.8)
+            # plot training points
+            valid_X = X[:, 0] < clip_score
+            pt.plt.scatter(X[valid_X, 0], X[valid_X, 1], c=Y[valid_X], cmap=cmap)
+            pt.update()
+        plot_2d_svc(svc, clip_score)
+
     #pt.close_all_figures()
     #import imp
     #imp.reload(pt.plots)
@@ -192,6 +233,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     #)
     inspect_pdfs(good_tp_nscores, good_fp_nscores, 'score')
     inspect_pdfs(good_tp_ndiff, good_fp_ndiff, 'diff')
+    inspect_svm_classifier(clip_score)
     pt.present()
 
 
