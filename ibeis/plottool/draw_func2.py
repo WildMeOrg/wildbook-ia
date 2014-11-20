@@ -793,6 +793,11 @@ def ensure_divider(ax):
     return ax._df2_divider
 
 
+def get_binary_svm_cmap():
+    # useful for svms
+    return reverse_colormap(plt.get_cmap('bwr'))
+
+
 def reverse_colormap(cmap):
     """
     References:
@@ -821,6 +826,7 @@ def show_all_colormaps():
 
     References:
         http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
+        http://matplotlib.org/examples/color/colormaps_reference.html
     """
     import pylab
     import numpy as np
