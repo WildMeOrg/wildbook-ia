@@ -59,12 +59,58 @@ def plot_stems(x_data, y_data, fnum=None):
     df2.iup()
 
 
+def plot_densities(density_list,
+                   density_lbls=None,
+                   density_colors=None,
+                   xdata=None,
+                   figtitle='plot_densities',
+                   fnum=None):
+    """
+    Input: a list of scores (either chip or descriptor)
+
+    Concatenates and sorts the scores
+    Sorts and plots with different types of scores labeled
+    """
+    assert len(density_list) > 0
+    if xdata is None:
+        xdata = np.arange(len(density_list[0]))
+    assert all([len(xdata) == len(density) for density in density_list])
+
+    if density_lbls is None:
+        density_lbls = [lblx for lblx in range(len(density_list))]
+    if density_colors is None:
+        density_colors = df2.distinct_colors(len(density_list))[::-1]
+    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(density_list)]
+    #agg_scores  = np.hstack()
+    #agg_labelx  = np.hstack(labelx_list)
+    #agg_sortx = agg_scores.argsort()
+
+    if fnum is None:
+        fnum = df2.next_fnum()
+
+    df2.figure(fnum=fnum, doclf=True, docla=True)
+
+    for tup in zip(density_list, density_lbls, density_colors):
+        density, label, color = tup
+        ydata = density
+        df2.plot(xdata, ydata, color=color, label=label, alpha=.7)
+        #ut.embed()
+        #help(df2.plot)
+    df2.set_xlabel('score')
+    df2.set_ylabel('probability density')
+    df2.dark_background()
+    df2.set_figtitle(figtitle)
+    df2.legend(loc='upper left')
+    df2.iup()
+
+
 def plot_sorted_scores(scores_list,
                        scores_lbls=None,
                        score_markers=None,
                        score_colors=None,
                        markersizes=None,
-                       fnum=None):
+                       fnum=None,
+                       figtitle='plot_sorted_scores'):
     """
     Input: a list of scores (either chip or descriptor)
 
@@ -78,7 +124,7 @@ def plot_sorted_scores(scores_list,
     if score_colors is None:
         score_colors = df2.distinct_colors(len(scores_list))[::-1]
     if markersizes is None:
-        markersizes = [6 / (1.0 + lblx) for lblx in range(len(scores_list))]
+        markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
     labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
     agg_scores  = np.hstack(scores_list)
     agg_labelx  = np.hstack(labelx_list)
@@ -111,7 +157,7 @@ def plot_sorted_scores(scores_list,
     df2.set_xlabel('sorted scores')
     df2.set_ylabel('scores')
     df2.dark_background()
-    df2.set_figtitle('plot_sorted_scores')
+    df2.set_figtitle(figtitle)
     df2.legend(loc='upper left')
     df2.iup()
 
