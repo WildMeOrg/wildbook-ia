@@ -66,7 +66,9 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         >>> from ibeis.dev import results_all
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
-        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> dbname = 'GZ_ALL'
+        >>> #dbname = 'PZ_Master0'
+        >>> ibs = ibeis.opendb(dbname)
         >>> qaid_list = daid_list = ibs.get_valid_aids()
         >>> hard_aids = ibs.get_hard_annot_rowids()
         >>> easy_aids = ibs.get_easy_annot_rowids()
@@ -99,6 +101,10 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     good_fp_nscores = []
     good_tp_ndiff = []
     good_fp_ndiff = []
+    good_tp_nmatches = []
+    good_fp_nmatches = []
+    good_tp_aidnid_pairs = []
+    good_fp_aidnid_pairs = []
     for qx, qres in enumerate(qres_list):
         qaid = qres.get_qaid()
         if not qres.is_nsum():
@@ -106,7 +112,20 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         if not ibs.get_annot_has_groundtruth(qaid):
             continue
         qnid = ibs.get_annot_nids(qres.get_qaid())
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        #sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+
+        def get_num_nmatches(qres, sorted_aids):
+            # returns number of matches to a name
+            sorted_nmatches = []
+            for aids in sorted_aids:
+                fs_list = [qres.aid2_fs[aid] for aid in aids]
+                num_nmatches = np.sum([(fs > 1E-6).sum() for fs in fs_list])
+                sorted_nmatches.append(num_nmatches)
+            return sorted_nmatches
+
+        nscoretup = qres.get_nscoretup(ibs)
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
+        sorted_nmatches = get_num_nmatches(qres, sorted_aids)
 
         sorted_ndiff = -np.diff(sorted_nscores.tolist())
         sorted_nids = np.array(sorted_nids)
@@ -122,99 +141,20 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
                 good_fp_nscores.append(sorted_nscores[gf_rank])
                 good_tp_ndiff.append(sorted_ndiff[gt_rank])
                 good_fp_ndiff.append(sorted_ndiff[gf_rank])
+                good_tp_nmatches.append(sorted_nmatches[gt_rank])
+                good_fp_nmatches.append(sorted_nmatches[gf_rank])
+                good_tp_aidnid_pairs.append((qaid, sorted_nids[gt_rank]))
+                good_fp_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
 
     good_tp_nscores = np.array(good_tp_nscores)
     good_fp_nscores = np.array(good_fp_nscores)
     good_tp_ndiff = np.array(good_tp_ndiff)
     good_fp_ndiff = np.array(good_fp_ndiff)
 
-    def bayes_rule(a_given_b, prob_a, prob_b):
-        b_given_a = (a_given_b * prob_b) / prob_a
-        return b_given_a
-
     clip_score = 2000
     #overshoot_factor = good_tp_nscores.max() / good_fp_nscores.max()
     #if overshoot_factor > 5:
     #    clip_score = good_tp_nscores.mean() + good_tp_nscores.std() * 2
-
-    def inspect_pdfs(good_tp, good_fp, lbl, clip_score):
-        good_all = np.hstack((good_tp, good_fp))
-
-        score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512)
-        score_fp_pdf = ut.estimate_pdf(good_fp, gridsize=512)
-        score_pdf = ut.estimate_pdf(good_all, gridsize=512)
-        xdata = np.linspace(0, clip_score, 1024)
-
-        p_score_given_tp = score_tp_pdf.evaluate(xdata)
-        p_score_given_fp = score_fp_pdf.evaluate(xdata)
-        p_score = score_pdf.evaluate(xdata)
-        #fp_bw = score_fp_pdf.bw
-        #tp_bw = score_tp_pdf.bw
-        #s_bw = score_pdf.bw
-        p_tp = .04
-        p_fp = (1 - p_tp)
-
-        # Apply bayes
-        p_tp_given_score = bayes_rule(p_score_given_tp, p_tp, p_score)
-        p_fp_given_score = bayes_rule(p_score_given_fp, p_fp, p_score)
-
-        #w = xdata[1] - xdata[0]
-        p_tp_given_score_cdf = (p_tp_given_score / p_tp_given_score.sum()).cumsum()
-        p_fp_given_score_cdf = (p_fp_given_score / p_fp_given_score.sum()).cumsum()
-
-        pt.plots.plot_densities(
-            (p_fp_given_score_cdf,  p_tp_given_score_cdf),
-            ('fp given ' + lbl, 'tp given ' + lbl),
-            figtitle='cdf',
-            xdata=xdata)
-
-        #pt.plots.plot_densities(
-        #    (1 - p_fp_given_score_cdf, 1 - p_tp_given_score_cdf),
-        #    ('fp given ' + lbl, 'tp given ' + lbl),
-        #    figtitle='1 - cdf ' + lbl,
-        #    xdata=xdata)
-
-        pt.plots.plot_densities(
-            (p_fp_given_score, p_tp_given_score),
-            ('fp given ' + lbl, 'tp given ' + lbl),
-            figtitle='pdf ' + lbl,
-            xdata=xdata)
-
-    def inspect_svm_classifier(clip_score):
-        from sklearn import svm
-        # Build SVM Features and targets
-        nTrue = len(good_tp_ndiff)
-        nFalse = len(good_fp_ndiff)
-        good_nscore = np.hstack((good_tp_nscores, good_fp_nscores))
-        good_ndiff = np.hstack((good_tp_ndiff, good_fp_ndiff))
-        # Pack svm features and targets
-        X = svm_features = np.vstack((good_nscore, good_ndiff)).T
-        Y = svm_targets = np.hstack((np.ones(nTrue), -np.ones(nFalse)))
-        # Create support vector classifier
-        svc = svm.LinearSVC(C=1.0, dual=False)
-        with ut.Timer('training SVM'):
-            svc.fit(svm_features, svm_targets)
-
-        def plot_2d_svc(svc, clip_score):
-            # make grid for feature 1 and 2
-            h = 100
-            f1_min = X[:, 0].min() - 1
-            f2_min = X[:, 1].min() - 1
-            f1_max = min(X[:, 0].max() + 1, clip_score)
-            f2_max = min(X[:, 1].max() + 1, clip_score)
-            f1xs, f2xs = np.meshgrid(np.arange(f1_min, f1_max, h),
-                                     np.arange(f2_min, f2_max, h))
-            Z = svc.predict(np.c_[f1xs.ravel(), f2xs.ravel()])
-            Z = Z.reshape(f1xs.shape)
-            # Plot decision boundary
-            pt.figure()
-            cmap = pt.get_binary_svm_cmap()
-            pt.plt.contourf(f1xs, f2xs, Z, cmap=cmap, alpha=0.8)
-            # plot training points
-            valid_X = X[:, 0] < clip_score
-            pt.plt.scatter(X[valid_X, 0], X[valid_X, 1], c=Y[valid_X], cmap=cmap)
-            pt.update()
-        plot_2d_svc(svc, clip_score)
 
     #pt.close_all_figures()
     #import imp
@@ -231,10 +171,247 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     #    ('diff | fp', 'diff | tp'),
     #    figtitle='sorted ndiff'
     #)
-    inspect_pdfs(good_tp_nscores, good_fp_nscores, 'score')
-    inspect_pdfs(good_tp_ndiff, good_fp_ndiff, 'diff')
-    inspect_svm_classifier(clip_score)
-    pt.present()
+    #inspect_pdfs(good_tp_nscores, good_fp_nscores, 'score')
+    #inspect_pdfs(good_tp_ndiff, good_fp_ndiff, 'diff')
+
+    #truefeat_tup = (good_tp_nscores, good_tp_ndiff)
+    #falsefeat_tup = (good_fp_nscores, good_fp_ndiff)
+    #lbltup = ('nscores', 'ndiff')
+
+    #truefeat_tup = (good_tp_nscores, good_tp_ndiff, good_tp_nmatches)
+    #falsefeat_tup = (good_fp_nscores, good_fp_ndiff, good_fp_nmatches)
+
+    #truefeat_tup = (good_tp_nscores, good_tp_nmatches)
+    #falsefeat_tup = (good_fp_nscores, good_fp_nmatches)
+    #lbltup = ('nscores', 'nmatches')
+
+    truefeat_tup  = (good_tp_ndiff, good_tp_nmatches)
+    falsefeat_tup = (good_fp_ndiff, good_fp_nmatches)
+    lbltup = ('ndiff', 'nmatches')
+
+    inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pairs,
+                           good_fp_aidnid_pairs, clip_score, lbltup)
+    #pt.present()
+
+
+def inspect_pdfs(good_tp, good_fp, lbl, clip_score):
+    import plottool as pt  # NOQA
+
+    def bayes_rule(a_given_b, prob_a, prob_b):
+        b_given_a = (a_given_b * prob_b) / prob_a
+        return b_given_a
+
+    good_all = np.hstack((good_tp, good_fp))
+
+    score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512)
+    score_fp_pdf = ut.estimate_pdf(good_fp, gridsize=512)
+    score_pdf = ut.estimate_pdf(good_all, gridsize=512)
+    xdata = np.linspace(0, clip_score, 1024)
+
+    p_score_given_tp = score_tp_pdf.evaluate(xdata)
+    p_score_given_fp = score_fp_pdf.evaluate(xdata)
+    p_score = score_pdf.evaluate(xdata)
+    #fp_bw = score_fp_pdf.bw
+    #tp_bw = score_tp_pdf.bw
+    #s_bw = score_pdf.bw
+    p_tp = .04
+    p_fp = (1 - p_tp)
+
+    # Apply bayes
+    p_tp_given_score = bayes_rule(p_score_given_tp, p_tp, p_score)
+    p_fp_given_score = bayes_rule(p_score_given_fp, p_fp, p_score)
+
+    #w = xdata[1] - xdata[0]
+    p_tp_given_score_cdf = (p_tp_given_score / p_tp_given_score.sum()).cumsum()
+    p_fp_given_score_cdf = (p_fp_given_score / p_fp_given_score.sum()).cumsum()
+
+    pt.plots.plot_densities(
+        (p_fp_given_score_cdf,  p_tp_given_score_cdf),
+        ('fp given ' + lbl, 'tp given ' + lbl),
+        figtitle='cdf',
+        xdata=xdata)
+
+    #pt.plots.plot_densities(
+    #    (1 - p_fp_given_score_cdf, 1 - p_tp_given_score_cdf),
+    #    ('fp given ' + lbl, 'tp given ' + lbl),
+    #    figtitle='1 - cdf ' + lbl,
+    #    xdata=xdata)
+
+    pt.plots.plot_densities(
+        (p_fp_given_score, p_tp_given_score),
+        ('fp given ' + lbl, 'tp given ' + lbl),
+        figtitle='pdf ' + lbl,
+        xdata=xdata)
+
+
+def inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pairs,
+                           good_fp_aidnid_pairs, clip_score, lbltup=None):
+    #import sklearn
+    #assert sklearn.__version__ >= '0.15.2'
+    from sklearn import svm
+    import plottool as pt  # NOQA
+    # Build SVM Features and targets
+
+    if lbltup is None:
+        lbltup = list(map(ut.get_varname_from_stack, truefeat_tup))
+
+    true_features  = np.vstack(truefeat_tup).T
+    false_features = np.vstack(falsefeat_tup).T
+
+    nTrue = len(false_features)
+    nFalse = len(false_features)
+    # Pack svm features and targets
+    all_aidnid_pairs = np.vstack((good_tp_aidnid_pairs, good_fp_aidnid_pairs))
+    X = svm_features = np.vstack((true_features, false_features))
+    Y = svm_targets = np.hstack((np.ones(nTrue), -np.ones(nFalse)))
+    # Create support vector classifier
+    svc = svm.LinearSVC(C=1.0, dual=False)
+    #svc = svm.NuSVC(kernel='linear', probability=True)
+    with ut.Timer('training SVM'):
+        svc.fit(svm_features, svm_targets)
+
+    if hasattr(svc, 'probability'):
+        svc.decision_function(svm_features)
+
+    # Evaluate performance on training set
+    is_falsepositive = svc.predict(false_features) == 1.0  # type1 -- false positive
+    is_falsenegative = svc.predict(true_features) == -1.0  # type2 -- false negative
+    nType1 = is_falsepositive.sum()
+    nType2 = is_falsenegative.sum()
+    nError = nType1 + nType2
+    nTotal = nTrue + nFalse
+    nCorrect = nTotal - nError
+    percentCorrect =  100 * nCorrect / float(nTotal)
+    print('SVM made %d/%d correct decisions. %.2f%% correct' % (nCorrect, nTotal, percentCorrect))
+    print('SVM made %d/%d type1 errors. (false positive)' % (nType1, nFalse))
+    print('SVM made %d/%d type1 errors. (false negative)' % (nType2, nTrue))
+
+    def plot_2d_svc(svc, X, Y, clip_score):
+        # make grid for feature 1 and 2
+        h = 100
+        f1_min = X[:, 0].min() - 1
+        f2_min = X[:, 1].min() - 1
+        f1_max = min(X[:, 0].max() + 1, clip_score + 1)
+        f2_max = min(X[:, 1].max() + 1, clip_score + 1)
+        f1xs, f2xs = np.meshgrid(np.arange(f1_min, f1_max, h),
+                                 np.arange(f2_min, f2_max, h))
+        zinput = np.c_[f1xs.ravel(), f2xs.ravel()]
+        Z = svc.predict(zinput)
+        Z = Z.reshape(f1xs.shape)
+        # Plot decision boundary
+        fnum = pt.next_fnum()
+        pt.figure(fnum=fnum)
+        cmap = pt.get_binary_svm_cmap()
+        pt.plt.contourf(f1xs, f2xs, Z, cmap=cmap, alpha=0.8)
+        # plot training points
+        valid_X = X[:, 0] < clip_score
+        pt.plt.scatter(X[valid_X, 0], X[valid_X, 1], c=Y[valid_X], cmap=cmap)
+        pt.update()
+
+    def plot_nd_svc(svc, X, Y, clip_score):
+
+        h = 100
+        feat_mins = [X[:, dimx].min() - 1 for dimx in range(len(X.T))]
+        feat_maxs = [min(X[:, dimx].max() + 1, clip_score + 1) for dimx in range(len(X.T))]
+        feat_basis = [np.arange(fmin, fmax, min(h, fmax - fmin / 100))
+                      for fmin, fmax in zip(feat_mins, feat_maxs)]
+
+        feat_grids = np.meshgrid(*feat_basis)
+        cinput = np.vstack([fgrid.ravel() for fgrid in feat_grids]).T
+        C = svc.predict(cinput)
+        C = C.reshape(feat_grids[0].shape)
+
+        # make grid for feature 1 and 2
+        if len(X.T) == 3:
+            import vtk
+            data_matrix = (C + 2).astype(np.uint8)
+            #data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
+            #data_matrix[0:35, 0:35, 0:35] = 50
+            #data_matrix[25:55, 25:55, 25:55] = 100
+            #data_matrix[45:74, 45:74, 45:74] = 150
+            dataImporter = vtk.vtkImageImport()
+            data_string = data_matrix.tostring()
+            dataImporter.CopyImportVoidPointer(data_string, len(data_string))
+            dataImporter.SetDataScalarTypeToUnsignedChar()
+            dataImporter.SetNumberOfScalarComponents(1)
+            #data_extent = ut.flatten(zip(feat_mins, feat_maxs))
+            #de = data_extent
+            #dataImporter.SetDataExtent(de[0], de[1], de[2], de[3], de[4], de[5])
+            #dataImporter.SetWholeExtent(de[0], de[1], de[2], de[3], de[4], de[5])
+            dataImporter.SetDataExtent(0, 74, 0, 74, 0, 74)
+            dataImporter.SetWholeExtent(0, 74, 0, 74, 0, 74)
+            alphaChannelFunc = vtk.vtkPiecewiseFunction()
+            alphaChannelFunc.AddPoint(1, 0.05)
+            alphaChannelFunc.AddPoint(3, 0.1)
+            colorFunc = vtk.vtkColorTransferFunction()
+            colorFunc.AddRGBPoint(1, 1.0, 0.0, 0.0)
+            colorFunc.AddRGBPoint(3, 0.0, 0.0, 1.0)
+            volumeProperty = vtk.vtkVolumeProperty()
+            volumeProperty.SetColor(colorFunc)
+            volumeProperty.SetScalarOpacity(alphaChannelFunc)
+            volumeProperty.ShadeOn()
+            compositeFunction = vtk.vtkVolumeRayCastCompositeFunction()
+            volumeMapper = vtk.vtkVolumeRayCastMapper()
+            volumeMapper.SetVolumeRayCastFunction(compositeFunction)
+            volumeMapper.SetInputConnection(dataImporter.GetOutputPort())
+
+            volume = vtk.vtkVolume()
+            volume.SetMapper(volumeMapper)
+            volume.SetProperty(volumeProperty)
+            renderer = vtk.vtkRenderer()
+            renderWin = vtk.vtkRenderWindow()
+            renderWin.AddRenderer(renderer)
+            renderInteractor = vtk.vtkRenderWindowInteractor()
+            renderInteractor.SetRenderWindow(renderWin)
+            renderer.AddVolume(volume)
+            renderer.SetBackground(0, 0, 0)
+            renderWin.SetSize(400, 400)
+            def exitCheck(obj, event):
+                if obj.GetEventPending() != 0:
+                    obj.SetAbortRender(1)
+            print('about to start vtk')
+            renderWin.AddObserver("AbortCheckEvent", exitCheck)
+            renderInteractor.Initialize()
+            renderWin.Render()
+            renderInteractor.Start()
+        else:
+            fnum = pt.next_fnum()
+            fig = pt.figure(fnum=fnum)
+
+            # Plot decision boundary
+            cmap = pt.get_binary_svm_cmap()
+            pt.plt.contourf(*(feat_grids + [C]), cmap=cmap, alpha=0.8)
+            # plot training points
+            valid_X = X.T[0] < clip_score
+            featiter = (arg[valid_X] for arg in X.T)
+            pt.plt.scatter(*featiter, c=Y[valid_X], cmap=cmap)
+
+            ax = pt.plt.gca()
+            if len(lbltup) > 0:
+                ax.set_xlabel(lbltup[0])
+            if len(lbltup) > 1:
+                ax.set_ylabel(lbltup[1])
+            if len(lbltup) > 2:
+                ax.set_zlabel(lbltup[2])
+
+            def on_press(event):
+                'on button press we will see if the mouse is over us and store some data'
+                if not event.inaxes:
+                    return
+                ax, x, y = event.inaxes, event.xdata, event.ydata  # NOQA
+                fx = utool.nearest_point(x, y, X)[0]
+                qaid, nid = all_aidnid_pairs[fx]
+                print('qaid = %r, nid = %r' % (qaid, nid))
+                dbname = ibs.get_dbname()
+                print('python dev.py --cfg codename:nsum -t query --qaid %d --db %s -w' % (qaid, dbname))
+                print('python dev.py --cfg codename:nsum --query-aid %d --db %s --gui' % (qaid, dbname))
+                #qaid = %r, nid = %r' % (qaid, nid))
+                if ut.DEBUG2:
+                    ut.embed()
+            pt.interact_helpers.connect_callback(fig, 'button_press_event', on_press)
+            pt.update()
+
+    plot_nd_svc(svc, X, Y, clip_score)
 
 
 def get_stem_data(ibs, qaid2_qres):
@@ -445,3 +622,19 @@ def test_confidence_measures(ibs, qres_list, qaid_list):
         column_labels  = ['Correct', 'score_list', 'scorediff', 'pscorediff', 't', 'pval_t', 'pnext', 'pden_list', 'norm1', 'norm2']
 
         print(ut.make_csv_table(column_list, column_labels))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all, allexamples=True)"
+        python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all)"
+        python ibeis/dev/results_all.py --allexamples
+        python ibeis/dev/results_all.py --test-learn_score_normalization --enableall
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
+    import plottool as pt  # NOQA
+    exec(pt.present())

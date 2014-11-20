@@ -43,15 +43,16 @@ def change_names(ibs, qaid_list):
 
 
 @devcmd('query')
-def query_aids(ibs, qaid_list):
+def query_aids(ibs, qaid_list, daid_list=None):
     """
     CommandLine:
         python dev.py -w --show -t query --db PZ_MTEST --qaid 72
 
     """
     import ibeis
-    valid_aids = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
+    qaid2_qres = ibs._query_chips(qaid_list, daid_list)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
@@ -61,15 +62,16 @@ def query_aids(ibs, qaid_list):
 
 
 @devcmd('sver')
-def sver_aids(ibs, qaid_list):
+def sver_aids(ibs, qaid_list, daid_list=None):
     """
     CommandLine:
         python dev.py -w --show -t sver --db PZ_MTEST --qaid 72
         python dev.py -w --show -t sver --db PZ_MTEST --qaid 1
 
     """
-    valid_aids = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
+    qaid2_qres = ibs._query_chips(qaid_list, daid_list)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         aid2 = qres.get_top_aids()[0]

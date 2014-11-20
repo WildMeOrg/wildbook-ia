@@ -334,19 +334,23 @@ class QueryResult(__OBJECT_BASE__):
         #utool.embed()
         return tbldata
 
-    def get_sorted_nids_and_scores(qres, ibs):
+    def get_nscoretup(qres, ibs):
         aid_list, score_list = qres.get_aids_and_scores()
         nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
-        (sorted_nids, sorted_nscore, sorted_aids, sorted_scores)  = nscoretup
-        return sorted_nids, sorted_nscore
+        return nscoretup
+
+    def get_sorted_nids_and_scores(qres, ibs):
+        nscoretup = qres.get_nscoretup()
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
+        return sorted_nids, sorted_nscores
 
     def get_name_decisiontup(qres, ibs):
-        sorted_nids, sorted_nscore = qres.get_sorted_nids_and_scores(ibs)
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
         if len(sorted_nids) == 0:
             return (None, None)
         else:
             nid = sorted_nids[0]
-            nscore = sorted_nscore[0]
+            nscore = sorted_nscores[0]
             return (nid, nscore)
 
     def get_aids_and_scores(qres):

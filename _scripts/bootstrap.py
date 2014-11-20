@@ -233,5 +233,15 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         print('# wrote: %r' % fpath)
         #sudo python super_setup.py --build --develop
 
+
+def install_vtk():
+    pass
+    #sudo apt-get install python-vtk
+    #import utool as ut
+    #linux_url = 'http://www.vtk.org/files/release/6.1/vtkpython-6.1.0-Linux-64bit.tar.gz'
+    #zipped_url = linux_url
+    #vtk_fpath = ut.grab_zipped_url(linux_url)
+    #vtk_dir = '/home/joncrall/.config/utool/vtkpython-6.1.0-Linux-64bit'
+
 if __name__ == '__main__':
     bootstrap_sysreq()
