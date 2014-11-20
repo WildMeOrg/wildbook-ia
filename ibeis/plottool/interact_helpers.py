@@ -64,6 +64,9 @@ def disconnect_callback(fig, callback_type, **kwargs):
 
 
 def connect_callback(fig, callback_type, callback_fn):
+    """
+    wrapper around fig.canvas.mpl_connect
+    """
     printDBG('[ih] register %r callback' % callback_type)
     if callback_fn is None:
         return
