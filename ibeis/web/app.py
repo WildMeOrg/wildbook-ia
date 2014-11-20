@@ -21,6 +21,7 @@ import utool as ut
 from ibeis.web import appfuncs, navbar, DBWEB_SCHEMA
 # Others
 from datetime import date
+import random
 from os.path import join
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE
 
@@ -58,6 +59,7 @@ def turk(filename=''):
             with SQLAtomicContext(app.db):
                 gid = appfuncs.get_next_detection_turk_candidate(app)
         finished = gid is None
+        review = 'review' in request.args.keys()
         if not finished:
             gpath = app.ibeis.get_image_paths(gid)
             image = appfuncs.open_oriented_image(gpath)
@@ -107,13 +109,16 @@ def turk(filename=''):
                         refer=refer,
                         refer_aid=refer_aid,
                         display_instructions=display_instructions,
-                        display_species_examples=display_species_examples)
+                        display_species_examples=display_species_examples,
+                        review=review)
     elif filename == 'viewpoint':
         if 'aid' in request.args.keys():
             aid = int(request.args['aid'])
         else:
             with SQLAtomicContext(app.db):
                 aid = appfuncs.get_next_viewpoint_turk_candidate(app)
+        value = request.args.get('value', None)
+        review = 'review' in request.args.keys()
         finished = aid is None
         if not finished:
             gid       = app.ibeis.get_annot_gids(aid)
@@ -129,11 +134,13 @@ def turk(filename=''):
         return template('turk', filename,
                         aid=aid,
                         gid=gid,
+                        value=value,
                         image_path=gpath,
                         image_src=image_src,
                         finished=finished,
                         refer=refer,
-                        display_instructions=display_instructions)
+                        display_instructions=display_instructions,
+                        review=review)
     elif filename == 'viewpoint-commit':
         # Things that need to be committed
         where_clause = "viewpoint_value_avg>=?"
@@ -160,6 +167,12 @@ def turk(filename=''):
 def submit_viewpoint():
     aid = int(request.form['viewpoint-aid'])
     value = int(request.form['viewpoint-value'])
+    turk_id = request.cookies.get('turk_id', -1)
+    if random.randint(0, 40) == 0:
+        print("!!!!!DETECTION QUALITY CONTROL!!!!!")
+        url = 'http://%s:%s/turk/viewpoint.html?aid=%s&value=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, aid, value, turk_id)
+        import webbrowser
+        webbrowser.open(url)
     if request.form['viewpoint-submit'].lower() == 'skip':
         value = -2
     # Get current values
@@ -184,7 +197,7 @@ def submit_viewpoint():
             appfuncs.set_viewpoint_values_from_aids(app, [aid], [-2], 'viewpoint_value_avg')
     else:
         print('[web] SKIPPED - TOO MANY VIEWPOINTS')
-    print("[web] aid: %d, value: %d | %s %s" % (aid, value, value_1, value_2))
+    print("[web] turk_id: %s, aid: %d, value: %d | %s %s" % (turk_id, aid, value, value_1, value_2))
     # Return HTML
     return redirect(url_for('turk', filename='viewpoint'))
 
@@ -192,6 +205,12 @@ def submit_viewpoint():
 @app.route('/submit/detection.html', methods=['POST'])
 def submit_detection():
     gid = int(request.form['detection-gid'])
+    turk_id = request.cookies.get('turk_id', -1)
+    if random.randint(0, 10) == 0:
+        print("!!!!!DETECTION QUALITY CONTROL!!!!!")
+        url = 'http://%s:%s/turk/detection.html?gid=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, gid, turk_id)
+        import webbrowser
+        webbrowser.open(url)
     aid_list = app.ibeis.get_image_aids(gid)
     count = 1
     if request.form['detection-submit'].lower() == 'skip':
@@ -220,7 +239,7 @@ def submit_detection():
             annot['label']
             for annot in annotation_list
         ]
-        print("[web] gid: %d, bbox_list: %r, species_list: %r" % (gid, annotation_list, species_list))
+        print("[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r" % (turk_id, gid, annotation_list, species_list))
         aid_list_new = app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
         app.ibeis.set_image_reviewed([gid], [1])
         appfuncs.replace_aids(app, aid_list, aid_list_new)
@@ -334,7 +353,7 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     except:
         app.server_ip_address = '127.0.0.1'
         app.port = port
-    url = 'http://%s:%s' % (app.server_ip_address, port)
+    url = 'http://%s:%s' % (app.server_ip_address, app.port)
     print('[web] Tornado server starting at %s' % (url,))
     if browser:
         import webbrowser

@@ -22,7 +22,7 @@
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
         Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>) 
         <br/>
-        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="0" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value != None %}{{ value }}{% else %}0{% endif %}" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand">
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
@@ -97,6 +97,7 @@
             <li>In the event that there is more than one animal in the image, give the viewpoint for the most dominant object.  This is a subjective decision and up to the turker to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing viewpoints of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
             <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's viewpoint.</li>
             <li>Enter viewpoints as fast as you can while maintaining perfect accuracy.  However, if a mistake is made, do not worry.  Each image's viewpoint is checked for consistency and a subsequent reviewer (or reviewers) will most likely catch the mistake.</li>
+            <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
           </ul>
         </div>
         <div class="modal-footer">
@@ -105,6 +106,16 @@
       </div>
     </div>
   </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
   {% endif %}
 {% endblock %}
 {% block content_custom_javascript %}

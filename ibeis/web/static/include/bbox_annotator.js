@@ -242,7 +242,10 @@
               }
           }
         }
-//         annotator.hit_menuitem = false;
+        else if(!annotator.editing)
+        {
+          // annotator.hit_menuitem = false;
+        }
         return true;
       });
       $(window).mousemove(function(e) {
@@ -567,7 +570,8 @@
         }
       }));
       close_button.mousedown(function(e) {
-        return annotator.hit_menuitem = true;
+        this.editing = false;
+        annotator.hit_menuitem = true;
       });
       close_button.click(function(e) {
         var clicked_box, index;
