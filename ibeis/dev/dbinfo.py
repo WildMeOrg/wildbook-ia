@@ -5,14 +5,14 @@ python -c "import doctest, ibeis.dev.dbinfo; print(doctest.testmod(ibeis.dev.dbi
 # This is not the cleanest module
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 # Science
 import six
 import numpy as np
 from collections import OrderedDict
 from utool import util_latex as util_latex
 from vtool import keypoint as ktool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[dbinfo]')
 
 
 def test_name_consistency(ibs):
@@ -24,7 +24,7 @@ def test_name_consistency(ibs):
 
     """
     from ibeis import ibsfuncs
-    import utool
+    import utool as ut
     max_ = -1
     #max_ = 10
     valid_aids = ibs.get_valid_aids()[0:max_]
@@ -42,10 +42,10 @@ def test_name_consistency(ibs):
     _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
     print(_nids_list[-20:])
     print(nx2_aids[-20:])
-    assert all(map(utool.list_allsame, _nids_list))
+    assert all(map(ut.list_allsame, _nids_list))
 
 
-def get_dbinfo(ibs, verbose=True):
+def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     """ Returns dictionary of digestable database information
     Infostr is a string summary of all the stats. Prints infostr in addition to
     returning locals
@@ -58,11 +58,11 @@ def get_dbinfo(ibs, verbose=True):
     >>> #ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
     >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
     >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
-    >>> print(utool.dict_str(output))
+    >>> print(ut.dict_str(output))
     >>> print(output['info_str'])
     66w+mdzw!n%3+i6h
 
-    #>>> print(utool.hashstr(repr(output)))
+    #>>> print(ut.hashstr(repr(output)))
 
     """
     # TODO Database size in bytes
@@ -71,14 +71,14 @@ def get_dbinfo(ibs, verbose=True):
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
-    associated_nids   = ibs.get_valid_nids(filter_empty=True)
+    associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
 
     # Image info
     gname_list = ibs.get_image_gnames(valid_gids)
     gx2_aids = ibs.get_image_aids(valid_gids)
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats  = utool.get_stats_str(gx2_nAnnots, newlines=True)
+    gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -95,9 +95,9 @@ def get_dbinfo(ibs, verbose=True):
                 zip(ax2_nid, ax2_unknown)]), 'bad annot nid'
     """
     #
-    unknown_aids = utool.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
+    unknown_aids = ut.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
     species_list = ibs.get_annot_species(valid_aids)
-    species2_aids = utool.group_items(valid_aids, species_list)
+    species2_aids = ut.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
 
     nx2_nAnnots = np.array(list(map(len, nx2_aids)))
@@ -112,7 +112,7 @@ def get_dbinfo(ibs, verbose=True):
     try:
         from ibeis import ibsfuncs
         _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
-        assert all(map(utool.list_allsame, _nids_list))
+        assert all(map(ut.list_allsame, _nids_list))
     except Exception as ex:
         # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
         #name_annots = [ibs.get_annot_nids(aids) for aids in nx2_aids]
@@ -123,13 +123,13 @@ def get_dbinfo(ibs, verbose=True):
             nids = ibs.get_annot_nids(aids)
             if np.all(np.array(nids) > 0):
                 print(nids)
-                if utool.list_allsame(nids):
+                if ut.list_allsame(nids):
                     good += 1
                 else:
                     huh += 1
             else:
                 bad += 1
-        utool.printex(ex, keys=['good', 'bad', 'huh'])
+        ut.printex(ex, keys=['good', 'bad', 'huh'])
 
     # Annot Info
     multiton_aids_list = nx2_aids[multiton_nxs]
@@ -143,47 +143,59 @@ def get_dbinfo(ibs, verbose=True):
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
 
     # Image size stats
-    gpath_list = ibs.get_image_paths(valid_gids)
-    def wh_print_stats(wh_list):
-        if len(wh_list) == 0:
-            return '{empty}'
-        wh_list = np.asarray(wh_list)
-        stat_dict = OrderedDict(
-            [( 'max', wh_list.max(0)),
-             ( 'min', wh_list.min(0)),
-             ('mean', wh_list.mean(0)),
-             ( 'std', wh_list.std(0))])
-        arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
-        ret = (',\n    '.join(['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
-        return '{\n    ' + ret + '\n}'
+    if with_imgsize:
+        gpath_list = ibs.get_image_paths(valid_gids)
+        def wh_print_stats(wh_list):
+            if len(wh_list) == 0:
+                return '{empty}'
+            wh_list = np.asarray(wh_list)
+            stat_dict = OrderedDict(
+                [( 'max', wh_list.max(0)),
+                 ( 'min', wh_list.min(0)),
+                 ('mean', wh_list.mean(0)),
+                 ( 'std', wh_list.std(0))])
+            arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
+            ret = (',\n    '.join(['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
+            return '{\n    ' + ret + '\n}'
 
-    print('reading image sizes')
-    annotation_bbox_list = ibs.get_annot_bboxes(valid_aids)
-    annotation_bbox_arr = np.array(annotation_bbox_list)
-    if len(annotation_bbox_arr) == 0:
-        annotation_size_list = []
+        print('reading image sizes')
+        # Image size stats
+        img_size_list  = ibs.get_image_sizes(valid_gids)
+        img_size_stats  = wh_print_stats(img_size_list)
+
+        # Chip size stats
+        annotation_bbox_list = ibs.get_annot_bboxes(valid_aids)
+        annotation_bbox_arr = np.array(annotation_bbox_list)
+        if len(annotation_bbox_arr) == 0:
+            annotation_size_list = []
+        else:
+            annotation_size_list = annotation_bbox_arr[:, 2:4]
+        chip_size_stats = wh_print_stats(annotation_size_list)
+        imgsize_stat_lines = [
+            (' # Img in dir                 = %d' % len(gpath_list)),
+            (' Image Size Stats  = %s' % (img_size_stats,)),
+            (' * Chip Size Stats = %s' % (chip_size_stats,)),
+        ]
     else:
-        annotation_size_list = annotation_bbox_arr[:, 2:4]
-    img_size_list  = ibs.get_image_sizes(valid_gids)
-    img_size_stats  = wh_print_stats(img_size_list)
-    chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.get_stats_str(multiton_nid2_nannots, newlines=True)
+        imgsize_stat_lines = []
+
+    multiton_stats  = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
 
     # Time stats
     unixtime_list_ = ibs.get_image_unixtime(valid_gids)
     utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = utool.filter_items(unixtime_list_, utvalid_list)
-    unixtime_statstr = utool.get_timestats_str(unixtime_list, newlines=True)
+    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
+    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
-    gps_list  = utool.filter_items(gps_list_, gpsvalid_list)
+    gps_list  = ut.filter_items(gps_list_, gpsvalid_list)
 
-    ibsdir_space = utool.byte_str2(utool.get_disk_space(ibs.get_ibsdir()))
-    dbdir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_dbdir()))
-    imgdir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_imgdir()))
-    cachedir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_cachedir()))
+    ibsdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
+    dbdir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
+    imgdir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
+    cachedir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
     # Summarize stats
     num_names = len(valid_nids)
@@ -199,10 +211,18 @@ def get_dbinfo(ibs, verbose=True):
     try:
         bad_aids = np.intersect1d(multiton_aids, unknown_aids)
         assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
-        assert num_names_singleton + num_names_multiton == num_names, 'inconsistent num names'
-        assert num_unknown_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
+        assert num_names_singleton + num_names_unassociated + num_names_multiton == num_names, 'inconsistent num names'
+        assert num_unknown_annots + num_singleton_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
     except Exception as ex:
-        utool.printex(ex)
+        ut.printex(ex, keys=[
+            'num_names_singleton',
+            'num_names_multiton',
+            'num_names',
+            'num_unknown_annots',
+            'num_multiton_annots',
+            'num_singleton_annots',
+            'num_annots'])
+        raise
 
     # Get contributor statistics
     contrib_rowids = ibs.get_valid_contrib_rowids()
@@ -210,24 +230,38 @@ def get_dbinfo(ibs, verbose=True):
 
     # print
     num_tabs = 5
-    info_str = '\n'.join([
+
+    header_block_lines = [
         ('+============================'),
         ('+ singleton := single sighting'),
         ('+ multiton  := multiple sightings'),
+    ]
+
+    source_block_lines = [
         (' --' * num_tabs),
         (' DB Info:  ' + ibs.get_dbname()),
         (' DB Notes: ' + ibs.get_dbnotes()),
         (' DB NumContrib: %d' % num_contributors),
+    ]
+
+    bytes_block_lines = [
+        (' --' * num_tabs),
         (' DB Bytes: '),
         ('      +- dbdir nBytes:         ' + dbdir_space),
         ('      |  +- _ibsdb nBytes:     ' + ibsdir_space),
         ('      |  |  +-imgdir nBytes:   ' + imgdir_space),
         ('      |  |  +-cachedir nBytes: ' + cachedir_space),
+    ] if with_bytes else []
+
+    name_block_lines = [
         (' --' * num_tabs),
         (' # Names                      = %d' % num_names),
         (' # Names (unassociated)       = %d' % num_names_unassociated),
         (' # Names (singleton)          = %d' % num_names_singleton),
         (' # Names (multiton)           = %d' % num_names_multiton),
+    ]
+
+    annot_block_lines = [
         (' --' * num_tabs),
         (' # Annots                     = %d' % num_annots),
         (' # Annots (unknown)           = %d' % num_unknown_annots),
@@ -236,26 +270,36 @@ def get_dbinfo(ibs, verbose=True):
         (' --' * num_tabs),
         (' # Annots per Name (multiton) = %s' % (multiton_stats,)),
         (' # Annots per Image           = %s' % (gx2_nAnnots_stats,)),
-        (' # Annots per Species         = %s' % (utool.dict_str(species2_nAids),)),
+        (' # Annots per Species         = %s' % (ut.dict_str(species2_nAids),)),
+    ]
+
+    img_block_lines = [
         (' --' * num_tabs),
         (' # Img                        = %d' % len(valid_gids)),
         (' # Img reviewed               = %d' % sum(image_reviewed_list)),
         (' # Img with gps               = %d' % len(gps_list)),
         (' # Img with timestamp         = %d' % len(unixtime_list)),
-        (' # Img in dir                 = %d' % len(gpath_list)),
-        (' --' * num_tabs),
         (' Img Time Stats               = %s' % (unixtime_statstr,)),
-        (' Image Size Stats             = %s' % (img_size_stats,)),
-        #(' * Chip Size Stats = %s' % (chip_size_stats,)),
-        ('L============================'),
-    ])
+    ]
+
+    info_str_lines = (
+        header_block_lines +
+        bytes_block_lines +
+        source_block_lines +
+        name_block_lines +
+        annot_block_lines +
+        img_block_lines +
+        imgsize_stat_lines +
+        [('L============================'), ]
+    )
+    info_str = '\n'.join(info_str_lines)
     if verbose:
-        print(utool.indent(info_str, '[dbinfo]'))
+        print(ut.indent(info_str, '[dbinfo]'))
     return locals()
 
 
 def get_keypoint_stats(ibs):
-    # from utool import util_latex
+    # from ut import util_latex
     #from hsdev import dev_consistency
     #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats
@@ -330,7 +374,7 @@ def dbstats(ibs):
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
-    from utool import util_latex
+    from ut import util_latex
     print('[dev stats] cache_memory_stats()')
     #kpts_list = ibs.get_annot_kpts(cid_list)
     #desc_list = ibs.get_annot_vecs(cid_list)
@@ -338,9 +382,9 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 
     bytes_map = {
-        'chip dbytes': [utool.file_bytes(fpath) for fpath in ibs.get_rchip_path(cid_list)],
-        'img dbytes':  [utool.file_bytes(gpath) for gpath in ibs.gx2_gname(gx_list, full=True)],
-        #'flann dbytes':  utool.file_bytes(flann_fpath),
+        'chip dbytes': [ut.file_bytes(fpath) for fpath in ibs.get_rchip_path(cid_list)],
+        'img dbytes':  [ut.file_bytes(gpath) for gpath in ibs.gx2_gname(gx_list, full=True)],
+        #'flann dbytes':  ut.file_bytes(flann_fpath),
     }
 
     byte_units = {

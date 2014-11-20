@@ -53,6 +53,60 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 # and then go in _devcmds_ibeis.py
 
 
+def test_openworkdirs():
+    """
+    problems:
+        PZ_DanExt_All
+        PZ_DanExt_Test
+        GZ_March2012
+        Wildebeest_ONLY_MATCHES
+
+    python dev.py --convert --dbdir /raid/work/PZ_Marianne --force-delete
+    python dev.py --convert --dbdir /raid/work/SL_Siva --force-delete
+    python dev.py --convert --dbdir /raid/work/PZ_SweatwaterSmall --force-delete
+    """
+    canskip = [
+        '/raid/work/NAUT_test2', '/raid/work/WD_Siva',
+        '/raid/work/PZ_FlankHack', '/raid/work/PZ_Mothers',
+        '/raid/work/GZ_Foals', '/raid/work/PZ_MTEST', '/raid/work/GIR_Tanya',
+        '/raid/work/GZ_Siva', '/raid/work/Wildebeest', '/raid/work/sonograms',
+        '/raid/work/MISC_Jan12', '/raid/work/GZ_Master0',
+        '/raid/work/LF_OPTIMIZADAS_NI_V_E', '/raid/work/LF_Bajo_bonito',
+        '/raid/work/Frogs', '/raid/work/GZ_ALL', '/raid/work/JAG_Kelly',
+        '/raid/work/NAUT_test (copy)', '/raid/work/WS_hard',
+        '/raid/work/WY_Toads', '/raid/work/NAUT_Dan',
+        '/raid/work/LF_WEST_POINT_OPTIMIZADAS', '/raid/work/Seals',
+        '/raid/work/Rhinos_Stewart', '/raid/work/Elephants_Stewart',
+        '/raid/work/NAUT_test',
+    ]
+    import ibeis
+    from ibeis.dev import sysres
+    import os
+    import utool as ut  # NOQA
+    from os.path import join
+    import ibeis.dev.dbinfo
+    ibeis.dev.dbinfo.rrr()
+    workdir = sysres.get_workdir()
+    dbname_list = os.listdir(workdir)
+    dbpath_list = [join(workdir, name) for name in dbname_list]
+    is_hsdb_list    = list(map(sysres.is_hsdb, dbpath_list))
+    hsdb_list = ut.filter_items(dbpath_list, is_hsdb_list)
+    #is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
+    regen_cmds = []
+    for hsdb_dpath in hsdb_list:
+        if hsdb_dpath in canskip:
+            continue
+        try:
+            ibs = ibeis.opendb(hsdb_dpath)  # NOQA
+            print('Succesfully opened hsdb: ' + hsdb_dpath)
+            print(ibs.get_dbinfo_str())
+        except Exception as ex:
+            ut.printex(ex, 'Failed to convert hsdb: ' + hsdb_dpath)
+            regen_cmd = 'python dev.py --convert --dbdir ' + hsdb_dpath
+            regen_cmds.append(regen_cmd)
+    print('\n'.join(regen_cmds))
+
+
 @devcmd('scores', 'score')
 def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """

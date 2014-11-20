@@ -55,95 +55,6 @@ def init_allres(ibs, qaid2_qres, qreq_=None):
     return allres
 
 
-def test_confidence_measures(ibs, qres_list, qaid_list):
-    import scipy.stats as spstats
-
-    def find_tscore(qres, ibs):
-        # H0: null hypothesis nid_list[0] is not he same animal
-        # H1: alt hypothesis nid_list[0] is the same animal
-        # assuming the null hypothesis is true, how likely is it
-        # that we got the sample that we did.
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        alt_score = sorted_nscores[0]
-        sample_measurements = sorted_nscores[1:]
-        num_samples = len(sample_measurements)
-        sample_mean = sample_measurements.mean()
-        sample_std  = sample_measurements.std()
-
-        population_mean = sample_mean
-        population_std = sample_std / np.sqrt(num_samples)
-        # t-score is like the z-score but for a sample
-        tscore = (alt_score - population_mean) / population_std
-        return tscore
-
-    def find_prob_tscore(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        alt_score = sorted_nscores[0]
-        sample_measurements = sorted_nscores[1:]
-        tscore, pval = spstats.ttest_1samp(sample_measurements, alt_score)
-        return pval
-
-    def find_prob_tscore_next(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        tscore, pval1 = spstats.ttest_1samp(sorted_nscores[1:], sorted_nscores[0])
-        tscore, pval2 = spstats.ttest_1samp(sorted_nscores[2:], sorted_nscores[1])
-        return pval1 - pval2
-
-    def find_prob_densitity(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        alt_score = sorted_nscores[0]
-        sample_measurements = sorted_nscores[1:]
-        data_pdf = ut.estimate_pdf(sample_measurements)
-        density = data_pdf.evaluate(alt_score)[0]
-        prob_correct = (1 - density)
-        return '%.2f' % prob_correct
-
-    def find_prob_normtest1(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        sample_measurements = sorted_nscores[1:]
-        kurt, pval = spstats.normaltest(sample_measurements)
-        return '%.2f' % pval
-
-    def find_prob_normtest2(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        kurt, pval = spstats.normaltest(sorted_nscores)
-        return '%.2f' % pval
-
-    def find_scorediff(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        return -np.diff(sorted_nscores)[0]
-
-    def find_prob_scorediff(qres, ibs):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
-        diff_scores = -np.diff(sorted_nscores)
-        tscore, pval1 = spstats.ttest_1samp(diff_scores[1:], diff_scores[0])
-        tscore, pval2 = spstats.ttest_1samp(diff_scores[2:], diff_scores[1])
-        return '%.2E' % ((1 - (pval1)) - ((1 - pval2)))
-
-    if False:
-        true_nid_list = ibs.get_annot_nids(qaid_list)
-        #bestaidrank_list  = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]
-        decision_tup_list = [qres.get_name_decisiontup(ibs) for qres in qres_list]
-        decision_nid_list = ut.get_list_column(decision_tup_list, 0)
-        decision_score_list = ut.get_list_column(decision_tup_list, 1)
-        iscorrect_list = [nid_target == nid_res
-                          for nid_target, nid_res in zip(decision_nid_list, true_nid_list)]
-
-        t_list          = [find_tscore(qres, ibs) for qres in qres_list]
-        pval_t_list     = [find_prob_tscore(qres, ibs) for qres in qres_list]
-        pval_tnext_list = [find_prob_tscore_next(qres, ibs) for qres in qres_list]
-        norm1_list      = [find_prob_normtest1(qres, ibs) for qres in qres_list]
-        norm2_list      = [find_prob_normtest2(qres, ibs) for qres in qres_list]
-        pden_list       = [find_prob_densitity(qres, ibs) for qres in qres_list]
-        scorediff       = [find_scorediff(qres, ibs) for qres in qres_list]
-        prob_scorediffs = [find_prob_scorediff(qres, ibs) for qres in qres_list]
-
-        column_list = [iscorrect_list, decision_score_list, scorediff, prob_scorediffs, t_list, pval_t_list, pval_tnext_list, pden_list, norm1_list, norm2_list]
-        column_labels  = ['Correct', 'score_list', 'scorediff', 'pscorediff', 't', 'pval_t', 'pnext', 'pden_list', 'norm1', 'norm2']
-
-        print(ut.make_csv_table(column_list, column_labels))
-
-
 def learn_score_normalization(ibs, qres_list, qaid_list):
     """
     Args:
@@ -403,3 +314,92 @@ def get_allres(ibs, qaid_list, daid_list=None, custom_qparams=None):
         # Cache save
         __ALLRES_CACHE__[allres_key] = allres
     return allres
+
+
+def test_confidence_measures(ibs, qres_list, qaid_list):
+    import scipy.stats as spstats
+
+    def find_tscore(qres, ibs):
+        # H0: null hypothesis nid_list[0] is not he same animal
+        # H1: alt hypothesis nid_list[0] is the same animal
+        # assuming the null hypothesis is true, how likely is it
+        # that we got the sample that we did.
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        alt_score = sorted_nscores[0]
+        sample_measurements = sorted_nscores[1:]
+        num_samples = len(sample_measurements)
+        sample_mean = sample_measurements.mean()
+        sample_std  = sample_measurements.std()
+
+        population_mean = sample_mean
+        population_std = sample_std / np.sqrt(num_samples)
+        # t-score is like the z-score but for a sample
+        tscore = (alt_score - population_mean) / population_std
+        return tscore
+
+    def find_prob_tscore(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        alt_score = sorted_nscores[0]
+        sample_measurements = sorted_nscores[1:]
+        tscore, pval = spstats.ttest_1samp(sample_measurements, alt_score)
+        return pval
+
+    def find_prob_tscore_next(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        tscore, pval1 = spstats.ttest_1samp(sorted_nscores[1:], sorted_nscores[0])
+        tscore, pval2 = spstats.ttest_1samp(sorted_nscores[2:], sorted_nscores[1])
+        return pval1 - pval2
+
+    def find_prob_densitity(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        alt_score = sorted_nscores[0]
+        sample_measurements = sorted_nscores[1:]
+        data_pdf = ut.estimate_pdf(sample_measurements)
+        density = data_pdf.evaluate(alt_score)[0]
+        prob_correct = (1 - density)
+        return '%.2f' % prob_correct
+
+    def find_prob_normtest1(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        sample_measurements = sorted_nscores[1:]
+        kurt, pval = spstats.normaltest(sample_measurements)
+        return '%.2f' % pval
+
+    def find_prob_normtest2(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        kurt, pval = spstats.normaltest(sorted_nscores)
+        return '%.2f' % pval
+
+    def find_scorediff(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        return -np.diff(sorted_nscores)[0]
+
+    def find_prob_scorediff(qres, ibs):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
+        diff_scores = -np.diff(sorted_nscores)
+        tscore, pval1 = spstats.ttest_1samp(diff_scores[1:], diff_scores[0])
+        tscore, pval2 = spstats.ttest_1samp(diff_scores[2:], diff_scores[1])
+        return '%.2E' % ((1 - (pval1)) - ((1 - pval2)))
+
+    if False:
+        true_nid_list = ibs.get_annot_nids(qaid_list)
+        #bestaidrank_list  = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]
+        decision_tup_list = [qres.get_name_decisiontup(ibs) for qres in qres_list]
+        decision_nid_list = ut.get_list_column(decision_tup_list, 0)
+        decision_score_list = ut.get_list_column(decision_tup_list, 1)
+        iscorrect_list = [nid_target == nid_res
+                          for nid_target, nid_res in zip(decision_nid_list, true_nid_list)]
+
+        t_list          = [find_tscore(qres, ibs) for qres in qres_list]
+        pval_t_list     = [find_prob_tscore(qres, ibs) for qres in qres_list]
+        pval_tnext_list = [find_prob_tscore_next(qres, ibs) for qres in qres_list]
+        norm1_list      = [find_prob_normtest1(qres, ibs) for qres in qres_list]
+        norm2_list      = [find_prob_normtest2(qres, ibs) for qres in qres_list]
+        pden_list       = [find_prob_densitity(qres, ibs) for qres in qres_list]
+        scorediff       = [find_scorediff(qres, ibs) for qres in qres_list]
+        prob_scorediffs = [find_prob_scorediff(qres, ibs) for qres in qres_list]
+
+        column_list = [iscorrect_list, decision_score_list, scorediff, prob_scorediffs, t_list, pval_t_list, pval_tnext_list, pden_list, norm1_list, norm2_list]
+        column_labels  = ['Correct', 'score_list', 'scorediff', 'pscorediff', 't', 'pval_t', 'pnext', 'pden_list', 'norm1', 'norm2']
+
+        print(ut.make_csv_table(column_list, column_labels))

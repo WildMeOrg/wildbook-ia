@@ -1221,6 +1221,12 @@ def print_dbinfo(ibs):
 
 
 @__injectable
+def get_dbinfo_str(ibs):
+    from ibeis.dev import dbinfo
+    return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
+
+
+@__injectable
 def get_infostr(ibs):
     """ Returns printable database information """
     dbname = ibs.get_dbname()

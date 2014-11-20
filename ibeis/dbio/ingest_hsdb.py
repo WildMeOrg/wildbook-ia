@@ -33,8 +33,8 @@ def get_unconverted_hsdbs(workdir=None):
         workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
-    is_hsdb_list        = np.array(list(map(sysres.is_hsdb, dbpath_list)))
-    is_ibs_cvt_list     = np.array(list(map(is_succesful_convert, dbpath_list)))
+    is_hsdb_list    = np.array(list(map(sysres.is_hsdb, dbpath_list)))
+    is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
     if FORCE_DELETE:
         needs_convert = is_hsdb_list
     else:
