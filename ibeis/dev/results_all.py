@@ -151,6 +151,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
 
     Example:
         >>> from ibeis.dev.results_all import *   # NOQA
+        >>> import plottool as pt  # NOQA
         >>> from ibeis.dev import results_all
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
@@ -251,11 +252,11 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
             figtitle='cdf',
             xdata=xdata)
 
-        pt.plots.plot_densities(
-            (1 - p_fp_given_score_cdf, 1 - p_tp_given_score_cdf),
-            ('fp given ' + lbl, 'tp given ' + lbl),
-            figtitle='1 - cdf ' + lbl,
-            xdata=xdata)
+        #pt.plots.plot_densities(
+        #    (1 - p_fp_given_score_cdf, 1 - p_tp_given_score_cdf),
+        #    ('fp given ' + lbl, 'tp given ' + lbl),
+        #    figtitle='1 - cdf ' + lbl,
+        #    xdata=xdata)
 
         pt.plots.plot_densities(
             (p_fp_given_score, p_tp_given_score),
@@ -268,16 +269,16 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     #imp.reload(pt.plots)
     #imp.reload(pt)
 
-    pt.plots.plot_sorted_scores(
-        (good_fp_nscores, good_tp_nscores),
-        ('score | fp', 'score | tp'),
-        figtitle='sorted nscores'
-    )
-    pt.plots.plot_sorted_scores(
-        (good_fp_ndiff, good_tp_ndiff),
-        ('diff | fp', 'diff | tp'),
-        figtitle='sorted ndiff'
-    )
+    #pt.plots.plot_sorted_scores(
+    #    (good_fp_nscores, good_tp_nscores),
+    #    ('score | fp', 'score | tp'),
+    #    figtitle='sorted nscores'
+    #)
+    #pt.plots.plot_sorted_scores(
+    #    (good_fp_ndiff, good_tp_ndiff),
+    #    ('diff | fp', 'diff | tp'),
+    #    figtitle='sorted ndiff'
+    #)
     inspect_pdfs(good_tp_nscores, good_fp_nscores, 'score')
     inspect_pdfs(good_tp_ndiff, good_fp_ndiff, 'diff')
     pt.present()
