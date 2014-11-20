@@ -101,6 +101,8 @@ def _qres_dicteq(aid2_xx1, aid2_xx2):
 def get_one_score_per_name(ibs, aid_list, score_list):
     # TODO : rectify with code in pipeline
     """
+    Converts annotation scores to name scores
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.hots_query_result import *   # NOQA
@@ -126,11 +128,11 @@ def get_one_score_per_name(ibs, aid_list, score_list):
     group_nscore = np.array([scores.max() for scores in grouped_scores])
     group_sortx = group_nscore.argsort()[::-1]
     # Top nids
-    sorted_nids = unique_nids.take(group_sortx)
-    sorted_nscore = group_nscore.take(group_sortx)
+    sorted_nids = unique_nids.take(group_sortx, axis=0)
+    sorted_nscore = group_nscore.take(group_sortx, axis=0)
     # Initial sort of aids
-    _sorted_aids = grouped_aids.take(group_sortx)
-    _sorted_scores = grouped_scores.take(group_sortx)
+    _sorted_aids = grouped_aids.take(group_sortx, axis=0)
+    _sorted_scores = grouped_scores.take(group_sortx, axis=0)
     # Secondary sort of aids
     sorted_sortx = [scores.argsort()[::-1] for scores in _sorted_scores]
     sorted_aids = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
@@ -526,7 +528,7 @@ class QueryResult(__OBJECT_BASE__):
         (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = get_one_score_per_name(ibs, aid_list, score_list)
         return sorted_nids, sorted_nscore
 
-    def get_name_classification(qres, ibs):
+    def get_name_decisiontup(qres, ibs):
         sorted_nids, sorted_nscore = qres.get_sorted_nids_and_scores(ibs)
         if len(sorted_nids) == 0:
             return (None, None)

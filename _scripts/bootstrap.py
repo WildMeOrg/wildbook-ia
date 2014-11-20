@@ -84,6 +84,7 @@ PREREQ_PYPKG_LIST = [
     'Pillow',
     'numpy',
     'scipy',
+    'statsmodel',
     'ipython',
     'tornado',
     'flask',
