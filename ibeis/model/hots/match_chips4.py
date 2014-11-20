@@ -184,7 +184,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)
-    del qreq_  # the query request is no longer needed
+    #del qreq_  # is the query request is no longer needed?
     return qaid2_qres
 
 
