@@ -164,7 +164,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
 
     good_tp = good_tp_nscores  # NOQA
     good_tn = good_tn_nscores  # NOQA
-    lbl = 'score'
+    lbl = 'score'  # NOQA
     inspect_pdfs(good_tp_nscores, good_tn_nscores, 'score', clip_score)
     #inspect_pdfs(good_tp_ndiff, good_tn_ndiff, 'diff', clip_score)
 
@@ -192,8 +192,8 @@ def inspect_pdfs(good_tp, good_tn, lbl, clip_score):
     import plottool as pt  # NOQA
 
     #good_all = np.hstack((good_tp, good_tn))
-    score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512, adjust=5)
-    score_tn_pdf = ut.estimate_pdf(good_tn, gridsize=512, adjust=5)
+    score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512, adjust=8)
+    score_tn_pdf = ut.estimate_pdf(good_tn, gridsize=512, adjust=8)
     #score_pdf = ut.estimate_pdf(good_all, gridsize=512)
     score_domain = np.linspace(0, clip_score, 1024)
 
