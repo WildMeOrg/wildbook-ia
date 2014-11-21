@@ -1381,7 +1381,8 @@ class IBEISController(object):
             if degree == -1:
                 return -1
             degree %= 360.0
-            return (degree / 360.0) * 2 * np.pi
+            tau = 2 * np.pi
+            return (degree / 360.0) * tau
         id_iter = ((aid,) for aid in aid_list)
         viewpoint_list = [ -1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
         if convert_radians:

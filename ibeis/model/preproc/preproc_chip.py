@@ -66,7 +66,7 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         qreq_ (QueryRequest):
 
     Example:
-        >>> # ENABLE DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> from os.path import basename
@@ -75,10 +75,9 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         >>> params_list = list(params_iter)
         >>> (aid, chip_config_rowid, cfpath, width, height,) = params_list[0]
         >>> fname = basename(cfpath)
-        >>> fname_ = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
-        >>> result = (fname_, width, height)
+        >>> result = (fname, width, height)
         >>> print(result)
-        ('chip_aid=1_auuid={uuid}_CHIP(sz450).png', 545, 372)
+        ('chip_aid=1_bbox=(0,0,1047,715)_CHIP(sz450).png', 545, 372)
     """
     try:
         # THIS DOESNT ACTUALLY COMPUTE ANYTHING!!!
@@ -291,40 +290,13 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
 #---------------
 
 
-def get_chip_fname_fmt(ibs):
-    r"""Returns format of chip file names
-
-    Args:
-        ibs (IBEISController):
-
-    Returns:
-        cfname_fmt
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
-        >>> cfname_fmt = get_chip_fname_fmt(ibs)
-        >>> assert cfname_fmt == 'chip_aid=%d_auuid=%s_CHIP(sz450).png', cfname_fmt
-        >>> result = cfname_fmt
-        >>> print(result)
-        chip_aid=%d_auuid=%s_CHIP(sz450).png
-    """
-    chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
-    chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
-    suffix = chip_cfgstr + chip_ext
-    # Chip filenames are a function of annotation_rowid and cfgstr
-    # TODO: Use annot uuids, use verts info as well
-    #cfname_fmt = ('aid_%d' + suffix)
-    #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
-    cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
-    return cfname_fmt
-
-
 def get_annot_cfpath_list(ibs, aid_list):
     r"""
     Build chip file paths based on the current IBEIS configuration
+
+    A chip depends on the chip config and the parent annotation's bounding box.
+    (and technically the parent image (should we put that in the file path?)
+
     Args:
         ibs (IBEISController):
         aid_list (list):
@@ -341,23 +313,66 @@ def get_annot_cfpath_list(ibs, aid_list):
         >>> aid_list = aid_list[0:1]
         >>> cfpath_list = get_annot_cfpath_list(ibs, aid_list)
         >>> fname = '\n'.join(map(basename, cfpath_list))
-        >>> result = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
+        >>> result = fname
         >>> print(result)
-        chip_aid=1_auuid={uuid}_CHIP(sz450).png
+        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0_gid=1_CHIP(sz450).png
 
-    chip_aid=1_auuid=2d021761-819d-4c40-af5a-7d8d3fc5b36f_CHIP(sz450).png
+    chip_aid=1_bbox=(0,0,1047,715)_CHIP(sz450).png
     """
-    # TODO: Use annot uuids, use verts info as well
-    #ut.assert_all_not_None(aid_list, 'aid_list')
-    annot_uuid_list = ibs.get_annot_uuids(aid_list)
     cfname_fmt = get_chip_fname_fmt(ibs)
+    cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, ibs.chipdir)
+    return cfpath_list
+
+
+def get_chip_fname_fmt(ibs):
+    r"""Returns format of chip file names
+
+    Args:
+        ibs (IBEISController):
+
+    Returns:
+        cfname_fmt
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc import preproc_chip
+        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> cfname_fmt = get_chip_fname_fmt(ibs)
+        >>> result = cfname_fmt
+        >>> print(result)
+        chip_aid=%d_bbox=%s_theta=%r_gid=%d_CHIP(sz450).png
+    """
+    chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
+    chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
+    suffix = chip_cfgstr + chip_ext
+    # Chip filenames are a function of annotation_rowid and cfgstr
+    # TODO: Use annot uuids, use verts info as well
+    #cfname_fmt = ('aid_%d' + suffix)
+    #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
+    #cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
+    cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%r_gid=%d' , suffix])
+    return cfname_fmt
+
+
+def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
+    #ut.assert_all_not_None(aid_list, 'aid_list')
+    #annot_uuid_list = ibs.get_annot_uuids(aid_list)
     #cfname_iter = (None if aid is None else cfname_fmt % aid for aid in iter(aid_list))
     #cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)
-    cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid)
-                   for (aid, auuid) in zip(aid_list, annot_uuid_list))
-    cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname)
-                   for cfname in cfname_iter]
-    return cfpath_list
+    #cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid)
+    #               for (aid, auuid) in zip(aid_list, annot_uuid_list))
+    annot_bbox_list  = ibs.get_annot_bboxes(aid_list)
+    annot_theta_list = ibs.get_annot_thetas(aid_list)
+    annot_gid_list   = ibs.get_annot_gids(aid_list)
+    annot_bboxstr_list = (ut.bbox_str(bbox, pad=0, sep=',')
+                          for bbox in annot_bbox_list)
+    tup_iter = zip(aid_list, annot_bboxstr_list, annot_theta_list, annot_gid_list)
+    fname_iter = (None if tup[0] is None else fname_fmt % tup
+                   for tup in tup_iter)
+    fpath_list = [None if fname is None else join(dpath, fname)
+                   for fname in fname_iter]
+    return fpath_list
 
 
 #---------------
@@ -487,7 +502,7 @@ if __name__ == '__main__':
         python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip, allexamples=True)"
         python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip)"
         python ibeis/model/preproc/preproc_chip.py
-        python ibeis/model/preproc/preproc_chip.py --allexamples
+        python ibeis/model/preproc/preproc_chip.py --allexamples --serial --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()
