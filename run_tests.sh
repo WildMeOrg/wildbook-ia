@@ -1,13 +1,5 @@
 #!/bin/bash
-"""
-Runs all tests
-
-Bubble text from:
-http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
-"""
-# TODO: MAKE SURE IBS DATABASE CAN HANDLE WHEN IMAGE PATH IS NOT WHERE IT EXPECTED
-# TODO: ADD CACHE / LOCALIZE IMAGES IN IBEIS CONTROL
-
+# Runs all tests
 # Win32 path hacks
 export CWD=$(pwd)
 export PYMAJOR="$(python -c "import sys; print(sys.version_info[0])")"
@@ -27,32 +19,33 @@ else
 fi
 # </CORRECT_PYTHON>
 
-
-PRINT_DELIMETER(){
+PRINT_DELIMETER()
+{
     printf "\n#\n#\n#>>>>>>>>>>> next_test\n\n"
 }
 
-export PYHESAFF_DIR=$($PYEXE -c "import os, pyhesaff; print(str(os.path.dirname(pyhesaff.__file__)))")
-export VTOOL_DIR=$($PYEXE -c "import os, vtool; print(str(os.path.dirname(vtool.__file__)))")
-echo $VTOOL_DIR
-echo $PYTHONPATH
+export TEST_ARGV="--quiet --noshow $@"
 
-export ARGV="--quiet --noshow $@"
+export VTOOL_DIR=$($PYEXE -c "import os, vtool;print(str(os.path.dirname(os.path.dirname(vtool.__file__))))")
+export HESAFF_DIR=$($PYEXE -c "import os, pyhesaff;print(str(os.path.dirname(os.path.dirname(pyhesaff.__file__))))")
 
+# Default tests to run
 set_test_flags()
 {
     export DEFAULT=$1
-    export IBS_TESTS=$DEFAULT
-    export GUI_TESTS=$DEFAULT
-    export SQL_TESTS=$DEFAULT
-    export MISC_TESTS=$DEFAULT
-    export VIEW_TESTS=$DEFAULT
-    export VTOOL_TESTS=$DEFAULT
-    export HESAFF_TESTS=$DEFAULT
+    export VTOOL_TEST=$DEFAULT
+    export GUI_TEST=$DEFAULT
+    export IBEIS_TEST=$DEFAULT
+    export SQL_TEST=$DEFAULT
+    export VIEW_TEST=$DEFAULT
+    export MISC_TEST=$DEFAULT
+    export OTHER_TEST=$DEFAULT
+    export HESAFF_TEST=$DEFAULT
+    export DOC_TEST=$DEFAULT
 }
 set_test_flags OFF
-export IBS_TESTS=ON
-
+export IBEIS_TEST=ON
+export DOC_TEST=ON
 
 # Parse for bash commandline args
 for i in "$@"
@@ -61,64 +54,119 @@ case $i in --testall)
     set_test_flags ON
     ;;
 esac
-case $i in --notestibs)
-    export IBS_TESTS=OFF
+case $i in --notestvtool)
+    export VTOOL_TEST=OFF
+    ;;
+esac
+case $i in --testvtool)
+    export VTOOL_TEST=ON
     ;;
 esac
 case $i in --notestgui)
-    export GUI_TESTS=ON
+    export GUI_TEST=OFF
     ;;
 esac
 case $i in --testgui)
-    export GUI_TESTS=ON
+    export GUI_TEST=ON
+    ;;
+esac
+case $i in --notestibeis)
+    export IBEIS_TEST=OFF
+    ;;
+esac
+case $i in --testibeis)
+    export IBEIS_TEST=ON
+    ;;
+esac
+case $i in --notestsql)
+    export SQL_TEST=OFF
+    ;;
+esac
+case $i in --testsql)
+    export SQL_TEST=ON
+    ;;
+esac
+case $i in --notestview)
+    export VIEW_TEST=OFF
+    ;;
+esac
+case $i in --testview)
+    export VIEW_TEST=ON
+    ;;
+esac
+case $i in --notestmisc)
+    export MISC_TEST=OFF
+    ;;
+esac
+case $i in --testmisc)
+    export MISC_TEST=ON
+    ;;
+esac
+case $i in --notestother)
+    export OTHER_TEST=OFF
+    ;;
+esac
+case $i in --testother)
+    export OTHER_TEST=ON
+    ;;
+esac
+case $i in --notesthesaff)
+    export HESAFF_TEST=OFF
+    ;;
+esac
+case $i in --testhesaff)
+    export HESAFF_TEST=ON
+    ;;
+esac
+case $i in --notestdoc)
+    export DOC_TEST=OFF
+    ;;
+esac
+case $i in --testdoc)
+    export DOC_TEST=ON
     ;;
 esac
 done
 
-
 BEGIN_TESTS()
 {
 cat <<EOF
-.______       __    __  .__   __.    .___________. _______     _______.___________.    _______.
-|   _  \     |  |  |  | |  \ |  |    |           ||   ____|   /       |           |   /       |
-|  |_)  |    |  |  |  | |   \|  |    '---|  |----'|  |__     |   (----'---|  |----'  |   (----'
-|      /     |  |  |  | |  . '  |        |  |     |   __|     \   \       |  |        \   \    
-|  |\  \----.|  '--'  | |  |\   |        |  |     |  |____.----)   |      |  |    .----)   |   
-| _| '._____| \______/  |__| \__|        |__|     |_______|_______/       |__|    |_______/    
+  ______ _     _ __   _      _______ _______ _______ _______ _______
+ |_____/ |     | | \  |         |    |______ |______    |    |______
+ |    \_ |_____| |  \_|         |    |______ ______|    |    ______|
+                                                                    
+
 EOF
-
-    echo "BEGIN: ARGV=$ARGV"
+    echo "BEGIN: TEST_ARGV=$TEST_ARGV"
     PRINT_DELIMETER
-
     num_passed=0
     num_ran=0
-
     export FAILED_TESTS=''
 }
 
 RUN_TEST()
 {
     echo "RUN_TEST: $@"
-    export TEST="$PYEXE $@ $ARGV"
+    export TEST="$PYEXE $@ $TEST_ARGV"
     $TEST
     export RETURN_CODE=$?
+    echo "RETURN_CODE=$RETURN_CODE"
     PRINT_DELIMETER
-    num_passed=$(($num_passed + (1 - $RETURN_CODE)))
     num_ran=$(($num_ran + 1))
-
+    if [ "$RETURN_CODE" == "0" ] ; then
+        num_passed=$(($num_passed + 1))
+    fi
     if [ "$RETURN_CODE" != "0" ] ; then
         export FAILED_TESTS="$FAILED_TESTS\n$TEST"
     fi
-
 }
 
 END_TESTS()
 {
     echo "RUN_TESTS: DONE"
-
     if [ "$FAILED_TESTS" != "" ] ; then
         echo "-----"
-        printf "Failed Tests:" 
+        printf "Failed Tests:"
         printf "$FAILED_TESTS\n"
         printf "$FAILED_TESTS\n" >> failed.txt
         echo "-----"
@@ -130,130 +178,215 @@ END_TESTS()
 # START TESTS
 BEGIN_TESTS
 
-RUN_TEST ibeis/tests/assert_modules.py 
+# Quick Tests (always run)
+RUN_TEST ibeis/tests/assert_modules.py
 
 #---------------------------------------------
-# VTOOL TESTS
-if [ "$VTOOL_TESTS" = "ON" ] ; then 
+#VTOOL TESTS
+if [ "$VTOOL_TEST" = "ON" ] ; then
 cat <<EOF
     _  _ ___ ____ ____ _       ___ ____ ____ ___ ____ 
     |  |  |  |  | |  | |        |  |___ [__   |  [__  
-     \/   |  |__| |__| |___     |  |___ ___]  |  ___] 
+     \/   |  |__| |__| |___     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST $VTOOL_DIR/tests/test_draw_keypoint.py --noshow 
-    RUN_TEST $VTOOL_DIR/tests/test_exhaustive_ori_extract.py --noshow 
-    RUN_TEST $VTOOL_DIR/tests/test_vtool.py 
-    RUN_TEST $VTOOL_DIR/tests/test_akmeans.py 
-    RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
-    #RUN_TEST $VTOOL_DIR/tests/time_cythonized_funcs.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_draw_keypoint.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_spatial_verification.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_exhaustive_ori_extract.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_vtool.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_akmeans.py 
+    RUN_TEST $VTOOL_DIR/vtool/tests/test_pyflann.py 
 fi
-
 #---------------------------------------------
-# GUI_TESTS
-if [ "$GUI_TESTS" = "ON" ] ; then 
+#GUI TESTS
+if [ "$GUI_TEST" = "ON" ] ; then
 cat <<EOF
     ____ _  _ _    ___ ____ ____ ___ ____ 
     | __ |  | |     |  |___ [__   |  [__  
-    |__] |__| |     |  |___ ___]  |  ___] 
+    |__] |__| |     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_gui_import_images.py 
-    RUN_TEST ibeis/tests/test_gui_add_annotation.py 
     RUN_TEST ibeis/tests/test_gui_selection.py 
-    RUN_TEST ibeis/tests/test_gui_open_database.py
-    RUN_TEST ibeis/tests/test_gui_all.py
+    RUN_TEST ibeis/tests/test_gui_open_database.py 
+    RUN_TEST ibeis/tests/test_gui_add_annotation.py 
+    RUN_TEST ibeis/tests/test_gui_all.py 
+    RUN_TEST ibeis/tests/test_gui_import_images.py 
 fi
-
-
 #---------------------------------------------
-# IBEIS TESTS
-if [ "$IBS_TESTS" = "ON" ] ; then 
+#IBEIS TESTS
+if [ "$IBEIS_TEST" = "ON" ] ; then
 cat <<EOF
     _ ___  ____ _ ____    ___ ____ ____ ___ ____ 
     | |__] |___ | [__      |  |___ [__   |  [__  
-    | |__] |___ | ___]     |  |___ ___]  |  ___] 
+    | |__] |___ | ___]     |  |___ ___]  |  ___]
 EOF
-    RUN_TEST ibeis/tests/test_ibs_info.py
-    RUN_TEST ibeis/tests/test_ibs.py
-    RUN_TEST ibeis/tests/test_ibs_add_images.py
-    RUN_TEST ibeis/tests/test_ibs_add_name.py
-    RUN_TEST ibeis/tests/test_ibs_encounters.py
-    RUN_TEST ibeis/tests/test_ibs_chip_compute.py
-    RUN_TEST ibeis/tests/test_ibs_feat_compute.py
-    RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py
-    RUN_TEST ibeis/tests/test_ibs_query.py
-    RUN_TEST ibeis/tests/test_ibs_query_components.py
-    RUN_TEST ibeis/tests/test_ibs_getters.py
-    RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py
-    RUN_TEST ibeis/tests/test_ibs_control.py
-    RUN_TEST ibeis/tests/test_ibs_localize_images.py
-    RUN_TEST ibeis/tests/test_delete_enc.py
-    RUN_TEST ibeis/tests/test_delete_image.py
-    RUN_TEST ibeis/tests/test_delete_image_thumbtups.py
-    RUN_TEST ibeis/tests/test_delete_names.py
-    RUN_TEST ibeis/tests/test_delete_annotation_chips.py
-    RUN_TEST ibeis/tests/test_delete_annotation.py
-    RUN_TEST ibeis/tests/test_delete_chips.py
-    RUN_TEST ibeis/tests/test_delete_features.py
+    RUN_TEST ibeis/tests/test_ibs_detect.py 
+    RUN_TEST ibeis/tests/test_ibs_query_components.py 
+    RUN_TEST ibeis/tests/test_ibs.py 
+    RUN_TEST ibeis/tests/test_ibs_query.py 
+    RUN_TEST ibeis/tests/test_ibs_encounters.py 
+    RUN_TEST ibeis/tests/test_ibs_control.py 
+    RUN_TEST ibeis/tests/test_ibs_feat_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_uuid.py 
+    RUN_TEST ibeis/tests/test_ibs_localize_images.py 
+    RUN_TEST ibeis/tests/test_ibs_add_images.py 
+    RUN_TEST ibeis/tests/test_ibs_chip_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_info.py 
+    RUN_TEST ibeis/tests/test_ibs_add_name.py 
+    RUN_TEST ibeis/tests/test_ibs_getters.py 
+    RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py 
+    RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py 
+    RUN_TEST ibeis/tests/test_ibs_annotation_uuid.py 
+    RUN_TEST ibeis/tests/test_delete_names.py 
+    RUN_TEST ibeis/tests/test_delete_features.py 
+    RUN_TEST ibeis/tests/test_delete_enc.py 
+    RUN_TEST ibeis/tests/test_delete_image.py 
+    RUN_TEST ibeis/tests/test_delete_annotation.py 
+    RUN_TEST ibeis/tests/test_delete_image_thumbtups.py 
+    RUN_TEST ibeis/tests/test_delete_annotation_chips.py 
+    RUN_TEST ibeis/tests/test_delete_annotation_all.py 
+    RUN_TEST ibeis/tests/test_delete_chips.py 
 fi
-
-
 #---------------------------------------------
-# VIEW TESTS
-if [ "$VIEW_TESTS" = "ON" ] ; then 
-cat <<EOF
-    _  _ _ ____ _ _ _    ___ ____ ____ ___ ____ 
-    |  | | |___ | | |     |  |___ [__   |  [__  
-     \/  | |___ |_|_|     |  |___ ___]  |  ___] 
-EOF
-    RUN_TEST ibeis/tests/test_view_viz.py
-    RUN_TEST ibeis/tests/test_view_interact.py
-fi
-
-#---------------------------------------------
-# MISC TESTS
-if [ "$MISC_TESTS" = "ON" ] ; then 
-cat <<EOF
-    _  _ _ ____ ____    ___ ____ ____ ___ ____ 
-    |\/| | [__  |        |  |___ [__   |  [__  
-    |  | | ___] |___     |  |___ ___]  |  ___] 
-EOF
-    RUN_TEST ibeis/tests/test_utool_parallel.py
-    RUN_TEST ibeis/tests/test_pil_hash.py
-fi
-
-#---------------------------------------------
-# HESAFF TESTS
-if [ "$HESAFF_TESTS" = "ON" ] ; then 
-cat <<EOF
-    _  _ ____ ____ ____ ____ ____    ___ ____ ____ ___ ____ 
-    |__| |___ [__  |__| |___ |___     |  |___ [__   |  [__  
-    |  | |___ ___] |  | |    |        |  |___ ___]  |  ___] 
-EOF
-    RUN_TEST $PYHESAFF_DIR/tests/test_adaptive_scale.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_draw_keypoint.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_ellipse.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_exhaustive_ori_extract.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_patch_orientation.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff_simple_iterative.py
-    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff_simple_parallel.py
-fi
-
-#---------------------------------------------
-# SQL TESTS
-if [ "$SQL_TESTS" = "ON" ] ; then 
+#SQL TESTS
+if [ "$SQL_TEST" = "ON" ] ; then
 cat <<EOF
     ____ ____ _       ___ ____ ____ ___ ____ 
     [__  |  | |        |  |___ [__   |  [__  
-    ___] |_\| |___     |  |___ ___]  |  ___] 
+    ___] |_\| |___     |  |___ ___]  |  ___]
 EOF
     RUN_TEST ibeis/tests/test_sql_numpy.py 
-    RUN_TEST ibeis/tests/test_sql_names.py 
-    RUN_TEST ibeis/tests/test_sql_control.py 
     RUN_TEST ibeis/tests/test_sql_modify.py 
     RUN_TEST ibeis/tests/test_sql_revert.py 
+    RUN_TEST ibeis/tests/test_sql_names.py 
+    RUN_TEST ibeis/tests/test_sql_ids.py 
+    RUN_TEST ibeis/tests/test_sql_control.py 
 fi
-
+#---------------------------------------------
+#VIEW TESTS
+if [ "$VIEW_TEST" = "ON" ] ; then
+cat <<EOF
+    _  _ _ ____ _ _ _    ___ ____ ____ ___ ____ 
+    |  | | |___ | | |     |  |___ [__   |  [__  
+     \/  | |___ |_|_|     |  |___ ___]  |  ___]
+EOF
+    RUN_TEST ibeis/tests/test_view_viz.py 
+    RUN_TEST ibeis/tests/test_view_interact.py 
+fi
+#---------------------------------------------
+#MISC TESTS
+if [ "$MISC_TEST" = "ON" ] ; then
+cat <<EOF
+    _  _ _ ____ ____    ___ ____ ____ ___ ____ 
+    |\/| | [__  |        |  |___ [__   |  [__  
+    |  | | ___] |___     |  |___ ___]  |  ___]
+EOF
+    RUN_TEST ibeis/tests/test_utool_parallel.py 
+    RUN_TEST ibeis/tests/test_pil_hash.py 
+fi
+#---------------------------------------------
+#OTHER TESTS
+if [ "$OTHER_TEST" = "ON" ] ; then
+cat <<EOF
+    ____ ___ _  _ ____ ____    ___ ____ ____ ___ ____ 
+    |  |  |  |__| |___ |__/     |  |___ [__   |  [__  
+    |__|  |  |  | |___ |  \     |  |___ ___]  |  ___]
+EOF
+    RUN_TEST ibeis/tests/assert_modules.py 
+    RUN_TEST ibeis/tests/reset_testdbs.py 
+    RUN_TEST ibeis/tests/test_weakref.py 
+    RUN_TEST ibeis/tests/test_qt_tree.py 
+    RUN_TEST ibeis/tests/test_new_schema.py 
+    RUN_TEST ibeis/tests/test_uuid_consistency.py 
+fi
+#---------------------------------------------
+#HESAFF TESTS
+if [ "$HESAFF_TEST" = "ON" ] ; then
+cat <<EOF
+    _  _ ____ ____ ____ ____ ____    ___ ____ ____ ___ ____ 
+    |__| |___ [__  |__| |___ |___     |  |___ [__   |  [__  
+    |  | |___ ___] |  | |    |        |  |___ ___]  |  ___]
+EOF
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_draw_keypoint.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_parallel.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_cpp_rotation_invariance.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_adaptive_scale.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_ellipse.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_exhaustive_ori_extract.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff_simple_iterative.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_patch_orientation.py 
+    RUN_TEST $HESAFF_DIR/pyhesaff/tests/test_pyhesaff.py 
+fi
+#---------------------------------------------
+#DOC TESTS
+if [ "$DOC_TEST" = "ON" ] ; then
+cat <<EOF
+    ___  ____ ____    ___ ____ ____ ___ ____ 
+    |  \ |  | |        |  |___ [__   |  [__  
+    |__/ |__| |___     |  |___ ___]  |  ___]
+EOF
+    RUN_TEST ibeis/viz/viz_sver.py --test-show_sver:0
+    RUN_TEST ibeis/model/Config.py --test-DetectionConfig:0
+    RUN_TEST ibeis/model/Config.py --test-FeatureConfig:0
+    RUN_TEST ibeis/model/Config.py --test-FeatureWeightConfig:0
+    RUN_TEST ibeis/model/Config.py --test-FilterConfig:0
+    RUN_TEST ibeis/model/Config.py --test-QueryConfig:0
+    RUN_TEST ibeis/model/Config.py --test-SMKConfig:0
+    RUN_TEST ibeis/model/Config.py --test-SMKConfig:1
+    RUN_TEST ibeis/model/Config.py --test-VocabAssignConfig:0
+    RUN_TEST ibeis/model/Config.py --test-VocabTrainConfig:0
+    RUN_TEST ibeis/model/Config.py --test-parse_config_items:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-apply_normweight:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-cos_match_weighter:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-dupvote_match_weighter:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-fg_match_weighter:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-lnbnn_fn:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-nn_normalized_weight:0
+    RUN_TEST ibeis/model/hots/nn_weights.py --test-test_all_normalized_weights:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-build_chipmatches:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-chipmatch_to_resdict:1
+    RUN_TEST ibeis/model/hots/pipeline.py --test-filter_neighbors:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-get_pipeline_testdata:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-nearest_neighbors:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-precompute_topx2_dlen_sqrd:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1
+    RUN_TEST ibeis/model/hots/pipeline.py --test-spatial_verification:0
+    RUN_TEST ibeis/model/hots/pipeline.py --test-weight_neighbors:0
+    RUN_TEST ibeis/model/hots/query_request.py --test-QueryParams:0
+    RUN_TEST ibeis/model/hots/query_request.py --test-new_ibeis_query_request:0
+    RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_csum:0
+    RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_nsum:0
+    RUN_TEST ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1:0
+    RUN_TEST ibeis/model/hots/match_chips4.py --test-submit_query_request:0
+    RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg:0
+    RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy:0
+    RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-get_image_detectimg_fpath_list:0
+    RUN_TEST ibeis/model/preproc/preproc_featweight.py --test-generate_featweight_properties:0
+    RUN_TEST ibeis/model/preproc/preproc_image.py --test-add_images_params_gen:0
+    RUN_TEST ibeis/model/preproc/preproc_feat.py --test-generate_feat_properties:0
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-compute_and_write_chips:0
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-compute_or_read_chip_images:0
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-compute_or_read_chip_images:1
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-get_annot_cfpath_list:0
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-get_chip_fname_fmt:0
+    RUN_TEST ibeis/model/preproc/preproc_chip.py --test-on_delete:0
+    RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-get_probchip_fname_fmt:0
+    RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:0
+    RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:1
+    RUN_TEST ibeis/control/DB_SCHEMA.py --test-test_dbschema:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-_get_all_featweight_rowids:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-add_annot_featweights:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-add_feat_featweights:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-delete_annot_featweight:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-delete_featweight:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-get_annot_featweight_rowids:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-get_feat_featweight_rowids:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-get_featweight_config_rowid:0
+    RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-get_featweight_fgweights:0
+    RUN_TEST ibeis/control/DBCACHE_SCHEMA.py --test-test_dbcache_schema:0
+    RUN_TEST ibeis/dev/experiment_harness.py --test-get_qx2_bestrank:0
+    RUN_TEST ibeis/dev/experiment_harness.py --test-get_qx2_bestrank:1
+    RUN_TEST ibeis/dbio/export_subset.py --test-merge_databases:0
+fi
 
 #---------------------------------------------
 # END TESTING

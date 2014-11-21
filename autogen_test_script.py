@@ -17,8 +17,8 @@ def autogen_ibeis_runtest():
         python -c "import utool; utool.autogen_ibeis_runtest()"
         python -c "import utool; print(utool.autogen_ibeis_runtest())"
 
-        python -c "import utool; print(utool.autogen_ibeis_runtest())" > _run_tests2.sh
-        chmod +x _run_tests2.sh
+        python -c "import utool; print(utool.autogen_ibeis_runtest())" > run_tests.sh
+        chmod +x run_tests.sh
 
     """
 
@@ -121,16 +121,18 @@ if __name__ == '__main__':
     """
     CommandLine:
         python autogen_test_script.py
-        python autogen_test_script.py --verbose > _run_tests2.sh
-        python autogen_test_script.py -o _run_tests2.sh
-        reset_dbs.sh && _run_tests2.sh
-        reset_dbs.sh && _run_tests2.sh --testall
+        python autogen_test_script.py --verbose > run_tests.sh
+        python autogen_test_script.py -o run_tests.sh
+        reset_dbs.sh && run_tests.sh
+        reset_dbs.sh && run_tests.sh --testall
+        ./reset_dbs.sh
+        ./run_tests.sh --testall
     """
     text = autogen_ibeis_runtest()
 
     runtests_fpath = ut.get_argval(('-o', '--outfile'), type_=str, default=None)
     if runtests_fpath is None and ut.get_argflag('-w'):
-        runtests_fpath = '_run_tests2.sh'
+        runtests_fpath = 'run_tests.sh'
 
     if runtests_fpath is not None:
         ut.write_to(runtests_fpath, text)
