@@ -234,7 +234,6 @@ EOF
     RUN_TEST ibeis/tests/test_ibs_getters.py 
     RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py 
     RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py 
-    RUN_TEST ibeis/tests/test_ibs_annotation_uuid.py 
     RUN_TEST ibeis/tests/test_delete_names.py 
     RUN_TEST ibeis/tests/test_delete_features.py 
     RUN_TEST ibeis/tests/test_delete_enc.py 
@@ -369,7 +368,9 @@ EOF
     RUN_TEST ibeis/model/preproc/preproc_chip.py --test-get_annot_cfpath_list:0
     RUN_TEST ibeis/model/preproc/preproc_chip.py --test-get_chip_fname_fmt:0
     RUN_TEST ibeis/model/preproc/preproc_chip.py --test-on_delete:0
+    RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-get_annot_probchip_fpath_list:0
     RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-get_probchip_fname_fmt:0
+    RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-group_aids_by_featweight_species:0
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:0
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:1
     RUN_TEST ibeis/control/DB_SCHEMA.py --test-test_dbschema:0

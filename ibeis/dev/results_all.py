@@ -77,6 +77,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
         >>> qres_list = [qaid2_qres[aid] for aid in qaid_list]
         >>> results_all.learn_score_normalization(ibs, qres_list, qaid_list)
+        >>> pt.present()
 
     References:
         http://en.wikipedia.org/wiki/Statistical_hypothesis_testing
@@ -98,13 +99,13 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     """
     import plottool as pt  # NOQA
     good_tp_nscores = []
-    good_fp_nscores = []
+    good_tn_nscores = []
     good_tp_ndiff = []
-    good_fp_ndiff = []
+    good_tn_ndiff = []
     good_tp_nmatches = []
-    good_fp_nmatches = []
+    good_tn_nmatches = []
     good_tp_aidnid_pairs = []
-    good_fp_aidnid_pairs = []
+    good_tn_aidnid_pairs = []
     for qx, qres in enumerate(qres_list):
         qaid = qres.get_qaid()
         if not qres.is_nsum():
@@ -129,30 +130,30 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
 
         sorted_ndiff = -np.diff(sorted_nscores.tolist())
         sorted_nids = np.array(sorted_nids)
-        is_true  = sorted_nids == qnid
-        is_false = np.logical_and(~is_true, sorted_nids > 0)
-        if not np.any(is_true) or not np.any(is_false):
+        is_positive  = sorted_nids == qnid
+        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+        if not np.any(is_positive) or not np.any(is_negative):
             continue
-        gt_rank = np.where(is_true)[0][0]
-        gf_rank = np.nonzero(is_false)[0][0]
+        gt_rank = np.where(is_positive)[0][0]
+        gf_rank = np.nonzero(is_negative)[0][0]
         if gt_rank == 0 and len(sorted_nscores) > gf_rank:
             if len(sorted_ndiff) > gf_rank:
                 good_tp_nscores.append(sorted_nscores[gt_rank])
-                good_fp_nscores.append(sorted_nscores[gf_rank])
+                good_tn_nscores.append(sorted_nscores[gf_rank])
                 good_tp_ndiff.append(sorted_ndiff[gt_rank])
-                good_fp_ndiff.append(sorted_ndiff[gf_rank])
+                good_tn_ndiff.append(sorted_ndiff[gf_rank])
                 good_tp_nmatches.append(sorted_nmatches[gt_rank])
-                good_fp_nmatches.append(sorted_nmatches[gf_rank])
+                good_tn_nmatches.append(sorted_nmatches[gf_rank])
                 good_tp_aidnid_pairs.append((qaid, sorted_nids[gt_rank]))
-                good_fp_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
+                good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
 
     good_tp_nscores = np.array(good_tp_nscores)
-    good_fp_nscores = np.array(good_fp_nscores)
+    good_tn_nscores = np.array(good_tn_nscores)
     good_tp_ndiff = np.array(good_tp_ndiff)
-    good_fp_ndiff = np.array(good_fp_ndiff)
+    good_tn_ndiff = np.array(good_tn_ndiff)
 
     clip_score = 2000
-    #overshoot_factor = good_tp_nscores.max() / good_fp_nscores.max()
+    #overshoot_factor = good_tp_nscores.max() / good_tn_nscores.max()
     #if overshoot_factor > 5:
     #    clip_score = good_tp_nscores.mean() + good_tp_nscores.std() * 2
 
@@ -161,91 +162,73 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     #imp.reload(pt.plots)
     #imp.reload(pt)
 
-    #pt.plots.plot_sorted_scores(
-    #    (good_fp_nscores, good_tp_nscores),
-    #    ('score | fp', 'score | tp'),
-    #    figtitle='sorted nscores'
-    #)
-    #pt.plots.plot_sorted_scores(
-    #    (good_fp_ndiff, good_tp_ndiff),
-    #    ('diff | fp', 'diff | tp'),
-    #    figtitle='sorted ndiff'
-    #)
-    #inspect_pdfs(good_tp_nscores, good_fp_nscores, 'score')
-    #inspect_pdfs(good_tp_ndiff, good_fp_ndiff, 'diff')
+    good_tp = good_tp_nscores  # NOQA
+    good_tn = good_tn_nscores  # NOQA
+    lbl = 'score'
+    inspect_pdfs(good_tp_nscores, good_tn_nscores, 'score', clip_score)
+    #inspect_pdfs(good_tp_ndiff, good_tn_ndiff, 'diff', clip_score)
 
-    #truefeat_tup = (good_tp_nscores, good_tp_ndiff)
-    #falsefeat_tup = (good_fp_nscores, good_fp_ndiff)
+    #posfeat_tup = (good_tp_nscores, good_tp_ndiff)
+    #negfeat_tup = (good_tn_nscores, good_tn_ndiff)
     #lbltup = ('nscores', 'ndiff')
 
-    #truefeat_tup = (good_tp_nscores, good_tp_ndiff, good_tp_nmatches)
-    #falsefeat_tup = (good_fp_nscores, good_fp_ndiff, good_fp_nmatches)
+    #posfeat_tup = (good_tp_nscores, good_tp_ndiff, good_tp_nmatches)
+    #negfeat_tup = (good_tn_nscores, good_tn_ndiff, good_tn_nmatches)
 
-    #truefeat_tup = (good_tp_nscores, good_tp_nmatches)
-    #falsefeat_tup = (good_fp_nscores, good_fp_nmatches)
+    #posfeat_tup = (good_tp_nscores, good_tp_nmatches)
+    #negfeat_tup = (good_tn_nscores, good_tn_nmatches)
     #lbltup = ('nscores', 'nmatches')
 
-    truefeat_tup  = (good_tp_ndiff, good_tp_nmatches)
-    falsefeat_tup = (good_fp_ndiff, good_fp_nmatches)
-    lbltup = ('ndiff', 'nmatches')
+    #posfeat_tup = (good_tp_ndiff, good_tp_nmatches)
+    #negfeat_tup = (good_tn_ndiff, good_tn_nmatches)
+    #lbltup = ('ndiff', 'nmatches')
 
-    inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pairs,
-                           good_fp_aidnid_pairs, clip_score, lbltup)
+    #inspect_svm_classifier(ibs, posfeat_tup, negfeat_tup, good_tp_aidnid_pairs,
+    #                       good_tn_aidnid_pairs, clip_score, lbltup)
     #pt.present()
 
 
-def inspect_pdfs(good_tp, good_fp, lbl, clip_score):
+def inspect_pdfs(good_tp, good_tn, lbl, clip_score):
     import plottool as pt  # NOQA
 
-    def bayes_rule(a_given_b, prob_a, prob_b):
-        b_given_a = (a_given_b * prob_b) / prob_a
-        return b_given_a
+    #good_all = np.hstack((good_tp, good_tn))
+    score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512, adjust=5)
+    score_tn_pdf = ut.estimate_pdf(good_tn, gridsize=512, adjust=5)
+    #score_pdf = ut.estimate_pdf(good_all, gridsize=512)
+    score_domain = np.linspace(0, clip_score, 1024)
 
-    good_all = np.hstack((good_tp, good_fp))
+    p_score_given_tp = score_tp_pdf.evaluate(score_domain)
+    p_score_given_tn = score_tn_pdf.evaluate(score_domain)
+    #p_score = score_pdf.evaluate(score_domain)
 
-    score_tp_pdf = ut.estimate_pdf(good_tp, gridsize=512)
-    score_fp_pdf = ut.estimate_pdf(good_fp, gridsize=512)
-    score_pdf = ut.estimate_pdf(good_all, gridsize=512)
-    xdata = np.linspace(0, clip_score, 1024)
-
-    p_score_given_tp = score_tp_pdf.evaluate(xdata)
-    p_score_given_fp = score_fp_pdf.evaluate(xdata)
-    p_score = score_pdf.evaluate(xdata)
-    #fp_bw = score_fp_pdf.bw
-    #tp_bw = score_tp_pdf.bw
-    #s_bw = score_pdf.bw
-    p_tp = .04
-    p_fp = (1 - p_tp)
+    p_score = np.array(p_score_given_tp) + np.array(p_score_given_tn)
 
     # Apply bayes
-    p_tp_given_score = bayes_rule(p_score_given_tp, p_tp, p_score)
-    p_fp_given_score = bayes_rule(p_score_given_fp, p_fp, p_score)
+    p_tp = .5
+    p_tn = 1.0 - p_tp
+    p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_score, p_tp)
+    p_tn_given_score = ut.bayes_rule(p_score_given_tn, p_score, p_tn)
 
-    #w = xdata[1] - xdata[0]
-    p_tp_given_score_cdf = (p_tp_given_score / p_tp_given_score.sum()).cumsum()
-    p_fp_given_score_cdf = (p_fp_given_score / p_fp_given_score.sum()).cumsum()
-
-    pt.plots.plot_densities(
-        (p_fp_given_score_cdf,  p_tp_given_score_cdf),
-        ('fp given ' + lbl, 'tp given ' + lbl),
-        figtitle='cdf',
-        xdata=xdata)
-
-    #pt.plots.plot_densities(
-    #    (1 - p_fp_given_score_cdf, 1 - p_tp_given_score_cdf),
-    #    ('fp given ' + lbl, 'tp given ' + lbl),
-    #    figtitle='1 - cdf ' + lbl,
-    #    xdata=xdata)
+    pt.plots.plot_sorted_scores(
+        (good_tn, good_tp),
+        (lbl + ' | tn', lbl + ' | tp'),
+        figtitle='sorted nscores')
 
     pt.plots.plot_densities(
-        (p_fp_given_score, p_tp_given_score),
-        ('fp given ' + lbl, 'tp given ' + lbl),
-        figtitle='pdf ' + lbl,
-        xdata=xdata)
+        (p_score_given_tn,  p_score_given_tp, p_score),
+        (lbl + ' given tn', lbl + ' given tp', lbl),
+        figtitle='pre_bayes pdf ' + lbl,
+        xdata=score_domain)
+
+    pt.plots.plot_densities(
+        (p_tn_given_score, p_tp_given_score),
+        ('tn given ' + lbl, 'tp given ' + lbl),
+        figtitle='post_bayes pdf ' + lbl,
+        xdata=score_domain)
 
 
-def inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pairs,
-                           good_fp_aidnid_pairs, clip_score, lbltup=None):
+def inspect_svm_classifier(ibs, posfeat_tup, negfeat_tup, good_tp_aidnid_pairs,
+                           good_tn_aidnid_pairs, clip_score, lbltup=None):
     #import sklearn
     #assert sklearn.__version__ >= '0.15.2'
     from sklearn import svm
@@ -253,16 +236,16 @@ def inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pair
     # Build SVM Features and targets
 
     if lbltup is None:
-        lbltup = list(map(ut.get_varname_from_stack, truefeat_tup))
+        lbltup = list(map(ut.get_varname_from_stack, posfeat_tup))
 
-    true_features  = np.vstack(truefeat_tup).T
-    false_features = np.vstack(falsefeat_tup).T
+    positive_features  = np.vstack(posfeat_tup).T
+    negative_features = np.vstack(negfeat_tup).T
 
-    nTrue = len(false_features)
-    nFalse = len(false_features)
+    nTrue = len(negative_features)
+    nFalse = len(negative_features)
     # Pack svm features and targets
-    all_aidnid_pairs = np.vstack((good_tp_aidnid_pairs, good_fp_aidnid_pairs))
-    X = svm_features = np.vstack((true_features, false_features))
+    all_aidnid_pairs = np.vstack((good_tp_aidnid_pairs, good_tn_aidnid_pairs))
+    X = svm_features = np.vstack((positive_features, negative_features))
     Y = svm_targets = np.hstack((np.ones(nTrue), -np.ones(nFalse)))
     # Create support vector classifier
     svc = svm.LinearSVC(C=1.0, dual=False)
@@ -274,8 +257,8 @@ def inspect_svm_classifier(ibs, truefeat_tup, falsefeat_tup, good_tp_aidnid_pair
         svc.decision_function(svm_features)
 
     # Evaluate performance on training set
-    is_falsepositive = svc.predict(false_features) == 1.0  # type1 -- false positive
-    is_falsenegative = svc.predict(true_features) == -1.0  # type2 -- false negative
+    is_falsepositive = svc.predict(negative_features) == 1.0  # type1 -- false positive
+    is_falsenegative = svc.predict(positive_features) == -1.0  # type2 -- false negative
     nType1 = is_falsepositive.sum()
     nType2 = is_falsenegative.sum()
     nError = nType1 + nType2

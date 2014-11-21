@@ -941,34 +941,6 @@ def list_images(img_dir, fullpath=True, recursive=True):
     return gpath_list
 
 
-def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
-    augment_uuid = utool.util_hash.augment_uuid
-    random_uuid = utool.util_hash.random_uuid
-    try:
-        # Check to make sure bbox input is a tuple-list, not a list-list
-        if len(bbox_list) > 0:
-            try:
-                assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
-                assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
-            except AssertionError as ex:
-                utool.printex(ex)
-                print('bbox_list = %r' % (bbox_list,))
-                raise
-        annotation_uuid_list = [augment_uuid(img_uuid, bbox, theta)
-                                for img_uuid, bbox, theta
-                                in zip(image_uuid_list, bbox_list, theta_list)]
-        if not deterministic:
-            # Augment determenistic uuid with a random uuid to ensure randomness
-            # (this should be ensured in all hardward situations)
-            annotation_uuid_list = [augment_uuid(random_uuid(), _uuid)
-                                    for _uuid in annotation_uuid_list]
-    except Exception as ex:
-        utool.printex(ex, 'Error building annotation_uuids', '[add_annot]',
-                      key_list=['image_uuid_list'])
-        raise
-    return annotation_uuid_list
-
-
 def get_species_dbs(species_prefix):
     from ibeis.dev import sysres
     ibs_dblist = sysres.get_ibsdb_list()

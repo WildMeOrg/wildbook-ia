@@ -980,7 +980,7 @@ class IBEISController(object):
     def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                         species_list=None, nid_list=None, name_list=None,
                         detect_confidence_list=None, notes_list=None,
-                        vert_list=None, annotation_uuid_list=None, viewpoint_list=None,
+                        vert_list=None, annot_uuid_list=None, viewpoint_list=None,
                         quiet_delete_thumbs=False):
         """
         Adds an annotation to images
@@ -1038,10 +1038,10 @@ class IBEISController(object):
 
         # Build ~~deterministic?~~ random and unique ANNOTATION ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
-        #annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
+        #annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
         #                                                      theta_list, deterministic=False)
-        if annotation_uuid_list is None:
-            annotation_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
+        if annot_uuid_list is None:
+            annot_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
         if viewpoint_list is None:
             viewpoint_list = [-1.0] * len(image_uuid_list)
         nVert_list = [len(verts) for verts in vert_list]
@@ -1054,7 +1054,7 @@ class IBEISController(object):
                     'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
                     'annot_note',)
 
-        params_iter = list(zip(annotation_uuid_list, gid_list, xtl_list, ytl_list,
+        params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
                                 width_list, height_list, theta_list, nVert_list,
                                 vertstr_list, viewpoint_list, detect_confidence_list,
                                 notes_list))
@@ -1702,24 +1702,24 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annot_exemplar_flag(ibs, aid_list):
-        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
-        return annotation_uuid_list
+        annot_exemplar_flag_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
+        return annot_exemplar_flag_list
 
     @getter_1to1
     def get_annot_uuids(ibs, aid_list):
         """
         Returns:
             list_ (list): a list of image uuids by gid """
-        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), aid_list)
-        return annotation_uuid_list
+        annot_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), aid_list)
+        return annot_uuid_list
 
     @getter_1to1
     def get_annot_parent_aid(ibs, aid_list):
         """
         Returns:
             list_ (list): a list of image uuids by gid """
-        annotation_parent_rowid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_parent_rowid',), aid_list)
-        return annotation_parent_rowid_list
+        annot_parent_rowid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_parent_rowid',), aid_list)
+        return annot_parent_rowid_list
 
     @getter_1to1
     def get_annot_aids_from_uuid(ibs, uuid_list):
@@ -1736,15 +1736,17 @@ class IBEISController(object):
     def get_annot_detect_confidence(ibs, aid_list):
         """
         Returns:
-            list_ (list): a list confidences that the annotations is a valid detection """
-        annotation_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
-        return annotation_detect_confidence_list
+            list_ (list): a list confidences that the annotations is a valid detection
+        """
+        annot_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
+        return annot_detect_confidence_list
 
     @getter_1to1
     def get_annot_notes(ibs, aid_list):
         """
         Returns:
-            annotation_notes_list (list): a list of annotation notes """
+            annotation_notes_list (list): a list of annotation notes
+        """
         annotation_notes_list = ibs.db.get(ANNOTATION_TABLE, ('annot_note',), aid_list)
         return annotation_notes_list
 
@@ -1753,7 +1755,8 @@ class IBEISController(object):
     def get_annot_bboxes(ibs, aid_list):
         """
         Returns:
-            bbox_list (list):  annotation bounding boxes in image space """
+            bbox_list (list):  annotation bounding boxes in image space
+        """
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         bbox_list = ibs.db.get(ANNOTATION_TABLE, colnames, aid_list)
         return bbox_list
@@ -1762,7 +1765,8 @@ class IBEISController(object):
     def get_annot_thetas(ibs, aid_list):
         """
         Returns:
-            theta_list (list): a list of floats describing the angles of each chip """
+            theta_list (list): a list of floats describing the angles of each chip
+        """
         theta_list = ibs.db.get(ANNOTATION_TABLE, ('annot_theta',), aid_list)
         return theta_list
 
@@ -1770,7 +1774,8 @@ class IBEISController(object):
     def get_annot_num_verts(ibs, aid_list):
         """
         Returns:
-            num_verts_list (list): the number of vertices that form the polygon of each chip """
+            num_verts_list (list): the number of vertices that form the polygon of each chip
+        """
         num_verts_list = ibs.db.get(ANNOTATION_TABLE, ('annot_num_verts',), aid_list)
         return num_verts_list
 
@@ -1778,7 +1783,8 @@ class IBEISController(object):
     def get_annot_verts(ibs, aid_list):
         """
         Returns:
-            vert_list (list): the vertices that form the polygon of each chip """
+            vert_list (list): the vertices that form the polygon of each chip
+        """
         vertstr_list = ibs.db.get(ANNOTATION_TABLE, ('annot_verts',), aid_list)
         # TODO: Sanatize input for eval
         #print('vertstr_list = %r' % (vertstr_list,))
@@ -1789,7 +1795,8 @@ class IBEISController(object):
     def get_annot_viewpoints(ibs, aid_list):
         """
         Returns:
-            viewpoint_list (list): the viewpoint (in radians) for the annotation """
+            viewpoint_list (list): the viewpoint (in radians) for the annotation
+        """
         viewpoint_list = ibs.db.get(ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
         viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
         return viewpoint_list
@@ -1938,9 +1945,9 @@ class IBEISController(object):
     def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
         thumb_dpath = ibs.thumb_dpath
         thumb_suffix = '_' + str(thumbsize) + constants.CHIP_THUMB_SUFFIX
-        annotation_uuid_list = ibs.get_annot_uuids(aid_list)
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
         thumbpath_list = [join(thumb_dpath, __STR__(uuid) + thumb_suffix)
-                          for uuid in annotation_uuid_list]
+                          for uuid in annot_uuid_list]
         return thumbpath_list
 
     @getter_1to1
