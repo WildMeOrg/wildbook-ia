@@ -64,10 +64,10 @@ import utool as ut  # NOQA
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.make_class_method_decorator('IBEISController')
+__injectable = ut.make_class_method_decorator(('IBEISController', 'ibsfuncs'))
 
 
-@ut.make_class_postinject_decorator('IBEISController')
+@ut.make_class_postinject_decorator(('IBEISController', 'ibsfuncs'))
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
@@ -80,7 +80,7 @@ def postinject_func(ibs):
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ut.inject_func_as_method(ibs, unflat_getter)
+        ut.inject_func_as_method(ibs, unflat_getter, allow_override=ibs.allow_override)
 
 
 @__injectable

@@ -1,55 +1,160 @@
+
+### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+from ibeis.viz import viz_chip
+from ibeis.viz import viz_helpers
+from ibeis.viz import viz_hough
+from ibeis.viz import viz_image
+from ibeis.viz import viz_matches
+from ibeis.viz import viz_name
+from ibeis.viz import viz_nearest_descriptors
+from ibeis.viz import viz_qres
+from ibeis.viz import viz_sver
+
+from ibeis.viz import viz_helpers as vh
+from ibeis.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
+from ibeis.viz.viz_image import show_image
+from ibeis.viz.viz_chip import show_chip
+from ibeis.viz.viz_name import show_name
+from ibeis.viz.viz_matches import show_matches, annotate_matches
+from ibeis.viz.viz_qres import show_qres, show_qres_top, show_qres_analysis
+from ibeis.viz.viz_sver import show_sver, _compute_svvars
+from ibeis.viz.viz_nearest_descriptors import show_nearest_descriptors
+from ibeis.viz.viz_hough import show_hough_image, show_probability_chip
+
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
+print, print_, printDBG, rrr, profile = utool.inject(
+    __name__, '[ibeis.viz]')
 
-#import plottool
-
-from . import viz_helpers
-from . import viz_chip
-from . import viz_image
-from . import viz_matches
-from . import viz_name
-from . import viz_nearest_descriptors
-from . import viz_qres
-from . import viz_sver
-from . import viz_hough
-
-from . import viz_helpers as vh
-from .viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
-from .viz_image import show_image
-from .viz_chip import show_chip
-from .viz_name import show_name
-from .viz_matches import show_matches, annotate_matches
-from .viz_qres import show_qres, show_qres_top, show_qres_analysis
-from .viz_sver import show_sver, _compute_svvars
-from .viz_nearest_descriptors import show_nearest_descriptors
-from .viz_hough import show_hough_image, show_probability_chip
 
 __LOADED__ = False
 
 def import_subs():
     global __LOADED__
-    from . import interact
+    from ibeis.viz import interact
     __LOADED__ = True
 
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[viz]')
 
-def reload_subs():
-    """ Reloads viz and submodules """
+def reassign_submodule_attributes(verbose=True):
+    """
+    why reloading all the modules doesnt do this I don't know
+    """
+    import sys
+    if verbose and '--quiet' not in sys.argv:
+        print('dev reimport')
+    # Self import
+    import ibeis.viz
+    # Implicit reassignment.
+    seen_ = set([])
+    for submodname, fromimports in IMPORT_TUPLES:
+        submod = getattr(ibeis.viz, submodname)
+        for attr in dir(submod):
+            if attr.startswith('_'):
+                continue
+            if attr in seen_:
+                # This just holds off bad behavior
+                # but it does mimic normal util_import behavior
+                # which is good
+                continue
+            seen_.add(attr)
+            setattr(ibeis.viz, attr, getattr(submod, attr))
+
+
+def reload_subs(verbose=True):
+    """ Reloads ibeis.viz and submodules """
     if not __LOADED__:
         import_subs()
-    rrr()
-    getattr(viz_chip, 'rrr', lambda: None)()
-    getattr(viz_helpers, 'rrr', lambda: None)()
-    getattr(viz_image, 'rrr', lambda: None)()
-    getattr(viz_matches, 'rrr', lambda: None)()
-    getattr(viz_name, 'rrr', lambda: None)()
-    getattr(viz_nearest_descriptors, 'rrr', lambda: None)()
-    getattr(viz_qres, 'rrr', lambda: None)()
-    getattr(viz_sver, 'rrr', lambda: None)()
-    getattr(viz_hough, 'rrr', lambda: None)()
-    getattr(interact, 'reload_subs', lambda: None)()
-    rrr()
+    rrr(verbose=verbose)
+    getattr(viz_chip, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_hough, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_image, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_matches, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_name, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_nearest_descriptors, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_qres, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(viz_sver, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(interact, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    rrr(verbose=verbose)
+    try:
+        # hackish way of propogating up the new reloaded submodule attributes
+        reassign_submodule_attributes(verbose=verbose)
+    except Exception as ex:
+        print(ex)
 rrrr = reload_subs
+
+IMPORT_TUPLES = [
+    ('viz_chip', None, False),
+    ('viz_helpers', None, False),
+    ('viz_hough', None, False),
+    ('viz_image', None, False),
+    ('viz_matches', None, False),
+    ('viz_name', None, False),
+    ('viz_nearest_descriptors', None, False),
+    ('viz_qres', None, False),
+    ('viz_sver', None, False),
+]
+"""
+Regen Command:
+    cd /home/joncrall/code/ibeis/ibeis/viz
+    makeinit.py
+"""
+# autogenerated __init__.py for: '/home/joncrall/code/ibeis/ibeis/viz'
+
+
+## flake8: noqa
+#from __future__ import absolute_import, division, print_function
+#import utool
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
+
+##import plottool
+
+#from . import viz_helpers
+#from . import viz_chip
+#from . import viz_image
+#from . import viz_matches
+#from . import viz_name
+#from . import viz_nearest_descriptors
+#from . import viz_qres
+#from . import viz_sver
+#from . import viz_hough
+
+#from . import viz_helpers as vh
+#from .viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
+#from .viz_image import show_image
+#from .viz_chip import show_chip
+#from .viz_name import show_name
+#from .viz_matches import show_matches, annotate_matches
+#from .viz_qres import show_qres, show_qres_top, show_qres_analysis
+#from .viz_sver import show_sver, _compute_svvars
+#from .viz_nearest_descriptors import show_nearest_descriptors
+#from .viz_hough import show_hough_image, show_probability_chip
+
+#__LOADED__ = False
+
+#def import_subs():
+#    global __LOADED__
+#    from . import interact
+#    __LOADED__ = True
+
+#print, print_, printDBG, rrr, profile = utool.inject(
+#    __name__, '[viz]')
+
+#def reload_subs():
+#    """ Reloads viz and submodules """
+#    if not __LOADED__:
+#        import_subs()
+#    rrr()
+#    getattr(viz_chip, 'rrr', lambda: None)()
+#    getattr(viz_helpers, 'rrr', lambda: None)()
+#    getattr(viz_image, 'rrr', lambda: None)()
+#    getattr(viz_matches, 'rrr', lambda: None)()
+#    getattr(viz_name, 'rrr', lambda: None)()
+#    getattr(viz_nearest_descriptors, 'rrr', lambda: None)()
+#    getattr(viz_qres, 'rrr', lambda: None)()
+#    getattr(viz_sver, 'rrr', lambda: None)()
+#    getattr(viz_hough, 'rrr', lambda: None)()
+#    getattr(interact, 'reload_subs', lambda: None)()
+#    rrr()
+#rrrr = reload_subs

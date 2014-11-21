@@ -63,7 +63,6 @@ install_prereqs.sh
 __install_prereqs__.sh
 failed.txt
 test_times.txt
-<<<<<<< HEAD
 
 #*.ipynb
 .ipynb_checkpoints
@@ -89,7 +88,9 @@ run_cyth_benchmarks.py
 _grave.py
 _ibeis_setup.py
 _doc
-=======
 _test_times.txt
-ibeis/control/schema.txt
->>>>>>> hotfix1
+
+ibeis/control/_grave_template.py
+ibeis/model/hots/smk/_smk_core_docs.txt
+ibeis/model/hots/smk/csmk/
+

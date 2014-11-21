@@ -194,6 +194,8 @@ from ibeis.viz.interact import ishow_sver
 from ibeis.viz.interact import ishow_matches
 from ibeis.viz.interact import iselect_bbox
 
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[all_imports]', DEBUG=False)
 
 def find_unregisterd():
     import sys

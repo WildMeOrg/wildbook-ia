@@ -27,11 +27,11 @@ NEIGHBOR_CACHE = {}
 MAX_NEIGHBOR_CACHE_SIZE = 8
 
 
-def rrr():
+def rrr(verbose=True):
     # TODO: Weakref?
     global NEIGHBOR_CACHE
     NEIGHBOR_CACHE.clear()
-    rrr_()
+    rrr_(verbose=verbose)
 
 
 @atexit.register
