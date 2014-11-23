@@ -11,7 +11,7 @@ from plottool.tests.test_helpers import dummy_bbox
 def test_viz_image(img_fpath):
     # Read image
     img = cv2.imread(img_fpath)
-    tau = np.pi * 2  # tauday.com
+    tau = np.pi * 2  # References: tauday.com
     # Create figure
     fig = df2.figure(fnum=42, pnum=(1, 1, 1))
     # Clear figure

@@ -6,7 +6,7 @@ from six.moves import zip, range
 import numpy as np
 # Matplotlib
 import matplotlib as mpl
-np.tau = 2 * np.pi  # tauday.com
+np.tau = 2 * np.pi  # References: tauday.com
 
 
 BLACK  = np.array((0.0, 0.0, 0.0, 1.0))
