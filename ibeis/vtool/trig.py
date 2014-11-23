@@ -10,7 +10,7 @@ cdef np.float64_t TAU
 #endif
 """
 
-TAU = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # References: tauday.com
 
 
 def atan2(y, x):

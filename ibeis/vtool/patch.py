@@ -27,7 +27,7 @@ from utool.util_inject import inject
 #sys.argv.append('--vecfield')
 
 
-np.tau = 2 * np.pi  # tauday.com
+np.tau = 2 * np.pi  # References: tauday.com
 
 
 @profile

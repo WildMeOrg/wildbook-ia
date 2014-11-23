@@ -17,7 +17,7 @@ profile = utool.profile
 cdef np.float64_t TAU = 2 * np.pi
 #endif
 '''
-TAU = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # References: tauday.com
 
 TRANSFORM_DTYPE = np.float64
 

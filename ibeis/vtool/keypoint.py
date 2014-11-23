@@ -57,7 +57,7 @@ cdef np.float64_t TAU = 2 * np.pi
 #:%s/np.ndarray\[np.float64_t, ndim=\([13]\)\]/numpy_floatarray_\1dimension/gc
 
 
-TAU = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # References: tauday.com
 GRAVITY_THETA = TAU / 4
 KPTS_DTYPE = np.float32
 
