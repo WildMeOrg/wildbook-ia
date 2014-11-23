@@ -2805,67 +2805,32 @@ class IBEISController(object):
             daid_list = ibs.get_valid_aids()
         return daid_list
 
-    #@default_decorator
-    #def _init_query_requestor(ibs):
-    #from ibeis.model.hots import match_chips3 as mc3
-    #from ibeis.model.hots import hots_query_request
-    #    # DEPRICATE
-    #    # Create query request object
-    #    ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
-    #    ibs.qreq.set_cfg(ibs.cfg.query_cfg)
-
-    #@default_decorator
-    #def _prep_qreq(ibs, qaid_list, daid_list, **kwargs):
-    #    # DEPRICATE
-    #    if ibs.qreq is None:
-    #        ibs._init_query_requestor()
-    #    qreq = mc3.prep_query_request(qreq=ibs.qreq,
-    #                                  qaids=qaid_list,
-    #                                  daids=daid_list,
-    #                                  query_cfg=ibs.cfg.query_cfg,
-    #                                  **kwargs)
-    #    return qreq
-
-    #@default_decorator
-    #def _query_chips3(ibs, qaid_list, daid_list, safe=True,
-    #                  use_cache=mc3.USE_CACHE,
-    #                  use_bigcache=mc3.USE_BIGCACHE,
-    #                  **kwargs):
-    #    # DEPRICATE
-    #    """
-    #    qaid_list - query chip ids
-    #    daid_list - database chip ids
-    #    kwargs modify query_cfg
-    #    """
-    #    qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
-    #    # TODO: Except query error
-    #    # NOTE: maybe kwargs should not be passed here, or the previous
-    #    # kwargs should become querycfgkw
-    #    process_qreqkw = {
-    #        'safe'         : safe,
-    #        'use_cache'    : use_cache,
-    #        'use_bigcache' : use_bigcache,
-    #    }
-    #    qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
-    #    return qaid2_qres
+    def query_chips(ibs, qaid_list, daid_list=None, cfgdict=None,
+                    use_cache=None, use_bigcache=None):
+        if daid_list is None:
+            daid_list = ibs.get_valid_aids()
+        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict,
+                                       use_cache=use_cache, use_bigcache=use_bigcache)
+        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+        return qres_list
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
                       use_bigcache=None, return_request=False,
-                      custom_qparams=None):
+                      cfgdict=None):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.all_imports import *  # NOQA
             >>> qaid_list = [1]
             >>> daid_list = [1, 2, 3, 4, 5]
-            >>> mc3.USE_CACHE = False
             >>> mc4.USE_CACHE = False
             >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-            >>> qres1 = ibs._query_chips3(qaid_list, daid_list, use_cache=False)[1]
-            >>> qres2 = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
-            >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
-            >>> qreq_.load_indexer(ibs)
-            >>> qreq_.load_query_vectors(ibs)
-            >>> qreq = ibs.qreq
+            >>> qres = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+
+        #>>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+        #>>> qreq_.load_indexer(ibs)
+        #>>> qreq_.load_query_vectors(ibs)
+        #>>> qreq = ibs.qreq
         """
         from ibeis.model.hots import match_chips4 as mc4
         assert len(daid_list) > 0, 'there are no database chips'
@@ -2873,12 +2838,12 @@ class IBEISController(object):
         if return_request:
             qaid2_qres, qreq_ = mc4.submit_query_request(
                 ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-                return_request, custom_qparams)
+                return_request, cfgdict)
             return qaid2_qres, qreq_
         else:
             qaid2_qres = mc4.submit_query_request(
                 ibs, qaid_list, daid_list, use_cache, use_bigcache, return_request,
-                custom_qparams)
+                cfgdict)
             return qaid2_qres
 
     #_query_chips = _query_chips3
@@ -3904,3 +3869,18 @@ try:
 except Exception as ex:
     utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)
     raise
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl, allexamples=True)"
+        python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl)"
+        python ibeis\control\IBEISControl.py
+        python ibeis\control\IBEISControl.py --allexamples
+        python ibeis\control\IBEISControl.py --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import ibeis  # NOQA
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

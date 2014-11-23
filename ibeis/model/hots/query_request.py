@@ -23,7 +23,7 @@ def get_test_qreq():
     return qreq_, ibs
 
 
-def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
+def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -32,8 +32,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> custom_qparams = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=custom_qparams)
+        >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.fg_weight == 1.0, 'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight
         >>> assert qreq_.qparams.sv_on is False, 'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on
@@ -51,7 +51,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams=None):
         print('HACKING FG_WEIGHT OFF')
         cfg._featweight_cfg.featweight_on = 'ERR'
     # </HACK>
-    qparams = QueryParams(cfg, custom_qparams)
+    qparams = QueryParams(cfg, cfgdict)
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
     qreq_ = QueryRequest(qaid_list, quuid_list,
@@ -360,8 +360,8 @@ class QueryParams(object):
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> cfg.pipeline_root = 'asmk'
-        >>> custom_qparams = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
-        >>> qparams = query_request.QueryParams(cfg, custom_qparams)
+        >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> qparams = query_request.QueryParams(cfg, cfgdict)
         >>> print(qparams.query_cfgstr)
         >>> assert qparams.fg_weight == 1.0
         >>> assert qparams.pipeline_root == 'smk'
@@ -371,17 +371,17 @@ class QueryParams(object):
         python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
     """
 
-    def __init__(qparams, cfg, custom_qparams=None):
+    def __init__(qparams, cfg, cfgdict=None):
         """
         Args:
             cfg (QueryConfig): query_config
-            custom_qparams (dict or None):
+            cfgdict (dict or None):
         """
         # Ensures that at least everything exits
         # pares nested config structure into this flat one
-        if custom_qparams is not None:
+        if cfgdict is not None:
             cfg = cfg.deepcopy()
-            cfg.update_query_cfg(**custom_qparams)
+            cfg.update_query_cfg(**cfgdict)
         param_list = Config.parse_config_items(cfg)
         seen_ = set()
         for key, val in param_list:

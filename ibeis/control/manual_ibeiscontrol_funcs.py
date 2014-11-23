@@ -21,14 +21,14 @@ def register_ibs_method(func):
 
 
 @register_ibs_method
-def new_query_request(ibs, qaid_list, daid_list, custom_qparams):
+def new_query_request(ibs, qaid_list, daid_list, cfgdict):
     """
     daid_list = ibs.get_valid_aids()
     qaid_list = daid_list[0:1]
-    custom_qparams = {}
+    cfgdict = {}
     """
     from ibeis.model.hots import query_request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
     return qreq_
 
 

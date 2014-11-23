@@ -1469,6 +1469,85 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
 
 
 @__injectable
+def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
+                    clamp_gf=1, seed=False):
+    """
+    Returns qaids and a corresponding list of lists for true matches and false
+    matches to try.
+
+    each item in the zip(*upsizetup) is qaid, true_aids, false_aids_samples
+    which corresponds to a query aid and a list of true aids and false aids
+    to try it as a query against.
+
+    get_upsize_data
+
+    Args:
+        ibs (IBEISController):
+        qaid_list (int): query annotation id
+        daid_list (list):
+        num_samp (int):
+        clamp_gt (int):
+        clamp_gf (int):
+        seed (int): if False seed is random else seeds numpy random num gen
+
+    Returns:
+        tuple: upsizetup
+
+    Example:
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
+        >>> num_samp = 5
+        >>> clamp_gt = 1
+        >>> clamp_gf = 1
+        >>> seed = 143039
+        >>> upsizetup = get_upsize_data(ibs, qaid_list, daid_list, num_samp, clamp_gt, clamp_gf, seed)
+        >>> (qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal) = upsizetup
+        >>> assert len(qaid_list) == 119
+        >>> assert len(qaid_trues_list) == 119
+        >>> assert len(qaid_false_samples_list) == 119
+        >>> assert nTotal == 525
+        >>> qaid, true_aids, false_aids_samples = six.next(zip(qaid_list, qaid_trues_list, qaid_false_samples_list))
+        >>> result = str(upsizetup)
+        >>> print(result)
+    """
+    if seed is not False:
+        # Determanism
+        np.random.seed(seed)
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
+    # List of database sizes to test
+    samp_min, samp_max = (2, ibs.get_num_names())
+    dbsamplesize_list = utool.sample_domain(samp_min, samp_max, num_samp)
+    #
+    # Sample true and false matches for every query annotation
+    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
+    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_gf)
+    #
+    # Vary the size of the falses
+    def generate_varied_falses():
+        for false_aids in qaid_falses_list:
+            false_sample_list = []
+            for dbsize in dbsamplesize_list:
+                if dbsize > len(false_aids):
+                    continue
+                false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
+                false_sample_list.append(false_sample)
+            yield false_sample_list
+    qaid_false_samples_list = list(generate_varied_falses())
+
+    #
+    # Get a rough idea of how many queries will be run
+    nTotal = sum([len(false_aids_samples) * len(true_aids)
+                  for true_aids, false_aids_samples
+                  in zip(qaid_false_samples_list, qaid_trues_list)])
+    upsizetup = (qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal)
+    return upsizetup
+
+
+@__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     """
     >>> per_name = 1

@@ -104,7 +104,7 @@ def autogen_ibeis_runtest():
         # title, default, module, testpattern
         ut.def_test('VTOOL',  dpath='vtool/tests', pat=['test*.py'], modname='vtool'),
         ut.def_test('GUI',    dpath=testdir, pat=['test_gui*.py']),
-        ut.def_test('IBEIS',  dpath=testdir, pat=['test_ibs*.py', 'test_delete*.py'], default=True),
+        ut.def_test('IBEIS',  dpath=testdir, pat=['test_ibs*.py', 'test_delete*.py'], default=False),
         ut.def_test('SQL',    dpath=testdir, pat=['test_sql*.py']),
         ut.def_test('VIEW',   dpath=testdir, pat=['test_view*.py']),
         ut.def_test('MISC',   dpath=testdir, pat=misc_pats),

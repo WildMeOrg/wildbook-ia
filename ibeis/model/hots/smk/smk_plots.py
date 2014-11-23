@@ -464,7 +464,7 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     """
     # FIXME: Put query_cfg into the qreq_ structure by itself.
     # Don't change the IBEIS Structure
-    custom_qparams = {
+    cfgdict = {
         'pipeline_root': 'vsmany',
         'with_metadata': True,
         'K': K,
@@ -473,7 +473,7 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     }
     #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
     #ibs.cfg.query_cfg.with_metadata = True
-    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, custom_qparams=custom_qparams)
+    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, cfgdict=cfgdict)
     indexer = qreq_.indexer
     qres = qaid2_qres[aid]
     (qfx2_idx, qfx2_dist) = qres.metadata['nns']

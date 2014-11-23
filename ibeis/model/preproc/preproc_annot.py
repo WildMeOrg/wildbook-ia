@@ -18,6 +18,7 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
                               viewpoint_list=None, quiet_delete_thumbs=False):
     #annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
     #                                                      theta_list, deterministic=False)
+    image_uuid_list = ibs.get_image_uuids(gid_list)
     if annot_uuid_list is None:
         annot_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
     # Prepare the SQL input
@@ -74,6 +75,26 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
 
 
+def get_annot_appearance_determenistic_info(ibs, aid_list):
+    """
+    Returns annotation UUID that is unique for the visual qualities
+    of the annoation. does not include name ore species information.
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_annot import *   # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+    """
+    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+    bbox_list       = ibs.get_annot_bboxes(aid_list)
+    theta_list      = ibs.get_annot_thetas(aid_list)
+    view_list       = ibs.get_annot_viewpoints(aid_list)
+    info_iter = zip(image_uuid_list, bbox_list, theta_list, view_list)
+    annot_appearance_determenistic_info_list = list(info_iter)
+    return annot_appearance_determenistic_info_list
+
+
 def get_annot_determenistic_info(ibs, aid_list):
     """
     Example:
@@ -83,11 +104,11 @@ def get_annot_determenistic_info(ibs, aid_list):
         >>> aid_list = ibs.get_valid_aids()
     """
     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    theta_list = ibs.get_annot_thetas(aid_list)
-    name_list = ibs.get_annot_names(aid_list)
-    species_list = ibs.get_annot_species(aid_list)
-    view_list = ibs.get_annot_viewpoints(aid_list)
+    bbox_list       = ibs.get_annot_bboxes(aid_list)
+    theta_list      = ibs.get_annot_thetas(aid_list)
+    name_list       = ibs.get_annot_names(aid_list)
+    species_list    = ibs.get_annot_species(aid_list)
+    view_list       = ibs.get_annot_viewpoints(aid_list)
     info_iter = zip(image_uuid_list, bbox_list, theta_list, name_list, species_list, view_list)
     annot_determenistic_info_list = list(info_iter)
     return annot_determenistic_info_list
@@ -103,7 +124,7 @@ def determenistic_annotation_uuids(ibs, aid_list):
     """
     annot_determenistic_info_list = get_annot_determenistic_info(ibs, aid_list)
     annot_uuid_list = [ut.augment_uuid(*tup) for tup in annot_determenistic_info_list]
-    return image_uuid_list
+    return annot_uuid_list
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):

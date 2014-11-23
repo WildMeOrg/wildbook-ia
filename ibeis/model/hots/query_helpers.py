@@ -11,8 +11,8 @@ def get_query_components(ibs, qaids):
     from . import pipeline
     from . import query_request
     daids = ibs.get_valid_aids()
-    custom_qparams = dict(with_metadata=True)
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, custom_qparams)
+    cfgdict = dict(with_metadata=True)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
     qaid = qaids[0]
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'

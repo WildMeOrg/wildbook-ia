@@ -140,9 +140,9 @@ def qres2_true_and_false(ibs, qres):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> custom_qparams = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
+        >>> cfgdict = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
         >>> qaid_list = aid_list[0:1]
-        >>> qaid2_qres = ibs._query_chips4(qaid_list, aid_list, custom_qparams=custom_qparams)
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, aid_list, cfgdict=cfgdict)
         >>> qres = qaid2_qres[qaid_list[0]]
         >>> (true_tup, false_tup) = qres2_true_and_false(ibs, qres)
         >>> print((true_tup, false_tup))
@@ -204,8 +204,8 @@ def organize_results(ibs, qaid2_qres):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> custom_qparams = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
-        >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, custom_qparams=custom_qparams)
+        >>> cfgdict = dict(codename='nsum', fg_weight=1.0, featweight_on=True)
+        >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, cfgdict=cfgdict)
     """
     print('organize_results()')
     org_true          = OrganizedResult('true')

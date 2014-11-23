@@ -305,53 +305,31 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
 
     Example:
         >>> from ibeis.all_imports import *  # NOQA
-        >>> ibs = ibeis.opendb('PZ_FlankHack')
+        >>> #ibs = ibeis.opendb('PZ_FlankHack')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
     """
     print('updbsize_expt')
-    # clamp the number of groundtruth to test
-    clamp_gt = utool.get_argval('--clamp-gt', int, 1)
-    clamp_ft = utool.get_argval('--clamp-gf', int, 1)
-    num_samp = utool.get_argval('--num-samples', int, 5)
-    #
-    # Determanism
-    seed_ = 143039
-    np.random.seed(seed_)
-    #
-    # List of database sizes to test
-    samp_min, samp_max = (2, ibs.get_num_names())
-    dbsamplesize_list = utool.sample_domain(samp_min, samp_max, num_samp)
-    #
-    # Sample true and false matches for every query annotation
-    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
-    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_ft)
-    #
-    # Vary the size of the falses
-    def generate_varied_falses():
-        for false_aids in qaid_falses_list:
-            false_sample_list = []
-            for dbsize in dbsamplesize_list:
-                if dbsize > len(false_aids):
-                    continue
-                false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
-                false_sample_list.append(false_sample)
-            yield false_sample_list
-    qaid_false_samples_list = list(generate_varied_falses())
-
-    #
-    # Get a rough idea of how many queries will be run
-    nTotal = sum([len(false_aids_samples) * len(true_aids)
-                  for true_aids, false_aids_samples
-                  in zip(qaid_false_samples_list, qaid_trues_list)])
+    upsizekw = dict(
+        num_samp=utool.get_argval('--num-samples', int, 5),
+        clamp_gt=utool.get_argval('--clamp-gt', int, 1),
+        clamp_gf=utool.get_argval('--clamp-gf', int, 1),
+        seed=143039
+    )
+    upsizetup = ibs.get_upsize_data(qaid_list, daid_list, **upsizekw)
+    qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal = upsizetup
     # Create a progress marking function
-    progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': False}
+    progkw = dict(nTotal=nTotal, flushfreq=20, approx=False)
     mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
     count = 0
-    # output containers
+    # Set up output containers and run test iterations
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
-    #
-    # Set up and run test iterations
     input_iter = zip(qaid_list, qaid_trues_list, qaid_false_samples_list)
+    # For each query annotation runs it as a query multiple times
+    # each time it increases the number of false annotation in the database
+    # so we can see how a score degrades as the number of false
+    # database annotations increases
     for qaid, true_aids, false_aids_samples in input_iter:
         #print('qaid = %r' % (qaid,))
         #print('true_aids=%r' % (true_aids,))
@@ -484,8 +462,8 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
-    custom_qparams = dict(featweight_on=True, fg_weight=1.0)
-    allres = results_all.get_allres(ibs, qaid_list, daid_list, custom_qparams)
+    cfgdict = dict(featweight_on=True, fg_weight=1.0)
+    allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')
     top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
@@ -497,10 +475,10 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     for qaid, daid in top_false_aid_pairs:
         qaid2_vsoneaids[qaid].append(daid)
         qaid2_vsoneaids[qaid].extend(qaid2_vsoneaids_.get(qaid, []))
-    custom_qparams = dict(codename='vsone')
+    cfgdict = dict(codename='vsone')
     qaid2_vsoneqres = {}
     for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
-        qres = ibs._query_chips4([qaid], vsoneaids, custom_qparams=custom_qparams)[qaid]
+        qres = ibs._query_chips4([qaid], vsoneaids, cfgdict=cfgdict)[qaid]
         qaid2_vsoneqres[qaid] = qres
     vsone_allres = results_all.init_allres(ibs, qaid2_vsoneqres)
     viz_allres_annotation_scores(vsone_allres)

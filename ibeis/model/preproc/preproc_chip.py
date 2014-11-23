@@ -77,7 +77,7 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         >>> fname = basename(cfpath)
         >>> result = (fname, width, height)
         >>> print(result)
-        ('chip_aid=1_bbox=(0,0,1047,715)_CHIP(sz450).png', 545, 372)
+        ('chip_aid=1_bbox=(0,0,1047,715)_theta=0.0_gid=1_CHIP(sz450).png', 545, 372)
     """
     try:
         # THIS DOESNT ACTUALLY COMPUTE ANYTHING!!!
@@ -315,9 +315,8 @@ def get_annot_cfpath_list(ibs, aid_list):
         >>> fname = '\n'.join(map(basename, cfpath_list))
         >>> result = fname
         >>> print(result)
-        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0_gid=1_CHIP(sz450).png
+        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
 
-    chip_aid=1_bbox=(0,0,1047,715)_CHIP(sz450).png
     """
     cfname_fmt = get_chip_fname_fmt(ibs)
     cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, ibs.chipdir)
@@ -351,11 +350,38 @@ def get_chip_fname_fmt(ibs):
     #cfname_fmt = ('aid_%d' + suffix)
     #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
     #cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
-    cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%r_gid=%d' , suffix])
+    cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%s_gid=%d' , suffix])
     return cfname_fmt
 
 
 def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
+    """
+    format_aid_bbox_theta_gid_fnames
+
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        fname_fmt (?):
+        dpath (?):
+
+    Returns:
+        ?: fpath_list
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_chip import *   # NOQA
+        >>> import ibeis
+        >>> from os.path import basename
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> fname_fmt = get_chip_fname_fmt(ibs)
+        >>> dpath = ibs.chipdir
+        >>> fpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath)
+        >>> result = str(basename(fpath_list[0]))
+        >>> print(result)
+        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
+    """
+
     #ut.assert_all_not_None(aid_list, 'aid_list')
     #annot_uuid_list = ibs.get_annot_uuids(aid_list)
     #cfname_iter = (None if aid is None else cfname_fmt % aid for aid in iter(aid_list))
@@ -365,9 +391,21 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
     annot_bbox_list  = ibs.get_annot_bboxes(aid_list)
     annot_theta_list = ibs.get_annot_thetas(aid_list)
     annot_gid_list   = ibs.get_annot_gids(aid_list)
-    annot_bboxstr_list = (ut.bbox_str(bbox, pad=0, sep=',')
-                          for bbox in annot_bbox_list)
-    tup_iter = zip(aid_list, annot_bboxstr_list, annot_theta_list, annot_gid_list)
+    try:
+        annot_bboxstr_list = list([ut.bbox_str(bbox, pad=0, sep=',') for bbox in annot_bbox_list])
+        annot_thetastr_list = list([ut.theta_str(theta, taustr='tau') for theta in annot_theta_list])
+    except Exception as ex:
+        ut.printex(ex, 'problem in chip_fname', keys=[
+            'aid_list',
+            'annot_bbox_list',
+            'annot_theta_list',
+            'annot_gid_list',
+            'annot_bboxstr_list',
+            'annot_thetastr_list',
+        ]
+        )
+        raise
+    tup_iter = zip(aid_list, annot_bboxstr_list, annot_thetastr_list, annot_gid_list)
     fname_iter = (None if tup[0] is None else fname_fmt % tup
                    for tup in tup_iter)
     fpath_list = [None if fname is None else join(dpath, fname)

@@ -88,7 +88,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
     Dev::
         valid_aids = ibs.get_valid_aids()
         hard_aids = ibs.get_hard_annot_rowids()
-        qaid2_qres = ibs._query_chips4(hard_aids, daid_list, custom_qparams=cfgdict)
+        qaid2_qres = ibs._query_chips4(hard_aids, daid_list, cfgdict=cfgdict)
         qres = qres_list[0]
         #sorted_nids, sorted_scores = qres.get_sorted_nids_and_scores(ibs)
         #data = sorted_scores
@@ -457,33 +457,33 @@ __ALLRES_CACHE__ = {}
 __QRESREQ_CACHE__ = {}
 
 
-def build_cache_key(ibs, qaid_list, daid_list, custom_qparams):
+def build_cache_key(ibs, qaid_list, daid_list, cfgdict):
     # a little overconstrained
     cfgstr = ibs.cfg.query_cfg.get_cfgstr()
     query_hashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUID')
     data_hashid  = ibs.get_annot_uuid_hashid(daid_list, '_DAUUID')
-    key = (query_hashid, data_hashid, cfgstr, str(custom_qparams))
+    key = (query_hashid, data_hashid, cfgstr, str(cfgdict))
     return key
 
 
-def get_qres_and_qreq_(ibs, qaid_list, daid_list=None, custom_qparams=None):
+def get_qres_and_qreq_(ibs, qaid_list, daid_list=None, cfgdict=None):
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
 
-    qres_cache_key = build_cache_key(ibs, qaid_list, daid_list, custom_qparams)
+    qres_cache_key = build_cache_key(ibs, qaid_list, daid_list, cfgdict)
 
     try:
         (qaid2_qres, qreq_) = __QRESREQ_CACHE__[qres_cache_key]
     except KeyError:
         qaid2_qres, qreq_ = ibs._query_chips(qaid_list, daid_list,
                                              return_request=True,
-                                             custom_qparams=custom_qparams)
+                                             cfgdict=cfgdict)
         # Cache save
         __QRESREQ_CACHE__[qres_cache_key] = (qaid2_qres, qreq_)
     return (qaid2_qres, qreq_)
 
 
-def get_allres(ibs, qaid_list, daid_list=None, custom_qparams=None):
+def get_allres(ibs, qaid_list, daid_list=None, cfgdict=None):
     """
     get_allres
 
@@ -507,11 +507,11 @@ def get_allres(ibs, qaid_list, daid_list=None, custom_qparams=None):
     print('[dev] get_allres')
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    allres_key = build_cache_key(ibs, qaid_list, daid_list, custom_qparams)
+    allres_key = build_cache_key(ibs, qaid_list, daid_list, cfgdict)
     try:
         allres = __ALLRES_CACHE__[allres_key]
     except KeyError:
-        qaid2_qres, qreq_ = get_qres_and_qreq_(ibs, qaid_list, daid_list, custom_qparams)
+        qaid2_qres, qreq_ = get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
         allres = init_allres(ibs, qaid2_qres, qreq_)
         # Cache save
         __ALLRES_CACHE__[allres_key] = allres

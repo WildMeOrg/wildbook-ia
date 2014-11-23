@@ -53,7 +53,7 @@ from functools import partial
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=False)
 
 
-TAU = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # References: tauday.com
 NOT_QUIET = utool.NOT_QUIET and not utool.get_argflag('--quiet-query')
 VERB_PIPELINE = utool.get_argflag(('--verbose-pipeline', '--verb-pipe'))
 VERYVERBOSE_PIPELINE = utool.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
@@ -1215,8 +1215,8 @@ def testrun_pipeline_upto(qreq_, stop_node=None):
     return locals()
 
 
-def get_pipeline_testdata(dbname=None, custom_qparams={}, qaid_list=None,
-                          daid_list=None, cfgdict=None):
+def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
+                          daid_list=None):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -1246,9 +1246,7 @@ def get_pipeline_testdata(dbname=None, custom_qparams={}, qaid_list=None,
         daid_list = ibs.get_valid_aids()
     ibs = ibeis.test_main(db=dbname)
     ibs.cfg.query_cfg.with_metadata = True
-    if cfgdict is not None:
-        custom_qparams = cfgdict
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
     qreq_.lazy_load(ibs)
     qreq_.ibs = ibs
     # TODO incorporate metdata into qreq

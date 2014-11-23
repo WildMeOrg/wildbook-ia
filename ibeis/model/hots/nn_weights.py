@@ -504,16 +504,15 @@ def test_all_normalized_weights():
         test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
 
 
-def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, custom_qparams={}, cfgdict=None):
+def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdict={}):
     """
     >>> dbname = 'testdb1'
-    >>> custom_qparams = {'fg_weight': 1.0}
+    >>> cfgdict = {'fg_weight': 1.0}
     """
     from ibeis.model.hots import pipeline
     ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname,
                                                 qaid_list=qaid_list,
                                                 daid_list=daid_list,
-                                                custom_qparams=custom_qparams,
                                                 cfgdict=cfgdict)
     pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
     qaid2_nns     = pipeline_locals_['qaid2_nns']

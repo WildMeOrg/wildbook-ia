@@ -151,9 +151,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = basename(probchip_fpath_list[1])
         >>> print(result)
-        probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
-
-
+        probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0tau_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
     ibs.probchipdir = get_probchip_cachedir(ibs)
     cachedir = get_probchip_cachedir(ibs)
