@@ -21,7 +21,7 @@ TODO:
 
 """
 from __future__ import absolute_import, division, print_function
-from os.path import join, split, exists
+from os.path import join, split, exists, basename
 import utool
 import numpy as np
 import utool as ut
@@ -35,18 +35,20 @@ class Savable(object):
     def __init__(self):
         pass
 
-    def load(self, cachedir, verbose=ut.VERBOSE, force_miss=False):
+    def load(self, cachedir, verbose=True or ut.VERBOSE, force_miss=False):
         """ Loads the result from the given database """
         fpath = self.get_fpath(cachedir)
+        if verbose:
+            print('[qr] cache tryload: %r' % (basename(fpath),))
         try:
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
                 self.__dict__.update(loaded_dict)
             if verbose:
-                print('... self cache hit: %r' % (split(fpath)[1],))
+                print('... self cache hit: %r' % (basename(fpath),))
         except IOError as ex:
             if not exists(fpath):
-                msg = '... self cache miss: %r' % (split(fpath)[1],)
+                msg = '... self cache miss: %r' % (basename(fpath),)
                 if verbose:
                     print(msg)
                 raise
@@ -73,7 +75,7 @@ class Savable(object):
         fpath = join(cachedir, self.get_fname())
         return fpath
 
-    def save(self, cachedir, verbose=ut.VERBOSE):
+    def save(self, cachedir, verbose=True or ut.VERBOSE):
         """
         saves query result to directory
         """
@@ -138,12 +140,13 @@ def learn_score_normalizer(good_tn, good_tp, cfgstr=None):
     #inspect_pdfs('score', score_domain, good_tn, good_tp, p_score_given_tn, p_score_given_tp, p_score, p_tn_given_score, p_tp_given_score)
 
 
-def tryload_score_normalizer(cfgstr):
+def tryload_score_normalizer(cachedir, cfgstr):
+    normalizer = ScoreNormalizer(cfgstr)
     try:
-        normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load()
+        normalizer.load(cachedir)
         return normalizer
     except Exception:
+        #ut.printex(ex)
         return None
 
 
@@ -153,7 +156,7 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
         qaid2_qres (int): query annotation id
 
     Example:
-        >>> # ENABLE_DOCSTR
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *   # NOQA
         >>> import ibeis
         >>> dbname = 'PZ_MTEST'
@@ -162,12 +165,17 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
         >>> cfgdict = dict(codename='nsum')
         >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
         >>> score_normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list)
+        >>> result = score_normalizer.get_fname()
+        >>> print(result)
+        PZ_MTEST_UUIDS((119)htc%i42+w9plda&d)_scorenorm.cPkl
     """
     # Collect training data
     cfgstr = ibs.get_dbname() + ibs.get_annot_uuid_hashid(qaid_list)
-    normalizer = tryload_score_normalizer(cfgstr)
+    normalizer = tryload_score_normalizer(ibs.cachedir, cfgstr)
     if normalizer is not None:
+        print('returning cached normalizer')
         return normalizer
+    print('computing normalizer')
     good_tp_nscores = []
     good_tn_nscores = []
     good_tp_aidnid_pairs = []
@@ -199,7 +207,8 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
                 good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
     good_tp = np.array(good_tp_nscores)
     good_tn = np.array(good_tn_nscores)
-    normalizer = learn_score_normalizer(good_tp, good_tn)
+    normalizer = learn_score_normalizer(good_tp, good_tn, cfgstr)
+    normalizer.save(ibs.cachedir)
     return normalizer
 
 
