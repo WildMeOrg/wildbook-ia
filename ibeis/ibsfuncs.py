@@ -568,6 +568,11 @@ def delete_all_annotations(ibs):
 
 @__injectable
 def vd(ibs):
+    ibs.view_dbdir()
+
+
+@__injectable
+def view_dbdir(ibs):
     utool.view_directory(ibs.get_dbdir())
 
 
@@ -588,8 +593,24 @@ def get_annot_is_hard(ibs, aid_list):
     """
     CmdLine:
         ./dev.py --cmd --db PZ_Mothers
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+
+    Returns:
+        list: is_hard_list
+
     Example:
-        >>> aid_list = ibs.get_valid_aids()  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0::2]
+        >>> is_hard_list = get_annot_is_hard(ibs, aid_list)
+        >>> result = str(is_hard_list)
+        >>> print(result)
+        [False, False, False, False, False, False, False]
     """
     notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = [constants.HARD_NOTE_TAG in notes.upper().split() for (notes)
@@ -1217,10 +1238,32 @@ def get_infostr(ibs):
 
 
 @__injectable
-def print_annotation_table(ibs):
-    """ Dumps annotation table to stdout """
+def print_annotation_table(ibs, verbosity=1):
+    """
+    Dumps annotation table to stdout
+
+    Args:
+        ibs (IBEISController):
+        verbosity (int):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> verbosity = 1
+        >>> print_annotation_table(ibs, verbosity)
+    """
+    exclude_columns = []
+    if verbosity < 5:
+        exclude_columns += ['annot_uuid', 'annot_verts']
+    if verbosity < 4:
+        exclude_columns += [
+            'annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',
+            'annot_theta', 'annot_viewpoint', 'annot_detect_confidence',
+            'annot_note', 'annot_parent_rowid']
     print('\n')
-    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotation_uuid', 'annotation_verts']))
+    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=exclude_columns))
 
 
 @__injectable
@@ -1550,7 +1593,27 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 @__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     """
-    >>> per_name = 1
+    get_annot_groundfalse_sample
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        per_name (int):
+
+    Returns:
+        ?: sample_trues_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::4]
+        >>> per_name = 1
+        >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name)
+        >>> result = str(sample_trues_list)
+        >>> print(result)
+        [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
     """
     # Get valid names
     valid_aids = ibs.get_valid_aids()
@@ -1584,11 +1647,23 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
 @__injectable
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
     """
+    get_annot_groundtruth_sample
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        per_name (int):
+
     Example:
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
         >>> per_name = 1
-        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
+        >>> print(result)
+        [[], [2], [6], [], [], [], []]
     """
     all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=True)
     def random_choice(aids):
@@ -1676,3 +1751,17 @@ def redownload_detection_models():
     utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
     grabmodels.ensure_models()
     print('[ibsfuncs] finished redownload_detection_models')
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs, allexamples=True)"
+        python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs)"
+        python ibeis/ibsfuncs.py
+        python ibeis/ibsfuncs.py --allexamples
+        python ibeis/ibsfuncs.py --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

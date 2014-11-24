@@ -1,6 +1,23 @@
 """
 The goal of this module is to offload annotation work from the controller into a
 single place.
+
+
+CommandLine Help for manual controller functions
+
+python ibeis/control/template_generator.py --tbls annotations --Tcfg with_getters:True with_native:True strip_docstr:True
+
+python ibeis/control/template_generator.py --tbls annotations --Tcfg with_getters:True strip_docstr:True with_columns:False --quiet
+python ibeis/control/template_generator.py --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+
+
+# python -c "import utool; utool.write_to('agenhelp.bat', 'python ibeis/control/template_generator.py %*')
+
+# Cross platform alias helper
+python -c "import utool as ut; ut.write_to('Tgen.sh', 'python ibeis/control/template_generator.py $@')"
+
+Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
@@ -75,56 +92,127 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
 
 
-def get_annot_appearance_determenistic_info(ibs, aid_list):
+def get_annot_visual_uuid_info(ibs, aid_list):
     """
     Returns annotation UUID that is unique for the visual qualities
     of the annoation. does not include name ore species information.
 
+    get_annot_visual_uuid_info
+
+    Args:
+        ibs      (IBEISController):
+        aid_list (list):
+
+    Returns:
+        ?: annot_appearance_determenistic_info_list
+
     Example:
-        >>> from ibeis.model.preproc.preproc_annot import *   # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> visual_info_list = get_annot_visual_uuid_info(ibs, aid_list)
+        >>> result = str(visual_info_list[0])
+        >>> print(result)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0, None)
     """
     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    bbox_list       = ibs.get_annot_bboxes(aid_list)
+    verts_list      = ibs.get_annot_verts(aid_list)
     theta_list      = ibs.get_annot_thetas(aid_list)
     view_list       = ibs.get_annot_viewpoints(aid_list)
-    info_iter = zip(image_uuid_list, bbox_list, theta_list, view_list)
-    annot_appearance_determenistic_info_list = list(info_iter)
-    return annot_appearance_determenistic_info_list
+    visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
+    visual_info_list = list(visual_info_iter)
+    return visual_info_list
 
 
-def get_annot_determenistic_info(ibs, aid_list):
+def get_annot_semantic_uuid_info(ibs, aid_list):
     """
+    Args:
+        ibs      (IBEISController):
+        aid_list (list):
+
+    Returns:
+        list: semantic_info_list
+
     Example:
-        >>> from ibeis.model.preproc.preproc_annot import *   # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> semantic_info_list = get_annot_semantic_uuid_info(ibs, aid_list)
+        >>> result = str(semantic_info_list[0])
+        >>> print(result)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0, None, '____', u'zebra_plains')
+
     """
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    bbox_list       = ibs.get_annot_bboxes(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
+    # Semantic info depends on visual info
+    visual_info_list = get_annot_visual_uuid_info(ibs, aid_list)
+    # It is visual info augmented with name and species
     name_list       = ibs.get_annot_names(aid_list)
     species_list    = ibs.get_annot_species(aid_list)
-    view_list       = ibs.get_annot_viewpoints(aid_list)
-    info_iter = zip(image_uuid_list, bbox_list, theta_list, name_list, species_list, view_list)
-    annot_determenistic_info_list = list(info_iter)
-    return annot_determenistic_info_list
+    aug_info_list = zip(name_list, species_list)
+    # Perform augmentation
+    semantic_info_iter = (visinfo + auginfo for visinfo, auginfo in zip(visual_info_list, aug_info_list))
+    semantic_info_list = list(semantic_info_iter)
+    return semantic_info_list
 
 
-def determenistic_annotation_uuids(ibs, aid_list):
+def make_annot_visual_uuid(ibs, aid_list):
     """
+    make_annot_visual_uuid
+
+    Args:
+        ibs      (IBEISController):
+        aid_list (list):
+
+    Returns:
+        list: annot_visual_uuid_list
+
     Example:
-        >>> from ibeis.model.preproc.preproc_annot import *   # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> annot_visual_uuid_list = make_annot_visual_uuid(ibs, aid_list)
+        >>> result = str(annot_visual_uuid_list[0])
+        >>> print(result)
+        76de0416-7c92-e1b3-4a17-25df32e9c2b4
     """
-    annot_determenistic_info_list = get_annot_determenistic_info(ibs, aid_list)
-    annot_uuid_list = [ut.augment_uuid(*tup) for tup in annot_determenistic_info_list]
-    return annot_uuid_list
+    get_annot_visual_uuid_info(ibs, aid_list)
+    determenistic_info_list = get_annot_visual_uuid_info(ibs, aid_list)
+    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in determenistic_info_list]
+    return annot_visual_uuid_list
+
+
+def make_annot_semeantic_uuid(ibs, aid_list):
+    """
+    make_annot_semeantic_uuid
+
+    Args:
+        ibs      (IBEISController):
+        aid_list (list):
+
+    Returns:
+        list: annot_semantic_uuid_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annot_semantic_uuid_list = make_annot_semeantic_uuid(ibs, aid_list)
+        >>> result = str(annot_semantic_uuid_list[0])
+        >>> print(result)
+        215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
+    """
+    get_annot_visual_uuid_info(ibs, aid_list)
+    determenistic_info_list = get_annot_semantic_uuid_info(ibs, aid_list)
+    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in determenistic_info_list]
+    return annot_semantic_uuid_list
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
@@ -164,3 +252,96 @@ def test_annotation_uuid(ibs):
     annotation_uuid_list2 = make_annotation_uuids(image_uuid_list, bbox_list, theta_list)
 
     assert annotation_uuid_list1 == annotation_uuid_list2
+
+
+def schema_1_2_0_postprocess_fixuuids(ibs):
+    """
+    schema_1_2_0_postprocess_fixuuids
+
+    Args:
+        ibs (IBEISController):
+
+    Example:
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> result = schema_1_2_0_postprocess_fixuuids(ibs)
+        >>> print(result)
+    """
+    aid_list = ibs.get_valid_aids()
+    #ibs.get_annot_nids(aid_list)
+    #ANNOT_PARENT_ROWID      = 'annot_parent_rowid'
+    #ANNOT_ROWID             = 'annot_rowid'
+    ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
+    ANNOT_VISUAL_UUID       = 'annot_visual_uuid'
+    NAME_ROWID              = 'name_rowid'
+    SPECIES_ROWID           = 'species_rowid'
+
+    def get_nid_from_lblannot_relation(ibs, aid_list):
+        from ibeis import ibsfuncs
+        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
+        # TODO: get index of highest confidence name
+        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_LBLANNOT_ROWID for
+                     lblannot_rowids in lblannot_rowids_list]
+        return nid_list_
+
+    def get_annot_name_rowid(ibs, aid_list):
+        id_iter = aid_list
+        colnames = (NAME_ROWID,)
+        name_rowid_list = ibs.db.get(constants.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+        return name_rowid_list
+
+    def set_annot_semantic_uuids(ibs, aid_list, annot_semantic_uuid_list):
+        id_iter = aid_list
+        colnames = (ANNOT_SEMANTIC_UUID,)
+        ibs.db.set(constants.ANNOTATION_TABLE, colnames,
+                   annot_semantic_uuid_list, id_iter)
+
+    def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
+        id_iter = aid_list
+        colnames = (SPECIES_ROWID,)
+        ibs.db.set(
+            constants.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
+
+    def set_annot_visual_uuids(ibs, aid_list, annot_visual_uuid_list):
+        id_iter = aid_list
+        colnames = (ANNOT_VISUAL_UUID,)
+        ibs.db.set(constants.ANNOTATION_TABLE, colnames,
+                   annot_visual_uuid_list, id_iter)
+
+    def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
+        id_iter = aid_list
+        colnames = (NAME_ROWID,)
+        ibs.db.set(constants.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
+
+    ibs.print_annotation_table(verbosity=1)
+
+    # Move old name rowids to the new columns
+    nid_list = get_nid_from_lblannot_relation(ibs, aid_list)
+    nid_list1_ = get_annot_name_rowid(ibs, aid_list)  # NOQA
+    annot_semantic_uuid_list = make_annot_semeantic_uuid(ibs, aid_list)  # NOQA
+    annot_visual_uuid_list = make_annot_visual_uuid(ibs, aid_list)  # NOQA
+
+    set_annot_name_rowids(ibs, aid_list, nid_list)
+    nid_list2_ = get_annot_name_rowid(ibs, aid_list)  # NOQA
+
+    #ibs.db.set(constants.ANNOTATION_TABLE,)
+
+    ibs.print_annotation_table(verbosity=1)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.model.preproc.preproc_annot; utool.doctest_funcs(ibeis.model.preproc.preproc_annot, allexamples=True)"
+        python -c "import utool, ibeis.model.preproc.preproc_annot; utool.doctest_funcs(ibeis.model.preproc.preproc_annot)"
+        python ibeis/model/preproc/preproc_annot.py
+        python ibeis/model/preproc/preproc_annot.py --allexamples
+        python ibeis/model/preproc/preproc_annot.py --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

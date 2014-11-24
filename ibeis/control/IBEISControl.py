@@ -109,18 +109,19 @@ class IBEISController(object):
         """ Creates a new IBEIS Controller associated with one database """
         if verbose and utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
-        ibs.table_cache = init_tablecache()
-        # observer_weakref_list keeps track of the guibacks connected to this controller
+        # an dict to hack in temporary state
+        ibs.temporary_state = {}
         ibs.allow_override = 'override+warn'
+        # observer_weakref_list keeps track of the guibacks connected to this controller
         ibs.observer_weakref_list = []
+        # not completely working decorator cache
+        ibs.table_cache = init_tablecache()
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _init_wb will do nothing if no wildbook address is specified
         ibs._init_wb(wbaddr)
         ibs._init_sql()
         ibs._init_config()
-        # an dict to hack in temporary state
-        ibs.temporary_state = {}
 
     def _initialize_self(ibs):
         """
@@ -201,6 +202,89 @@ class IBEISController(object):
     # ------------
 
     @default_decorator
+    def _init_sql(ibs):
+        """ Load or create sql database """
+        ibs._init_sqldb()
+        ibs._init_sqldbcache()
+        # ibs.db.dump_schema()
+        # ibs.db.dump()
+        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
+        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
+        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        from ibeis.dev import duct_tape  # NOQA
+        # duct_tape.fix_compname_configs(ibs)
+        # duct_tape.remove_database_slag(ibs)
+        # duct_tape.fix_nulled_viewpoints(ibs)
+        lbltype_names    = constants.KEY_DEFAULTS.keys()
+        lbltype_defaults = constants.KEY_DEFAULTS.values()
+        lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
+        ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
+
+    @ut.indent_func
+    def _init_sqldb(ibs):
+        from ibeis.control import _sql_helpers
+        from ibeis.control import SQLDatabaseControl as sqldbc
+        from ibeis.control import DB_SCHEMA
+        # Before load, ensure database has been backed up for the day
+        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+        # IBEIS SQL State Database
+        ibs.db_version_expected = '1.1.1'
+        if ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']:
+            # Work on a fresh schema copy when developing
+            dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
+            sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+            dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
+            ut.copy(sqldb_fpath, dev_sqldb_fpath)
+            ibs.db_version_expected = '1.2.0'
+        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
+                                              text_factory=__STR__,
+                                              inmemory=False)
+        # Ensure correct schema versions
+        _sql_helpers.ensure_correct_version(
+            ibs,
+            ibs.db,
+            ibs.db_version_expected,
+            DB_SCHEMA,
+            autogenerate=params.args.dump_autogen_schema
+        )
+
+    @ut.indent_func
+    def _init_sqldbcache(ibs):
+        """ Need to reinit this sometimes if cache is ever deleted """
+        from ibeis.control import _sql_helpers
+        from ibeis.control import SQLDatabaseControl as sqldbc
+        from ibeis.control import DBCACHE_SCHEMA
+        # IBEIS SQL Features & Chips database
+        ibs.dbcache_version_expected = '1.0.3'
+        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
+        _sql_helpers.ensure_correct_version(
+            ibs,
+            ibs.dbcache,
+            ibs.dbcache_version_expected,
+            DBCACHE_SCHEMA,
+            dobackup=False,  # Everything in dbcache can be regenerated.
+            autogenerate=params.args.dump_autogen_schema
+        )
+
+    def _close_sqldbcache(ibs):
+        ibs.dbcache.close()
+        ibs.dbcache = None
+
+    @default_decorator
+    def clone_handle(ibs, **kwargs):
+        ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
+        if len(kwargs) > 0:
+            ibs2.update_query_cfg(**kwargs)
+        #if ibs.qreq is not None:
+        #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
+        return ibs2
+
+    @default_decorator
+    def backup_database(ibs):
+        from ibeis.control import _sql_helpers
+        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+
+    @default_decorator
     def _init_wb(ibs, wbaddr):
         if wbaddr is None:
             return
@@ -269,80 +353,6 @@ class IBEISController(object):
         utool.ensuredir(ibs.qresdir,     verbose=_verbose)
         utool.ensuredir(ibs.bigcachedir, verbose=_verbose)
         utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
-
-    @default_decorator
-    def _init_sql(ibs):
-        """ Load or create sql database """
-        ibs._init_sqldb()
-        ibs._init_sqldbcache()
-        # ibs.db.dump_schema()
-        # ibs.db.dump()
-        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
-        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
-        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        from ibeis.dev import duct_tape  # NOQA
-        # duct_tape.fix_compname_configs(ibs)
-        # duct_tape.remove_database_slag(ibs)
-        # duct_tape.fix_nulled_viewpoints(ibs)
-        lbltype_names    = constants.KEY_DEFAULTS.keys()
-        lbltype_defaults = constants.KEY_DEFAULTS.values()
-        lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
-        ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
-
-    def _init_sqldb(ibs):
-        from ibeis.control import _sql_helpers
-        from ibeis.control import SQLDatabaseControl as sqldbc
-        from ibeis.control import DB_SCHEMA
-        # Before load, ensure database has been backed up for the day
-        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
-        # IBEIS SQL State Database
-        ibs.db_version_expected = '1.1.1'
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
-                                              text_factory=__STR__,
-                                              inmemory=False)
-        # Ensure correct schema versions
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.db,
-            ibs.db_version_expected,
-            DB_SCHEMA,
-            autogenerate=params.args.dump_autogen_schema
-        )
-
-    def _init_sqldbcache(ibs):
-        """ Need to reinit this sometimes if cache is ever deleted """
-        from ibeis.control import _sql_helpers
-        from ibeis.control import SQLDatabaseControl as sqldbc
-        from ibeis.control import DBCACHE_SCHEMA
-        # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.3'
-        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.dbcache,
-            ibs.dbcache_version_expected,
-            DBCACHE_SCHEMA,
-            dobackup=False,  # Everything in dbcache can be regenerated.
-            autogenerate=params.args.dump_autogen_schema
-        )
-
-    def _close_sqldbcache(ibs):
-        ibs.dbcache.close()
-        ibs.dbcache = None
-
-    @default_decorator
-    def clone_handle(ibs, **kwargs):
-        ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
-        if len(kwargs) > 0:
-            ibs2.update_query_cfg(**kwargs)
-        #if ibs.qreq is not None:
-        #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
-        return ibs2
-
-    @default_decorator
-    def backup_database(ibs):
-        from ibeis.control import _sql_helpers
-        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
 
     #
     #

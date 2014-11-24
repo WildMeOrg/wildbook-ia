@@ -30,21 +30,6 @@ def vwd():
     utool.util_cplat.view_directory(sysres.get_workdir())
 
 
-def parse_cfgstr_list(cfgstr_list):
-    """
-    Parses a list of items in the format
-    ['var1:val1', 'var2:val2', 'var3:val3']
-    the '=' character can be used instead of the ':' character if desired
-    """
-    cfgdict = {}
-    for item in cfgstr_list:
-        varval_tup = item.replace('=', ':').split(':')
-        assert len(varval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
-        var, val = varval_tup
-        cfgdict[var] = val
-    return cfgdict
-
-
 def preload_convert_hsdb(dbdir):
     """ Convert the database before loading (A bit hacky) """
     from ibeis.dbio import ingest_hsdb
@@ -91,7 +76,7 @@ def postload_commands(ibs, back):
         sysres.set_default_dbdir(ibs.get_dbdir())
     if params.args.update_query_cfg is not None:
         # Set query parameters from command line
-        cfgdict = parse_cfgstr_list(params.args.update_query_cfg)
+        cfgdict = ut.parse_cfgstr_list(params.args.update_query_cfg)
         print('Custom cfgdict specified')
         print(ut.dict_str(cfgdict))
         ibs.update_query_cfg(**cfgdict)

@@ -192,7 +192,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     #+--------------------------------------
     # Check version again for sanity's sake, update if exported current is behind expected
     version = db.get_db_version()
-    printQUIET('[_SQL] Database version: %r | Expected version: %r ' % (version, version_expected))
+    printQUIET('[_SQL.%s] Database version: %r | Expected version: %r ' % (ut.get_caller_name(), version, version_expected))
     if version < version_expected:
         printQUIET('[_SQL] Database version behind, updating...')
         update_schema_version(ibs, db, db_versions, version, version_expected,

@@ -642,6 +642,14 @@ class SQLDatabaseController(object):
         """
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
+        Args:
+           tablename (str): tablename
+           colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)
+           table_constraints (str):
+           superkey_colnames (list)
+           docstr (str)
+           tablename_new (?)
+
         Example:
             >>> def contributor_location_zip_map(x):
             ...     return x

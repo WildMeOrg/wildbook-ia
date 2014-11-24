@@ -27,7 +27,7 @@ def update_1_0_0(db, ibs=None):
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
         ('image_ext',                    'TEXT NOT NULL'),
-        ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out
+        ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out of original_path
         #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER DEFAULT -1'),
         ('image_height',                 'INTEGER DEFAULT -1'),
@@ -321,6 +321,21 @@ def update_1_1_1(db, ibs=None):
     ))
 
 
+@profile
+def update_1_2_0(db, ibs=None):
+    # Add columns to annotaiton table
+    db.modify_table(constants.ANNOTATION_TABLE, (
+        # the visual uuid will be unique w.r.t. the appearence of the annotation
+        (None, 'annot_visual_uuid', 'UUID', None),
+        # the visual uuid will be unique w.r.t. the appearence, name, and species of the annotation
+        (None, 'annot_semantic_uuid', 'UUID', None),
+        (None, 'name_rowid',    'INTEGER DEFAULT 0', None),
+        (None, 'species_rowid', 'INTEGER DEFAULT 0', None),
+
+    ),
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -335,6 +350,7 @@ VALID_VERSIONS = utool.odict([
     ('1.0.2',    (None,                 update_1_0_2,       None                )),
     ('1.1.0',    (None,                 update_1_1_0,       None                )),
     ('1.1.1',    (None,                 update_1_1_1,       None                )),
+    ('1.2.0',    (None,                 update_1_2_0,       None                )),
 ])
 
 

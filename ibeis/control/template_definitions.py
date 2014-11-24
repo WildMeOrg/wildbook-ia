@@ -1,8 +1,8 @@
 """
 CommandLine:
     # Regenerate command
-    python ibeis/control/templates.py
-    python ibeis/control/templates.py --dump-autogen-controller
+    python ibeis/control/template_generator.py
+    python ibeis/control/template_generator.py --dump-autogen-controller
 """
 import utool as ut
 
@@ -23,8 +23,11 @@ Theader_ibeiscontrol = ut.codeblock(
     TemplateInfo:
         autogen_time = {timestamp}
 
+    CommandLine:
+        python ibeis/control/template_generator.py
+
     ToRegenerate:
-        python ibeis/control/templates.py --dump-autogen-controller
+        python ibeis/control/template_generator.py --dump-autogen-controller
     """
     from __future__ import absolute_import, division, print_function
     import functools  # NOQA
@@ -332,6 +335,37 @@ Tider_all_rowids = ut.codeblock(
     '''
 )
 
+
+# RL IDER ALL ROWID
+Tider_rl_dependant_all_rowids = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @getter
+    def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nInput=None):
+        """ {leaf}_rowid_list <- {root}.{leaf}.all_rowids([{root}_rowid_list])
+
+        Gets {leaf} rowids of {root} under the current state configuration.
+
+        Args:
+            {root}_rowid_list (list):
+
+        Returns:
+            list: {leaf}_rowid_list
+
+        TemplateInfo:
+            Tider_rl_dependant_all_rowids
+            root = {root}
+            leaf = {leaf}
+        """
+        # FIXME: broken
+        colnames = ({LEAF_PARENT}_ROWID,)
+        {leaf}_rowid_list = {self}.{dbself}.get(
+            {LEAF_TABLE}, colnames, {root}_rowid_list,
+            id_colname={ROOT}_ROWID, eager=eager, nInput=nInput)
+        return {leaf}_rowid_list
+    # ENDBLOCK
+    ''')
+
 #
 #
 #-----------------
@@ -354,7 +388,7 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
     # STARTBLOCK
     # REM @getter
     def get_{root}_{multicol}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
-        """ {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
+        """ {leaf}_rowid_list <- {root}.{leaf}.{multicol}s[{root}_rowid_list]
 
         Get {col} data of the {root} table using the dependant {leaf} table
 
@@ -386,13 +420,49 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
     # ENDBLOCK
     ''')
 
+
+# NATIVE MULTICOLUMN GETTER
+# eg. get_chip_sizes
+Tgetter_native_multicolumn = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @getter
+    def get_{tbl}_{multicol}s({self}, {tbl}_rowid_list, eager=True):
+        """
+        Returns zipped tuple of information from {multicol} columns
+
+        Tgetter_native_multicolumn
+
+        Args:
+            {tbl}_rowid_list (list):
+
+        Returns:
+            list: {multicol}_list
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> #{tbl}_rowid_list = {self}.get_valid_{tbl}_rowids()
+            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
+            >>> ensure = False
+            >>> {multicol}_list = {self}.get_{tbl}_{multicol}s({tbl}_rowid_list, eager=eager)
+            >>> assert len({tbl}_rowid_list) == len({multicol}_list)
+        """
+        id_iter = {tbl}_rowid_list
+        colnames = {MULTICOLNAMES}
+        {multicol}_list  = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
+        return {multicol}_list
+    # ENDBLOCK
+    ''')
+
 # RL GETTER COLUMN
 Tgetter_rl_pclines_dependant_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @getter
     def get_{root}_{col}s({self}, {root}_rowid_list, qreq_=None, ensure=False):
-        """ {leaf}_rowid_list <- {root}.{leaf}.rowids[{root}_rowid_list]
+        """ {leaf}_rowid_list <- {root}.{leaf}.{col}s[{root}_rowid_list]
 
         Get {col} data of the {root} table using the dependant {leaf} table
 
@@ -412,6 +482,43 @@ Tgetter_rl_pclines_dependant_column = ut.codeblock(
         {pc_dependant_rowid_lines}
         # REM Get col values
         {col}_list = {self}.get_{leaf}_{col}s({leaf}_rowid_list)
+        return {col}_list
+    # ENDBLOCK
+    ''')
+
+# NATIVE COLUMN GETTER
+Tgetter_table_column = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @getter
+    def get_{tbl}_{col}s({self}, {tbl}_rowid_list, eager=True):
+        """ {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
+
+        gets data from the "native" column "{col}" in the "{tbl}" table
+
+        Args:
+            {tbl}_rowid_list (list):
+
+        Returns:
+            list: {col}_list
+
+        TemplateInfo:
+            Tgetter_table_column
+            col = {col}
+            tbl = {tbl}
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
+            >>> ensure = False
+            >>> {tbl}_{col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
+            >>> assert len({tbl}_rowid_list) == len({tbl}_{col}_list)
+        """
+        id_iter = {tbl}_rowid_list
+        colnames = ({COLNAME},)
+        {col}_list = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
         return {col}_list
     # ENDBLOCK
     ''')
@@ -468,7 +575,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
     ''')
 
 
-# PL GETTER ROWID
+# PL GETTER ROWID WITHOUT ENSURE
 Tgetter_pl_dependant_rowids_ = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -495,7 +602,7 @@ Tgetter_pl_dependant_rowids_ = ut.codeblock(
     ''')
 
 
-# PL GETTER ROWID
+# PL GETTER ROWID WITH ENSURE
 Tgetter_pl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
@@ -544,38 +651,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
     ''')
 
 
-# PL GETTER ALL ROWID
-Tgetter_rl_dependant_all_rowids = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    # REM @getter
-    def get_{root}_{leaf}_all_rowids({self}, {root}_rowid_list, eager=True, nInput=None):
-        """ {leaf}_rowid_list <- {root}.{leaf}.all_rowids([{root}_rowid_list])
-
-        Gets {leaf} rowids of {root} under the current state configuration.
-
-        Args:
-            {root}_rowid_list (list):
-
-        Returns:
-            list: {leaf}_rowid_list
-
-        TemplateInfo:
-            Tgetter_rl_dependant_all_rowids
-            root = {root}
-            leaf = {leaf}
-        """
-        # FIXME: broken
-        colnames = ({LEAF_PARENT}_ROWID,)
-        {leaf}_rowid_list = {self}.{dbself}.get(
-            {LEAF_TABLE}, colnames, {root}_rowid_list,
-            id_colname={ROOT}_ROWID, eager=eager, nInput=nInput)
-        return {leaf}_rowid_list
-    # ENDBLOCK
-    ''')
-
-
-# NATIVE ROWID GET FROM SUPERKEY
+# NATIVE FROMSUPERKEY ROWID GETTER
 #id_iter = (({tbl}_rowid,) for {tbl}_rowid in {tbl}_rowid_list)
 Tgetter_native_rowid_from_superkey = ut.codeblock(
     r'''
@@ -601,78 +677,6 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
         {tbl}_rowid_list = {self}.{dbself}.get_where2(
             {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
         return {tbl}_rowid_list
-    # ENDBLOCK
-    ''')
-
-# NATIVE COLUMN GETTER
-Tgetter_table_column = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    # REM @getter
-    def get_{tbl}_{col}s({self}, {tbl}_rowid_list, eager=True):
-        """ {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
-
-        gets data from the "native" column "{col}" in the "{tbl}" table
-
-        Args:
-            {tbl}_rowid_list (list):
-
-        Returns:
-            list: {col}_list
-
-        TemplateInfo:
-            Tgetter_table_column
-            col = {col}
-            tbl = {tbl}
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
-            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
-            >>> ensure = False
-            >>> {tbl}_{col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
-            >>> assert len({tbl}_rowid_list) == len({tbl}_{col}_list)
-        """
-        id_iter = {tbl}_rowid_list
-        colnames = ({COLNAME},)
-        {col}_list = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
-        return {col}_list
-    # ENDBLOCK
-    ''')
-
-
-# eg. get_chip_sizes
-Tgetter_native_multicolumn = ut.codeblock(
-    r'''
-    # STARTBLOCK
-    # REM @getter
-    def get_{tbl}_{multicol}s({self}, {tbl}_rowid_list, eager=True):
-        """
-        Returns zipped tuple of information from {multicol} columns
-
-        Tgetter_native_multicolumn
-
-        Args:
-            {tbl}_rowid_list (list):
-
-        Returns:
-            list: {multicol}_list
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
-            >>> #{tbl}_rowid_list = {self}.get_valid_{tbl}_rowids()
-            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
-            >>> ensure = False
-            >>> {multicol}_list = {self}.get_{tbl}_{multicol}s({tbl}_rowid_list, eager=eager)
-            >>> assert len({tbl}_rowid_list) == len({multicol}_list)
-        """
-        id_iter = {tbl}_rowid_list
-        colnames = {MULTICOLNAMES}
-        {multicol}_list  = {self}.{dbself}.get({TABLE}, colnames, id_iter, id_colname='rowid', eager=eager)
-        return {multicol}_list
     # ENDBLOCK
     ''')
 
