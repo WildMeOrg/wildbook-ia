@@ -327,6 +327,9 @@ class IBEISController(object):
             'cannot create db in _ibsdb internals'
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
+        # TODO: constantify these
+        # so non controller objects (like in score normalization) have access to
+        # these
         ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
         ibs.trashdir    = join(ibs.dbdir, PATH_NAMES.trashdir)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
@@ -417,8 +420,8 @@ class IBEISController(object):
         return ibs.cachedir
 
     def get_ibeis_resource_dir(ibs):
-        ibeis_dir = ut.ensure_app_resource_dir('ibeis')
-        return ibeis_dir
+        from ibeis.dev import sysres
+        return sysres.get_ibeis_resource_dir()
 
     def get_species_cachedir(ibs, species_text, ensure=True):
         """
@@ -3171,7 +3174,9 @@ class IBEISController(object):
         """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
         list of annotations.  Convenience function for
         set_annot_lblannot_from_value"""
-        ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY)
+        import utool as ut
+        with ut.EmbedOnException():
+            ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY)
 
     @setter
     def set_annot_species(ibs, aid_list, species_list):

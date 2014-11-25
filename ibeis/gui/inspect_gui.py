@@ -247,9 +247,11 @@ class CustomFilterModel(FilterProxyModel):
 
 
 class CustomAPI(object):
-    """ # TODO: Rename CustomAPI
+    """
+    # TODO: Rename CustomAPI
     API wrapper around a list of lists, each containing column data
-    Defines a single table """
+    Defines a single table
+    """
     def __init__(self, col_name_list, col_types_dict, col_getters_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                  editable_colnames, sortby, sort_reverse=True):
@@ -265,9 +267,16 @@ class CustomAPI(object):
                                  editable_colnames, sortby, sort_reverse)
         print('[CustomAPI] </__init__>')
 
-    def parse_column_tuples(self, col_name_list, col_types_dict, col_getters_dict,
-                            col_bgrole_dict, col_ider_dict, col_setter_dict,
-                            editable_colnames, sortby, sort_reverse=True):
+    def parse_column_tuples(self,
+                            col_name_list,
+                            col_types_dict,
+                            col_getters_dict,
+                            col_bgrole_dict,
+                            col_ider_dict,
+                            col_setter_dict,
+                            editable_colnames,
+                            sortby,
+                            sort_reverse=True):
         # Unpack the column tuples into names, getters, and types
         self.col_name_list = col_name_list
         self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
@@ -440,8 +449,17 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     # TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY
     # TO GET THOSE PAIRWISE INDEXES
 
-    col_name_list = ['qaid', 'aid', 'status', 'querythumb', 'resthumb', 'qname',
-                     'name', 'score', 'rank', ]
+    col_name_list = [
+        'qaid',
+        'aid',
+        'score',
+        'status',
+        'querythumb',
+        'resthumb',
+        'qname',
+        'name',
+        'rank',
+    ]
 
     col_types_dict = dict([
         ('qaid',       int),
@@ -494,3 +512,72 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
                          col_bgrole_dict, col_ider_dict, col_setter_dict,
                          editable_colnames, sortby)
     return qres_api
+
+
+def test_inspect_matches(ibs, qaid_list, daid_list):
+    """
+    test_inspect_matches
+
+    Args:
+        ibs       (IBEISController):
+        qaid_list (list): query annotation id list
+        daid_list (list): database annotation id list
+
+    Returns:
+        dict: locals_
+
+    CommandLine:
+        python ibeis/gui/inspect_gui.py --enableall --test-test_inspect_matches --cmd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:1]
+        >>> daid_list = ibs.get_valid_aids()
+        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
+        >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> print(main_execstr)
+        >>> exec(main_execstr)
+    """
+    from ibeis.viz.interact import interact_qres2  # NOQA
+    from ibeis.gui import inspect_gui
+    from ibeis.dev import results_all
+    allres = results_all.get_allres(ibs, qaid_list)
+    guitool.ensure_qapp()
+    tblname = 'qres'
+    qaid2_qres = allres.qaid2_qres
+    ranks_lt = 5
+    # This object is created inside QresResultsWidget
+    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
+    # This is where you create the result widigt
+    print('[inspect_matches] make_qres_widget')
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    print('[inspect_matches] show')
+    qres_wgt.show()
+    print('[inspect_matches] raise')
+    qres_wgt.raise_()
+    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
+    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    print('</inspect_matches>')
+    # simulate double click
+    qres_wgt._on_click(qres_wgt.model.index(2, 2))
+    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
+    locals_ =  locals()
+    return locals_
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui, allexamples=True)"
+        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui)"
+        python ibeis/gui/inspect_gui.py
+        python ibeis/gui/inspect_gui.py --allexamples
+        python ibeis/gui/inspect_gui.py --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

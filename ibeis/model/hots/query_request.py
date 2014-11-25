@@ -324,7 +324,7 @@ class QueryRequest(object):
             #ibs.get_annot_fgweights(qreq_.get_internal_daids())
             ibs.get_annot_fgweights(qreq_.get_internal_qaids(), ensure=True)
         if qreq_.qparams.score_normalization:
-            qreq_.normalizer = qreq_.load_score_normalizer(ibs)
+            qreq_.load_score_normalizer(ibs)
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))

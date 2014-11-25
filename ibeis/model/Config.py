@@ -188,7 +188,7 @@ class FilterConfig(ConfigBase):
         addfilt(+1,    'bursty',   None,    0.0)
         addfilt(-1,     'ratio',   None,    0.0)
         addfilt(-1,     'lnbnn',   None,    1.0)
-        addfilt(-1,   'dupvote',   None,    0.0)
+        addfilt(-1,   'dupvote',   None,    1.0)
         addfilt(-1,    'lograt',   None,    0.0)
         addfilt(-1,  'normonly',   None,    0.0)
         addfilt(-1,   'logdist',   None,    0.0)
@@ -283,7 +283,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.nShortlist = 50
-        sv_cfg.prescore_method = 'csum'
+        #sv_cfg.prescore_method = 'csum'
+        sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = False  # BAD CONFIG?
         sv_cfg.sver_weighting = False  # weight feature scores with sver errors
         sv_cfg.update(**kwargs)
@@ -314,9 +315,11 @@ class AggregateConfig(ConfigBase):
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
         # chipsum, namesum, placketluce
-        agg_cfg.isWeighted = False  # nsum, pl
-        agg_cfg.score_method = 'csum'  # nsum, pl
-        agg_cfg.score_normalization = False  # nsum, pl
+        agg_cfg.isWeighted = False
+        #agg_cfg.score_method = 'csum'
+        agg_cfg.score_method = 'nsum'
+        #agg_cfg.score_normalization = False
+        agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
             'borda': 'borda',
@@ -596,7 +599,11 @@ class QueryConfig(ConfigBase):
         agg_cfg = query_cfg.agg_cfg
         sv_cfg = query_cfg.sv_cfg
         # TODO:
-        if codename.startswith('nsum'):
+        if codename.startswith('csum'):
+            filt_cfg.dupvote_weight = 0.0
+            sv_cfg.prescore_method = 'csum'
+            agg_cfg.score_method = 'csum'
+        elif codename.startswith('nsum'):
             filt_cfg.dupvote_weight = 1.0
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
@@ -625,6 +632,8 @@ class QueryConfig(ConfigBase):
         #if query_cfg.species_code == 'zebra_grevys':
         #    query_cfg.fg_weight = 1.0
             # TODO:
+
+        assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
 
         if agg_cfg.score_normalization:
             assert agg_cfg.score_method == 'nsum'

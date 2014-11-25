@@ -300,6 +300,18 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     for embedding an IPython terminal if requested.
 
     If rungui is False the gui will not loop even if back has been created
+
+    the main locals dict must be callsed main_locals in the scope you call this
+    function in.
+
+    Args:
+        main_locals (dict_):
+        rungui      (bool):
+        ipy         (bool):
+        persist     (bool):
+
+    Returns:
+        str: execstr
     """
     print('[main] ibeis.main_module.main_loop()')
     from ibeis import params

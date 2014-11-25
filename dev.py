@@ -489,28 +489,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
-    from ibeis.viz.interact import interact_qres2  # NOQA
-    allres = results_all.get_allres(ibs, qaid_list)
-    guitool.ensure_qapp()
-    tblname = 'qres'
-    qaid2_qres = allres.qaid2_qres
-    ranks_lt = 5
-    # This object is created inside QresResultsWidget
-    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
-    # This is where you create the result widigt
-    print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('[inspect_matches] show')
-    qres_wgt.show()
-    print('[inspect_matches] raise')
-    qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('</inspect_matches>')
-    # simulate double click
-    qres_wgt._on_click(qres_wgt.model.index(2, 2))
-    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
-    return locals()
+    return inspect_gui.test_inspect_matches(ibs, qaid_list, daid_list)
 
 
 @devcmd('gv')
