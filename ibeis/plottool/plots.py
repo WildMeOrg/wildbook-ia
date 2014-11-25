@@ -37,7 +37,7 @@ def draw_hist_subbin_maxima(hist, centers=None):
         plt.plot(x_pts, y_pts, 'g--')         # Draw parabola
 
 
-def plot_stems(x_data, y_data, fnum=None):
+def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):
     """
     Example:
         >>> from plottool import *  # NOQA
@@ -49,7 +49,7 @@ def plot_stems(x_data, y_data, fnum=None):
     """
     if fnum is None:
         fnum = df2.next_fnum()
-    df2.figure(fnum=fnum, doclf=True, docla=True)
+    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
     df2.draw_stems(x_data, y_data)
     df2.set_xlabel('query index')
     df2.set_ylabel('query ranks')
@@ -59,28 +59,32 @@ def plot_stems(x_data, y_data, fnum=None):
     df2.iup()
 
 
-def plot_densities(density_list,
-                   density_lbls=None,
-                   density_colors=None,
-                   xdata=None,
-                   figtitle='plot_densities',
-                   fnum=None):
+def plot_probabilities(prob_list,
+                       prob_lbls=None,
+                       prob_colors=None,
+                       xdata=None,
+                       figtitle='plot_probabilities',
+                       fnum=None,
+                       pnum=(1, 1, 1)):
     """
     Input: a list of scores (either chip or descriptor)
 
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
     """
-    assert len(density_list) > 0
+    assert len(prob_list) > 0
     if xdata is None:
-        xdata = np.arange(len(density_list[0]))
-    assert all([len(xdata) == len(density) for density in density_list])
+        xdata = np.arange(len(prob_list[0]))
+    assert all([len(xdata) == len(density) for density in prob_list])
 
-    if density_lbls is None:
-        density_lbls = [lblx for lblx in range(len(density_list))]
-    if density_colors is None:
-        density_colors = df2.distinct_colors(len(density_list))[::-1]
-    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(density_list)]
+    if prob_lbls is None:
+        prob_lbls = [lblx for lblx in range(len(prob_list))]
+    if prob_colors is None:
+        prob_colors = df2.distinct_colors(len(prob_list))[::-1]
+
+    assert len(prob_list) == len(prob_lbls)
+    assert len(prob_list) == len(prob_colors)
+    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(prob_list)]
     #agg_scores  = np.hstack()
     #agg_labelx  = np.hstack(labelx_list)
     #agg_sortx = agg_scores.argsort()
@@ -88,20 +92,25 @@ def plot_densities(density_list,
     if fnum is None:
         fnum = df2.next_fnum()
 
-    df2.figure(fnum=fnum, doclf=True, docla=True)
+    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
 
-    for tup in zip(density_list, density_lbls, density_colors):
+    for tup in zip(prob_list, prob_lbls, prob_colors):
         density, label, color = tup
         ydata = density
         df2.plot(xdata, ydata, color=color, label=label, alpha=.7)
         #ut.embed()
         #help(df2.plot)
     df2.set_xlabel('score')
-    df2.set_ylabel('probability density')
+    df2.set_ylabel('probability')
     df2.dark_background()
-    df2.set_figtitle(figtitle)
+    df2.set_title(figtitle)
     df2.legend(loc='upper left')
-    df2.iup()
+    #df2.iup()
+
+# Short alias
+plot_probs = plot_probabilities
+# Incorrect (but legacy) alias
+plot_densities = plot_probabilities
 
 
 def plot_sorted_scores(scores_list,
@@ -110,6 +119,8 @@ def plot_sorted_scores(scores_list,
                        score_colors=None,
                        markersizes=None,
                        fnum=None,
+                       pnum=(1, 1, 1),
+                       logscale=True,
                        figtitle='plot_sorted_scores'):
     """
     Input: a list of scores (either chip or descriptor)
@@ -137,7 +148,7 @@ def plot_sorted_scores(scores_list,
     if fnum is None:
         fnum = df2.next_fnum()
 
-    df2.figure(fnum=fnum, doclf=True, docla=True)
+    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
 
     for lblx in range(len(scores_list)):
         label = scores_lbls[lblx]
@@ -152,14 +163,15 @@ def plot_sorted_scores(scores_list,
         #ut.embed()
         #help(df2.plot)
 
-    set_logyscale_from_data(sorted_scores)
+    if logscale:
+        set_logyscale_from_data(sorted_scores)
 
     df2.set_xlabel('sorted scores')
     df2.set_ylabel('scores')
     df2.dark_background()
-    df2.set_figtitle(figtitle)
+    df2.set_title(figtitle)
     df2.legend(loc='upper left')
-    df2.iup()
+    #df2.iup()
 
 
 def set_logyscale_from_data(y_data):

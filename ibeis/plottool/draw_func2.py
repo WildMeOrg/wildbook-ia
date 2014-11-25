@@ -68,7 +68,7 @@ TMP_mevent = None
 plotWidget = None
 
 
-def get_pnum_func(nRows, nCols, base=0):
+def get_pnum_func(nRows=1, nCols=1, base=0):
     offst = 0 if base == 1 else 1
     def pnum_(px):
         return (nRows, nCols, px + offst)
