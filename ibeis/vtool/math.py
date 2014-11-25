@@ -10,7 +10,7 @@ tau = 2 * np.pi  # References: tauday.com
 eps = 1E-9
 
 
-def ensure_monotone_strictly_increasing(arr_):
+def ensure_monotone_strictly_increasing(arr_, zerohack=False, onehack=False):
     """
     Breaks up streaks of equal values by interpolating between the next lowest and next highest value
 
@@ -19,8 +19,9 @@ def ensure_monotone_strictly_increasing(arr_):
         >>> from vtool.math import *   # NOQA
         >>> import numpy as np
         >>> arr_ = np.array([0.4, 0.4, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7, 0.9, 0.9, 0.91, 0.92, 1.0, 1.0])
-        >>> #                  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,   11,  12,  13
-        >>> arr = ensure_monotone_strictly_increasing(arr_)
+        >>> zerohack = True
+        >>> onehack = True
+        >>> arr = ensure_monotone_strictly_increasing(arr_, zerohack, onehack)
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed'
     """
 
@@ -38,11 +39,29 @@ def ensure_monotone_strictly_increasing(arr_):
                 for group, isend in zip(index_groups, isend_list)]
     max_vals = [arr[group[-1] + 1] if isend else arr[group[-1]]
                 for group, isend in zip(index_groups, isend_list)]
-    fill_list = [np.linspace(min_, max_, len_, endpoint=not isend) for min_, max_, len_, isend in zip(min_vals, max_vals, runlen_list, isend_list)]
+    fill_list = [np.linspace(min_, max_, len_, endpoint=not isend)
+                 for min_, max_, len_, isend in zip(min_vals, max_vals, runlen_list, isend_list)]
 
     for group, fill in zip(index_groups, fill_list):
         arr[group[0]:group[-1] + 1] = fill
+
+    if zerohack and len(index_groups) > 0:
+        # Makes the first index 0 hopefully
+        group_ = index_groups[0]
+        if group_[0] == 0:
+            arr[group_[0]:group_[-1] + 1] = np.linspace(0, arr[group_[-1]], len(group_))
+        else:
+            arr[0] = 0
+    if onehack:
+        # Dont be so confident
+        maxish = min(.99, arr[arr < 1.0].max())
+        newmax = (1.0 + maxish) / 2.0
+        arr[arr >= maxish] = np.linspace(maxish, newmax, sum(arr >= maxish))
     #assert strictly_increasing(arr), 'ensure strict monotonic failed'
+    import utool as ut
+    print(ut.get_stats(arr))
+    if arr.max() == 1.0:
+        ut.embed()
     return arr
 
 
