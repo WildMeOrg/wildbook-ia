@@ -7,7 +7,7 @@ from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 DEBUG_ADDERS  = utool.get_argflag('--debug-adders')
-DEBUG_SETTERS = True or utool.get_argflag('--debug-setters')
+DEBUG_SETTERS = utool.get_argflag('--debug-setters')
 DEBUG_GETTERS = utool.get_argflag('--debug-getters')
 
 #
