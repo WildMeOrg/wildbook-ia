@@ -97,7 +97,11 @@ def numpy_to_qicon(npimg):
     return qicon
 
 
-def locale_float(float_, precision=8):
+def locale_float(float_, precision=4):
+    """
+    References:
+        http://qt-project.org/doc/qt-4.8/qlocale.html#toString-9
+    """
     return LOCALE.toString(float(float_), format='g', precision=precision)
 
 

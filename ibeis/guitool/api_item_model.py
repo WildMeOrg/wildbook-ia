@@ -620,7 +620,11 @@ class APIItemModel(API_MODEL_BASE):
         setter = model.col_setter_list[col]
         if VERBOSE:
             print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
-        return setter(row_id, value)
+        try:
+            return setter(row_id, value)
+        except Exception as ex:
+            ut.printex(ex, 'ERROR: setting data: row_id=%r, setter=%r' % (row_id, setter))
+            raise
 
     #------------------------
     # --- QtGui Functions ---
@@ -851,7 +855,7 @@ class APIItemModel(API_MODEL_BASE):
             return True
         except Exception as ex:
             #value = str(value.toString())  # NOQA
-            utool.printex(ex, 'ignoring setData', '[model]',
+            utool.printex(ex, 'ignoring setData', '[model]', tb=True,
                           key_list=['value'], iswarning=True)
             return False
 
