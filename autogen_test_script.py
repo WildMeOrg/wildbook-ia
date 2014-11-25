@@ -133,6 +133,8 @@ if __name__ == '__main__':
     runtests_fpath = ut.get_argval(('-o', '--outfile'), type_=str, default=None)
     if runtests_fpath is None and ut.get_argflag('-w'):
         runtests_fpath = 'run_tests.sh'
+    if runtests_fpath is None and ut.get_argflag('-t'):
+        runtests_fpath = '_run_tests2.sh'
 
     if runtests_fpath is not None:
         ut.write_to(runtests_fpath, text)

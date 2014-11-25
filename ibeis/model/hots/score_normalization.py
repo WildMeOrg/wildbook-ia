@@ -32,6 +32,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[scorenorm]', DE
 
 
 class Savable(object):
+    # TODO: general util
     def __init__(self):
         pass
 
@@ -68,18 +69,28 @@ class Savable(object):
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
-    #def get_fname(self):
-    #    return 'saveable'
 
-    def get_fpath(self, cachedir):
+    #def get_cfgstr():
+    #    pass  # MUST IMPLEMENT
+
+    def get_fname(self, cfgstr=None):
+        if cfgstr is None:
+            cfgstr = self.get_cfgstr()
+        if cfgstr is None:
+            raise AssertionError('Must specify cfgstr')
+        return cfgstr + '.cPkl'
+
+    def get_fpath(self, cachedir, cfgstr=None):
+        if cfgstr is not None:
+            cfgstr
         fpath = join(cachedir, self.get_fname())
         return fpath
 
-    def save(self, cachedir, verbose=True or ut.VERBOSE):
+    def save(self, cachedir, cfgstr=None, verbose=True or ut.VERBOSE):
         """
         saves query result to directory
         """
-        fpath = self.get_fpath(cachedir)
+        fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
@@ -92,21 +103,22 @@ class ScoreNormalizer(Savable):
         self.cfgstr = cfgstr
         self.set_values(score_domain, p_tp_given_score)
 
+    def get_cfgstr(self):
+        return self.cfgstr
+
     def set_values(self, score_domain, p_tp_given_score):
         self.score_domain = score_domain
         self.p_tp_given_score = p_tp_given_score
 
     def normalize_score(self, score):
+        if score < self.score_domain[0]:
+            return 0.0
         if score > self.score_domain[-1]:
             return 1.0
         else:
-            index = np.nonzero(self.score_domain < score)[0]
+            indexes = np.where(self.score_domain <= score)[0]
+            index = indexes[0]
             return self.p_tp_given_score[index]
-
-    def get_fname(self):
-        if self.cfgstr is None:
-            raise AssertionError('Must specify cfgstr')
-        return self.cfgstr + '_scorenorm.cPkl'
 
     def __call__(self, score_list):
         prob_list = [self.normalize_score(score) for score in score_list]
@@ -140,17 +152,111 @@ def learn_score_normalizer(good_tn, good_tp, cfgstr=None):
     #inspect_pdfs('score', score_domain, good_tn, good_tp, p_score_given_tn, p_score_given_tp, p_score, p_tn_given_score, p_tp_given_score)
 
 
-def tryload_score_normalizer(cachedir, cfgstr):
-    normalizer = ScoreNormalizer(cfgstr)
+#def test_normalizer(with_indexer=True):
+#    """
+#    Example:
+#        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+#        >>> nnindexer, qreq_, ibs = test_normalizer() # doctest: +ELLIPSIS
+#    """
+
+
+def train_baseline_ibeis_normalizer(ibs):
+    """
+    Runs unnormalized queries to compute normalized queries
+
+    Args:
+        ibs (IBEISController):
+
+    Returns:
+        ScoreNormalizer: normalizer
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> normalizer = train_baseline_ibeis_normalizer(ibs)
+        >>> result = str(normalizer)
+        >>> print(result)
+    """
+    # TRAIN BASELINE
+    tag = '<TRAINING> '
+    print(utool.msgblock(tag, 'Begning Training'))
+    with utool.Timer(tag):
+        with utool.Indenter('    '):
+            from ibeis.model.hots import query_request
+            qaid_list = ibs.get_valid_aids()
+            daid_list = ibs.get_valid_aids()
+            cfgdict = {'codename': 'nsum_unnorm'}
+            qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+            qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, cfgdict=None)
+            normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
+            # Save as baseline for this species
+            species_text = '_'.join(qreq_.species_list)  # HACK
+            cfgstr = 'baseline_' + species_text
+            cachedir = ibs.get_species_cachedir(species_text)
+            normalizer.save(cachedir, cfgstr=cfgstr)
+            #learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr)
+    print('\n' + utool.msgblock(tag, 'Finished Training'))
+    return normalizer
+
+
+def test():
+    from ibeis.model.hots.score_normalization import *  # NOQA
+    from ibeis.model.hots import query_request
+    import ibeis
+    ibs = ibeis.opendb(db='PZ_MTEST')
+    qaid_list = [1, 2, 3, 4, 5]
+    daid_list = [1, 2, 3, 4, 5]
+    cfgdict = {'codename': 'nsum'}
+    qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, use_cache=False, cfgdict=cfgdict, return_request=True)
+    qreq_.load_score_normalizer(qreq_.ibs)
+    normalizer = qreq_.normalizer
+
+    for qres in qres_list:
+        aid_list = list(six.iterkeys(qres.aid2_score))
+        score_list = list(six.itervalues(qres.aid2_score))
+        #self  = normalizer
+        prob_list = [normalizer.normalize_score(score) for score in score_list]
+        qres.qaid2_score = dict(zip(aid_list, prob_list))
+    for qres in qres_list:
+        print(list(six.itervalues(qres.qaid2_score)))
+
+        #aid2_score = {aid: normalizer.no(score) for aid, score in }
+        pass
+
+
+def request_ibeis_normalizer(ibs, qreq_):
+    """
+    Example:
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> from ibeis.model.hots import query_request
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> cfgdict = {'codename': 'nsum_unnorm'}
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> normalizer = request_ibeis_normalizer(ibs, qreq_)
+    """
+    species_text = qreq_.species_list[0]  # HACK
+    cfgstr = 'baseline_' + species_text
+    cachedir = ibs.get_species_cachedir(species_text)
     try:
+        normalizer = ScoreNormalizer(cfgstr)
         normalizer.load(cachedir)
+        print('returning baseline normalizer')
         return normalizer
     except Exception:
-        #ut.printex(ex)
-        return None
+        try:
+            normalizer = train_baseline_ibeis_normalizer(ibs)
+            return normalizer
+        except Exception as ex:
+            ut.printex(ex)
+            raise
 
 
-def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
+def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list):
     """
     Args:
         qaid2_qres (int): query annotation id
@@ -164,18 +270,31 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
         >>> qaid_list = daid_list = ibs.get_valid_aids()
         >>> cfgdict = dict(codename='nsum')
         >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
-        >>> score_normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list)
+        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
         >>> result = score_normalizer.get_fname()
         >>> print(result)
         PZ_MTEST_UUIDS((119)htc%i42+w9plda&d)_scorenorm.cPkl
     """
     # Collect training data
     cfgstr = ibs.get_dbname() + ibs.get_annot_uuid_hashid(qaid_list)
-    normalizer = tryload_score_normalizer(ibs.cachedir, cfgstr)
-    if normalizer is not None:
+    try:
+        normalizer = ScoreNormalizer(cfgstr)
+        normalizer.load(ibs.cachedir)
         print('returning cached normalizer')
-        return normalizer
-    print('computing normalizer')
+    except Exception:
+        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr)
+        normalizer.save(ibs.cachedir)
+    return normalizer
+
+
+def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr):
+    print('learning normalizer')
+    (good_tp, good_tn) = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    normalizer = learn_score_normalizer(good_tp, good_tn, cfgstr)
+    return normalizer
+
+
+def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
     good_tp_nscores = []
     good_tn_nscores = []
     good_tp_aidnid_pairs = []
@@ -207,9 +326,7 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list):
                 good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
     good_tp = np.array(good_tp_nscores)
     good_tn = np.array(good_tn_nscores)
-    normalizer = learn_score_normalizer(good_tp, good_tn, cfgstr)
-    normalizer.save(ibs.cachedir)
-    return normalizer
+    return (good_tp, good_tn)
 
 
 def inspect_pdfs(lbl, score_domain, good_tn, good_tp, p_score_given_tn, p_score_given_tp, p_score, p_tn_given_score, p_tp_given_score):

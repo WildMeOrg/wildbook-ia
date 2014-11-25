@@ -316,6 +316,7 @@ class AggregateConfig(ConfigBase):
         # chipsum, namesum, placketluce
         agg_cfg.isWeighted = False  # nsum, pl
         agg_cfg.score_method = 'csum'  # nsum, pl
+        agg_cfg.score_normalization = False  # nsum, pl
         alt_methods = {
             'topk': 'topk',
             'borda': 'borda',
@@ -342,13 +343,15 @@ class AggregateConfig(ConfigBase):
 
     def get_cfgstr_list(agg_cfg, **kwargs):
         agg_cfgstr = []
-        agg_cfgstr += ['_AGG(']
-        agg_cfgstr += [agg_cfg.score_method]
+        agg_cfgstr.append('_AGG(')
+        agg_cfgstr.append(agg_cfg.score_method)
         if agg_cfg.isWeighted:
-            agg_cfgstr += ['w']
+            agg_cfgstr.append('w')
         if agg_cfg.score_method  == 'pl':
-            agg_cfgstr += [',%d' % (agg_cfg.max_alts,)]
-        agg_cfgstr += [')']
+            agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
+        if agg_cfg.score_normalization:
+            agg_cfgstr.append(',norm')
+        agg_cfgstr.append(')')
         return agg_cfgstr
 
 
@@ -593,10 +596,14 @@ class QueryConfig(ConfigBase):
         agg_cfg = query_cfg.agg_cfg
         sv_cfg = query_cfg.sv_cfg
         # TODO:
-        if codename == 'nsum':
+        if codename.startswith('nsum'):
             filt_cfg.dupvote_weight = 1.0
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
+            if codename == 'nsum_unnorm':
+                agg_cfg.score_normalization = False
+            else:
+                agg_cfg.score_normalization = True
         elif codename == 'vsmany':
             query_cfg.pipeline_root = 'vsmany'
         elif codename == 'vsone':
@@ -618,6 +625,9 @@ class QueryConfig(ConfigBase):
         #if query_cfg.species_code == 'zebra_grevys':
         #    query_cfg.fg_weight = 1.0
             # TODO:
+
+        if agg_cfg.score_normalization:
+            assert agg_cfg.score_method == 'nsum'
 
         if query_cfg.pipeline_root == 'asmk':
             query_cfg.pipeline_root = 'smk'

@@ -24,7 +24,7 @@ MIN_BIGCACHE_BUNDLE = 20
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
-                         cfgdict=None):
+                         cfgdict=None, qreq_=None):
     """
     The standard query interface.
 
@@ -62,8 +62,9 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         print(' --- Submit QueryRequest_ --- ')
     # ------------
     # Build query request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
-    qreq_.qparams
+    if qreq_ is None:
+        qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+        #qreq_.qparams
     # --- BIG CACHE ---
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and

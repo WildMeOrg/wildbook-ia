@@ -229,12 +229,16 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         ibs.db_version_expected = '1.1.1'
-        if ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']:
+
+        # TODO: add this functionality to SQLController
+        testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        testing_force_fresh = False  # Set to true until the schema module is good then continue tests with this set to false
+        if testing_newschmea:
             # Work on a fresh schema copy when developing
             dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
             sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
             dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
-            ut.copy(sqldb_fpath, dev_sqldb_fpath)
+            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
             ibs.db_version_expected = '1.2.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=__STR__,
@@ -411,6 +415,40 @@ class IBEISController(object):
         Returns:
             list_ (list): database directory of all cached files """
         return ibs.cachedir
+
+    def get_ibeis_resource_dir(ibs):
+        ibeis_dir = ut.ensure_app_resource_dir('ibeis')
+        return ibeis_dir
+
+    def get_species_cachedir(ibs, species_text, ensure=True):
+        """
+        get_species_cachedir
+
+        Args:
+            ibs          (IBEISController):
+            species_text (str):
+            ensure       (bool):
+
+        Returns:
+            str: species_cachedir
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> species_text = ibeis.constants.Species.ZEB_GREVY
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ensure = True
+            >>> species_cachedir = ibs.get_species_cachedir(species_text, ensure)
+            >>> species_cachedir = ibs.get_species_cachedir(ibeis.constants.Species.ZEB_GREVY, ensure)
+            >>> result = str(species_cachedir)
+            >>> print(result)
+            C:\Users\joncrall\AppData\Roaming\ibeis\zebra_grevys
+
+        """
+        species_cachedir = join(ibs.get_ibeis_resource_dir(), species_text)
+        ut.ensurepath(species_cachedir)
+        return species_cachedir
 
     def get_detectimg_cachedir(ibs):
         """
@@ -2816,17 +2854,26 @@ class IBEISController(object):
         return daid_list
 
     def query_chips(ibs, qaid_list, daid_list=None, cfgdict=None,
-                    use_cache=None, use_bigcache=None):
+                    use_cache=None, use_bigcache=None, qreq_=None,
+                    return_request=False):
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
-        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict,
-                                       use_cache=use_cache, use_bigcache=use_bigcache)
-        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
-        return qres_list
+        if return_request:
+            qaid2_qres, qreq_ = ibs._query_chips4(
+                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
+                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
+            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            return qres_list, qreq_
+        else:
+            qaid2_qres = ibs._query_chips4(
+                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
+                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
+            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            return qres_list
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
                       use_bigcache=None, return_request=False,
-                      cfgdict=None):
+                      cfgdict=None, qreq_=None):
         """
         Example:
             >>> # ENABLE_DOCTEST
@@ -2845,6 +2892,11 @@ class IBEISController(object):
         from ibeis.model.hots import match_chips4 as mc4
         assert len(daid_list) > 0, 'there are no database chips'
         assert len(qaid_list) > 0, 'there are no query chips'
+        if qreq_ is not None:
+            import numpy as np
+            assert np.all(qreq_.get_external_qaids() == qaid_list)
+            assert np.all(qreq_.get_external_daids() == daid_list)
+
         if return_request:
             qaid2_qres, qreq_ = mc4.submit_query_request(
                 ibs,  qaid_list, daid_list, use_cache, use_bigcache,
@@ -2853,7 +2905,7 @@ class IBEISController(object):
         else:
             qaid2_qres = mc4.submit_query_request(
                 ibs, qaid_list, daid_list, use_cache, use_bigcache, return_request,
-                cfgdict)
+                cfgdict, qreq_=qreq_)
             return qaid2_qres
 
     #_query_chips = _query_chips3

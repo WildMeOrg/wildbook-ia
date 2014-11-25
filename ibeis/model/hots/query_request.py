@@ -5,7 +5,7 @@ FIXME: if cfg changes in controller all bets are off.
 Need to make controller functions have a purely stateless option.
 """
 from __future__ import absolute_import, division, print_function
-from ibeis.model.hots import neighbor_index as hsnbrx
+from ibeis.model.hots import neighbor_index, score_normalization
 from ibeis.model import Config
 import six
 # UTool
@@ -23,8 +23,21 @@ def get_test_qreq():
     return qreq_, ibs
 
 
+def apply_species_with_detector_hack(ibs, cfg):
+    """ HACK """
+    from ibeis import constants
+    species_list = ibs.get_database_species()
+    # turn off featureweights when not absolutely sure they are ok to us,)
+    species_with_detectors = (constants.Species.ZEB_GREVY, constants.Species,)
+    if len(species_list) != 1 or species_list[0] not in species_with_detectors:
+        print('HACKING FG_WEIGHT OFF')
+        cfg._featweight_cfg.featweight_on = 'ERR'
+    return species_list
+
+
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
     """
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -42,14 +55,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
-    species_list = ibs.get_database_species()
     # <HACK>
-    from ibeis import constants
-    # turn off featureweights when not absolutely sure they are ok to use
-    species_with_detectors = [constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN]
-    if len(species_list) != 1 or species_list[0] not in species_with_detectors:
-        print('HACKING FG_WEIGHT OFF')
-        cfg._featweight_cfg.featweight_on = 'ERR'
+    species_list = apply_species_with_detector_hack(ibs, cfg)
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
     quuid_list = ibs.get_annot_uuids(qaid_list)
@@ -59,6 +66,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
                          qparams, qresdir)
     if utool.NOT_QUIET:
         print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+    qreq_.species_list = species_list
     return qreq_
 
 
@@ -89,6 +97,7 @@ class QueryRequest(object):
         qreq_.internal_qidx = None
         qreq_.internal_didx = None
         qreq_.indexer = None
+        qreq_.normalizer = None
         qreq_.internal_qvecs_list = None
         qreq_.internal_qkpts_list = None
         qreq_.internal_dkpts_list = None
@@ -292,8 +301,14 @@ class QueryRequest(object):
     def load_indexer(qreq_, ibs):
         if qreq_.indexer is not None:
             return False
-        indexer = hsnbrx.new_ibeis_nnindexer(ibs, qreq_)
+        indexer = neighbor_index.new_ibeis_nnindexer(ibs, qreq_)
         qreq_.indexer = indexer
+
+    def load_score_normalizer(qreq_, ibs):
+        if qreq_.normalizer is not None:
+            return False
+        normalizer = score_normalization.request_ibeis_normalizer(ibs, qreq_)
+        qreq_.normalizer = normalizer
 
     def lazy_load(qreq_, ibs):
         print('[qreq] lazy loading')
@@ -308,6 +323,8 @@ class QueryRequest(object):
             # Hacky way to ensure fgweights exist
             #ibs.get_annot_fgweights(qreq_.get_internal_daids())
             ibs.get_annot_fgweights(qreq_.get_internal_qaids(), ensure=True)
+        if qreq_.qparams.score_normalization:
+            qreq_.normalizer = qreq_.load_score_normalizer(ibs)
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))
@@ -351,7 +368,6 @@ def test_cfg_deepcopy():
 
 
 class QueryParams(object):
-    # TODO: Use setattr to dynamically set all of these via config names
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -362,10 +378,12 @@ class QueryParams(object):
         >>> cfg.pipeline_root = 'asmk'
         >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
         >>> qparams = query_request.QueryParams(cfg, cfgdict)
-        >>> print(qparams.query_cfgstr)
         >>> assert qparams.fg_weight == 1.0
         >>> assert qparams.pipeline_root == 'smk'
         >>> assert qparams.featweight_on is True
+        >>> result = qparams.query_cfgstr
+        >>> print(result)
+        _smk_SMK(agg=True,t=0.0,a=3.0,idf)_VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_VocabTrain(nWords=8000,init=akmeans++,nIters=128,taids=all)_SV(OFF)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
     CommandLine:
         python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
@@ -463,14 +481,15 @@ class QueryParams(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ibeis/ibeis/model/hots/query_request.py
-        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
+        python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request, allexamples=True)"
+        python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request)"
+        python ibeis/model/hots/query_request.py
+        python ibeis/model/hots/query_request.py --allexamples
+        python ibeis/model/hots/query_request.py --allexamples --noface --nosrc
+        python ibeis/model/hots/query_request.py --test-QueryParams
         profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
     """
     import multiprocessing
-    multiprocessing.freeze_support()
-    # Run any doctests
-    import utool as ut
-    testable_list = [
-    ]
-    ut.doctest_funcs(testable_list)
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
