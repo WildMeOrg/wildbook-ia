@@ -527,7 +527,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         dict: locals_
 
     CommandLine:
-        python ibeis/gui/inspect_gui.py --enableall --test-test_inspect_matches --cmd
+        python -m ibeis.gui.inspect_gui --enableall --test-test_inspect_matches --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -573,9 +573,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui, allexamples=True)"
         python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui)"
-        python ibeis/gui/inspect_gui.py
-        python ibeis/gui/inspect_gui.py --allexamples
-        python ibeis/gui/inspect_gui.py --allexamples --noface --nosrc
+        python -m ibeis.gui.inspect_gui
+        python -m ibeis.gui.inspect_gui --allexamples
+        python -m ibeis.gui.inspect_gui --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

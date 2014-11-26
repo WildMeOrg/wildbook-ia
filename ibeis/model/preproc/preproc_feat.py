@@ -165,8 +165,8 @@ def on_delete(ibs, gid_list, qreq_=None):
 
 if __name__ == '__main__':
     """
-    python ibeis/model/preproc/preproc_feat.py
-    python ibeis/model/preproc/preproc_feat.py --allexamples
+    python -m ibeis.model.preproc.preproc_feat
+    python -m ibeis.model.preproc.preproc_feat --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

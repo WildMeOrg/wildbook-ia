@@ -226,9 +226,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)"
         python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)"
-        python ibeis/model/preproc/preproc_probchip.py
-        python ibeis/model/preproc/preproc_probchip.py --allexamples
-        python ibeis/model/preproc/preproc_probchip.py --allexamples --serial --noface --nosrc
+        python -m ibeis.model.preproc.preproc_probchip
+        python -m ibeis.model.preproc.preproc_probchip --allexamples
+        python -m ibeis.model.preproc.preproc_probchip --allexamples --serial --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()

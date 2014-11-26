@@ -1,7 +1,7 @@
 """
 DoctestCMD:
     python -c "import ibeis; import doctest; from ibeis.dev import experiment_harness; print(doctest.testmod(ibeis.dev.experiment_harness))"
-    python ibeis/dev/experiment_harness.py
+    python -m ibeis.dev.experiment_harness
 """
 from __future__ import absolute_import, division, print_function
 # Python
@@ -194,8 +194,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)"
         python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)"
-        python ibeis/dev/experiment_harness.py
-        python ibeis/dev/experiment_harness.py --allexamples
+        python -m ibeis.dev.experiment_harness
+        python -m ibeis.dev.experiment_harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

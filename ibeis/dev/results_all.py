@@ -612,8 +612,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all, allexamples=True)"
         python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all)"
-        python ibeis/dev/results_all.py --allexamples
-        python ibeis/dev/results_all.py --test-learn_score_normalization --enableall
+        python -m ibeis.dev.results_all --allexamples
+        python -m ibeis.dev.results_all --test-learn_score_normalization --enableall
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

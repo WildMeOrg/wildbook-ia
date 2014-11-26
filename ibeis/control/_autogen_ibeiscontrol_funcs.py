@@ -5,7 +5,7 @@ TemplateInfo:
     autogen_time = 16:32:10 2014/11/17
 
 ToRegenerate:
-    python ibeis/control/templates.py --dump-autogen-controller
+    python -m ibeis.control.templates --dump-autogen-controller
 """
 from __future__ import absolute_import, division, print_function
 import functools  # NOQA
@@ -486,8 +486,8 @@ def set_featweight_fgweights(ibs, featweight_rowid_list, fgweight_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/control/_autogen_ibeiscontrol_funcs.py
-        python ibeis/control/_autogen_ibeiscontrol_funcs.py --allexamples
+        python -m ibeis.control._autogen_ibeiscontrol_funcs
+        python -m ibeis.control._autogen_ibeiscontrol_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

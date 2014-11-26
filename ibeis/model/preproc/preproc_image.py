@@ -324,8 +324,8 @@ def on_delete(ibs, featweight_rowid_list, qreq_=None):
 
 if __name__ == '__main__':
     """
-    python ibeis/model/preproc/preproc_image.py
-    python ibeis/model/preproc/preproc_image.py --allexamples
+    python -m ibeis.model.preproc.preproc_image
+    python -m ibeis.model.preproc.preproc_image --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

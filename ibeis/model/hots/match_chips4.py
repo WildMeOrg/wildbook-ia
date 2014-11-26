@@ -191,9 +191,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
 
 if __name__ == '__main__':
     """
-    python ibeis/model/hots/match_chips4.py
-    python ibeis/model/hots/match_chips4.py --allexamples
-    python ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1
+    python -m ibeis.model.hots.match_chips4
+    python -m ibeis.model.hots.match_chips4 --allexamples
+    python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1
     """
     import multiprocessing
     multiprocessing.freeze_support()

@@ -116,7 +116,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         ...     qres1.show_analysis(ibs1, fnum=1, make_figtitle=True)
         >>> print(qres1.get_inspect_str())
 
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0
+    python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0
 
     """
     metadata = {}
@@ -1296,14 +1296,14 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
 
 if __name__ == '__main__':
     """
-    python ibeis/model/hots/pipeline.py --verb-test
-    python ibeis/model/hots/pipeline.py --test-build_chipmatches
-    python ibeis/model/hots/pipeline.py --test-spatial-verification
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0 --show
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:0 --show
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1 --show --db NAUT_test
-    python ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1 --db NAUT_test --noindent
-    python ibeis/model/hots/pipeline.py --allexamples
+    python -m ibeis.model.hots.pipeline --verb-test
+    python -m ibeis.model.hots.pipeline --test-build_chipmatches
+    python -m ibeis.model.hots.pipeline --test-spatial-verification
+    python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0 --show
+    python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+    python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:1 --show --db NAUT_test
+    python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:1 --db NAUT_test --noindent
+    python -m ibeis.model.hots.pipeline --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

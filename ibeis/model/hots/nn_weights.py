@@ -522,10 +522,10 @@ def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdic
 
 if __name__ == '__main__':
     """
-    python utool/util_tests.py
+    python -m utool.util_tests
     python -c "import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)"
-    python ibeis/model/hots/nn_weights.py --allexamples
-    python ibeis/model/hots/nn_weights.py
+    python -m ibeis.model.hots.nn_weights --allexamples
+    python -m ibeis.model.hots.nn_weights
     """
     import multiprocessing
     multiprocessing.freeze_support()

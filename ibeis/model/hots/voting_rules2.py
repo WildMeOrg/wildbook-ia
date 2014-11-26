@@ -445,8 +445,8 @@ def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
 
 if __name__ == '__main__':
     """
-    python ibeis/model/hots/voting_rules2.py
-    python ibeis/model/hots/voting_rules2.py --allexamples
+    python -m ibeis.model.hots.voting_rules2
+    python -m ibeis.model.hots.voting_rules2 --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

@@ -498,10 +498,10 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request, allexamples=True)"
         python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request)"
-        python ibeis/model/hots/query_request.py
-        python ibeis/model/hots/query_request.py --allexamples
-        python ibeis/model/hots/query_request.py --allexamples --noface --nosrc
-        python ibeis/model/hots/query_request.py --test-QueryParams
+        python -m ibeis.model.hots.query_request
+        python -m ibeis.model.hots.query_request --allexamples
+        python -m ibeis.model.hots.query_request --allexamples --noface --nosrc
+        python -m ibeis.model.hots.query_request --test-QueryParams
         profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
     """
     import multiprocessing

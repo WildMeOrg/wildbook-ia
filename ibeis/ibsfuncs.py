@@ -1764,9 +1764,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs, allexamples=True)"
         python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs)"
-        python ibeis/ibsfuncs.py
-        python ibeis/ibsfuncs.py --allexamples
-        python ibeis/ibsfuncs.py --allexamples --noface --nosrc
+        python -m ibeis.ibsfuncs
+        python -m ibeis.ibsfuncs --allexamples
+        python -m ibeis.ibsfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

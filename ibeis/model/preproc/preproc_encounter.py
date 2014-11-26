@@ -320,8 +320,8 @@ def plot_annotaiton_gps(X_Data):
 
 if __name__ == '__main__':
     """
-    python ibeis/model/preproc/preproc_encounter.py
-    python ibeis/model/preproc/preproc_encounter.py --allexamples
+    python -m ibeis.model.preproc.preproc_encounter
+    python -m ibeis.model.preproc.preproc_encounter --allexamples
     """
     import utool as ut
     import multiprocessing

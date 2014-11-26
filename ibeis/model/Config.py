@@ -1068,8 +1068,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config, allexamples=True)"
         python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config)"
-        python ibeis/model/Config.py
-        python ibeis/model/Config.py --allexamples
+        python -m ibeis.model.Config
+        python -m ibeis.model.Config --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

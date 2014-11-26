@@ -359,11 +359,11 @@ def test_dbschema():
     test_dbschema
 
     CommandLine:
-        python ibeis/control/DB_SCHEMA.py
-        python ibeis/control/DB_SCHEMA.py -n=0
-        python ibeis/control/DB_SCHEMA.py -n=1
-        python ibeis/control/DB_SCHEMA.py -n=-1
-        python ibeis/control/DB_SCHEMA.py --force-incremental-db-update
+        python -m ibeis.control.DB_SCHEMA
+        python -m ibeis.control.DB_SCHEMA -n=0
+        python -m ibeis.control.DB_SCHEMA -n=1
+        python -m ibeis.control.DB_SCHEMA -n=-1
+        python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -383,8 +383,8 @@ def test_dbschema():
 
 if __name__ == '__main__':
     """
-    python ibeis/model/preproc/preproc_chip.py
-    python ibeis/control/DB_SCHEMA.py --allexamples
+    python -m ibeis.model.preproc.preproc_chip
+    python -m ibeis.control.DB_SCHEMA --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

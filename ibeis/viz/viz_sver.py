@@ -71,7 +71,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/viz/viz_sver.py --allexamples
-        python ibeis/viz/viz_sver.py --allexamples --show
+        python -m ibeis.viz.viz_sver --allexamples
+        python -m ibeis.viz.viz_sver --allexamples --show
     """
     ut.doctest_funcs()

@@ -968,8 +968,8 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
 
 if __name__ == '__main__':
     """
-    python ibeis/dbio/export_subset.py
-    python ibeis/dbio/export_subset.py --allexamples
+    python -m ibeis.dbio.export_subset
+    python -m ibeis.dbio.export_subset --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
