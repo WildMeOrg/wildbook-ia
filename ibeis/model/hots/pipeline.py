@@ -1273,6 +1273,8 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
             qaid_list = [1]
         if dbname == 'GZ_ALL':
             qaid_list = [1032]
+        if dbname == 'PZ_ALL':
+            qaid_list = [1, 3, 5, 9]
         else:
             qaid_list = [1]
     if daid_list is None:
@@ -1282,7 +1284,8 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
     elif daid_list == 'all':
         daid_list = ibs.get_valid_aids()
     ibs = ibeis.test_main(db=dbname)
-    ibs.cfg.query_cfg.with_metadata = True
+    if 'with_metadata' not in cfgdict:
+        cfgdict['with_metadata'] = True
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
     qreq_.lazy_load(ibs)
     qreq_.ibs = ibs

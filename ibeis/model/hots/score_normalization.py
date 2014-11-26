@@ -353,13 +353,13 @@ def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list, use_cache=True, **l
         >>> import ibeis
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
-        >>> qaid_list = daid_list = ibs.get_valid_aids()
+        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
         >>> cfgdict = dict(codename='nsum_unnorm')
         >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
         >>> result = score_normalizer.get_fname()
         >>> print(result)
-        normalizer_PZ_MTEST_UUIDS((119)htc%i42+w9plda&d).cPkl
+        normalizer_PZ_MTEST_UUIDS((9)t4g!b5zov%chc%+v).cPkl
     """
     # Collect training data
     cfgstr = ibs.get_dbname() + ibs.get_annot_uuid_hashid(qaid_list)
@@ -624,11 +624,9 @@ if __name__ == '__main__':
     """
     CommandLine:
         python -c "import utool, ibeis.model.hots.score_normalization; utool.doctest_funcs(ibeis.model.hots.score_normalization, allexamples=True)"
-        python -c "import utool, ibeis.model.hots.score_normalization; utool.doctest_funcs(ibeis.model.hots.score_normalization)"
-        python ibeis/model/hots/score_normalization.py
-        python ibeis/model/hots/score_normalization.py --allexamples
-        python ibeis/model/hots/score_normalization.py --allexamples --noface --nosrc
-
+        python -m ibeis.model.hots.score_normalization
+        python -m ibeis.model.hots.score_normalization --allexamples
+        python -m ibeis.model.hots.score_normalization --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

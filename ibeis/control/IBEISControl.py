@@ -33,6 +33,21 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
                                            default_decorator, cache_getter,
                                            cache_invalidator, init_tablecache)
+# Import modules which define injectable functions
+# Older manual ibeiscontrol functions
+from ibeis import ibsfuncs
+#try:
+from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
+#except Exception as ex:
+#    utool.printex(ex, 'cannot import autogen funcs', tb=True, iswarning=True)
+#    raise
+#    if not ut.get_argflag('--notstrict'):
+#        raise
+#try:
+from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
+#except Exception as ex:
+#    utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)
+#    raise
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
 
@@ -524,6 +539,7 @@ class IBEISController(object):
         #if ibs.qreq is not None:
         #    ibs.qreq.set_cfg(query_cfg)
         ibs.cfg.query_cfg = query_cfg
+        # Update aliases
         ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
         ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
         ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
@@ -933,8 +949,8 @@ class IBEISController(object):
             params_list  = list(preproc_image.add_images_params_gen(gpath_list))
         # Error reporting
         print('\n'.join(
-            [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params)
-             in zip(gpath_list, params_list) if not params]))
+            [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
+             in zip(gpath_list, params_list) if not params_]))
         # Add any unadded images
         colnames = ('image_uuid', 'image_uri', 'image_original_name',
                     'image_ext', 'image_width', 'image_height',
@@ -942,7 +958,7 @@ class IBEISController(object):
                     'image_gps_lon', 'image_note',)
         # <DEBUG>
         if utool.VERBOSE:
-            uuid_list = [None if params is None else params[0] for params in params_list]
+            uuid_list = [None if params_ is None else params_[0] for params_ in params_list]
             gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
             valid_gids = ibs.get_valid_gids()
             valid_uuids = ibs.get_image_uuids(valid_gids)
@@ -959,7 +975,7 @@ class IBEISController(object):
             ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
 
         if utool.VERBOSE:
-            uuid_list = [None if params is None else params[0] for params in params_list]
+            uuid_list = [None if params_ is None else params_[0] for params_ in params_list]
             gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
             valid_gids = ibs.get_valid_gids()
             valid_uuids = ibs.get_image_uuids(valid_gids)
@@ -3920,25 +3936,67 @@ python ibeis/control/templates.py
 python ibeis/control/templates.py --dump-autogen-controller
 """
 
-
-# Import modules which define injectable functions
-# Older manual ibeiscontrol functions
-from ibeis import ibsfuncs
-try:
-    from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
-except Exception as ex:
-    utool.printex(ex, 'cannot import autogen funcs', tb=True, iswarning=True)
-    raise
-    if not ut.get_argflag('--notstrict'):
-        raise
-try:
-    from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
-except Exception as ex:
-    utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)
-    raise
-
 if __name__ == '__main__':
     """
+    Issue when running on windows:
+    python ibeis/control/IBEISControl.py
+    python -m ibeis.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass
+
+    # SOLUTION
+    #http://legacy.python.org/dev/peps/pep-0338/
+    #https://docs.python.org/2/library/runpy.html
+
+    [guitool] exiting application
+
+    This application has requested the Runtime to terminate it in an unusual way.
+    Please contact the application's support team for more information.
+
+    Problem signature:
+      Problem Event Name:	APPCRASH
+      Application Name:	python.exe
+      Application Version:	0.0.0.0
+      Application Timestamp:	53b1ecd8
+      Fault Module Name:	libgcc_s_dw2-1.dll
+      Fault Module Version:	0.0.0.0
+      Fault Module Timestamp:	525049a5
+      Exception Code:	40000015
+      Exception Offset:	000148fe
+      OS Version:	6.1.7601.2.1.0.256.48
+      Locale ID:	1033
+      Additional Information 1:	777e
+      Additional Information 2:	777ed872d67088f9c3e13888f2b2c0a7
+      Additional Information 3:	fc8e
+      Additional Information 4:	fc8ed6ac51ab0546ef79e1a86bfc1a76
+
+    Read our privacy statement online:
+      http://go.microsoft.com/fwlink/?linkid=104288&clcid=0x0409
+
+    If the online privacy statement is not available, please read our privacy statement offline:
+      C:\Windows\system32\en-US\erofflps.txt
+
+    Problem signature:
+      Problem Event Name:	APPCRASH
+      Application Name:	python.exe
+      Application Version:	0.0.0.0
+      Application Timestamp:	53b1ecd8
+      Fault Module Name:	libgcc_s_dw2-1.dll
+      Fault Module Version:	0.0.0.0
+      Fault Module Timestamp:	525049a5
+      Exception Code:	40000015
+      Exception Offset:	000148fe
+      OS Version:	6.1.7601.2.1.0.256.48
+      Locale ID:	1033
+      Additional Information 1:	777e
+      Additional Information 2:	777ed872d67088f9c3e13888f2b2c0a7
+      Additional Information 3:	fc8e
+      Additional Information 4:	fc8ed6ac51ab0546ef79e1a86bfc1a76
+
+    Read our privacy statement online:
+      http://go.microsoft.com/fwlink/?linkid=104288&clcid=0x0409
+
+    If the online privacy statement is not available, please read our privacy statement offline:
+      C:\Windows\system32\en-US\erofflps.txt
+
     CommandLine:
         python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl, allexamples=True)"
         python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl)"
@@ -3948,6 +4006,8 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import ibeis  # NOQA
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    #import ibeis  # NOQA
+    #import plottool  # NOQA
+    #ibeis._preload()
+    #import utool as ut  # NOQA
+    #ut.doctest_funcs()

@@ -375,8 +375,8 @@ class QueryParams(object):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
-        >>> cfg.pipeline_root = 'asmk'
-        >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> #cfg.pipeline_root = 'asmk'
+        >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
         >>> qparams = query_request.QueryParams(cfg, cfgdict)
         >>> assert qparams.fg_weight == 1.0
         >>> assert qparams.pipeline_root == 'smk'

@@ -9,6 +9,9 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 
+utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
+
+
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool, ibeis.viz

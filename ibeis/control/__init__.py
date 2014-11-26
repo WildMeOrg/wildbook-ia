@@ -1,6 +1,11 @@
 ### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.control.__init__]', DEBUG=False)
+
+
 from ibeis.control import DBCACHE_SCHEMA
 from ibeis.control import DB_SCHEMA
 from ibeis.control import IBEISControl

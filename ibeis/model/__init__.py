@@ -1,5 +1,8 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+import utool as ut
+ut.noinject(__name__, '[ibeis.model.__init__]', DEBUG=False)
+
 from ibeis.model import Config
 from ibeis.model import detect
 from ibeis.model import hots

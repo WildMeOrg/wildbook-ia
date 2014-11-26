@@ -11,10 +11,14 @@ from __future__ import absolute_import, division, print_function
 import six
 import types
 from six.moves import zip, range, map
+from os.path import split, join, exists, commonprefix
+import numpy as np
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 #from functools import partial  # NOQA
-from os.path import split, join, exists, commonprefix
 import utool
+import utool as ut  # NOQA
+from vtool import linalg, geometry, image
+import vtool.image as gtool
 import ibeis
 from ibeis import constants
 try:
@@ -24,16 +28,13 @@ except ImportError as ex:
     pass
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
-from vtool import linalg, geometry, image
-import vtool.image as gtool
-import numpy as np
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibsfuncs]', DEBUG=False)
 
 
-__INJECTABLE_FUNCS__ = []
+#__INJECTABLE_FUNCS__ = []
 
 
 #def __injectable(input_):
@@ -60,7 +61,6 @@ __INJECTABLE_FUNCS__ = []
 #    postinject_func()
 
 #import ibeis
-import utool as ut  # NOQA
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
@@ -1346,7 +1346,6 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     print('\n')
 
 
-#@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
     nid_list = ibs.get_annot_nids(aid_list)
@@ -1591,17 +1590,18 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 
 @__injectable
-def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
+def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     """
     get_annot_groundfalse_sample
 
     Args:
         ibs (IBEISController):
         aid_list (list):
-        per_name (int):
+        per_name (int): number of groundfalse per name
+        seed (bool or int): if False no seed, otherwise seeds numpy randgen
 
     Returns:
-        ?: sample_trues_list
+        list: gf_aids_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1610,11 +1610,18 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::4]
         >>> per_name = 1
-        >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name)
+        >>> seed = 42
+        >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name, seed)
         >>> result = str(sample_trues_list)
         >>> print(result)
+        [[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+
+        [[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
         [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
     """
+    if seed is not False:
+        # Determanism
+        np.random.seed(seed)
     # Get valid names
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_annot_nids(valid_aids)

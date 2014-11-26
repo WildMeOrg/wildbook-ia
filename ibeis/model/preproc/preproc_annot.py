@@ -335,11 +335,13 @@ def schema_1_2_0_postprocess_fixuuids(ibs):
 if __name__ == '__main__':
     """
     CommandLine:
+        python ibeis/control/template_generator.py --tbls annotations --Tflags getters native
+
         python -c "import utool, ibeis.model.preproc.preproc_annot; utool.doctest_funcs(ibeis.model.preproc.preproc_annot, allexamples=True)"
-        python -c "import utool, ibeis.model.preproc.preproc_annot; utool.doctest_funcs(ibeis.model.preproc.preproc_annot)"
-        python ibeis/model/preproc/preproc_annot.py
-        python ibeis/model/preproc/preproc_annot.py --allexamples
-        python ibeis/model/preproc/preproc_annot.py --allexamples --noface --nosrc
+        python -m ibeis.model.preproc.preproc_annot
+        python -m ibeis.model.preproc.preproc_annot --allexamples
+        python -m ibeis.model.preproc.preproc_annot --allexamples --noface --nosrc
+
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

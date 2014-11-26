@@ -56,7 +56,8 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> from ibeis.dev.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> ibs.cfg.query_cfg.codename = 'vsone'
+        >>> cfgdict = dict(codename='vsone')
+        >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
@@ -122,6 +123,8 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
 
     qaids = qaid_list
     daids = daid_list
+
+    orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
     #if daids is None:
     #    daids = ibs.get_recognition_database_aids()
 
@@ -180,6 +183,10 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
                                       bestranks_list, cfgx2_aveprecs, testnameid, sel_rows,
                                       sel_cols, cfgx2_lbl)
+    # Reset query config so nothing unexpected happens
+    # TODO: should probably just use a cfgdict to build a list of QueryRequest
+    # objects. That would avoid the entire problem
+    ibs.cfg.set_query_cfg(orig_query_cfg)
 
 
 if __name__ == '__main__':

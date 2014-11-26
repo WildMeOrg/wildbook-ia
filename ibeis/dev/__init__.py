@@ -1,10 +1,12 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
+ut.noinject(__name__, '[ibeis.dev.__init__]', DEBUG=False)
 
 
 print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[devel]', DEBUG=False)
+    __name__, '[ibeis.dev]', DEBUG=False)
 
 
 __LOADED__ = False

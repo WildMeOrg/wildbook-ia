@@ -5,6 +5,9 @@ best word i can think of is io. maybe marshall?
 """
 from __future__ import absolute_import, division, print_function
 
-from . import ingest_hsdb
-from . import ingest_database
-from . import export_subset
+import utool as ut
+ut.noinject(__name__, '[ibeis.dbio.__init__]', DEBUG=False)
+
+from ibeis.dbio import ingest_hsdb
+from ibeis.dbio import ingest_database
+from ibeis.dbio import export_subset

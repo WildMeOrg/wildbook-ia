@@ -1,5 +1,9 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.model.preproc.__init__]', DEBUG=False)
+
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_detectchip
 from ibeis.model.preproc import preproc_detectimg

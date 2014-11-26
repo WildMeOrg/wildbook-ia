@@ -2,6 +2,10 @@
 ### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.viz.__init__]', DEBUG=False)
+
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_helpers
 from ibeis.viz import viz_hough

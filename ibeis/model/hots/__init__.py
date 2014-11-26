@@ -1,6 +1,10 @@
 ### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.model.hots.__init__]', DEBUG=False)
+
 from ibeis.model.hots import exceptions
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes

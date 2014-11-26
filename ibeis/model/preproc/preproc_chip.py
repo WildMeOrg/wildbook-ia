@@ -340,7 +340,7 @@ def get_chip_fname_fmt(ibs):
         >>> cfname_fmt = get_chip_fname_fmt(ibs)
         >>> result = cfname_fmt
         >>> print(result)
-        chip_aid=%d_bbox=%s_theta=%r_gid=%d_CHIP(sz450).png
+        chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png
     """
     chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
     chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
@@ -539,8 +539,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip, allexamples=True)"
         python -c "import utool, ibeis.model.preproc.preproc_chip; utool.doctest_funcs(ibeis.model.preproc.preproc_chip)"
-        python ibeis/model/preproc/preproc_chip.py
-        python ibeis/model/preproc/preproc_chip.py --allexamples --serial --noface --nosrc
+        python -m ibeis.model.preproc.preproc_chip
+        python -m ibeis.model.preproc.preproc_chip --allexamples --serial --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()
