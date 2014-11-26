@@ -130,7 +130,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> chunksize = 2
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list = [1, 2, 3, 4])
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
         >>> use_cache = False
         >>> save_cache = False
         >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache, chunksize)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import sys
+import sys  # NOQA
 from six.moves import range, map, filter, zip  # NOQA
 
 
@@ -52,20 +52,20 @@ def autogen_ibeis_runtest():
     # Hacky, but not too bad way of getting in doctests
     # Test to see if doctest_funcs appears after main
     # Do not doctest these modules
-    exclude_doctests_fnames = set(['template_definitions.py',
-                                   'autogen_test_script.py'])
-    exclude_dirs = [
-        '_broken',
-        'old',
-        'tests',
-        'timeits',
-        '_scripts',
-        '_timeits',
-        '_doc',
-        'notebook',
-    ]
-    dpath_list = ['ibeis']
-    doctest_modname_list = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
+    #exclude_doctests_fnames = set(['template_definitions.py',
+    #                               'autogen_test_script.py'])
+    #exclude_dirs = [
+    #    '_broken',
+    #    'old',
+    #    'tests',
+    #    'timeits',
+    #    '_scripts',
+    #    '_timeits',
+    #    '_doc',
+    #    'notebook',
+    #]
+    #dpath_list = ['ibeis']
+    #doctest_modname_list = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
 
     # Verbosity to show which modules at least have some tests
     #untested_modnames = ut.find_untested_modpaths(dpath_list, exclude_doctests_fnames, exclude_dirs)
@@ -73,11 +73,17 @@ def autogen_ibeis_runtest():
     #print('\nTESTED MODULES:' + ut.indentjoin(doctest_modname_list))
 
     # The implict list is exactly the code we will use to make the implicit list
+    #module_list = None
+    #doctest_modname_list = None
+    #'export_subset.py',
+    #'_autogen_ibeiscontrol_funcs.py',
+    #'randomforest.py',
     implicit_build_modlist_str = ut.codeblock(
         '''
+        import sys
         exclude_doctests_fnames = set([
             'template_definitions.py',
-            'autogen_test_script.py'
+            'autogen_test_script.py',
         ])
         exclude_dirs = [
             '_broken',
@@ -97,17 +103,25 @@ def autogen_ibeis_runtest():
         module_list = [sys.modules[name] for name in doctest_modname_list]
         '''
     )
+    globals_ = globals()
+    locals_ = locals()
+    exec(implicit_build_modlist_str, globals_, locals_)
+    module_list = locals_['module_list']
+    doctest_modname_list = locals_['doctest_modname_list']
 
     #module_list = [__import__(name, globals(), locals(), fromlist=[], level=0) for name in modname_list]
-    for modname in doctest_modname_list:
-        exec('import ' + modname, globals(), locals())
-    module_list = [sys.modules[name] for name in doctest_modname_list]
+    #for modname in doctest_modname_list:
+    #    exec('import ' + modname, globals(), locals())
+    #module_list = [sys.modules[name] for name in doctest_modname_list]
     #print('\n'.join(testcmds))
 
     #print('\n'.join(['python -m ' + modname for modname in doctest_modname_list]))
     import_str = '\n'.join(['import ' + modname for modname in doctest_modname_list])
     modlist_str = ('module_list = [%s\n]' % ut.indentjoin([modname  + ',' for modname in doctest_modname_list]))
-    explicit_build_modlist_str = ut.indent('\n\n'.join((import_str, modlist_str))).strip()
+    explicit_build_modlist_str = '\n\n'.join((import_str, modlist_str))
+
+    build_modlist_str = implicit_build_modlist_str
+    build_modlist_str = explicit_build_modlist_str
 
     pyscript_fmtstr = ut.codeblock(
         r'''
@@ -122,11 +136,13 @@ def autogen_ibeis_runtest():
             ut.doctest_module_list(module_list)
 
         if __name__ == '__main__':
+            import multiprocessing
+            multiprocessing.freeze_support()
             run_tests()
         '''
     )
 
-    pyscript_text = pyscript_fmtstr.format(build_modlist_str=explicit_build_modlist_str)
+    pyscript_text = pyscript_fmtstr.format(build_modlist_str=ut.indent(build_modlist_str).strip())
     pyscript_text = ut.autofix_codeblock(pyscript_text)
 
     # BUILD OLD SHELL RUN TESTS HARNESS

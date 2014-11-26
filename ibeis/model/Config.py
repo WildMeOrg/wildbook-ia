@@ -155,7 +155,7 @@ class FilterConfig(ConfigBase):
         >>> filt_cfg.fg_weight = 1
         >>> result2 = filt_cfg.get_cfgstr()
         >>> result = result1
-        _FILT(lnbnn;1.0,fg;1.0)
+        _FILT(lnbnn;1.0,dupvote;1.0,fg;1.0)
     """
 
     def __init__(filt_cfg, **kwargs):

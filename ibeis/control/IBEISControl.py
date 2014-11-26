@@ -539,7 +539,6 @@ class IBEISController(object):
         #if ibs.qreq is not None:
         #    ibs.qreq.set_cfg(query_cfg)
         ibs.cfg.query_cfg = query_cfg
-        # Update aliases
         ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
         ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
         ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
@@ -3999,15 +3998,11 @@ if __name__ == '__main__':
 
     CommandLine:
         python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl, allexamples=True)"
-        python -c "import utool, ibeis.control.IBEISControl; utool.doctest_funcs(ibeis.control.IBEISControl)"
-        python ibeis\control\IBEISControl.py
-        python ibeis\control\IBEISControl.py --allexamples
-        python ibeis\control\IBEISControl.py --allexamples --noface --nosrc
+        python -m ibeis.control.IBEISControl
+        python -m ibeis.control.IBEISControl --allexamples
+        python -m ibeis.control.IBEISControl --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    #import ibeis  # NOQA
-    #import plottool  # NOQA
-    #ibeis._preload()
-    #import utool as ut  # NOQA
-    #ut.doctest_funcs()
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

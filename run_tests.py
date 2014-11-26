@@ -67,4 +67,6 @@ def run_tests():
     ut.doctest_module_list(module_list)
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
     run_tests()

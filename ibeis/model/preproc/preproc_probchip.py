@@ -107,7 +107,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
         >>> result = probchip_fname_fmt
         >>> print(result)
-        probchip_aid=%d_bbox=%s_theta=%r_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
+        probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
 
     """
     cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs)

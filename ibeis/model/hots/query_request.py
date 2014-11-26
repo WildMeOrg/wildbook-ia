@@ -23,15 +23,21 @@ def get_test_qreq():
     return qreq_, ibs
 
 
-def apply_species_with_detector_hack(ibs, cfg):
+def apply_species_with_detector_hack(ibs, cfgdict):
     """ HACK """
     from ibeis import constants
     species_list = ibs.get_database_species()
     # turn off featureweights when not absolutely sure they are ok to us,)
-    species_with_detectors = (constants.Species.ZEB_GREVY, constants.Species,)
+    species_with_detectors = (constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN,)
     if len(species_list) != 1 or species_list[0] not in species_with_detectors:
-        print('HACKING FG_WEIGHT OFF')
-        cfg._featweight_cfg.featweight_on = 'ERR'
+        print('HACKING FG_WEIGHT OFF (database species is not supported)')
+        if len(species_list) != 1:
+            print('  * len(species_list) = %r' % len(species_list))
+        else:
+            print('  * species_list = %r' % (species_list,))
+        print('  * valid species = %r' % (species_with_detectors,))
+        #cfg._featweight_cfg.featweight_on = 'ERR'
+        cfgdict['featweight_on'] = 'ERR'
     return species_list
 
 
@@ -55,8 +61,11 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
+    if cfgdict is None:
+        cfgdict = {}
+    cfgdict = cfgdict.copy()
     # <HACK>
-    species_list = apply_species_with_detector_hack(ibs, cfg)
+    species_list = apply_species_with_detector_hack(ibs, cfgdict)
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
     quuid_list = ibs.get_annot_uuids(qaid_list)
@@ -66,11 +75,15 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
                          qparams, qresdir)
     if utool.NOT_QUIET:
         print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
-    qreq_.species_list = species_list
+    qreq_.species_list = species_list  # HACK
     return qreq_
 
 
 def qreq_shallow_copy(qreq_, qx=None, dx=None):
+    """
+    Creates a copy of qreq with the same qparams object and a subset of the qx
+    and dx objects.
+    """
     qaid_list  = qreq_.get_external_qaids()
     quuid_list = qreq_.get_external_quuids()
     daid_list  = qreq_.get_external_daids()
@@ -82,6 +95,7 @@ def qreq_shallow_copy(qreq_, qx=None, dx=None):
     daid_list  =  daid_list if dx is None else  daid_list[dx:dx + 1]
     duuid_list = duuid_list if dx is None else duuid_list[dx:dx + 1]
     qreq_copy  = QueryRequest(qaid_list, quuid_list, daid_list, duuid_list, qreq_.qparams, qreq_.qresdir)
+    qreq_copy.species_list = qreq_.species_list  # HACK
     return qreq_copy
 
 
@@ -96,6 +110,7 @@ class QueryRequest(object):
         qreq_.internal_duuids = None
         qreq_.internal_qidx = None
         qreq_.internal_didx = None
+        qreq_.species_list = None
         qreq_.indexer = None
         qreq_.normalizer = None
         qreq_.internal_qvecs_list = None
