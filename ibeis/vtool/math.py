@@ -146,9 +146,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, vtool.math; utool.doctest_funcs(vtool.math, allexamples=True)"
         python -c "import utool, vtool.math; utool.doctest_funcs(vtool.math)"
-        python vtool/math.py
-        python vtool/math.py --allexamples
-        python vtool/math.py --allexamples --noface --nosrc
+        python -m vtool.math
+        python -m vtool.math --allexamples
+        python -m vtool.math --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

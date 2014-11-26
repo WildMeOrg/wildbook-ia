@@ -132,10 +132,11 @@ def compute_homog(xy1_mn, xy2_mn):
         >>> H = compute_homog(xy1_mn, xy2_mn)
         >>> #result = utool.hashstr(H)
         >>> result =str(H)
+        >>> result = np.array_str(H, precision=2)
         >>> print(result)
-        [[  1.83339899e-03   2.84967763e-03   7.11014172e-01]
-         [  2.82477718e-03   1.80000445e-03  -7.03139799e-01]
-         [  1.66839211e-05   1.67525375e-05  -5.52890782e-03]]
+        [[  1.83e-03   2.85e-03  -7.11e-01]
+         [  2.82e-03   1.80e-03  -7.03e-01]
+         [  1.67e-05   1.68e-05  -5.53e-03]]
 
     Cyth:
         #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
@@ -185,7 +186,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> _kw2 = dict(seed=24, damping=1.6, wh_stride=(30, 30))
         >>> kpts1 = dummy.perterbed_grid_kpts(**_kw1).astype(np.float64)
         >>> kpts2 = dummy.perterbed_grid_kpts(**_kw2).astype(np.float64)
-        >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
+        >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
         >>> kpts1_m = kpts1[fm.T[0]]
         >>> kpts2_m = kpts2[fm.T[1]]
         >>> xy_thresh_sqrd = np.float64(.009) ** 2
@@ -296,7 +297,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         >>> import vtool.tests.dummy as dummy
         >>> import vtool.keypoint as ktool
         >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
-        >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
+        >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
         >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
         >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
@@ -311,7 +312,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         #CYTH_PARAM_TYPES:
             np.ndarray[np.float64_t, ndim=2] kpts1
             np.ndarray[np.float64_t, ndim=2] kpts2
-            np.ndarray[np.int64_t, ndim=2] fm
+            np.ndarray[np.int32_t, ndim=2] fm
             np.float64_t xy_thresh_sqrd
             np.float64_t scale_thresh_sqrd
             np.float64_t ori_thresh
@@ -343,11 +344,11 @@ def get_affine_inliers(kpts1, kpts2, fm,
         align = fm.dtype.itemsize * fm.shape[1]
         align2 = [fm.dtype.itemsize, fm.dtype.itemsize]
         viewtype1 = np.dtype(np.void, align)
-        viewtype2 = np.dtype(np.int64, align2)
+        viewtype2 = np.dtype(np.int32, align2)
         c = np.ascontiguousarray(fm).view(viewtype1)
         fm_view = np.ascontiguousarray(fm).view(viewtype1)
-        qfx = fm.view(np.dtype(np.int64, np.int64.itemsize))
-        dfx = fm.view(np.dtype(np.int64, np.int64.itemsize))
+        qfx = fm.view(np.dtype(np.int32 np.int32.itemsize))
+        dfx = fm.view(np.dtype(np.int32, np.int32.itemsize))
         d = np.ascontiguousarray(c).view(viewtype2)
 
         fm.view(np.dtype(np.void, align))
@@ -397,7 +398,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] kpts1
         np.ndarray[np.float64_t, ndim=2] kpts2
-        np.ndarray[np.int64_t, ndim=2] fm
+        np.ndarray[np.int32_t, ndim=2] fm
         np.float64_t xy_thresh_sqrd
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
@@ -650,11 +651,11 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification, allexamples=True)"
         python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification)"
-        python vtool/spatial_verification.py
-        python vtool/spatial_verification.py --allexamples
+        python -m vtool.spatial_verification
+        python -m vtool.spatial_verification --allexamples
 
     SeeAlso:
-        python vtool/tests/test_spatial_verification.py
+        python -m vtool.tests.test_spatial_verification
     """
     import utool as ut  # NOQA
     ut.doctest_funcs()
