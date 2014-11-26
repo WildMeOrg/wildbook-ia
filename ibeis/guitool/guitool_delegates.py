@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore, QtGui
+import utool as ut
+ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 
 
 class APIDelegate(QtGui.QItemDelegate):

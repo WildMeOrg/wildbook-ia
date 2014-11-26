@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
-from .__PYQT__.QtCore import Qt
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import Qt
 import math
 import utool
 
 import six
+utool.noinject(__name__, '[StripProxyModel]', DEBUG=False)
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
 #BASE_CLASS = QtGui.QSortFilterProxyModel

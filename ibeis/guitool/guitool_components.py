@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from .__PYQT__ import QtCore, QtGui
-from .__PYQT__.QtGui import QSizePolicy
-from .__PYQT__.QtCore import Qt
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtGui import QSizePolicy
+from guitool.__PYQT__.QtCore import Qt
 import functools
 import utool
-from . import guitool_dialogs
+from guitool import guitool_dialogs
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[guitool_components]')
 

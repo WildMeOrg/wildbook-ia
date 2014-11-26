@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import functools
-from .__PYQT__ import QtCore, QtGui  # NOQA
-from .__PYQT__.QtCore import Qt      # NOQA
+from guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool.__PYQT__.QtCore import Qt      # NOQA
 import utool
 from utool._internal.meta_util_six import get_funcname
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitool.decorators]', DEBUG=False)
+utool.noinject(__name__, '[guitool.decorators]', DEBUG=False)
 
 DEBUG = False
 

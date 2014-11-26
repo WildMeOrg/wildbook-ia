@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtGui, QtCore  # NOQA
+from guitool.__PYQT__ import QtGui, QtCore  # NOQA
 from guitool import guitool_components
 import utool
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
+import utool as ut
+ut.noinject(__name__, '[APIButtonWidget]', DEBUG=False)
 
 
 #DELEGATE_BASE = QtGui.QItemDelegate

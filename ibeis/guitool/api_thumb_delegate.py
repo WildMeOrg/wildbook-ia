@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtGui, QtCore
 import cv2
 import numpy as np
 import utool
@@ -11,8 +11,9 @@ from vtool import image as gtool
 from vtool import geometry
 #from multiprocessing import Process
 #from guitool import guitool_components as comp
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIThumbDelegate]', DEBUG=False)
 import utool as ut
+ut.noinject(__name__, '[APIThumbDelegate]', DEBUG=False)
 
 VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 

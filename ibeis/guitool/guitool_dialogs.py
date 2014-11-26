@@ -1,12 +1,14 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from .__PYQT__ import QtCore, QtGui  # NOQA
-from .__PYQT__.QtCore import Qt
+from guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool.__PYQT__.QtCore import Qt
 from os.path import split
 # UTool
 import platform
 import utool
 from utool import util_cache, util_path
+import utool as ut
+ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 
 
 SELDIR_CACHEID = 'guitool_selected_directory'

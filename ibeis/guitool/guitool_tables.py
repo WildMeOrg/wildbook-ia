@@ -1,9 +1,9 @@
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
-from .__PYQT__.QtCore import Qt
-from .guitool_delegates import ComboDelegate, ButtonDelegate
-from . import qtype
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import Qt
+from guitool.guitool_delegates import ComboDelegate, ButtonDelegate
+from guitool import qtype
 from six.moves import range, map
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(

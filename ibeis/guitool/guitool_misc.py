@@ -1,14 +1,19 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore, QtGui
 # Python
 import six
 from six.moves import range
 import utool
 import sys
 import logging
-from .guitool_decorators import slot_
-from . import guitool_main
+from guitool.guitool_decorators import slot_
+from guitool import guitool_main
 #print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool_misc]')
+import utool as ut
+ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
+
+WITH_GUILOG = utool.get_argflag('--guilog')
+#WITH_GUILOG = not utool.get_argflag('--noguilog')
 
 
 # Qt object that will send messages (as signals) to the frontend gui_write slot
@@ -38,9 +43,6 @@ class GUILoggingHandler(logging.StreamHandler):
             raise
         except:
             self.handleError(record)
-
-WITH_GUILOG = utool.get_argflag('--guilog')
-#WITH_GUILOG = not utool.get_argflag('--noguilog')
 
 
 class QLoggedOutput(QtGui.QTextEdit):

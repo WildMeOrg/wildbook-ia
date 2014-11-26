@@ -1,6 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore  # NOQA
+from guitool.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
 from six.moves import zip, range
 import utool

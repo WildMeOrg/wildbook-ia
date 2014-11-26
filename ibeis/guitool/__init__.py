@@ -3,12 +3,18 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
-try:
-    # try seeing if importing plottool before any guitool things helps
-    import plottool
-except Exception as ex:
-    raise
-    #pass
+import utool as ut
+ut.noinject(__name__, '[guitool.__init__]')
+
+
+#try:
+#    # try seeing if importing plottool before any guitool things helps
+#    import plottool
+#except Exception as ex:
+#    import utool as ut
+#    ut.printex(ex, 'tried to import plottool to solve win crash')
+#    raise
+#    #pass
 
 #print('__guitool__1')
 from guitool import __PYQT__

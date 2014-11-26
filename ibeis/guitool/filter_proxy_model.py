@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtGui, QtCore  # NOQA
-from .__PYQT__.QtCore import Qt
+from guitool.__PYQT__ import QtGui, QtCore  # NOQA
+from guitool.__PYQT__.QtCore import Qt
 import utool
+
+utool.noinject(__name__, '[APIItemView]', DEBUG=False)
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
 BASE_CLASS = QtGui.QSortFilterProxyModel

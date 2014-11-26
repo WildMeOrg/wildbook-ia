@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtGui
-from .__PYQT__.QtCore import Qt
+from guitool.__PYQT__ import QtGui
+from guitool.__PYQT__.QtCore import Qt
 from six.moves import range
 from guitool import qtype
 from guitool.api_thumb_delegate import APIThumbDelegate
@@ -18,6 +18,7 @@ from guitool.stripe_proxy_model import StripeProxyModel
 from guitool.filter_proxy_model import FilterProxyModel
 from guitool.api_item_model import APIItemModel
 
+# DANGER SHOULD UTOOL BE INJECTING HERE?!
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
 

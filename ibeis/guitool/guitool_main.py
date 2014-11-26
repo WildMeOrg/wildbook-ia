@@ -2,10 +2,12 @@ from __future__ import absolute_import, division, print_function
 # Python
 import atexit
 import sys
-from .__PYQT__ import QtCore, QtGui
-from .__PYQT__.QtCore import pyqtRemoveInputHook
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import pyqtRemoveInputHook
 import utool
 #print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
+import utool as ut
+ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
 
 IS_ROOT = False
@@ -67,7 +69,7 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 
 
 #if '__PYQT__' in sys.modules:
-    #from .__PYQT__ import QtCore
+    #from guitool.__PYQT__ import QtCore
     #from IPython.lib.inputhook import enable_qt4
     #from IPython.lib.guisupport import start_event_loop_qt4
     #qapp = QtCore.QCoreApplication.instance()
@@ -89,11 +91,9 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(**kwargs)
     if IS_ROOT:
-        if not QUIET and VERBOSE:
+        if not QUIET:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
-        if ipy:
-            pass
-        else:
+        if not ipy:
             old_excepthook = sys.excepthook
             def qt_excepthook(type_, value, traceback):
                 print('QT EXCEPTION HOOK')

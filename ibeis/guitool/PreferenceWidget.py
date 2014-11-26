@@ -6,12 +6,14 @@ import sys
 import traceback
 from utool.Preferences import Pref
 # Qt
-from .__PYQT__ import QtCore, QtGui
-from .__PYQT__ import QVariantHack
-from .__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject, pyqtSlot
-from .__PYQT__.QtGui import QWidget
-#from .__PYQT__.QtCore import QString
-from .import qtype
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QVariantHack
+from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject, pyqtSlot
+from guitool.__PYQT__.QtGui import QWidget
+#from guitool.__PYQT__.QtCore import QString
+from guitool import qtype
+import utool as ut
+ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
 
 
 # Decorator to help catch errors that QT wont report

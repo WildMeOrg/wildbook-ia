@@ -1,11 +1,10 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore, QtGui
 from guitool import api_item_view
 from guitool.guitool_decorators import signal_, slot_
 import utool
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[APITableView]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableView]', DEBUG=False)
 
 
 # If you need to set the selected index try:

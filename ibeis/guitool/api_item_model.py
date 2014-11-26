@@ -1,9 +1,9 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui, QVariantHack
-from .__PYQT__.QtCore import Qt
-from . import qtype
-from .guitool_decorators import checks_qt_error, signal_  # NOQA
+from guitool.__PYQT__ import QtCore, QtGui, QVariantHack
+from guitool.__PYQT__.QtCore import Qt
+from guitool import qtype
+from guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins
 #from utool._internal.meta_util_six import get_funcname
 import functools
@@ -16,6 +16,8 @@ import utool as ut
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
+ut.noinject(__name__, '[APIItemModel]', DEBUG=False)
+
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel

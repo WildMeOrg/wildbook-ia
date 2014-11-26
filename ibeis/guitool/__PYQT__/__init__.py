@@ -3,6 +3,10 @@ from __future__ import absolute_import, division, print_function
 # flake8:noqa
 #print('__pyqt5__1')
 # Wrapper around PyQt4/5
+
+import utool as ut
+ut.noinject(__name__, '[guitool.__PYQT__]')
+
 try:
     import sip
     # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
