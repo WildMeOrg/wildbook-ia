@@ -1,5 +1,5 @@
 """
-TODO:
+GOALS:
     1) vsmany
        * works resaonable for very few and very many
        * stars with small k and then k becomes a percent or log percent
@@ -14,9 +14,19 @@ TODO:
     4) Always show numbers between 0 and 1 spatial verification is based on
     single best exemplar
 
+       x - build normalizer
+       x - test normalizer
+       x - monotonicity (both nondecreasing and strictly increasing)
+       x - cache normalizer
+       x - cache maitainance (deleters and listers)
+       o - Incemental learning
+       o - Spceies sensitivity
+
+
     5) Add exemplars that are distinct from exiting (matches below threshold)
 
     (no rebuilding ing kd-tree for each image)
+
 
 
 """
@@ -309,7 +319,7 @@ def request_ibeis_normalizer(ibs, qreq_):
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> daid_list = [1, 2, 3, 4, 5n
         >>> cfgdict = {'codename': 'nsum_unnorm'}
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> normalizer = request_ibeis_normalizer(ibs, qreq_)
@@ -349,7 +359,7 @@ def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list, use_cache=True, **l
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
         >>> result = score_normalizer.get_fname()
         >>> print(result)
-        PZ_MTEST_UUIDS((119)htc%i42+w9plda&d)_scorenorm.cPkl
+        normalizer_PZ_MTEST_UUIDS((119)htc%i42+w9plda&d).cPkl
     """
     # Collect training data
     cfgstr = ibs.get_dbname() + ibs.get_annot_uuid_hashid(qaid_list)
@@ -415,20 +425,44 @@ def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
 def learn_score_normalization(truepos_scores, trueneg_scores, gridsize=1024,
                               adjust=8, return_all=False, monotonize=True,
                               clip_factor=(ut.PHI + 1)):
-    """
+    r"""
     Takes collected data and applys parzen window density estimation and bayes rule.
+
+    learn_score_normalization
+
+    Args:
+        truepos_scores (ndarray):
+        trueneg_scores (ndarray):
+        gridsize       (int): default 512
+        adjust         (int): default 8
+        return_all     (bool): default False
+        monotonize     (bool): default True
+        clip_factor    (float): default phi ** 2
+
+    Returns:
+        tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, clip_score)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> truepos_scores = np.linspace(100, 10000, 512)
+        >>> trueneg_scores = np.linspace(0, 120, 512)
+        >>> (score_domain, p_tp_given_score) = learn_score_normalization(truepos_scores, trueneg_scores)
+        >>> result = int(p_tp_given_score.sum())
+        >>> print(result)
+        92
     """
     #clip_score = 2000
     # Find good maximum score
     clip_score = find_score_maxclip(truepos_scores, trueneg_scores, clip_factor)
     score_domain = np.linspace(0, clip_score, 1024)
-    # Estimate density
+    # Estimate true positive density
     score_tp_pdf = ut.estimate_pdf(truepos_scores, gridsize=gridsize, adjust=adjust)
     score_tn_pdf = ut.estimate_pdf(trueneg_scores, gridsize=gridsize, adjust=adjust)
-    # Evaluate density
+    # Evaluate true negative density
     p_score_given_tp = score_tp_pdf.evaluate(score_domain)
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
-    # Average to get probablity of score
+    # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
     p_tp = .5
@@ -466,7 +500,7 @@ def find_score_maxclip(truepos_scores, trueneg_scores, clip_factor=ut.PHI + 1):
         >>> clip_score = find_score_maxclip(truepos_scores, trueneg_scores)
         >>> result = str(clip_score)
         >>> print(result)
-        333.0
+        287.983738762
     """
     max_true_positive_score = truepos_scores.max()
     max_true_negative_score = trueneg_scores.max()

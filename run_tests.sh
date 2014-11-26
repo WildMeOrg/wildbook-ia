@@ -44,7 +44,6 @@ set_test_flags()
     export DOC_TEST=$DEFAULT
 }
 set_test_flags OFF
-export IBEIS_TEST=ON
 export DOC_TEST=ON
 
 # Parse for bash commandline args
@@ -322,6 +321,12 @@ cat <<EOF
     |  \ |  | |        |  |___ [__   |  [__  
     |__/ |__| |___     |  |___ ___]  |  ___]
 EOF
+    RUN_TEST ibeis/ibsfuncs.py --test-get_annot_groundfalse_sample:0
+    RUN_TEST ibeis/ibsfuncs.py --test-get_annot_groundtruth_sample:0
+    RUN_TEST ibeis/ibsfuncs.py --test-get_annot_is_hard:0
+    RUN_TEST ibeis/ibsfuncs.py --test-invertable_flatten2:0
+    RUN_TEST ibeis/ibsfuncs.py --test-print_annotation_table:0
+    RUN_TEST ibeis/ibsfuncs.py --test-unflatten2:0
     RUN_TEST ibeis/viz/viz_sver.py --test-show_sver:0
     RUN_TEST ibeis/model/Config.py --test-DetectionConfig:0
     RUN_TEST ibeis/model/Config.py --test-FeatureConfig:0
@@ -341,7 +346,7 @@ EOF
     RUN_TEST ibeis/model/hots/nn_weights.py --test-nn_normalized_weight:0
     RUN_TEST ibeis/model/hots/nn_weights.py --test-test_all_normalized_weights:0
     RUN_TEST ibeis/model/hots/pipeline.py --test-build_chipmatches:0
-    RUN_TEST ibeis/model/hots/pipeline.py --test-chipmatch_to_resdict:1
+    RUN_TEST ibeis/model/hots/pipeline.py --test-chipmatch_to_resdict:0
     RUN_TEST ibeis/model/hots/pipeline.py --test-filter_neighbors:0
     RUN_TEST ibeis/model/hots/pipeline.py --test-get_pipeline_testdata:0
     RUN_TEST ibeis/model/hots/pipeline.py --test-nearest_neighbors:0
@@ -350,12 +355,19 @@ EOF
     RUN_TEST ibeis/model/hots/pipeline.py --test-request_ibeis_query_L0:1
     RUN_TEST ibeis/model/hots/pipeline.py --test-spatial_verification:0
     RUN_TEST ibeis/model/hots/pipeline.py --test-weight_neighbors:0
+    RUN_TEST ibeis/model/hots/score_normalization.py --test-cached_ibeis_score_normalizer:0
+    RUN_TEST ibeis/model/hots/score_normalization.py --test-find_score_maxclip:0
+    RUN_TEST ibeis/model/hots/score_normalization.py --test-learn_score_normalization:0
     RUN_TEST ibeis/model/hots/query_request.py --test-QueryParams:0
     RUN_TEST ibeis/model/hots/query_request.py --test-new_ibeis_query_request:0
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_csum:0
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_nsum:0
     RUN_TEST ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1:0
     RUN_TEST ibeis/model/hots/match_chips4.py --test-submit_query_request:0
+    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-get_annot_semantic_uuid_info:0
+    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-get_annot_visual_uuid_info:0
+    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-make_annot_semeantic_uuid:0
+    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-make_annot_visual_uuid:0
     RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg:0
     RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy:0
     RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-get_image_detectimg_fpath_list:0
@@ -373,6 +385,7 @@ EOF
     RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-group_aids_by_featweight_species:0
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:0
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:1
+    RUN_TEST ibeis/control/IBEISControl.py --test-_query_chips4:0
     RUN_TEST ibeis/control/DB_SCHEMA.py --test-test_dbschema:0
     RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-_get_all_featweight_rowids:0
     RUN_TEST ibeis/control/_autogen_ibeiscontrol_funcs.py --test-add_annot_featweights:0
