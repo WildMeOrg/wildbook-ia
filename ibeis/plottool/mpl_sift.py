@@ -6,9 +6,11 @@ from six.moves import zip, range
 import numpy as np
 # Matplotlib
 import matplotlib as mpl
+import utool as ut
+ut.noinject(__name__, '[pt.mpl_sift]')
+
+
 np.tau = 2 * np.pi  # References: tauday.com
-
-
 BLACK  = np.array((0.0, 0.0, 0.0, 1.0))
 RED    = np.array((1.0, 0.0, 0.0, 1.0))
 

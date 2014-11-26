@@ -3,6 +3,10 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
+import utool as ut
+ut.noinject(__name__, '[plottool.__init__]')
+
+
 # Hopefully this was imported sooner. TODO remove dependency
 from guitool import __PYQT__
 from plottool import __MPL_INIT__

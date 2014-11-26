@@ -4,7 +4,7 @@ import utool
 import sys
 import numpy as np
 import matplotlib as mpl
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[custom_constants]', DEBUG=False)
 # GENERAL FONTS
 
 SMALLEST = 6

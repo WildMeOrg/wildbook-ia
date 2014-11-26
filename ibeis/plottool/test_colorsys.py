@@ -2,7 +2,6 @@ import colorsys
 import numpy as np
 from plottool import color_funcs
 
-
 def TEST_COLORSYS():
     rgb = [1.0, .2, .1]
     hsv = colorsys.rgb_to_hsv(*rgb)

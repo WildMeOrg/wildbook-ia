@@ -11,6 +11,8 @@ import utool
 import utool as ut  # NOQA
 import numpy as np
 
+ut.noinject(__name__, '[plots]')
+
 
 def draw_hist_subbin_maxima(hist, centers=None):
     # Find maxima

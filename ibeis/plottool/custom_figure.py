@@ -3,9 +3,9 @@ from os.path import exists, splitext, join, split
 import utool
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[customfig]')
 import warnings
-from .custom_constants import FIGSIZE, DPI, FONTS
+from plottool.custom_constants import FIGSIZE, DPI, FONTS
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[customfig]')
 
 
 def customize_figure(fig, docla):

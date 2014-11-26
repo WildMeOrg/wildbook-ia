@@ -8,6 +8,8 @@ import matplotlib as mpl
 # vtool
 import vtool.keypoint as ktool
 from plottool import mpl_sift
+import utool as ut
+ut.noinject(__name__, '[pt.mpl_keypoint]')
 
 
 # TOOD: move to util

@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 import utool as ut
+ut.noinject(__name__, '[plottool.__MPL_INIT__]')
+
 
 __IS_INITIALIZED__ = False
 __WHO_INITIALIZED__ = None

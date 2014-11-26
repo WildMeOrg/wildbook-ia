@@ -6,6 +6,9 @@
 # plot_<funcname> will not clear the axes or figure. More useful for graphs
 # draw_<funcname> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
+import utool as ut
+ut.noinject(__name__, '[df2]')
+
 from six.moves import range, zip, map
 import six
 #import os

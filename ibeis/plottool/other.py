@@ -9,6 +9,8 @@ import cv2
 import matplotlib.pyplot as plt
 # VTool
 import vtool.histogram as htool
+import utool as ut
+ut.noinject(__name__, '[pt.other]')
 
 
 def color_orimag(gori, gmag):

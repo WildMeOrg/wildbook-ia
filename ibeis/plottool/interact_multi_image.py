@@ -13,6 +13,8 @@ import six
 import utool
 from vtool import image as gtool
 #import utool
+import utool as ut
+ut.noinject(__name__, '[pt.interact_multiimage]')
 
 
 class MultiImageInteraction(object):

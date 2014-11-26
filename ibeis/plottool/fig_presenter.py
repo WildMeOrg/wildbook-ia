@@ -8,8 +8,8 @@ import warnings
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 # Science
-from .custom_figure import get_fig
-from . import screeninfo
+from plottool.custom_figure import get_fig
+from plottool import screeninfo
 
 from guitool.__PYQT__ import QtGui
 from guitool.__PYQT__.QtCore import Qt
