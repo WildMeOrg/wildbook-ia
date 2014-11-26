@@ -555,14 +555,14 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
         output = logic_op(output, row_result)
     return output
 
-try:
-    import cyth
-    if cyth.DYNAMIC:
-        exec(cyth.import_cyth_execstr(__name__))
-    else:
-        # <AUTOGEN_CYTH>
-        # Regen command: python -c "import vtool.linalg" --cyth-write
-        pass
-        # </AUTOGEN_CYTH>
-except Exception as ex:
-    pass
+#try:
+#    import cyth
+#    if cyth.DYNAMIC:
+#        exec(cyth.import_cyth_execstr(__name__))
+#    else:
+#        # <AUTOGEN_CYTH>
+#        # Regen command: python -c "import vtool.linalg" --cyth-write
+#        pass
+#        # </AUTOGEN_CYTH>
+#except Exception as ex:
+#    pass

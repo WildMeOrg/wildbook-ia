@@ -1,8 +1,8 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[math]', DEBUG=False)
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[math]', DEBUG=False)
 
 
 tau = 2 * np.pi  # References: tauday.com
@@ -24,11 +24,15 @@ def ensure_monotone_strictly_increasing(arr_, zerohack=False, onehack=False):
         >>> arr = ensure_monotone_strictly_increasing(arr_, zerohack, onehack)
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed'
     """
-
+    #with ut.EmbedOnException():
     arr = ensure_monotone_increasing(arr_)
     #assert non_decreasing(arr), 'ensure monotonic failed'
     size = len(arr)
     index_list = np.nonzero(np.diff(arr) == 0)[0]
+    if len(index_list) == 0:
+        # If there are no consecutive numbers then arr must be strictly
+        # increasing
+        return arr
     consecutive_groups = group_consecutive(index_list)
     index_groups = [np.array(group.tolist() + [group.max() + 1]) for group in consecutive_groups]
 
@@ -58,10 +62,10 @@ def ensure_monotone_strictly_increasing(arr_, zerohack=False, onehack=False):
         newmax = (1.0 + maxish) / 2.0
         arr[arr >= maxish] = np.linspace(maxish, newmax, sum(arr >= maxish))
     #assert strictly_increasing(arr), 'ensure strict monotonic failed'
-    import utool as ut
-    print(ut.get_stats(arr))
-    if arr.max() == 1.0:
-        ut.embed()
+    #import utool as ut
+    #print(ut.get_stats(arr))
+    #if arr.max() == 1.0:
+    #    ut.embed()
     return arr
 
 
