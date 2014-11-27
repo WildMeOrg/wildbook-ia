@@ -131,7 +131,7 @@ def assert_modules():
             line_list.append('')
         except AssertionError as ex:
             line_list.append(get_funcname(func) + ' FAILED!!!')
-            line_list.append(ex)
+            line_list.append(ut.formatex(ex))
     output_text = '\n'.join(line_list)
     print(output_text)
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         python -c "import utool, ibeis.tests.assert_modules; utool.doctest_funcs(ibeis.tests.assert_modules, allexamples=True)"
         python -m ibeis.tests.assert_modules
         python -m ibeis.tests.assert_modules --allexamples
-        python -m ibeis.tests.assert_modules --allexamples --noface --nosrc
+        python ~/code/ibeis/ibeis/tests/assert_modules.py
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
