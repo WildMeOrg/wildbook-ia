@@ -147,6 +147,7 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
+    print('in assert module main')
     if len(sys.argv) == 1:
         assert_modules()
     else:
