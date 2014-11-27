@@ -27,11 +27,8 @@ def checkinfo(target=None):
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
-            if target is None:
-                assert current_version is not None
-            else:
-                assert parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
-            return current_version, target, infodict, statustext
+            passed = current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
+            return passed, current_version, target, infodict, statustext
         ASSERT_FUNCS.append(wrapper2)
         return wrapper2
     return wrapper1
@@ -125,8 +122,9 @@ def assert_modules():
     line_list = []
     for func in ASSERT_FUNCS:
         try:
-            current_version, target, infodict, statustext = func()
+            passed, current_version, target, infodict, statustext = func()
             line_list.append(statustext)
+            assert passed
             line_list.append(get_funcname(func) + ' passed')
             line_list.append('')
         except AssertionError as ex:
