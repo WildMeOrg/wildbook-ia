@@ -21,6 +21,7 @@ from os.path import join, split, exists
 import utool
 import utool as ut  # NOQA
 # IBEIS
+import ibeis  # NOQA
 from ibeis import constants
 from ibeis import params
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
@@ -36,6 +37,8 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
+import sys
+sys.exit(1)
 #try:
 from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
 #except Exception as ex:
@@ -83,6 +86,7 @@ def __cleanup():
         del __ALL_CONTROLLERS__
         del __IBEIS_CONTROLLER_CACHE__
     except NameError:
+        print('cannot cleanup IBEISController')
         pass
 
 
@@ -184,6 +188,7 @@ class IBEISController(object):
         ibs_weakref = weakref.ref(ibs)
         try:
             __ALL_CONTROLLERS__.remove(ibs_weakref)
+            pass
         except ValueError:
             pass
 
@@ -2895,11 +2900,11 @@ class IBEISController(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.all_imports import *  # NOQA
+            >>> #from ibeis.all_imports import *  # NOQA
+            >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> qaid_list = [1]
             >>> daid_list = [1, 2, 3, 4, 5]
-            >>> mc4.USE_CACHE = False
-            >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+            >>> ibs = ibeis.test_main(db='testdb1')
             >>> qres = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
 
         #>>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
@@ -4002,7 +4007,8 @@ if __name__ == '__main__':
         python -m ibeis.control.IBEISControl --allexamples
         python -m ibeis.control.IBEISControl --allexamples --noface --nosrc
     """
+    #from ibeis.control import IBEISControl
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    ut.doctest_funcs()
+    #ut.doctest_funcs(module=IBEISControl)

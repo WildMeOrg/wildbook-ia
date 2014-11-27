@@ -43,6 +43,8 @@ def parse_args():
         parser2.add_flag((('--veryverbose', '--very-verbose')), help='turns on extra verbosity')
         parser2.add_flag(('--quiet'), help='turns down verbosity')
         parser2.add_flag(('--silent'), help='turns off verbosity')
+        parser2.add_flag(('--print-inject-order'), help='shows import order of any module registered with utool')
+
 
     def behavior_argparse(parser2):
         # Program behavior

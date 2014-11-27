@@ -16,7 +16,7 @@ utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
-import plottool
+#import plottool
 
 
 from ibeis import constants

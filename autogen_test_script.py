@@ -172,7 +172,7 @@ if __name__ == '__main__':
         python autogen_test_script.py
         python autogen_test_script.py
         python autogen_test_script.py --verbose > run_tests.sh
-        python autogen_test_script.py -o run_tests.sh
+        python autogen_test_script.py -w
         reset_dbs.sh && run_tests.sh
         reset_dbs.sh && run_tests.sh --testall
         ./reset_dbs.sh
