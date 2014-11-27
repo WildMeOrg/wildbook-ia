@@ -23,34 +23,36 @@ IMPORT_TUPLES = [
     ('clustering2', None),
 ]
 
-from . import histogram
-from . import linalg
-from . import image
-from . import exif
-from . import keypoint
-from . import ellipse
-from . import patch
-from . import chip
-from . import spatial_verification
-from . import trig
-from . import math
-from . import geometry
-from . import clustering
-from . import nearest_neighbors
-from . import clustering2
+#import sys
 
-from . import histogram as htool
-from . import linalg as ltool
-from . import image as gtool
-from . import exif as exiftool
-from . import keypoint as ktool
-from . import ellipse as etool
-from . import patch as ptool
-from . import chip as ctool
-from . import spatial_verification as svtool
-from . import clustering2 as clustertool
-from . import trig
-from . import math as mtool
+from vtool import histogram
+from vtool import linalg
+from vtool import image
+from vtool import exif
+from vtool import keypoint
+from vtool import ellipse
+from vtool import patch
+from vtool import chip
+from vtool import spatial_verification
+from vtool import trig
+from vtool import math
+from vtool import geometry
+from vtool import clustering
+from vtool import nearest_neighbors
+from vtool import clustering2
+
+from vtool import histogram as htool
+from vtool import linalg as ltool
+from vtool import image as gtool
+from vtool import exif as exiftool
+from vtool import keypoint as ktool
+from vtool import ellipse as etool
+from vtool import patch as ptool
+from vtool import chip as ctool
+from vtool import spatial_verification as svtool
+from vtool import clustering2 as clustertool
+from vtool import trig
+from vtool import math as mtool
 
 #try:
 #    from . import _linalg_cyth

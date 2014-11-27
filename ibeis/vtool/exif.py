@@ -7,7 +7,7 @@ from PIL import Image
 #from utool import util_progress
 import utool
 from utool import util_time
-from . import image as gtool
+from vtool import image as gtool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[exif]', DEBUG=False)
 

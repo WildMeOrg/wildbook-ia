@@ -4,12 +4,14 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists, join
 from six.moves import zip, map
 # Science
+#import sys
+#sys.exit(1)
 import cv2
 import numpy as np
 from PIL import Image
 import utool
-from . import linalg
-from . import geometry
+from vtool import linalg
+from vtool import geometry
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[img]', DEBUG=False)
 

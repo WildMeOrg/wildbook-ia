@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Science
+#import sys
+#sys.exit(1)
+# THE NUMPY ERROR HAPPENS BECAUSE OF OPENCV
 import cv2
 import six
 import functools
