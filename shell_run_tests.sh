@@ -375,6 +375,7 @@ EOF
     RUN_TEST ibeis/model/hots/pipeline.py --test-weight_neighbors:0
     RUN_TEST ibeis/model/hots/query_request.py --test-QueryParams:0
     RUN_TEST ibeis/model/hots/query_request.py --test-new_ibeis_query_request:0
+    RUN_TEST ibeis/model/hots/query_request.py --test-qreq_shallow_copy:0
     RUN_TEST ibeis/model/hots/score_normalization.py --test-cached_ibeis_score_normalizer:0
     RUN_TEST ibeis/model/hots/score_normalization.py --test-find_score_maxclip:0
     RUN_TEST ibeis/model/hots/score_normalization.py --test-learn_score_normalization:0

@@ -121,7 +121,7 @@ def autogen_ibeis_runtest():
     explicit_build_modlist_str = '\n\n'.join((import_str, modlist_str))
 
     build_modlist_str = implicit_build_modlist_str
-    build_modlist_str = explicit_build_modlist_str
+    #build_modlist_str = explicit_build_modlist_str
 
     pyscript_fmtstr = ut.codeblock(
         r'''
