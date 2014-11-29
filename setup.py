@@ -25,7 +25,12 @@ CLUTTER_PATTERNS = [
     '*.lprof',
     '*.ln.pkg',
     'failed.txt',
+    'failed_doctests.txt',
+    'test_pyflann_index.flann',
+    'test_pyflann_ptsdata.npz',
     '_test_times.txt',
+    'test_times.txt',
+    'Tgen.sh',
 ]
 
 CLUTTER_DIRS = [

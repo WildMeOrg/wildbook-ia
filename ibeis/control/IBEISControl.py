@@ -37,8 +37,8 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
-import sys
-sys.exit(1)
+import sys  # NOQA
+#sys.exit(1)
 #try:
 from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
 #except Exception as ex:
@@ -148,8 +148,11 @@ class IBEISController(object):
         Called after reload
         Injects code from development modules into the controller
         """
+        if ut.VERBOSE:
+            print('[ibs] _initialize_self()')
         ut.inject_instance(ibs, classtype=('IBEISController', 'ibsfuncs'),
                            allow_override=ibs.allow_override, strict=True)
+        assert hasattr(ibs, 'get_database_species')
         ut.inject_instance(ibs, classtype=('IBEISController', 'autogen'),
                            allow_override=ibs.allow_override, strict=False)
         ut.inject_instance(ibs, classtype=('IBEISController', 'manual'),
@@ -4011,4 +4014,4 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    #ut.doctest_funcs(module=IBEISControl)
+    ut.doctest_funcs()

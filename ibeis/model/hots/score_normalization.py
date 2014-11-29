@@ -274,7 +274,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
                                                    qres_list,
                                                    use_cache=use_cache, **learnkw)
         # Save as baseline for this species
-        species_text = '_'.join(qreq_.species_list)  # HACK
+        species_text = '_'.join(qreq_.get_unique_species())  # HACK
         baseline_cfgstr = 'baseline_' + species_text
         cachedir = ibs.get_species_cachedir(species_text)
         normalizer.save(cachedir, cfgstr=baseline_cfgstr)
@@ -324,7 +324,7 @@ def request_ibeis_normalizer(ibs, qreq_):
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> normalizer = request_ibeis_normalizer(ibs, qreq_)
     """
-    species_text = qreq_.species_list[0]  # HACK
+    species_text = '_'.join(qreq_.get_unique_species())  # HACK
     cfgstr = 'baseline_' + species_text
     cachedir = ibs.get_species_cachedir(species_text)
     try:

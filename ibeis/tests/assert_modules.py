@@ -104,6 +104,30 @@ def PyQt4_version():
     return module_stdinfo_dict(QtCore, 'PYQT_VERSION_STR')
 
 
+def check_modules_exists():
+    # Modules in this list don't really need to be inspected
+    # just make sure they are there
+    modname_list = [
+        'simplejson',
+        'flask',
+        'parse',
+        'tornado',
+        'pandas',
+        'statsmodels',
+    ]
+    failed_list = []
+    for modname in modname_list:
+        try:
+            globals_ = {}
+            locals_ = {}
+            exec('import ' + modname, globals_, locals_)
+        except ImportError:
+            failed_list.append(modname)
+    if len(failed_list) > 0:
+        print('The following modules are not installed')
+        print('\n'.join(failed_list))
+
+
 def assert_modules():
     """
     checkinfo functions return info_dict
@@ -132,6 +156,7 @@ def assert_modules():
             line_list.append(ut.formatex(ex))
     output_text = '\n'.join(line_list)
     print(output_text)
+    check_modules_exists()
 
 
 if __name__ == '__main__':

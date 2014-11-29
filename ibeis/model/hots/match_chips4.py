@@ -96,7 +96,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     return qaid2_qres
 
 
-def generate_vsone_queries(ibs, qreq_, qaid_list, chunksize):
+def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
     """
     helper
 
@@ -161,7 +161,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid_list = qreq_.get_external_qaids()
         qaid2_qres = {}
 
-        qres_gen = generate_vsone_queries(ibs, qreq_, qaid_list, chunksize)
+        qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize)
         qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
                                 backspace=False, lbl='vsone query: ',
                                 use_rate=True)

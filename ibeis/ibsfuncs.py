@@ -9,13 +9,13 @@ rob gp "ibsfuncs\..*\(ibs, "
 from __future__ import absolute_import, division, print_function
 #import uuid
 import six
-import sys
+#import sys
 import types
 from six.moves import zip, range, map
 from os.path import split, join, exists, commonprefix
 #sys.exit(1)
 import vtool.image as gtool
-sys.exit(1)
+#sys.exit(1)
 import numpy as np
 
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
@@ -68,9 +68,9 @@ from ibeis.control.accessor_decors import getter_1to1
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-#__injectable = ut.make_class_method_decorator(('IBEISController', 'ibsfuncs'))
-def __injectable(func):
-    return func
+__injectable = ut.make_class_method_decorator(('IBEISController', 'ibsfuncs'))
+#def __injectable(func):
+#    return func
 
 
 @ut.make_class_postinject_decorator(('IBEISController', 'ibsfuncs'))

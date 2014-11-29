@@ -1,17 +1,12 @@
-"""
-# DOCTEST ENABLED
-DoctestCMD:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
-"""
 from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip, range, map  # NOQA
 # UTool
 import utool
 import utool as ut
-import vtool.patch as ptool
-import vtool.image as gtool  # NOQA
-#import vtool.image as gtool
+import vtool.patch as vtpatch
+import vtool.image as vtimage  # NOQA
+#import vtool.image as vtimage
 import numpy as np
 from ibeis.model.preproc import preproc_probchip
 from os.path import exists
@@ -37,7 +32,7 @@ def gen_featweight_worker(tup):
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_list = [gtool.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
+        >>> probchip_list = [vtimage.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
         >>> kpts  = kpts_list[0]
         >>> aid   = aid_list[0]
         >>> probchip = probchip_list[0]
@@ -51,8 +46,8 @@ def gen_featweight_worker(tup):
         # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
         weights = np.full(len(kpts), .25, dtype=np.float32)
     else:
-        #ptool.get_warped_patches()
-        patch_list = [ptool.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
+        #vtpatch.get_warped_patches()
+        patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
         weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
     return (aid, weights)
@@ -78,7 +73,7 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list)
-    probchip_list = [gtool.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
+    probchip_list = [vtimage.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
 
     print('[preproc_featweight] Computing fgweights')
     arg_iter = zip(aid_list, kpts_list, probchip_list)

@@ -14,7 +14,7 @@ cd ibeis
 ./super_setup.py --build --develop
 
 # If on current branch
-python -c "import utool; utool.copy('super_setup.py', '_ibeis_setup.py')"
+python -c "import utool as ut; ut.copy('super_setup.py', '_ibeis_setup.py')"
 
 # Status
 python _ibeis_setup.py -y --gg "git status"
@@ -72,7 +72,12 @@ import os
 #-----------------
 
 print('[super_setup] __IBEIS_SUPER_SETUP__')
-CODE_DIR = dirname(dirname(realpath(__file__)))   # Home is where the .. is.  # '~/code'
+
+if 'CODE_DIR' in os.environ:
+    CODE_DIR = os.environ.get('CODE_DIR')
+else:
+    CODE_DIR = dirname(dirname(realpath(__file__)))   # Home is where the .. is.  # '~/code'
+
 print('[super_setup] code_dir: %r' % CODE_DIR)
 (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
 python_version = platform.python_version()
@@ -102,11 +107,19 @@ if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
         else:
             raise AssertionError('invalid python version')
         return module
-    #import bootstrap
-    bootstrap_fpath = os.path.abspath('_scripts/bootstrap.py')
-    bootstrap = import_module_from_fpath(bootstrap_fpath)
-    #sys.path.append(os.path.abspath('_scripts'))
-    bootstrap.bootstrap_sysreq()
+
+    if sys.platform.startswith('win32'):
+        # need to preinstall parse
+        win32bootstrap_fpath = os.path.abspath('_scripts/win32bootstrap.py')
+        win32bootstrap = import_module_from_fpath(win32bootstrap_fpath)
+        win32bootstrap.bootstrap_sysreq()
+
+    else:
+        #import bootstrap
+        bootstrap_fpath = os.path.abspath('_scripts/bootstrap.py')
+        bootstrap = import_module_from_fpath(bootstrap_fpath)
+        #sys.path.append(os.path.abspath('_scripts'))
+        bootstrap.bootstrap_sysreq()
     sys.exit(1)
 
 
@@ -144,18 +157,23 @@ except Exception:
     print('pulling utool')
     syscmd('git pull')
     print('installing utool for development')
-    syscmd('sudo {pythoncmd} setup.py develop'.format(**locals()))
+    cmdstr = '{pythoncmd} setup.py develop'.format(**locals())
+    if not sys.platform.startswith('win32'):
+        cmdstr = 'sudo ' + cmdstr
+    syscmd(cmdstr)
     cwdpath = os.path.realpath(os.getcwd())
     sys.path.append(cwdpath)
     print('Please rerun super_setup.py')
     print(' '.join(sys.argv))
     sys.exit(1)
 
+import utool as ut
+
 #-----------------
 #  UTOOL PYTHON
 #-----------------
 
-utool.init_catch_ctrl_c()
+ut.init_catch_ctrl_c()
 
 #-----------
 # Third-Party-Libraries
@@ -192,14 +210,14 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
         TPL_REPO_URLS.append(repo_url)
 
 
-(TPL_REPO_URLS, TPL_REPO_DIRS) = utool.repo_list(TPL_REPO_URLS, CODE_DIR)
+(TPL_REPO_URLS, TPL_REPO_DIRS) = ut.repo_list(TPL_REPO_URLS, CODE_DIR)
 
 #-----------
 # IBEIS project repos
 #-----------
 
 # Non local project repos
-(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = utool.repo_list([
+(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
     'https://github.com/Erotemic/utool.git',
     'https://github.com/Erotemic/guitool.git',
     'https://github.com/Erotemic/plottool.git',
@@ -216,113 +234,119 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
 PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
 
-# Set utool global git repos
-utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
+# Set ut global git repos
+ut.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
-GET_ARGFLAG = utool.get_flag
-GET_ARGVAL = utool.get_arg
+GET_ARGFLAG = ut.get_argflag
+GET_ARGVAL = ut.get_argval
 
 # Commands on global git repos
 if GET_ARGFLAG('--status'):
-    utool.gg_command('git status')
-    utool.sys.exit(0)
+    ut.gg_command('git status')
+    sys.exit(0)
 
 if GET_ARGFLAG('--branch'):
-    utool.gg_command('git branch')
-    utool.sys.exit(0)
+    ut.gg_command('git branch')
+    sys.exit(0)
 
-utool.gg_command('ensure')
+ut.ensure_project_repos()
 
 if GET_ARGFLAG('--pull'):
-    utool.gg_command('git pull')
+    ut.gg_command('git pull')
 
 
 if GET_ARGFLAG('--tag-status'):
-    utool.gg_command('git tag')
+    ut.gg_command('git tag')
 
 # Tag everything
 tag_name = GET_ARGVAL('--newtag', type_=str, default=None)
 if tag_name is not None:
-    utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
-    utool.gg_command('git push --tags')
+    ut.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
+    ut.gg_command('git push --tags')
 
 if GET_ARGFLAG('--bext'):
-    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
+    ut.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
 
 if GET_ARGFLAG('--build'):
     # Build tpl repos
     for repo in TPL_REPO_DIRS:
-        utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
+        ut.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
     # Build only IBEIS repos with setup.py
-    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**locals()))
+    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    #ut.gg_command('sudo {pythoncmd} setup.py build'.format(**locals()))
+    ut.gg_command('{pythoncmd} setup.py build'.format(**locals()))
 
 if GET_ARGFLAG('--develop'):
-    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**locals()))
+    # Like install, but better if you are developing
+    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    #ut.gg_command('sudo {pythoncmd} setup.py develop'.format(**locals()))
+    ut.gg_command('{pythoncmd} setup.py develop'.format(**locals()))
 
 if GET_ARGFLAG('--install'):
-    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py install'.format(**locals()))
+    # Dont use this if you are a developer. Use develop instead.
+    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    ut.gg_command('python setup.py install'.format(**locals()))
 
 if GET_ARGFLAG('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
 
 if GET_ARGFLAG('--push'):
-    utool.gg_command('git push')
+    ut.gg_command('git push')
 
 
 commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
 if commit_msg is not None:
-    utool.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
+    ut.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
 
 if GET_ARGFLAG('--clean'):
-    utool.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
+    ut.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
 
 # Change Branch
 branch_name = GET_ARGVAL('--checkout', type_=str, default=None)
 if branch_name is not None:
-    utool.gg_command('git checkout "{branch_name}"'.format(**locals()))
+    ut.gg_command('git checkout "{branch_name}"'.format(**locals()))
 
 # Creates new branches
 newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
 if newbranch_name is not None:
-    utool.gg_command('git stash"'.format(**locals()))
-    utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
-    utool.gg_command('git stash pop"'.format(**locals()))
+    ut.gg_command('git stash"'.format(**locals()))
+    ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
+    ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
 mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
 if mergebranch_name is not None:
-    utool.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
+    ut.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
 
 newbranch_name2 = GET_ARGVAL('--newbranch2', type_=str, default=None)
 if newbranch_name2 is not None:
-    utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
-    utool.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
+    ut.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
+    ut.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
 
+# Change ownership
 if GET_ARGFLAG('--serverchmod'):
-    utool.gg_command('chmod -R 755 *')
+    ut.gg_command('chmod -R 755 *')
 
 if GET_ARGFLAG('--chown'):
     username = os.environ['USERNAME']
     usergroup = username
-    utool.gg_command('sudo chown -R {username}:{usergroup} *'.format(**locals()))
+    ut.gg_command('sudo chown -R {username}:{usergroup} *'.format(**locals()))
 
 upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
     # git 2.0
-    utool.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
+    ut.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
 
 
 upstream_push = GET_ARGVAL('--upstream-push', type_=str, default=None)
 if upstream_push is not None:
-    utool.gg_command('git push --set-upstream origin {upstream_push}'.format(**locals()))
+    ut.gg_command('git push --set-upstream origin {upstream_push}'.format(**locals()))
 
 
+# General global git command
 gg_cmd = GET_ARGVAL('--gg', None)  # global command
 if gg_cmd is not None:
     ans = 'yes' if GET_ARGFLAG('-y') else raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
     if ans == 'yes':
-        utool.gg_command(gg_cmd)
+        ut.gg_command(gg_cmd)

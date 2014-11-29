@@ -26,19 +26,19 @@ def get_test_qreq():
 def apply_species_with_detector_hack(ibs, cfgdict):
     """ HACK """
     from ibeis import constants
-    species_list = ibs.get_database_species()
+    unique_species = ibs.get_database_species()
     # turn off featureweights when not absolutely sure they are ok to us,)
     species_with_detectors = (constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN,)
-    if len(species_list) != 1 or species_list[0] not in species_with_detectors:
+    if len(unique_species) != 1 or unique_species[0] not in species_with_detectors:
         print('HACKING FG_WEIGHT OFF (database species is not supported)')
-        if len(species_list) != 1:
-            print('  * len(species_list) = %r' % len(species_list))
+        if len(unique_species) != 1:
+            print('  * len(unique_species) = %r' % len(unique_species))
         else:
-            print('  * species_list = %r' % (species_list,))
+            print('  * unique_species = %r' % (unique_species,))
         print('  * valid species = %r' % (species_with_detectors,))
         #cfg._featweight_cfg.featweight_on = 'ERR'
         cfgdict['featweight_on'] = 'ERR'
-    return species_list
+    return unique_species
 
 
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
@@ -65,7 +65,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
         cfgdict = {}
     cfgdict = cfgdict.copy()
     # <HACK>
-    species_list = apply_species_with_detector_hack(ibs, cfgdict)
+    unique_species = apply_species_with_detector_hack(ibs, cfgdict)
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
     quuid_list = ibs.get_annot_uuids(qaid_list)
@@ -75,7 +75,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
                          qparams, qresdir)
     if utool.NOT_QUIET:
         print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
-    qreq_.species_list = species_list  # HACK
+    qreq_.unique_species = unique_species  # HACK
     return qreq_
 
 
@@ -83,6 +83,13 @@ def qreq_shallow_copy(qreq_, qx=None, dx=None):
     """
     Creates a copy of qreq with the same qparams object and a subset of the qx
     and dx objects.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.query_request import *  # NOQA
+        >>> import ibeis
+        >>> qreq_, ibs = get_test_qreq()
+        >>> qreq2_ = qreq_shallow_copy(qreq_, 0)
     """
     qaid_list  = qreq_.get_external_qaids()
     quuid_list = qreq_.get_external_quuids()
@@ -95,32 +102,43 @@ def qreq_shallow_copy(qreq_, qx=None, dx=None):
     daid_list  =  daid_list if dx is None else  daid_list[dx:dx + 1]
     duuid_list = duuid_list if dx is None else duuid_list[dx:dx + 1]
     qreq_copy  = QueryRequest(qaid_list, quuid_list, daid_list, duuid_list, qreq_.qparams, qreq_.qresdir)
-    qreq_copy.species_list = qreq_.species_list  # HACK
+    qreq_copy.unique_species = qreq_.unique_species  # HACK
+    qreq_copy.ibs = qreq_.ibs
     return qreq_copy
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class QueryRequest(object):
     def __init__(qreq_, qaid_list, quuid_list, daid_list, duuid_list, qparams, qresdir):
-        qreq_.qparams = qparams
-        qreq_.qresdir = qresdir
+        # Reminder:
+        # lists and other objects are functionally equivalent to pointers
+        qreq_.unique_species = None  # num categories
+        qreq_.internal_qsid_list = None  # category species id label list
+        qreq_.internal_qnid_list = None  # individual name id label list
         qreq_.internal_qaids = None
         qreq_.internal_daids = None
-        qreq_.internal_quuids = None
-        qreq_.internal_duuids = None
-        qreq_.internal_qidx = None
-        qreq_.internal_didx = None
-        qreq_.species_list = None
-        qreq_.indexer = None
-        qreq_.normalizer = None
+        qreq_.internal_qidx  = None
+        qreq_.internal_didx  = None
         qreq_.internal_qvecs_list = None
         qreq_.internal_qkpts_list = None
         qreq_.internal_dkpts_list = None
         qreq_.internal_qgid_list  = None
         qreq_.internal_qnid_list  = None
+        # Handle to parent IBEIS Controller
+        qreq_.ibs = None
+        # The nearest neighbor mechanism
+        qreq_.indexer = None
+        # The scoring normalization mechanism
+        qreq_.normalizer = None
+        # DEPRICATE?
         qreq_.aid2_nid = None
         qreq_.hasloaded = False
-        #qreq_.ibs = ibs  # HACK
+        qreq_.internal_quuids = None
+        qreq_.internal_duuids = None
+
+        # Set values
+        qreq_.qparams = qparams   # Parameters relating to pipeline execution
+        qreq_.qresdir = qresdir
         qreq_.set_external_daids(daid_list, duuid_list)
         qreq_.set_external_qaids(qaid_list, quuid_list)
 
@@ -179,6 +197,9 @@ class QueryRequest(object):
         return qreq_.internal_quuids
 
     # --- External Interface ---
+
+    def get_unique_species(qreq_):
+        return qreq_.unique_species
 
     def get_external_daids(qreq_):
         """ These are the users daids in vsone mode """
@@ -428,39 +449,6 @@ class QueryParams(object):
         # Then we explicitly add some items as well that might not be explicit
         # in the configs.
         pipeline_root      = cfg.pipeline_root
-        #if pipeline_root == 'smk':
-        #    nAssign     = cfg.smk_cfg.nAssign
-        #    aggregate   = cfg.smk_cfg.aggregate
-        #    smk_thresh  = cfg.smk_cfg.smk_thresh
-        #    smk_alpha   = cfg.smk_cfg.smk_alpha
-        #    indexer_key = cfg.smk_cfg.indexer_key
-        #    nWords      = cfg.smk_cfg.nWords
-        #    vocab_weighting       = cfg.smk_cfg.vocab_weighting
-        #    allow_self_match      = cfg.smk_cfg.allow_self_match
-        #    massign_alpha         = cfg.smk_cfg.massign_alpha
-        #    massign_sigma         = cfg.smk_cfg.massign_sigma
-        #    massign_equal_weights = cfg.smk_cfg.massign_equal_weights
-        #K                  = cfg.nn_cfg.K
-        #Knorm              = cfg.nn_cfg.Knorm
-        #checks             = cfg.nn_cfg.checks
-        #normalizer_rule    = cfg.nn_cfg.normalizer_rule
-        #filt_on            = cfg.filt_cfg.filt_on
-        #gravity_weighting  = cfg.filt_cfg.gravity_weighting
-        #Krecip             = cfg.filt_cfg.Krecip
-        #can_match_sameimg  = cfg.filt_cfg.can_match_sameimg
-        #can_match_samename = cfg.filt_cfg.can_match_samename
-        #isWeighted         = cfg.agg_cfg.isWeighted
-        #max_alts           = cfg.agg_cfg.max_alts
-        #score_method       = cfg.agg_cfg.score_method
-        #min_nInliers       = cfg.sv_cfg.min_nInliers
-        #nShortlist         = cfg.sv_cfg.nShortlist
-        #ori_thresh         = cfg.sv_cfg.ori_thresh
-        #prescore_method    = cfg.sv_cfg.prescore_method
-        #scale_thresh       = cfg.sv_cfg.scale_thresh
-        #use_chip_extent    = cfg.sv_cfg.use_chip_extent
-        #xy_thresh          = cfg.sv_cfg.xy_thresh
-        #sv_on              = cfg.sv_cfg.sv_on
-
         # Params not explicitly represented in Config objects
         ###
         flann_params       = cfg.flann_cfg.get_dict_args()

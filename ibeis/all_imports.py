@@ -1,4 +1,9 @@
 # flake8: noqa
+"""
+This file contains most every module I've ever used.
+Serves as a good check to make sure either everything I
+want to use is imported / exists.
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 from collections import OrderedDict, defaultdict, namedtuple
@@ -68,6 +73,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
+import statsmodels
 #import pandas as pd
 #import networkx as netx
 #try:

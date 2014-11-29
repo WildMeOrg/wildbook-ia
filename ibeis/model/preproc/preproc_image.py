@@ -1,169 +1,12 @@
 from __future__ import absolute_import, division, print_function
-"""
-# DOCTEST ENABLED
-DoctestCMD:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))" --quiet
-"""
-from __future__ import absolute_import, division, print_function
-# Python
-from six.moves import zip, range, map  # NOQA
-# UTool
-import utool
-import utool as ut
-import vtool.patch as ptool
-import vtool.image as gtool  # NOQA
-#import vtool.image as gtool
-import numpy as np
-from ibeis.model.preproc import preproc_chip
-from os.path import exists
-# Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
-
-
-def gen_featweight_worker(tup):
-    """
-    Function to be parallelized by multiprocessing / joblib / whatever.
-    Must take in one argument to be used by multiprocessing.map_async
-
-    Args:
-        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
-
-    Example:
-        >>> # DOCTEST ENABLE
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> ax = 12
-        >>> aid_list = ibs.get_valid_aids()[ax:ax + 1]
-        >>> chip_list = ibs.get_annot_chips(aid_list)
-        >>> kpts_list = ibs.get_annot_kpts(aid_list)
-        >>> probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_list = [gtool.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
-        >>> kpts  = kpts_list[0]
-        >>> aid   = aid_list[0]
-        >>> probchip = probchip_list[0]
-        >>> tup = (aid, kpts, probchip)
-        >>> (aid, weights) = gen_featweight_worker(tup)
-        >>> print(weights.sum())
-        275.025
-    """
-    (aid, kpts, probchip) = tup
-    if probchip is None:
-        # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
-        weights = np.full(len(kpts), .25, dtype=np.float32)
-    else:
-        #ptool.get_warped_patches()
-        patch_list = [ptool.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
-        weight_list = [patch.sum() / (patch.size) for patch in patch_list]
-        weights = np.array(weight_list, dtype=np.float32)
-    return (aid, weights)
-
-
-def compute_fgweights(ibs, aid_list, qreq_=None):
-    """
-
-    Example:
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> qreq_ = None
-        >>> featweight_list = compute_fgweights(ibs, aid_list)
-    """
-    print('[preproc_featweight] Preparing to compute fgweights')
-    probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
-    if ut.DEBUG2:
-        from PIL import Image
-        probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
-        chipsize_list = ibs.get_annot_chipsizes(aid_list)
-        assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
-
-    kpts_list = ibs.get_annot_kpts(aid_list)
-    probchip_list = [gtool.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
-
-    print('[preproc_featweight] Computing fgweights')
-    arg_iter = zip(aid_list, kpts_list, probchip_list)
-    featweight_gen = utool.util_parallel.generate(gen_featweight_worker, arg_iter, nTasks=len(aid_list))
-    featweight_param_list = list(featweight_gen)
-    #arg_iter = zip(aid_list, kpts_list, probchip_list)
-    #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]
-    #featweight_aids = ut.get_list_column(featweight_param_list, 0)
-    featweight_list = ut.get_list_column(featweight_param_list, 1)
-    print('[preproc_featweight] Done computing fgweights')
-    return featweight_list
-
-
-def add_featweight_params_gen(ibs, fid_list, qreq_=None):
-    """
-    add_featweight_params_gen
-
-    Args:
-        ibs (IBEISController):
-        fid_list (list):
-
-    Returns:
-        featweight_list
-
-    Example:
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> fid_list = ibs.get_valid_fids()
-        >>> result = add_featweight_params_gen(ibs, fid_list)
-        >>> print(result)
-    """
-    # HACK: TODO AUTOGENERATE THIS
-    from ibeis import constants
-    cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
-    aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
-    return compute_fgweights(ibs, aid_list, qreq_=qreq_)
-
-
-#def get_annot_probchip_fname_iter(ibs, aid_list):
-#    """ Returns probability chip path iterator
-
-#    Args:
-#        ibs (IBEISController):
-#        aid_list (list):
-
-#    Returns:
-#        probchip_fname_iter
-
-#    Example:
-#        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-#        >>> import ibeis
-#        >>> ibs = ibeis.opendb('testdb1')
-#        >>> aid_list = ibs.get_valid_aids()
-#        >>> probchip_fname_iter = get_annot_probchip_fname_iter(ibs, aid_list)
-#        >>> probchip_fname_list = list(probchip_fname_iter)
-#    """
-#    cfpath_list = ibs.get_annot_cpaths(aid_list)
-#    cfname_list = [splitext(basename(cfpath))[0] for cfpath in cfpath_list]
-#    suffix = ibs.cfg.detect_cfg.get_cfgstr()
-#    ext = '.png'
-#    probchip_fname_iter = (''.join([cfname, suffix, ext]) for cfname in cfname_list)
-#    return probchip_fname_iter
-
-
-#def get_annot_probchip_fpath_list(ibs, aid_list):
-#    cachedir = get_probchip_cachedir(ibs)
-#    probchip_fname_list = get_annot_probchip_fname_iter(ibs, aid_list)
-#    probchip_fpath_list = [join(cachedir, fname) for fname in probchip_fname_list]
-#    return probchip_fpath_list
-
-
-#class FeatWeightConfig(object):
-#    # TODO: Put this in a config
-#    def __init__(fw_cfg):
-#        fw_cfg.sqrt_area   = 800
-# UTool
-import utool
-import vtool.exif as exif
 from PIL import Image
 from os.path import splitext, basename
 import numpy as np  # NOQA
 import hashlib
 import uuid
+import vtool.exif as vtexif
+import utool as ut
+import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 
 
@@ -179,10 +22,10 @@ def parse_exif(pil_img):
             long lon
             long exiftime
     """
-    exif_dict = exif.get_exif_dict(pil_img)
+    exif_dict = vtexif.get_exif_dict(pil_img)
     # TODO: More tags
-    lat, lon = exif.get_lat_lon(exif_dict)
-    time = exif.get_unixtime(exif_dict)
+    lat, lon = vtexif.get_lat_lon(exif_dict)
+    time = vtexif.get_unixtime(exif_dict)
     return time, lat, lon
 
 
@@ -299,9 +142,10 @@ def add_images_params_gen(gpath_list, **kwargs):
 
     Examples:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.all_imports import *
+        >>> from ibeis.model.preproc.preproc_image import *   # NOQA
+        >>> from vtool.tests import grabdata
         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-        >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+        >>> params_list = list(add_images_params_gen(gpath_list))
         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
         >>> assert str(params_list[0][2]) == 'easy1.JPG', 'orig name is different'
         >>> assert params_list[3] is None
@@ -310,7 +154,6 @@ def add_images_params_gen(gpath_list, **kwargs):
         cdef:
             list gpath_list
             dict kwargs
-
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))
