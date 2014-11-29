@@ -8,16 +8,16 @@ from scipy.signal import argrelextrema
 import cv2
 import numpy as np
 # VTool
-from . import keypoint as ktool
-from . import image as gtool
+from vtool import keypoint as vtkeypoint
+from vtool import image as vtimage
 from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(
-    __name__, '[etool]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[ellipse]', DEBUG=False)
 
 
 @profile
 def adaptive_scale(img_fpath, kpts, nScales=4, low=-.5, high=.5, nSamples=16):
-    imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
+    #imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
+    imgBGR = vtimage.imread(img_fpath)
 
     nKp = len(kpts)
     dtype_ = kpts.dtype
@@ -89,7 +89,7 @@ def sample_ell_border_vals(imgBGR, expanded_kpts, nKp, nScales, nSamples):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
     imgMag = gradient_magnitude(imgL)
-    border_vals = gtool.subpixel_values(imgMag, ell_border_pts)
+    border_vals = vtimage.subpixel_values(imgMag, ell_border_pts)
     #assert len(border_vals) == (nKp * nScales * nSamples)
     border_vals.shape = (nKp, nScales, nSamples, 1)
     border_vals_sum = border_vals.sum(3).sum(2)
@@ -345,8 +345,8 @@ def gradient_magnitude(img):
 #----------------
 
 def kpts_to_invV(kpts):
-    invV = ktool.get_invV_mats(kpts, ashomog=True,
-                               with_trans=True, ascontiguous=True)
+    invV = vtkeypoint.get_invV_mats(kpts, ashomog=True,
+                                    with_trans=True, ascontiguous=True)
     return invV
     #nKp = len(kpts)
     #(iv13, iv23, iv11, iv21, iv22) = np.array(kpts).T
@@ -375,8 +375,8 @@ def kpts_matrices(kpts):
     #    Z = perdoch.E
     # invert into V
     invV = kpts_to_invV(kpts)
-    V = ktool.invert_invV_mats(invV)
-    Z = ktool.get_Z_mats(V)
+    V = vtkeypoint.invert_invV_mats(invV)
+    Z = vtkeypoint.get_Z_mats(V)
     return invV, V, Z
 
 
