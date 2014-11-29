@@ -93,4 +93,4 @@ _test_times.txt
 ibeis/control/_grave_template.py
 ibeis/model/hots/smk/_smk_core_docs.txt
 ibeis/model/hots/smk/csmk/
-
+failed_doctests.txt
