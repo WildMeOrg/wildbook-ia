@@ -1,17 +1,10 @@
-"""
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.query_request))"
-
-FIXME: if cfg changes in controller all bets are off.
-Need to make controller functions have a purely stateless option.
-"""
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index, score_normalization
 from ibeis.model import Config
 import six
-# UTool
 import utool
 import numpy as np
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[query_request]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[qreq]')
 
 
 def get_test_qreq():
@@ -28,8 +21,15 @@ def apply_species_with_detector_hack(ibs, cfgdict):
     from ibeis import constants
     unique_species = ibs.get_database_species()
     # turn off featureweights when not absolutely sure they are ok to us,)
-    species_with_detectors = (constants.Species.ZEB_GREVY, constants.Species.ZEB_PLAIN,)
-    if len(unique_species) != 1 or unique_species[0] not in species_with_detectors:
+    species_with_detectors = (
+        constants.Species.ZEB_GREVY,
+        constants.Species.ZEB_PLAIN,
+    )
+    candetect = (
+        len(unique_species) == 1 and
+        unique_species[0] in species_with_detectors
+    )
+    if not candetect:
         print('HACKING FG_WEIGHT OFF (database species is not supported)')
         if len(unique_species) != 1:
             print('  * len(unique_species) = %r' % len(unique_species))
@@ -49,13 +49,15 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
         >>> from ibeis.model.hots.query_request import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> qaids = [1]
+        >>> daids = [1, 2, 3, 4, 5]
         >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 1.0, 'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight
-        >>> assert qreq_.qparams.sv_on is False, 'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on
+        >>> assert qreq_.qparams.fg_weight == 1.0, (
+        ...    'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight)
+        >>> assert qreq_.qparams.sv_on is False, (
+        ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
     """
     if utool.NOT_QUIET:
         print(' --- New IBEIS QRequest --- ')
@@ -113,7 +115,7 @@ class QueryRequest(object):
         # Reminder:
         # lists and other objects are functionally equivalent to pointers
         qreq_.unique_species = None  # num categories
-        qreq_.internal_qsid_list = None  # category species id label list
+        qreq_.internal_qspeciesid_list = None  # category species id label list
         qreq_.internal_qnid_list = None  # individual name id label list
         qreq_.internal_qaids = None
         qreq_.internal_daids = None
@@ -390,6 +392,13 @@ class QueryRequest(object):
 
 
 def test_cfg_deepcopy():
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.query_request import *  # NOQA
+        >>> result = test_cfg_deepcopy()
+        >>> print(result)
+    """
     import ibeis
     ibs = ibeis.opendb('testdb1')
     cfg1 = ibs.cfg.query_cfg
@@ -405,6 +414,11 @@ def test_cfg_deepcopy():
 
 class QueryParams(object):
     """
+    Structure to store static query pipeline parameters
+
+    CommandLine:
+        python -m ibeis.model.hots.query_request --test-QueryParams
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import query_request
@@ -412,24 +426,28 @@ class QueryParams(object):
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg
         >>> #cfg.pipeline_root = 'asmk'
-        >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False,
+        ...            'fg_weight': 1.0, 'featweight_on': True}
         >>> qparams = query_request.QueryParams(cfg, cfgdict)
         >>> assert qparams.fg_weight == 1.0
         >>> assert qparams.pipeline_root == 'smk'
         >>> assert qparams.featweight_on is True
         >>> result = qparams.query_cfgstr
-        >>> print(result)
-        _smk_SMK(agg=True,t=0.0,a=3.0,idf)_VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_VocabTrain(nWords=8000,init=akmeans++,nIters=128,taids=all)_SV(OFF)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
-
-    CommandLine:
-        python ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
+        >>> print(')_\n'.join(result.split(')_')))
+        _smk_SMK(agg=True,t=0.0,a=3.0,idf)_
+        VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_
+        VocabTrain(nWords=8000,init=akmeans++,nIters=128,taids=all)_
+        SV(OFF)_
+        FEATWEIGHT(ON,uselabel,rf)_
+        FEAT(hesaff+sift_)_
+        CHIP(sz450)
     """
 
     def __init__(qparams, cfg, cfgdict=None):
         """
         Args:
             cfg (QueryConfig): query_config
-            cfgdict (dict or None):
+            cfgdict (dict or None): dictionary to update cfg with
         """
         # Ensures that at least everything exits
         # pares nested config structure into this flat one
@@ -442,7 +460,7 @@ class QueryParams(object):
             if key not in seen_:
                 seen_.add(key)
             else:
-                raise AssertionError('Configs specify duplicate names: %r' % key)
+                raise AssertionError('Configs have duplicate names: %r' % key)
             setattr(qparams, key, val)
         del seen_, key, val, param_list
 
@@ -456,7 +474,8 @@ class QueryParams(object):
         vsone              = pipeline_root == 'vsone'
         ###
         active_filter_list = cfg.filt_cfg.get_active_filters()
-        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt) for filt in active_filter_list}
+        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt)
+                              for filt in active_filter_list}
         # Correct dumb Pref bugs
         for key, val in six.iteritems(filt2_stw):
             if val[1] == 'None':
@@ -484,13 +503,11 @@ class QueryParams(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request, allexamples=True)"
-        python -c "import utool, ibeis.model.hots.query_request; utool.doctest_funcs(ibeis.model.hots.query_request)"
         python -m ibeis.model.hots.query_request
         python -m ibeis.model.hots.query_request --allexamples
         python -m ibeis.model.hots.query_request --allexamples --noface --nosrc
         python -m ibeis.model.hots.query_request --test-QueryParams
-        profiler.sh ~/code/ibeis/ibeis/model/hots/query_request.py --test-QueryParams
+        profiler.sh -m ibeis.model.hots.query_request --test-QueryParams
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

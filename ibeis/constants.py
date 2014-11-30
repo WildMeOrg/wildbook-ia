@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 # import utool
 import six
 import numpy as np
+from os.path import join
 
 
 class PATH_NAMES(object):
@@ -19,6 +20,22 @@ class PATH_NAMES(object):
     detectimg  = 'detectimg'
     thumbs     = 'thumbs'
     trashdir   = 'trashed_images'
+
+
+class REL_PATHS(object):
+    """ all paths are relative to ibs.dbdir """
+    _ibsdb   = PATH_NAMES._ibsdb
+    trashdir = PATH_NAMES.trashdir
+    cache    = join(_ibsdb, PATH_NAMES.cache)
+    backups  = join(_ibsdb, PATH_NAMES.backups)
+    chips    = join(_ibsdb, PATH_NAMES.chips)
+    images   = join(_ibsdb, PATH_NAMES.images)
+    # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+    thumbs   = join(cache, PATH_NAMES.thumbs)
+    flann    = join(cache, PATH_NAMES.flann)
+    qres     = join(cache, PATH_NAMES.qres)
+    bigcache = join(cache, PATH_NAMES.bigcache)
+
 
 UNKNOWN_LBLANNOT_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME

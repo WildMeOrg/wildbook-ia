@@ -68,12 +68,13 @@ from ibeis.control.accessor_decors import getter_1to1
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.make_class_method_decorator(('IBEISController', 'ibsfuncs'))
+CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
+__injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY)
 #def __injectable(func):
 #    return func
 
 
-@ut.make_class_postinject_decorator(('IBEISController', 'ibsfuncs'))
+@ut.make_class_postinject_decorator(CLASS_INJECT_KEY)
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [

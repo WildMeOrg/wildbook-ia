@@ -29,7 +29,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import utool  # NOQA
 import utool as ut
-from ibeis import constants
+from ibeis import constants as const
 from os.path import dirname, join, relpath  # NOQA
 import ibeis.control.template_definitions as Tdef
 
@@ -52,35 +52,46 @@ WITH_DECOR = True
 #STRIP_DOCSTR   = True
 #STRIP_COMMENTS  = True
 
-constants.PROBCHIP_TABLE = 'probchips'
+const.PROBCHIP_TABLE = 'probchips'
 
 TBLNAME_LIST = [
-    #constants.ANNOTATION_TABLE,
-    #constants.CHIP_TABLE,
-    #constants.PROBCHIP_TABLE,
-    #constants.FEATURE_TABLE,
-    constants.FEATURE_WEIGHT_TABLE,
-    #constants.RESIDUAL_TABLE
+    #const.ANNOTATION_TABLE,
+    #const.CHIP_TABLE,
+    #const.PROBCHIP_TABLE,
+    #const.FEATURE_TABLE,
+    #const.FEATURE_WEIGHT_TABLE,
+    #const.RESIDUAL_TABLE
 ]
 
 multicolumns_dict = ut.odict([
-    (constants.CHIP_TABLE, [
-        ('annot_size', ('chip_width', 'chip_height')),
-    ]),
-    (constants.ANNOTATION_TABLE, [
-        ('annot_bbox', ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height')),
-        ('annot_visualinfo', ('annot_verts', 'annot_theta', 'annot_view')),
-        # TODO: Need to make this happen by performing nested sql calls
-        #('annot_semanticinfo', ('annot_image_uuid', 'annot_verts', 'annot_theta', 'annot_view', 'annot_name', 'annot_species')),
-    ]),
+    (
+        const.CHIP_TABLE,
+        [
+            ('chip_size', ('chip_width', 'chip_height'), True),
+        ]
+    ),
+    (
+        const.ANNOTATION_TABLE,
+        [
+            ('annot_bbox', ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height'), True),
+            ('annot_visualinfo', ('annot_verts', 'annot_theta', 'annot_view'), False),
+            # TODO: Need to make this happen by performing nested sql calls
+            #('annot_semanticinfo', ('annot_image_uuid', 'annot_verts', 'annot_theta', 'annot_view', 'annot_name', 'annot_species'), False),
+        ]
+    ),
+])
+
+
+tblname2_ignorecolnames = ut.odict([
+    (const.ANNOTATION_TABLE, ('annot_parent_rowid', 'annot_detect_confidence')),
 ])
 
 readonly_set = {
-    constants.CHIP_TABLE,
-    #constants.PROBCHIP_TABLE,
-    #constants.FEATURE_TABLE,
-    #constants.FEATURE_WEIGHT_TABLE,
-    #constants.RESIDUAL_TABLE
+    const.CHIP_TABLE,
+    #const.PROBCHIP_TABLE,
+    #const.FEATURE_TABLE,
+    #const.FEATURE_WEIGHT_TABLE,
+    #const.RESIDUAL_TABLE
 }
 
 
@@ -106,12 +117,12 @@ depends_map = {
 
 # shortened tablenames
 tablename2_tbl = {
-    constants.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
-    constants.CHIP_TABLE           : SHORTNAMES.CHIP,
-    constants.PROBCHIP_TABLE       : SHORTNAMES.PROBCHIP,
-    constants.FEATURE_TABLE        : SHORTNAMES.FEAT,
-    constants.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
-    constants.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
+    const.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
+    const.CHIP_TABLE           : SHORTNAMES.CHIP,
+    const.PROBCHIP_TABLE       : SHORTNAMES.PROBCHIP,
+    const.FEATURE_TABLE        : SHORTNAMES.FEAT,
+    const.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
+    const.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
 }
 
 
@@ -139,15 +150,15 @@ func_aliases = {
     #'get_feat_kpt_lists': 'get_feat_kpts',
 }
 
-# mapping to variable names in constants
+# mapping to variable names in const
 tbl2_tablename = ut.invert_dict(tablename2_tbl)
-tbl2_TABLE = {key: ut.get_varname_from_locals(val, constants.__dict__)
+tbl2_TABLE = {key: ut.get_varname_from_locals(val, const.__dict__)
               for key, val in six.iteritems(tbl2_tablename)}
 
 # Lets just use strings in autogened files for now: TODO: use constant vars
 # later
 #tbl2_TABLE = {key: '\'%s\'' % (val,) for key, val in six.iteritems(tbl2_tablename)}
-tbl2_TABLE = {key: 'constants.' + ut.get_varname_from_locals(val, constants.__dict__)
+tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__)
                 for key, val in six.iteritems(tbl2_tablename)}
 
 
@@ -258,11 +269,14 @@ def get_tableinfo(tablename, ibs=None):
         superkey_colnames   = []
         primarykey_colnames = []
         other_colnames      = []
-        if tablename == constants.FEATURE_WEIGHT_TABLE:
+        if tablename == const.FEATURE_WEIGHT_TABLE:
             dbself = 'dbcache'
             all_colnames = ['feature_weight_fg']
-    if tablename == constants.RESIDUAL_TABLE:
+    if tablename == const.RESIDUAL_TABLE:
         other_colnames.append('rvecs')
+    # hack out a few colnames
+    other_colnames = [colname for colname in other_colnames
+                      if colname not in set(tblname2_ignorecolnames[tablename])]
     tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
     return tableinfo
 
@@ -295,7 +309,10 @@ def build_depends_path(child):
     #depends_list = ['annot', 'chip', 'feat', 'featweight']
 
 
-def postprocess_and_combine_templates(autogen_rel_fpath, constant_list_, tblname2_functype2_func_list, flagskw):
+def postprocess_and_combine_templates(autogen_modname, autogen_key,
+                                      constant_list_,
+                                      tblname2_functype2_func_list,
+                                      flagskw):
     """ Sorts and combines augen function dictionary """
     func_name_list = []
     func_type_list = []
@@ -330,32 +347,34 @@ def postprocess_and_combine_templates(autogen_rel_fpath, constant_list_, tblname
 
     # --- MORE POSTPROCESSING ---
 
-    # Append constants to body
+    # Append const to body
     aligned_constants = '\n'.join(ut.align_lines(sorted(list(set(constant_list_)))))
     autogen_constants = ('# AUTOGENED CONSTANTS:\n' + aligned_constants)
-    autogen_constants += '\n\n'
+    autogen_constants += '\n\n\n'
 
     # Make main docstr
     #testable_name_list = ['get_annot_featweight_rowids']
-    def make_docstr_main(autogen_rel_fpath):
+    def make_docstr_main(autogen_modname):
         """ Creates main docstr """
         main_commandline_block_lines = [
-            'python ' + autogen_rel_fpath,
+            'python -m ' + autogen_modname,
+            'python -m ' + autogen_modname + ' --allexamples'
         ]
-        main_commandline_block_lines.append('python ' + autogen_rel_fpath + ' --allexamples')
         main_commandline_block = '\n'.join(main_commandline_block_lines)
         main_commandline_docstr = 'CommandLine:\n' + utool.indent(main_commandline_block, ' ' * 8)
         main_docstr_blocks = [main_commandline_docstr]
         main_docstr_body = '\n'.join(main_docstr_blocks)
         return main_docstr_body
 
-    main_docstr_body = make_docstr_main(autogen_rel_fpath)
+    main_docstr_body = make_docstr_main(autogen_modname)
 
     # --- CONCAT ---
     # Contenate autogen parts into autogen_text
 
     if flagskw.get('with_header', True):
-        autogen_header = remove_sentinals(Tdef.Theader_ibeiscontrol.format(timestamp=ut.get_timestamp('printable')))
+        fmtdict = dict(timestamp=ut.get_timestamp('printable'),
+                       autogen_key=autogen_key)
+        autogen_header = remove_sentinals(Tdef.Theader_ibeiscontrol.format(**fmtdict))
         autogen_header += '\n\n'
     else:
         autogen_header = ''
@@ -363,8 +382,10 @@ def postprocess_and_combine_templates(autogen_rel_fpath, constant_list_, tblname
     autogen_body = ('\n\n\n'.join(body_codeblocks)) + '\n'
 
     if flagskw.get('with_footer', True):
-        autogen_footer = remove_sentinals(Tdef.Tfooter_ibeiscontrol.format(main_docstr_body=main_docstr_body))
-        autogen_footer += '\n\n'
+        autogen_footer = (
+            '\n\n' +
+            remove_sentinals(Tdef.Tfooter_ibeiscontrol.format(main_docstr_body=main_docstr_body)) +
+            '\n')
     else:
         autogen_footer = ''
 
@@ -385,7 +406,8 @@ def postprocess_and_combine_templates(autogen_rel_fpath, constant_list_, tblname
     return autogen_text
 
 
-def build_templated_funcs(ibs, autogen_modname, tblname_list, flagdefault=True, flagskw={}):
+def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
+                          flagdefault=True, flagskw={}):
     """ Builds lists of requested functions"""
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
@@ -399,51 +421,46 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, flagdefault=True, 
         tableinfo = get_tableinfo(tablename, ibs)
         tup = build_controller_table_funcs(tablename, tableinfo,
                                            autogen_modname,
+                                           autogen_key,
                                            flagdefault=flagdefault,
                                            flagskw=flagskw)
         functype2_func_list, constant_list = tup
         constant_list_.extend(constant_list)
         tblname2_functype2_func_list[tablename] = functype2_func_list
-    return constant_list_, tblname2_functype2_func_list
+    tfunctup = constant_list_, tblname2_functype2_func_list
+    return tfunctup
 
 
-def get_autogen_modpaths(autogen_mod_fname=None):
+def get_autogen_modpaths(parent_module, autogen_key='default'):
     """
     Returns info on where the autogen module will be placed if is written
     """
     # Build output filenames and info
-    if autogen_mod_fname is None:
-        autogen_mod_fname = '_autogen_ibeiscontrol_funcs.py'
+    autogen_mod_fname_fmt = '_autogen_{autogen_key}_funcs.py'
+    autogen_mod_fname = autogen_mod_fname_fmt.format(autogen_key=autogen_key)
     # module we will autogenerate next to
-    parent_module = ibeis.control
     parent_modpath = dirname(parent_module.__file__)
     # Build autogen paths and modnames
     autogen_fpath = join(parent_modpath, autogen_mod_fname)
     autogen_rel_fpath = ut.get_relative_modpath(autogen_fpath)
     autogen_modname = ut.get_modname_from_modpath(autogen_fpath)
-    return autogen_fpath, autogen_rel_fpath, autogen_modname
+    modpath_info = autogen_fpath, autogen_rel_fpath, autogen_modname
+    return modpath_info
 
 
-def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefault=True, flagskw={}):
+def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
+                                 autogen_key, flagdefault=True, flagskw={}):
     """
     BIG FREAKING FUNCTION THAT REALIZES TEMPLATES
 
     Builds function strings for a single type of table using the template
     definitions.
 
-    Args:
-        tablename (?):
-        tableinfo (?):
-        autogen_modname (?):
-        flagdefault (?):
-        flagskw : flag different types of functions to be enabled disabled
-
     Returns:
         tuple: (functype2_func_list, constant_list)
 
     CommandLine:
-        python ibeis/control/template_generator.py
-        python ibeis/control/template_generator.py --dump-autogen-controller
+        python -m ibeis.control.template_generator
     """
     # +-----
     # Setup
@@ -470,6 +487,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
 
     fmtdict['nonprimary_leaf_colnames'] = nonprimary_leaf_colnames
     fmtdict['autogen_modname'] = autogen_modname
+    fmtdict['autogen_key'] = autogen_key
     fmtdict['leaf_other_propnames'] = leaf_other_propnames
     #fmtdict['leaf_other_propname_lists'] = leaf_other_propname_lists
     fmtdict['leaf_props'] = leaf_props
@@ -518,21 +536,24 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
     # | Template appenders
     # +----------------------------
     def append_constant(varname, valstr):
-        """ Used for rowid and colname constants """
+        """ Used for rowid and colname const """
         const_fmtstr = ''.join((varname, ' = \'', valstr, '\''))
         const_line = const_fmtstr.format(**fmtdict)
         constant_list.append(const_line)
 
-    def append_func(func_type, func_code_fmtstr, tablename=tablename):
+    def append_func(func_type, func_code_fmtstr):
         """
         Filters, formats, and organizes functions as they are added
         """
         #if func_type.find('add') < 0:
         #    return
+        #type1, type2 = func_type.split('.')
         func_type = func_type
         try:
             func_code = func_code_fmtstr.format(**fmtdict)
             func_code = format_controller_func(func_code, flagskw)
+            if tablename == const.ANNOTATION_TABLE:
+                func_code = func_code.replace('ENABLE_DOCTEST', 'DISABLE_DOCTEST')
             # HACK to remove double table names like: get_chip_chip_width
             single_tbl = fmtdict['tbl']
             double_tbl = single_tbl + '_' + single_tbl
@@ -543,11 +564,13 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
 
             if func_name in func_aliases:
                 func_aliasname = func_aliases[func_name]
-                func_code += ut.codeblock('''
+                func_aliascode = ut.codeblock('''
                 @register_ibs_method
                 def {func_aliasname}(*args, **kwargs):
                     return {func_name}(*args, **kwargs)
                 ''').format(func_aliasname=func_aliasname, func_name=func_name)
+                func_aliastup = (func_aliasname, func_aliascode)
+                functype2_func_list[func_type].append(func_aliastup)
             functype2_func_list[func_type].append(func_tup)
         except Exception as ex:
             utool.printex(ex, keys=['func_type', 'tablename'])
@@ -558,7 +581,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
     # | Higher level helper functions
     # +----------------------------
     def build_rowid_constants(depends_list):
-        """ Ensures all rowid constants have been added corectly """
+        """ Ensures all rowid const have been added corectly """
         for tbl_ in depends_list:
             set_tbl(tbl_)
             # HACK: fix feature column names in dbschema
@@ -582,6 +605,16 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
         # At this point parent = leaf_parent and child=leaf
         fmtdict['pc_dependant_rowid_lines']  = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
         fmtdict['pc_dependant_delete_lines'] = ut.indent(ut.indentjoin(pc_dependant_delete_lines)).strip()
+
+    multicol_list = multicolumns_dict[tablename]
+
+    def is_disabled_by_multicol(colname):
+        for multicoltup in multicol_list:
+            if len(multicoltup) == 3 and multicoltup[2]:
+                invalid_colnames = multicoltup[1]
+                if colname in invalid_colnames:
+                    return True
+        return False
     # L____________________________
 
     tbl = tablename2_tbl[tablename]
@@ -661,6 +694,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
     if with_columns:
         # For each column property
         for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
+            if is_disabled_by_multicol(colname):
+                continue
             set_col(col, COLNAME)
             if with_getters:
                 # Getter template: columns
@@ -677,22 +712,27 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname, flagdefa
 
     if with_multicolumns:
         # For each multicolumn property
-        if tablename in multicolumns_dict:
-            for multicol, multicolnames in multicolumns_dict[tablename]:
-                set_multicol(multicol, multicolnames)
-                if with_getters:
-                    # Getter template: multicolumns
-                    if with_col_rootleaf:
-                        append_func('RL.Tgetter_mutli_dependant', Tdef.Tgetter_rl_pclines_dependant_multicolumn)
-                    if with_native:
-                        append_func('2_Native.Tgetter_multi_native', Tdef.Tgetter_native_multicolumn)
-                pass
+        for multicoltup in multicol_list:
+            multicol, multicolnames = multicoltup[0:2]
+            set_multicol(multicol, multicolnames)
+            if with_getters:
+                # Getter template: multicolumns
+                if with_col_rootleaf:
+                    append_func('RL.getter_mutli_dependant', Tdef.Tgetter_rl_pclines_dependant_multicolumn)
+                if with_native:
+                    append_func('2_Native.getter_multi_native', Tdef.Tgetter_native_multicolumn)
+            if with_setters and  tablename not in readonly_set:
+                # Setter template: columns
+                if with_native:
+                    append_func('2_Native.setter_multi_native', Tdef.Tsetter_native_multicolumn)
 
     return functype2_func_list, constant_list
 
 
 def get_autogen_text(
+        parent_module,
         tblname_list=TBLNAME_LIST,
+        autogen_key='default',
         flagdefault=True,
         flagskw={}):
     """
@@ -705,33 +745,54 @@ def get_autogen_text(
         python ibeis/control/template_generator.py
     """
     # Filepath info
-    autogen_fpath, autogen_rel_fpath, autogen_modname = get_autogen_modpaths()
+    modpath_info = get_autogen_modpaths(parent_module, autogen_key)
+    autogen_fpath, autogen_rel_fpath, autogen_modname = modpath_info
     # Build functions and constant containers
-    tup = build_templated_funcs(ibs, autogen_modname, tblname_list,
-                                flagdefault=flagdefault, flagskw=flagskw)
-    constant_list_, tblname2_functype2_func_list = tup
+    tfunctup = build_templated_funcs(
+        ibs, autogen_modname, tblname_list, autogen_key,
+        flagdefault=flagdefault, flagskw=flagskw)
+    constant_list_, tblname2_functype2_func_list = tfunctup
     # Combine into a text file
     autogen_text = postprocess_and_combine_templates(
-        autogen_rel_fpath, constant_list_, tblname2_functype2_func_list, flagskw)
+        autogen_modname, autogen_key, constant_list_, tblname2_functype2_func_list, flagskw)
     # Return path and text
     return autogen_fpath, autogen_text
 
 
-def main(ibs, verbose=True):
+def main(ibs, verbose=None):
     """
     CommandLine:
-        python ibeis/control/template_generator.py --tbls annotations --Tcfg with_getters:True strip_docstr:True
-        python ibeis/control/template_generator.py --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+        python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"
 
-        python ibeis/control/template_generator.py
-        python ibeis/control/template_generator.py --dump-autogen-controller
-        gvim ibeis/control/_autogen_ibeiscontrol_funcs.py
+        Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
+        Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+
+        Tgen.sh --key featweight
+        Tgen.sh --key annot --verbfn
+
+        python -m ibeis.control.template_generator
+        python -m ibeis.control.template_generator --dump-autogen-controller
+        gvim ibeis/control/_autogen_default_funcs.py
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
     # Parse command line args
-    dowrite = ut.get_argflag('--dump-autogen-controller')
-    tblname_list = ut.get_argval(('--autogen-tables', '--tbls'), type_=list, default=TBLNAME_LIST)
+    verbfuncname = ut.get_argflag(('--verbfuncname', '--verbfn'))
+    dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
+    autogen_key = ut.get_argval(('--key',), type_=str, default='default')
+
+    if verbose is None:
+        verbose = not dowrite
+
+    if autogen_key == 'default':
+        default_tblname_list = TBLNAME_LIST
+    else:
+        if autogen_key in tbl2_tablename:
+            default_tblname_list = [tbl2_tablename[autogen_key], ]
+        else:
+            raise AssertionError('unknown autogen_key=%r' % (autogen_key,))
+
+    tblname_list = ut.get_argval(('--autogen-tables', '--tbls'), type_=list, default=default_tblname_list)
     # Parse dictionary flag list
     template_flags = ut.get_argval(('--Tcfg', '--template-config'), type_=list, default=[])
 
@@ -757,17 +818,24 @@ def main(ibs, verbose=True):
     for tblname in tblname_list:
         assert tblname in tablename2_tbl
 
+    parent_module = ibeis.control
+
     # Autogenerate text
-    autogen_fpath, autogen_text = get_autogen_text(tblname_list=tblname_list,
-                                                   flagdefault=flagdefault,
-                                                   flagskw=flagskw)
+    autogen_fpath, autogen_text = get_autogen_text(
+        parent_module, tblname_list=tblname_list, autogen_key=autogen_key,
+        flagdefault=flagdefault, flagskw=flagskw)
 
     # output to disk or stdout
+    if verbfuncname:
+        print('\n'.join([line for line in autogen_text.splitlines() if
+              line.startswith('def ')]))
+    else:
+        if not ut.QUIET and (not dowrite or verbose):
+            print(autogen_text)
+            if not dowrite:
+                print('\n...would write to: %s' % autogen_fpath)
     if dowrite:
         ut.write_to(autogen_fpath, autogen_text)
-
-    if not ut.QUIET and (not dowrite or verbose):
-        print(autogen_text)
     #return locals()
 
 

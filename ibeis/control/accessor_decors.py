@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 # import decorator  # NOQA
 import utool
 from six.moves import builtins
-from functools import wraps
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
@@ -77,7 +76,6 @@ def cache_getter(tblname, colname):
         getter_func = profile(getter_func)  # Autoprofilehack
         if not API_CACHE:
             return getter_func
-        @wraps(getter_func)
         def wrp_getter_cacher(self, rowid_list, *args, **kwargs):
             # the class must have a table_cache property
             cache_ = self.table_cache[tblname][colname]
@@ -115,7 +113,6 @@ def cache_invalidator(tblname, colnames=None):
     def closure_cache_invalidator(setter_func):
         if not API_CACHE:
             return setter_func
-        @wraps(setter_func)
         def wrp_cache_invalidator(self, rowid_list, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
@@ -137,7 +134,6 @@ def adder(func):
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
-    @wraps(func)
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or (not utool.QUIET and utool.VERYVERBOSE):
             print('+------')
@@ -160,7 +156,6 @@ def deleter(func):
     func_ = default_decorator(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
-    @wraps(func)
     def wrp_deleter(*args, **kwargs):
         if not utool.QUIET and utool.VERYVERBOSE:
             print('[DELETE]: ' + get_funcname(func))
@@ -186,7 +181,6 @@ def setter(func):
     #@utool.accepts_scalar_input2(argx_list=range(1, 2))
     @utool.on_exception_report_input
     @utool.ignores_exc_tb
-    @wraps(func)
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or (not utool.QUIET and utool.VERYVERBOSE):
             print('+------')
@@ -213,7 +207,6 @@ def getter(func):
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
-    @wraps(func)
     def wrp_getter(*args, **kwargs):
         #if utool.DEBUG:
         #    print('[IN GETTER] args=%r' % (args,))
@@ -238,7 +231,6 @@ def getter_vector_output(func):
     func_ = default_decorator(func)
     @utool.accepts_scalar_input_vector_output
     @utool.ignores_exc_tb
-    @wraps(func)
     def getter_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
     getter_vector_wrp = utool.preserve_sig(getter_vector_wrp, func)
@@ -261,7 +253,6 @@ def getter_numpy(func):
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
-    @wraps(func)
     def getter_numpy_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
     getter_numpy_wrp = utool.preserve_sig(getter_numpy_wrp, func)
@@ -277,7 +268,6 @@ def getter_numpy_vector_output(func):
     @utool.accepts_numpy
     @utool.accepts_scalar_input_vector_output
     @utool.ignores_exc_tb
-    @wraps(func)
     def getter_numpy_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
     getter_numpy_vector_wrp = utool.preserve_sig(getter_numpy_vector_wrp, func)

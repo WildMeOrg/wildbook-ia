@@ -20,6 +20,7 @@ utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
 
 
 from ibeis import constants
+from ibeis import constants as const
 from ibeis import params
 from ibeis import main_module
 from ibeis import dev

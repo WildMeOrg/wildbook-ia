@@ -8,6 +8,8 @@ import utool  # NOQA
 import utool as ut  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
 
+CLASS_INJECT_KEY = ('IBEISController', 'manual')
+
 # Create dectorator to inject these functions into the IBEISController
 register_ibs_aliased_method   = ut.make_class_method_decorator(('IBEISController', 'manual'))
 register_ibs_unaliased_method = ut.make_class_method_decorator(('IBEISController', 'manual'))

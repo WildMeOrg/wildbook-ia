@@ -162,6 +162,7 @@ from ibeis.model import Config
 from ibeis.model import preproc
 from ibeis.model import hots
 # IBEIS MODEL PREPROCESSING
+from ibeis.model.preproc import preproc_annot
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
