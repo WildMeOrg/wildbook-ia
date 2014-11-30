@@ -42,7 +42,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         qaid2_qres (dict): dict of QueryResult objects
 
     Examples:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> import ibeis
         >>> qaid_list = [1]
@@ -124,7 +124,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid2_qres
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline

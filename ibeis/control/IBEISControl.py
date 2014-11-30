@@ -223,14 +223,7 @@ class IBEISController(object):
 
     # ------------
 
-    @default_decorator
-    def _init_sql(ibs):
-        """ Load or create sql database """
-        from ibeis.dev import duct_tape  # NOQA
-        ibs._init_sqldb()
-        ibs._init_sqldbcache()
-        # ibs.db.dump_schema()
-        # ibs.db.dump()
+    def _init_rowid_constants(ibs):
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
@@ -242,6 +235,16 @@ class IBEISController(object):
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
+    @default_decorator
+    def _init_sql(ibs):
+        """ Load or create sql database """
+        from ibeis.dev import duct_tape  # NOQA
+        ibs._init_sqldb()
+        ibs._init_sqldbcache()
+        # ibs.db.dump_schema()
+        # ibs.db.dump()
+        ibs._init_rowid_constants()
+
     @ut.indent_func
     def _init_sqldb(ibs):
         from ibeis.control import _sql_helpers
@@ -250,18 +253,20 @@ class IBEISController(object):
         # Before load, ensure database has been backed up for the day
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
-        ibs.db_version_expected = '1.1.1'
+        #ibs.db_version_expected = '1.1.1'
+        ibs.db_version_expected = '1.2.0'
 
         # TODO: add this functionality to SQLController
-        testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-        testing_force_fresh = False  # Set to true until the schema module is good then continue tests with this set to false
-        if testing_newschmea:
-            # Work on a fresh schema copy when developing
-            dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
-            sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
-            dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
-            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-            ibs.db_version_expected = '1.2.0'
+        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        #if testing_newschmea:
+        #    # Set to true until the schema module is good then continue tests with this set to false
+        #    testing_force_fresh = True or ut.get_argflag('--force-fresh')
+        #    # Work on a fresh schema copy when developing
+        #    dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
+        #    sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+        #    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
+        #    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
+        #    ibs.db_version_expected = '1.2.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -1054,21 +1059,29 @@ class IBEISController(object):
 
     @adder
     def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
-                        species_list=None, nid_list=None, name_list=None,
-                        detect_confidence_list=None, notes_list=None,
-                        vert_list=None, annot_uuid_list=None, viewpoint_list=None,
-                        quiet_delete_thumbs=False):
+                    species_list=None, nid_list=None, name_list=None,
+                    detect_confidence_list=None, notes_list=None,
+                    vert_list=None, annot_uuid_list=None, viewpoint_list=None,
+                    quiet_delete_thumbs=False):
         """
         Adds an annotation to images
 
         Args:
-            gid_list (list of rowids): image rowids to add annotation to
-            bbox_list (list of [x, y, w, h]): bounding boxes for each image (optional). Supply Verts instead
-            theta_list (list of float): orientations of annotations
-            vert_list (list of lists):  alternative to bounding box
+            gid_list               (list): image rowids to add annotation to
+            bbox_list              (list): of [x, y, w, h] bounding boxes for each image (supply verts instead)
+            theta_list             (list): orientations of annotations
+            species_list           (list):
+            nid_list               (list):
+            name_list              (list):
+            detect_confidence_list (list):
+            notes_list             (list):
+            vert_list              (list): alternative to bounding box
+            annot_uuid_list        (list):
+            viewpoint_list         (list):
+            quiet_delete_thumbs    (bool):
 
         Returns:
-             list: aid_list a list of annotation rowids
+            list: aid_list
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1808,7 +1821,7 @@ class IBEISController(object):
     def get_annot_uuids(ibs, aid_list):
         """
         Returns:
-            list_ (list): a list of image uuids by gid """
+            list_ (list): a list of image uuids by aid """
         annot_uuid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_uuid',), aid_list)
         return annot_uuid_list
 
@@ -1816,7 +1829,7 @@ class IBEISController(object):
     def get_annot_parent_aid(ibs, aid_list):
         """
         Returns:
-            list_ (list): a list of image uuids by gid """
+            list_ (list): a list of parent (in terms of parts) annotation rowids. """
         annot_parent_rowid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_parent_rowid',), aid_list)
         return annot_parent_rowid_list
 
@@ -1824,7 +1837,7 @@ class IBEISController(object):
     def get_annot_aids_from_uuid(ibs, uuid_list):
         """
         Returns:
-            list_ (list): a list of original image names """
+            list_ (list): annot rowids """
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         aids_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_rowid',), uuid_list, id_colname='annot_uuid')
         return aids_list
@@ -2924,7 +2937,7 @@ class IBEISController(object):
                       cfgdict=None, qreq_=None):
         """
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> #from ibeis.all_imports import *  # NOQA
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> qaid_list = [1]
@@ -3230,6 +3243,57 @@ class IBEISController(object):
         ibs.set_annot_lblannot_from_value(aid_list, species_list, const.SPECIES_KEY)
 
     @setter
+    def set_annot_nids(ibs, aid_list, nid_list):
+        """ Sets names/nids of a list of annotations.
+        Convenience function for set_annot_lblannot_from_rowid """
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, const.INDIVIDUAL_KEY)
+
+    @utool.accepts_numpy
+    @getter_1to1
+    def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
+        """
+        Returns:
+            list_ (list): the name id of each annotation.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> import numpy as np
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> aid_list = ibs.get_valid_aids()
+            >>> distinguish_unknowns = True
+            >>> nid_arr1 = np.array(ibs.get_annot_nids(aid_list, distinguish_unknowns))
+            >>> nid_arr2 = np.array(ibs.get_annot_nids(aid_list, False))
+            >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
+            >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
+        """
+        # Get all the annotation lblannot relationships
+        # filter out only the ones which specify names
+        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
+        # TODO: get index of highest confidence name
+        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+                     lblannot_rowids in lblannot_rowids_list]
+        if distinguish_unknowns:
+            from ibeis.model.preproc import preproc_annot
+            nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
+            #nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
+            #            for nid, aid in zip(nid_list_, aid_list)]
+        else:
+            nid_list = nid_list_
+        return nid_list
+
+    @setter
+    def set_annot_speciesids(ibs, aid_list, speciesid_list):
+        """ Sets species/speciesids of a list of annotations.
+        Convenience function for set_annot_lblannot_from_rowid"""
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, speciesid_list, ibs.lbltype_ids[const.SPECIES_KEY])
+        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)
+
+    @setter
     def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, ensure=True):
         """ Associates the annot and lblannot of a specific type and value
         Adds the lblannot if it doesnt exist.
@@ -3260,20 +3324,6 @@ class IBEISController(object):
         lblannot_rowid_list = ibs.add_lblannots(lbltype_rowid_list, values_to_set)
         # Call set_annot_from_lblannot_rowid to finish the conditional adding
         ibs.set_annot_lblannot_from_rowid(aids_to_set, lblannot_rowid_list, _lbltype)
-
-    @setter
-    def set_annot_nids(ibs, aid_list, nid_list):
-        """ Sets names/nids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid """
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, const.INDIVIDUAL_KEY)
-
-    @setter
-    def set_annot_speciesids(ibs, aid_list, speciesid_list):
-        """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid"""
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, speciesid_list, ibs.lbltype_ids[const.SPECIES_KEY])
-        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)
 
     @setter
     def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
@@ -3474,43 +3524,6 @@ class IBEISController(object):
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
         lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
         return lblannot_rowids_list
-
-    @utool.accepts_numpy
-    @getter_1to1
-    def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
-        """
-        Returns:
-            list_ (list): the name id of each annotation.
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> import numpy as np
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> aid_list = ibs.get_valid_aids()
-            >>> distinguish_unknowns = True
-            >>> nid_arr1 = np.array(ibs.get_annot_nids(aid_list, distinguish_unknowns))
-            >>> nid_arr2 = np.array(ibs.get_annot_nids(aid_list, False))
-            >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
-            >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
-        """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
-        # TODO: get index of highest confidence name
-        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
-                     lblannot_rowids in lblannot_rowids_list]
-        if distinguish_unknowns:
-            from ibeis.model.preproc import preproc_annot
-            nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
-            #nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
-            #            for nid, aid in zip(nid_list_, aid_list)]
-        else:
-            nid_list = nid_list_
-        return nid_list
 
     # DELTERS
 

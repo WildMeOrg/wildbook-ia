@@ -1044,7 +1044,7 @@ if __name__ == '__main__':
     #
     # Main Loop (IPython interaction, or some exec loop)
     #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
-    if ut.get_argflag('--show', '--wshow'):
+    if ut.get_argflag(('--show', '--wshow')):
         df2.present()
     main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
     exec(main_execstr)

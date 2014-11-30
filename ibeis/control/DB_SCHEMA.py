@@ -189,10 +189,20 @@ def update_1_0_0(db, ibs=None):
         and labels''')
 
 
-@profile
 def post_1_0_0(db, ibs=None):
     # We are dropping the versions table and rather using the metadata table
+    print('applying post_1_0_0')
     db.drop_table(constants.VERSIONS_TABLE)
+
+
+def post_1_2_0(db, ibs=None):
+    print('applying post_1_2_0')
+    if ibs is not None:
+        ibs._init_rowid_constants()
+        from ibeis.model.preproc import preproc_annot
+        preproc_annot.schema_1_2_0_postprocess_fixuuids(ibs)
+    else:
+        print('warning: ibs is None, so cannot apply name / species column fixes to existing database')
 
 
 # =======================
@@ -340,6 +350,8 @@ def update_1_2_0(db, ibs=None):
 # Valid Versions & Mapping
 # ========================
 
+# TODO: do we save a backup with the older version number in the file name?
+
 
 base = constants.BASE_DATABASE_VERSION
 VALID_VERSIONS = utool.odict([
@@ -350,7 +362,7 @@ VALID_VERSIONS = utool.odict([
     ('1.0.2',    (None,                 update_1_0_2,       None                )),
     ('1.1.0',    (None,                 update_1_1_0,       None                )),
     ('1.1.1',    (None,                 update_1_1_1,       None                )),
-    ('1.2.0',    (None,                 update_1_2_0,       None                )),
+    ('1.2.0',    (None,                 update_1_2_0,       post_1_2_0          )),
 ])
 
 

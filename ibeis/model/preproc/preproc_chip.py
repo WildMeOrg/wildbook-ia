@@ -135,7 +135,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         chip_list
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
@@ -147,7 +147,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         [1434, 2274, 12]
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
@@ -448,7 +448,7 @@ def compute_and_write_chips(ibs, aid_list):
         aid_list (list):
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = testdata_preproc_chip()

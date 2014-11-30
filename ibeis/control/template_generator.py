@@ -16,7 +16,7 @@ Concepts:
 
 CommandLine:
     python ibeis/control/template_generator.py
-    python ibeis/control/template_generator.py --dump-autogen-controller
+    python -m ibeis.control.template_generator -key featweight --write
 
 TODO:
    * autogen testdata function
@@ -275,8 +275,9 @@ def get_tableinfo(tablename, ibs=None):
     if tablename == const.RESIDUAL_TABLE:
         other_colnames.append('rvecs')
     # hack out a few colnames
+    ignorecolnames = tblname2_ignorecolnames.get(tablename, [])
     other_colnames = [colname for colname in other_colnames
-                      if colname not in set(tblname2_ignorecolnames[tablename])]
+                      if colname not in set(ignorecolnames)]
     tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
     return tableinfo
 
@@ -406,6 +407,40 @@ def postprocess_and_combine_templates(autogen_modname, autogen_key,
     return autogen_text
 
 
+def find_valstr(func_code, varname_):
+    import re
+    assignregex = ''.join((varname_, ' = ', ut.named_field('valstr', '.*')))
+    #+ assignregex + '\s*'
+    match = re.search(assignregex, func_code)
+    if match is None:
+        return func_code
+    groupdict = match.groupdict()
+    valstr = groupdict['valstr']
+    return valstr
+
+
+def replace_constant_varname(func_code, varname, valstr=None):
+    """
+    Example:
+        >>> from ibeis.control.template_generator import *
+        >>> func_code = Tdef.Tsetter_native_multicolumn
+        >>> new_func_code = replace_constant_varname(func_code, 'id_iter')
+        >>> new_func_code = replace_constant_varname(new_func_code, 'colnames')
+        >>> result = new_func_code
+        >>> print(result)
+    """
+    import re
+    if func_code.find(varname) == -1:
+        return func_code
+    varname_ = ut.whole_word(varname)
+    if valstr is None:
+        valstr = find_valstr(func_code, varname_)
+    assignline = ''.join((r'\s*', varname_, ' = .*'))
+    new_func_code = re.sub(assignline, '', func_code)
+    new_func_code = re.sub(varname_, valstr, new_func_code)
+    return new_func_code
+
+
 def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
                           flagdefault=True, flagskw={}):
     """ Builds lists of requested functions"""
@@ -499,6 +534,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     CONSTANT_COLNAMES.extend(other_colnames)
     functype2_func_list = ut.ddict(list)
     constant_list = []
+    #constant_varname_list = []
+    #constant_varstr_list = []
     # L_____
 
     # +----------------------------
@@ -540,10 +577,13 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         const_fmtstr = ''.join((varname, ' = \'', valstr, '\''))
         const_line = const_fmtstr.format(**fmtdict)
         constant_list.append(const_line)
+        #constant_varname_list.append(varname)
+        #constant_varstr_list.append(valstr)
 
     def append_func(func_type, func_code_fmtstr):
         """
         Filters, formats, and organizes functions as they are added
+        applys hacks
         """
         #if func_type.find('add') < 0:
         #    return
@@ -552,16 +592,37 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         try:
             func_code = func_code_fmtstr.format(**fmtdict)
             func_code = format_controller_func(func_code, flagskw)
-            if tablename == const.ANNOTATION_TABLE:
-                func_code = func_code.replace('ENABLE_DOCTEST', 'DISABLE_DOCTEST')
             # HACK to remove double table names like: get_chip_chip_width
             single_tbl = fmtdict['tbl']
             double_tbl = single_tbl + '_' + single_tbl
             func_code = func_code.replace(double_tbl, single_tbl)
             # parse out function name
             func_name = parse_first_func_name(func_code)
-            func_tup = (func_name, func_code)
+            # <HACKS>
+            print(tablename)
+            if tablename == const.ANNOTATION_TABLE:
+                func_code = func_code.replace('ENABLE_DOCTEST', 'DISABLE_DOCTEST')
+            elif tablename == const.FEATURE_WEIGHT_TABLE:
+                if func_name in ['get_annot_featweight_rowids', 'add_feat_featweights', 'add_annot_featweights']:
+                    func_code = func_code.replace('ENABLE_DOCTEST', 'SLOW_DOCTEST')
 
+            #replace_constants =  True
+            replace_constants =  False
+            if replace_constants:
+                varname_list = ['id_iter', 'colnames', 'superkey_paramx', 'andwhere_colnames']
+                for varname in varname_list:
+                    func_code = replace_constant_varname(func_code, varname)
+                #for varname, valstr in zip(constant_varname_list, constant_varstr_list):
+                #for const_line in constant_list:
+                #    varname, valstr = const_line.split(' = ')
+                #    print(varname)
+                #    func_code = replace_constant_varname(func_code, varname, valstr)
+
+            # </HACKS>
+            # Register function
+            func_tup = (func_name, func_code)
+            functype2_func_list[func_type].append(func_tup)
+            # Register function aliases
             if func_name in func_aliases:
                 func_aliasname = func_aliases[func_name]
                 func_aliascode = ut.codeblock('''
@@ -571,7 +632,6 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                 ''').format(func_aliasname=func_aliasname, func_name=func_name)
                 func_aliastup = (func_aliasname, func_aliascode)
                 functype2_func_list[func_type].append(func_aliastup)
-            functype2_func_list[func_type].append(func_tup)
         except Exception as ex:
             utool.printex(ex, keys=['func_type', 'tablename'])
             raise
@@ -606,7 +666,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         fmtdict['pc_dependant_rowid_lines']  = ut.indent(ut.indentjoin(pc_dependant_rowid_lines)).strip()
         fmtdict['pc_dependant_delete_lines'] = ut.indent(ut.indentjoin(pc_dependant_delete_lines)).strip()
 
-    multicol_list = multicolumns_dict[tablename]
+    multicol_list = multicolumns_dict.get(tablename, [])
 
     def is_disabled_by_multicol(colname):
         for multicoltup in multicol_list:
@@ -768,7 +828,8 @@ def main(ibs, verbose=None):
         Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 
         Tgen.sh --key featweight
-        Tgen.sh --key annot --verbfn
+        Tgen.sh --key annot --onlyfn
+        Tgen.sh --key featweight --onlyfn
 
         python -m ibeis.control.template_generator
         python -m ibeis.control.template_generator --dump-autogen-controller
@@ -777,7 +838,7 @@ def main(ibs, verbose=None):
         %run dev.py --db testdb1 --cmd
     """
     # Parse command line args
-    verbfuncname = ut.get_argflag(('--verbfuncname', '--verbfn'))
+    onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'))
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
 
@@ -826,7 +887,7 @@ def main(ibs, verbose=None):
         flagdefault=flagdefault, flagskw=flagskw)
 
     # output to disk or stdout
-    if verbfuncname:
+    if onlyfuncname:
         print('\n'.join([line for line in autogen_text.splitlines() if
               line.startswith('def ')]))
     else:

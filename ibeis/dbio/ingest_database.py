@@ -380,6 +380,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         name_list = [constants.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
 
     # Add Images
+    gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
     gid_list_ = ibs.add_images(gpath_list)
     # <DEBUG>
     #print('added: ' + utool.indentjoin(map(str, zip(gid_list_, gpath_list))))
@@ -548,7 +549,7 @@ def ingest_oxford_style_db(dbdir):
     ibs.cfg.other_cfg.auto_localize = False
     print('adding to table: ')
     # Add images to ibeis
-    gpath_list = [join(img_dpath, gname) for gname in gname_list]
+    gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
     gid_list = ibs.add_images(gpath_list)
 
     # 1) Add Query Annotations

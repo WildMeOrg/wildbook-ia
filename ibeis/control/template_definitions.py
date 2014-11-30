@@ -86,7 +86,7 @@ Tadder_pl_dependant = ut.codeblock(
              {parent}_rowid_list
 
         Returns:
-            returns config_rowid of the current configuration
+            returns {leaf}_rowid_list of added (or already existing {leaf}s)
 
         TemplateInfo:
             Tadder_pl_dependant
@@ -130,6 +130,34 @@ Tadder_pl_dependant = ut.codeblock(
     '''
 )
 
+Tadder_native = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @adder
+    def add_{tbl}s({self}, {allcols}):
+        """
+        Returns:
+            returns {tbl}_rowid_list of added (or already existing {tbl}s)
+
+        TemplateInfo:
+            Tadder_native
+            tbl = {tbl}
+        """
+        # UNFINISHED
+        raise NotImplementedError('this code is a stub, you must populate it')
+        from ibeis.model.preproc import preproc_{tbl}
+        proptup_gen = preproc_{tbl}.generate_{tbl}_properties({self}, {allcols})
+        params_iter = (
+            ({all_propnames})
+            for ({all_propnames},) in
+            zip({parent}_rowid_list, proptup_gen)
+        )
+        colnames = {all_propnames}
+        {tbl}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
+        return {tbl}_rowid_list
+    # ENDBLOCK
+    '''
+)
 
 Tadder_rl_dependant = ut.codeblock(
     r'''
@@ -662,7 +690,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
             Tgetter_native_rowid_from_superkey
             tbl = {tbl}
         """
-        colnames = ({TBL}_ROWID),
+        colnames = ({TBL}_ROWID,)
         # FIXME: col_rowid is not correct
         params_iter = zip({superkey_args})
         andwhere_colnames = [{superkey_args}]

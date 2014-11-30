@@ -861,7 +861,7 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             +---
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset
         >>> ibs_src = ibeis.opendb(dbdir='testdb1')

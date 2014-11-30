@@ -39,7 +39,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
     Compiles IBEIS information and sends it to plottool
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.viz.viz_sver import *   # NOQA
         >>> import ibeis
         >>> import utool as ut

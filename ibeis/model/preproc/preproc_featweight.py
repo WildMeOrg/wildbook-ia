@@ -23,7 +23,7 @@ def gen_featweight_worker(tup):
         tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
 
     Example:
-        >>> # DOCTEST ENABLE
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -38,8 +38,10 @@ def gen_featweight_worker(tup):
         >>> probchip = probchip_list[0]
         >>> tup = (aid, kpts, probchip)
         >>> (aid, weights) = gen_featweight_worker(tup)
-        >>> print(weights.sum())
-        275.025
+        >>> result = str((aid, np.array_str(weights[0:3], precision=3)))
+        >>> print(result)
+        (13, '[ 0.25  0.25  0.25]')
+
     """
     (aid, kpts, probchip) = tup
     if probchip is None:
@@ -57,12 +59,17 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
     """
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> qreq_ = None
         >>> featweight_list = compute_fgweights(ibs, aid_list)
+        >>> result = np.array_str(featweight_list[0][0:3], precision=3)
+        >>> print(result)
+        [ 0.505  0.521  0.57 ]
+
     """
     print('[preproc_featweight] Preparing to compute fgweights')
     probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
@@ -101,6 +108,7 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
         featweight_list
 
     Example:
+        >>> # DEPRICATE
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -130,9 +138,13 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> fid_list = ibs.get_valid_fids()
-        >>> result = generate_featweight_properties(ibs, fid_list)
+        >>> fid_list = ibs.get_valid_fids()[0:1]
+        >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list)
+        >>> featweighttup_list = list(featweighttup_gen)
+        >>> featweight_list = featweighttup_list[0][0]
+        >>> result = np.array_str(featweight_list[0:3], precision=3)
         >>> print(result)
+        [ 0.124  0.062  0.173]
     """
     # HACK: TODO AUTOGENERATE THIS
     from ibeis import constants
@@ -188,9 +200,13 @@ def on_delete(ibs, featweight_rowid_list):
     print('TODO: Delete probability chips, or should that be its own preproc?')
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_featweight
+        python -m ibeis.model.preproc.preproc_featweight --allexamples
+        python -m ibeis.model.preproc.preproc_featweight --allexamples --noface --nosrc
+    """
     import multiprocessing
-    multiprocessing.freeze_support()
-    testable_list = [
-        gen_featweight_worker
-    ]
-    ut.doctest_funcs(testable_list)
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

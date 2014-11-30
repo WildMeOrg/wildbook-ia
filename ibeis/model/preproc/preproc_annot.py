@@ -125,7 +125,7 @@ def get_annot_visual_uuid_info(ibs, aid_list):
         aid_list (list):
 
     Returns:
-        ?: annot_appearance_determenistic_info_list
+        list: visual_info_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -171,7 +171,8 @@ def get_annot_semantic_uuid_info(ibs, aid_list):
     species_list    = ibs.get_annot_species(aid_list)
     aug_info_list = zip(name_list, species_list)
     # Perform augmentation
-    semantic_info_iter = (visinfo + auginfo for visinfo, auginfo in zip(visual_info_list, aug_info_list))
+    semantic_info_iter = (visinfo + auginfo for visinfo, auginfo in
+                          zip(visual_info_list, aug_info_list))
     semantic_info_list = list(semantic_info_iter)
     return semantic_info_list
 
@@ -270,8 +271,10 @@ def update_annot_semantic_uuids(ibs, aid_list):
 
 def get_annot_speciesid_from_lblannot_relation(ibs, aid_list, distinguish_unknowns=True):
     """ function for getting speciesid the old way """
-    import ibsfuncs
-    alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.SPECIES_KEY])
+    from ibeis import ibsfuncs
+    species_lbltype_rowid = ibs.add_lbltype(const.SPECIES_KEY, const.KEY_DEFAULTS[const.SPECIES_KEY])
+    #species_lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
+    alrids_list = ibs.get_annot_alrids_oftype(aid_list, species_lbltype_rowid)
     lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
     speciesid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
                       lblannot_rowids in lblannot_rowids_list]
@@ -280,8 +283,10 @@ def get_annot_speciesid_from_lblannot_relation(ibs, aid_list, distinguish_unknow
 
 def get_annot_nids_from_lblannot_relation(ibs, aid_list, distinguish_unknowns=True):
     """ function for getting nids the old way """
-    import ibsfuncs
-    alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    from ibeis import ibsfuncs
+    individual_lbltype_rowid = ibs.add_lbltype(const.INDIVIDUAL_KEY, const.KEY_DEFAULTS[const.INDIVIDUAL_KEY])
+    #individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
+    alrids_list = ibs.get_annot_alrids_oftype(aid_list, individual_lbltype_rowid)
     lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
     # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
     # TODO: get index of highest confidence name
@@ -303,10 +308,16 @@ def schema_1_2_0_postprocess_fixuuids(ibs):
         ibs (IBEISController):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
+        >>> import sys
+        >>> sys.argv.append('--force-fresh')
         >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> # should be auto applied
+        >>> ibs.print_annotation_table(verbosity=1)
         >>> result = schema_1_2_0_postprocess_fixuuids(ibs)
+        >>> ibs.print_annotation_table(verbosity=1)
         >>> print(result)
     """
     aid_list = ibs.get_valid_aids()

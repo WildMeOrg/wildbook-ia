@@ -48,7 +48,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
-        >>> daids = ibs.get_valid_aids()
+        >>> daids = ibs.get_valid_aids()[0:5]
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
 
     Example:
@@ -59,7 +59,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> cfgdict = dict(codename='vsone')
         >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
-        >>> daids = ibs.get_valid_aids()
+        >>> daids = ibs.get_valid_aids()[0:5]
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
     """
     # Execute or load query

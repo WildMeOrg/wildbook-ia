@@ -1,7 +1,3 @@
-"""
-python -c "import doctest, ibeis.dev.dbinfo; print(doctest.testmod(ibeis.dev.dbinfo))"
-
-"""
 # This is not the cleanest module
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -19,8 +15,8 @@ def test_name_consistency(ibs):
     """
     Example:
         >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
-        >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
+        >>> ibs = ibeis.opendb(db='PZ_Master0')
+        >>> #ibs = ibeis.opendb(db='GZ_ALL')
 
     """
     from ibeis import ibsfuncs
@@ -50,17 +46,19 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     Infostr is a string summary of all the stats. Prints infostr in addition to
     returning locals
 
-    >>> from ibeis.dev.dbinfo import *  # NOQA
-    >>> from ibeis.dev import dbinfo
-    >>> import ibeis
-    >>> verbose = True
-    >>> #ibs = ibeis.opendb(db='GZ_ALL')  #doctest: +ELLIPSIS
-    >>> #ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
-    >>> ibs = ibeis.opendb(db='PZ_Master0')  #doctest: +ELLIPSIS
-    >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
-    >>> print(ut.dict_str(output))
-    >>> print(output['info_str'])
-    66w+mdzw!n%3+i6h
+    Example:
+        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> from ibeis.dev import dbinfo
+        >>> import ibeis
+        >>> verbose = True
+        >>> #ibs = ibeis.opendb(db='GZ_ALL')
+        >>> #ibs = ibeis.opendb(db='PZ_Mothers')
+        >>> #ibs = ibeis.opendb(db='PZ_Master0')
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
+        >>> print(ut.dict_str(output))
+        >>> result = output['info_str']
+        66w+mdzw!n%3+i6h
 
     #>>> print(ut.hashstr(repr(output)))
 
