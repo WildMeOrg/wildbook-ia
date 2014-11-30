@@ -1,18 +1,13 @@
 from __future__ import absolute_import, division, print_function
-import functools  # NOQA
 import six  # NOQA
-from six.moves import map, range  # NOQA
-from ibeis import constants  # NOQA
-#from ibeis.control.IBEISControl import IBEISController
-import utool  # NOQA
 import utool as ut  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
 
-CLASS_INJECT_KEY = ('IBEISController', 'manual')
+CLASS_INJECT_KEY = ('IBEISController', 'newfuncs')
 
 # Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator(('IBEISController', 'manual'))
-register_ibs_unaliased_method = ut.make_class_method_decorator(('IBEISController', 'manual'))
+register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
+register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY)
 
 
 def register_ibs_method(func):
@@ -113,3 +108,16 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
 
 def get_vocab_assignments(ibs, qreq_=None):
     pass
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs
+        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples
+        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

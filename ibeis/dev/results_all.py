@@ -475,7 +475,7 @@ def get_qres_and_qreq_(ibs, qaid_list, daid_list=None, cfgdict=None):
     try:
         (qaid2_qres, qreq_) = __QRESREQ_CACHE__[qres_cache_key]
     except KeyError:
-        qaid2_qres, qreq_ = ibs._query_chips(qaid_list, daid_list,
+        qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list,
                                              return_request=True,
                                              cfgdict=cfgdict)
         # Cache save

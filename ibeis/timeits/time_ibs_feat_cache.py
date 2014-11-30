@@ -25,7 +25,7 @@ def TIME_QUERY(ibs):
         'use_cache': False,
     }
     with utool.Timer('timing all vs all query'):
-        qres_dict = ibs._query_chips(qaid_list, daid_list, **querykw)
+        qres_dict = ibs._query_chips4(qaid_list, daid_list, **querykw)
 
     #for qaid in qaid_list:
     #    qres  = qres_dict[qaid]

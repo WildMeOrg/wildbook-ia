@@ -279,7 +279,7 @@ def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
     if eid_list is None or len(eid_list) == 0:
         return None
     # Get encounter data
-    config_INDEX_list = [ _index(ibs_src.get_encounter_config(eid), config_rowid_list) for eid in eid_list ]
+    config_INDEX_list = [ _index(ibs_src.get_encounter_configid(eid), config_rowid_list) for eid in eid_list ]
     # Create Encounter TransferData
     encounter_td = ENCOUNTER_TransferData(
         config_INDEX_list,

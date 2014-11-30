@@ -63,7 +63,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
     """
     # Execute or load query
-    qaid2_qres = ibs._query_chips(qaids, daids)
+    qaid2_qres = ibs._query_chips4(qaids, daids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks

@@ -341,7 +341,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
             count += 1
             # Execute query
             daids = false_sample + [gt_aid]
-            qres = ibs._query_chips([qaid], daids)[qaid]
+            qres = ibs._query_chips4([qaid], daids)[qaid]
             # Elicit information
             score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
             # Append result
@@ -408,7 +408,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
         false_sample = false_aids_samples[dbsample_index]
         print(false_sample)
         daids = false_sample + [gt_aid]
-        qres = ibs._query_chips([qaid], daids)[qaid]
+        qres = ibs._query_chips4([qaid], daids)[qaid]
         #for score in scores:
         #    if score is None:
         #        continue
