@@ -37,7 +37,7 @@ def get_query_components(ibs, qaids):
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_idx)
         qfx2_fx  = qreq_.indexer.get_nn_featxs(qfx2_idx)
         qfx2_gid = ibs.get_annot_gids(qfx2_aid)  # NOQA
-        qfx2_nid = ibs.get_annot_nids(qfx2_aid)  # NOQA
+        qfx2_nid = ibs.get_annot_name_rowids(qfx2_aid)  # NOQA
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
         qaid2_nnfilt_ORIG    = pipeline.identity_filter(qaid2_nns, qreq_)
         qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
@@ -60,7 +60,7 @@ def data_index_integrity(ibs, qreq):
 
     aid_list = ibs.get_valid_aids()
     desc_list = ibs.get_annot_vecs(aid_list)
-    fid_list = ibs.get_annot_fids(aid_list)
+    fid_list = ibs.get_annot_feat_rowids(aid_list)
     desc_list2 = ibs.get_feat_vecs(fid_list)
 
     assert all([np.all(desc1 == desc2) for desc1, desc2 in zip(desc_list, desc_list2)])

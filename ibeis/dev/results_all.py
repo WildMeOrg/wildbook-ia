@@ -112,7 +112,7 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
             raise AssertionError('must be nsum')
         if not ibs.get_annot_has_groundtruth(qaid):
             continue
-        qnid = ibs.get_annot_nids(qres.get_qaid())
+        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
         #sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)
 
         def get_num_nmatches(qres, sorted_aids):
@@ -584,7 +584,7 @@ def test_confidence_measures(ibs, qres_list, qaid_list):
         return '%.2E' % ((1 - (pval1)) - ((1 - pval2)))
 
     if False:
-        true_nid_list = ibs.get_annot_nids(qaid_list)
+        true_nid_list = ibs.get_annot_name_rowids(qaid_list)
         #bestaidrank_list  = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]
         decision_tup_list = [qres.get_name_decisiontup(ibs) for qres in qres_list]
         decision_nid_list = ut.get_list_column(decision_tup_list, 0)

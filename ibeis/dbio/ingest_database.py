@@ -8,7 +8,7 @@ from six.moves import zip, map, range
 import ibeis
 from os.path import relpath, split, exists, join
 from ibeis import ibsfuncs
-from ibeis import constants
+from ibeis import constants as const
 import utool
 import utool as ut  # NOQA:
 import parse
@@ -18,8 +18,8 @@ def normalize_name(name):
     """
     Maps unknonwn names to the standard ____
     """
-    if name in constants.ACCEPTED_UNKNOWN_NAMES:
-        name = constants.INDIVIDUAL_KEY
+    if name in const.ACCEPTED_UNKNOWN_NAMES:
+        name = const.INDIVIDUAL_KEY
     return name
 
 
@@ -30,7 +30,7 @@ def normalize_names(name_list):
     return list(map(normalize_name, name_list))
 
 
-def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
+def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
@@ -48,7 +48,7 @@ class FMT_KEYS:
     seal2_fmt = '{name:Phsd*}{id:[A-Z]}.{ext}'
 
 
-def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
+def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
@@ -181,7 +181,7 @@ def ingest_testdb1(dbname):
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
-        nid_list = ibs.get_annot_nids(aid_list)
+        nid_list = ibs.get_annot_name_rowids(aid_list)
         nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)
@@ -204,8 +204,8 @@ def ingest_testdb1(dbname):
             print2('flagged_aids=%r' % flagged_aids)
             # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
-        delete_aids = utool.filter_items(aid_list, flag_list)
-        ibs.delete_annot_nids(delete_aids)
+        unname_aids = utool.filter_items(aid_list, flag_list)
+        ibs.delete_annot_nids(unname_aids)
         # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
@@ -214,15 +214,17 @@ def ingest_testdb1(dbname):
         ibs.set_annot_exemplar_flag(unflagged_aids, exemplar_flags)
         # Set some test species labels
         from ibeis.constants import Species
-        species_list = ibs.get_annot_species(aid_list)
+        species_text_list = ibs.get_annot_species(aid_list)
         for ix in range(0, 6):
-            species_list[ix] = Species.ZEB_PLAIN
+            species_text_list[ix] = Species.ZEB_PLAIN
         # These are actually plains zebras.
         for ix in range(8, 10):
-            species_list[ix] = Species.ZEB_GREVY
+            species_text_list[ix] = Species.ZEB_GREVY
         for ix in range(10, 12):
-            species_list[ix] = Species.POLAR_BEAR
-        ibs.set_annot_species(aid_list, species_list)
+            species_text_list[ix] = Species.POLAR_BEAR
+
+        with ut.EmbedOnException():
+            ibs.set_annot_species(aid_list, species_text_list)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
         ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
         ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
@@ -253,7 +255,7 @@ def ingest_seals_drop2(dbname):
                       fmtkey=FMT_KEYS.seal2_fmt,
                       #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20,
-                      species=constants.Species.SEALS_RINGED
+                      species=const.Species.SEALS_RINGED
                       )
 
 
@@ -372,12 +374,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list  = ibsfuncs.list_images(img_dir)
     # Parse structure for image names
     if ingest_type == 'named_folders':
-        name_list = get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey)
+        name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
         pass
     if ingest_type == 'named_images':
-        name_list = get_name_text_from_gnames(gpath_list, img_dir, fmtkey)
+        name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
-        name_list = [constants.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
+        name_list = [const.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
 
     # Add Images
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]

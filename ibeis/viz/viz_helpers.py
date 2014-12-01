@@ -162,7 +162,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         aidstr_list = get_aidstrs(aid_list)
         texts_list.append(aidstr_list)
     if kwargs.get('show_gname', False):
-        gname_list = ibs.get_annot_gnames(aid_list)
+        gname_list = ibs.get_annot_image_names(aid_list)
         texts_list.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
         name_list = ibs.get_annot_names(aid_list)

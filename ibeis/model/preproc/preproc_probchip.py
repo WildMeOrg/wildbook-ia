@@ -73,7 +73,7 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
         species_list = [featweight_species]
     aid_list = np.array(aid_list)
     species_list = np.array(species_list)
-    species_rowid = np.array(ibs.get_species_lblannot_rowid(species_list))
+    species_rowid = np.array(ibs.get_species_rowids_from_text(species_list))
     unique_species_rowids, groupxs = vtool.group_indicies(species_rowid)
     grouped_aids    = vtool.apply_grouping(aid_list, groupxs)
     grouped_species = vtool.apply_grouping(species_list, groupxs)
@@ -206,7 +206,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         if len(aids) == 0:
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
-        cfpath_list  = ibs.get_annot_cpaths(aids)
+        cfpath_list  = ibs.get_annot_chip_fpaths(aids)
         preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         # Ensure that all chips are computed
         # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to

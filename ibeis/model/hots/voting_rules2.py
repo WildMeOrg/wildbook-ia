@@ -103,7 +103,7 @@ def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
     (_, aid2_fs, _) = chipmatch
     aid_list = list(six.iterkeys(aid2_fs))
     annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
-    annot_nid_list = np.array(qreq_.ibs.get_annot_nids(aid_list))
+    annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
     unique_nids, groupxs = vtool.group_indicies(annot_nid_list)
     grouped_scores = vtool.apply_grouping(annot_score_list, groupxs)
     nid_list = unique_nids

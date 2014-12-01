@@ -62,7 +62,7 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
             species = ibs.cfg.detect_cfg.species
         use_chunks = ibs.cfg.other_cfg.detect_use_chunks
 
-        src_cpath_list = list(map(str, ibs.get_annot_chip_paths([aid])))
+        src_cpath_list = list(map(str, ibs.get_annot_chip_fpaths([aid])))
         dst_cpath_list = [splitext(gpath)[0] for gpath in src_cpath_list]
         hough_cpath_list = [gpath + '_hough' for gpath in dst_cpath_list]
         randomforest.compute_probability_images(src_cpath_list, hough_cpath_list, species, use_chunks=use_chunks)

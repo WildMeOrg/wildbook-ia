@@ -37,7 +37,7 @@ def export_ibeis_to_hotspotter(ibs):
 
     # Build Name Table
     nid_list       =  ibs.get_valid_nids()
-    name_list      = ibs.get_name_text(nid_list)
+    name_list      = ibs.get_name_texts(nid_list)
     name_table_csv = utool.make_csv_table(
         [nid_list, name_list],
         ['nid', 'name'],
@@ -46,7 +46,7 @@ def export_ibeis_to_hotspotter(ibs):
     # Build Chip Table
     aid_list        = ibs.get_valid_aids()
     annotationgid_list     = ibs.get_annot_gids(aid_list)
-    annotationnid_list     = ibs.get_annot_nids(aid_list)
+    annotationnid_list     = ibs.get_annot_name_rowids(aid_list)
     bbox_list       = list(map(list, ibs.get_annot_bboxes(aid_list)))
     theta_list      = ibs.get_annot_thetas(aid_list)
     notes_list      = ibs.get_annot_notes(aid_list)
@@ -101,7 +101,7 @@ def get_flat_table(ibs):
         (str,   'names',  ibs.get_annot_names(aid_list),),
         (list,  'bbox',   list(map(list, ibs.get_annot_bboxes(aid_list),))),
         (float, 'theta',  ibs.get_annot_thetas(aid_list),),
-        (str,   'gpaths', ibs.get_annot_gpaths(aid_list),),
+        (str,   'gpaths', ibs.get_annot_image_paths(aid_list),),
         (str,   'notes',  ibs.get_annot_notes(aid_list),),
         (str,   'uuids',  ibs.get_annot_uuids(aid_list),),
     ]

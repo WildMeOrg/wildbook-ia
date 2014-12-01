@@ -24,7 +24,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
     assert len(nids_list) == len(eid_list)
     for eid, nids in zip(eid_list, nids_list):
         # the actual names corresponding to the name ids
-        names_text = ibs.get_name_text(nids)
+        names_text = ibs.get_name_texts(nids)
         # list of list of images that correspond to each name id
         gids_lists = ibs.get_name_gids(nids)
 
@@ -111,7 +111,7 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
             image_annotation_mapping[name_id] = []
 
         for annotation_id in annotations:
-            assoc_name_id = ibs.get_annot_nids([annotation_id])[0]
+            assoc_name_id = ibs.get_annot_name_rowids([annotation_id])[0]
             name_annotation_mapping[assoc_name_id].append(annotation_id)
 
         print (ibs.get_image_nids(images))

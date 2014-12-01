@@ -90,6 +90,8 @@ ANNOTATION_TransferData = namedtuple(
         'annot_detection_confidence_list',
         'annot_exemplar_flag_list',
         'annot_note_list',
+        'annot_name_rowid_list',
+        'annot_species_rowid_list',
         'lblannot_td_list',
     ))
 
@@ -364,6 +366,8 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
         ibs_src.get_annot_viewpoints(aid_list),
         ibs_src.get_annot_detect_confidence(aid_list),
         ibs_src.get_annot_exemplar_flag(aid_list),
+        ibs_src.get_annot_name_rowids(aid_list),
+        ibs_src.get_annot_species_rowids(aid_list),
         ibs_src.get_annot_notes(aid_list),
         lblannot_td_list
     )
@@ -737,6 +741,8 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list)
         vert_list=annot_td.annot_verts_list,
         annotation_uuid_list=annot_td.annot_uuid_list,
         viewpoint_list=annot_td.annot_viewpoint_list,
+        name_rowid_list=annot_td.name_rowid_list,
+        species_rowid_list=annot_td.species_rowid_list,
         quiet_delete_thumbs=True  # Turns off thumbnail deletion print statements
     )
     if utool.VERBOSE:

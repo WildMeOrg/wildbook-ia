@@ -37,6 +37,10 @@ class REL_PATHS(object):
     bigcache = join(cache, PATH_NAMES.bigcache)
 
 
+# TODO: Remove anything under this block completely
+USING_LBLANNOT = False  # for names and species
+
+
 UNKNOWN_LBLANNOT_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
@@ -49,8 +53,8 @@ SPECIES_KEY    = 'SPECIES_KEY'
 EMPTY_KEY      = ''
 UNKNOWN        = '____'
 KEY_DEFAULTS   = {
-    INDIVIDUAL_KEY : '____',
-    SPECIES_KEY    : '____',
+    INDIVIDUAL_KEY : UNKNOWN,
+    SPECIES_KEY    : UNKNOWN,
 }
 
 # <UNFINISHED METADATA>

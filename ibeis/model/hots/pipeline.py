@@ -325,8 +325,8 @@ def remove_impossible_votes(qaid, qfx2_nnidx, qreq_, cant_match_self, cant_match
         qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
     if cant_match_samename:
         # This should probably be off
-        qfx2_nid = qreq_.get_annot_nids(qfx2_aid)
-        qnid = qreq_.get_annot_nids(qaid)
+        qfx2_nid = qreq_.get_annot_name_rowids(qfx2_aid)
+        qnid = qreq_.get_annot_name_rowids(qaid)
         qfx2_notsamename = qfx2_nid != qnid
         #<DBG>
         if VERYVERBOSE_PIPELINE:
@@ -901,7 +901,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
 def prescore_nsum(qreq_, daid2_prescore, nShortlist):
     """ # TODO : rectify with code in hots_query_result """
     daid_list = np.array(daid2_prescore.keys())
-    dnid_list = np.array(qreq_.ibs.get_annot_nids(daid_list))
+    dnid_list = np.array(qreq_.ibs.get_annot_name_rowids(daid_list))
     prescore_arr = np.array(daid2_prescore.values())
     unique_nids, groupxs = vt.group_indicies(dnid_list)
     grouped_prescores = vt.apply_grouping(prescore_arr, groupxs)

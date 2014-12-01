@@ -28,6 +28,8 @@ from ibeis import ibsfuncs
 
 # Shiny new way to inject external functions
 autogenmodname_list = [
+    '_autogen_featweight_funcs',
+    #'_autogen_annot_funcs',
     'manual_ibeiscontrol_funcs',
     'manual_meta_funcs',
     'manual_lbltype_funcs',
@@ -35,9 +37,8 @@ autogenmodname_list = [
     'manual_lblimage_funcs',
     'manual_image_funcs',
     'manual_annot_funcs',
+    'manual_name_species_funcs',
     'manual_dependant_funcs',
-    '_autogen_featweight_funcs',
-    #'_autogen_annot_funcs',
 ]
 
 INJECTED_MODULES = []
@@ -214,6 +215,8 @@ class IBEISController(object):
 
     def _init_rowid_constants(ibs):
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
+        ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
+        ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)

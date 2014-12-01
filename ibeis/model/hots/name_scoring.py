@@ -26,7 +26,7 @@ def get_one_score_per_name(ibs, aid_list, score_list):
     """
     score_arr = np.array(score_list)
     aid_list  = np.array(aid_list)
-    nid_list  = np.array(ibs.get_annot_nids(aid_list))
+    nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
     unique_nids, groupxs = vt.group_indicies(nid_list)
     grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
     grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))

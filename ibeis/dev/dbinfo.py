@@ -25,7 +25,7 @@ def test_name_consistency(ibs):
     #max_ = 10
     valid_aids = ibs.get_valid_aids()[0:max_]
     valid_nids = ibs.get_valid_nids()[0:max_]
-    ax2_nid = ibs.get_annot_nids(valid_aids)
+    ax2_nid = ibs.get_annot_name_rowids(valid_aids)
     nx2_aids = ibs.get_name_aids(valid_nids)
 
     print('len(valid_aids) = %r' % (len(valid_aids),))
@@ -35,7 +35,7 @@ def test_name_consistency(ibs):
 
     # annots are grouped by names, so mapping aid back to nid should
     # result in each list having the same value
-    _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
+    _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
     print(_nids_list[-20:])
     print(nx2_aids[-20:])
     assert all(map(ut.list_allsame, _nids_list))
@@ -88,7 +88,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     # TODO: total annotation overlap
     """
     ax2_unknown = ibs.is_aid_unknown(valid_aids)
-    ax2_nid = ibs.get_annot_nids(valid_aids)
+    ax2_nid = ibs.get_annot_name_rowids(valid_aids)
     assert all([nid < 0 if unknown else nid > 0 for nid, unknown in
                 zip(ax2_nid, ax2_unknown)]), 'bad annot nid'
     """
@@ -109,16 +109,16 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     # DEBUGGING CODE
     try:
         from ibeis import ibsfuncs
-        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, nx2_aids)
+        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
         assert all(map(ut.list_allsame, _nids_list))
     except Exception as ex:
         # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
-        #name_annots = [ibs.get_annot_nids(aids) for aids in nx2_aids]
+        #name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
         bad = 0
         good = 0
         huh = 0
         for nx, aids in enumerate(nx2_aids):
-            nids = ibs.get_annot_nids(aids)
+            nids = ibs.get_annot_name_rowids(aids)
             if np.all(np.array(nids) > 0):
                 print(nids)
                 if ut.list_allsame(nids):

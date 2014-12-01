@@ -162,7 +162,7 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
             # Grab the keypoints names and image ids before query time
             #rx2_kpts = ibs.get_annot_kpts(daid_list)
             #rx2_gid  = ibs.get_annot_gids(daid_list)
-            #rx2_nid  = ibs.get_annot_nids(daid_list)
+            #rx2_nid  = ibs.get_annot_name_rowids(daid_list)
             flann_params =  qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
             vecs_list = ibs.get_annot_vecs(daid_list)

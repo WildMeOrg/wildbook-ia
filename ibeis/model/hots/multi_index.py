@@ -50,13 +50,13 @@ def new_ibeis_mindexer(ibs, qreq_,
 
     if __debug__:
         # All groups have the same name
-        nidgroup_list = ibsfuncs.unflat_map(ibs.get_annot_nids, aidgroup_list)
+        nidgroup_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
         for nidgroup in nidgroup_list:
             assert utool.list_allsame(nidgroup), 'bad name grouping'
     if __debug__:
         # All subsiquent indexer are subsets (in name/identity space)
         # of the previous
-        nids_list = ibsfuncs.unflat_map(ibs.get_annot_nids, aids_list)
+        nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
         prev_ = None
         for nids in nids_list:
             if prev_ is None:

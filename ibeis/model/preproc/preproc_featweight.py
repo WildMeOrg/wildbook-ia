@@ -27,7 +27,7 @@ def gen_featweight_worker(tup):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ax = 12
+        >>> ax = 2
         >>> aid_list = ibs.get_valid_aids()[ax:ax + 1]
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
@@ -40,7 +40,7 @@ def gen_featweight_worker(tup):
         >>> (aid, weights) = gen_featweight_worker(tup)
         >>> result = str((aid, np.array_str(weights[0:3], precision=3)))
         >>> print(result)
-        (13, '[ 0.25  0.25  0.25]')
+        (3, '[ 0.098  0.155  0.422]')
 
     """
     (aid, kpts, probchip) = tup
@@ -63,12 +63,12 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> qreq_ = None
         >>> featweight_list = compute_fgweights(ibs, aid_list)
         >>> result = np.array_str(featweight_list[0][0:3], precision=3)
         >>> print(result)
-        [ 0.505  0.521  0.57 ]
+        [ 0.125  0.061  0.053]
 
     """
     print('[preproc_featweight] Preparing to compute fgweights')
@@ -138,13 +138,13 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> fid_list = ibs.get_valid_fids()[0:1]
+        >>> fid_list = ibs.get_valid_fids()[1:2]
         >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list)
         >>> featweighttup_list = list(featweighttup_gen)
         >>> featweight_list = featweighttup_list[0][0]
         >>> result = np.array_str(featweight_list[0:3], precision=3)
         >>> print(result)
-        [ 0.124  0.062  0.173]
+        [ 0.098  0.155  0.422]
     """
     # HACK: TODO AUTOGENERATE THIS
     from ibeis import constants
@@ -174,7 +174,7 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
 #        >>> probchip_fname_iter = get_annot_probchip_fname_iter(ibs, aid_list)
 #        >>> probchip_fname_list = list(probchip_fname_iter)
 #    """
-#    cfpath_list = ibs.get_annot_cpaths(aid_list)
+#    cfpath_list = ibs.get_annot_chip_fpaths(aid_list)
 #    cfname_list = [splitext(basename(cfpath))[0] for cfpath in cfpath_list]
 #    suffix = ibs.cfg.detect_cfg.get_cfgstr()
 #    ext = '.png'

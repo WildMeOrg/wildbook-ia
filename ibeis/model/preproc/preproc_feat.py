@@ -88,7 +88,7 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> cid_list = ibs.get_annot_cids(aid_list)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list)
         >>> qreq_ = None
         >>> nInput = None
         >>> featgen = generate_feat_properties(ibs, cid_list, qreq_, nInput)

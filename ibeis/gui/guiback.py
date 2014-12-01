@@ -157,7 +157,7 @@ class MainWindowBackend(QtCore.QObject):
             interact.ishow_image(back.ibs, gid, sel_aids=[aid])
 
     def show_name(back, nid, sel_aids=[], **kwargs):
-        #nid = back.ibs.get_name_nids(name)
+        #nid = back.ibs.get_name_rowids_from_text(name)
         kwargs.update({
             'sel_aids': sel_aids,
             'select_aid_callback': back.select_aid,
@@ -308,7 +308,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))
         gid = back.ibs.get_annot_gids(aid)
-        nid = back.ibs.get_annot_nids(aid)
+        nid = back.ibs.get_annot_name_rowids(aid)
         back._set_selection(sel_aids=(aid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
         if show and show_annotation:
             back.show_annotation(aid, **kwargs)

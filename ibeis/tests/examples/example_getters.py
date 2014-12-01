@@ -32,7 +32,7 @@ def run_example(ibs):
     # IBEIS getter methods primarily deal with lists of rowids as input
     # and return lists of values as output
     #
-    name_list     = ibs.get_name_text(nid_list)        # Animal names
+    name_list     = ibs.get_name_texts(nid_list)        # Animal names
     aids_in_gids  = ibs.get_image_aids(gid_list)   # Rois in images
     aids_in_nids  = ibs.get_name_aids(nid_list)    # Rois in images
     img_uuid_list = ibs.get_image_uuids(gid_list)  # Image uuids

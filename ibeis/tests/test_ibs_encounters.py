@@ -32,7 +32,7 @@ def TEST_ENCOUNTERS(ibs):
     enctext_list   = ibs.get_encounter_enctext(eid_list)
     gid_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)))
     annotation_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_annot_uuids, aids_list)))
-    names_list     = list(map(list, ibsfuncs.unflat_map(ibs.get_name_text, nids_list)))
+    names_list     = list(map(list, ibsfuncs.unflat_map(ibs.get_name_texts, nids_list)))
 
     #target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
     target_enctexts = [u'Encounter 0', u'Encounter 1']
@@ -52,7 +52,7 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('163a890c-36f2-981e-3529-c552b6d668a3')],
                         ]
 
-    target_name_text = [
+    target_name_texts = [
         ['easy', 'hard', 'jeff'],
         ['lena', 'occl', 'polar', 'zebra'],
     ]
@@ -81,10 +81,10 @@ def TEST_ENCOUNTERS(ibs):
 
         print('3a) aids_list = %s' % (utool.list_str(aids_list),))
         print('3a) nids_list = %s' % (utool.list_str(nids_list),))
-        nids_listb = [ ibs.get_annot_nids(aid_list) for aid_list in aids_list ]
+        nids_listb = [ ibs.get_annot_name_rowids(aid_list) for aid_list in aids_list ]
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
-        print('3b) target_name_text = %s' % (utool.list_str(target_name_text),))
+        print('3b) target_name_texts = %s' % (utool.list_str(target_name_texts),))
         print('')
 
         assert gids_test_list == gids_target_list, 'gids_test_list does not match gids_target_list'
@@ -93,7 +93,7 @@ def TEST_ENCOUNTERS(ibs):
 
         assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
 
-        assert names_list == target_name_text, 'names_list does not match target_name_text'
+        assert names_list == target_name_texts, 'names_list does not match target_name_texts'
 
     except AssertionError as ex:
         utool.printex(ex, 'failed test_encounter')

@@ -281,7 +281,7 @@ def get_annot_speciesid_from_lblannot_relation(ibs, aid_list, distinguish_unknow
     return speciesid_list
 
 
-def get_annot_nids_from_lblannot_relation(ibs, aid_list, distinguish_unknowns=True):
+def get_annot_name_rowids_from_lblannot_relation(ibs, aid_list, distinguish_unknowns=True):
     """ function for getting nids the old way """
     from ibeis import ibsfuncs
     individual_lbltype_rowid = ibs.add_lbltype(const.INDIVIDUAL_KEY, const.KEY_DEFAULTS[const.INDIVIDUAL_KEY])
@@ -321,7 +321,7 @@ def schema_1_2_0_postprocess_fixuuids(ibs):
         >>> print(result)
     """
     aid_list = ibs.get_valid_aids()
-    #ibs.get_annot_nids(aid_list)
+    #ibs.get_annot_name_rowids(aid_list)
     #ANNOT_PARENT_ROWID      = 'annot_parent_rowid'
     #ANNOT_ROWID             = 'annot_rowid'
     ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
@@ -355,7 +355,7 @@ def schema_1_2_0_postprocess_fixuuids(ibs):
     ibs.print_annotation_table(verbosity=1)
 
     # Get old values from lblannot table
-    nid_list = get_annot_nids_from_lblannot_relation(ibs, aid_list, False)
+    nid_list = get_annot_name_rowids_from_lblannot_relation(ibs, aid_list, False)
     speciesid_list = get_annot_speciesid_from_lblannot_relation(ibs, aid_list)
 
     # Move values into the annotation table as a native column

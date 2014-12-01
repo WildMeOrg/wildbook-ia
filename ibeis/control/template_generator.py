@@ -83,7 +83,7 @@ multicolumns_dict = ut.odict([
 
 
 tblname2_ignorecolnames = ut.odict([
-    (const.ANNOTATION_TABLE, ('annot_parent_rowid', 'annot_detect_confidence')),
+    #(const.ANNOTATION_TABLE, ('annot_parent_rowid', 'annot_detect_confidence')),
 ])
 
 readonly_set = {
@@ -291,6 +291,7 @@ def remove_kwarg(kwname, kwdefault, func_code):
 
 
 def parse_first_func_name(func_code):
+    """ get first function name defined in a codeblock """
     try:
         parse_result = ut.padded_parse('def {func_name}({args}):', func_code)
         assert parse_result is not None
@@ -596,8 +597,13 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             single_tbl = fmtdict['tbl']
             double_tbl = single_tbl + '_' + single_tbl
             func_code = func_code.replace(double_tbl, single_tbl)
+            # HACK for plural bbox
+            func_code = func_code.replace('bboxs', 'bboxes')
+            # ENDHACK
             # parse out function name
             func_name = parse_first_func_name(func_code)
+            #
+            #
             # <HACKS>
             print(tablename)
             if tablename == const.ANNOTATION_TABLE:
@@ -619,6 +625,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                 #    func_code = replace_constant_varname(func_code, varname, valstr)
 
             # </HACKS>
+            #
+            #
             # Register function
             func_tup = (func_name, func_code)
             functype2_func_list[func_type].append(func_tup)

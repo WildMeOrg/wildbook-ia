@@ -112,11 +112,11 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> compute_and_write_chips_lazy(ibs, aid_list)
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> print(set(cid_list))
         >>> delete_chips(ibs, cid_list, verbose=True)
         >>> ibs.delete_chips(cid_list)
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=False)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
     """
     on_delete(ibs, cid_list, qreq_=None, verbose=verbose, strict=False)
 
@@ -140,7 +140,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)
         >>> result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()
         >>> print(result)
@@ -152,7 +152,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> # Do a bad thing. Remove from disk without removing from sql
         >>> preproc_chip.on_delete(ibs, cid_list)
         >>> # Now compute_or_read_chip_images should catch the bad thing
@@ -245,7 +245,7 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> compute_and_write_chips_lazy(ibs, aid_list)
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> assert len(ut.filter_Nones(cid_list)) == len(cid_list)
         >>> # Run test function
         >>> qreq_ = None
@@ -256,7 +256,7 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
         >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
         >>> assert nRemoved2 == 0, 'nRemoved=%r' % (nRemoved2,)
         >>> # We have done a bad thing at this point. SQL still thinks chips exist
-        >>> cid_list2 = ibs.get_annot_cids(aid_list, ensure=False)
+        >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
     cid_list_ = ut.filter_Nones(cid_list)
@@ -453,7 +453,7 @@ def compute_and_write_chips(ibs, aid_list):
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = testdata_preproc_chip()
         >>> ibs.delete_annot_chips(aid_list)
-        >>> cid_list = ibs.get_annot_cids(aid_list, ensure=False)
+        >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> compute_and_write_chips(ibs, aid_list)
     """
     ut.ensuredir(ibs.chipdir)
@@ -463,7 +463,7 @@ def compute_and_write_chips(ibs, aid_list):
     # Get chip dest information (output path)
     cfpath_list = get_annot_cfpath_list(ibs, aid_list)
     # Get chip source information (image, annotation_bbox, theta)
-    gfpath_list = ibs.get_annot_gpaths(aid_list)
+    gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
     # Get how big to resize each chip

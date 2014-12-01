@@ -703,7 +703,7 @@ def dev_snippets(main_locals):
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
         #nid_list = ibs.get_valid_nids()
-        #valid_nid_list   = ibs.get_annot_nids(aid_list)
+        #valid_nid_list   = ibs.get_annot_name_rowids(aid_list)
         #valid_aid_names  = ibs.get_annot_names(aid_list)
         #valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
     return locals()

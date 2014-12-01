@@ -131,7 +131,7 @@ def cache_invalidator(tblname, colnames=None):
 #@decorator.decorator
 def adder(func):
     func_ = default_decorator(func)
-    @utool.on_exception_report_input
+    #@utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
@@ -146,6 +146,7 @@ def adder(func):
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
     wrp_adder = utool.preserve_sig(wrp_adder, func)
+    wrp_adder = utool.on_exception_report_input(wrp_adder)
     return wrp_adder
 
 
@@ -179,7 +180,7 @@ def setter(func):
     @utool.accepts_scalar_input2(argx_list=[0, 1])
     #@utool.accepts_scalar_input2(argx_list=range(0, 2))
     #@utool.accepts_scalar_input2(argx_list=range(1, 2))
-    @utool.on_exception_report_input
+    #@utool.on_exception_report_input
     @utool.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or (not utool.QUIET and utool.VERYVERBOSE):
@@ -192,6 +193,7 @@ def setter(func):
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func_(*args, **kwargs)
     wrp_setter = utool.preserve_sig(wrp_setter, func)
+    wrp_setter = utool.on_exception_report_input(wrp_setter)
     return wrp_setter
 
 
@@ -204,7 +206,7 @@ def getter(func):
     """
     #func_ = func
     func_ = default_decorator(func)
-    @utool.on_exception_report_input
+    #@utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     def wrp_getter(*args, **kwargs):
@@ -219,6 +221,7 @@ def getter(func):
             print('L------')
         return func_(*args, **kwargs)
     wrp_getter = utool.preserve_sig(wrp_getter, func)
+    wrp_getter = utool.on_exception_report_input(wrp_getter)
     return wrp_getter
 
 
@@ -250,12 +253,13 @@ def getter_numpy(func):
     #getter_func = getter(func)
     func_ = default_decorator(func)
     @utool.accepts_numpy
-    @utool.on_exception_report_input
+    #@utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     def getter_numpy_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
     getter_numpy_wrp = utool.preserve_sig(getter_numpy_wrp, func)
+    getter_numpy_wrp = utool.on_exception_report_input(getter_numpy_wrp)
     return getter_numpy_wrp
 
 

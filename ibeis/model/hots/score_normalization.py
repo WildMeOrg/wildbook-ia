@@ -398,7 +398,7 @@ def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
             raise AssertionError('must be nsum')
         if not ibs.get_annot_has_groundtruth(qaid):
             continue
-        qnid = ibs.get_annot_nids(qres.get_qaid())
+        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
 
         nscoretup = qres.get_nscoretup(ibs)
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup

@@ -546,7 +546,7 @@ def get_image_nids(ibs, gid_list):
     Returns:
         list_ (list): the name ids associated with an image id """
     aids_list = ibs.get_image_aids(gid_list)
-    nids_list = ibs.get_annot_nids(aids_list)
+    nids_list = ibs.get_annot_name_rowids(aids_list)
     return nids_list
 
 

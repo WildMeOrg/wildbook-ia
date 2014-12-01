@@ -15,12 +15,12 @@ def TEST_DELETE_ANNOTATION(ibs, back):
     aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     aid = aid_list[0]
     assert aid is not None, "aid is None"
-    cid = ibs.get_annot_cids(aid, ensure=False)
-    fid = ibs.get_annot_fids(aid, ensure=False)
+    cid = ibs.get_annot_chip_rowids(aid, ensure=False)
+    fid = ibs.get_annot_feat_rowids(aid, ensure=False)
     assert cid is None, "cid should be None"
     assert fid is None, "fid should be None"
-    cid = ibs.get_annot_cids(aid, ensure=True)
-    fid = ibs.get_annot_fids(aid, ensure=True)
+    cid = ibs.get_annot_chip_rowids(aid, ensure=True)
+    fid = ibs.get_annot_feat_rowids(aid, ensure=True)
     assert cid is not None, "cid should be computed"
     assert fid is not None, "fid should be computed"
     thumbpath = ibs.get_annot_chip_thumbpath(aid)

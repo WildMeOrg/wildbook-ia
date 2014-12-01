@@ -46,10 +46,14 @@ def sort_module_functions():
     from os.path import dirname, join
     import utool as ut
     import ibeis.control
+    import re
     #import re
     #regex = r'[^@]*\ndef'
     modfpath = dirname(ibeis.control.__file__)
-    fpath = join(modfpath, 'manual_annot_funcs.py')
+    #fpath = join(modfpath, 'manual_annot_funcs.py')
+    #fpath = join(modfpath, 'manual_dependant_funcs.py')
+    #fpath = join(modfpath, 'manual_lblannot_funcs.py')
+    fpath = join(modfpath, 'manual_name_species_funcs.py')
     text = ut.read_from(fpath, verbose=False)
     lines =  text.splitlines()
     indent_list = [ut.get_indentation(line) for line in lines]
@@ -60,13 +64,66 @@ def sort_module_functions():
     tmp = ['def' if isfunc else indent for isfunc, indent in  zip(isfunc_list, indent_list)]
     tmp = ['b' if isblank else t for isblank, t in  zip(isblank_list, tmp)]
     tmp = ['@' if isdec else t for isdec, t in  zip(isdec_list, tmp)]
-    print('\n'.join([str((t, count + 1)) for (count, t) in enumerate(tmp)]))
-    import re
-    block_list = re.split('\n\n\n', text, re.MULTILINE)
+    #print('\n'.join([str((t, count + 1)) for (count, t) in enumerate(tmp)]))
+    block_list = re.split('\n\n\n', text, flags=re.MULTILINE)
 
-    for block in block_list:
-        print('#====')
-        print(block)
+    #for block in block_list:
+    #    print('#====')
+    #    print(block)
+
+    isfunc_list = [re.search('^def ', block, re.MULTILINE) is not None for block in block_list]
+
+    whole_varname = ut.whole_word(ut.REGEX_VARNAME)
+    funcname_regex = r'def\s+' + ut.named_field('funcname', whole_varname)
+
+    def findfuncname(block):
+        match = re.search(funcname_regex, block)
+        return match.group('funcname')
+
+    funcnameblock_list = [findfuncname(block) if isfunc else None for isfunc, block in zip(isfunc_list, block_list)]
+
+    funcblock_list = ut.filter_items(block_list, isfunc_list)
+    funcname_list = ut.filter_items(funcnameblock_list, isfunc_list)
+
+    nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
+
+    nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
+    ismain_list = [re.search('^if __name__ == ["\']__main__["\']', nonfunc) is not None for nonfunc in nonfunc_list]
+
+    mainblock_list = ut.filter_items(nonfunc_list, ismain_list)
+    nonfunc_list = ut.filterfalse_items(nonfunc_list, ismain_list)
+
+    newtext_list = []
+
+    for nonfunc in nonfunc_list:
+        newtext_list.append(nonfunc)
+        newtext_list.append('\n')
+
+    #funcname_list
+    for funcblock in ut.sortedby(funcblock_list, funcname_list):
+        newtext_list.append(funcblock)
+        newtext_list.append('\n')
+
+    for mainblock in mainblock_list:
+        newtext_list.append(mainblock)
+
+    newtext = '\n'.join(newtext_list)
+    print(newtext)
+    print(len(newtext))
+    print(len(text))
+
+    ut.write_to(fpath + '.bak', text)
+    ut.write_to(fpath, newtext)
+
+    #for block, isfunc in zip(block_list, isfunc_list):
+    #    if isfunc:
+    #        print(block)
+
+    #for block, isfunc in zip(block_list, isfunc_list):
+    #    if isfunc:
+    #        print('----')
+    #        print(block)
+    #        print('\n')
 
 
 def find_unregistered_methods():

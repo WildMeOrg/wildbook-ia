@@ -271,8 +271,8 @@ class SQLDatabaseController(object):
     def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER NOTE: use add_cleanly """
         fmtdict = {'tblname'  : tblname,
-                    'erotemes' : ', '.join(['?'] * len(colnames)),
-                    'params'   : ',\n'.join(colnames), }
+                   'erotemes' : ', '.join(['?'] * len(colnames)),
+                   'params'   : ',\n'.join(colnames), }
         operation_fmt = '''
         INSERT INTO {tblname}(
         rowid,
@@ -288,6 +288,10 @@ class SQLDatabaseController(object):
         """
         ADDER Extra input:
         the first item of params_iter must be a superkey (like a uuid),
+
+        Does not add None values. Does not add duplicate values.
+        For each None input returns None ouptut.
+        For each duplicate input returns existing rowid
 
         add_cleanly
 
@@ -322,7 +326,7 @@ class SQLDatabaseController(object):
                           for x in superkey_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
-        isvalid_list = [params is not None for params in params_list]
+        isvalid_list = [params is not None and not any(ut.flag_None_items(params)) for params in params_list]
         # Check for duplicate inputs
         isunique_list = utool.flag_unique_items(list(zip(*superkey_lists)))
         # Check to see if this already exists in the database
@@ -331,12 +335,12 @@ class SQLDatabaseController(object):
         if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
-        isdirty_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
+        needsadd_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
-        if not any(isdirty_list):
+        if not any(needsadd_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        dirty_params = utool.filter_items(params_list, isdirty_list)
+        dirty_params = utool.filter_items(params_list, needsadd_list)
         if utool.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
@@ -345,7 +349,7 @@ class SQLDatabaseController(object):
         except Exception as ex:
             utool.printex(ex, key_list=[
                 'dirty_params',
-                'isdirty_list',
+                'needsadd_list',
                 'superkey_lists',
                 'rowid_list_'])
             raise

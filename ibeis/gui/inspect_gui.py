@@ -193,12 +193,12 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
             backend_callback()
             return
         elif is_unknown[0]:
-            ibs.set_annot_nids(aid1, ibs.get_annot_nids(aid2))
+            ibs.set_annot_name_rowids(aid1, ibs.get_annot_name_rowids(aid2))
             update_callback()
             backend_callback()
             return
         elif is_unknown[1]:
-            ibs.set_annot_nids(aid2, ibs.get_annot_nids(aid1))
+            ibs.set_annot_name_rowids(aid2, ibs.get_annot_name_rowids(aid1))
             update_callback()
             backend_callback()
             return

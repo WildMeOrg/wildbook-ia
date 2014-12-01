@@ -37,7 +37,7 @@ def change_names(ibs, qaid_list):
         ibs.print_name_table()
         ibs.print_annotation_table()
     # FIXME:
-    #new_nid = ibs.get_name_nids(next_name, ensure=False)
+    #new_nid = ibs.get_name_rowids_from_text(next_name, ensure=False)
     #if back is not None:
         #back.select_nid(new_nid)
 
@@ -214,7 +214,7 @@ def export(ibs, aid_pairs=None):
                 ) + ', '
                 for kp1, kp2 in zip(kpts1_m, kpts2_m)]
 
-            mcpaths_list = ibs.get_annot_cpaths(mkeys)
+            mcpaths_list = ibs.get_annot_chip_fpaths(mkeys)
             fnames_list = list(map(lambda x: split(x)[1], mcpaths_list))
             for path in mcpaths_list:
                 utool.copy(path, export_path)

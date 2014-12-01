@@ -259,8 +259,8 @@ class QueryRequest(object):
 
     # --- IBEISControl Transition ---
 
-    def get_annot_nids(qreq_, aids):
-        return qreq_.ibs.get_annot_nids(aids)
+    def get_annot_name_rowids(qreq_, aids):
+        return qreq_.ibs.get_annot_name_rowids(aids)
 
     def get_annot_gids(qreq_, aids):
         assert qreq_.ibs is not qreq_
@@ -312,7 +312,7 @@ class QueryRequest(object):
     #    if qreq_.internal_qnid_list is not None:
     #        return False
     #    aid_list = qreq_.get_internal_qaids()
-    #    nid_list = ibs.get_annot_nids(aid_list)
+    #    nid_list = ibs.get_annot_name_rowids(aid_list)
     #    qreq_.internal_qnid_list = nid_list
 
     def load_query_vectors(qreq_, ibs):
@@ -366,7 +366,7 @@ class QueryRequest(object):
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))
-        nids = ibs.get_annot_nids(aids)
+        nids = ibs.get_annot_name_rowids(aids)
         qreq_.aid2_nid = dict(zip(aids, nids))
 
     def assert_self(qreq_, ibs):
