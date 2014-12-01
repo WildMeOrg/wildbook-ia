@@ -9,28 +9,11 @@ from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, default_decorator, ider)
 import utool as ut
 #from ibeis import ibsfuncs
+from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_meta]')
 
 
-CLASS_INJECT_KEY = ('IBEISController', 'meta')
-
-# Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-
-
-def register_ibs_method(func):
-    aliastup = (func, 'manual_' + ut.get_funcname(func))
-    register_ibs_unaliased_method(func)
-    register_ibs_aliased_method(aliastup)
-    return func
-
-r"""
-Vim add decorator
-%s/^\n^@\([^r]\)/\r\r@register_ibs_method\r@\1/gc
-%s/^\n\(def .*(ibs\)/\r\r@register_ibs_method\r\1/gc
-%s/\n\n\n\n/\r\r\r/gc
-"""
+CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
@@ -580,6 +563,22 @@ def update_query_cfg(ibs, **kwargs):
 def get_valid_configids(ibs):
     config_rowid_list = ibs.db.get_all_rowids(const.CONFIG_TABLE)
     return config_rowid_list
+
+
+@register_ibs_method
+@default_decorator
+def get_query_config_rowid(ibs):
+    """ # FIXME: Configs are still handled poorly """
+    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
+    query_cfg_rowid = ibs.add_config(query_cfg_suffix)
+    return query_cfg_rowid
+
+#@default_decorator
+#def get_qreq_rowid(ibs):
+#    """ # FIXME: Configs are still handled poorly """
+#    assert ibs.qres is not None
+#    qreq_rowid = ibs.qreq.get_cfgstr()
+#    return qreq_rowid
 
 
 if __name__ == '__main__':

@@ -1,20 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import utool as ut  # NOQA
+from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
 
-CLASS_INJECT_KEY = ('IBEISController', 'newfuncs')
-
-# Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-
-
-def register_ibs_method(func):
-    aliastup = (func, 'manual_' + ut.get_funcname(func))
-    register_ibs_unaliased_method(func)
-    register_ibs_aliased_method(aliastup)
-    return func
+CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method

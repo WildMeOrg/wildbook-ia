@@ -7,21 +7,11 @@ from ibeis import ibsfuncs
 from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, default_decorator, ider)
 import utool as ut
+from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_lblannot]')
 
 
-CLASS_INJECT_KEY = ('IBEISController', 'lblannot')
-
-# Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator(('IBEISController', 'lblannot'))
-register_ibs_unaliased_method = ut.make_class_method_decorator(('IBEISController', 'lblannot'))
-
-
-def register_ibs_method(func):
-    aliastup = (func, 'manual_' + ut.get_funcname(func))
-    register_ibs_unaliased_method(func)
-    register_ibs_aliased_method(aliastup)
-    return func
+CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 r"""
