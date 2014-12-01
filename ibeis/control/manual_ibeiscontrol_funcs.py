@@ -19,6 +19,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict):
     return qreq_
 
 
+@register_ibs_method
 def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
     # TODO: change into config_rowid
     if qreq_ is not None:
@@ -96,8 +97,9 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
     return words
 
 
-def get_vocab_assignments(ibs, qreq_=None):
-    pass
+#@register_ibs_method
+#def get_vocab_assignments(ibs, qreq_=None):
+#    pass
 
 
 if __name__ == '__main__':
