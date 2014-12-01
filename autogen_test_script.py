@@ -146,7 +146,10 @@ def autogen_ibeis_runtest():
     pyscript_text = ut.autofix_codeblock(pyscript_text)
 
     # BUILD OLD SHELL RUN TESTS HARNESS
-    testcmds = ut.get_module_testlines(module_list, remove_pyc=True, verbose=False, pythoncmd='RUN_TEST')
+    testcmds_ = ut.get_module_testlines(module_list, remove_pyc=True,
+                                        verbose=False, pythoncmd='RUN_TEST',
+                                        testslow=True)
+    testcmds = [cmd + ' --sysexitonfail' for cmd in testcmds_]
     test_headers = [
         # title, default, module, testpattern
         ut.def_test('VTOOL',  dpath='vtool/tests', pat=['test*.py'], modname='vtool'),

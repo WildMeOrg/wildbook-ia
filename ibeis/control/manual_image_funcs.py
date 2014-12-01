@@ -766,13 +766,32 @@ def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
 def get_encounter_nids(ibs, eid_list):
     """
     Returns:
-        list_ (list):  a list of list of nids in each encounter """
-    aids_list = ibs.get_encounter_aids(eid_list)
-    nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
-                                    _lbltype=const.INDIVIDUAL_KEY)
-    nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
+        list_ (list):  a list of list of nids in each encounter
 
-    nids_list = list(map(ut.unique_ordered, nids_list_))
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_encounter_nids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.compute_encounters()
+        >>> eid_list = ibs.get_valid_eids()
+        >>> nids_list = ibs.get_encounter_nids(eid_list)
+        >>> result = nids_list
+        >>> print(result)
+        [[1, 2, 3], [4, 5, 6, 7]]
+    """
+    aids_list = ibs.get_encounter_aids(eid_list)
+    #nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
+    #                                _lbltype=const.INDIVIDUAL_KEY)
+    nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
+    #nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
+    # Remove any unknown anmes
+    nids_list = [[nid for nid in nids if nid > 0] for nids in nids_list]
+
+    nids_list = list(map(ut.unique_ordered, nids_list))
     #print('get_encounter_nids')
     #print('eid_list = %r' % (eid_list,))
     #print('aids_list = %r' % (aids_list,))

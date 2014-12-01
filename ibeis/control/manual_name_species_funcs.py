@@ -81,11 +81,13 @@ def add_names(ibs, name_text_list, note_list=None):
 
 @register_ibs_method
 def sanatize_species_texts(ibs, species_text_list):
-    ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=False)
+    ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=True)
     species_text_list_ = [None
-                          if species_text is None or species_text == const.KEY_DEFAULTS[const.SPECIES_KEY]
+                          if species_text is None or species_text == const.UNKNOWN
                           else species_text.lower()
                           for species_text in species_text_list]
+    species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None
+                          for species_text in species_text_list_]
     return species_text_list_
 
 
@@ -93,7 +95,7 @@ def sanatize_species_texts(ibs, species_text_list):
 def sanatize_name_texts(ibs, name_text_list):
     ibsfuncs.assert_valid_names(name_text_list)
     name_text_list_ = [None
-                       if name_text == const.KEY_DEFAULTS[const.INDIVIDUAL_KEY]
+                       if name_text == const.UNKNOWN
                        else name_text
                        for name_text in name_text_list]
     return name_text_list_
@@ -154,8 +156,8 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
          list: aids_list a list of list of aids in each name
 
     Example:
-        >>> # DOCTEST_ENABLE
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> # Map annotations to name ids
@@ -283,15 +285,18 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
     Returns:
         species_rowid_list (list): Creates one if it doesnt exist
 
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_species_rowids_from_text
+
     Example:
-        >>> from ibeis.control.manual_name_species import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = [
-        ...     u'jaguar', u'zebra_plains', u'zebra_plains','____',
-        ...     u'zebra_grevys', '____', u'zebra_grevys', u'bear_polar',
-        ...     u'bear_polar', 'TYPO', '____']
+        ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
+        ...     '____', u'zebra_grevys', u'bear_polar']
         >>> ensure = False
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
         >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
@@ -299,6 +304,13 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
         >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_lblannot_table()
+        >>> species_text = ibs.get_species_texts(species_rowid_list)
+        >>> result = species_text
+        >>> print(result)
+        [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
+
+
+
     """
     if ensure:
         species_rowid_list = ibs.add_species(species_text_list)
@@ -321,19 +333,20 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         species_rowid_list (list): Creates one if it doesnt exist
 
     Example:
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_text_list = [
-        ...     u'Fred', u'Sue', ,'____',
+        ...     u'Fred', u'Sue', '____',
         ...     u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, species_rowid_list))))
+        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
         >>> ensure = True
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, species_rowid_list))))
+        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
         >>> ibs.print_lblannot_table()
     """
     if ensure:

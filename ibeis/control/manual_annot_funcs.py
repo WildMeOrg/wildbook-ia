@@ -174,6 +174,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # Execute add ANNOTATIONs SQL
     get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
     aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    ibs.update_annot_visual_uuids(aid_list)
 
     #if species_list is not None:
     #    ibs.set_annot_species(aid_list, species_list)
@@ -216,7 +217,7 @@ def delete_annots(ibs, aid_list):
     if ut.VERBOSE:
         print('[ibs] deleting %d annotations' % len(aid_list))
     # Delete chips and features first
-    from ibeis.model import preproc_annot
+    from ibeis.model.preproc import preproc_annot
     preproc_annot.on_delete(ibs, aid_list)
     ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
 
@@ -1172,7 +1173,65 @@ def update_annot_visual_uuids(ibs, aid_list):
     annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(ibs, aid_list)
     ibs.set_annot_visual_uuids(aid_list, annot_visual_uuid_list)
     # If visual uuids are changes semantic ones are also changed
-    ibs.update_annot_semantic_uuids()
+    ibs.update_annot_semantic_uuids(aid_list)
+
+
+@register_ibs_method
+def get_annot_semantic_uuids(ibs, aid_list):
+    """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
+
+    gets data from the "native" column "annot_semantic_uuid" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_semantic_uuid_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> aid_list = ibs._get_all_aids()[0:1]
+        >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
+        >>> assert len(aid_list) == len(annot_semantic_uuid_list)
+        >>> result = annot_semantic_uuid_list
+        [UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6')]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_SEMANTIC_UUID,)
+    annot_semantic_uuid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    return annot_semantic_uuid_list
+
+
+@register_ibs_method
+def get_annot_visual_uuids(ibs, aid_list):
+    """ annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
+
+    gets data from the "native" column "annot_visual_uuid" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_visual_uuid_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> aid_list = ibs._get_all_aids()[0:1]
+        >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+        >>> assert len(aid_list) == len(annot_visual_uuid_list)
+        >>> result = annot_visual_uuid_list
+        [UUID('76de0416-7c92-e1b3-4a17-25df32e9c2b4')]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_VISUAL_UUID,)
+    annot_visual_uuid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    return annot_visual_uuid_list
 
 
 if __name__ == '__main__':

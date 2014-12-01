@@ -133,18 +133,23 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
     Returns:
         featweight_list
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_featweight --test-generate_featweight_properties
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> fid_list = ibs.get_valid_fids()[1:2]
+        >>> aid_list = ibs.get_valid_aids()[1:2]
+        >>> fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=True)
+        >>> #fid_list = ibs.get_valid_fids()[1:2]
         >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list)
         >>> featweighttup_list = list(featweighttup_gen)
         >>> featweight_list = featweighttup_list[0][0]
         >>> result = np.array_str(featweight_list[0:3], precision=3)
         >>> print(result)
-        [ 0.098  0.155  0.422]
+        [ 0.125  0.061  0.053]
     """
     # HACK: TODO AUTOGENERATE THIS
     from ibeis import constants
