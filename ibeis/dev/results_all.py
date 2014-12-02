@@ -305,59 +305,7 @@ def inspect_svm_classifier(ibs, posfeat_tup, negfeat_tup, good_tp_aidnid_pairs,
         C = C.reshape(feat_grids[0].shape)
 
         # make grid for feature 1 and 2
-        if len(X.T) == 3:
-            import vtk
-            data_matrix = (C + 2).astype(np.uint8)
-            #data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
-            #data_matrix[0:35, 0:35, 0:35] = 50
-            #data_matrix[25:55, 25:55, 25:55] = 100
-            #data_matrix[45:74, 45:74, 45:74] = 150
-            dataImporter = vtk.vtkImageImport()
-            data_string = data_matrix.tostring()
-            dataImporter.CopyImportVoidPointer(data_string, len(data_string))
-            dataImporter.SetDataScalarTypeToUnsignedChar()
-            dataImporter.SetNumberOfScalarComponents(1)
-            #data_extent = ut.flatten(zip(feat_mins, feat_maxs))
-            #de = data_extent
-            #dataImporter.SetDataExtent(de[0], de[1], de[2], de[3], de[4], de[5])
-            #dataImporter.SetWholeExtent(de[0], de[1], de[2], de[3], de[4], de[5])
-            dataImporter.SetDataExtent(0, 74, 0, 74, 0, 74)
-            dataImporter.SetWholeExtent(0, 74, 0, 74, 0, 74)
-            alphaChannelFunc = vtk.vtkPiecewiseFunction()
-            alphaChannelFunc.AddPoint(1, 0.05)
-            alphaChannelFunc.AddPoint(3, 0.1)
-            colorFunc = vtk.vtkColorTransferFunction()
-            colorFunc.AddRGBPoint(1, 1.0, 0.0, 0.0)
-            colorFunc.AddRGBPoint(3, 0.0, 0.0, 1.0)
-            volumeProperty = vtk.vtkVolumeProperty()
-            volumeProperty.SetColor(colorFunc)
-            volumeProperty.SetScalarOpacity(alphaChannelFunc)
-            volumeProperty.ShadeOn()
-            compositeFunction = vtk.vtkVolumeRayCastCompositeFunction()
-            volumeMapper = vtk.vtkVolumeRayCastMapper()
-            volumeMapper.SetVolumeRayCastFunction(compositeFunction)
-            volumeMapper.SetInputConnection(dataImporter.GetOutputPort())
-
-            volume = vtk.vtkVolume()
-            volume.SetMapper(volumeMapper)
-            volume.SetProperty(volumeProperty)
-            renderer = vtk.vtkRenderer()
-            renderWin = vtk.vtkRenderWindow()
-            renderWin.AddRenderer(renderer)
-            renderInteractor = vtk.vtkRenderWindowInteractor()
-            renderInteractor.SetRenderWindow(renderWin)
-            renderer.AddVolume(volume)
-            renderer.SetBackground(0, 0, 0)
-            renderWin.SetSize(400, 400)
-            def exitCheck(obj, event):
-                if obj.GetEventPending() != 0:
-                    obj.SetAbortRender(1)
-            print('about to start vtk')
-            renderWin.AddObserver("AbortCheckEvent", exitCheck)
-            renderInteractor.Initialize()
-            renderWin.Render()
-            renderInteractor.Start()
-        else:
+        if len(X.T) != 3:
             fnum = pt.next_fnum()
             fig = pt.figure(fnum=fnum)
 
@@ -393,6 +341,59 @@ def inspect_svm_classifier(ibs, posfeat_tup, negfeat_tup, good_tp_aidnid_pairs,
                     ut.embed()
             pt.interact_helpers.connect_callback(fig, 'button_press_event', on_press)
             pt.update()
+        # Pytinstaller should not user vtk
+        #else:
+        #    import vtk
+        #    data_matrix = (C + 2).astype(np.uint8)
+        #    #data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
+        #    #data_matrix[0:35, 0:35, 0:35] = 50
+        #    #data_matrix[25:55, 25:55, 25:55] = 100
+        #    #data_matrix[45:74, 45:74, 45:74] = 150
+        #    dataImporter = vtk.vtkImageImport()
+        #    data_string = data_matrix.tostring()
+        #    dataImporter.CopyImportVoidPointer(data_string, len(data_string))
+        #    dataImporter.SetDataScalarTypeToUnsignedChar()
+        #    dataImporter.SetNumberOfScalarComponents(1)
+        #    #data_extent = ut.flatten(zip(feat_mins, feat_maxs))
+        #    #de = data_extent
+        #    #dataImporter.SetDataExtent(de[0], de[1], de[2], de[3], de[4], de[5])
+        #    #dataImporter.SetWholeExtent(de[0], de[1], de[2], de[3], de[4], de[5])
+        #    dataImporter.SetDataExtent(0, 74, 0, 74, 0, 74)
+        #    dataImporter.SetWholeExtent(0, 74, 0, 74, 0, 74)
+        #    alphaChannelFunc = vtk.vtkPiecewiseFunction()
+        #    alphaChannelFunc.AddPoint(1, 0.05)
+        #    alphaChannelFunc.AddPoint(3, 0.1)
+        #    colorFunc = vtk.vtkColorTransferFunction()
+        #    colorFunc.AddRGBPoint(1, 1.0, 0.0, 0.0)
+        #    colorFunc.AddRGBPoint(3, 0.0, 0.0, 1.0)
+        #    volumeProperty = vtk.vtkVolumeProperty()
+        #    volumeProperty.SetColor(colorFunc)
+        #    volumeProperty.SetScalarOpacity(alphaChannelFunc)
+        #    volumeProperty.ShadeOn()
+        #    compositeFunction = vtk.vtkVolumeRayCastCompositeFunction()
+        #    volumeMapper = vtk.vtkVolumeRayCastMapper()
+        #    volumeMapper.SetVolumeRayCastFunction(compositeFunction)
+        #    volumeMapper.SetInputConnection(dataImporter.GetOutputPort())
+
+        #    volume = vtk.vtkVolume()
+        #    volume.SetMapper(volumeMapper)
+        #    volume.SetProperty(volumeProperty)
+        #    renderer = vtk.vtkRenderer()
+        #    renderWin = vtk.vtkRenderWindow()
+        #    renderWin.AddRenderer(renderer)
+        #    renderInteractor = vtk.vtkRenderWindowInteractor()
+        #    renderInteractor.SetRenderWindow(renderWin)
+        #    renderer.AddVolume(volume)
+        #    renderer.SetBackground(0, 0, 0)
+        #    renderWin.SetSize(400, 400)
+        #    def exitCheck(obj, event):
+        #        if obj.GetEventPending() != 0:
+        #            obj.SetAbortRender(1)
+        #    print('about to start vtk')
+        #    renderWin.AddObserver("AbortCheckEvent", exitCheck)
+        #    renderInteractor.Initialize()
+        #    renderWin.Render()
+        #    renderInteractor.Start()
 
     plot_nd_svc(svc, X, Y, clip_score)
 
@@ -476,8 +477,8 @@ def get_qres_and_qreq_(ibs, qaid_list, daid_list=None, cfgdict=None):
         (qaid2_qres, qreq_) = __QRESREQ_CACHE__[qres_cache_key]
     except KeyError:
         qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list,
-                                             return_request=True,
-                                             cfgdict=cfgdict)
+                                              return_request=True,
+                                              cfgdict=cfgdict)
         # Cache save
         __QRESREQ_CACHE__[qres_cache_key] = (qaid2_qres, qreq_)
     return (qaid2_qres, qreq_)

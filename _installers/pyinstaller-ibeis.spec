@@ -2,6 +2,7 @@
 import os
 import sys
 from os.path import join, exists, realpath
+import utool
 # import utool
 
 # Pyinstaller Variables (enumerated for readability, not needed)
@@ -26,7 +27,6 @@ def join_SITE_PACKAGES(*args):
 
 def add_data(a, dst, src):
     global LIB_EXT
-<<<<<<< HEAD
     from os.path import dirname, exists
     import utool
     if dst == '':
@@ -34,44 +34,6 @@ def add_data(a, dst, src):
     if src == '':
         raise ValueError('src path cannot be the empty string')
     src_ = utool.platform_path(src)
-=======
-    import textwrap
-    from os.path import dirname, exists, relpath, normpath, realpath, expanduser
-    def truepath_relative(path):
-        def truepath(path):
-            """ Normalizes and returns absolute path with so specs """
-            return normpath(relpath(expanduser(path)))
-
-        """ Normalizes and returns absolute path with so specs </CYTHE> """
-        return normpath(realpath(path))
-
-    def platform_path(path):
-        def fixwin32_shortname(path1):
-            import ctypes
-            try:
-                #import win32file
-                path1 = unicode(path1)
-                buflen = 260  # max size
-                buf = ctypes.create_unicode_buffer(buflen)
-                ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
-                #win32file.GetLongPathName(path1, )
-                path2 = buf.value
-            except Exception as ex:
-                print(ex)
-                printex(ex, 'cannot fix win32 shortcut')
-                path2 = path1
-                raise
-            return path2
-
-        path1 = truepath_relative(path)
-        if sys.platform == 'win32':
-            path2 = fixwin32_shortname(path1)
-        else:
-            path2 = path1
-        return path2
-    # import utool
-    src = platform_path(src)
->>>>>>> hotfix1
     if not os.path.exists(dirname(dst)) and dirname(dst) != "":
         os.makedirs(dirname(dst))
     _pretty_path = lambda str_: str_.replace('\\', '/')
@@ -86,17 +48,10 @@ def add_data(a, dst, src):
     [installer] a.add_data(
     [installer]    dst=%r,
     [installer]    src=%r,
-<<<<<<< HEAD
     [installer]    dtype=%s)''') %
           (_pretty_path(dst), _pretty_path(src_), dtype))
     assert exists(src_), 'src_=%r does not exist'
     a.datas.append((dst, src_, dtype))
-=======
-    [installer]    dtype=%s)''').strip('\n') %
-          (pretty_path(dst), pretty_path(src), dtype))
-    assert exists(src), 'src=%r does not exist' %(src, )
-    a.datas.append((dst, src, dtype))
->>>>>>> hotfix1
 
 
 # Build data before running analysis for quick debugging
@@ -157,7 +112,7 @@ DATATUP_LIST.append((libhesaff_dst, libhesaff_src))
 
 # PyRF
 libpyrf_fname = 'libpyrf' + LIB_EXT
-libpyrf_src = realpath(join(root_dir, '..', 'pyrf', libpyrf_fname))
+libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'pyrf', libpyrf_fname))
 libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
 DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
@@ -191,16 +146,12 @@ if APPLE:
     libgomp_src = '/opt/local/lib/libgomp.dylib'
     BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
 if LINUX:
-<<<<<<< HEAD
     libgomp_src = utool.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
     #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
     #assert utool.checkpath(libgomp_src):
-
     utool.assertpath(libgomp_src)
-=======
-    libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
+    #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
     # utool.assertpath(libgomp_src)
->>>>>>> hotfix1
     BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
 
@@ -280,15 +231,12 @@ exe_name = {'win32':  'build/IBEISApp.exe',
             'darwin': 'build/pyi.darwin/IBEISApp/IBEISApp',
             'linux2': 'build/IBEISApp.ln'}[PLATFORM]
 
-<<<<<<< HEAD
 print('[installer] Checking Data')
 for (dst, src) in DATATUP_LIST:
     assert utool.checkpath(src, verbose=True), 'checkpath for src failed'
-=======
 # print('[installer] Checking Data')
 # for (dst, src) in DATATUP_LIST:
 #     assert utool.checkpath(src, verbose=True), 'checkpath failed'
->>>>>>> hotfix1
 
 #import sys
 #print('exiting')

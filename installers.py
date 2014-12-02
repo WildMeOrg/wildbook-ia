@@ -37,7 +37,11 @@ def build_pyinstaller():
     print('[installer] +--- BUILD_PYINSTALLER ---')
     # 1) RUN: PYINSTALLER
     # Run the pyinstaller command (does all the work)
-    utool.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
+    if ut.WIN32:
+        utool.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec', '-y')
+    else:
+        utool.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
+    #utool.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
     # 2) POST: PROCESSING
     # Perform some post processing steps on the mac
 
@@ -189,7 +193,7 @@ def package_installer():
         raise NotImplementedError('TODO: package into dmg')
         pass
     elif sys.platform.startswith('linux'):
-        raise NotImplementedError('no linux packager (rpm or deb) supported')
+        raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
         pass
     print('[installer] L___ FINISH PACKAGE_INSTALLER ___')
 

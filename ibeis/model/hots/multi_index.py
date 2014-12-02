@@ -23,6 +23,7 @@ def new_ibeis_mindexer(ibs, qreq_,
                        split_method='name'):
     """
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> mxer, qreq_, ibs = test_mindexer()
     """
@@ -106,6 +107,7 @@ class MultiNeighborIndex(object):
     More abstract wrapper around flann
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> mxer, qreq_, ibs = test_mindexer()
     """
@@ -116,11 +118,13 @@ class MultiNeighborIndex(object):
     def multi_knn(mxer, qfx2_vec, K, checks):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K = 3
+            >>> checks = 1024
             >>> qfx2_vec = ibs.get_annot_vecs(1)
-            >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
+            >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
         """
         qfx2_idx_list   = []
         qfx2_dist_list = []
@@ -145,12 +149,13 @@ class MultiNeighborIndex(object):
         Polymorphic interface to knn, but uses the multindex backend
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K = 3
             >>> checks = 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
-            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
         """
         (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
         qfx2_imx_list = []
@@ -177,11 +182,12 @@ class MultiNeighborIndex(object):
     def num_indexed_vecs(mxer):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
-            >>> out = mxer.num_indexed_vecs()
-            >>> print(out)
-            54141
+            >>> result = mxer.num_indexed_vecs()
+            >>> print(result)
+            54244
         """
         return np.sum([nnindexer.num_indexed_vecs()
                        for nnindexer in mxer.nn_indexer_list])
@@ -189,10 +195,11 @@ class MultiNeighborIndex(object):
     def num_indexed_annots(mxer):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
-            >>> out = mxer.num_indexed_annots()
-            >>> print(out)
+            >>> result = mxer.num_indexed_annots()
+            >>> print(result)
             53
         """
         return np.sum([nnindexer.num_indexed_annots()
@@ -227,6 +234,7 @@ class MultiNeighborIndex(object):
     def split_imxs_gen(mxer, qfx2_imx):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K = 3
@@ -244,6 +252,7 @@ class MultiNeighborIndex(object):
     def knn2(mxer, qfx2_vec, K):
         """
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K = 3
@@ -287,3 +296,16 @@ class MultiNeighborIndex(object):
         qfx2_rankx_ = foreach_row_sort_cols(qfx2_rankx)
         qfx2_treex_ = foreach_row_sort_cols(qfx2_treex)
         return (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.multi_index
+        python -m ibeis.model.hots.multi_index --allexamples
+        python -m ibeis.model.hots.multi_index --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

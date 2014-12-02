@@ -48,8 +48,9 @@ def __cleanup():
 def test_nnindexer(with_indexer=True):
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer()
     """
     from ibeis.model.hots.query_request import new_ibeis_query_request
     import ibeis
@@ -57,7 +58,7 @@ def test_nnindexer(with_indexer=True):
     ibs = ibeis.opendb(db='testdb1')
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     if with_indexer:
-        nnindexer = new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
+        nnindexer = new_ibeis_nnindexer(ibs, qreq_)
     else:
         nnindexer = None
     return nnindexer, qreq_, ibs
@@ -135,8 +136,9 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
         nnindexer
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer(None) # doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer(None)
         >>> nnindexer = new_ibeis_nnindexer(ibs, qreq_)
     """
     global NEIGHBOR_CACHE
@@ -198,8 +200,9 @@ class NeighborIndex(object):
     Abstract wrapper around flann
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer()
     """
 
     def __init__(nnindexer, ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx, flann):
@@ -224,8 +227,9 @@ class NeighborIndex(object):
             qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
 
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer()
         >>> new_aid_list = [2, 3, 4]
         >>> qfx2_vec = ibs.get_annot_vecs(1)
         >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
@@ -243,8 +247,9 @@ class NeighborIndex(object):
 
     def add_points(nnindexer, new_aid_list, new_vecs_list, new_fgws_list):
         """
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
+        >>> nnindexer, qreq_, ibs = test_nnindexer()
         >>> new_aid_list = [2, 3, 4]
         >>> qfx2_vec = ibs.get_annot_vecs(1)
         >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
@@ -301,11 +306,12 @@ class NeighborIndex(object):
                                 kth approximate nearest data vector
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots import pipeline
-            >>> qparams = dict()
+            >>> cfgdict = dict()
             >>> dbname = 'testdb1'
+            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
             >>> nnindexer = qreq_.indexer
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, qparams=qparams)
             >>> qfx2_vec = qreq_.get_internal_qvecs()[0]
             >>> num_neighbors = 4
             >>> checks = 1024
@@ -340,6 +346,7 @@ class NeighborIndex(object):
             qfx2_fgw : (N x K) qfx2_fgw[n][k] is the annotation id index of the
                                 kth forground weight
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
             >>> qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])
@@ -371,7 +378,14 @@ def invert_index(vecs_list, ax_list):
     return idx2_vec, idx2_ax, idx2_fx
 
 
-#if __name__ == '__main__':
-#    #python -m doctest -v ibeis/model/hots/neighbor_index.py
-#    import doctest
-#    doctest.testmod()
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index
+        python -m ibeis.model.hots.neighbor_index --allexamples
+        python -m ibeis.model.hots.neighbor_index --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

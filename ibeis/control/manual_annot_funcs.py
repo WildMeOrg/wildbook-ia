@@ -922,6 +922,19 @@ def get_annot_thetas(ibs, aid_list):
     """
     Returns:
         theta_list (list): a list of floats describing the angles of each chip
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_thetas
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_thetas(ibs, aid_list)
+        >>> print(result)
+        [2.75742, 0.792917, 2.53605, 2.67795, 0.946773, 2.56729]
     """
     theta_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_theta',), aid_list)
     return theta_list
@@ -1029,7 +1042,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filt
         aid_list = ibs.get_encounter_aids(eid)
     if include_only_gid_list is not None:
         gid_list = ibs.get_annot_gids(aid_list)
-        isvalid_list = [ gid in include_only_gid_list for gid in gid_list]
+        isvalid_list = [gid in include_only_gid_list for gid in gid_list]
         aid_list = ut.filter_items(aid_list, isvalid_list)
         pass
     if viewpoint != 'no-filter':
