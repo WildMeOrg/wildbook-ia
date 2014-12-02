@@ -1,37 +1,25 @@
 from __future__ import absolute_import, division, print_function
-import functools  # NOQA
 import six  # NOQA
-from six.moves import map, range  # NOQA
-from ibeis import constants  # NOQA
-#from ibeis.control.IBEISControl import IBEISController
-import utool  # NOQA
 import utool as ut  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_ibsfuncs]')
+from ibeis.control.controller_inject import make_ibs_register_decorator
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
 
-# Create dectorator to inject these functions into the IBEISController
-register_ibs_aliased_method   = ut.make_class_method_decorator(('IBEISController', 'manual'))
-register_ibs_unaliased_method = ut.make_class_method_decorator(('IBEISController', 'manual'))
-
-
-def register_ibs_method(func):
-    aliastup = (func, 'manual_' + ut.get_funcname(func))
-    register_ibs_unaliased_method(func)
-    register_ibs_aliased_method(aliastup)
-    return func
+CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def new_query_request(ibs, qaid_list, daid_list, custom_qparams):
+def new_query_request(ibs, qaid_list, daid_list, cfgdict):
     """
     daid_list = ibs.get_valid_aids()
     qaid_list = daid_list[0:1]
-    custom_qparams = {}
+    cfgdict = {}
     """
     from ibeis.model.hots import query_request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
     return qreq_
 
 
+@register_ibs_method
 def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
     # TODO: change into config_rowid
     if qreq_ is not None:
@@ -109,5 +97,19 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
     return words
 
 
-def get_vocab_assignments(ibs, qreq_=None):
-    pass
+#@register_ibs_method
+#def get_vocab_assignments(ibs, qreq_=None):
+#    pass
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs
+        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples
+        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

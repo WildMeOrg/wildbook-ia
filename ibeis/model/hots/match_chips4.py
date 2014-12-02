@@ -24,7 +24,7 @@ MIN_BIGCACHE_BUNDLE = 20
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
-                         custom_qparams=None):
+                         cfgdict=None, qreq_=None):
     """
     The standard query interface.
 
@@ -42,7 +42,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         qaid2_qres (dict): dict of QueryResult objects
 
     Examples:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> import ibeis
         >>> qaid_list = [1]
@@ -62,8 +62,9 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         print(' --- Submit QueryRequest_ --- ')
     # ------------
     # Build query request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, custom_qparams)
-    qreq_.qparams
+    if qreq_ is None:
+        qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+        #qreq_.qparams
     # --- BIG CACHE ---
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
@@ -95,7 +96,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     return qaid2_qres
 
 
-def generate_vsone_queries(ibs, qreq_, qaid_list, chunksize):
+def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
     """
     helper
 
@@ -123,13 +124,13 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid2_qres
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
-        >>> custom_qparams1 = dict(codename='vsone', sv_on=True)
+        >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> chunksize = 2
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(custom_qparams=custom_qparams1, qaid_list = [1, 2, 3, 4])
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
         >>> use_cache = False
         >>> save_cache = False
         >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache, chunksize)
@@ -160,7 +161,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid_list = qreq_.get_external_qaids()
         qaid2_qres = {}
 
-        qres_gen = generate_vsone_queries(ibs, qreq_, qaid_list, chunksize)
+        qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize)
         qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
                                 backspace=False, lbl='vsone query: ',
                                 use_rate=True)
@@ -190,9 +191,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
 
 if __name__ == '__main__':
     """
-    python ibeis/model/hots/match_chips4.py
-    python ibeis/model/hots/match_chips4.py --allexamples
-    python ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1
+    python -m ibeis.model.hots.match_chips4
+    python -m ibeis.model.hots.match_chips4 --allexamples
+    python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1
     """
     import multiprocessing
     multiprocessing.freeze_support()

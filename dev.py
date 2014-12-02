@@ -305,53 +305,31 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
 
     Example:
         >>> from ibeis.all_imports import *  # NOQA
-        >>> ibs = ibeis.opendb('PZ_FlankHack')
+        >>> #ibs = ibeis.opendb('PZ_FlankHack')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
     """
     print('updbsize_expt')
-    # clamp the number of groundtruth to test
-    clamp_gt = utool.get_argval('--clamp-gt', int, 1)
-    clamp_ft = utool.get_argval('--clamp-gf', int, 1)
-    num_samp = utool.get_argval('--num-samples', int, 5)
-    #
-    # Determanism
-    seed_ = 143039
-    np.random.seed(seed_)
-    #
-    # List of database sizes to test
-    samp_min, samp_max = (2, ibs.get_num_names())
-    dbsamplesize_list = utool.sample_domain(samp_min, samp_max, num_samp)
-    #
-    # Sample true and false matches for every query annotation
-    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
-    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_ft)
-    #
-    # Vary the size of the falses
-    def generate_varied_falses():
-        for false_aids in qaid_falses_list:
-            false_sample_list = []
-            for dbsize in dbsamplesize_list:
-                if dbsize > len(false_aids):
-                    continue
-                false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
-                false_sample_list.append(false_sample)
-            yield false_sample_list
-    qaid_false_samples_list = list(generate_varied_falses())
-
-    #
-    # Get a rough idea of how many queries will be run
-    nTotal = sum([len(false_aids_samples) * len(true_aids)
-                  for true_aids, false_aids_samples
-                  in zip(qaid_false_samples_list, qaid_trues_list)])
+    upsizekw = dict(
+        num_samp=utool.get_argval('--num-samples', int, 5),
+        clamp_gt=utool.get_argval('--clamp-gt', int, 1),
+        clamp_gf=utool.get_argval('--clamp-gf', int, 1),
+        seed=143039
+    )
+    upsizetup = ibs.get_upsize_data(qaid_list, daid_list, **upsizekw)
+    qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal = upsizetup
     # Create a progress marking function
-    progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': False}
+    progkw = dict(nTotal=nTotal, flushfreq=20, approx=False)
     mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
     count = 0
-    # output containers
+    # Set up output containers and run test iterations
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
-    #
-    # Set up and run test iterations
     input_iter = zip(qaid_list, qaid_trues_list, qaid_false_samples_list)
+    # For each query annotation runs it as a query multiple times
+    # each time it increases the number of false annotation in the database
+    # so we can see how a score degrades as the number of false
+    # database annotations increases
     for qaid, true_aids, false_aids_samples in input_iter:
         #print('qaid = %r' % (qaid,))
         #print('true_aids=%r' % (true_aids,))
@@ -363,7 +341,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
             count += 1
             # Execute query
             daids = false_sample + [gt_aid]
-            qres = ibs._query_chips([qaid], daids)[qaid]
+            qres = ibs._query_chips4([qaid], daids)[qaid]
             # Elicit information
             score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
             # Append result
@@ -430,7 +408,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
         false_sample = false_aids_samples[dbsample_index]
         print(false_sample)
         daids = false_sample + [gt_aid]
-        qres = ibs._query_chips([qaid], daids)[qaid]
+        qres = ibs._query_chips4([qaid], daids)[qaid]
         #for score in scores:
         #    if score is None:
         #        continue
@@ -484,8 +462,8 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
-    custom_qparams = dict(featweight_on=True, fg_weight=1.0)
-    allres = results_all.get_allres(ibs, qaid_list, daid_list, custom_qparams)
+    cfgdict = dict(featweight_on=True, fg_weight=1.0)
+    allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')
     top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
@@ -497,10 +475,10 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     for qaid, daid in top_false_aid_pairs:
         qaid2_vsoneaids[qaid].append(daid)
         qaid2_vsoneaids[qaid].extend(qaid2_vsoneaids_.get(qaid, []))
-    custom_qparams = dict(codename='vsone')
+    cfgdict = dict(codename='vsone')
     qaid2_vsoneqres = {}
     for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
-        qres = ibs._query_chips4([qaid], vsoneaids, custom_qparams=custom_qparams)[qaid]
+        qres = ibs._query_chips4([qaid], vsoneaids, cfgdict=cfgdict)[qaid]
         qaid2_vsoneqres[qaid] = qres
     vsone_allres = results_all.init_allres(ibs, qaid2_vsoneqres)
     viz_allres_annotation_scores(vsone_allres)
@@ -511,28 +489,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
-    from ibeis.viz.interact import interact_qres2  # NOQA
-    allres = results_all.get_allres(ibs, qaid_list)
-    guitool.ensure_qapp()
-    tblname = 'qres'
-    qaid2_qres = allres.qaid2_qres
-    ranks_lt = 5
-    # This object is created inside QresResultsWidget
-    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
-    # This is where you create the result widigt
-    print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('[inspect_matches] show')
-    qres_wgt.show()
-    print('[inspect_matches] raise')
-    qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('</inspect_matches>')
-    # simulate double click
-    qres_wgt._on_click(qres_wgt.model.index(2, 2))
-    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
-    return locals()
+    return inspect_gui.test_inspect_matches(ibs, qaid_list, daid_list)
 
 
 @devcmd('gv')
@@ -746,7 +703,7 @@ def dev_snippets(main_locals):
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
         #nid_list = ibs.get_valid_nids()
-        #valid_nid_list   = ibs.get_annot_nids(aid_list)
+        #valid_nid_list   = ibs.get_annot_name_rowids(aid_list)
         #valid_aid_names  = ibs.get_annot_names(aid_list)
         #valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
     return locals()
@@ -1087,7 +1044,7 @@ if __name__ == '__main__':
     #
     # Main Loop (IPython interaction, or some exec loop)
     #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
-    if ut.get_argflag('--show', '--wshow'):
+    if ut.get_argflag(('--show', '--wshow')):
         df2.present()
     main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
     exec(main_execstr)

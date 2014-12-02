@@ -182,7 +182,7 @@ def _get_detector(species, quick=True, single=False):
         tuple: (detector, forest)
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> # Test existing model
         >>> from ibeis.model.detect.randomforest import *  # NOQA
         >>> from ibeis.model.detect import randomforest

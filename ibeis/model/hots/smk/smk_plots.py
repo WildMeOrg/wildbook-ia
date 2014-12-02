@@ -151,7 +151,7 @@ def dump_word_patches(ibs, vocabdir, invindex, wx_sample):
         fx_list   = idx2_dfx[idxs]
         chip      = ibs.get_annot_chips(aid)
         chip_kpts = ibs.get_annot_kpts(aid)
-        nid       = ibs.get_annot_nids(aid)
+        nid       = ibs.get_annot_name_rowids(aid)
         patches, subkpts = ptool.get_warped_patches(chip, chip_kpts)
         for fx, wxs, patch in zip(fx_list, wxs_list, patches):
             assert len(wxs) == 1, 'did you multiassign the database? If so implement it here too'
@@ -464,7 +464,7 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     """
     # FIXME: Put query_cfg into the qreq_ structure by itself.
     # Don't change the IBEIS Structure
-    custom_qparams = {
+    cfgdict = {
         'pipeline_root': 'vsmany',
         'with_metadata': True,
         'K': K,
@@ -473,13 +473,13 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     }
     #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
     #ibs.cfg.query_cfg.with_metadata = True
-    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, custom_qparams=custom_qparams)
+    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, cfgdict=cfgdict)
     indexer = qreq_.indexer
     qres = qaid2_qres[aid]
     (qfx2_idx, qfx2_dist) = qres.metadata['nns']
-    nid = ibs.get_annot_nids(aid)
+    nid = ibs.get_annot_name_rowids(aid)
     qfx2_aids = indexer.get_nn_aids(qfx2_idx)
-    qfx2_nids = ibs.get_annot_nids(qfx2_aids)
+    qfx2_nids = ibs.get_annot_name_rowids(qfx2_aids)
     qfx2_isself  = qfx2_aids != aid
     qfx2_correct = np.logical_and(qfx2_nids == nid, qfx2_isself)
     # Mark the top ranked groundtruth

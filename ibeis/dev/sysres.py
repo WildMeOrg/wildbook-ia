@@ -1,11 +1,14 @@
 """
 sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
+but without the need for an actual IBEIS Controller
+
 """
 from __future__ import absolute_import, division, print_function
 import os
 from os.path import exists, join, realpath
 import utool
+import utool as ut
 from utool import util_cache, util_list
 from ibeis import constants
 from ibeis import params
@@ -18,6 +21,10 @@ WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 LOGDIR_CACHEID = utool.logdir_cacheid
 __APPNAME__ = 'ibeis'
+
+
+def get_ibeis_resource_dir():
+    return ut.ensure_app_resource_dir('ibeis')
 
 
 def _ibeis_cache_dump():

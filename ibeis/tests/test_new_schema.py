@@ -19,7 +19,7 @@ def TEST_NEW_SCHEMA(ibs):
     print('[TEST] aid_list = %r' % aid_list,)
     aid_list2 = ibs.add_annots(gid_list, bbox_list2)
     print('[TEST] aid_list2 = %r' % aid_list2,)
-    nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+    nid_list = ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False)
     print('[TEST] nid_list = %r' % nid_list,)
 
     gt_list = ibs.get_annot_groundtruth(aid_list)

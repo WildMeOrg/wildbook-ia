@@ -1,9 +1,7 @@
 """
-Module Licence and docstring
+TODO: Module Licence and docstring
 
-Algorithm logic does not live here.
-This file defines the data architecture of IBEIS
-This file should only define: iders, adders, setters, getters, deleter
+functions in the IBEISController have been split up into several submodules.
 """
 # TODO: rename annotation annotations
 # TODO: make all names consistent
@@ -12,35 +10,45 @@ from __future__ import absolute_import, division, print_function
 import six
 import atexit
 import requests
-import uuid
 import weakref
-from six.moves import zip, map, range
-from functools import partial
-from os.path import join, split, exists
+from six.moves import zip, range
+from os.path import join, split
 # UTool
-import utool
 import utool as ut  # NOQA
 # IBEIS
-from ibeis import constants
+import ibeis  # NOQA
+from ibeis import constants as const
 from ibeis import params
-from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
-                             ENCOUNTER_TABLE, EG_RELATION_TABLE,
-                             AL_RELATION_TABLE, GL_RELATION_TABLE,
-                             CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
-                             CONTRIBUTOR_TABLE, LBLTYPE_TABLE,
-                             METADATA_TABLE, VERSIONS_TABLE, __STR__)
-from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
-                                           getter_1to1, ider, deleter,
-                                           default_decorator, cache_getter,
-                                           cache_invalidator, init_tablecache)
+from ibeis.control.accessor_decors import (default_decorator, )
+# Import modules which define injectable functions
+# Older manual ibeiscontrol functions
+from ibeis import ibsfuncs
+#from ibeis.control import controller_inject
+
+
+# Shiny new way to inject external functions
+autogenmodname_list = [
+    '_autogen_featweight_funcs',
+    #'_autogen_annot_funcs',
+    'manual_ibeiscontrol_funcs',
+    'manual_meta_funcs',
+    'manual_lbltype_funcs',
+    'manual_lblannot_funcs',
+    'manual_lblimage_funcs',
+    'manual_image_funcs',
+    'manual_annot_funcs',
+    'manual_name_species_funcs',
+    'manual_dependant_funcs',
+]
+
+INJECTED_MODULES = []
+
+for modname in autogenmodname_list:
+    exec('from ibeis.control import ' + modname, globals(), locals())
+    module = eval(modname)
+    INJECTED_MODULES.append(module)
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
-
-
-IMPORTUPFRONT = True
-if IMPORTUPFRONT:
-    #from ibeis.model.detect import randomforest  # NOQA
-    pass
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
@@ -68,6 +76,7 @@ def __cleanup():
         del __ALL_CONTROLLERS__
         del __IBEIS_CONTROLLER_CACHE__
     except NameError:
+        print('cannot cleanup IBEISController')
         pass
 
 
@@ -77,6 +86,7 @@ def __cleanup():
 # IBEIS CONTROLLER
 #-----------------
 
+@six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISController(object):
     """
     IBEISController docstring
@@ -90,13 +100,6 @@ class IBEISController(object):
     annotation   - region of interest for a chip
     theta - angle of rotation for a chip
     """
-    # use this in controller cython
-    # Available in Python-space:
-    #property period:
-    #    def __get__(self):
-    #        return 1.0 / self.freq
-    #    def __set__(self, value):
-    #        self.freq = 1.0 / value
 
     #
     #
@@ -106,60 +109,63 @@ class IBEISController(object):
 
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
         """ Creates a new IBEIS Controller associated with one database """
-        if verbose and utool.VERBOSE:
+        if verbose and ut.VERBOSE:
             print('[ibs.__init__] new IBEISController')
-        ibs.table_cache = init_tablecache()
+        # an dict to hack in temporary state
+        ibs.temporary_state = {}
+        ibs.allow_override = 'override+warn'
         # observer_weakref_list keeps track of the guibacks connected to this controller
         ibs.observer_weakref_list = []
-        ibs._init_injections()
+        # not completely working decorator cache
+        #ibs.table_cache = init_tablecache()
+        ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _init_wb will do nothing if no wildbook address is specified
         ibs._init_wb(wbaddr)
         ibs._init_sql()
         ibs._init_config()
-        # an dict to hack in temporary state
-        ibs.temporary_state = {}
 
-        ibs.register_controller()
-
-    def _init_injections(ibs):
+    def _initialize_self(ibs):
         """
+        For utools auto reload
+        Called after reload
         Injects code from development modules into the controller
         """
-        #from ibeis.controller import ibeis_contoller_autogen_funcs
-        #ibsfuncs.inject_ibeis(ibs)
-        ut.inject_instance(ibs, classtype='IBEISController')  # ibsfuncs key
-        try:
-            ut.inject_instance(ibs, classtype=('IBEISController', 'autogen'),
-                               allow_override='override+warn')   # autogenerated key
-        except Exception as ex:
-            utool.printex(ex, 'ISSUE WHEN INJECTING AUTOGENERATED FUNCTIONS', iswarning=True)
-        try:
-            ut.inject_instance(ibs, classtype=('IBEISController', 'manual'),
-                               allow_override='override+warn')   # autogenerated key
-        except Exception as ex:
-            utool.printex(ex, 'ISSUE WHEN INJECTING MANUAL FUNCTIONS', iswarning=True)
+        if ut.VERBOSE:
+            print('[ibs] _initialize_self()')
+
+        for module in INJECTED_MODULES:
+            ut.inject_instance(
+                ibs, classtype=module.CLASS_INJECT_KEY,
+                allow_override=ibs.allow_override, strict=False)
+        ut.inject_instance(ibs, classtype=ibsfuncs.CLASS_INJECT_KEY,
+                           allow_override=ibs.allow_override, strict=True)
+        assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
+
+        #ut.inject_instance(ibs, classtype=('IBEISController', 'autogen_featweight'),
+        #                   allow_override=ibs.allow_override, strict=False)
+        #ut.inject_instance(ibs, classtype=('IBEISController', 'manual'),
+        #                   allow_override=ibs.allow_override, strict=False)
+        ibs.register_controller()
+
+    def _on_reload(ibs):
+        """
+        For utools auto reload.
+        Called before reload
+        """
+        # Only warn on first load. Overrideing while reloading is ok
+        ibs.allow_override = True
+        ibs.unregister_controller()
+        # Reload dependent modules
+        for module in INJECTED_MODULES:
+            module.rrr()
+        ibsfuncs.rrr()
+        pass
 
     # We should probably not implement __del__
     # see: https://docs.python.org/2/reference/datamodel.html#object.__del__
     #def __del__(ibs):
     #    ibs.cleanup()
-
-    def rrr(ibs):
-        from ibeis.control import IBEISControl
-        ibs.unregister_controller()
-        IBEISControl.rrr()
-        ibsfuncs.rrr()
-        print('reloading IBEISControl')
-        #ibsfuncs.inject_ibeis(ibs)
-        ut.inject_instance(ibs, classtype='IBEISController')  # ibsfuncs key
-        try:
-            ut.inject_instance(ibs, classtype=('IBEISController', 'autogen'),
-                               allow_override='override+warn')   # autogenerated key
-        except Exception as ex:
-            utool.printex(ex, 'ISSUE WHEN INJECTING AUTOGENERATED FUNCTIONS', iswarning=True)
-        utool.reload_class_methods(ibs, IBEISControl.IBEISController)
-        ibs.register_controller()
 
     # ------------
     # SELF REGISTRATION
@@ -174,6 +180,7 @@ class IBEISController(object):
         ibs_weakref = weakref.ref(ibs)
         try:
             __ALL_CONTROLLERS__.remove(ibs_weakref)
+            pass
         except ValueError:
             pass
 
@@ -206,95 +213,31 @@ class IBEISController(object):
 
     # ------------
 
-    @default_decorator
-    def _init_wb(ibs, wbaddr):
-        if wbaddr is None:
-            return
-        #TODO: Clean this up to use like utool and such
-        try:
-            requests.get(wbaddr)
-        except requests.MissingSchema as msa:
-            print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
-            raise msa
-        except requests.ConnectionError as coe:
-            print('[ibs._init_wb] Could not connect to Wildbook server at %r' % wbaddr)
-            raise coe
-        ibs.wbaddr = wbaddr
-
-    @default_decorator
-    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
-        """
-        Define ibs directories
-        """
-        if ensure and not utool.QUIET:
-            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
-        if dbdir is not None:
-            if not utool.QUIET:
-                print(dbdir)
-            workdir, dbname = split(dbdir)
-        ibs.workdir  = utool.truepath(workdir)
-        ibs.dbname = dbname
-        PATH_NAMES = constants.PATH_NAMES
-        ibs.sqldb_fname = PATH_NAMES.sqldb
-        ibs.sqldbcache_fname = PATH_NAMES.sqldbcache
-
-        # Make sure you are not nesting databases
-        assert PATH_NAMES._ibsdb != utool.dirsplit(ibs.workdir), \
-            'cannot work in _ibsdb internals'
-        assert PATH_NAMES._ibsdb != dbname,\
-            'cannot create db in _ibsdb internals'
-        ibs.dbdir    = join(ibs.workdir, ibs.dbname)
-        # All internal paths live in <dbdir>/_ibsdb
-        ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
-        ibs.trashdir    = join(ibs.dbdir, PATH_NAMES.trashdir)
-        ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
-        ibs.backupdir   = join(ibs._ibsdb, PATH_NAMES.backups)
-        ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
-        ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
-        # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
-        ibs.thumb_dpath = join(ibs.cachedir, PATH_NAMES.thumbs)
-        ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
-        ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
-        ibs.bigcachedir = join(ibs.cachedir, PATH_NAMES.bigcache)
-        if ensure:
-            ibs.ensure_directories()
-        assert dbdir is not None, 'must specify database directory'
-
-    def ensure_directories(ibs):
-        """
-        Makes sure the core directores for the controller exist
-        """
-        _verbose = utool.VERBOSE
-        utool.ensuredir(ibs._ibsdb)
-        utool.ensuredir(ibs.cachedir,    verbose=_verbose)
-        utool.ensuredir(ibs.backupdir,   verbose=_verbose)
-        utool.ensuredir(ibs.workdir,     verbose=_verbose)
-        utool.ensuredir(ibs.imgdir,      verbose=_verbose)
-        utool.ensuredir(ibs.chipdir,     verbose=_verbose)
-        utool.ensuredir(ibs.flanndir,    verbose=_verbose)
-        utool.ensuredir(ibs.qresdir,     verbose=_verbose)
-        utool.ensuredir(ibs.bigcachedir, verbose=_verbose)
-        utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
+    def _init_rowid_constants(ibs):
+        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
+        ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
+        ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
+        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
+        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        # duct_tape.fix_compname_configs(ibs)
+        # duct_tape.remove_database_slag(ibs)
+        # duct_tape.fix_nulled_viewpoints(ibs)
+        lbltype_names    = const.KEY_DEFAULTS.keys()
+        lbltype_defaults = const.KEY_DEFAULTS.values()
+        lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
+        ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
+        from ibeis.dev import duct_tape  # NOQA
         ibs._init_sqldb()
         ibs._init_sqldbcache()
         # ibs.db.dump_schema()
         # ibs.db.dump()
-        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
-        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
-        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        from ibeis.dev import duct_tape  # NOQA
-        # duct_tape.fix_compname_configs(ibs)
-        # duct_tape.remove_database_slag(ibs)
-        # duct_tape.fix_nulled_viewpoints(ibs)
-        lbltype_names    = constants.KEY_DEFAULTS.keys()
-        lbltype_defaults = constants.KEY_DEFAULTS.values()
-        lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
-        ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
+        ibs._init_rowid_constants()
 
+    @ut.indent_func
     def _init_sqldb(ibs):
         from ibeis.control import _sql_helpers
         from ibeis.control import SQLDatabaseControl as sqldbc
@@ -302,9 +245,22 @@ class IBEISController(object):
         # Before load, ensure database has been backed up for the day
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
-        ibs.db_version_expected = '1.1.1'
+        #ibs.db_version_expected = '1.1.1'
+        ibs.db_version_expected = '1.2.0'
+
+        # TODO: add this functionality to SQLController
+        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        #if testing_newschmea:
+        #    # Set to true until the schema module is good then continue tests with this set to false
+        #    testing_force_fresh = True or ut.get_argflag('--force-fresh')
+        #    # Work on a fresh schema copy when developing
+        #    dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
+        #    sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+        #    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
+        #    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
+        #    ibs.db_version_expected = '1.2.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
-                                              text_factory=__STR__,
+                                              text_factory=const.__STR__,
                                               inmemory=False)
         # Ensure correct schema versions
         _sql_helpers.ensure_correct_version(
@@ -315,6 +271,7 @@ class IBEISController(object):
             autogenerate=params.args.dump_autogen_schema
         )
 
+    @ut.indent_func
     def _init_sqldbcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
         from ibeis.control import _sql_helpers
@@ -322,7 +279,8 @@ class IBEISController(object):
         from ibeis.control import DBCACHE_SCHEMA
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.3'
-        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
+        ibs.dbcache = sqldbc.SQLDatabaseController(
+            ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=const.__STR__)
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.dbcache,
@@ -349,6 +307,81 @@ class IBEISController(object):
     def backup_database(ibs):
         from ibeis.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+
+    @default_decorator
+    def _init_wb(ibs, wbaddr):
+        if wbaddr is None:
+            return
+        #TODO: Clean this up to use like ut and such
+        try:
+            requests.get(wbaddr)
+        except requests.MissingSchema as msa:
+            print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
+            raise msa
+        except requests.ConnectionError as coe:
+            print('[ibs._init_wb] Could not connect to Wildbook server at %r' % wbaddr)
+            raise coe
+        ibs.wbaddr = wbaddr
+
+    @default_decorator
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
+        """
+        Define ibs directories
+        """
+        PATH_NAMES = const.PATH_NAMES
+        REL_PATHS = const.REL_PATHS
+
+        if ensure and not ut.QUIET:
+            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
+        if dbdir is not None:
+            if not ut.QUIET:
+                print(dbdir)
+            workdir, dbname = split(dbdir)
+        ibs.workdir  = ut.truepath(workdir)
+        ibs.dbname = dbname
+        ibs.sqldb_fname = PATH_NAMES.sqldb
+        ibs.sqldbcache_fname = PATH_NAMES.sqldbcache
+
+        # Make sure you are not nesting databases
+        assert PATH_NAMES._ibsdb != ut.dirsplit(ibs.workdir), \
+            'cannot work in _ibsdb internals'
+        assert PATH_NAMES._ibsdb != dbname,\
+            'cannot create db in _ibsdb internals'
+        ibs.dbdir    = join(ibs.workdir, ibs.dbname)
+        # All internal paths live in <dbdir>/_ibsdb
+        # TODO: constantify these
+        # so non controller objects (like in score normalization) have access to
+        # these
+        ibs._ibsdb      = join(ibs.dbdir, REL_PATHS._ibsdb)
+        ibs.trashdir    = join(ibs.dbdir, REL_PATHS.trashdir)
+        ibs.cachedir    = join(ibs.dbdir, REL_PATHS.cache)
+        ibs.backupdir   = join(ibs.dbdir, REL_PATHS.backups)
+        ibs.chipdir     = join(ibs.dbdir, REL_PATHS.chips)
+        ibs.imgdir      = join(ibs.dbdir, REL_PATHS.images)
+        # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+        ibs.thumb_dpath = join(ibs.dbdir, REL_PATHS.thumbs)
+        ibs.flanndir    = join(ibs.dbdir, REL_PATHS.flann)
+        ibs.qresdir     = join(ibs.dbdir, REL_PATHS.qres)
+        ibs.bigcachedir = join(ibs.dbdir, REL_PATHS.bigcache)
+        if ensure:
+            ibs.ensure_directories()
+        assert dbdir is not None, 'must specify database directory'
+
+    def ensure_directories(ibs):
+        """
+        Makes sure the core directores for the controller exist
+        """
+        _verbose = ut.VERBOSE
+        ut.ensuredir(ibs._ibsdb)
+        ut.ensuredir(ibs.cachedir,    verbose=_verbose)
+        ut.ensuredir(ibs.backupdir,   verbose=_verbose)
+        ut.ensuredir(ibs.workdir,     verbose=_verbose)
+        ut.ensuredir(ibs.imgdir,      verbose=_verbose)
+        ut.ensuredir(ibs.chipdir,     verbose=_verbose)
+        ut.ensuredir(ibs.flanndir,    verbose=_verbose)
+        ut.ensuredir(ibs.qresdir,     verbose=_verbose)
+        ut.ensuredir(ibs.bigcachedir, verbose=_verbose)
+        ut.ensuredir(ibs.thumb_dpath, verbose=_verbose)
 
     #
     #
@@ -408,11 +441,45 @@ class IBEISController(object):
             list_ (list): database directory of all cached files """
         return ibs.cachedir
 
+    def get_ibeis_resource_dir(ibs):
+        from ibeis.dev import sysres
+        return sysres.get_ibeis_resource_dir()
+
+    def get_species_cachedir(ibs, species_text, ensure=True):
+        """
+        get_species_cachedir
+
+        Args:
+            ibs          (IBEISController):
+            species_text (str):
+            ensure       (bool):
+
+        Returns:
+            str: species_cachedir
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> species_text = ibeis.const.Species.ZEB_GREVY
+            >>> ensure = True
+            >>> species_cachedir = ibs.get_species_cachedir(species_text, ensure)
+            >>> species_cachedir = ibs.get_species_cachedir(ibeis.const.Species.ZEB_GREVY, ensure)
+            >>> result = str(species_cachedir)
+            >>> print(result)
+            C:\Users\joncrall\AppData\Roaming\ibeis\zebra_grevys
+
+        """
+        species_cachedir = join(ibs.get_ibeis_resource_dir(), species_text)
+        ut.ensurepath(species_cachedir)
+        return species_cachedir
+
     def get_detectimg_cachedir(ibs):
         """
         Returns:
             list_ (list): database directory of image resized for detections """
-        return join(ibs.cachedir, constants.PATH_NAMES.detectimg)
+        return join(ibs.cachedir, const.PATH_NAMES.detectimg)
 
     def get_flann_cachedir(ibs):
         """
@@ -438,2250 +505,6 @@ class IBEISController(object):
     # --- Configs ---
     #----------------
 
-    def _init_config(ibs):
-        """ Loads the database's algorithm configuration """
-        from ibeis.model import Config
-        # Always a fresh object
-        ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
-        # TODO: update cfgs between versions
-        try:
-            # Use pref cache
-            if utool.is_developer() or utool.get_argflag(('--nocache-pref',)):
-                raise Exception('')
-            ibs.cfg.load()
-            if utool.NOT_QUIET:
-                print('[ibs] successfully loaded config')
-        except Exception:
-            # Totally new completely default preferences
-            ibs._default_config()
-
-    def _default_config(ibs, new=False):
-        """ Resets the databases's algorithm configuration """
-        from ibeis.model import Config
-        if not utool.QUIET:
-            print('[ibs] building default config')
-        if new:
-            # Sometimes a fresh object
-            ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
-        query_cfg = Config.default_query_cfg()
-        ibs.set_query_cfg(query_cfg)
-        ibs.cfg.enc_cfg     = Config.EncounterConfig()
-        ibs.cfg.detect_cfg  = Config.DetectionConfig()
-        ibs.cfg.other_cfg   = Config.OtherConfig()
-
-        species_list = ibs.get_database_species()
-        if len(species_list) == 1:
-            # try to be intelligent about the default speceis
-            ibs.cfg.detect_cfg.species = species_list[0]
-
-    @default_decorator
-    def set_query_cfg(ibs, query_cfg):
-        #if ibs.qreq is not None:
-        #    ibs.qreq.set_cfg(query_cfg)
-        ibs.cfg.query_cfg = query_cfg
-        ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
-        ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
-        ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
-
-    @default_decorator
-    def update_query_cfg(ibs, **kwargs):
-        """ Updates query config only. Configs needs a restructure very badly """
-        ibs.cfg.query_cfg.update_query_cfg(**kwargs)
-        ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
-        ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
-        ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
-
-    @default_decorator
-    def get_chip_config_rowid(ibs):
-        """ # FIXME: Configs are still handled poorly
-
-        This method deviates from the rest of the controller methods because it
-        always returns a scalar instead of a list. I'm still not sure how to
-        make it more ibeisy
-        """
-        chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
-        chip_cfg_rowid = ibs.add_config(chip_cfg_suffix)
-        return chip_cfg_rowid
-
-    @default_decorator
-    def get_feat_config_rowid(ibs):
-        """
-        Returns the feature configuration id based on the cfgstr
-        defined by ibs.cfg.feat_cfg.get_cfgstr()
-
-        # FIXME: Configs are still handled poorly
-        used in ibeis.model.preproc.preproc_feats in the param
-        generator. (that should probably be moved into the controller)
-        """
-        feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
-        feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
-        return feat_cfg_rowid
-
-    @default_decorator
-    def get_query_config_rowid(ibs):
-        """ # FIXME: Configs are still handled poorly """
-        query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
-        query_cfg_rowid = ibs.add_config(query_cfg_suffix)
-        return query_cfg_rowid
-
-    #@default_decorator
-    #def get_qreq_rowid(ibs):
-    #    """ # FIXME: Configs are still handled poorly """
-    #    assert ibs.qres is not None
-    #    qreq_rowid = ibs.qreq.get_cfgstr()
-    #    return qreq_rowid
-
-    #
-    #
-    #-------------
-    # --- INFO ---
-    #-------------
-
-    def get_num_images(ibs, **kwargs):
-        """ Number of valid images """
-        gid_list = ibs.get_valid_gids(**kwargs)
-        return len(gid_list)
-
-    def get_num_annotations(ibs, **kwargs):
-        """ Number of valid annotations """
-        aid_list = ibs.get_valid_aids(**kwargs)
-        return len(aid_list)
-
-    def get_num_names(ibs, **kwargs):
-        """ Number of valid name (subset of lblannot) """
-        nid_list = ibs.get_valid_nids(**kwargs)
-        return len(nid_list)
-
-    #
-    #
-    #---------------
-    # --- IDERS ---
-    #---------------
-
-    # Standard
-
-    # Internal
-
-    @ider
-    def _get_all_contrib_rowids(ibs):
-        """
-        Returns:
-            list_ (list):  all unfiltered contrib_rowid (contributor rowid) """
-        all_contrib_rowids = ibs.db.get_all_rowids(CONTRIBUTOR_TABLE)
-        return all_contrib_rowids
-
-    @ider
-    def _get_all_gids(ibs):
-        """
-        Returns:
-            list_ (list):  all unfiltered gids (image rowids) """
-        all_gids = ibs.db.get_all_rowids(IMAGE_TABLE)
-        return all_gids
-
-    @ider
-    def _get_all_aids(ibs):
-        """
-        Returns:
-            list_ (list):  all unfiltered aids (annotation rowids) """
-        all_aids = ibs.db.get_all_rowids(ANNOTATION_TABLE)
-        return all_aids
-
-    @ider
-    def _get_all_eids(ibs):
-        """
-        Returns:
-            list_ (list):  all unfiltered eids (encounter rowids) """
-        all_eids = ibs.db.get_all_rowids(ENCOUNTER_TABLE)
-        return all_eids
-
-    @ider
-    def _get_all_cids(ibs):
-        """
-        Returns:
-            list_ (list): unfiltered cids (computed chip rowids) for every
-        configuration (YOU PROBABLY SHOULD NOT USE THIS) """
-        all_cids = ibs.dbcache.get_all_rowids(CHIP_TABLE)
-        return all_cids
-
-    @ider
-    def _get_all_fids(ibs):
-        """
-        Returns:
-            list_ (list): unfiltered fids (computed feature rowids) for every
-        configuration (YOU PROBABLY SHOULD NOT USE THIS)"""
-        all_fids = ibs.dbcache.get_all_rowids(FEATURE_TABLE)
-        return all_fids
-
-    _get_all_feat_rowids = _get_all_fids
-    _get_all_chip_rowids = _get_all_cids
-    _get_all_annot_rowids = _get_all_aids
-
-    @ider
-    def _get_all_known_lblannot_rowids(ibs, _lbltype):
-        """
-        Returns:
-            list_ (list): all nids of known animals
-            (does not include unknown names) """
-        all_known_lblannot_rowids = ibs.db.get_all_rowids_where(LBLANNOT_TABLE, 'lbltype_rowid=?', (ibs.lbltype_ids[_lbltype],))
-        return all_known_lblannot_rowids
-
-    @ider
-    def _get_all_lblannot_rowids(ibs):
-        all_lblannot_rowids = ibs.db.get_all_rowids(LBLANNOT_TABLE)
-        return all_lblannot_rowids
-
-    #@ider
-    #def _get_all_alr_rowids(ibs):
-    #    all_alr_rowids = ibs.db.get_all_rowids(AL_RELATION_TABLE)
-    #    return all_alr_rowids
-
-    @ider
-    def _get_all_known_nids(ibs):
-        """
-        Returns:
-            list_ (list): all nids of known animals
-            (does not include unknown names) """
-        all_known_nids = ibs._get_all_known_lblannot_rowids(constants.INDIVIDUAL_KEY)
-        return all_known_nids
-
-    @ider
-    def _get_all_known_species_rowids(ibs):
-        """
-        Returns:
-            list_ (list): all nids of known animals
-            (does not include unknown names) """
-        all_known_species_rowids = ibs._get_all_known_lblannot_rowids(constants.SPECIES_KEY)
-        return all_known_species_rowids
-
-    @ider
-    def get_valid_contrib_rowids(ibs):
-        """
-        Returns:
-            list_ (list):  list of all contributor ids """
-        contrib_rowids_list = ibs._get_all_contrib_rowids()
-        return contrib_rowids_list
-
-    @ider
-    def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
-        if eid is None:
-            gid_list = ibs._get_all_gids()
-        else:
-            gid_list = ibs.get_encounter_gids(eid)
-        if require_unixtime:
-            # Remove images without timestamps
-            unixtime_list = ibs.get_image_unixtime(gid_list)
-            isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
-            gid_list = utool.filter_items(gid_list, isvalid_list)
-        if reviewed is not None:
-            reviewed_list = ibs.get_image_reviewed(gid_list)
-            isvalid_list = [reviewed == flag for flag in reviewed_list]
-            gid_list = utool.filter_items(gid_list, isvalid_list)
-        return gid_list
-
-    @ider
-    def get_valid_eids(ibs, min_num_gids=0):
-        """
-        Returns:
-            list_ (list):  list of all encounter ids """
-        eid_list = ibs._get_all_eids()
-        if min_num_gids > 0:
-            num_gids_list = ibs.get_encounter_num_gids(eid_list)
-            flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
-            eid_list  = utool.filter_items(eid_list, flag_list)
-        return eid_list
-
-    @ider
-    def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filter', is_exemplar=None):
-        """
-        Note: The viewpoint value cannot be None as a default because None is used as a
-              filtering value
-
-        Returns:
-            list_ (list):  a list of valid ANNOTATION unique ids
-        """
-        if eid is None and is_exemplar is not None:
-            # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
-            return aid_list
-        if eid is None:
-            aid_list = ibs._get_all_aids()
-        else:
-            # HACK: Check to see if you want the
-            # exemplar "encounter" (image group)
-            enctext = ibs.get_encounter_enctext(eid)
-            if enctext == constants.EXEMPLAR_ENCTEXT:
-                is_exemplar = True
-            aid_list = ibs.get_encounter_aids(eid)
-        if include_only_gid_list is not None:
-            gid_list = ibs.get_annot_gids(aid_list)
-            isvalid_list = [ gid in include_only_gid_list for gid in gid_list]
-            aid_list = utool.filter_items(aid_list, isvalid_list)
-            pass
-        if viewpoint != 'no-filter':
-            viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-            isvalid_list = [viewpoint == flag for flag in viewpoint_list]
-            aid_list = utool.filter_items(aid_list, isvalid_list)
-        if is_exemplar:
-            flag_list = ibs.get_annot_exemplar_flag(aid_list)
-            aid_list = utool.filter_items(aid_list, flag_list)
-        return aid_list
-
-    @ider
-    def get_valid_nids(ibs, eid=None, filter_empty=False):
-        """
-        Returns:
-            list_ (list): all valid names with at least one animal
-            (does not include unknown names) """
-        if eid is None:
-            _nid_list = ibs._get_all_known_nids()
-        else:
-            _nid_list = ibs.get_encounter_nids(eid)
-        nRois_list = ibs.get_name_num_annotations(_nid_list)
-        if filter_empty:
-            nid_list = [nid for nid, nRois in zip(_nid_list, nRois_list)
-                        if nRois > 0]
-        else:
-            nid_list = _nid_list
-        return nid_list
-
-    @ider
-    def get_invalid_nids(ibs):
-        """
-        Returns:
-            list_ (list): all names without any animals (does not include unknown names) """
-        _nid_list = ibs._get_all_known_nids()
-        nRois_list = ibs.get_name_num_annotations(_nid_list)
-        nid_list = [nid for nid, nRois in zip(_nid_list, nRois_list)
-                    if nRois <= 0]
-        return nid_list
-
-    @ider
-    def get_valid_cids(ibs):
-        """ Valid chip rowids of the current configuration """
-        # FIXME: configids need reworking
-        chip_config_rowid = ibs.get_chip_config_rowid()
-        cid_list = ibs.dbcache.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
-        return cid_list
-
-    @ider
-    def get_valid_fids(ibs):
-        """ Valid feature rowids of the current configuration """
-        # FIXME: configids need reworking
-        feat_config_rowid = ibs.get_feat_config_rowid()
-        fid_list = ibs.dbcache.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
-        return fid_list
-
-    @ider
-    def get_valid_configids(ibs):
-        config_rowid_list = ibs.db.get_all_rowids(constants.CONFIG_TABLE)
-        return config_rowid_list
-
-    #
-    #
-    #---------------
-    # --- ADDERS ---
-    #---------------
-
-    @adder
-    def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
-        """
-        Adds metadata
-
-        Returns:
-            metadata_rowid_list (list): metadata rowids
-        """
-        if utool.VERBOSE:
-            print('[ibs] adding %d metadata' % len(metadata_key_list))
-        # Add encounter text names to database
-        colnames = ['metadata_key', 'metadata_value']
-        params_iter = zip(metadata_key_list, metadata_value_list)
-        get_rowid_from_superkey = partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))
-        metadata_rowid_list = db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
-        return metadata_rowid_list
-
-    @adder
-    def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None,
-                         loc_city_list=None, loc_state_list=None,
-                         loc_country_list=None, loc_zip_list=None,
-                         notes_list=None):
-        """
-        Adds a list of contributors.
-
-        Returns:
-            contrib_id_list (list): contributor rowids
-        """
-        import datetime
-        def _valid_zip(_zip, default='00000'):
-            _zip = str(_zip)
-            if len(_zip) == 5 and _zip.isdigit():
-                return _zip
-            return default
-
-        if utool.VERBOSE:
-            print('[ibs] adding %d encounters' % len(tag_list))
-        # Add contributors to database
-        if name_first_list is None:
-            name_first_list = [''] * len(tag_list)
-        if name_last_list is None:
-            name_last_list = [''] * len(tag_list)
-        if loc_city_list is None:
-            loc_city_list = [''] * len(tag_list)
-        if loc_state_list is None:
-            loc_state_list = [''] * len(tag_list)
-        if loc_country_list is None:
-            loc_country_list = [''] * len(tag_list)
-        if loc_zip_list is None:
-            loc_zip_list = [''] * len(tag_list)
-        if notes_list is None:
-            notes_list = [ "Created %s" % (datetime.datetime.now(),) for _ in range(len(tag_list))]
-
-        loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
-
-        if uuid_list is None:
-            uuid_list = [uuid.uuid4() for _ in range(len(tag_list))]
-
-        colnames = ['contributor_uuid', 'contributor_tag', 'contributor_name_first',
-                    'contributor_name_last', 'contributor_location_city',
-                    'contributor_location_state', 'contributor_location_country',
-                    'contributor_location_zip', 'contributor_note']
-        params_iter = zip(uuid_list, tag_list, name_first_list,
-                          name_last_list, loc_city_list, loc_state_list,
-                          loc_country_list, loc_zip_list, notes_list)
-
-        get_rowid_from_superkey = ibs.get_contributor_rowid_from_uuid
-        contrib_id_list = ibs.db.add_cleanly(CONTRIBUTOR_TABLE, colnames, params_iter, get_rowid_from_superkey)
-        return contrib_id_list
-
-    @adder
-    def add_images(ibs, gpath_list, params_list=None, as_annots=False):
-        """
-        Adds a list of image paths to the database.
-
-        Initially we set the image_uri to exactely the given gpath.
-        Later we change the uri, but keeping it the same here lets
-        us process images asychronously.
-
-        Args:
-            gpath_list (list): list of image paths to add
-            params_list (list): metadata list for corresponding images that can either be
-                specified outright or can be parsed from the image data directly if None
-            as_annots (bool): if True, an annotation is automatically added for the entire
-                image
-
-        Returns:
-            gid_list (list of rowids): gids are image rowids
-
-        Examples:
-            >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
-            >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
-            >>> ibs.add_images(gpath_list)
-        """
-        print('[ibs] add_images')
-        print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        #print('[ibs] gpath_list = %r' % (gpath_list,))
-        # Processing an image might fail, yeilding a None instead of a tup
-        from ibeis import ibsfuncs
-        from ibeis.model.preproc import preproc_image
-        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
-        if params_list is None:
-            # Create param_iter
-            params_list  = list(preproc_image.add_images_params_gen(gpath_list))
-        # Error reporting
-        print('\n'.join(
-            [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params)
-             in zip(gpath_list, params_list) if not params]))
-        # Add any unadded images
-        colnames = ('image_uuid', 'image_uri', 'image_original_name',
-                    'image_ext', 'image_width', 'image_height',
-                    'image_time_posix', 'image_gps_lat',
-                    'image_gps_lon', 'image_note',)
-        # <DEBUG>
-        if utool.VERBOSE:
-            uuid_list = [None if params is None else params[0] for params in params_list]
-            gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
-            valid_gids = ibs.get_valid_gids()
-            valid_uuids = ibs.get_image_uuids(valid_gids)
-            print('[preadd] uuid / gid_ = ' + utool.indentjoin(zip(uuid_list, gid_list_)))
-            print('[preadd] valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
-        # </DEBUG>
-        # Execute SQL Add
-        gid_list = ibs.db.add_cleanly(IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
-
-        if ut.duplicates_exist(gid_list):
-            gpath_list = ibs.get_image_paths(gid_list)
-            guuid_list = ibs.get_image_uuids(gid_list)
-            gext_list  = ibs.get_image_exts(gid_list)
-            ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
-
-        if utool.VERBOSE:
-            uuid_list = [None if params is None else params[0] for params in params_list]
-            gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
-            valid_gids = ibs.get_valid_gids()
-            valid_uuids = ibs.get_image_uuids(valid_gids)
-            print('[postadd] uuid / gid_ = ' + utool.indentjoin(zip(uuid_list, gid_list_)))
-            print('[postadd] uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list)))
-            print('[postadd] valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
-
-        #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
-        if ibs.cfg.other_cfg.auto_localize:
-            # Move to ibeis database local cache
-            ibs.localize_images(gid_list)
-
-        if as_annots:
-            # Add succesfull imports as annotations
-            isnone_list = [gid is None for gid in gid_list]
-            gid_list_ = utool.filterfalse_items(gid_list, isnone_list)
-            aid_list = ibs.use_images_as_annotations(gid_list)
-            print('[ibs] added %d annotations' % (len(aid_list),))
-        return gid_list
-
-    def localize_images(ibs, gid_list_=None):
-        """
-        Moves the images into the ibeis image cache.
-        Images are renamed to img_uuid.ext
-        """
-        if gid_list_ is None:
-            print('WARNING: you are localizing all gids')
-            gid_list_  = ibs.get_valid_gids()
-        isnone_list = [gid is None for gid in gid_list_]
-        gid_list = utool.unique_keep_order2(utool.filterfalse_items(gid_list_, isnone_list))
-        gpath_list = ibs.get_image_paths(gid_list)
-        guuid_list = ibs.get_image_uuids(gid_list)
-        gext_list  = ibs.get_image_exts(gid_list)
-        # Build list of image names based on uuid in the ibeis imgdir
-        guuid_strs = (str(guuid) for guuid in guuid_list)
-        loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
-        loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
-        # Copy images to local directory
-        utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
-        # Update database uris
-        ibs.set_image_uris(gid_list, loc_gname_list)
-        assert all(map(exists, loc_gpath_list)), 'not all images copied'
-
-    @adder
-    def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,
-                       notes_list=None):
-        """
-        Adds a list of encounters.
-
-        Returns:
-            eid_list (list): added encounter rowids
-        """
-        if utool.VERBOSE:
-            print('[ibs] adding %d encounters' % len(enctext_list))
-        # Add encounter text names to database
-        if notes_list is None:
-            notes_list = [''] * len(enctext_list)
-        if encounter_uuid_list is None:
-            encounter_uuid_list = [uuid.uuid4() for _ in range(len(enctext_list))]
-        if config_rowid_list is None:
-            config_rowid_list = [ibs.MANUAL_CONFIGID] * len(enctext_list)
-        colnames = ['encounter_text', 'encounter_uuid', 'config_rowid', 'encounter_note']
-        params_iter = zip(enctext_list, encounter_uuid_list, config_rowid_list, notes_list)
-        get_rowid_from_superkey = partial(ibs.get_encounter_eids_from_text, ensure=False)
-        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_superkey)
-        return eid_list
-
-    @adder
-    def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
-                        species_list=None, nid_list=None, name_list=None,
-                        detect_confidence_list=None, notes_list=None,
-                        vert_list=None, annotation_uuid_list=None, viewpoint_list=None,
-                        quiet_delete_thumbs=False):
-        """
-        Adds an annotation to images
-
-        Args:
-            gid_list (list of rowids): image rowids to add annotation to
-            bbox_list (list of [x, y, w, h]): bounding boxes for each image (optional). Supply Verts instead
-            theta_list (list of float): orientations of annotations
-            vert_list (list of lists):  alternative to bounding box
-
-        Returns:
-             list: aid_list a list of annotation rowids
-        """
-        from vtool import geometry
-        if utool.VERBOSE:
-            print('[ibs] adding annotations')
-        # Prepare the SQL input
-        assert name_list is None or nid_list is None, 'cannot specify both names and nids'
-        # For import only, we can specify both by setting import_override to True
-        assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
-
-        if theta_list is None:
-            theta_list = [0.0 for _ in range(len(gid_list))]
-        if name_list is not None:
-            nid_list = ibs.add_names(name_list)
-        if detect_confidence_list is None:
-            detect_confidence_list = [0.0 for _ in range(len(gid_list))]
-        if notes_list is None:
-            notes_list = ['' for _ in range(len(gid_list))]
-        if vert_list is None:
-            vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
-        elif bbox_list is None:
-            bbox_list = geometry.bboxes_from_vert_list(vert_list)
-
-        len_bbox    = len(bbox_list)
-        len_vert    = len(vert_list)
-        len_gid     = len(gid_list)
-        len_notes   = len(notes_list)
-        len_theta   = len(theta_list)
-        try:
-            assert len_vert == len_bbox, 'bbox and verts are not of same size'
-            assert len_gid  == len_bbox, 'bbox and gid are not of same size'
-            assert len_gid  == len_theta, 'bbox and gid are not of same size'
-            assert len_notes == len_gid, 'notes and gids are not of same size'
-        except AssertionError as ex:
-            utool.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox'
-                                        'len_theta', 'len_notes'])
-            raise
-
-        if len(gid_list) == 0:
-            # nothing is being added
-            print('[ibs] WARNING: 0 annotations are beign added!')
-            print(utool.dict_str(locals()))
-            return []
-
-        # Build ~~deterministic?~~ random and unique ANNOTATION ids
-        image_uuid_list = ibs.get_image_uuids(gid_list)
-        #annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
-        #                                                      theta_list, deterministic=False)
-        if annotation_uuid_list is None:
-            annotation_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
-        if viewpoint_list is None:
-            viewpoint_list = [-1.0] * len(image_uuid_list)
-        nVert_list = [len(verts) for verts in vert_list]
-        vertstr_list = [__STR__(verts) for verts in vert_list]
-        xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
-        assert len(nVert_list) == len(vertstr_list)
-        # Define arguments to insert
-        colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
-                    'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                    'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
-                    'annot_note',)
-
-        params_iter = list(zip(annotation_uuid_list, gid_list, xtl_list, ytl_list,
-                                width_list, height_list, theta_list, nVert_list,
-                                vertstr_list, viewpoint_list, detect_confidence_list,
-                                notes_list))
-        #utool.embed()
-
-        # Execute add ANNOTATIONs SQL
-        get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
-        aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
-
-        if species_list is not None:
-            species_list = [species.lower() for species in species_list]
-            ibs.set_annot_species(aid_list, species_list)
-
-        # Also need to populate annotation_lblannot_relationship table
-        if nid_list is not None:
-            alrid_list = ibs.add_annot_relationship(aid_list, nid_list)
-            del alrid_list
-        #print('alrid_list = %r' % (alrid_list,))
-        # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from utool
-        ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs)
-        return aid_list
-
-    #@adder
-    # DEPRICATE
-    #def add_annot_names(ibs, aid_list, name_list=None, nid_list=None):
-    #    """ Sets names/nids of a list of annotations.
-    #    Convenience function for add_annot_relationship"""
-    #    assert name_list is None or nid_list is None, (
-    #        'can only specify one type of name values (nid or name) not both')
-    #    if nid_list is None:
-    #        assert name_list is not None
-    #        # Convert names into nids
-    #        nid_list = ibs.add_names(name_list)
-    #    ibs.add_annot_relationship(aid_list, nid_list)
-
-    # Internal
-
-    @adder
-    def add_version(ibs, versiontext_list):
-        """ Adds an algorithm / actor configuration as a string """
-        # FIXME: Configs are still handled poorly
-        params_iter = ((versiontext,) for versiontext in versiontext_list)
-        get_rowid_from_superkey = ibs.get_version_rowid_from_superkey
-        versionid_list = ibs.db.add_cleanly(VERSIONS_TABLE, ('version_text',),
-                                            params_iter, get_rowid_from_superkey)
-        return versionid_list
-
-    @adder
-    def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
-        """ Adds an algorithm / actor configuration as a string """
-        # FIXME: Configs are still handled poorly. This function is an ensure
-        params_iter = ((suffix,) for suffix in cfgsuffix_list)
-        get_rowid_from_superkey = ibs.get_config_rowid_from_suffix
-        config_rowid_list = ibs.db.add_cleanly(constants.CONFIG_TABLE, ('config_suffix',),
-                                               params_iter, get_rowid_from_superkey)
-        if contrib_rowid_list is not None:
-            ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
-        return config_rowid_list
-
-    @adder
-    def add_chips(ibs, aid_list):
-        """
-        FIXME: This is a dirty dirty function
-        Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
-        and then pass them here to ensure chips are computed) """
-        # Ensure must be false, otherwise an infinite loop occurs
-        from ibeis.model.preproc import preproc_chip
-        cid_list = ibs.get_annot_cids(aid_list, ensure=False)
-        dirty_aids = utool.get_dirty_items(aid_list, cid_list)
-        if len(dirty_aids) > 0:
-            if not utool.QUIET:
-                print('[ibs] adding chips')
-            try:
-                # FIXME: Cant be lazy until chip config / delete issue is fixed
-                preproc_chip.compute_and_write_chips(ibs, aid_list)
-                #preproc_chip.compute_and_write_chips_lazy(ibs, aid_list)
-                params_iter = preproc_chip.add_chips_params_gen(ibs, dirty_aids)
-            except AssertionError as ex:
-                utool.printex(ex, '[!ibs.add_chips]')
-                print('[!ibs.add_chips] ' + utool.list_dbgstr('aid_list'))
-                raise
-            colnames = ('annot_rowid', 'config_rowid', 'chip_uri', 'chip_width', 'chip_height',)
-            get_rowid_from_superkey = partial(ibs.get_annot_cids, ensure=False)
-            cid_list = ibs.dbcache.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
-
-        return cid_list
-
-    @adder
-    def add_feats(ibs, cid_list, force=False):
-        """ Computes the features for every chip without them """
-        from ibeis.model.preproc import preproc_feat
-        fid_list = ibs.get_chip_fids(cid_list, ensure=False)
-        dirty_cids = utool.get_dirty_items(cid_list, fid_list)
-        if len(dirty_cids) > 0:
-            if utool.VERBOSE:
-                print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
-            params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
-            colnames = ('chip_rowid', 'config_rowid', 'feature_num_feats', 'feature_keypoints',
-                        'feature_vecs')
-            get_rowid_from_superkey = partial(ibs.get_chip_fids, ensure=False)
-            fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
-
-        return fid_list
-
-    #
-    #
-    #----------------
-    # --- SETTERS ---
-    #----------------
-
-    # SETTERS::METADATA
-
-    @setter
-    def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
-        """ Sets metadata key, value pairs
-        """
-        db = db[0]  # Unwrap tuple, required by @setter decorator
-        metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
-        id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
-        val_list = ((metadata_value,) for metadata_value in metadata_value_list)
-        db.set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
-
-    def set_database_version(ibs, db, version):
-        """ Sets the specified database's version from the controller
-        """
-        db.set_db_version(version)
-
-    # SETTERS::CONTRIBUTORS
-
-    def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
-        """ Sets the config's contributor rowid """
-        id_iter = ((config_rowid,) for config_rowid in config_rowid_list)
-        val_list = ((contrib_rowid,) for contrib_rowid in contrib_rowid_list)
-        ibs.db.set(constants.CONFIG_TABLE, ('contributor_rowid',), val_list, id_iter)
-
-    def set_config_contributor_unassigned(ibs, contrib_rowid):
-        config_rowid_list = ibs.get_valid_configids()
-        contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
-        unassigned_config_rowid_list = [
-            config_rowid
-            for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
-            if _contrib_rowid is None
-        ]
-        contrib_rowid_list = list([contrib_rowid]) * len(unassigned_config_rowid_list)
-        ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
-
-    def set_image_contributor_unassigned(ibs, contrib_rowid):
-        gid_list = ibs.get_valid_gids()
-        contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
-        unassigned_gid_list = [
-            gid
-            for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)
-            if _contrib_rowid is None
-        ]
-        contrib_rowid_list = list([contrib_rowid]) * len(unassigned_gid_list)
-        ibs.set_image_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
-
-    def ensure_encounter_configs_populated(ibs):
-        eid_list = ibs.get_valid_eids()
-        config_rowid_list = ibs.get_encounter_config(eid_list)
-        unassigned_eid_list = [
-            eid
-            for eid, config_rowid in zip(eid_list, config_rowid_list)
-            if config_rowid is None
-        ]
-        id_iter = ((eid,) for eid in unassigned_eid_list)
-        config_rowid_list = list([ibs.MANUAL_CONFIGID]) * len(unassigned_eid_list)
-        val_list = ((config_rowid,) for config_rowid in config_rowid_list)
-        ibs.db.set(ENCOUNTER_TABLE, ('config_rowid',), val_list, id_iter)
-
-    # SETTERS::IMAGE
-
-    @setter
-    def set_image_uris(ibs, gid_list, new_gpath_list):
-        """ Sets the image URIs to a new local path.
-        This is used when localizing or unlocalizing images.
-        An absolute path can either be on this machine or on the cloud
-        A relative path is relative to the ibeis image cache on this machine.
-        """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((new_gpath,) for new_gpath in new_gpath_list)
-        ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_iter)
-
-    @setter
-    def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list):
-        """ Sets the image contributor rowid """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
-        ibs.db.set(IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter)
-
-    @setter
-    def set_image_reviewed(ibs, gid_list, reviewed_list):
-        """ Sets the image all instances found bit """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((reviewed,) for reviewed in reviewed_list)
-        ibs.db.set(IMAGE_TABLE, ('image_toggle_reviewed',), val_list, id_iter)
-
-    @setter
-    def set_image_enabled(ibs, gid_list, enabled_list):
-        """ Sets the image all instances found bit """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((enabled,) for enabled in enabled_list)
-        ibs.db.set(IMAGE_TABLE, ('image_toggle_enabled',), val_list, id_iter)
-
-    @setter
-    def set_image_notes(ibs, gid_list, notes_list):
-        """ Sets the image all instances found bit """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(IMAGE_TABLE, ('image_note',), val_list, id_iter)
-
-    @setter
-    def set_image_unixtime(ibs, gid_list, unixtime_list):
-        """ Sets the image unixtime (does not modify exif yet) """
-        id_iter = ((gid,) for gid in gid_list)
-        val_list = ((unixtime,) for unixtime in unixtime_list)
-        ibs.db.set(IMAGE_TABLE, ('image_time_posix',), val_list, id_iter)
-
-    @setter
-    def set_image_enctext(ibs, gid_list, enctext_list):
-        """ Sets the encoutertext of each image """
-        # FIXME: Slow and weird
-        if utool.VERBOSE:
-            print('[ibs] setting %r image encounter ids (from text)' % len(gid_list))
-        eid_list = ibs.add_encounters(enctext_list)
-        ibs.set_image_eids(gid_list, eid_list)
-
-    @setter
-    def set_image_eids(ibs, gid_list, eid_list):
-        """ Sets the encoutertext of each image """
-        if utool.VERBOSE:
-            print('[ibs] setting %r image encounter ids' % len(gid_list))
-        egrid_list = ibs.add_image_relationship(gid_list, eid_list)
-        del egrid_list
-
-    @setter
-    def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
-        """ see get_image_gps for how the gps_list should look.
-            lat and lon should be given in degrees """
-        if gps_list is not None:
-            assert lat_list is None
-            assert lon_list is None
-            lat_list = [tup[0] for tup in gps_list]
-            lon_list = [tup[1] for tup in gps_list]
-        colnames = ('image_gps_lat', 'image_gps_lon',)
-        val_list = zip(lat_list, lon_list)
-        id_iter = ((gid,) for gid in gid_list)
-        ibs.db.set(IMAGE_TABLE, colnames, val_list, id_iter)
-
-    # SETTERS::ANNOTATION
-
-    @setter
-    def set_annot_exemplar_flag(ibs, aid_list, flag_list):
-        """ Sets if an annotation is an exemplar """
-        id_iter = ((aid,) for aid in aid_list)
-        val_iter = ((flag,) for flag in flag_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_exemplar_flag',), val_iter, id_iter)
-
-    @setter
-    def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
-        """ Sets the annotation's parent aid """
-        id_iter = ((aid,) for aid in aid_list)
-        val_iter = ((parent_aid,) for parent_aid in parent_aid_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_parent_rowid',), val_iter, id_iter)
-
-    @setter
-    def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
-        """
-        Sets bboxes of a list of annotations by aid,
-
-        Args:
-            aid_list (list of rowids): list of annotation rowids
-            bbox_list (list of (x, y, w, h)): new bounding boxes for each aid
-
-        Note:
-            set_annot_bboxes is a proxy for set_annot_verts
-        """
-        from vtool import geometry
-        # changing the bboxes also changes the bounding polygon
-        vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
-        # naively overwrite the bounding polygon with a rectangle - for now trust the user!
-        ibs.set_annot_verts(aid_list, vert_list, delete_thumbs=delete_thumbs)
-
-    @setter
-    def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
-        """ Sets thetas of a list of chips by aid """
-        id_iter = ((aid,) for aid in aid_list)
-        val_list = ((theta,) for theta in theta_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_theta',), val_list, id_iter)
-        if delete_thumbs:
-            ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
-
-    @setter
-    def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
-        """ Sets the vertices [(x, y), ...] of a list of chips by aid """
-        from vtool import geometry
-        nInput = len(aid_list)
-        # Compute data to set
-        num_verts_list   = list(map(len, verts_list))
-        verts_as_strings = list(map(__STR__, verts_list))
-        id_iter1 = ((aid,) for aid in aid_list)
-        # also need to set the internal number of vertices
-        val_iter1 = ((num_verts, verts) for (num_verts, verts)
-                     in zip(num_verts_list, verts_as_strings))
-        colnames = ('annot_num_verts', 'annot_verts',)
-        # SET VERTS in ANNOTATION_TABLE
-        ibs.db.set(ANNOTATION_TABLE, colnames, val_iter1, id_iter1, nInput=nInput)
-        # changing the vertices also changes the bounding boxes
-        bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
-        xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
-        val_iter2 = zip(xtl_list, ytl_list, width_list, height_list)
-        id_iter2 = ((aid,) for aid in aid_list)
-        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
-        # SET BBOX in ANNOTATION_TABLE
-        ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
-        if delete_thumbs:
-            ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
-
-    @setter
-    def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
-        """ Sets the vertices [(x, y), ...] of a list of chips by aid """
-        import numpy as np
-        def deg_to_rad(degree):
-            if degree == -1:
-                return -1
-            degree %= 360.0
-            return (degree / 360.0) * 2 * np.pi
-        id_iter = ((aid,) for aid in aid_list)
-        viewpoint_list = [ -1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
-        if convert_radians:
-            viewpoint_list = [ deg_to_rad(viewpoint) for viewpoint in viewpoint_list]
-        assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])
-        val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_viewpoint',), val_iter, id_iter)
-
-    @setter
-    def set_annot_detect_confidence(ibs, aid_list, confidence_list):
-        """ Sets annotation notes """
-        id_iter = ((aid,) for aid in aid_list)
-        val_iter = ((confidence,) for confidence in confidence_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_detect_confidence',), val_iter, id_iter)
-
-    @setter
-    def set_annot_notes(ibs, aid_list, notes_list):
-        """ Sets annotation notes """
-        id_iter = ((aid,) for aid in aid_list)
-        val_iter = ((notes,) for notes in notes_list)
-        ibs.db.set(ANNOTATION_TABLE, ('annot_note',), val_iter, id_iter)
-
-    # SETTERS::ENCOUNTER
-
-    @setter
-    def set_encounter_enctext(ibs, eid_list, names_list):
-        """ Sets names of encounters (groups of animals) """
-        id_iter = ((eid,) for eid in eid_list)
-        val_list = ((names,) for names in names_list)
-        ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_iter)
-
-    #
-    #
-    #----------------
-    # --- GETTERS ---
-    #----------------
-
-    @getter_1to1
-    def get_metadata_value(ibs, metadata_key_list, db):
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_value_list = db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
-        return metadata_value_list
-
-    @getter_1to1
-    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
-        db = db[0]  # Unwrap tuple, required by @getter_1to1 decorator
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_rowid_list = db.get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
-        return metadata_rowid_list
-
-    @ider
-    def get_database_version(ibs, db):
-        ''' Gets the specified database version from the controller '''
-        return db.get_db_version()
-
-    #
-    # GETTERS::IMAGE_TABLE
-
-    @getter_1to1
-    def get_images(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of images in numpy matrix form by gid
-        """
-        from vtool import image as gtool
-        gpath_list = ibs.get_image_paths(gid_list)
-        image_list = [gtool.imread(gpath) for gpath in gpath_list]
-        return image_list
-
-    @getter_1to1
-    def get_image_thumbtup(ibs, gid_list, thumbsize=128):
-        """
-        Returns:
-            list_ (list): tuple of image paths, thumb paths, bboxes and thetas """
-        # print('gid_list = %r' % (gid_list,))
-        from ibeis import ibsfuncs
-        aids_list = ibs.get_image_aids(gid_list)
-        bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
-        thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
-        thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=128)
-        image_paths = ibs.get_image_paths(gid_list)
-        gsize_list = ibs.get_image_sizes(gid_list)
-        thumbtup_list = list(zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list))
-        return thumbtup_list
-
-    @getter_1to1
-    def get_image_thumbpath(ibs, gid_list, thumbsize=128):
-        """
-        Returns:
-            list_ (list): the thumbnail path of each gid """
-        thumb_dpath = ibs.thumb_dpath
-        img_uuid_list = ibs.get_image_uuids(gid_list)
-        thumb_suffix = '_' + str(thumbsize) + constants.IMAGE_THUMB_SUFFIX
-        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + thumb_suffix)
-                          for uuid in img_uuid_list]
-        return thumbpath_list
-
-    @getter_1to1
-    def get_image_uuids(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image uuids by gid """
-        image_uuid_list = ibs.db.get(IMAGE_TABLE, ('image_uuid',), gid_list)
-        return image_uuid_list
-
-    @getter_1to1
-    def get_image_contributor_rowid(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image' contributor rowids by gid """
-        contrib_rowid_list = ibs.db.get(IMAGE_TABLE, ('contributor_rowid',), gid_list)
-        return contrib_rowid_list
-
-    @getter_1to1
-    def get_image_exts(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image uuids by gid """
-        image_uuid_list = ibs.db.get(IMAGE_TABLE, ('image_ext',), gid_list)
-        return image_uuid_list
-
-    @getter_1to1
-    def get_image_uris(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image uris relative to the image dir by gid """
-        uri_list = ibs.db.get(IMAGE_TABLE, ('image_uri',), gid_list)
-        return uri_list
-
-    @getter_1to1
-    def get_image_gids_from_uuid(ibs, uuid_list):
-        """
-        Returns:
-            list_ (list): a list of original image names """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), uuid_list, id_colname='image_uuid')
-        return gid_list
-
-    get_image_rowid_from_uuid = get_image_gids_from_uuid
-
-    @getter_1to1
-    def get_image_paths(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image absolute paths to img_dir """
-        utool.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
-        uri_list = ibs.get_image_uris(gid_list)
-        # Images should never have null uris
-        utool.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
-        gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
-        return gpath_list
-
-    # TODO make this actually return a uri format
-    get_image_absolute_uri = get_image_paths
-
-    @getter_1to1
-    def get_image_detectpaths(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of image paths resized to a constant area for detection
-        """
-        from ibeis.model.preproc import preproc_detectimg
-        new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
-        return new_gfpath_list
-
-    @getter_1to1
-    def get_image_gnames(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of original image names """
-        gname_list = ibs.db.get(IMAGE_TABLE, ('image_original_name',), gid_list)
-        return gname_list
-
-    @getter_1to1
-    def get_image_sizes(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of (width, height) tuples """
-        gsize_list = ibs.db.get(IMAGE_TABLE, ('image_width', 'image_height'), gid_list)
-        return gsize_list
-
-    @utool.accepts_numpy
-    @getter_1to1
-    def get_image_unixtime(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of times that the images were taken by gid.
-
-        Returns:
-            list_ (list): -1 if no timedata exists for a given gid
-        """
-        return ibs.db.get(IMAGE_TABLE, ('image_time_posix',), gid_list)
-
-    @getter_1to1
-    def get_image_gps(ibs, gid_list):
-        """
-        Returns:
-            gps_list (list): -1 if no timedata exists for a given gid
-        """
-        gps_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
-        return gps_list
-
-    @getter_1to1
-    def get_image_lat(ibs, gid_list):
-        lat_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat',), gid_list)
-        return lat_list
-
-    @getter_1to1
-    def get_image_lon(ibs, gid_list):
-        lon_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lon',), gid_list)
-        return lon_list
-
-    @getter_1to1
-    def get_image_enabled(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): "Image Enabled" flag, true if the image is enabled """
-        enabled_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_enabled',), gid_list)
-        return enabled_list
-
-    @getter_1to1
-    def get_image_reviewed(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): "All Instances Found" flag, true if all objects of interest
-        (animals) have an ANNOTATION in the image """
-        reviewed_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_reviewed',), gid_list)
-        return reviewed_list
-
-    @getter_1to1
-    def get_image_detect_confidence(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): image detection confidence as the max of ANNOTATION confidences """
-        aids_list = ibs.get_image_aids(gid_list)
-        from ibeis import ibsfuncs
-        confs_list = ibsfuncs.unflat_map(ibs.get_annot_detect_confidence, aids_list)
-        maxconf_list = [max(confs) if len(confs) > 0 else -1 for confs in confs_list]
-        return maxconf_list
-
-    @getter_1to1
-    def get_image_notes(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): image notes """
-        notes_list = ibs.db.get(IMAGE_TABLE, ('image_note',), gid_list)
-        return notes_list
-
-    @getter_1to1
-    def get_image_nids(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): the name ids associated with an image id """
-        aids_list = ibs.get_image_aids(gid_list)
-        nids_list = ibs.get_annot_nids(aids_list)
-        return nids_list
-
-    @getter_1toM
-    def get_image_eids(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of encounter ids for each image by gid """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        colnames = ('encounter_rowid',)
-        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list,
-                               id_colname='image_rowid', unpack_scalars=False)
-        return eids_list
-
-    @getter_1toM
-    def get_image_enctext(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of enctexts for each image by gid """
-        from ibeis import ibsfuncs
-        eids_list = ibs.get_image_eids(gid_list)
-        enctext_list = ibsfuncs.unflat_map(ibs.get_encounter_enctext, eids_list)
-        return enctext_list
-
-    @getter_1toM
-    def get_image_aids(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): a list of aids for each image by gid """
-        # print('gid_list = %r' % (gid_list,))
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        colnames = ('annot_rowid',)
-        aids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list,
-                               id_colname='image_rowid', unpack_scalars=False)
-        #print('aids_list = %r' % (aids_list,))
-        return aids_list
-
-    @getter_1to1
-    def get_image_num_annotations(ibs, gid_list):
-        """
-        Returns:
-            list_ (list): the number of chips in each image """
-        return list(map(len, ibs.get_image_aids(gid_list)))
-
-    @getter_1to1
-    def get_image_egrids(ibs, gid_list):
-        """
-        Returns:
-            list_ (list):  a list of encounter-image-relationship rowids for each imageid """
-        # TODO: Group type
-        params_iter = ((gid,) for gid in gid_list)
-        where_clause = 'image_rowid=?'
-        # list of relationships for each image
-        egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',), params_iter, where_clause, unpack_scalars=False)
-        return egrids_list
-
-    #
-    # GETTERS::ANNOTATION_TABLE
-
-    @getter_1to1
-    def get_annot_exemplar_flag(ibs, aid_list):
-        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
-        return annotation_uuid_list
-
-    @getter_1to1
-    def get_annot_uuids(ibs, aid_list):
-        """
-        Returns:
-            list_ (list): a list of image uuids by gid """
-        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), aid_list)
-        return annotation_uuid_list
-
-    @getter_1to1
-    def get_annot_parent_aid(ibs, aid_list):
-        """
-        Returns:
-            list_ (list): a list of image uuids by gid """
-        annotation_parent_rowid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_parent_rowid',), aid_list)
-        return annotation_parent_rowid_list
-
-    @getter_1to1
-    def get_annot_aids_from_uuid(ibs, uuid_list):
-        """
-        Returns:
-            list_ (list): a list of original image names """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        aids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), uuid_list, id_colname='annot_uuid')
-        return aids_list
-
-    get_annot_rowid_from_uuid = get_annot_aids_from_uuid
-
-    @getter_1to1
-    def get_annot_detect_confidence(ibs, aid_list):
-        """
-        Returns:
-            list_ (list): a list confidences that the annotations is a valid detection """
-        annotation_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
-        return annotation_detect_confidence_list
-
-    @getter_1to1
-    def get_annot_notes(ibs, aid_list):
-        """
-        Returns:
-            annotation_notes_list (list): a list of annotation notes """
-        annotation_notes_list = ibs.db.get(ANNOTATION_TABLE, ('annot_note',), aid_list)
-        return annotation_notes_list
-
-    @utool.accepts_numpy
-    @getter_1toM
-    def get_annot_bboxes(ibs, aid_list):
-        """
-        Returns:
-            bbox_list (list):  annotation bounding boxes in image space """
-        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
-        bbox_list = ibs.db.get(ANNOTATION_TABLE, colnames, aid_list)
-        return bbox_list
-
-    @getter_1to1
-    def get_annot_thetas(ibs, aid_list):
-        """
-        Returns:
-            theta_list (list): a list of floats describing the angles of each chip """
-        theta_list = ibs.db.get(ANNOTATION_TABLE, ('annot_theta',), aid_list)
-        return theta_list
-
-    @getter_1to1
-    def get_annot_num_verts(ibs, aid_list):
-        """
-        Returns:
-            num_verts_list (list): the number of vertices that form the polygon of each chip """
-        num_verts_list = ibs.db.get(ANNOTATION_TABLE, ('annot_num_verts',), aid_list)
-        return num_verts_list
-
-    @getter_1to1
-    def get_annot_verts(ibs, aid_list):
-        """
-        Returns:
-            vert_list (list): the vertices that form the polygon of each chip """
-        vertstr_list = ibs.db.get(ANNOTATION_TABLE, ('annot_verts',), aid_list)
-        # TODO: Sanatize input for eval
-        #print('vertstr_list = %r' % (vertstr_list,))
-        vert_list = [eval(vertstr) for vertstr in vertstr_list]
-        return vert_list
-
-    @getter_1to1
-    def get_annot_viewpoints(ibs, aid_list):
-        """
-        Returns:
-            viewpoint_list (list): the viewpoint (in radians) for the annotation """
-        viewpoint_list = ibs.db.get(ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
-        viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
-        return viewpoint_list
-
-    @utool.accepts_numpy
-    @getter_1to1
-    @cache_getter(ANNOTATION_TABLE, 'image_rowid')
-    def get_annot_gids(ibs, aid_list):
-        """
-        Returns:
-            gid_list (list):  annotation bounding boxes in image space """
-        gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), aid_list)
-        return gid_list
-
-    @getter_1to1
-    def get_annot_images(ibs, aid_list):
-        """
-        Returns:
-            image_list (list): the images of each annotation """
-        gid_list = ibs.get_annot_gids(aid_list)
-        image_list = ibs.get_images(gid_list)
-        return image_list
-
-    @getter_1to1
-    def get_annot_image_uuids(ibs, aid_list):
-        gid_list = ibs.get_annot_gids(aid_list)
-        image_uuid_list = ibs.get_image_uuids(gid_list)
-        return image_uuid_list
-
-    @getter_1to1
-    def get_annot_gnames(ibs, aid_list):
-        """
-        Returns:
-            gname_list (list): the image names of each annotation """
-        gid_list = ibs.get_annot_gids(aid_list)
-        gname_list = ibs.get_image_gnames(gid_list)
-        return gname_list
-
-    @getter_1to1
-    def get_annot_gpaths(ibs, aid_list):
-        """
-        Returns:
-            gpath_list (list): the image names of each annotation """
-        gid_list = ibs.get_annot_gids(aid_list)
-        try:
-            utool.assert_all_not_None(gid_list, 'gid_list')
-        except AssertionError:
-            print('[!get_annot_gpaths] ' + utool.list_dbgstr('aid_list'))
-            print('[!get_annot_gpaths] ' + utool.list_dbgstr('gid_list'))
-            raise
-        gpath_list = ibs.get_image_paths(gid_list)
-        utool.assert_all_not_None(gpath_list, 'gpath_list')
-        return gpath_list
-
-    @getter_1to1
-    def get_annot_cids(ibs, aid_list, ensure=True, all_configs=False,
-                       eager=True, nInput=None, qreq_=None):
-        # TODO: DEPRICATE IN FAVOR OF AUTOGENERATED METHOD
-        # get_annot_chip_rowids. THEN ALIAS THAT TO THIS
-        # FIXME:
-        if ensure:
-            try:
-                ibs.add_chips(aid_list)
-            except AssertionError as ex:
-                utool.printex(ex, '[!ibs.get_annot_cids]')
-                print('[!ibs.get_annot_cids] aid_list = %r' % (aid_list,))
-                raise
-        if all_configs:
-            # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-            cid_list = ibs.dbcache.get(CHIP_TABLE, ('chip_rowid',), aid_list,
-                                       id_colname='annot_rowid', eager=eager,
-                                       nInput=nInput)
-        else:
-            chip_config_rowid = ibs.get_chip_config_rowid()
-            #print(chip_config_rowid)
-            where_clause = 'annot_rowid=? AND config_rowid=?'
-            params_iter = ((aid, chip_config_rowid) for aid in aid_list)
-            cid_list = ibs.dbcache.get_where(CHIP_TABLE,  ('chip_rowid',),
-                                             params_iter, where_clause,
-                                             eager=eager, nInput=nInput)
-        if ensure:
-            try:
-                cid_list = list(cid_list)
-                utool.assert_all_not_None(cid_list, 'cid_list')
-            except AssertionError as ex:
-                valid_cids = ibs.get_valid_cids()  # NOQA
-                utool.printex(ex, 'Ensured cids returned None!',
-                              key_list=['aid_list', 'cid_list', 'valid_cids'])
-                raise
-        return cid_list
-
-    get_annot_chip_rowids = get_annot_cids
-
-    @getter_1to1
-    def get_annot_chip_paths(ibs, aid_list, ensure=True):
-        utool.assert_all_not_None(aid_list, 'aid_list')
-        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
-        chip_fpath_list = ibs.get_chip_paths(cid_list)
-        return chip_fpath_list
-
-    @getter_1to1
-    def get_annot_chips(ibs, aid_list, ensure=True):
-        utool.assert_all_not_None(aid_list, 'aid_list')
-        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure)
-        if ensure:
-            try:
-                utool.assert_all_not_None(cid_list, 'cid_list')
-            except AssertionError as ex:
-                utool.printex(ex, 'Invalid cid_list', key_list=[
-                    'ensure', 'cid_list'])
-                raise
-        chip_list = ibs.get_chips(cid_list, ensure=ensure)
-        return chip_list
-
-    @getter_1to1
-    def get_annot_probchip_fpaths(ibs, aid_list):
-        """
-        Returns paths to probability images.
-
-        FIXME: this is implemented very poorly. Caches not robust. IE they are
-        never invalidated. Not all config information is passed through
-        """
-        from ibeis.model.preproc import preproc_probchip
-        probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
-        return probchip_fpath_list
-
-    #@getter_1to1
-    def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
-        import numpy as np
-        isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
-        if not isiterable:
-            aid_list = [aid_list]
-        # HACK TO MAKE CHIPS COMPUTE
-        #cid_list = ibs.get_annot_cids(aid_list, ensure=True)  # NOQA
-        thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=128)
-        chip_paths = ibs.get_annot_cpaths(aid_list)
-        chipsize_list = ibs.get_annot_chipsizes(aid_list)
-        thumbtup_list = [(thumb_path, chip_path, chipsize, [], [])
-                         for (thumb_path, chip_path, chipsize) in
-                         zip(thumb_gpaths, chip_paths, chipsize_list,)]
-        if not isiterable:
-            return thumbtup_list[0]
-        return thumbtup_list
-
-    @getter_1to1
-    def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
-        thumb_dpath = ibs.thumb_dpath
-        thumb_suffix = '_' + str(thumbsize) + constants.CHIP_THUMB_SUFFIX
-        annotation_uuid_list = ibs.get_annot_uuids(aid_list)
-        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + thumb_suffix)
-                          for uuid in annotation_uuid_list]
-        return thumbpath_list
-
-    @getter_1to1
-    @cache_getter(ANNOTATION_TABLE, 'chipsizes')
-    def get_annot_chipsizes(ibs, aid_list, ensure=True):
-        """
-        Returns:
-            chipsz_list (list): the imagesizes of computed annotation chips """
-        cid_list  = ibs.get_annot_cids(aid_list, ensure=ensure)
-        chipsz_list = ibs.get_chip_sizes(cid_list)
-        return chipsz_list
-
-    @getter_1to1
-    def get_annot_cpaths(ibs, aid_list, ensure=True):
-        """
-        Just builds the filename strings based off of the current
-        configuration.
-
-        Returns:
-            cfpath_list (list): cpaths defined by ANNOTATIONs
-        """
-        #utool.assert_all_not_None(aid_list, 'aid_list')
-        #assert all([aid is not None for aid in aid_list])
-        #from ibeis.model.preproc import preproc_chip
-        #cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
-        cid_list  = ibs.get_annot_cids(aid_list, ensure=ensure)
-        cfpath_list = ibs.get_chip_paths(cid_list)
-        return cfpath_list
-
-    # Should be the true name (and autogenerated)
-    get_annot_chip_fpaths = get_annot_cpaths
-
-    @getter_1to1
-    def get_annot_fids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
-        cid_list = ibs.get_annot_cids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
-        fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
-        return fid_list
-
-    get_annot_feat_rowids = get_annot_fids
-
-    @utool.accepts_numpy
-    @getter_1toM
-    @cache_getter(ANNOTATION_TABLE, 'kpts')
-    def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None):
-        """
-        Returns:
-            kpts_list (list): annotation descriptor keypoints
-        """
-        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
-        kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, nInput=nInput)
-        return kpts_list
-
-    @getter_1toM
-    def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None):
-        """
-        Returns:
-            vecs_list (list): annotation descriptor vectors
-        """
-        fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
-        vecs_list = ibs.get_feat_vecs(fid_list, eager=eager, nInput=nInput)
-        return vecs_list
-
-    @getter_1to1
-    def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
-        """
-        Returns:
-            nFeats_list (list): num descriptors per annotation
-        """
-        fid_list = ibs.get_annot_fids(aid_list, ensure=ensure, nInput=nInput)
-        nFeats_list = ibs.get_num_feats(fid_list)
-        return nFeats_list
-
-    @getter_1toM
-    def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
-                              filter_unknowns=True, daid_list=None):
-        """
-        gets all annotations with different names
-
-        Returns:
-            groundfalse_list (list): a list of aids which are known to be different for each
-
-        input aid """
-        if valid_aids is None:
-            # get all valid aids if not specified
-            # really the examplar flag should not be allowed and only daids
-            # should be taken as input
-            valid_aids = ibs.get_valid_aids(is_exemplar=is_exemplar)
-        if daid_list is not None:
-            valid_aids = list(set(daid_list).intersection(set(valid_aids)))
-        if filter_unknowns:
-            # Remove aids which do not have a name
-            isunknown_list = ibs.is_aid_unknown(valid_aids)
-            valid_aids_ = utool.filterfalse_items(valid_aids, isunknown_list)
-        else:
-            valid_aids_ = valid_aids
-        # Build the set of groundfalse annotations
-        nid_list = ibs.get_annot_nids(aid_list)
-        aids_list = ibs.get_name_aids(nid_list)
-        aids_setlist = map(set, aids_list)
-        valid_aids = set(valid_aids_)
-        groundfalse_list = [list(valid_aids - aids) for aids in aids_setlist]
-        return groundfalse_list
-
-    @getter_1toM
-    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
-                              daid_list=None):
-        """
-        gets all annotations with the same names
-
-        Args:
-            aid_list (list): list of annotation rowids to get groundtruth of
-
-        Returns:
-            groundtruth_list (list): a list of aids with the same name foreach
-            aid in aid_list.  a set of aids belonging to the same name is called
-            a groundtruth.  A list of these is called a groundtruth_list.
-        """
-        # TODO: Optimize
-        nid_list = ibs.get_annot_nids(aid_list)
-        aids_list = ibs.get_name_aids(nid_list)
-        if is_exemplar is None:
-            groundtruth_list_ = aids_list
-        else:
-            # Filter out non-exemplars
-            from ibeis import ibsfuncs
-            exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
-            isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
-            groundtruth_list_ = [utool.filter_items(aids, isvalids)
-                                 for aids, isvalids in zip(aids_list, isvalids_list)]
-        if noself:
-            # Remove yourself from the set
-            groundtruth_list = [list(set(aids) - {aid})
-                                for aids, aid in zip(groundtruth_list_, aid_list)]
-        else:
-            groundtruth_list = groundtruth_list_
-
-        if daid_list is not None:
-            # filter out any groundtruth that isn't allowed
-            daid_set = set(daid_list)
-            groundtruth_list = [list(daid_set.intersection(set(aids))) for aids in groundtruth_list]
-        return groundtruth_list
-
-    @getter_1to1
-    def get_annot_num_groundtruth(ibs, aid_list, noself=True):
-        """
-        Returns:
-            list_ (list): number of other chips with the same name """
-        # TODO: Optimize
-        nGt_list = list(map(len, ibs.get_annot_groundtruth(aid_list, noself=noself)))
-        return nGt_list
-
-    @getter_1to1
-    def get_annot_has_groundtruth(ibs, aid_list):
-        # TODO: Optimize
-        numgts_list = ibs.get_annot_num_groundtruth(aid_list)
-        has_gt_list = [num_gts > 0 for num_gts in numgts_list]
-        return has_gt_list
-
-    #
-    # GETTERS::CHIP_TABLE
-
-    @getter_1to1
-    def get_chips(ibs, cid_list, ensure=True):
-        """
-        Returns:
-            chip_list (list): a list cropped images in numpy array form by their cid
-        """
-        from ibeis.model.preproc import preproc_chip
-        aid_list = ibs.get_chip_aids(cid_list)
-        chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)
-        return chip_list
-
-    @getter_1to1
-    def get_chip_detectpaths(ibs, cid_list):
-        """
-        Returns:
-            new_gfpath_list (list): a list of image paths resized to a constant area for detection """
-        from ibeis.model.preproc import preproc_detectimg
-        new_gfpath_list = preproc_detectimg.compute_and_write_detectchip_lazy(ibs, cid_list)
-        return new_gfpath_list
-
-    @getter_1to1
-    def get_chip_aids(ibs, cid_list):
-        aid_list = ibs.dbcache.get(CHIP_TABLE, ('annot_rowid',), cid_list)
-        return aid_list
-
-    @getter_1to1
-    def get_chip_paths(ibs, cid_list):
-        """
-        Returns:
-            chip_fpath_list (list): a list of chip paths by their aid
-        """
-        chip_fpath_list = ibs.dbcache.get(CHIP_TABLE, ('chip_uri',), cid_list)
-        return chip_fpath_list
-
-    @getter_1to1
-    #@cache_getter('CHIP_TABLE', 'chip_size')
-    def get_chip_sizes(ibs, cid_list):
-        chipsz_list  = ibs.dbcache.get(CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
-        return chipsz_list
-
-    @getter_1to1
-    def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
-        if ensure:
-            ibs.add_feats(cid_list)
-        feat_config_rowid = ibs.get_feat_config_rowid()
-        colnames = ('feature_rowid',)
-        where_clause = 'chip_rowid=? AND config_rowid=?'
-        params_iter = ((cid, feat_config_rowid) for cid in cid_list)
-        fid_list = ibs.dbcache.get_where(FEATURE_TABLE, colnames, params_iter,
-                                         where_clause, eager=eager,
-                                         nInput=nInput)
-        return fid_list
-
-    get_chip_feat_rowids = get_chip_fids
-
-    @getter_1to1
-    def get_chip_configids(ibs, cid_list):
-        config_rowid_list = ibs.dbcache.get(CHIP_TABLE, ('config_rowid',), cid_list)
-        return config_rowid_list
-
-    #
-    # GETTERS::FEATURE_TABLE
-
-    @getter_1toM
-    #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
-    def get_feat_kpts(ibs, fid_list, eager=True, nInput=None):
-        """
-        Returns:
-            kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_keypoints',), fid_list, eager=eager, nInput=nInput)
-        return kpts_list
-
-    @getter_1toM
-    #@cache_getter(FEATURE_TABLE, 'feature_vecs')
-    def get_feat_vecs(ibs, fid_list, eager=True, nInput=None):
-        """
-        Returns:
-            vecs_list (list): chip SIFT descriptors """
-        vecs_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_vecs',), fid_list, eager=eager, nInput=nInput)
-        return vecs_list
-
-    @getter_1to1
-    #@cache_getter(FEATURE_TABLE, 'feature_num_feats')
-    def get_num_feats(ibs, fid_list, eager=True, nInput=None):
-        """
-        Returns:
-            nFeats_list (list): the number of keypoint / descriptor pairs """
-        nFeats_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_num_feats',), fid_list, eager=True, nInput=None)
-        nFeats_list = [(-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
-        return nFeats_list
-
-    #
-    # GETTERS::CONTRIBUTOR_TABLE
-    @getter_1to1
-    def get_contributor_rowid_from_uuid(ibs, tag_list):
-        """
-        Returns:
-            contrib_rowid_list (list):  a contributor """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        contrib_rowid_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_rowid',), tag_list, id_colname='contributor_uuid')
-        return contrib_rowid_list
-
-    @getter_1to1
-    def get_contributor_uuid(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_uuid_list (list):  a contributor's uuid """
-        contrib_uuid_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_uuid',), contrib_rowid_list)
-        return contrib_uuid_list
-
-    @getter_1to1
-    def get_contributor_tag(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_tag_list (list):  a contributor's tag """
-        contrib_tag_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_tag',), contrib_rowid_list)
-        return contrib_tag_list
-
-    @getter_1to1
-    def get_contributor_first_name(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_name_first_list (list):  a contributor's first name """
-        contrib_name_first_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_name_first',), contrib_rowid_list)
-        return contrib_name_first_list
-
-    @getter_1to1
-    def get_contributor_last_name(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_name_last_list (list):  a contributor's last name """
-        contrib_name_last_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_name_last',), contrib_rowid_list)
-        return contrib_name_last_list
-
-    @getter_1to1
-    def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
-        """
-        Returns:
-            contrib_name_list (list):  a contributor's full name """
-        first_list = ibs.get_contributor_first_name(contrib_rowid_list)
-        last_list = ibs.get_contributor_last_name(contrib_rowid_list)
-        if include_tag:
-            tag_list = ibs.get_contributor_tag(contrib_rowid_list)
-            name_list = zip(first_list, last_list, tag_list)
-            contrib_name_list = [
-                "%s %s (%s)" % (first, last, tag)
-                for first, last, tag in name_list
-            ]
-        else:
-            name_list = zip(first_list, last_list)
-            contrib_name_list = [
-                "%s %s" % (first, last)
-                for first, last in name_list
-            ]
-
-        return contrib_name_list
-
-    @getter_1to1
-    def get_contributor_city(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_city_list (list):  a contributor's location - city """
-        contrib_city_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_city',), contrib_rowid_list)
-        return contrib_city_list
-
-    @getter_1to1
-    def get_contributor_state(ibs, contrib_rowid_list):
-        """
-        Returns:
-            list_ (list):  a contributor's location - state """
-        contrib_state_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_state',), contrib_rowid_list)
-        return contrib_state_list
-
-    @getter_1to1
-    def get_contributor_country(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_country_list (list):  a contributor's location - country """
-        contrib_country_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_country',), contrib_rowid_list)
-        return contrib_country_list
-
-    @getter_1to1
-    def get_contributor_zip(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_zip_list (list):  a contributor's location - zip """
-        contrib_zip_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_zip',), contrib_rowid_list)
-        return contrib_zip_list
-
-    @getter_1to1
-    def get_contributor_location_string(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_list (list):  a contributor's location """
-        city_list = ibs.get_contributor_city(contrib_rowid_list)
-        state_list = ibs.get_contributor_state(contrib_rowid_list)
-        zip_list = ibs.get_contributor_zip(contrib_rowid_list)
-        country_list = ibs.get_contributor_country(contrib_rowid_list)
-        location_list = zip(city_list, state_list, zip_list, country_list)
-        contrib_list = [
-            "%s, %s\n%s %s" % (city, state, _zip, country)
-            for city, state, _zip, country in location_list
-        ]
-        return contrib_list
-
-    @getter_1to1
-    def get_contributor_note(ibs, contrib_rowid_list):
-        """
-        Returns:
-            contrib_note_list (list):  a contributor's note """
-        contrib_note_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_note',), contrib_rowid_list)
-        return contrib_note_list
-
-    @getter_1to1
-    def get_contributor_config_rowids(ibs, contrib_rowid_list):
-        """
-        Returns:
-            config_rowid_list (list):  config rowids for a contributor """
-        config_rowid_list = ibs.db.get(constants.CONFIG_TABLE, ('config_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
-        return config_rowid_list
-
-    @getter_1to1
-    def get_contributor_eids(ibs, config_rowid_list):
-        """
-        Returns:
-            eid_list (list):  eids for a contributor """
-        eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
-        return eid_list
-
-    @getter_1to1
-    def get_contributor_gids(ibs, contrib_rowid_list):
-        """
-        Returns:
-            gid_list (list):  eids for a contributor """
-        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
-        return gid_list
-
-    #
-    # GETTERS::CONFIG_TABLE
-    @getter_1to1
-    def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
-        """
-        Gets an algorithm configuration as a string
-        """
-        # FIXME: This is causing a crash when converting old hotspotter databses.
-        # probably because the superkey changed
-        # SEE DBSchema.
-
-        # TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        config_rowid_list = ibs.db.get(constants.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
-
-        # executeone always returns a list
-        #if config_rowid_list is not None and len(config_rowid_list) == 1:
-        #    config_rowid_list = config_rowid_list[0]
-        return config_rowid_list
-
-    def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
-        """
-        Alias for adder
-        """
-        # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
-        return ibs.add_config(cfgsuffix_list)
-
-    @getter_1to1
-    def get_config_contributor_rowid(ibs, config_rowid_list):
-        """
-        Returns:
-            cfgsuffix_list (list):  contributor's rowid for algorithm configs """
-        cfgsuffix_list = ibs.db.get(constants.CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
-        return cfgsuffix_list
-
-    @getter_1to1
-    def get_config_suffixes(ibs, config_rowid_list):
-        """
-        Returns:
-            cfgsuffix_list (list):  suffixes for algorithm configs """
-        cfgsuffix_list = ibs.db.get(constants.CONFIG_TABLE, ('config_suffix',), config_rowid_list)
-        return cfgsuffix_list
-
-    #
-    # GETTERS::ENCOUNTER
-    @getter_1to1
-    def get_encounter_num_gids(ibs, eid_list):
-        """
-        Returns:
-            nGids_list (list): number of images in each encounter """
-        nGids_list = list(map(len, ibs.get_encounter_gids(eid_list)))
-        return nGids_list
-
-    @getter_1toM
-    def get_encounter_aids(ibs, eid_list):
-        """
-        Returns:
-            aids_list (list):  a list of list of aids in each encounter """
-        gids_list = ibs.get_encounter_gids(eid_list)
-        from ibeis import ibsfuncs
-        aids_list_ = ibsfuncs.unflat_map(ibs.get_image_aids, gids_list)
-        aids_list = list(map(utool.flatten, aids_list_))
-        #print('get_encounter_aids')
-        #print('eid_list = %r' % (eid_list,))
-        #print('gids_list = %r' % (gids_list,))
-        #print('aids_list_ = %r' % (aids_list_,))
-        #print('aids_list = %r' % (aids_list,))
-        return aids_list
-
-    @getter_1toM
-    def get_encounter_gids(ibs, eid_list):
-        """
-        Returns:
-            gids_list (list):  a list of list of gids in each encounter """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        gids_list = ibs.db.get(EG_RELATION_TABLE, ('image_rowid',), eid_list, id_colname='encounter_rowid', unpack_scalars=False)
-        #print('get_encounter_gids')
-        #print('eid_list = %r' % (eid_list,))
-        #print('gids_list = %r' % (gids_list,))
-        return gids_list
-
-    # @getter_1to1
-    def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
-        # WEIRD FUNCTION FIXME
-        assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
-        """
-        Returns:
-            list_ (list):  a list of encounter-image-relationship rowids for each encouterid """
-        if eid_list is not None and gid_list is None:
-            # TODO: Group type
-            params_iter = ((eid,) for eid in eid_list)
-            where_clause = 'encounter_rowid=?'
-            # list of relationships for each encounter
-            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
-                                           params_iter, where_clause, unpack_scalars=False)
-        elif gid_list is not None and eid_list is None:
-            # TODO: Group type
-            params_iter = ((gid,) for gid in gid_list)
-            where_clause = 'image_rowid=?'
-            # list of relationships for each encounter
-            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
-                                           params_iter, where_clause, unpack_scalars=False)
-        else:
-            # TODO: Group type
-            params_iter = ((eid, gid,) for eid, gid in zip(eid_list, gid_list))
-            where_clause = 'encounter_rowid=? AND image_rowid=?'
-            # list of relationships for each encounter
-            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
-                                           params_iter, where_clause, unpack_scalars=False)
-        return egrids_list
-
-    @getter_1toM
-    def get_encounter_nids(ibs, eid_list):
-        """
-        Returns:
-            list_ (list):  a list of list of nids in each encounter """
-        aids_list = ibs.get_encounter_aids(eid_list)
-        from ibeis import ibsfuncs
-        nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
-                                        _lbltype=constants.INDIVIDUAL_KEY)
-        nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
-
-        nids_list = list(map(utool.unique_ordered, nids_list_))
-        #print('get_encounter_nids')
-        #print('eid_list = %r' % (eid_list,))
-        #print('aids_list = %r' % (aids_list,))
-        #print('nids_list_ = %r' % (nids_list_,))
-        #print('nids_list = %r' % (nids_list,))
-        return nids_list
-
-    @getter_1to1
-    def get_encounter_uuid(ibs, eid_list):
-        """
-        Returns:
-            list_ (list): encounter_uuid of each eid in eid_list """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        encuuid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_uuid',), eid_list, id_colname='encounter_rowid')
-        #enctext_list = list(map(__STR__, enctext_list))
-        return encuuid_list
-
-    @getter_1to1
-    def get_encounter_config(ibs, eid_list):
-        """
-        Returns:
-            list_ (list): config_rowid of each eid in eid_list """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        config_rowid_list = ibs.db.get(ENCOUNTER_TABLE, ('config_rowid',), eid_list, id_colname='encounter_rowid')
-        #enctext_list = list(map(__STR__, enctext_list))
-        return config_rowid_list
-
-    @getter_1to1
-    def get_encounter_enctext(ibs, eid_list):
-        """
-        Returns:
-            list_ (list): encounter_text of each eid in eid_list """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        enctext_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_text',), eid_list, id_colname='encounter_rowid')
-        #enctext_list = list(map(__STR__, enctext_list))
-        return enctext_list
-
-    @getter_1to1
-    def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
-        """
-        Returns:
-            list_ (list): a list of eids corresponding to each encounter enctext
-        #FIXME: make new naming scheme for non-primary-key-getters
-        get_encounter_eids_from_text_from_text
-        """
-        if ensure:
-            ibs.add_encounters(enctext_list)
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',), enctext_list, id_colname='encounter_text')
-        return eid_list
-
-    @getter_1to1
-    def get_encounter_note(ibs, eid_list):
-        """
-        Returns:
-            list_ (list): encounter_note of each eid in eid_list """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        encnote_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_note',), eid_list, id_colname='encounter_rowid')
-        #enctext_list = list(map(__STR__, enctext_list))
-        return encnote_list
-
-    #
-    #
-    #-----------------
-    # --- DELETERS ---
-    #-----------------
-
-    @deleter
-    @cache_invalidator(ANNOTATION_TABLE)
-    def delete_annots(ibs, aid_list):
-        """ deletes annotations from the database """
-        if utool.VERBOSE:
-            print('[ibs] deleting %d annotations' % len(aid_list))
-        # Delete chips and features first
-        ibs.delete_annot_chips(aid_list)
-        ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
-        ibs.delete_annot_relations(aid_list)
-
-    @deleter
-    def delete_images(ibs, gid_list):
-        """ deletes images from the database that belong to gids"""
-        if utool.VERBOSE:
-            print('[ibs] deleting %d images' % len(gid_list))
-        # Move images to trash before deleting them. #
-        # TODO: only move localized images
-        # TODO: ensure there are no name conflicts when using the original names
-        gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = ibs.get_image_gnames(gid_list)
-        ext_list   = ibs.get_image_exts(gid_list)
-        trash_dir  = ibs.get_trashdir()
-        utool.ensuredir(trash_dir)
-        gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
-                       zip(gname_list, ext_list)]
-        utool.copy_list(gpath_list, gpath_list2)
-        #utool.view_directory(trash_dir)
-
-        # Delete annotations first
-        aid_list = utool.flatten(ibs.get_image_aids(gid_list))
-        ibs.delete_annots(aid_list)
-        ibs.db.delete_rowids(IMAGE_TABLE, gid_list)
-        #egrid_list = utool.flatten(ibs.get_image_egrids(gid_list))
-        #ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
-        ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
-
-    @deleter
-    @cache_invalidator(FEATURE_TABLE)
-    def delete_features(ibs, fid_list):
-        """ deletes images from the database that belong to fids"""
-        if utool.VERBOSE:
-            print('[ibs] deleting %d features' % len(fid_list))
-        ibs.dbcache.delete_rowids(FEATURE_TABLE, fid_list)
-
-    @deleter
-    def delete_configs(ibs, config_rowid_list):
-        """ deletes images from the database that belong to fids"""
-        if utool.VERBOSE:
-            print('[ibs] deleting %d configs' % len(config_rowid_list))
-        ibs.db.delete_rowids(constants.CONFIG_TABLE, config_rowid_list)
-
-    @deleter
-    def delete_contributors(ibs, contrib_rowid_list):
-        """ deletes contributors from the database and all information associated"""
-        if utool.VERBOSE:
-            print('[ibs] deleting %d contributors' % len(contrib_rowid_list))
-        config_rowid_list = utool.flatten(ibs.get_contributor_config_rowids(contrib_rowid_list))
-        # Delete configs
-        ibs.delete_configs(config_rowid_list)
-        # Delete encounters
-        eid_list = ibs.get_valid_eids()
-        eid_config_list = ibs.get_encounter_config(eid_list)
-        valid_list = [ config in config_rowid_list for config in eid_config_list ]
-        eid_list = utool.filter_items(eid_list, valid_list)
-        ibs.delete_encounters(eid_list)
-        # Delete images
-        gid_list = utool.flatten(ibs.get_contributor_gids(contrib_rowid_list))
-        ibs.delete_images(gid_list)
-        # Delete contributors
-        ibs.db.delete_rowids(CONTRIBUTOR_TABLE, contrib_rowid_list)
-
-    @deleter
-    def delete_annot_chips(ibs, aid_list):
-        """ Clears annotation data but does not remove the annotation """
-        _cid_list = ibs.get_annot_cids(aid_list, ensure=False)
-        cid_list = utool.filter_Nones(_cid_list)
-        ibs.delete_chips(cid_list)
-        gid_list = ibs.get_annot_gids(aid_list)
-        ibs.delete_image_thumbs(gid_list)  # why is this done here?
-        ibs.delete_annot_chip_thumbs(aid_list)
-
-    @deleter
-    def delete_image_thumbs(ibs, gid_list, quiet=False):
-        """ Removes image thumbnails from disk """
-        # print('gid_list = %r' % (gid_list,))
-        thumbpath_list = ibs.get_image_thumbpath(gid_list)
-        utool.remove_file_list(thumbpath_list, quiet=quiet)
-
-    @deleter
-    def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
-        """ Removes chip thumbnails from disk """
-        thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-        utool.remove_file_list(thumbpath_list, quiet=quiet)
-
-    @deleter
-    @cache_invalidator(CHIP_TABLE)
-    def delete_chips(ibs, cid_list, verbose=utool.VERBOSE):
-        """ deletes images from the database that belong to gids"""
-        from ibeis.model.preproc import preproc_chip
-        if verbose:
-            print('[ibs] deleting %d annotation-chips' % len(cid_list))
-        # Delete chip-images from disk
-        #preproc_chip.delete_chips(ibs, cid_list, verbose=verbose)
-        preproc_chip.on_delete(ibs, cid_list, verbose=verbose)
-        # Delete chip features from sql
-        _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
-        fid_list = utool.filter_Nones(_fid_list)
-        ibs.delete_features(fid_list)
-        # Delete chips from sql
-        ibs.dbcache.delete_rowids(CHIP_TABLE, cid_list)
-
-    @deleter
-    def delete_encounters(ibs, eid_list):
-        """ Removes encounters (images are not effected) """
-        if utool.VERBOSE:
-            print('[ibs] deleting %d encounters' % len(eid_list))
-        ibs.db.delete_rowids(ENCOUNTER_TABLE, eid_list)
-        # Optimization hack, less SQL calls
-        #egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
-        #ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
-        #ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
-        ibs.unrelate_encounter_from_images(eid_list)
-
-    @deleter
-    def unrelate_encounter_from_images(ibs, eid_list):
-        """ Removes relationship between input encounters and all images """
-        ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
-
-    @deleter
-    def unrelate_image_from_encounter(ibs, gid_list):
-        """ Removes relationship between input images and all encounters """
-        ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
-
-    @deleter
-    def delete_image_eids(ibs, gid_list, eid_list):
-        # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
-        """ Sets the encoutertext of each image """
-        if utool.VERBOSE:
-            print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))
-        egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
-        ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
-
-    #
-    #
-    #----------------
-    # --- WRITERS ---
-    #----------------
-
     @default_decorator
     def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
@@ -2698,24 +521,6 @@ class IBEISController(object):
         # get ANNOTATIONs by encounter id
         # submit requests to wildbook
         return None
-
-    #
-    #
-    #-----------------------------
-    # --- ENCOUNTER CLUSTERING ---
-    #-----------------------------
-
-    #@default_decorator
-    @utool.indent_func('[ibs.compute_encounters]')
-    def compute_encounters(ibs):
-        """ Clusters images into encounters """
-        from ibeis.model.preproc import preproc_encounter
-        print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
-        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
-        print('[ibs] Finished computing, about to add encounter.')
-        ibs.set_image_enctext(flat_gids, enctext_list)
-        print('[ibs] Finished computing and adding encounters.')
 
     #
     #
@@ -2737,7 +542,7 @@ class IBEISController(object):
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         from ibeis.model.detect import randomforest  # NOQ
-        tt = utool.tic()
+        tt = ut.tic()
         detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
         ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
@@ -2776,12 +581,28 @@ class IBEISController(object):
                             detected_bbox_list,
                             detected_confidence_list,
                             detected_img_confs)
-        tt_total = float(utool.toc(tt))
+        tt_total = float(ut.toc(tt))
         if len(gid_list) > 0:
             print('[ibs] finshed detecting, took %.2f seconds (avg. %.2f seconds per image)' %
                   (tt_total, tt_total / len(gid_list)))
         else:
             print('[ibs] finshed detecting')
+    #
+    #
+    #-----------------------------
+    # --- ENCOUNTER CLUSTERING ---
+    #-----------------------------
+
+    @ut.indent_func('[ibs.compute_encounters]')
+    def compute_encounters(ibs):
+        """ Clusters images into encounters """
+        from ibeis.model.preproc import preproc_encounter
+        print('[ibs] Computing and adding encounters.')
+        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        print('[ibs] Finished computing, about to add encounter.')
+        ibs.set_image_enctext(flat_gids, enctext_list)
+        print('[ibs] Finished computing and adding encounters.')
 
     #
     #
@@ -2803,80 +624,59 @@ class IBEISController(object):
             daid_list = ibs.get_valid_aids()
         return daid_list
 
-    #@default_decorator
-    #def _init_query_requestor(ibs):
-    #from ibeis.model.hots import match_chips3 as mc3
-    #from ibeis.model.hots import hots_query_request
-    #    # DEPRICATE
-    #    # Create query request object
-    #    ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
-    #    ibs.qreq.set_cfg(ibs.cfg.query_cfg)
-
-    #@default_decorator
-    #def _prep_qreq(ibs, qaid_list, daid_list, **kwargs):
-    #    # DEPRICATE
-    #    if ibs.qreq is None:
-    #        ibs._init_query_requestor()
-    #    qreq = mc3.prep_query_request(qreq=ibs.qreq,
-    #                                  qaids=qaid_list,
-    #                                  daids=daid_list,
-    #                                  query_cfg=ibs.cfg.query_cfg,
-    #                                  **kwargs)
-    #    return qreq
-
-    #@default_decorator
-    #def _query_chips3(ibs, qaid_list, daid_list, safe=True,
-    #                  use_cache=mc3.USE_CACHE,
-    #                  use_bigcache=mc3.USE_BIGCACHE,
-    #                  **kwargs):
-    #    # DEPRICATE
-    #    """
-    #    qaid_list - query chip ids
-    #    daid_list - database chip ids
-    #    kwargs modify query_cfg
-    #    """
-    #    qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
-    #    # TODO: Except query error
-    #    # NOTE: maybe kwargs should not be passed here, or the previous
-    #    # kwargs should become querycfgkw
-    #    process_qreqkw = {
-    #        'safe'         : safe,
-    #        'use_cache'    : use_cache,
-    #        'use_bigcache' : use_bigcache,
-    #    }
-    #    qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
-    #    return qaid2_qres
+    def query_chips(ibs, qaid_list, daid_list=None, cfgdict=None,
+                    use_cache=None, use_bigcache=None, qreq_=None,
+                    return_request=False):
+        if daid_list is None:
+            daid_list = ibs.get_valid_aids()
+        if return_request:
+            qaid2_qres, qreq_ = ibs._query_chips4(
+                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
+                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
+            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            return qres_list, qreq_
+        else:
+            qaid2_qres = ibs._query_chips4(
+                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
+                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
+            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            return qres_list
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
                       use_bigcache=None, return_request=False,
-                      custom_qparams=None):
+                      cfgdict=None, qreq_=None):
         """
         Example:
-            >>> from ibeis.all_imports import *  # NOQA
+            >>> # SLOW_DOCTEST
+            >>> #from ibeis.all_imports import *  # NOQA
+            >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> qaid_list = [1]
             >>> daid_list = [1, 2, 3, 4, 5]
-            >>> mc3.USE_CACHE = False
-            >>> mc4.USE_CACHE = False
-            >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-            >>> qres1 = ibs._query_chips3(qaid_list, daid_list, use_cache=False)[1]
-            >>> qres2 = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
-            >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
-            >>> qreq_.load_indexer(ibs)
-            >>> qreq_.load_query_vectors(ibs)
-            >>> qreq = ibs.qreq
+            >>> ibs = ibeis.test_main(db='testdb1')
+            >>> qres = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+
+        #>>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+        #>>> qreq_.load_indexer(ibs)
+        #>>> qreq_.load_query_vectors(ibs)
+        #>>> qreq = ibs.qreq
         """
         from ibeis.model.hots import match_chips4 as mc4
         assert len(daid_list) > 0, 'there are no database chips'
         assert len(qaid_list) > 0, 'there are no query chips'
+        if qreq_ is not None:
+            import numpy as np
+            assert np.all(qreq_.get_external_qaids() == qaid_list)
+            assert np.all(qreq_.get_external_daids() == daid_list)
+
         if return_request:
             qaid2_qres, qreq_ = mc4.submit_query_request(
                 ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-                return_request, custom_qparams)
+                return_request, cfgdict)
             return qaid2_qres, qreq_
         else:
             qaid2_qres = mc4.submit_query_request(
                 ibs, qaid_list, daid_list, use_cache, use_bigcache, return_request,
-                custom_qparams)
+                cfgdict, qreq_=qreq_)
             return qaid2_qres
 
     #_query_chips = _query_chips3
@@ -2886,7 +686,7 @@ class IBEISController(object):
     def query_encounter(ibs, qaid_list, eid, **kwargs):
         """ _query_chips wrapper """
         daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         for qres in six.itervalues(qaid2_qres):
             qres.eid = eid
         return qaid2_qres
@@ -2896,1009 +696,30 @@ class IBEISController(object):
         """ Queries vs the exemplars """
         daid_list = ibs.get_valid_aids(is_exemplar=True)
         assert len(daid_list) > 0, 'there are no exemplars'
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
 
     @default_decorator
     def query_all(ibs, qaid_list, **kwargs):
         """ Queries vs the exemplars """
         daid_list = ibs.get_valid_aids()
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
 
-    #
-    #
-    #--------------
-    # --- MISC ---
-    #--------------
-    # See ibeis/ibsfuncs.py
-    # there is some sneaky stuff happening there
 
-    # Hacky code for rosemary
-    # DO NOT USE ANYWHERE ELSE IN CONTROLLER
-
-    #--------------
-    # IN QUESTION
-    #--------------
-
-    # SETTERS::ALR
-
-    @setter
-    def set_alr_lblannot_rowids(ibs, alrid_list, lblannot_rowid_list):
-        """ Associates whatever annotation is at row(alrid) with a new
-        lblannot_rowid. (effectively changes the label value of the rowid)
-        """
-        id_iter = ((alrid,) for alrid in alrid_list)
-        val_iter = ((lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list)
-        colnames = ('lblannot_rowid',)
-        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
-
-    @setter
-    def set_alr_confidence(ibs, alrid_list, confidence_list):
-        """ sets annotation-lblannot-relationship confidence """
-        id_iter = ((alrid,) for alrid in alrid_list)
-        val_iter = ((confidence,) for confidence in confidence_list)
-        colnames = ('alr_confidence',)
-        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
-
-    # ADDERS::GLR
-
-    @adder
-    def add_image_relationship_one(ibs, gid_list, lblimage_rowid_list, config_rowid_list=None,
-                                    glr_confidence_list=None):
-        """ Adds a relationship between images and lblimages
-            (imageations and labels of imageations) """
-        if config_rowid_list is None:
-            config_rowid_list = [ibs.MANUAL_CONFIGID] * len(gid_list)
-        if glr_confidence_list is None:
-            glr_confidence_list = [0.0] * len(gid_list)
-        colnames = ('image_rowid', 'lblimage_rowid', 'config_rowid', 'glr_confidence',)
-        params_iter = list(zip(gid_list, lblimage_rowid_list, config_rowid_list, glr_confidence_list))
-        get_rowid_from_superkey = ibs.get_glrid_from_superkey
-        superkey_paramx = (0, 1, 2)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
-        glrid_list = ibs.db.add_cleanly(GL_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_superkey, superkey_paramx)
-        return glrid_list
-
-    @adder
-    def add_image_relationship(ibs, gid_list, eid_list):
-        """ Adds a relationship between an image and and encounter """
-        colnames = ('image_rowid', 'encounter_rowid',)
-        params_iter = list(zip(gid_list, eid_list))
-        get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
-        superkey_paramx = (0, 1)
-        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_superkey, superkey_paramx)
-        return egrid_list
-
-    @getter_1to1
-    def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list, config_rowid_list):
-        """
-        Args:
-            gid_list (list): list of image row-ids
-            lblimage_rowid_list (list): list of lblimage row-ids
-            config_rowid_list (list): list of config row-ids
-        Returns:
-            glrid_list (list): image-label relationship id list
-        """
-        colnames = ('image_rowid',)
-        params_iter = zip(gid_list, lblimage_rowid_list, config_rowid_list)
-        where_clause = 'image_rowid=? AND lblimage_rowid=? AND config_rowid=?'
-        glrid_list = ibs.db.get_where(GL_RELATION_TABLE, colnames, params_iter, where_clause)
-        return glrid_list
-
-    # ADDERS::ALR
-
-    @adder
-    def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, config_rowid_list=None,
-                                    alr_confidence_list=None):
-        """ Adds a relationship between annots and lblannots
-            (annotations and labels of annotations) """
-        if config_rowid_list is None:
-            config_rowid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
-        if alr_confidence_list is None:
-            alr_confidence_list = [0.0] * len(aid_list)
-        colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence',)
-        params_iter = list(zip(aid_list, lblannot_rowid_list, config_rowid_list, alr_confidence_list))
-        get_rowid_from_superkey = ibs.get_alrid_from_superkey
-        superkey_paramx = (0, 1, 2)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
-        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_superkey, superkey_paramx)
-        return alrid_list
-
-    @getter_1to1
-    def get_alrid_from_superkey(ibs, aid_list, lblannot_rowid_list, config_rowid_list):
-        """
-        Args:
-            aid_list (list): list of annotation row-ids
-            lblannot_rowid_list (list): list of lblannot row-ids
-            config_rowid_list (list): list of config row-ids
-        Returns:
-            alrid_list (list): annot-label relationship id list
-        """
-        colnames = ('annot_rowid',)
-        params_iter = zip(aid_list, lblannot_rowid_list, config_rowid_list)
-        where_clause = 'annot_rowid=? AND lblannot_rowid=? AND config_rowid=?'
-        alrid_list = ibs.db.get_where(AL_RELATION_TABLE, colnames, params_iter, where_clause)
-        return alrid_list
-
-    #
-    # GETTERS::ALR
-
-    @getter_1to1
-    def get_alr_confidence(ibs, alrid_list):
-        """
-        Args:
-            alrid_list (list of rowids): annot + label relationship rows
-        Returns:
-            alr_confidence_list (list of rowids): confidence in an annotation relationship
-        """
-        alr_confidence_list = ibs.db.get(AL_RELATION_TABLE, ('alr_confidence',), alrid_list)
-        return alr_confidence_list
-
-    @getter_1to1
-    def get_alr_lblannot_rowids(ibs, alrid_list):
-        """
-        Args:
-            alrid_list (list of rowids): annot + label relationship rows
-        Returns:
-            lblannot_rowids_list (list of rowids): label rowids (of annotations)
-        """
-        lblannot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('lblannot_rowid',), alrid_list)
-        return lblannot_rowids_list
-
-    @getter_1to1
-    def get_alr_annot_rowids(ibs, alrid_list):
-        """
-        Args:
-            alrid_list (list of rowids): annot + label relationship rows
-        get the annot_rowid belonging to each relationship """
-        annot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('annot_rowid',), alrid_list)
-        return annot_rowids_list
-
-    @getter_1to1
-    def get_alr_config_rowid(ibs, alrid_list):
-        """
-        Args:
-            alrid_list (list of rowids): annot + label relationship rows
-        Returns:
-            config_rowid_list (list): config_rowid in an annotation relationship
-        """
-        config_rowid_list = ibs.db.get(AL_RELATION_TABLE, ('config_rowid',), alrid_list)
-        return config_rowid_list
-
-    #
-    # GETTERS::GLR
-
-    @getter_1to1
-    def get_glr_confidence(ibs, glrid_list):
-        """
-        Returns:
-            list_ (list):  confidence in an image relationship """
-        glr_confidence_list = ibs.db.get(GL_RELATION_TABLE, ('glr_confidence',), glrid_list)
-        return glr_confidence_list
-
-    @getter_1to1
-    def get_glr_lblimage_rowids(ibs, glrid_list):
-        """ get the lblimage_rowid belonging to each relationship """
-        lblimage_rowids_list = ibs.db.get(GL_RELATION_TABLE, ('lblimage_rowid',), glrid_list)
-        return lblimage_rowids_list
-
-    @getter_1to1
-    def get_glr_image_rowids(ibs, glrid_list):
-        """ get the image_rowid belonging to each relationship """
-        image_rowids_list = ibs.db.get(GL_RELATION_TABLE, ('image_rowid',), glrid_list)
-        return image_rowids_list
-
-    @getter_1to1
-    def get_glr_config_rowid(ibs, glrid_list):
-        """
-        Returns:
-            list_ (list):  config_rowid in an image relationship """
-        config_rowid_list = ibs.db.get(GL_RELATION_TABLE, ('config_rowid',), glrid_list)
-        return config_rowid_list
-
-    # ADDERS::IMAGE->ENCOUNTER
-
-    # SETTERS::LBLANNOT(NAME)
-
-    @setter
-    def set_name_notes(ibs, nid_list, notes_list):
-        """ Sets notes of names (groups of animals) """
-        from ibeis import ibsfuncs
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        ibs.set_lblannot_notes(nid_list, notes_list)
-
-    @setter
-    def set_name_names(ibs, nid_list, name_list):
-        """ Changes the name text. Does not affect the animals of this name.
-        Effectively an alias.
-        """
-        from ibeis import ibsfuncs
-        ibsfuncs.assert_valid_names(name_list)
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        ibs.set_lblannot_values(nid_list, name_list)
-
-    # SETTERS::LBLANNOT
-
-    def set_lblannot_values(ibs, lblannot_rowid_list, value_list):
-        """ Updates the value for lblannots. Note this change applies to
-        all annotations related to this lblannot_rowid """
-        id_iter = ((rowid,) for rowid in lblannot_rowid_list)
-        val_list = ((value,) for value in value_list)
-        ibs.db.set(LBLANNOT_TABLE, ('lblannot_value',), val_list, id_iter)
-
-    def set_lblannot_notes(ibs, lblannot_rowid_list, value_list):
-        """ Updates the value for lblannots. Note this change applies to
-        all annotations related to this lblannot_rowid """
-        id_iter = ((rowid,) for rowid in lblannot_rowid_list)
-        val_list = ((value,) for value in value_list)
-        ibs.db.set(LBLANNOT_TABLE, ('lblannot_note',), val_list, id_iter)
-
-    # SETTERS::ANNOT->LBLANNOT(NAME)
-
-    @setter
-    def set_annot_names(ibs, aid_list, name_list):
-        """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
-        list of annotations.  Convenience function for
-        set_annot_lblannot_from_value"""
-        ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY)
-
-    @setter
-    def set_annot_species(ibs, aid_list, species_list):
-        """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_value """
-        species_list = [species.lower() for species in species_list]
-        ibsfuncs.assert_valid_species(ibs, species_list, iswarning=True)
-        ibs.set_annot_lblannot_from_value(aid_list, species_list, constants.SPECIES_KEY)
-
-    @setter
-    def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, ensure=True):
-        """ Associates the annot and lblannot of a specific type and value
-        Adds the lblannot if it doesnt exist.
-        Wrapper around convenience function for set_annot_from_lblannot_rowid
-        """
-        assert value_list is not None
-        assert _lbltype is not None
-        if ensure:
-            pass
-        # a value consisting of an empty string or all spaces is set to the default
-        DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
-        EMPTY_KEY = constants.EMPTY_KEY
-        # setting a name to DEFAULT_VALUE or EMPTY is equivalent to unnaming it
-        value_list_ = [DEFAULT_VALUE if value.strip() == EMPTY_KEY else value for value in value_list]
-        notdefault_list = [value != DEFAULT_VALUE for value in value_list_]
-        aid_list_to_delete = utool.get_dirty_items(aid_list, notdefault_list)
-        # Set all the valid valids
-        aids_to_set   = utool.filter_items(aid_list, notdefault_list)
-        values_to_set = utool.filter_items(value_list_, notdefault_list)
-        ibs.delete_annot_relations_oftype(aid_list_to_delete, _lbltype)
-        # remove the relationships that have now been unnamed
-        # Convert names into lblannot_rowid
-        # FIXME: This function should not be able to set label realationships
-        # to labels that have not been added!!
-        # This is an inefficient way of getting lblannot_rowids!
-        lbltype_rowid_list = [ibs.lbltype_ids[_lbltype]] * len(values_to_set)
-        # auto ensure
-        lblannot_rowid_list = ibs.add_lblannots(lbltype_rowid_list, values_to_set)
-        # Call set_annot_from_lblannot_rowid to finish the conditional adding
-        ibs.set_annot_lblannot_from_rowid(aids_to_set, lblannot_rowid_list, _lbltype)
-
-    @setter
-    def set_annot_nids(ibs, aid_list, nid_list):
-        """ Sets names/nids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid """
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
-
-    @setter
-    def set_annot_speciesids(ibs, aid_list, speciesid_list):
-        """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid"""
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, speciesid_list, ibs.lbltype_ids[constants.SPECIES_KEY])
-        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
-
-    @setter
-    def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
-        """ Sets items/lblannot_rowids of a list of annotations."""
-        # Get the alrids_list for the aids, using the lbltype as a filter
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        # Find the aids which already have relationships (of _lbltype)
-        setflag_list = [len(alrids) > 0 for alrids in alrids_list]
-        # Add the relationship if it doesn't exist
-        aid_list_to_add = utool.get_dirty_items(aid_list, setflag_list)
-        lblannot_rowid_list_to_add = utool.get_dirty_items(lblannot_rowid_list, setflag_list)
-        # set the existing relationship if one already exists
-        alrids_list_to_set = utool.filter_items(alrids_list, setflag_list)
-        lblannot_rowid_list_to_set = utool.filter_items(lblannot_rowid_list, setflag_list)
-        # Assert each annot has only one relationship of this type
-        ibsfuncs.assert_singleton_relationship(ibs, alrids_list_to_set)
-        alrid_list_to_set = utool.flatten(alrids_list_to_set)
-        # Add the new relationships
-        ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
-        # Set the old relationships
-        ibs.set_alr_lblannot_rowids(alrid_list_to_set, lblannot_rowid_list_to_set)
-
-    # ADDERS::LBLIMAGE
-
-    @adder
-    def add_lblimages(ibs, lbltype_rowid_list, value_list, note_list=None, lblimage_uuid_list=None):
-        """ Adds new lblimages (labels of imageations)
-        creates a new uuid for any new pair(type, value)
-        #TODO: reverse order of rowid_list value_list in input
-        """
-        if note_list is None:
-            note_list = [''] * len(value_list)
-        # Get random uuids
-        if lblimage_uuid_list is None:
-            lblimage_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
-        colnames = ['lblimage_uuid', 'lbltype_rowid', 'lblimage_value', 'lblimage_note']
-        params_iter = list(zip(lblimage_uuid_list, lbltype_rowid_list, value_list, note_list))
-        get_rowid_from_superkey = ibs.get_lblimage_rowid_from_superkey
-        superkey_paramx = (1, 2)
-        lblimage_rowid_list = ibs.db.add_cleanly(LBLIMAGE_TABLE, colnames, params_iter,
-                                                 get_rowid_from_superkey, superkey_paramx)
-        return lblimage_rowid_list
-
-    # ADDERS::LBLANNOT
-
-    @adder
-    def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None, lblannot_uuid_list=None):
-        """ Adds new lblannots (labels of annotations)
-        creates a new uuid for any new pair(type, value)
-        #TODO: reverse order of rowid_list value_list in input
-        """
-        if note_list is None:
-            note_list = [''] * len(value_list)
-        # Get random uuids
-        if lblannot_uuid_list is None:
-            lblannot_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
-        colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
-        params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
-        get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
-        superkey_paramx = (1, 2)
-        lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
-                                                 get_rowid_from_superkey, superkey_paramx)
-        return lblannot_rowid_list
-
-    @adder
-    def add_names(ibs, name_list, note_list=None):
-        """
-        Adds a list of names.
-
-        Returns:
-            nid_list (list): their nids
-        """
-        # nid_list_ = [namenid_dict[name] for name in name_list_]
-        # ibsfuncs.assert_valid_names(name_list)
-        # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
-        lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
-        lbltype_rowid_list = [lbltype_rowid] * len(name_list)
-        nid_list = ibs.add_lblannots(lbltype_rowid_list, name_list, note_list)
-        return nid_list
-
-    @adder
-    def add_species(ibs, species_list, note_list=None):
-        """
-        Adds a list of species.
-
-        Returns:
-            speciesid_list (list): species rowids
-        """
-        species_list = [species.lower() for species in species_list]
-        lbltype_rowid = ibs.lbltype_ids[constants.SPECIES_KEY]
-        lbltype_rowid_list = [lbltype_rowid] * len(species_list)
-        speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
-        return speciesid_list
-
-    # INVESTIGATE::adders
-
-    @adder
-    def add_lbltype(ibs, text_list, default_list):
-        """ Adds a label type and its default value
-        Should only be called at the begining of the program.
-        """
-        params_iter = zip(text_list, default_list)
-        colnames = ('lbltype_text', 'lbltype_default',)
-        get_rowid_from_superkey = ibs.get_lbltype_rowid_from_text
-        lbltype_rowid_list = ibs.db.add_cleanly(LBLTYPE_TABLE, colnames, params_iter,
-                                                get_rowid_from_superkey)
-        return lbltype_rowid_list
-
-    # INVEST::getters
-
-    @getter_1toM
-    def get_image_glrids(ibs, gid_list, configid=None):
-        """ FIXME: __name__
-        Get all the relationship ids belonging to the input images
-        if lblimage lbltype is specified the relationship ids are filtered to
-        be only of a specific lbltype/category/type
-        """
-        if configid is None:
-            configid = ibs.MANUAL_CONFIGID
-        params_iter = ((gid, configid) for gid in gid_list)
-        where_clause = 'image_rowid=? AND config_rowid=?'
-        glrids_list = ibs.db.get_where(GL_RELATION_TABLE, ('glr_rowid',), params_iter,
-                                       where_clause=where_clause, unpack_scalars=False)
-        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
-        return glrids_list
-
-    @getter_1toM
-    def get_annot_alrids(ibs, aid_list, configid=None):
-        """ FIXME: __name__
-        Get all the relationship ids belonging to the input annotations
-        if lblannot lbltype is specified the relationship ids are filtered to
-        be only of a specific lbltype/category/type
-        """
-        if configid is None:
-            alrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), aid_list,
-                                     id_colname='annot_rowid', unpack_scalars=False)
-        else:
-            params_iter = ((aid, configid) for aid in aid_list)
-            where_clause = 'annot_rowid=? AND config_rowid=?'
-            alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
-                                           where_clause=where_clause, unpack_scalars=False)
-        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
-        return alrids_list
-
-    @getter_1toM
-    def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
-        """
-        Get all the relationship ids belonging to the input annotations where the
-        relationship ids are filtered to be only of a specific lbltype/category/type
-        """
-        alrids_list = ibs.get_annot_alrids(aid_list, configid=configid)
-        # Get lblannot_rowid of each relationship
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        # Get the type of each lblannot
-        lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
-        # only want the nids of individuals, not species, for example
-        valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-        alrids_list = [utool.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
-        if configid is None:
-            def resolution_func_first(alrid_list):
-                return [ alrid_list[0] ]
-
-            def resolution_func_lowest_config(alrid_list):
-                config_rowid_list = ibs.get_alr_config(alrid_list)
-                temp = sorted(list(zip(config_rowid_list, alrid_list)))
-                return [ temp[0][0] ]
-
-            alrids_list = [
-                resolution_func_first(alrid_list)
-                if len(alrid_list) > 1 else
-                alrid_list
-                for alrid_list in alrids_list
-            ]
-        assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
-            ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
-             ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
-        return alrids_list
-
-    @getter_1toM
-    def get_annot_lblannot_rowids(ibs, aid_list):
-        """
-        Returns:
-            list_ (list): the name id of each annotation. """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        alrids_list = ibs.get_annot_alrids(aid_list)
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        return lblannot_rowids_list
-
-    @getter_1toM
-    def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
-        """
-        Returns:
-            list_ (list): the name id of each annotation. """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        assert _lbltype is not None, 'should be using lbltype_rowids anyway'
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        return lblannot_rowids_list
-
-    @utool.accepts_numpy
-    @getter_1to1
-    def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
-        """
-        Returns:
-            list_ (list): the name id of each annotation. """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
-        # TODO: get index of highest confidence name
-        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_LBLANNOT_ROWID for
-                     lblannot_rowids in lblannot_rowids_list]
-        if distinguish_unknowns:
-            nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
-                        for nid, aid in zip(nid_list_, aid_list)]
-        else:
-            nid_list = nid_list_
-        return nid_list
-
-    # DELTERS
-
-    @deleter
-    #@cache_invalidator(LBLANNOT_TABLE)
-    def delete_names(ibs, nid_list):
-        """ deletes names from the database (CAREFUL. YOU PROBABLY DO NOT WANT
-        TO USE THIS ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE) """
-        ibs.delete_lblannots(nid_list)
-
-    @deleter
-    def delete_lblannots(ibs, lblannot_rowid_list):
-        """ deletes lblannots from the database """
-        if utool.VERBOSE:
-            print('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
-        ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
-
-    @deleter
-    def delete_annot_relations_oftype(ibs, aid_list, _lbltype):
-        """ Deletes the relationship between an annotation and a label """
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        alrid_list = utool.flatten(alrids_list)
-        ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
-
-    @deleter
-    def delete_annot_relations(ibs, aid_list):
-        """ Deletes the relationship between an annotation and a label """
-        alrids_list = ibs.get_annot_alrids(aid_list)
-        alrid_list = utool.flatten(alrids_list)
-        ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
-
-    @deleter
-    def delete_annot_nids(ibs, aid_list):
-        """ Deletes nids of a list of annotations """
-        # FIXME: This should be implicit by setting the anotation name to the
-        # unknown name
-        ibs.delete_annot_relations_oftype(aid_list, constants.INDIVIDUAL_KEY)
-
-    @deleter
-    def delete_annot_speciesids(ibs, aid_list):
-        """ Deletes nids of a list of annotations """
-        # FIXME: This should be implicit by setting the anotation name to the
-        # unknown species
-        ibs.delete_annot_relations_oftype(aid_list, constants.SPECIES_KEY)
-
-    # MORE GETTERS
-
-    @getter_1to1
-    def get_annot_lblannot_value_of_lbltype(ibs, aid_list, _lbltype, lblannot_value_getter):
-        """
-        Returns:
-            lblannot_value_list (list): a list of strings ['fred', 'sue', ...] for each chip
-            identifying the animal
-        """
-        lbltype_dict_list = ibs.get_annot_lblannot_rowids_oftype(aid_list, _lbltype)
-        DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
-        # FIXME: Use filters and unflat maps
-        lblannot_value_list = [lblannot_value_getter(lblannot_rowids)[0]
-                               if len(lblannot_rowids) > 0 else DEFAULT_VALUE
-                               for lblannot_rowids in lbltype_dict_list]
-        return lblannot_value_list
-
-    def get_annot_class_labels(ibs, aid_list):
-        """
-        Returns:
-            list of tuples: identifying animal name and viewpoint
-        """
-        name_list = ibs.get_annot_nids(aid_list)
-        view_list = [0 for _ in name_list]
-        classlabel_list = list(zip(name_list, view_list))
-        return classlabel_list
-
-    @getter_1to1
-    def get_annot_names(ibs, aid_list):
-        """
-        Returns:
-            name_list (list):
-                a list of strings ['fred', 'sue', ...] for each annotation
-                identifying the individual
-            """
-        name_list = ibs.get_annot_lblannot_value_of_lbltype(
-            aid_list, constants.INDIVIDUAL_KEY, ibs.get_name_text)
-        return name_list
-
-    @getter_1to1
-    def get_annot_species(ibs, aid_list):
-        """
-        Returns:
-            species_list (list): a list of strings ['plains_zebra',
-            'grevys_zebra', ...] for each annotation
-            identifying the species
-        """
-        species_list = ibs.get_annot_lblannot_value_of_lbltype(
-            aid_list, constants.SPECIES_KEY, ibs.get_species)
-        return species_list
-
-    #
-    # GETTERS::EG_RELATION_TABLE
-
-    @getter_1to1
-    def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
-        """
-        Returns:
-            egrid_list (list):  eg-relate-ids from info constrained to be unique (eid, gid) """
-        colnames = ('image_rowid',)
-        params_iter = zip(gid_list, eid_list)
-        where_clause = 'image_rowid=? AND encounter_rowid=?'
-        egrid_list = ibs.db.get_where(EG_RELATION_TABLE, colnames, params_iter, where_clause)
-        return egrid_list
-
-    #
-    # GETTERS::LBLTYPE
-
-    @getter_1to1
-    def get_lbltype_rowid_from_text(ibs, text_list):
-        """
-        Returns:
-            lbltype_rowid (list): lbltype_rowid where the lbltype_text is given
-        """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        # FIXME: Use unique SUPERKEYS instead of specifying id_colname
-        lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
-        return lbltype_rowid
-
-    @getter_1to1
-    def get_lbltype_default(ibs, lbltype_rowid_list):
-        lbltype_default_list = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
-        return lbltype_default_list
-
-    @getter_1to1
-    def get_lbltype_text(ibs, lbltype_rowid_list):
-        lbltype_text_list = ibs.db.get(LBLTYPE_TABLE, ('lbltype_text',), lbltype_rowid_list)
-        return lbltype_text_list
-
-    #
-    # GETTERS::LBLIMAGE_TABLE
-
-    @getter_1to1
-    def get_lblimage_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
-        """
-        Returns:
-            list_ (list):  lblimage_rowid_list from the superkey (lbltype, value)
-        """
-        colnames = ('lblimage_rowid',)
-        params_iter = zip(lbltype_rowid_list, value_list)
-        where_clause = 'lbltype_rowid=? AND lblimage_value=?'
-        lblimage_rowid_list = ibs.db.get_where(LBLIMAGE_TABLE, colnames, params_iter, where_clause)
-        return lblimage_rowid_list
-
-    get_lblimage_rowid_from_typevaltup = get_lblimage_rowid_from_superkey
-
-    @getter_1to1
-    def get_lblimage_rowid_from_uuid(ibs, lblimage_uuid_list):
-        """
-        Returns:
-            list_ (list):  lblimage_rowid_list from the superkey (lbltype, value)
-        """
-        colnames = ('lblimage_rowid',)
-        params_iter = lblimage_uuid_list
-        id_colname = 'lblimage_uuid'
-        lblimage_rowid_list = ibs.db.get(LBLIMAGE_TABLE, colnames, params_iter, id_colname=id_colname)
-        return lblimage_rowid_list
-
-    @getter_1to1
-    def get_lblimage_uuids(ibs, lblimage_rowid_list):
-        lblimageuuid_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_uuid',), lblimage_rowid_list)
-        return lblimageuuid_list
-
-    @getter_1to1
-    def get_lblimage_lbltypes_rowids(ibs, lblimage_rowid_list):
-        lbltype_rowid_list = ibs.db.get(LBLIMAGE_TABLE, ('lbltype_rowid',), lblimage_rowid_list)
-        return lbltype_rowid_list
-
-    @getter_1to1
-    def get_lblimage_notes(ibs, lblimage_rowid_list):
-        lblimagenotes_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_note',), lblimage_rowid_list)
-        return lblimagenotes_list
-
-    @getter_1to1
-    def get_lblimage_values(ibs, lblimage_rowid_list, _lbltype=None):
-        """
-        Returns:
-            list_ (list): text lblimages """
-        #TODO: Remove keyword argument
-        #ibsfuncs.assert_lblimage_rowids_are_type(ibs, lblimage_rowid_list,  ibs.lbltype_ids[_lbltype])
-        lblimage_value_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_value',), lblimage_rowid_list)
-        return lblimage_value_list
-
-    @default_decorator
-    def get_lblimage_gids(ibs, lblimage_rowid_list):
-        #verbose = len(lblimage_rowid_list) > 20
-        # TODO: Optimize IF POSSIBLE
-        # FIXME: SLOW
-        #if verbose:
-        #    print(utool.get_caller_name(N=list(range(0, 20))))
-        where_clause = 'lblimage_rowid=?'
-        params_iter = [(lblimage_rowid,) for lblimage_rowid in lblimage_rowid_list]
-        gids_list = ibs.db.get_where(GL_RELATION_TABLE, ('image_rowid',), params_iter,
-                                     where_clause, unpack_scalars=False)
-        return gids_list
-
-    #
-    # GETTERS::LBLANNOT_TABLE
-
-    @getter_1to1
-    def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
-        """
-        Returns:
-            list_ (list):  lblannot_rowid_list from the superkey (lbltype, value)
-        """
-        colnames = ('lblannot_rowid',)
-        params_iter = zip(lbltype_rowid_list, value_list)
-        where_clause = 'lbltype_rowid=? AND lblannot_value=?'
-        lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
-        return lblannot_rowid_list
-
-    @getter_1to1
-    def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
-        """
-        UNSAFE
-
-        Returns:
-            lblannot_rowid_list from the superkey (lbltype, value)
-        """
-        assert False, "CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey"
-        colnames = ('lblannot_rowid',)
-        params_iter = lblannot_uuid_list
-        id_colname = 'lblannot_uuid'
-        lblannot_rowid_list = ibs.db.get(LBLANNOT_TABLE, colnames, params_iter, id_colname=id_colname)
-        return lblannot_rowid_list
-
-    @getter_1to1
-    def get_lblannot_uuids(ibs, lblannot_rowid_list):
-        lblannotuuid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_uuid',), lblannot_rowid_list)
-        return lblannotuuid_list
-
-    @getter_1to1
-    def get_lblannot_lbltypes_rowids(ibs, lblannot_rowid_list):
-        lbltype_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lbltype_rowid',), lblannot_rowid_list)
-        return lbltype_rowid_list
-
-    @getter_1to1
-    def get_lblannot_notes(ibs, lblannot_rowid_list):
-        lblannotnotes_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_note',), lblannot_rowid_list)
-        return lblannotnotes_list
-
-    @getter_1to1
-    def get_lblannot_values(ibs, lblannot_rowid_list, _lbltype=None):
-        """
-        Returns:
-            text lblannots
-        """
-        #TODO: Remove keyword argument
-        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
-        lblannot_value_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
-        return lblannot_value_list
-
-    @default_decorator
-    def get_lblannot_aids(ibs, lblannot_rowid_list):
-        """
-        Get annotation rowids of labels. There may be more than one annotation
-        per label.
-
-        Args:
-            lblannot_rowid_list (list): of lblannot (labels of annotations) rowids
-
-        Returns:
-            aids_list (list): of lists annotation rowids
-        """
-        #verbose = len(lblannot_rowid_list) > 20
-        # TODO: Optimize IF POSSIBLE
-        # FIXME: SLOW
-        #if verbose:
-        #    print(utool.get_caller_name(N=list(range(0, 20))))
-        where_clause = 'lblannot_rowid=?'
-        params_iter = [(lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list]
-        aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-                                     where_clause, unpack_scalars=False)
-        return aids_list
-
-    #
-    # GETTERS::LBLANNOTS_SUBSET
-
-    @getter_1to1
-    def get_species(ibs, speciesid_list):
-        """
-        Returns:
-            species_list (list of text): text names
-        """
-        species_list = ibs.get_lblannot_values(speciesid_list, constants.SPECIES_KEY)
-        return species_list
-
-    @getter_1to1
-    def get_name_nids(ibs, name_list, ensure=True):
-        """
-        Returns:
-            nid_list (list): Creates one if it doesnt exist """
-        if ensure:
-            nid_list = ibs.add_names(name_list)
-            return nid_list
-        lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
-        lbltype_rowid_list = [lbltype_rowid] * len(name_list)
-        nid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_list)
-        return nid_list
-
-    @getter_1to1
-    def get_species_lblannot_rowid(ibs, species_list, ensure=True):
-        """
-        get_species_lblannot_rowid
-
-        Returns:
-            species_rowid_list (list): Creates one if it doesnt exist
-
-        Example:
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> import utool
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> species_list = [u'jaguar', u'zebra_plains',
-            ...                 u'zebra_plains','____', u'zebra_grevys',
-            ...                 '____', u'zebra_grevys',
-            ...                 u'bear_polar', u'bear_polar', 'TYPO', '____']
-            >>> ensure = False
-            >>> species_rowid_list = ibs.get_species_lblannot_rowid(species_list, ensure)
-            >>> print(utool.list_str(list(zip(species_list, species_rowid_list))))
-            >>> ensure = True
-            >>> species_rowid_list = ibs.get_species_lblannot_rowid(species_list, ensure)
-            >>> print(utool.list_str(list(zip(species_list, species_rowid_list))))
-            >>> ibs.print_lblannot_table()
-        """
-        if ensure:
-            lblannot_rowid_list = ibs.add_species(species_list)
-        else:
-            lbltype_rowid = ibs.lbltype_ids[constants.SPECIES_KEY]
-            lbltype_rowid_list = [lbltype_rowid] * len(species_list)
-            lblannot_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_list)
-        return lblannot_rowid_list
-
-    @getter_1to1
-    def get_name_text(ibs, nid_list):
-        """
-        Returns:
-            list_ (list): text names """
-        # TODO:
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the lblannot list to distinguish unknown lblannots
-        name_list = ibs.get_lblannot_values(nid_list, constants.INDIVIDUAL_KEY)
-        return name_list
-
-    @getter_1toM
-    def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
-        """
-        Returns:
-            aids_list (list):  a list of list of aids in each name
-
-        Example:
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> # Map annotations to name ids
-            >>> aid_list = ibs.get_valid_aids()
-            >>> nid_list = ibs.get_annot_nids(aid_list)
-            >>> # Get annotation ids for each name
-            >>> aids_list = ibs.get_name_aids(nid_list)
-            >>> # Run Assertion Test
-            >>> groupid2_items = ut.group_items(aids_list, nid_list)
-            >>> grouped_items = list(six.itervalues(groupid2_items))
-            >>> passed_iter = map(ut.list_allsame, grouped_items)
-            >>> passed_list = list(passed_iter)
-            >>> assert all(passed_list), 'problem in get_name_aids'
-            >>> # Print gropued items
-            >>> print(ut.dict_str(groupid2_items, newlines=False))
-        """
-        # TODO: Optimize
-        nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
-        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        aids_list = ibs.get_lblannot_aids(nid_list_)
-        # TODO: QUESTION: Should negative nids return the empty list
-        # when asked for their member aids? Because we know that it should be
-        # the negated nid and have 1 member. Here is code to fix it if we should
-        if enable_unknown_fix:
-            aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]
-        return aids_list
-
-    @getter_1toM
-    def get_name_exemplar_aids(ibs, nid_list):
-        """
-        Returns:
-            list_ (list):  a list of list of cids in each name """
-        nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
-        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        aids_list = ibs.get_lblannot_aids(nid_list_)
-        flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
-        exemplar_aids_list = [utool.filter_items(aids, flags) for aids, flags in
-                              zip(aids_list, flags_list)]
-        return exemplar_aids_list
-
-    @getter_1to1
-    def get_name_num_annotations(ibs, nid_list):
-        """
-        Returns:
-            list_ (list):  the number of annotations for each name """
-        # TODO: Optimize
-        return list(map(len, ibs.get_name_aids(nid_list)))
-
-    @getter_1to1
-    def get_name_num_exemplar_annotations(ibs, nid_list):
-        """
-        Returns:
-            list_ (list):  the number of annotations, which are exemplars for each name """
-        return list(map(len, ibs.get_name_exemplar_aids(nid_list)))
-
-    @getter_1to1
-    def get_name_notes(ibs, nid_list):
-        """
-        Returns:
-            list_ (list): name notes """
-        notes_list = ibs.get_lblannot_notes(nid_list)
-        return notes_list
-
-    @getter_1toM
-    def get_name_gids(ibs, nid_list):
-        """
-        Returns:
-            list_ (list): the image ids associated with name ids"""
-        # TODO: Optimize
-        aids_list = ibs.get_name_aids(nid_list)
-        gids_list = ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)
-        return gids_list
-
-    ## NEW
-
-    @getter_1to1
-    def get_annot_meta_lblannot_rowids(ibs, aid_list, _lbltype):
-        """ ugg """
-        #get_lblannot_values
-        getter = partial(ibs.get_lblannot_values, _lbltype=constants.INDIVIDUAL_KEY)
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, _lbltype, getter)
-
-    @adder
-    def add_meta_lblannots(ibs, value_list, note_list=None, _lbltype=None):
-        """ docstr """
-        assert _lbltype is not None, 'bad lbltype'
-        lbltype_rowid_list = [ibs.lbltype_ids[_lbltype]] * len(value_list)
-        lblannot_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, note_list)
-        return lblannot_rowid_list
-
-    @setter
-    def set_annot_meta_lblannot_values(ibs, aid_list, value_list, _lbltype):
-        """ docstr """
-        return ibs.set_annot_lblannot_from_value(aid_list, value_list, _lbltype)
-
-    def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
-        aids_hashid = utool.hashstr_arr(aid_list, label)
-        return aids_hashid
-
-    def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
-        uuid_list    = ibs.get_annot_uuids(aid_list)
-        uuui_hashid  = utool.hashstr_arr(uuid_list, label)
-        return uuui_hashid
-
-"""
-To Regenerate Templated Funcs:
-
-python ibeis/control/templates.py
-python ibeis/control/templates.py --dump-autogen-controller
-"""
-
-
-# Import modules which define injectable functions
-# Older manual ibeiscontrol functions
-from ibeis import ibsfuncs
-try:
-    from ibeis.control import _autogen_ibeiscontrol_funcs  # NOQA
-except Exception as ex:
-    utool.printex(ex, 'cannot import autogen funcs', tb=True, iswarning=True)
-    raise
-    if not ut.get_argflag('--notstrict'):
-        raise
-try:
-    from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
-except Exception as ex:
-    utool.printex(ex, 'cannot import manual funcs', tb=True, iswarning=True)
-    raise
+if __name__ == '__main__':
+    """
+    Issue when running on windows:
+    python ibeis/control/IBEISControl.py
+    python -m ibeis.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass
+
+    CommandLine:
+        python -m ibeis.control.IBEISControl
+        python -m ibeis.control.IBEISControl --allexamples
+        python -m ibeis.control.IBEISControl --allexamples --noface --nosrc
+    """
+    #from ibeis.control import IBEISControl
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

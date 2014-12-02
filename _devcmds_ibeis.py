@@ -37,7 +37,7 @@ def change_names(ibs, qaid_list):
         ibs.print_name_table()
         ibs.print_annotation_table()
     # FIXME:
-    #new_nid = ibs.get_name_nids(next_name, ensure=False)
+    #new_nid = ibs.get_name_rowids_from_text(next_name, ensure=False)
     #if back is not None:
         #back.select_nid(new_nid)
 
@@ -52,7 +52,7 @@ def query_aids(ibs, qaid_list, daid_list=None):
     import ibeis
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips(qaid_list, daid_list)
+    qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
@@ -71,7 +71,7 @@ def sver_aids(ibs, qaid_list, daid_list=None):
     """
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips(qaid_list, daid_list)
+    qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         aid2 = qres.get_top_aids()[0]
@@ -167,7 +167,7 @@ def export(ibs, aid_pairs=None):
     #utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
-        qaid2_qres = ibs._query_chips(aid_pair, aid_pair)
+        qaid2_qres = ibs._query_chips4(aid_pair, aid_pair)
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
@@ -214,7 +214,7 @@ def export(ibs, aid_pairs=None):
                 ) + ', '
                 for kp1, kp2 in zip(kpts1_m, kpts2_m)]
 
-            mcpaths_list = ibs.get_annot_cpaths(mkeys)
+            mcpaths_list = ibs.get_annot_chip_fpaths(mkeys)
             fnames_list = list(map(lambda x: split(x)[1], mcpaths_list))
             for path in mcpaths_list:
                 utool.copy(path, export_path)

@@ -155,7 +155,7 @@ class FilterConfig(ConfigBase):
         >>> filt_cfg.fg_weight = 1
         >>> result2 = filt_cfg.get_cfgstr()
         >>> result = result1
-        _FILT(lnbnn;1.0,fg;1.0)
+        _FILT(lnbnn;1.0,dupvote;1.0,fg;1.0)
     """
 
     def __init__(filt_cfg, **kwargs):
@@ -188,7 +188,7 @@ class FilterConfig(ConfigBase):
         addfilt(+1,    'bursty',   None,    0.0)
         addfilt(-1,     'ratio',   None,    0.0)
         addfilt(-1,     'lnbnn',   None,    1.0)
-        addfilt(-1,   'dupvote',   None,    0.0)
+        addfilt(-1,   'dupvote',   None,    1.0)
         addfilt(-1,    'lograt',   None,    0.0)
         addfilt(-1,  'normonly',   None,    0.0)
         addfilt(-1,   'logdist',   None,    0.0)
@@ -283,7 +283,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.nShortlist = 50
-        sv_cfg.prescore_method = 'csum'
+        #sv_cfg.prescore_method = 'csum'
+        sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = False  # BAD CONFIG?
         sv_cfg.sver_weighting = False  # weight feature scores with sver errors
         sv_cfg.update(**kwargs)
@@ -314,8 +315,11 @@ class AggregateConfig(ConfigBase):
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
         # chipsum, namesum, placketluce
-        agg_cfg.isWeighted = False  # nsum, pl
-        agg_cfg.score_method = 'csum'  # nsum, pl
+        agg_cfg.isWeighted = False
+        #agg_cfg.score_method = 'csum'
+        agg_cfg.score_method = 'nsum'
+        #agg_cfg.score_normalization = False
+        agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
             'borda': 'borda',
@@ -342,13 +346,15 @@ class AggregateConfig(ConfigBase):
 
     def get_cfgstr_list(agg_cfg, **kwargs):
         agg_cfgstr = []
-        agg_cfgstr += ['_AGG(']
-        agg_cfgstr += [agg_cfg.score_method]
+        agg_cfgstr.append('_AGG(')
+        agg_cfgstr.append(agg_cfg.score_method)
         if agg_cfg.isWeighted:
-            agg_cfgstr += ['w']
+            agg_cfgstr.append('w')
         if agg_cfg.score_method  == 'pl':
-            agg_cfgstr += [',%d' % (agg_cfg.max_alts,)]
-        agg_cfgstr += [')']
+            agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
+        if agg_cfg.score_normalization:
+            agg_cfgstr.append(',norm')
+        agg_cfgstr.append(')')
         return agg_cfgstr
 
 
@@ -593,10 +599,18 @@ class QueryConfig(ConfigBase):
         agg_cfg = query_cfg.agg_cfg
         sv_cfg = query_cfg.sv_cfg
         # TODO:
-        if codename == 'nsum':
+        if codename.startswith('csum'):
+            filt_cfg.dupvote_weight = 0.0
+            sv_cfg.prescore_method = 'csum'
+            agg_cfg.score_method = 'csum'
+        elif codename.startswith('nsum'):
             filt_cfg.dupvote_weight = 1.0
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
+            if codename == 'nsum_unnorm':
+                agg_cfg.score_normalization = False
+            else:
+                agg_cfg.score_normalization = True
         elif codename == 'vsmany':
             query_cfg.pipeline_root = 'vsmany'
         elif codename == 'vsone':
@@ -618,6 +632,11 @@ class QueryConfig(ConfigBase):
         #if query_cfg.species_code == 'zebra_grevys':
         #    query_cfg.fg_weight = 1.0
             # TODO:
+
+        assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
+
+        if agg_cfg.score_normalization:
+            assert agg_cfg.score_method == 'nsum'
 
         if query_cfg.pipeline_root == 'asmk':
             query_cfg.pipeline_root = 'smk'
@@ -1049,8 +1068,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config, allexamples=True)"
         python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config)"
-        python ibeis/model/Config.py
-        python ibeis/model/Config.py --allexamples
+        python -m ibeis.model.Config
+        python -m ibeis.model.Config --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

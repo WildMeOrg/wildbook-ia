@@ -81,10 +81,10 @@ def testdata_ibeis2(**kwargs):
     #qaids = [valid_aids[0], valid_aids[4]]
     qaids = [valid_aids[0]]
     # FIXME: can't set to a list right now
-    custom_qparams = {
+    cfgdict = {
         'vocab_taids': 'all',
     }
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, custom_qparams)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
     qreq_.ibs = ibs  # Hack
     return ibs, taids, daids, qaids, qreq_
 

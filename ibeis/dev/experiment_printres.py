@@ -457,9 +457,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
+        # this is ok because query config is reset after
+        # exerpiment_printres resturns
         ibs.set_query_cfg(query_cfg)
         # Force program to use cache here
-        qres = ibs._query_chips([qaid], daids,
+        qres = ibs._query_chips4([qaid], daids,
                                 use_cache=True,
                                 use_bigcache=False)[qaid]
         return qres

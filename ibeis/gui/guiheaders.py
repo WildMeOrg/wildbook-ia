@@ -259,7 +259,7 @@ def make_ibeis_headers_dict(ibs):
         'name'        : ibs.get_annot_names,
         'species'     : ibs.get_annot_species,
         'viewpoint'   : ibs.get_annot_viewpoints,
-        'annot_gname' : ibs.get_annot_gnames,
+        'annot_gname' : ibs.get_annot_image_names,
         'nGt'         : ibs.get_annot_num_groundtruth,
         'theta'       : partial_imap_1to1(utool.theta_str, ibs.get_annot_thetas),
         'bbox'        : partial_imap_1to1(utool.bbox_str,  ibs.get_annot_bboxes),
@@ -283,30 +283,30 @@ def make_ibeis_headers_dict(ibs):
     iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
         'nid'        : lambda nids: nids,
-        'name'       : ibs.get_name_text,
+        'name'       : ibs.get_name_texts,
         'nAids'      : ibs.get_name_num_annotations,
         'namenotes'  : ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
-        'name'       : ibs.set_name_names,
+        'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
     }
     #
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         'nid'        : lambda nids: nids,
-        'name'       : ibs.get_name_text,
+        'name'       : ibs.get_name_texts,
         'nAids'      : ibs.get_name_num_annotations,
         'nExAids'    : ibs.get_name_num_exemplar_annotations,
         'namenotes'  : ibs.get_name_notes,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annot_exemplar_flag,
         'thumb'      : ibs.get_annot_chip_thumbtup,
-        'annot_gname' : ibs.get_annot_gnames,
+        'annot_gname' : ibs.get_annot_image_names,
     }
     setters[NAMES_TREE] = {
         'exemplar'   : ibs.set_annot_exemplar_flag,
-        'name'       : ibs.set_name_names,
+        'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
     }
     #

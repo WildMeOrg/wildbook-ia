@@ -1,7 +1,7 @@
 """
 DoctestCMD:
     python -c "import ibeis; import doctest; from ibeis.dev import experiment_harness; print(doctest.testmod(ibeis.dev.experiment_harness))"
-    python ibeis/dev/experiment_harness.py
+    python -m ibeis.dev.experiment_harness
 """
 from __future__ import absolute_import, division, print_function
 # Python
@@ -48,7 +48,7 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
-        >>> daids = ibs.get_valid_aids()
+        >>> daids = ibs.get_valid_aids()[0:5]
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
 
     Example:
@@ -56,13 +56,14 @@ def get_qx2_bestrank(ibs, qaids, daids):
         >>> from ibeis.dev.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> ibs.cfg.query_cfg.codename = 'vsone'
+        >>> cfgdict = dict(codename='vsone')
+        >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
-        >>> daids = ibs.get_valid_aids()
+        >>> daids = ibs.get_valid_aids()[0:5]
         >>> qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
     """
     # Execute or load query
-    qaid2_qres = ibs._query_chips(qaids, daids)
+    qaid2_qres = ibs._query_chips4(qaids, daids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks
@@ -122,6 +123,8 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
 
     qaids = qaid_list
     daids = daid_list
+
+    orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
     #if daids is None:
     #    daids = ibs.get_recognition_database_aids()
 
@@ -180,6 +183,10 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
                                       bestranks_list, cfgx2_aveprecs, testnameid, sel_rows,
                                       sel_cols, cfgx2_lbl)
+    # Reset query config so nothing unexpected happens
+    # TODO: should probably just use a cfgdict to build a list of QueryRequest
+    # objects. That would avoid the entire problem
+    ibs.cfg.set_query_cfg(orig_query_cfg)
 
 
 if __name__ == '__main__':
@@ -187,8 +194,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)"
         python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)"
-        python ibeis/dev/experiment_harness.py
-        python ibeis/dev/experiment_harness.py --allexamples
+        python -m ibeis.dev.experiment_harness
+        python -m ibeis.dev.experiment_harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

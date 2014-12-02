@@ -1,20 +1,26 @@
 """
 IBEIS: main package init
 
+TODO: LAZY IMPORTS?
+    http://code.activestate.com/recipes/473888-lazy-module-imports/
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
 
+utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
+
+
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
-import plottool
+#import plottool
 
 
 from ibeis import constants
+from ibeis import constants as const
 from ibeis import params
 from ibeis import main_module
 from ibeis import dev
@@ -25,50 +31,9 @@ from ibeis import control
 from ibeis import ibsfuncs
 from ibeis import dbio
 
-
 #from ibeis import model
 #from ibeis import viz
 #from ibeis import web
-
-#try:
-#    # relative from ibeis imports
-#    #from ibeis import constants
-#import ibeis.constants as constants
-#import ibeis.params as params
-#import ibeis.main_module as main_module
-#import ibeis.control as control
-#import ibeis.ibsfuncs as ibsfunc
-#import ibeis.dev as dev
-#import ibeis.dbio as io
-#import ibeis.model as model
-#    #from ibeis import params
-#    #from ibeis import main_module
-#    #from ibeis import control
-#    #from ibeis import ibsfuncs
-#    #from ibeis import dev
-#    #from ibeis import io
-#    #from ibeis import model
-#except ImportError as ex:
-#    utool.printex(ex, 'ERROR in ibeis\' __init__', iswarning=False, tb=True)
-#    raise
-#    #try:
-#    #    pass
-#    #    #from . import constants
-#    #    #from . import main_module
-#    #    #from . import params
-#    #    #from . import control
-#    #    #from . import dev
-#    #    #from . import io
-#    #    #from . import dev
-#    #    #from . import ibsfuncs
-#    #    #from . import model
-#    #    #from . import web
-#    #except ImportError as ex:
-#    #    pass
-#    #else:
-#    #    utool.printex(ex, 'ERROR in ibeis\' __init__', tb=True)
-#    #    raise
-
 
 from ibeis.dev import sysres
 from ibeis.main_module import main, _preload, main_loop, test_main, opendb
@@ -85,6 +50,8 @@ def import_subs():
     from ibeis import model
     from ibeis import viz
     from ibeis import web
+    #from ibeis import gui
+
     __LOADED__ = True
 
 def ensure_subs():
@@ -94,22 +61,37 @@ def ensure_subs():
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
 
-def reload_subs():
+def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """
     if not __LOADED__:
         import_subs()
-    rrr()
-    getattr(constants, 'rrr', lambda: None)()
-    getattr(ibsfuncs, 'rrr', lambda: None)()
-    getattr(main_module, 'rrr', lambda: None)()
-    getattr(dev, 'reload_subs', lambda: None)()
-    getattr(io, 'reload_subs', lambda: None)()
-    getattr(model, 'reload_subs', lambda: None)()
-    #getattr(tests, 'reload_subs', lambda: None)()
-    #getattr(params, 'rrr', lambda: None)()
-    #getattr(control, 'reload_subs', lambda: None)()
-    #getattr(gui, 'reload_subs', lambda: None)()
-    #getattr(ingest, 'reload_subs', lambda: None)()
+    rrr(verbose=verbose)
+    getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(ibsfuncs, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(dev, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    #getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(viz, 'reload_subs', lambda: None)()
-    rrr()
+
+    getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)
+
+    rrr(verbose=verbose)
 rrrr = reload_subs
+
+
+
+"""
+Regen Command:
+    Kinda have to work with the output of these. This module is hard to
+    autogenerate correctly.
+
+    cd /home/joncrall/code/ibeis/ibeis/dev
+    makeinit.py -x web viz tests gui all_imports
+    makeinit.py -x constants params main_module dev control ibsfuncs dbio tests all_imports
+"""

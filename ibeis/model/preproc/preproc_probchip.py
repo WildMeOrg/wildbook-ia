@@ -54,7 +54,7 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
     """ helper
 
     Example:
-        >>> # DOCTEST_ENABLE
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -73,7 +73,7 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
         species_list = [featweight_species]
     aid_list = np.array(aid_list)
     species_list = np.array(species_list)
-    species_rowid = np.array(ibs.get_species_lblannot_rowid(species_list))
+    species_rowid = np.array(ibs.get_species_rowids_from_text(species_list))
     unique_species_rowids, groupxs = vtool.group_indicies(species_rowid)
     grouped_aids    = vtool.apply_grouping(aid_list, groupxs)
     grouped_species = vtool.apply_grouping(species_list, groupxs)
@@ -103,11 +103,11 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
-        >>> #want = 'probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
+        >>> #want = 'probchip_aid=%d_bbox=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
         >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
         >>> result = probchip_fname_fmt
         >>> print(result)
-        probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
+        probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
 
     """
     cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs)
@@ -143,33 +143,30 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
         probchip_fpath_list
 
     Example:
-        >>> # DOCTEST_ENABLE
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip import *  # NOQA
         >>> from os.path import basename
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> qreq_ = None
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = basename(probchip_fpath_list[1])
         >>> print(result)
-        probchip_aid=2_auuid=35a418d7-5168-4404-8bce-63d75935b54c_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
+        probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0tau_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
     ibs.probchipdir = get_probchip_cachedir(ibs)
     cachedir = get_probchip_cachedir(ibs)
     ut.ensuredir(cachedir)
-
     #grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
-
-    probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_, species=species)
-    annot_uuid_list = ibs.get_annot_uuids(aid_list)
-
+    #annot_uuid_list = ibs.get_annot_uuids(aid_list)
     #for aids, species in zip(grouped_aids, unique_species):
     #probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
     #                       for auuid in annot_uuid_list)
-    probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in
-                           zip(aid_list, annot_uuid_list))
-    probchip_fpath_list = [None if fname is None else join(cachedir, fname)
-                           for fname in probchip_fname_iter]
+    ##probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in
+    #                       #zip(aid_list, annot_uuid_list))
+    ##probchip_fpath_list = [None if fname is None else join(cachedir, fname)
+    #                       #for fname in probchip_fname_iter]
+    probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_, species=species)
+    probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(ibs, aid_list, probchip_fname_fmt, cachedir)
     return probchip_fpath_list
 
 
@@ -209,7 +206,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         if len(aids) == 0:
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
-        cfpath_list  = ibs.get_annot_cpaths(aids)
+        cfpath_list  = ibs.get_annot_chip_fpaths(aids)
         preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         # Ensure that all chips are computed
         # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to
@@ -229,8 +226,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)"
         python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)"
-        python ibeis/model/preproc/preproc_probchip.py
-        python ibeis/model/preproc/preproc_probchip.py --allexamples
+        python -m ibeis.model.preproc.preproc_probchip
+        python -m ibeis.model.preproc.preproc_probchip --allexamples
+        python -m ibeis.model.preproc.preproc_probchip --allexamples --serial --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()

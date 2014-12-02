@@ -31,14 +31,20 @@ def parse_args():
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
         parser2.add_ints(('--qindex', '-qx'), None, help='test only these query indicies. Out of bounds errors are clipped')
         parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indicies. . Out of bounds errors are clipped')
-        parser2.add_ints(('--sel-rows', '-r'), help='view row')
-        parser2.add_ints(('--sel-cols', '-c'), help='view col')
+        parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
+        parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
         parser2.add_ints('--qaid', default=[], help='investigate match aid')
         parser2.add_ints('--daid-exclude', default=[], help='exclude daids from matching')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
         parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_flag(('--fulltb'), help='shows a full traceback (default behavior removes decorators from the trace)')
         parser2.add_str(('--merge-species'), help='merges all databases of given species')
+        parser2.add_flag(('--verbose'), help='turns on verbosity')
+        parser2.add_flag((('--veryverbose', '--very-verbose')), help='turns on extra verbosity')
+        parser2.add_flag(('--quiet'), help='turns down verbosity')
+        parser2.add_flag(('--silent'), help='turns off verbosity')
+        parser2.add_flag(('--print-inject-order'), help='shows import order of any module registered with utool')
+
 
     def behavior_argparse(parser2):
         # Program behavior
@@ -63,7 +69,8 @@ def parse_args():
                          help='dumps the SQLITE3 database after every commit')
         parser2.add_flag('--darken')
         parser2.add_flag('--aggroflush', help='utool writes flush immediately')
-        parser2.add_flag('--nologging', help='diables logging')
+        parser2.add_flag('--nologging', help='disables logging')
+        parser2.add_flag('--noindent', help='disables utool indentation')
 
     def database_argparse(parser2):
         # Database selections

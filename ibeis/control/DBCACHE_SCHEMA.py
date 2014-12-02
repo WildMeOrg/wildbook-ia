@@ -133,8 +133,8 @@ def test_dbcache_schema():
         >>> test_dbcache_schema()
 
     CommandLine:
-        python ibeis/control/DBCACHE_SCHEMA.py
-        python ibeis/control/DBCACHE_SCHEMA.py --force-incremental-db-update
+        python -m ibeis.control.DBCACHE_SCHEMA
+        python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update
 
     """
     from ibeis.control import DBCACHE_SCHEMA
@@ -150,8 +150,8 @@ def test_dbcache_schema():
 
 if __name__ == '__main__':
     """
-    python ibeis/control/DBCACHE_SCHEMA.py
-    python ibeis/control/DBCACHE_SCHEMA.py --allexamples
+    python -m ibeis.control.DBCACHE_SCHEMA
+    python -m ibeis.control.DBCACHE_SCHEMA --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

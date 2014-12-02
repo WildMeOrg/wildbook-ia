@@ -9,31 +9,35 @@ rob gp "ibsfuncs\..*\(ibs, "
 from __future__ import absolute_import, division, print_function
 #import uuid
 import six
+#import sys
 import types
 from six.moves import zip, range, map
+from os.path import split, join, exists, commonprefix
+#sys.exit(1)
+import vtool.image as gtool
+#sys.exit(1)
+import numpy as np
+
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 #from functools import partial  # NOQA
-from os.path import split, join, exists, commonprefix
 import utool
+import utool as ut  # NOQA
+from vtool import linalg, geometry, image
 import ibeis
-from ibeis import constants
+from ibeis import constants as const
 try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 except ImportError as ex:
     utool.printex('COMMIT TO DETECTTOOLS')
     pass
-#from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
-from vtool import linalg, geometry, image
-import vtool.image as gtool
-import numpy as np
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibsfuncs]', DEBUG=False)
 
 
-__INJECTABLE_FUNCS__ = []
+#__INJECTABLE_FUNCS__ = []
 
 
 #def __injectable(input_):
@@ -60,27 +64,29 @@ __INJECTABLE_FUNCS__ = []
 #    postinject_func()
 
 #import ibeis
-import utool as ut  # NOQA
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-__injectable = ut.make_class_method_decorator('IBEISController')
+CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
+__injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY)
+#def __injectable(func):
+#    return func
 
 
-@ut.make_class_postinject_decorator('IBEISController')
+@ut.make_class_postinject_decorator(CLASS_INJECT_KEY)
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
         ibs.get_annot_uuids,
         ibs.get_image_uuids,
-        ibs.get_name_text,
+        ibs.get_name_texts,
         ibs.get_image_unixtime,
         ibs.get_annot_bboxes,
         ibs.get_annot_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ut.inject_func_as_method(ibs, unflat_getter)
+        ut.inject_func_as_method(ibs, unflat_getter, allow_override=ibs.allow_override)
 
 
 @__injectable
@@ -214,7 +220,7 @@ def compute_all_features(ibs, **kwargs):
     """
     print('[ibs] compute_all_features')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.get_annot_cids(aid_list, ensure=True)
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
     fid_list = ibs.add_feats(cid_list)
     return fid_list
 
@@ -269,8 +275,11 @@ def assert_valid_species(ibs, species_list, iswarning=True):
     if utool.NO_ASSERTS:
         return
     try:
-        assert all([species in constants.VALID_SPECIES
-                    for species in species_list]), 'invalid species added'
+        isvalid_list = [
+            species in const.VALID_SPECIES  # or species == const.UNKNOWN
+            for species in species_list
+        ]
+        assert all(isvalid_list), 'invalid species added: %r' % (ut.filterfalse_items(species_list, isvalid_list),)
     except AssertionError as ex:
         utool.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -342,7 +351,7 @@ def check_annot_consistency(ibs, aid_list):
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
-    cid_list = ibs.get_annot_cids(aid_list, ensure=False)
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
     cfpath_list = ibs.get_chip_paths(cid_list)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
@@ -356,7 +365,7 @@ def check_name_consistency(ibs, nid_list):
     #aids_list = ibs.get_name_aids(nid_list)
     print('check name consistency. len(nid_list)=%r' % len(nid_list))
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
-    individual_lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
+    individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     for lbltype_rowid in lbltype_rowid_list:
         assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
 
@@ -574,6 +583,11 @@ def delete_all_annotations(ibs):
 
 @__injectable
 def vd(ibs):
+    ibs.view_dbdir()
+
+
+@__injectable
+def view_dbdir(ibs):
     utool.view_directory(ibs.get_dbdir())
 
 
@@ -587,18 +601,34 @@ def get_annot_vecs_cache(ibs, aids):
     return desc_cache
 
 
-# TODO: move to constants
+# TODO: move to const
 
 @__injectable
 def get_annot_is_hard(ibs, aid_list):
     """
     CmdLine:
         ./dev.py --cmd --db PZ_Mothers
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+
+    Returns:
+        list: is_hard_list
+
     Example:
-        >>> aid_list = ibs.get_valid_aids()  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0::2]
+        >>> is_hard_list = get_annot_is_hard(ibs, aid_list)
+        >>> result = str(is_hard_list)
+        >>> print(result)
+        [False, False, False, False, False, False, False]
     """
     notes_list = ibs.get_annot_notes(aid_list)
-    is_hard_list = [constants.HARD_NOTE_TAG in notes.upper().split() for (notes)
+    is_hard_list = [const.HARD_NOTE_TAG in notes.upper().split() for (notes)
                     in notes_list]
     return is_hard_list
 
@@ -629,7 +659,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
         >>> flag_list = [True] * len(aid_list)
     """
     notes_list = ibs.get_annot_notes(aid_list)
-    is_hard_list = [constants.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
+    is_hard_list = [const.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
     def fix_notes(notes, is_hard, flag):
         " Adds or removes hard tag if needed "
         if flag and is_hard or not (flag or is_hard):
@@ -637,10 +667,10 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
             return notes
         elif not is_hard and flag:
             # need to add flag
-            return constants.HARD_NOTE_TAG + ' '  + notes
+            return const.HARD_NOTE_TAG + ' '  + notes
         elif is_hard and not flag:
             # need to remove flag
-            return notes.replace(constants.HARD_NOTE_TAG, '').strip()
+            return notes.replace(const.HARD_NOTE_TAG, '').strip()
         else:
             raise AssertionError('impossible state')
 
@@ -759,26 +789,26 @@ def set_annot_names_to_next_name(ibs, aid_list):
 
 @__injectable
 def _overwrite_annot_species_to_plains(ibs, aid_list):
-    species_list = [constants.Species.ZEB_PLAIN] * len(aid_list)
+    species_list = [const.Species.ZEB_PLAIN] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
 def _overwrite_annot_species_to_grevys(ibs, aid_list):
-    species_list = [constants.Species.ZEB_GREVY] * len(aid_list)
+    species_list = [const.Species.ZEB_GREVY] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
 def _overwrite_annot_species_to_giraffe(ibs, aid_list):
-    species_list = [constants.Species.GIR] * len(aid_list)
+    species_list = [const.Species.GIR] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
 def _overwrite_all_annot_species_to(ibs, species):
     """ THIS OVERWRITES A LOT OF INFO """
-    assert species in constants.VALID_SPECIES, repr(species) + 'is not in ' + repr(constants.VALID_SPECIES)
+    assert species in const.VALID_SPECIES, repr(species) + 'is not in ' + repr(const.VALID_SPECIES)
     aid_list = ibs.get_valid_aids()
     species_list = [species] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
@@ -786,7 +816,7 @@ def _overwrite_all_annot_species_to(ibs, species):
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annot_nids((aid1, aid2))
+    nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -859,7 +889,7 @@ def _make_unflat_getter_func(flat_getter):
 
 
 def delete_ibeis_database(dbdir):
-    _ibsdb = join(dbdir, constants.PATH_NAMES._ibsdb)
+    _ibsdb = join(dbdir, const.PATH_NAMES._ibsdb)
     print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
         utool.delete(_ibsdb)
@@ -872,7 +902,7 @@ def assert_valid_names(name_list):
         return
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, constants.UNKNOWN) for name in name_list]
+    valid_namecheck = [not isconflict(name, const.UNKNOWN) for name in name_list]
     assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
                                   'cannot start a name with four underscores')
 
@@ -888,7 +918,7 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         assert len(lbltype_rowid_list) == len(lbltype_rowid_list), 'lens dont match'
         validtype_list = [
             (lbltype_rowid == valid_lbltype_rowid) or
-            (lbltype_rowid is None and lblannot_rowid == constants.UNKNOWN_LBLANNOT_ROWID)
+            (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
             for lbltype_rowid, lblannot_rowid in
             zip(lbltype_rowid_list, lblannot_rowid_list)]
         assert all(validtype_list), 'not all types match valid type'
@@ -945,34 +975,6 @@ def list_images(img_dir, fullpath=True, recursive=True):
                                    recursive=recursive,
                                    ignore_list=ignore_list)
     return gpath_list
-
-
-def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
-    augment_uuid = utool.util_hash.augment_uuid
-    random_uuid = utool.util_hash.random_uuid
-    try:
-        # Check to make sure bbox input is a tuple-list, not a list-list
-        if len(bbox_list) > 0:
-            try:
-                assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
-                assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
-            except AssertionError as ex:
-                utool.printex(ex)
-                print('bbox_list = %r' % (bbox_list,))
-                raise
-        annotation_uuid_list = [augment_uuid(img_uuid, bbox, theta)
-                                for img_uuid, bbox, theta
-                                in zip(image_uuid_list, bbox_list, theta_list)]
-        if not deterministic:
-            # Augment determenistic uuid with a random uuid to ensure randomness
-            # (this should be ensured in all hardward situations)
-            annotation_uuid_list = [augment_uuid(random_uuid(), _uuid)
-                                    for _uuid in annotation_uuid_list]
-    except Exception as ex:
-        utool.printex(ex, 'Error building annotation_uuids', '[add_annot]',
-                      key_list=['image_uuid_list'])
-        raise
-    return annotation_uuid_list
 
 
 def get_species_dbs(species_prefix):
@@ -1080,13 +1082,13 @@ def delete_non_exemplars(ibs):
 #@profile
 def update_exemplar_encounter(ibs):
     # FIXME SLOW
-    exemplar_eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
+    exemplar_eid = ibs.get_encounter_eids_from_text(const.EXEMPLAR_ENCTEXT)
     #ibs.delete_encounters(exemplar_eid)
     ibs.unrelate_encounter_from_images(exemplar_eid)
     #aid_list = ibs.get_valid_aids(is_exemplar=True)
     #gid_list = utool.unique_ordered(ibs.get_annot_gids(aid_list))
     gid_list = list(set(_get_exemplar_gids(ibs)))
-    #ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
+    #ibs.set_image_enctext(gid_list, [const.EXEMPLAR_ENCTEXT] * len(gid_list))
     ibs.set_image_eids(gid_list, [exemplar_eid] * len(gid_list))
 
 
@@ -1095,13 +1097,13 @@ def update_exemplar_encounter(ibs):
 #@profile
 def update_reviewed_unreviewed_image_encounter(ibs):
     # FIXME SLOW
-    unreviewed_eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
-    reviewed_eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
+    unreviewed_eid = ibs.get_encounter_eids_from_text(const.UNREVIEWED_IMAGE_ENCTEXT)
+    reviewed_eid = ibs.get_encounter_eids_from_text(const.REVIEWED_IMAGE_ENCTEXT)
     #ibs.delete_encounters(eid)
     ibs.unrelate_encounter_from_images(unreviewed_eid)
     ibs.unrelate_encounter_from_images(reviewed_eid)
     #gid_list = ibs.get_valid_gids(reviewed=False)
-    #ibs.set_image_enctext(gid_list, [constants.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+    #ibs.set_image_enctext(gid_list, [const.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
     unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
     reviewed_gids   = _get_reviewed_gids(ibs)  # hack
     ibs.set_image_eids(unreviewed_gids, [unreviewed_eid] * len(unreviewed_gids))
@@ -1117,7 +1119,7 @@ def update_reviewed_unreviewed_image_encounter(ibs):
 #    ibs.unrelate_encounter_from_images(eid)
 #    #gid_list = ibs.get_valid_gids(reviewed=True)
 #    gid_list = _get_reviewed_gids(ibs)  # hack
-#    #ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
 #    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
@@ -1126,10 +1128,10 @@ def update_reviewed_unreviewed_image_encounter(ibs):
 #@profile
 def update_all_image_encounter(ibs):
     # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
+    eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
     #ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids()
-    #ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
+    #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
     ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
@@ -1151,7 +1153,7 @@ def _get_unreviewed_gids(ibs):
         FROM {IMAGE_TABLE}
         WHERE
         image_toggle_reviewed=0
-        '''.format(**constants.__dict__))
+        '''.format(**const.__dict__))
     return gid_list
 
 
@@ -1163,7 +1165,7 @@ def _get_reviewed_gids(ibs):
         FROM {IMAGE_TABLE}
         WHERE
         image_toggle_reviewed=1
-        '''.format(**constants.__dict__))
+        '''.format(**const.__dict__))
     return gid_list
 
 
@@ -1174,7 +1176,7 @@ def _get_gids_in_eid(ibs, eid):
         FROM {EG_RELATION_TABLE}
         WHERE
             encounter_rowid==?
-        '''.format(**constants.__dict__),
+        '''.format(**const.__dict__),
         params=(eid,))
     return gid_list
 
@@ -1187,7 +1189,7 @@ def _get_dirty_reviewed_gids(ibs, eid):
         WHERE
             encounter_rowid==? AND
             image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
-        '''.format(**constants.__dict__),
+        '''.format(**const.__dict__),
         params=(eid,))
     return gid_list
 
@@ -1198,7 +1200,7 @@ def _get_exemplar_gids(ibs):
         SELECT image_rowid
         FROM {ANNOTATION_TABLE}
         WHERE annot_exemplar_flag=1
-        '''.format(**constants.__dict__))
+        '''.format(**const.__dict__))
     return gid_list
 
 
@@ -1251,24 +1253,46 @@ def get_infostr(ibs):
 
 
 @__injectable
-def print_annotation_table(ibs):
-    """ Dumps annotation table to stdout """
+def print_annotation_table(ibs, verbosity=1):
+    """
+    Dumps annotation table to stdout
+
+    Args:
+        ibs (IBEISController):
+        verbosity (int):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> verbosity = 1
+        >>> print_annotation_table(ibs, verbosity)
+    """
+    exclude_columns = []
+    if verbosity < 5:
+        exclude_columns += ['annot_uuid', 'annot_verts']
+    if verbosity < 4:
+        exclude_columns += [
+            'annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',
+            'annot_theta', 'annot_viewpoint', 'annot_detect_confidence',
+            'annot_note', 'annot_parent_rowid']
     print('\n')
-    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotation_uuid', 'annotation_verts']))
+    print(ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns))
 
 
 @__injectable
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.CHIP_TABLE))
+    print(ibs.db.get_table_csv(const.CHIP_TABLE))
 
 
 @__injectable
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.FEATURE_TABLE, exclude_columns=[
+    print(ibs.db.get_table_csv(const.FEATURE_TABLE, exclude_columns=[
         'feature_keypoints', 'feature_vecs']))
 
 
@@ -1276,7 +1300,7 @@ def print_feat_table(ibs):
 def print_image_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.IMAGE_TABLE))
+    print(ibs.db.get_table_csv(const.IMAGE_TABLE))
     #, exclude_columns=['image_rowid']))
 
 
@@ -1284,35 +1308,35 @@ def print_image_table(ibs):
 def print_lblannot_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.LBLANNOT_TABLE))
+    print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
 
 
 @__injectable
 def print_alr_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.AL_RELATION_TABLE))
+    print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
 
 
 @__injectable
 def print_config_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.CONFIG_TABLE))
+    print(ibs.db.get_table_csv(const.CONFIG_TABLE))
 
 
 @__injectable
 def print_encounter_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.ENCOUNTER_TABLE))
+    print(ibs.db.get_table_csv(const.ENCOUNTER_TABLE))
 
 
 @__injectable
 def print_egpairs_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.EG_RELATION_TABLE))
+    print(ibs.db.get_table_csv(const.EG_RELATION_TABLE))
 
 
 @__injectable
@@ -1337,10 +1361,9 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     print('\n')
 
 
-#@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annot_nids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 
@@ -1467,7 +1490,7 @@ def compute_all_thumbs(ibs, **kwargs):
 
 
 def group_annots_by_known_names_nochecks(ibs, aid_list):
-    nid_list = ibs.get_annot_nids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = utool.group_items(aid_list, nid_list)
     return list(nid2_aids.values())
 
@@ -1488,7 +1511,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
         >>> print(unknown_aids)
         [11, 9, 4, 1]
     """
-    nid_list = ibs.get_annot_nids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = utool.group_items(aid_list, nid_list)
     aid_gen = lambda: six.itervalues(nid2_aids)
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
@@ -1496,20 +1519,127 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     unknown_aids = list(utool.iflatten(utool.ifilter_items(aid_gen(), isunknown_list)))
     if __debug__:
         # http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
-        nidgroup_list = unflat_map(ibs.get_annot_nids, known_aids_list)
+        nidgroup_list = unflat_map(ibs.get_annot_name_rowids, known_aids_list)
         for nidgroup in nidgroup_list:
             assert utool.list_allsame(nidgroup), 'bad name grouping'
     return known_aids_list, unknown_aids
 
 
 @__injectable
-def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
+def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
+                    clamp_gf=1, seed=False):
     """
-    >>> per_name = 1
+    Returns qaids and a corresponding list of lists for true matches and false
+    matches to try.
+
+    each item in the zip(*upsizetup) is qaid, true_aids, false_aids_samples
+    which corresponds to a query aid and a list of true aids and false aids
+    to try it as a query against.
+
+    get_upsize_data
+
+    Args:
+        ibs (IBEISController):
+        qaid_list (int): query annotation id
+        daid_list (list):
+        num_samp (int):
+        clamp_gt (int):
+        clamp_gf (int):
+        seed (int): if False seed is random else seeds numpy random num gen
+
+    Returns:
+        tuple: upsizetup
+
+    Example:
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
+        >>> num_samp = 5
+        >>> clamp_gt = 1
+        >>> clamp_gf = 1
+        >>> seed = 143039
+        >>> upsizetup = get_upsize_data(ibs, qaid_list, daid_list, num_samp, clamp_gt, clamp_gf, seed)
+        >>> (qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal) = upsizetup
+        >>> assert len(qaid_list) == 119
+        >>> assert len(qaid_trues_list) == 119
+        >>> assert len(qaid_false_samples_list) == 119
+        >>> assert nTotal == 525
+        >>> qaid, true_aids, false_aids_samples = six.next(zip(qaid_list, qaid_trues_list, qaid_false_samples_list))
+        >>> result = str(upsizetup)
+        >>> print(result)
     """
+    if seed is not False:
+        # Determanism
+        np.random.seed(seed)
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
+    # List of database sizes to test
+    samp_min, samp_max = (2, ibs.get_num_names())
+    dbsamplesize_list = utool.sample_domain(samp_min, samp_max, num_samp)
+    #
+    # Sample true and false matches for every query annotation
+    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
+    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_gf)
+    #
+    # Vary the size of the falses
+    def generate_varied_falses():
+        for false_aids in qaid_falses_list:
+            false_sample_list = []
+            for dbsize in dbsamplesize_list:
+                if dbsize > len(false_aids):
+                    continue
+                false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
+                false_sample_list.append(false_sample)
+            yield false_sample_list
+    qaid_false_samples_list = list(generate_varied_falses())
+
+    #
+    # Get a rough idea of how many queries will be run
+    nTotal = sum([len(false_aids_samples) * len(true_aids)
+                  for true_aids, false_aids_samples
+                  in zip(qaid_false_samples_list, qaid_trues_list)])
+    upsizetup = (qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal)
+    return upsizetup
+
+
+@__injectable
+def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
+    """
+    get_annot_groundfalse_sample
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        per_name (int): number of groundfalse per name
+        seed (bool or int): if False no seed, otherwise seeds numpy randgen
+
+    Returns:
+        list: gf_aids_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::4]
+        >>> per_name = 1
+        >>> seed = 42
+        >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name, seed)
+        >>> result = str(sample_trues_list)
+        >>> print(result)
+        [[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+
+        [[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+        [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
+    """
+    if seed is not False:
+        # Determanism
+        np.random.seed(seed)
     # Get valid names
     valid_aids = ibs.get_valid_aids()
-    valid_nids = ibs.get_annot_nids(valid_aids)
+    valid_nids = ibs.get_annot_name_rowids(valid_aids)
     nid2_aids = utool.group_items(valid_aids, valid_nids)
     for nid in list(nid2_aids.keys()):
         if ibs.is_nid_unknown(nid):
@@ -1527,7 +1657,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
         # Shuffle known annotations in each name
         #np.random.shuffle(aids)
     # Get not beloning to input names
-    nid_list = ibs.get_annot_nids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
     def _sample(nid_):
         aids_iter = (aids for nid, aids in six.iteritems(nid2_aids) if nid != nid_)
         sample_gf_aids = np.hstack([np.random.choice(aids, per_name, replace=False) for aids in aids_iter])
@@ -1539,11 +1669,23 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
 @__injectable
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
     """
+    get_annot_groundtruth_sample
+
+    Args:
+        ibs (IBEISController):
+        aid_list (list):
+        per_name (int):
+
     Example:
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
         >>> per_name = 1
-        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
+        >>> print(result)
+        [[], [2], [6], [], [], [], []]
     """
     all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=True)
     def random_choice(aids):
@@ -1631,3 +1773,17 @@ def redownload_detection_models():
     utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
     grabmodels.ensure_models()
     print('[ibsfuncs] finished redownload_detection_models')
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs, allexamples=True)"
+        python -c "import utool, ibeis.ibsfuncs; utool.doctest_funcs(ibeis.ibsfuncs)"
+        python -m ibeis.ibsfuncs
+        python -m ibeis.ibsfuncs --allexamples
+        python -m ibeis.ibsfuncs --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

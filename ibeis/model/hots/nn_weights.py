@@ -65,7 +65,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> flags = qaid2_dupvote_weight[qaid] > .5
-        >>> qfx2_topnid = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
+        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
         >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
         >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
 
@@ -88,7 +88,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_topidx = qfx2_idx.T[0:K].T
         qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
-        qfx2_topnid = qreq_.get_annot_nids(qfx2_topaid)
+        qfx2_topnid = qreq_.get_annot_name_rowids(qfx2_topaid)
         # Don't let current query count as a valid match
         # Change those names to the unused name
         # qfx2_topnid[qfx2_topaid == qaid] = 0
@@ -134,8 +134,8 @@ def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
 
 
     Dev::
-        qnid = ibs.get_annot_nids(qaid)
-        qfx2_nids = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
+        qnid = ibs.get_annot_name_rowids(qaid)
+        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
 
         # remove first match
         qfx2_nids_ = qfx2_nids.T[1:].T
@@ -301,7 +301,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         ndarray: qfx2_normweight
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
@@ -382,15 +382,15 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
 
     """
     # Get the top names you do not want your normalizer to be from
-    qnid = qreq_.get_annot_nids(qaid)
+    qnid = qreq_.get_annot_name_rowids(qaid)
     nTop = max(1, K)
     qfx2_topidx = qfx2_idx.T[0:nTop].T
     qfx2_normidx = qfx2_idx.T[-Knorm:].T
     # Apply temporary uniquish name
     qfx2_topaid  = qreq_.indexer.get_nn_aids(qfx2_topidx)
     qfx2_normaid = qreq_.indexer.get_nn_aids(qfx2_normidx)
-    qfx2_topnid  = qreq_.get_annot_nids(qfx2_topaid)
-    qfx2_normnid = qreq_.get_annot_nids(qfx2_normaid)
+    qfx2_topnid  = qreq_.get_annot_name_rowids(qfx2_topaid)
+    qfx2_normnid = qreq_.get_annot_name_rowids(qfx2_normaid)
     # Inspect the potential normalizers
     qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
     qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
@@ -504,16 +504,15 @@ def test_all_normalized_weights():
         test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
 
 
-def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, custom_qparams={}, cfgdict=None):
+def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdict={}):
     """
     >>> dbname = 'testdb1'
-    >>> custom_qparams = {'fg_weight': 1.0}
+    >>> cfgdict = {'fg_weight': 1.0}
     """
     from ibeis.model.hots import pipeline
     ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname,
                                                 qaid_list=qaid_list,
                                                 daid_list=daid_list,
-                                                custom_qparams=custom_qparams,
                                                 cfgdict=cfgdict)
     pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
     qaid2_nns     = pipeline_locals_['qaid2_nns']
@@ -523,10 +522,10 @@ def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, custom
 
 if __name__ == '__main__':
     """
-    python utool/util_tests.py
+    python -m utool.util_tests
     python -c "import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)"
-    python ibeis/model/hots/nn_weights.py --allexamples
-    python ibeis/model/hots/nn_weights.py
+    python -m ibeis.model.hots.nn_weights --allexamples
+    python -m ibeis.model.hots.nn_weights
     """
     import multiprocessing
     multiprocessing.freeze_support()

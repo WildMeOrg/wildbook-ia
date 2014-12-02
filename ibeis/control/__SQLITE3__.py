@@ -7,7 +7,11 @@ import numpy as np
 #from utool.util_inject import inject_print_functions
 #print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=False)
 
-VERBOSE = '--verbose' in sys.argv
+import utool as ut
+ut.noinject(__name__, '[ibeis.control.__SQLITE3__]', DEBUG=False)
+
+
+VERBOSE_SQL = '--veryverbose' in sys.argv or '--verbose' in sys.argv or '--verbsql' in sys.argv
 TRY_NEW_SQLITE3 = False
 
 # SQL This should be the only file which imports sqlite3
@@ -16,7 +20,7 @@ if not TRY_NEW_SQLITE3:
 
 #try:
 #    # Try to import the correct version of sqlite3
-#    if VERBOSE:
+#    if VERBOSE_SQL:
 #        from pysqlite2 import dbapi2
 #        import sqlite3
 #        print('dbapi2.sqlite_version  = %r' % dbapi2.sqlite_version)
@@ -29,11 +33,11 @@ if not TRY_NEW_SQLITE3:
 #        raise ImportError('user wants python sqlite3')
 #    from pysqlite2.dbapi2 import *  # NOQA
 #except ImportError as ex:
-#    if VERBOSE:
+#    if VERBOSE_SQL:
 #        print(ex)
 #    # Fallback
 #    from sqlite3 import *  # NOQA
-#    if VERBOSE:
+#    if VERBOSE_SQL:
 #        print('using sqlite3 as lite')
 
 
@@ -72,7 +76,7 @@ def REGISTER_SQLITE3_TYPES():
             return memoryview(uuid_.bytes_le)
 
     def register_numpy_dtypes():
-        if VERBOSE:
+        if VERBOSE_SQL:
             print('Register NUMPY dtypes with SQLite3')
         for dtype in (np.int8, np.int16, np.int32, np.int64,
                       np.uint8, np.uint16, np.uint32, np.uint64):
@@ -84,14 +88,14 @@ def REGISTER_SQLITE3_TYPES():
     # Tell SQL how to deal with numpy arrays
     def register_numpy():
         """ Utility function allowing numpy arrays to be stored as raw blob data """
-        if VERBOSE:
+        if VERBOSE_SQL:
             print('Register NUMPY with SQLite3')
         register_converter('NUMPY', _read_numpy_from_sqlite3)
         register_adapter(np.ndarray, _write_numpy_to_sqlite3)
 
     def register_uuid():
         """ Utility function allowing uuids to be stored in sqlite """
-        if VERBOSE:
+        if VERBOSE_SQL:
             print('Register UUID with SQLite3')
         register_converter('UUID', _read_uuid_from_sqlite3)
         register_adapter(uuid.UUID, _write_uuid_to_sqlite3)

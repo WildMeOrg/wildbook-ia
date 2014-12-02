@@ -37,14 +37,14 @@ def TEST_SQL_CONTROL():
     #
     # -------- RUN INSERTS --------------
     print('[TEST] --- INSERT NAMES --- ')
-    target_name_text_list = list(map(__STR__, [
+    target_name_texts_list = list(map(__STR__, [
         'fred',
         'sue',
         'Robert\');DROP TABLE names;--',
         'joe',
         'rob',
     ]))
-    target_name_text_sublist = target_name_text_list[2:]
+    target_name_texts_sublist = target_name_texts_list[2:]
 
     def get_nameid_from_text(text_list):
         param_iter = ((text,) for text in text_list)
@@ -54,42 +54,42 @@ def TEST_SQL_CONTROL():
         param_iter = ((text,) for text in names_list)
         return db.add_cleanly('names', ('name_text',), param_iter, get_nameid_from_text)
 
-    def get_name_text(rowid_list):
+    def get_name_texts(rowid_list):
         return db.get('names', ('name_text',), rowid_list)
 
     def set_names(rowid_list, name_list):
         return db.set('names', ('name_text',), name_list, rowid_list)
 
-    rowid_list = add_names(target_name_text_list)
-    rowid_sublist = add_names(target_name_text_sublist)
-    rowid_sublist1 = add_names(target_name_text_sublist)
-    rowid_list1 = add_names(target_name_text_list)
+    rowid_list = add_names(target_name_texts_list)
+    rowid_sublist = add_names(target_name_texts_sublist)
+    rowid_sublist1 = add_names(target_name_texts_sublist)
+    rowid_list1 = add_names(target_name_texts_list)
     assert rowid_sublist1 == rowid_sublist
     assert rowid_list1 == rowid_list
     #
     # -------- RUN SELECT NAMES --------------
     print('[TEST] --- SELECT NAMES ---')
-    test_names_list = get_name_text(rowid_list)
-    test_names_sublist = get_name_text(rowid_sublist)
-    assert test_names_list == target_name_text_list
-    assert test_names_sublist == target_name_text_sublist
+    test_names_list = get_name_texts(rowid_list)
+    test_names_sublist = get_name_texts(rowid_sublist)
+    assert test_names_list == target_name_texts_list
+    assert test_names_sublist == target_name_texts_sublist
 
     #
     # --- TEST SETTER ---
 
-    name_sublist_new = ['newset_' + name for name in target_name_text_sublist]
+    name_sublist_new = ['newset_' + name for name in target_name_texts_sublist]
 
     set_names(rowid_sublist, name_sublist_new)
-    name_sublist_new_test  = get_name_text(rowid_sublist)
+    name_sublist_new_test  = get_name_texts(rowid_sublist)
     assert name_sublist_new_test == name_sublist_new
-    name_sublist_old_fails = get_nameid_from_text(target_name_text_sublist)
+    name_sublist_old_fails = get_nameid_from_text(target_name_texts_sublist)
     assert all([rowid is None for rowid in name_sublist_old_fails])
     assert name_sublist_new_test == name_sublist_new
 
     new_rowid_sublist = add_names(name_sublist_new)
     assert new_rowid_sublist == rowid_sublist
     # Because the old are no longer in the database these should be newids
-    old_rowid_sublist = add_names(target_name_text_sublist)
+    old_rowid_sublist = add_names(target_name_texts_sublist)
     assert len(set(old_rowid_sublist) & set(new_rowid_sublist)) == 0
 
     csv_target = u'''

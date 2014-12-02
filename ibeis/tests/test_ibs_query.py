@@ -17,8 +17,8 @@ def TEST_QUERY(ibs):
     print('[TEST_QUERY] len(daid_list)=%r' % (len(daid_list)))
     qaid_list = daid_list[0:1]
     print('[TEST_QUERY] len(qaid_list)=%r' % (len(qaid_list)))
-    qres_dict = ibs._query_chips(qaid_list, daid_list, use_cache=False, use_bigcache=False)
-    qres_dict_ = ibs._query_chips(qaid_list, daid_list)
+    qres_dict = ibs._query_chips4(qaid_list, daid_list, use_cache=False, use_bigcache=False)
+    qres_dict_ = ibs._query_chips4(qaid_list, daid_list)
 
     try:
         vals1 = list(qres_dict.values())

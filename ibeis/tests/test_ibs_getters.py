@@ -43,10 +43,10 @@ def TEST_IBS_GETTERS(ibs=None):
     kpts_numpy  = ibs.get_annot_kpts(aid_numpy)
 
     # Test lazy (noneager eval)
-    fid_list  = ibs.get_annot_fids(aid_list, eager=True)
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, eager=True)
     assert isinstance(fid_list, list), 'should be a list'
     utool.DEBUG2 = True
-    fid_gen = ibs.get_annot_fids(aid_list, eager=False)
+    fid_gen = ibs.get_annot_feat_rowids(aid_list, eager=False)
     utool.DEBUG2 = False
     import types
     assert isinstance(fid_gen, types.GeneratorType)

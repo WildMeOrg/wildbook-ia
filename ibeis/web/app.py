@@ -122,7 +122,7 @@ def turk(filename=''):
         finished = aid is None
         if not finished:
             gid       = app.ibeis.get_annot_gids(aid)
-            gpath     = app.ibeis.get_annot_chip_paths(aid)
+            gpath     = app.ibeis.get_annot_chip_fpaths(aid)
             image     = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
         else:

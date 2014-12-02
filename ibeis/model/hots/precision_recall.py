@@ -87,7 +87,7 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[14:15]
         >>> daids = ibs.get_valid_aids()
-        >>> qaid2_qres = ibs._query_chips(qaids, daids)
+        >>> qaid2_qres = ibs._query_chips4(qaids, daids)
         >>> qres = qaid2_qres[qaids[0]]
         >>> gt_aids = None
         >>> atrank  = 18

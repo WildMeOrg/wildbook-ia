@@ -585,8 +585,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result, allexamples=True)"
         python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result)"
-        python ibeis/model/hots/hots_query_result.py
-        python ibeis/model/hots/hots_query_result.py --allexamples
+        python -m ibeis.model.hots.hots_query_result
+        python -m ibeis.model.hots.hots_query_result --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

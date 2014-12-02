@@ -271,8 +271,8 @@ class SQLDatabaseController(object):
     def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER NOTE: use add_cleanly """
         fmtdict = {'tblname'  : tblname,
-                    'erotemes' : ', '.join(['?'] * len(colnames)),
-                    'params'   : ',\n'.join(colnames), }
+                   'erotemes' : ', '.join(['?'] * len(colnames)),
+                   'params'   : ',\n'.join(colnames), }
         operation_fmt = '''
         INSERT INTO {tblname}(
         rowid,
@@ -289,14 +289,21 @@ class SQLDatabaseController(object):
         ADDER Extra input:
         the first item of params_iter must be a superkey (like a uuid),
 
-        add_cleanly
+        Does not add None values. Does not add duplicate values.
+        For each None input returns None ouptut.
+        For each duplicate input returns existing rowid
 
         Args:
             tblname (str): table name to add into
+
             colnames (tuple of strs): columns whos values are specified in params_iter
+
             params_iter (iterable): an iterable of tuples where each tuple corresonds to a row
+
             get_rowid_from_superkey (func): function that tests if a row needs
                 to be added. It should return None for any new rows to be inserted.
+                It should return the existing rowid if one exists
+
             superkey_paramx (tuple of ints): indicies of tuples in params_iter which
                 correspond to superkeys. defaults to (0,)
 
@@ -306,10 +313,10 @@ class SQLDatabaseController(object):
         Example:
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> db = '?'
-            >>> tblname = '?'
-            >>> colnames = '?'
-            >>> params_iter = '?'
-            >>> get_rowid_from_superkey = '?'
+            >>> tblname = tblname_temp
+            >>> colnames = dst_list
+            >>> params_iter = data_list
+            >>> #get_rowid_from_superkey = '?'
             >>> superkey_paramx = (0,)
             >>> rowid_list_ = add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
             >>> print(rowid_list_)
@@ -322,6 +329,7 @@ class SQLDatabaseController(object):
                           for x in superkey_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
+        #and not any(ut.flag_None_items(params))
         isvalid_list = [params is not None for params in params_list]
         # Check for duplicate inputs
         isunique_list = utool.flag_unique_items(list(zip(*superkey_lists)))
@@ -331,12 +339,12 @@ class SQLDatabaseController(object):
         if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
-        isdirty_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
+        needsadd_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
-        if not any(isdirty_list):
+        if not any(needsadd_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        dirty_params = utool.filter_items(params_list, isdirty_list)
+        dirty_params = utool.filter_items(params_list, needsadd_list)
         if utool.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
@@ -345,7 +353,7 @@ class SQLDatabaseController(object):
         except Exception as ex:
             utool.printex(ex, key_list=[
                 'dirty_params',
-                'isdirty_list',
+                'needsadd_list',
                 'superkey_lists',
                 'rowid_list_'])
             raise
@@ -642,6 +650,14 @@ class SQLDatabaseController(object):
         """
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
+        Args:
+           tablename (str): tablename
+           colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)
+           table_constraints (str):
+           superkey_colnames (list)
+           docstr (str)
+           tablename_new (?)
+
         Example:
             >>> def contributor_location_zip_map(x):
             ...     return x
@@ -666,11 +682,8 @@ class SQLDatabaseController(object):
         colname_list = db.get_column_names(tablename)
         colname_original_list = colname_list[:]
         coltype_list = db.get_column_types(tablename)
-        colname_dict = {}
+        colname_dict = {colname: colname for colname in colname_list}
         colmap_dict  = {}
-
-        for colname in colname_list:
-            colname_dict[colname] = colname
 
         insert = False
         for (src, dst, type_, map_) in colmap_list:
@@ -729,8 +742,9 @@ class SQLDatabaseController(object):
             if map_ is not None:
                 colmap_dict[src] = map_
 
-        coldef_list = [ _ for _ in zip(colname_list, coltype_list) ]
-        tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
+        coldef_list = list(zip(colname_list, coltype_list))
+        tablename_orig = tablename
+        tablename_temp = tablename_orig + '_temp' + utool.random_nonce(length=8)
         if docstr is None:
             docstr = db.get_table_docstr(tablename)
         if table_constraints is None:
@@ -760,7 +774,8 @@ class SQLDatabaseController(object):
             for data in data_list
         ]
         # Add the data to the database
-        db.add_cleanly(tablename_temp, dst_list, data_list, (lambda x: [None] * len(x)))
+        get_rowid_from_superkey = lambda x: [None] * len(x)
+        db.add_cleanly(tablename_temp, dst_list, data_list, get_rowid_from_superkey)
         if tablename_new is None:
             # Drop original table
             db.drop_table(tablename)
@@ -791,7 +806,8 @@ class SQLDatabaseController(object):
         # Copy data
         data_list = db.get(tablename, tuple(colname_list))
         # Add the data to the database
-        db.add_cleanly(tablename_temp, colname_list, data_list, (lambda x: [None] * len(x)))
+        get_rowid_from_superkey = (lambda x: [None] * len(x))
+        db.add_cleanly(tablename_temp, colname_list, data_list, get_rowid_from_superkey)
         # Drop original table
         db.drop_table(tablename)
         # Rename temp table to original table name
@@ -1314,6 +1330,9 @@ class SQLDatabaseController(object):
         header = db.get_table_csv_header(tablename)
         csv_table = utool.make_csv_table(column_list, column_lbls, header)
         return csv_table
+
+    def print_table_csv(db, tablename, exclude_columns=[]):
+        print(db.get_table_csv(tablename, exclude_columns=exclude_columns))
 
     @default_decorator
     def get_table_csv_header(db, tablename):

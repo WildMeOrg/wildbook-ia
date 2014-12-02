@@ -90,6 +90,8 @@ ANNOTATION_TransferData = namedtuple(
         'annot_detection_confidence_list',
         'annot_exemplar_flag_list',
         'annot_note_list',
+        'annot_name_rowid_list',
+        'annot_species_rowid_list',
         'lblannot_td_list',
     ))
 
@@ -279,7 +281,7 @@ def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
     if eid_list is None or len(eid_list) == 0:
         return None
     # Get encounter data
-    config_INDEX_list = [ _index(ibs_src.get_encounter_config(eid), config_rowid_list) for eid in eid_list ]
+    config_INDEX_list = [ _index(ibs_src.get_encounter_configid(eid), config_rowid_list) for eid in eid_list ]
     # Create Encounter TransferData
     encounter_td = ENCOUNTER_TransferData(
         config_INDEX_list,
@@ -364,6 +366,8 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
         ibs_src.get_annot_viewpoints(aid_list),
         ibs_src.get_annot_detect_confidence(aid_list),
         ibs_src.get_annot_exemplar_flag(aid_list),
+        ibs_src.get_annot_name_rowids(aid_list),
+        ibs_src.get_annot_species_rowids(aid_list),
         ibs_src.get_annot_notes(aid_list),
         lblannot_td_list
     )
@@ -737,6 +741,8 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list)
         vert_list=annot_td.annot_verts_list,
         annotation_uuid_list=annot_td.annot_uuid_list,
         viewpoint_list=annot_td.annot_viewpoint_list,
+        name_rowid_list=annot_td.name_rowid_list,
+        species_rowid_list=annot_td.species_rowid_list,
         quiet_delete_thumbs=True  # Turns off thumbnail deletion print statements
     )
     if utool.VERBOSE:
@@ -861,7 +867,7 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
             +---
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset
         >>> ibs_src = ibeis.opendb(dbdir='testdb1')
@@ -968,8 +974,8 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
 
 if __name__ == '__main__':
     """
-    python ibeis/dbio/export_subset.py
-    python ibeis/dbio/export_subset.py --allexamples
+    python -m ibeis.dbio.export_subset
+    python -m ibeis.dbio.export_subset --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

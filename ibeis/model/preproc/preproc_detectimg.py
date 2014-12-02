@@ -66,7 +66,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     """
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
@@ -100,7 +100,7 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
     in the SQL database
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.model.preproc.preproc_detectimg import *  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
@@ -122,8 +122,8 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/model/preproc/preproc_detectimg.py
-        python ibeis/model/preproc/preproc_detectimg.py --allexamples
-        python ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy
+        python -m ibeis.model.preproc.preproc_detectimg
+        python -m ibeis.model.preproc.preproc_detectimg --allexamples
+        python -m ibeis.model.preproc.preproc_detectimg --test-compute_and_write_detectimg_lazy
     """
     ut.doctest_funcs()

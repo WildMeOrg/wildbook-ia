@@ -1,4 +1,9 @@
 # flake8: noqa
+"""
+This file contains most every module I've ever used.
+Serves as a good check to make sure either everything I
+want to use is imported / exists.
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 from collections import OrderedDict, defaultdict, namedtuple
@@ -68,6 +73,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
+import statsmodels
 #import pandas as pd
 #import networkx as netx
 #try:
@@ -119,6 +125,7 @@ from plottool import fig_presenter
 # IBEIS
 import ibeis
 from ibeis import constants
+from ibeis import constants as const
 from ibeis import model
 from ibeis import control
 from ibeis import gui
@@ -156,6 +163,7 @@ from ibeis.model import Config
 from ibeis.model import preproc
 from ibeis.model import hots
 # IBEIS MODEL PREPROCESSING
+from ibeis.model.preproc import preproc_annot
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
@@ -194,6 +202,8 @@ from ibeis.viz.interact import ishow_sver
 from ibeis.viz.interact import ishow_matches
 from ibeis.viz.interact import iselect_bbox
 
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[all_imports]', DEBUG=False)
 
 def find_unregisterd():
     import sys

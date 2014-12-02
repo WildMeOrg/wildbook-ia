@@ -147,7 +147,7 @@ def remove_database_slag(ibs,
 
 def enforce_unkonwn_name_is_explicit(ibs):
     nid_list = ibs.get_valid_nids()
-    text_list = ibs.get_name_text(nid_list)
+    text_list = ibs.get_name_texts(nid_list)
     problem_nids = [text for text, nid in zip(text_list, nid_list) if text == constants.UNKNOWN]
     unknown_aids = ibs.get_name_aids(problem_nids)
     assert len(utool.flatten(unknown_aids)) == 0

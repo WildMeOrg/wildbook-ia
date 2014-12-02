@@ -1,5 +1,9 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.model.hots.smk.__init__]', DEBUG=False)
+
 from . import smk_core
 from . import smk_debug
 from . import smk_index

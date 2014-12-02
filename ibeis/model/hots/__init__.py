@@ -1,6 +1,10 @@
 ### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+import utool as ut
+ut.noinject(__name__, '[ibeis.model.hots.__init__]', DEBUG=False)
+
 from ibeis.model.hots import exceptions
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes
@@ -16,31 +20,6 @@ from ibeis.model.hots import voting_rules2
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[ibeis.model.hots]')
-
-
-def reassign_submodule_attributes(verbose=True):
-    """
-    why reloading all the modules doesnt do this I don't know
-    """
-    import sys
-    if verbose and '--quiet' not in sys.argv:
-        print('dev reimport')
-    # Self import
-    import ibeis.model.hots
-    # Implicit reassignment.
-    seen_ = set([])
-    for submodname, fromimports in IMPORT_TUPLES:
-        submod = getattr(ibeis.model.hots, submodname)
-        for attr in dir(submod):
-            if attr.startswith('_'):
-                continue
-            if attr in seen_:
-                # This just holds off bad behavior
-                # but it does mimic normal util_import behavior
-                # which is good
-                continue
-            seen_.add(attr)
-            setattr(ibeis.model.hots, attr, getattr(submod, attr))
 
 
 def reload_subs(verbose=True):
@@ -59,11 +38,6 @@ def reload_subs(verbose=True):
     getattr(query_request, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(voting_rules2, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)
-    try:
-        # hackish way of propogating up the new reloaded submodule attributes
-        reassign_submodule_attributes(verbose=verbose)
-    except Exception as ex:
-        print(ex)
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
