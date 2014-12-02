@@ -92,7 +92,7 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=1):
+def export_to_xml(ibs, offset=2829, enforce_viewpoint=True):
     target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -103,8 +103,10 @@ def export_to_xml(ibs, offset=1):
     utool.ensuredir(datadir)
     utool.ensuredir(imagedir)
     utool.ensuredir(annotdir)
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(reviewed=1)
+    print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
+        viewpointed = True
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -132,7 +134,6 @@ def export_to_xml(ibs, offset=1):
             dst_img = imagedir + out_img
             _image = image.resize(_image, (width, height))
             image.imwrite(dst_img, _image)
-            print("Copying:\n%r\n%r\n%r\n\n" % (image_path, dst_img, (width, height), ))
 
             annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img, source=image_uri, **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -157,15 +158,20 @@ def export_to_xml(ibs, offset=1):
                 species_name = ibs.get_annot_species(aid)
                 viewpoint = ibs.get_annot_viewpoints(aid)
                 info = {}
-                if viewpoint != -1:
+                if viewpoint != -1 and viewpoint is not None:
                     info['pose'] = "%0.6f" % viewpoint
+                else:
+                    viewpointed = False
+                    print("UNVIEWPOINTED: %d " % gid)
                 annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
             # Write XML
-            xml_data = open(dst_annot, 'w')
-            xml_data.write(annotation.xml())
-            xml_data.close()
-            offset += 1
+            if not enforce_viewpoint or viewpointed:
+                print("Copying:\n%r\n%r\n%r\n\n" % (image_path, dst_img, (width, height), ))
+                xml_data = open(dst_annot, 'w')
+                xml_data.write(annotation.xml())
+                xml_data.close()
+                offset += 1
         else:
             print("Skipping:\n%r\n\n" % (image_path, ))
 
