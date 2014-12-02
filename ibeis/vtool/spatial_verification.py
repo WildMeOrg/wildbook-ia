@@ -612,8 +612,8 @@ def ibeis_test(qreq_):
         topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
         nRerank = min(len(topx2_aid), nShortlist)
     daid2_fm_V, daid2_fs_V, daid2_fk_V = pipeline.new_fmfsfk()
-    kpts1 = qreq_.get_annot_kpts(qaid)
-    topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
+    kpts1 = qreq_.ibs.get_annot_kpts(qaid)
+    topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
     topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
     topx = 0
     daid = topx2_aid[topx]
