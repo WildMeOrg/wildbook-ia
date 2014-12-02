@@ -99,7 +99,8 @@ def add_feats(ibs, cid_list, force=False):
 def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
     """ Removes chip thumbnails from disk """
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    ut.remove_file_list(thumbpath_list, quiet=quiet)
+    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
+    ut.remove_existing_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
 
 
 @register_ibs_method
@@ -109,9 +110,6 @@ def delete_annot_chips(ibs, aid_list):
     _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
     cid_list = ut.filter_Nones(_cid_list)
     ibs.delete_chips(cid_list)
-    gid_list = ibs.get_annot_gids(aid_list)
-    ibs.delete_image_thumbs(gid_list)  # why is this done here?
-    ibs.delete_annot_chip_thumbs(aid_list)
 
 
 @register_ibs_method

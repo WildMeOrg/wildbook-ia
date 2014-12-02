@@ -1437,6 +1437,7 @@ def draw_thumb_helper(tup):
 def preprocess_image_thumbs(
         ibs, gid_list=None, use_cache=True, chunksize=8, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
+    print('[ibsfuncs] preprocess_image_thumbs')
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
     thumbsize = 128

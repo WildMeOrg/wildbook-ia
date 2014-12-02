@@ -406,13 +406,8 @@ def postget_annot_verts(vertstr_list):
     return vert_list
 
 
-def postget_annot_viewpoints(viewpoint_list):
-    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
-    return viewpoint_list
-
-
 def on_delete(ibs, aid_list):
-    ibs.delete_annot_relations(aid_list)
+    #ibs.delete_annot_relations(aid_list)
     ibs.delete_annot_chips(aid_list)
 
 

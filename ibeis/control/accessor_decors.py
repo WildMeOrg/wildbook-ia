@@ -8,6 +8,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 DEBUG_ADDERS  = utool.get_argflag('--debug-adders')
 DEBUG_SETTERS = utool.get_argflag('--debug-setters')
 DEBUG_GETTERS = utool.get_argflag('--debug-getters')
+VERB_CONTROL = utool.get_argflag('--verb-control')
 
 #
 #-----------------
@@ -135,13 +136,13 @@ def adder(func):
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
-        if DEBUG_ADDERS or (not utool.QUIET and utool.VERYVERBOSE):
+        if DEBUG_ADDERS or VERB_CONTROL:
             print('+------')
             print('[ADD]: ' + get_funcname(func))
             funccall_str = utool.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
-        if not utool.QUIET and utool.VERYVERBOSE:
+        if VERB_CONTROL:
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
@@ -158,7 +159,7 @@ def deleter(func):
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
-        if not utool.QUIET and utool.VERYVERBOSE:
+        if VERB_CONTROL:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
@@ -183,7 +184,7 @@ def setter(func):
     #@utool.on_exception_report_input
     @utool.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
-        if DEBUG_SETTERS or (not utool.QUIET and utool.VERYVERBOSE):
+        if DEBUG_SETTERS or VERB_CONTROL:
             print('+------')
             print('[SET]: ' + get_funcname(func))
             funccall_str = utool.func_str(func, args, kwargs, packed=True)
@@ -213,7 +214,7 @@ def getter(func):
         #if utool.DEBUG:
         #    print('[IN GETTER] args=%r' % (args,))
         #    print('[IN GETTER] kwargs=%r' % (kwargs,))
-        if DEBUG_GETTERS or (not utool.QUIET and utool.VERYVERBOSE):
+        if DEBUG_GETTERS  or VERB_CONTROL:
             print('+------')
             print('[GET]: ' + get_funcname(func))
             funccall_str = utool.func_str(func, args, kwargs, packed=True)

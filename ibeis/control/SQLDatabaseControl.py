@@ -19,7 +19,8 @@ def default_decorator(func):
     #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
 VERBOSE = utool.VERBOSE
-VERYVERBOSE = utool.VERYVERBOSE
+#VERYVERBOSE = utool.VERYVERBOSE
+VERYSQL = utool.get_argflag('--verb-sql')
 QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
 AUTODUMP = utool.get_argflag('--auto-dump')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
@@ -910,7 +911,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
-                   verbose=VERYVERBOSE):
+                   verbose=VERYSQL):
         with SQLExecutionContext(db, operation, nInput=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
@@ -924,7 +925,7 @@ class SQLDatabaseController(object):
     @default_decorator
     #@utool.memprof
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERYVERBOSE, unpack_scalars=True, nInput=None,
+                    verbose=VERYSQL, unpack_scalars=True, nInput=None,
                     eager=True):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
@@ -932,17 +933,17 @@ class SQLDatabaseController(object):
             if isinstance(params_iter, (list, tuple)):
                 nInput = len(params_iter)
             else:
-                if VERYVERBOSE:
+                if VERYSQL:
                     print('[sql!] WARNING: aggressive eval of params_iter because nInput=None')
                 params_iter = list(params_iter)
                 nInput  = len(params_iter)
         else:
-            if VERYVERBOSE:
+            if VERYSQL:
                 print('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
         if nInput == 0:
-            if VERYVERBOSE:
+            if VERYSQL:
                 print('[sql!] WARNING: dont use executemany'
                       'with no params use executeone instead.')
             return []
@@ -998,7 +999,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True, schema_only=False):
-        if VERYVERBOSE:
+        if VERYSQL:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()
@@ -1011,7 +1012,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def dump_to_string(db, auto_commit=True, schema_only=False):
         retStr = ''
-        if VERYVERBOSE:
+        if VERYSQL:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()

@@ -634,6 +634,7 @@ def delete_images(ibs, gid_list):
     # Delete annotations first
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     ibs.delete_annots(aid_list)
+    ibs.delete_image_thumbs(gid_list)  # delete thumbs in case an annot doesnt delete them TODO: pass flag to not delete them in delete_annots
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
     #egrid_list = ut.flatten(ibs.get_image_egrids(gid_list))
     #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
@@ -646,7 +647,8 @@ def delete_image_thumbs(ibs, gid_list, quiet=False):
     """ Removes image thumbnails from disk """
     # print('gid_list = %r' % (gid_list,))
     thumbpath_list = ibs.get_image_thumbpath(gid_list)
-    ut.remove_file_list(thumbpath_list, quiet=quiet)
+    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
+    ut.remove_existing_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
 
 
 @register_ibs_method

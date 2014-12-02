@@ -64,11 +64,13 @@ TABLE_COLNAMES = {
         'annot_gname',
         'name',
         'exemplar',
-        'species',  ### <put back in
+        'species',  # <put back in
         'viewpoint',
         #'rdconf',
-        #'nGt',  ### <put back in
-        #'annotnotes',  ### <put back in
+        'nGt',  # ## <put back in
+        'annotnotes',  # ## <put back in
+        'annot_visual_uuid',
+        'annot_semantic_uuid',
         #'nFeats',
         #'bbox',
         #'theta',
@@ -164,6 +166,8 @@ TABLE_STRIPE_LIST = {
 
 # Define the valid columns a table could have
 COL_DEF = dict([
+    ('annot_semantic_uuid',  (str,      'Annot Semantic UUID')),
+    ('annot_visual_uuid',    (str,      'Annot Visual UUID')),
     ('image_uuid',  (str,      'Image UUID')),
     ('gid',         (int,      'Image ID')),
     ('aid',         (int,      'Annotation ID')),
@@ -255,21 +259,23 @@ def make_ibeis_headers_dict(ibs):
     # ANNOTATION Iders/Setters/Getters
     iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
-        'aid'         : lambda aids: aids,
-        'name'        : ibs.get_annot_names,
-        'species'     : ibs.get_annot_species,
-        'viewpoint'   : ibs.get_annot_viewpoints,
-        'annot_gname' : ibs.get_annot_image_names,
-        'nGt'         : ibs.get_annot_num_groundtruth,
-        'theta'       : partial_imap_1to1(utool.theta_str, ibs.get_annot_thetas),
-        'bbox'        : partial_imap_1to1(utool.bbox_str,  ibs.get_annot_bboxes),
-        'num_verts'   : ibs.get_annot_num_verts,
-        'verts'       : partial_imap_1to1(utool.verts_str, ibs.get_annot_verts),
-        'nFeats'      : ibs.get_annot_num_feats,
-        'rdconf'      : ibs.get_annot_detect_confidence,
-        'annotnotes'  : ibs.get_annot_notes,
-        'thumb'       : ibs.get_annot_chip_thumbtup,
-        'exemplar'    : ibs.get_annot_exemplar_flag,
+        'aid'                 : lambda aids: aids,
+        'name'                : ibs.get_annot_names,
+        'species'             : ibs.get_annot_species,
+        'viewpoint'           : ibs.get_annot_viewpoints,
+        'annot_gname'         : ibs.get_annot_image_names,
+        'nGt'                 : ibs.get_annot_num_groundtruth,
+        'theta'               : partial_imap_1to1(utool.theta_str, ibs.get_annot_thetas),
+        'bbox'                : partial_imap_1to1(utool.bbox_str,  ibs.get_annot_bboxes),
+        'num_verts'           : ibs.get_annot_num_verts,
+        'verts'               : partial_imap_1to1(utool.verts_str, ibs.get_annot_verts),
+        'nFeats'              : ibs.get_annot_num_feats,
+        'rdconf'              : ibs.get_annot_detect_confidence,
+        'annotnotes'          : ibs.get_annot_notes,
+        'thumb'               : ibs.get_annot_chip_thumbtup,
+        'exemplar'            : ibs.get_annot_exemplar_flag,
+        'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
+        'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
     }
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,

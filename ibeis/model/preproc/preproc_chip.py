@@ -11,7 +11,7 @@ TODO:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
 from os.path import exists, join
-import os
+#import os
 import utool as ut  # NOQA
 import vtool.chip as ctool
 import vtool.image as gtool
@@ -239,6 +239,9 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
     """
     Cleans up chips on disk.  Called on delete from sql controller.
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_chip --test-on_delete
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
@@ -259,29 +262,36 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
-    cid_list_ = ut.filter_Nones(cid_list)
-    chip_fpath_list = ibs.get_chip_paths(cid_list_)
-    exists_list = list(map(exists, chip_fpath_list))
-    if verbose:
-        nTotal = len(cid_list)
-        nValid = len(cid_list_)
-        nExist = sum(exists_list)
-        print('[preproc_chip.on_delete] requesting delete of %d chips' % (nTotal,))
-        if nValid != nTotal:
-            print('[preproc_chip.on_delete] trying to delete %d/%d non None chips ' % (nValid, nTotal))
-        print('[preproc_chip.on_delete] %d/%d exist and need to be deleted' % (nExist, nValid))
-    nRemoved = 0
-    existing_cfpath_iter = ut.ifilter_items(chip_fpath_list, exists_list)
-    for cfpath in existing_cfpath_iter:
-        try:
-            os.remove(cfpath)
-            nRemoved += 1
-        except OSError:
-            print('[preproc_chip.on_delete] !!! cannot remove: %r ' % cfpath)
-            if strict:
-                raise
-    if verbose:
-        print('[preproc_chip] sucesfully deleted %d/%d chips' % (nRemoved, nExist))
+    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    aid_list = ibs.get_chip_aids(cid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    ibs.delete_image_thumbs(gid_list)
+    ibs.delete_annot_chip_thumbs(aid_list)
+    nRemoved = ut.remove_existing_fpaths(chip_fpath_list, lbl='chips')
+    #cid_list_ = ut.filter_Nones(cid_list)
+    #chip_fpath_list = ibs.get_chip_paths(cid_list_)
+    #exists_list = list(map(exists, chip_fpath_list))
+    #if verbose:
+    #    nTotal = len(cid_list)
+    #    nValid = len(cid_list_)
+    #    nExist = sum(exists_list)
+    #    print('[preproc_chip.on_delete] requesting delete of %d chips' % (nTotal,))
+    #    if nValid != nTotal:
+    #        print('[preproc_chip.on_delete] trying to delete %d/%d non None chips ' % (nValid, nTotal))
+    #    print('[preproc_chip.on_delete] %d/%d exist and need to be deleted' % (nExist, nValid))
+    #nRemoved = 0
+    #existing_cfpath_iter = ut.filter_items(chip_fpath_list, exists_list)
+    #ut.remove_fpaths(existing_cfpath_iter)
+    #for cfpath in existing_cfpath_iter:
+    #    try:
+    #        os.remove(cfpath)
+    #        nRemoved += 1
+    #    except OSError:
+    #        print('[preproc_chip.on_delete] !!! cannot remove: %r ' % cfpath)
+    #        if strict:
+    #            raise
+    #if verbose:
+    #    print('[preproc_chip] sucesfully deleted %d/%d chips' % (nRemoved, nExist))
     return nRemoved
 
 

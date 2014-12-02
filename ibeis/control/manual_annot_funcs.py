@@ -75,6 +75,10 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     Returns:
         list: aid_list
 
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-add_annots
+        python -m ibeis.control.manual_annot_funcs --test-add_annots --verbose --print-caller
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
@@ -85,17 +89,26 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
         ...              for (w, h) in ibs.get_image_sizes(gid_list)]
         >>> # Add a test annotation
+        >>> print('Testing add_annots')
         >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list)
         >>> bbox_list2 = ibs.get_annot_bboxes(aid_list)
         >>> vert_list2 = ibs.get_annot_verts(aid_list)
         >>> theta_list2 = ibs.get_annot_thetas(aid_list)
         >>> name_list2 = ibs.get_annot_names(aid_list)
+        >>> print('Ensure=False. Should get back None chip fpaths')
+        >>> chip_fpaths2 = ibs.get_annot_chip_fpaths(aid_list, ensure=False)
+        >>> assert [fpath is None for fpath in chip_fpaths2]
+        >>> print('Ensure=True. Should get back None chip fpaths')
+        >>> chip_fpaths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
+        >>> assert all([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
         >>> assert len(aid_list) == num_add
         >>> assert len(vert_list2[0]) == 4
         >>> assert bbox_list2 == bbox_list
         >>> # Be sure to remove test annotation
         >>> # if this test fails a resetdbs might be nessary
+        >>> print('Cleaning up. Removing added annotations')
         >>> ibs.delete_annots(aid_list)
+        >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
 
     """
     from vtool import geometry
@@ -304,7 +317,28 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
 @register_ibs_method
 @getter_1to1
 def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
-    """ get chip thumb info """
+    """ get chip thumb info
+
+    Args:
+        aid_list  (list):
+        thumbsize (int):
+
+    Returns:
+        list: thumbtup_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_thumbtup
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('seals2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> thumbsize = 128
+        >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
+        >>> print(result)
+    """
     #import numpy as np
     #isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
     #if not isiterable:
@@ -547,9 +581,10 @@ def get_annot_image_uuids(ibs, aid_list):
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> result = get_annot_image_uuids(ibs, aid_list)
         >>> print(result)
+        [UUID('66ec193a-1619-b3b6-216d-1784b4833b61')]
     """
     gid_list = ibs.get_annot_gids(aid_list)
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -635,6 +670,16 @@ def get_annot_names(ibs, aid_list):
     Returns:
         list or strs: name_list. e.g: ['fred', 'sue', ...]
              for each annotation identifying the individual
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
+        >>> result = get_annot_names(ibs, aid_list)
+        >>> print(result)
+        ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     name_list = ibs.get_name_texts(nid_list)
@@ -726,8 +771,25 @@ def get_annot_notes(ibs, aid_list):
 @getter_1to1
 def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
     """
+    Args:
+        aid_list (list):
+
     Returns:
         nFeats_list (list): num descriptors per annotation
+
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_feats
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_num_feats(ibs, aid_list)
+        >>> print(result)
+        [1257, 920, 1342, 367, 1344, 664, 34, 521, 872, 2260, 98, 635, 944]
     """
     fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput)
     nFeats_list = ibs.get_num_feats(fid_list)
@@ -740,6 +802,32 @@ def get_annot_num_groundtruth(ibs, aid_list, noself=True):
     """
     Returns:
         list_ (list): number of other chips with the same name
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> noself = True
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself)
+        >>> print(result)
+        [3, 1, 1, 3, 1, 1, 0, 0, 3, 0, 3, 0, 0]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> noself = False
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself)
+        >>> print(result)
+        [4, 2, 2, 4, 2, 2, 1, 1, 4, 1, 4, 1, 1]
+
     """
     # TODO: Optimize
     groundtruth_list = ibs.get_annot_groundtruth(aid_list, noself=noself)
@@ -792,10 +880,28 @@ def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
 @getter_1to1
 def get_annot_species(ibs, aid_list):
     """
+
+    Args:
+        ibs      (IBEISController):
+        aid_list (list):
+
     Returns:
-        species_list (list): a list of strings ['plains_zebra',
+        list : species_list - a list of strings ['plains_zebra',
         'grevys_zebra', ...] for each annotation
         identifying the species
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_species
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[1::3]
+        >>> result = get_annot_species(ibs, aid_list)
+        >>> print(result)
+        [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
     """
     species_rowid_list = ibs.get_annot_species_rowids(aid_list)
     speceis_text_list  = ibs.get_species_texts(species_rowid_list)
@@ -864,11 +970,24 @@ def get_annot_viewpoints(ibs, aid_list):
     """
     Returns:
         viewpoint_list (list): the viewpoint (in radians) for the annotation
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_viewpoints
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> result = get_annot_viewpoints(ibs, aid_list)
+        >>> print(result)
+        [None, None, None, None, None]
+
     """
-    from ibeis.model.preproc import preproc_annot
+    #from ibeis.model.preproc import preproc_annot
     viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
-    viewpoint_list = preproc_annot.postget_annot_viewpoints(viewpoint_list)
-    #viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
     return viewpoint_list
 
 
