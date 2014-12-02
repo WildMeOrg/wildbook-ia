@@ -50,10 +50,10 @@ def sort_module_functions():
     #import re
     #regex = r'[^@]*\ndef'
     modfpath = dirname(ibeis.control.__file__)
-    #fpath = join(modfpath, 'manual_annot_funcs.py')
+    fpath = join(modfpath, 'manual_annot_funcs.py')
     #fpath = join(modfpath, 'manual_dependant_funcs.py')
     #fpath = join(modfpath, 'manual_lblannot_funcs.py')
-    fpath = join(modfpath, 'manual_name_species_funcs.py')
+    #fpath = join(modfpath, 'manual_name_species_funcs.py')
     text = ut.read_from(fpath, verbose=False)
     lines =  text.splitlines()
     indent_list = [ut.get_indentation(line) for line in lines]
@@ -112,7 +112,9 @@ def sort_module_functions():
     print(len(newtext))
     print(len(text))
 
-    ut.write_to(fpath + '.bak', text)
+    backup_fpath = ut.augpath(fpath, augext='.bak', augdir='_backup', ensure=True)
+
+    ut.write_to(backup_fpath, text)
     ut.write_to(fpath, newtext)
 
     #for block, isfunc in zip(block_list, isfunc_list):

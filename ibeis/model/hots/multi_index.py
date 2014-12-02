@@ -18,7 +18,7 @@ import ibeis.model.hots.neighbor_index as nbrx
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[multi_index]', DEBUG=False)
 
 
-def new_ibeis_mindexer(ibs, qreq_,
+def new_ibeis_mindexer(qreq_,
                        num_indexers=8,
                        split_method='name'):
     """
@@ -35,8 +35,18 @@ def new_ibeis_mindexer(ibs, qreq_,
     if split_method == 'name':
         split_func = ibsfuncs.group_annots_by_known_names
         # each group are annotations of the same name
-        aidgroup_list, invalid_aids = split_func(ibs, daid_list)
+        aidgroup_list, invalid_aids = split_func(qreq_.ibs, daid_list)
     else:
+        # TODO: SYSTEM : Split method based on standard uuid sets
+        # maintain list of standard sts
+        # input: request_uuids
+        # std_uuids_list <-sorted by size
+        # using_list = []
+        # for uuids in sta_uuids_list:
+        #     if ut.is_full_intersection(uuids, request_uuids):
+        #         request_uuids = ut.list_diff(request_uuids, uuids)
+        #         using_list.append(uuids)
+        # developing_set = request_uuids
         raise AssertionError('unknown split_method=%r' % (split_method,))
     largest_groupsize = max(map(len, aidgroup_list))
     print('[mindex] num_indexers = %d ' % (num_indexers,))
@@ -51,13 +61,13 @@ def new_ibeis_mindexer(ibs, qreq_,
 
     if __debug__:
         # All groups have the same name
-        nidgroup_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
+        nidgroup_list = ibsfuncs.unflat_map(qreq_.ibs.get_annot_name_rowids, aidgroup_list)
         for nidgroup in nidgroup_list:
             assert utool.list_allsame(nidgroup), 'bad name grouping'
     if __debug__:
         # All subsiquent indexer are subsets (in name/identity space)
         # of the previous
-        nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
+        nids_list = ibsfuncs.unflat_map(qreq_.ibs.get_annot_name_rowids, aids_list)
         prev_ = None
         for nids in nids_list:
             if prev_ is None:
@@ -72,7 +82,9 @@ def new_ibeis_mindexer(ibs, qreq_,
         print('[mindex] building forest %d/%d with %d aids' %
                 (tx + 1, num_bins, len(aids)))
         if len(aids) > 0:
-            nnindexer = nbrx.new_ibeis_nnindexer(ibs, qreq_, aids)
+            # Dont bother shallow copying qreq_ here.
+            # just passing aids is enough
+            nnindexer = nbrx.new_ibeis_nnindexer(qreq_, _internal_daids=aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -96,7 +108,7 @@ def test_mindexer():
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     num_indexers = 4
     split_method = 'name'
-    mxer = new_ibeis_mindexer(ibs, qreq_, num_indexers, split_method)
+    mxer = new_ibeis_mindexer(qreq_, num_indexers, split_method)
     return mxer, qreq_, ibs
 
 

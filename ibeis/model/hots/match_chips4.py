@@ -71,8 +71,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
-        qhashid = ibs.get_annot_uuid_hashid(qaid_list, '_QAUUIDS')
-        dhashid = ibs.get_annot_uuid_hashid(daid_list, '_DAUUIDS')
+        qhashid = ibs.get_annot_hashid_uuid(qaid_list, '_QAUUIDS')
+        dhashid = ibs.get_annot_hashid_uuid(daid_list, '_DAUUIDS')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
         if use_bigcache_:
@@ -102,7 +102,9 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
 
     Generate vsone quries one at a time, but create shallow qreqs in chunks.
     """
-    qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
+    #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
+    #                     for qx, qaid in enumerate(qaid_list))
+    qreq_shallow_iter = ((qreq_.shallowcopy(qx), qaid)
                          for qx, qaid in enumerate(qaid_list))
     qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
     for qreq_chunk in qreq_chunk_iter:

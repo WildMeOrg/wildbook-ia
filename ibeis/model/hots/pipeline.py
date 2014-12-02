@@ -119,12 +119,8 @@ def request_ibeis_query_L0(ibs, qreq_):
     python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0
 
     """
-    metadata = {}
     # Load data for nearest neighbors
-    qreq_.lazy_load(ibs)
-    # TODO incorporate metdata into qreq
-    qreq_.metadata = metadata
-    #
+    qreq_.lazy_load()
 
     if VERB_PIPELINE:
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
@@ -217,7 +213,7 @@ def nearest_neighbors(qreq_):
     if NOT_QUIET or VERB_PIPELINE:
         print('[hs] Step 1) Assign nearest neighbors: ' + qreq_.qparams.nn_cfgstr)
     num_neighbors = K + Knorm  # number of nearest neighbors
-    qvecs_list = qreq_.get_internal_qvecs()  # query descriptors
+    qvecs_list = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids())  # query descriptors
     # Allocate numpy array for each query annotation
     # TODO: dtype=np.ndarray is just an object, might be useful to use
     # pointers?
@@ -315,8 +311,8 @@ def remove_impossible_votes(qaid, qfx2_nnidx, qreq_, cant_match_self, cant_match
         #</DBG>
         qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
     if cant_match_sameimg:
-        qfx2_gid = qreq_.get_annot_gids(qfx2_aid)
-        qgid     = qreq_.get_annot_gids(qaid)
+        qfx2_gid = qreq_.ibs.get_annot_gids(qfx2_aid)
+        qgid     = qreq_.ibs.get_annot_gids(qaid)
         qfx2_notsameimg = qfx2_gid != qgid
         #<DBG>
         if VERYVERBOSE_PIPELINE:
@@ -325,8 +321,8 @@ def remove_impossible_votes(qaid, qfx2_nnidx, qreq_, cant_match_self, cant_match
         qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
     if cant_match_samename:
         # This should probably be off
-        qfx2_nid = qreq_.get_annot_name_rowids(qfx2_aid)
-        qnid = qreq_.get_annot_name_rowids(qaid)
+        qfx2_nid = qreq_.ibs.get_annot_name_rowids(qfx2_aid)
+        qnid = qreq_.ibs.get_annot_name_rowids(qaid)
         qfx2_notsamename = qfx2_nid != qnid
         #<DBG>
         if VERYVERBOSE_PIPELINE:
@@ -488,7 +484,7 @@ def filter_neighbors(qaid2_nns, qaid2_nnfilt0, filt2_weights, qreq_):
             #from vtool import linalg as ltool
             #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
             #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-            #qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient
+            #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
             #qfx2_oris  = ktool.get_oris(qfx2_kpts)
             ## Get the orientation distance
             #qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
@@ -832,8 +828,8 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
             daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         daid2_fm_V, daid2_fs_V, daid2_fk_V = new_fmfsfk()
         # Query Keypoints
-        kpts1 = qreq_.get_annot_kpts(qaid)
-        topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
+        kpts1 = qreq_.ibs.get_annot_kpts(qaid)
+        topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
         # Check the diaglen sizes before doing the homography
         topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid,
                                                       topx2_kpts, nRerank,
@@ -950,8 +946,8 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         >>> daid2_prescore = pipeline.score_chipmatch(qaid, chipmatch, prescore_method, qreq_, isprescore=True)
         >>> (daid2_fm, daid2_fs, daid2_fk) = chipmatch
         >>> topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
-        >>> kpts1 = qreq_.get_annot_kpts(qaid)
-        >>> topx2_kpts = qreq_.get_annot_kpts(topx2_aid)
+        >>> kpts1 = qreq_.ibs.get_annot_kpts(qaid)
+        >>> topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
         >>> use_chip_extent = True
         >>> nRerank = len(topx2_aid)
         >>> topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
@@ -1065,8 +1061,8 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_):
         # Populate query result fields
         qres.aid2_score = daid2_score  # FIXME fig qreq name
 
-        qres.metadata = {}  # dbgstats
         metadata = qreq_.metadata
+        qres.metadata = {}  # dbgstats
         for key, qaid2_meta in six.iteritems(metadata):
             qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
     # Retain original score method
@@ -1287,10 +1283,7 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
     if 'with_metadata' not in cfgdict:
         cfgdict['with_metadata'] = True
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
-    qreq_.lazy_load(ibs)
-    qreq_.ibs = ibs
-    # TODO incorporate metdata into qreq
-    qreq_.metadata = {}
+    qreq_.lazy_load()
     return ibs, qreq_
 
 

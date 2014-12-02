@@ -45,25 +45,6 @@ def __cleanup():
         pass
 
 
-def test_nnindexer(with_indexer=True):
-    """
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()
-    """
-    from ibeis.model.hots.query_request import new_ibeis_query_request
-    import ibeis
-    daid_list = [7, 8, 9, 10, 11]
-    ibs = ibeis.opendb(db='testdb1')
-    qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
-    if with_indexer:
-        nnindexer = new_ibeis_nnindexer(ibs, qreq_)
-    else:
-        nnindexer = None
-    return nnindexer, qreq_, ibs
-
-
 def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params={},
                          flann_cachedir=None, indexer_cfgstr='',
                          hash_rowids=True, use_cache=not NOCACHE_FLANN,
@@ -118,11 +99,15 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
     return nnindexer
 
 
-def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
+def new_ibeis_nnindexer(qreq_, _internal_daids=None):
     """
 
-    FIXME: this needs to take in a qreq_ instead of a daid list
-    and use params from qparams instead of ibs.cfg
+    CALLED BY QUERYREQUST::LOAD_INDEXER
+
+    TODO: naming convetion of new_ sucks. use request_ or
+    anything else.
+
+    FIXME: and use params from qparams instead of ibs.cfg
 
     IBEIS interface into neighbor_index
 
@@ -132,6 +117,8 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
         ibs (IBEISController):
         qreq_ (QueryRequest): hyper-parameters
         _aids (list): for multiindexer use only
+            lets multindexer avoid shallow copies
+
     Returns:
         nnindexer
 
@@ -139,15 +126,15 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = test_nnindexer(None)
-        >>> nnindexer = new_ibeis_nnindexer(ibs, qreq_)
+        >>> nnindexer = new_ibeis_nnindexer(qreq_)
     """
     global NEIGHBOR_CACHE
-    if _aids is not None:
-        daid_list = _aids
-    else:
-        #daid_list = qreq_.get_external_daids()
+    if _internal_daids is None:
         daid_list = qreq_.get_internal_daids()
-    daids_hashid = ibs.get_annot_uuid_hashid(daid_list, '_DUUIDS')
+    else:
+        daid_list = _internal_daids
+    # TODO: SYSTEM use visual uuids
+    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     flann_cfgstr = qreq_.qparams.flann_cfgstr
     feat_cfgstr  = qreq_.qparams.feat_cfgstr
 
@@ -167,14 +154,14 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
             #rx2_nid  = ibs.get_annot_name_rowids(daid_list)
             flann_params =  qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
-            vecs_list = ibs.get_annot_vecs(daid_list)
+            vecs_list = qreq_.ibs.get_annot_vecs(daid_list)
             if qreq_.qparams.fg_weight != 0:
                 # HACK
-                fgws_list = ibs.get_annot_fgweights(daid_list, ensure=True)
+                fgws_list = qreq_.ibs.get_annot_fgweights(daid_list, ensure=True)
                 assert len(fgws_list) == len(vecs_list)
             else:
                 fgws_list = None
-            flann_cachedir = ibs.get_flann_cachedir()
+            flann_cachedir = qreq_.ibs.get_flann_cachedir()
             nnindexer = new_neighbor_indexer(
                 daid_list, vecs_list, fgws_list, flann_params, flann_cachedir,
                 indexer_cfgstr, hash_rowids=False, use_params_hash=False)
@@ -189,7 +176,7 @@ def new_ibeis_nnindexer(ibs, qreq_, _aids=None):
 
 
 def _check_input(aid_list, vecs_list):
-    assert len(aid_list) == len(vecs_list), 'invalid input'
+    assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
     assert len(aid_list) > 0, ('len(aid_list) == 0.'
                                     'Cannot invert index without features!')
 
@@ -312,10 +299,14 @@ class NeighborIndex(object):
             >>> dbname = 'testdb1'
             >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
             >>> nnindexer = qreq_.indexer
-            >>> qfx2_vec = qreq_.get_internal_qvecs()[0]
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0])
             >>> num_neighbors = 4
             >>> checks = 1024
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors, checks)
+            >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
+            >>> result = qfx2_aid.shape
+            >>> print(result)
+            (1257, 4)
         """
         #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
         #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
@@ -376,6 +367,25 @@ def invert_index(vecs_list, ax_list):
         print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
     return idx2_vec, idx2_ax, idx2_fx
+
+
+def test_nnindexer(with_indexer=True):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> nnindexer, qreq_, ibs = test_nnindexer()
+    """
+    from ibeis.model.hots.query_request import new_ibeis_query_request
+    import ibeis
+    daid_list = [7, 8, 9, 10, 11]
+    ibs = ibeis.opendb(db='testdb1')
+    qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
+    if with_indexer:
+        nnindexer = new_ibeis_nnindexer(qreq_)
+    else:
+        nnindexer = None
+    return nnindexer, qreq_, ibs
 
 
 if __name__ == '__main__':

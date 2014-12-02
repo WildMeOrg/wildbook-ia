@@ -656,8 +656,8 @@ class IBEISController(object):
             >>> qres = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
 
         #>>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
-        #>>> qreq_.load_indexer(ibs)
-        #>>> qreq_.load_query_vectors(ibs)
+        #>>> qreq_.load_indexer()
+        #>>> qreq_.load_query_vectors()
         #>>> qreq = ibs.qreq
         """
         from ibeis.model.hots import match_chips4 as mc4

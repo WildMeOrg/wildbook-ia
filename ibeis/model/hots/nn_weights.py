@@ -88,7 +88,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_topidx = qfx2_idx.T[0:K].T
         qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
-        qfx2_topnid = qreq_.get_annot_name_rowids(qfx2_topaid)
+        qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
         # Don't let current query count as a valid match
         # Change those names to the unused name
         # qfx2_topnid[qfx2_topaid == qaid] = 0
@@ -244,7 +244,7 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
-        #nnindexer = hsnbrx.new_ibeis_nnindexer(ibs, daid_list)
+        #nnindexer = hsnbrx.new_ibeis_nnindexer(qreq_)
     """
     #utool.stash_testdata('qaid2_nns')
     #
@@ -382,15 +382,15 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
 
     """
     # Get the top names you do not want your normalizer to be from
-    qnid = qreq_.get_annot_name_rowids(qaid)
+    qnid = qreq_.ibs.get_annot_name_rowids(qaid)
     nTop = max(1, K)
     qfx2_topidx = qfx2_idx.T[0:nTop].T
     qfx2_normidx = qfx2_idx.T[-Knorm:].T
     # Apply temporary uniquish name
     qfx2_topaid  = qreq_.indexer.get_nn_aids(qfx2_topidx)
     qfx2_normaid = qreq_.indexer.get_nn_aids(qfx2_normidx)
-    qfx2_topnid  = qreq_.get_annot_name_rowids(qfx2_topaid)
-    qfx2_normnid = qreq_.get_annot_name_rowids(qfx2_normaid)
+    qfx2_topnid  = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
+    qfx2_normnid = qreq_.ibs.get_annot_name_rowids(qfx2_normaid)
     # Inspect the potential normalizers
     qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
     qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
@@ -522,8 +522,6 @@ def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdic
 
 if __name__ == '__main__':
     """
-    python -m utool.util_tests
-    python -c "import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)"
     python -m ibeis.model.hots.nn_weights --allexamples
     python -m ibeis.model.hots.nn_weights
     """

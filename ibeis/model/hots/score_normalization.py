@@ -311,7 +311,7 @@ def test():
         pass
 
 
-def request_ibeis_normalizer(ibs, qreq_):
+def request_ibeis_normalizer(qreq_):
     """
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
@@ -322,11 +322,11 @@ def request_ibeis_normalizer(ibs, qreq_):
         >>> daid_list = [1, 2, 3, 4, 5n
         >>> cfgdict = {'codename': 'nsum_unnorm'}
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-        >>> normalizer = request_ibeis_normalizer(ibs, qreq_)
+        >>> normalizer = request_ibeis_normalizer(qreq_)
     """
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
     cfgstr = 'baseline_' + species_text
-    cachedir = ibs.get_species_cachedir(species_text)
+    cachedir = qreq_.ibs.get_species_cachedir(species_text)
     try:
         normalizer = ScoreNormalizer(cfgstr)
         normalizer.load(cachedir)
@@ -335,7 +335,7 @@ def request_ibeis_normalizer(ibs, qreq_):
     except Exception:
         try:
             print('Baseline does not exist. Training baseline')
-            normalizer = train_baseline_ibeis_normalizer(ibs)
+            normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
             return normalizer
         except Exception as ex:
             ut.printex(ex)
@@ -362,7 +362,7 @@ def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list, use_cache=True, **l
         normalizer_PZ_MTEST_UUIDS((9)t4g!b5zov%chc%+v).cPkl
     """
     # Collect training data
-    cfgstr = ibs.get_dbname() + ibs.get_annot_uuid_hashid(qaid_list)
+    cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_uuid(qaid_list)
     try:
         if use_cache is False:
             raise Exception('forced cache miss')

@@ -39,7 +39,7 @@ def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
             # TODO: Incorporated taids (vocab training ids) into qreq
             taids = cfg.vocab_taids
 
-    tannot_hashid = ibs.get_annot_uuid_hashid(taids, '_TAIDS')
+    tannot_hashid = ibs.get_annot_hashid_uuid(taids, '_TAIDS')
     vocab_cfgstr = vocab_cfgstr_ + tannot_hashid + feat_cfgstr_
     return vocab_cfgstr
 
