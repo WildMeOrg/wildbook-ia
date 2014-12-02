@@ -585,7 +585,9 @@ class APIItemModel(API_MODEL_BASE):
         getter = model.col_getter_list[col]  # getter for this column
         # Using this getter may not be thread safe
         try:
-            data = getter((row_id,), **kwargs)[0]
+            # Should this work around decorators?
+            #data = getter((row_id,), **kwargs)[0]
+            data = getter(row_id, **kwargs)
         except Exception as ex:
             utool.printex(ex, 'problem getting in column %r' % (col,))
             #getting from: %r' % utool.util_str.get_callable_name(getter))
