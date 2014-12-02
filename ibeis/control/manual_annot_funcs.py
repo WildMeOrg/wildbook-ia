@@ -176,14 +176,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
     ibs.update_annot_visual_uuids(aid_list)
 
-    #if species_list is not None:
-    #    ibs.set_annot_species(aid_list, species_list)
-
-    # Also need to populate annotation_lblannot_relationship table
-    #if nid_list is not None:
-    #    alrid_list = ibs.add_annot_relationship(aid_list, nid_list)
-    #    del alrid_list
-    #print('alrid_list = %r' % (alrid_list,))
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs)
     return aid_list

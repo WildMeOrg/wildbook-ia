@@ -6,7 +6,7 @@ from ibeis import constants as const
 from ibeis.control.accessor_decors import (
     adder, getter_1to1, default_decorator, getter_1toM)
 import utool as ut
-from ibeis import ibsfuncs
+#from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_lblimg]')
 
@@ -228,89 +228,6 @@ def get_image_glrids(ibs, gid_list, configid=None):
                                    where_clause=where_clause, unpack_scalars=False)
     # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
     return glrids_list
-
-
-@register_ibs_method
-@getter_1toM
-def get_annot_alrids(ibs, aid_list, configid=None):
-    """ FIXME: __name__
-    Get all the relationship ids belonging to the input annotations
-    if lblannot lbltype is specified the relationship ids are filtered to
-    be only of a specific lbltype/category/type
-    """
-    if configid is None:
-        alrids_list = ibs.db.get(const.AL_RELATION_TABLE, ('alr_rowid',), aid_list,
-                                 id_colname='annot_rowid', unpack_scalars=False)
-    else:
-        params_iter = ((aid, configid) for aid in aid_list)
-        where_clause = 'annot_rowid=? AND config_rowid=?'
-        alrids_list = ibs.db.get_where(const.AL_RELATION_TABLE, ('alr_rowid',), params_iter,
-                                       where_clause=where_clause, unpack_scalars=False)
-    # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
-    return alrids_list
-
-
-@register_ibs_method
-@getter_1toM
-def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
-    """
-    Get all the relationship ids belonging to the input annotations where the
-    relationship ids are filtered to be only of a specific lbltype/category/type
-    """
-    alrids_list = ibs.get_annot_alrids(aid_list, configid=configid)
-    # Get lblannot_rowid of each relationship
-    lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-    # Get the type of each lblannot
-    lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
-    # only want the nids of individuals, not species, for example
-    valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-    alrids_list = [ut.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
-    if configid is None:
-        def resolution_func_first(alrid_list):
-            return [ alrid_list[0] ]
-
-        def resolution_func_lowest_config(alrid_list):
-            config_rowid_list = ibs.get_alr_config(alrid_list)
-            temp = sorted(list(zip(config_rowid_list, alrid_list)))
-            return [ temp[0][0] ]
-
-        alrids_list = [
-            resolution_func_first(alrid_list)
-            if len(alrid_list) > 1 else
-            alrid_list
-            for alrid_list in alrids_list
-        ]
-    assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
-        ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
-         ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
-    return alrids_list
-
-
-@register_ibs_method
-@getter_1toM
-def get_annot_lblannot_rowids(ibs, aid_list):
-    """
-    Returns:
-        list_ (list): the name id of each annotation. """
-    # Get all the annotation lblannot relationships
-    # filter out only the ones which specify names
-    alrids_list = ibs.get_annot_alrids(aid_list)
-    lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-    return lblannot_rowids_list
-
-
-@register_ibs_method
-@getter_1toM
-def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
-    """
-    Returns:
-        list_ (list): the name id of each annotation. """
-    # Get all the annotation lblannot relationships
-    # filter out only the ones which specify names
-    assert _lbltype is not None, 'should be using lbltype_rowids anyway'
-    alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-    lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-    return lblannot_rowids_list
 
 
 if __name__ == '__main__':

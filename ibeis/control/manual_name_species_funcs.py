@@ -60,7 +60,7 @@ def add_names(ibs, name_text_list, note_list=None):
     lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
     nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
-    nid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
+    #nid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
     return nid_list
 
 
@@ -109,13 +109,14 @@ def add_species(ibs, species_text_list, note_list=None):
 
     Returns:
         list: speciesid_list - species rowids
+
     """
-    species_text_list_ = ibs.sanatize_species_texts(species_text_list)
+    value_list = ibs.sanatize_species_texts(species_text_list)
     lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
-    lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)
-    species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, species_text_list_, note_list)
-    species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID if rowid is None else
-                          rowid for rowid in species_rowid_list]
+    lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
+    species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, note_list)
+    #species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID if rowid is None else
+    #                      rowid for rowid in species_rowid_list]
     return species_rowid_list
 
 

@@ -2,7 +2,7 @@
 Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants
+from ibeis import constants as const
 try:
     from ibeis.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
@@ -22,7 +22,7 @@ profile = utool.profile
 
 @profile
 def update_1_0_0(db, ibs=None):
-    db.add_table(constants.IMAGE_TABLE, (
+    db.add_table(const.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
@@ -42,7 +42,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         First class table used to store image locations and meta-data''')
 
-    db.add_table(constants.ENCOUNTER_TABLE, (
+    db.add_table(const.ENCOUNTER_TABLE, (
         ('encounter_rowid',              'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
@@ -52,7 +52,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         List of all encounters''')
 
-    db.add_table(constants.LBLTYPE_TABLE, (
+    db.add_table(const.LBLTYPE_TABLE, (
         ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
@@ -64,7 +64,7 @@ def update_1_0_0(db, ibs=None):
         lblannot_value of annotations with a relationship of some
         lbltype_rowid''')
 
-    db.add_table(constants.CONFIG_TABLE, (
+    db.add_table(const.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
     ),
@@ -77,7 +77,7 @@ def update_1_0_0(db, ibs=None):
     ##########################
     # FIRST ORDER            #
     ##########################
-    db.add_table(constants.ANNOTATION_TABLE, (
+    db.add_table(const.ANNOTATION_TABLE, (
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
@@ -99,7 +99,7 @@ def update_1_0_0(db, ibs=None):
         encoded here Attributes are stored in the Annotation Label Relationship
         Table''')
 
-    db.add_table(constants.LBLIMAGE_TABLE, (
+    db.add_table(const.LBLIMAGE_TABLE, (
         ('lblimage_rowid',               'INTEGER PRIMARY KEY'),
         ('lblimage_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -110,7 +110,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         Used to store the labels (attributes) of images''')
 
-    db.add_table(constants.LBLANNOT_TABLE, (
+    db.add_table(const.LBLANNOT_TABLE, (
         ('lblannot_rowid',               'INTEGER PRIMARY KEY'),
         ('lblannot_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -126,7 +126,7 @@ def update_1_0_0(db, ibs=None):
     # SECOND ORDER           #
     ##########################
     # TODO: constraint needs modification
-    db.add_table(constants.CHIP_TABLE, (
+    db.add_table(const.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -138,7 +138,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    db.add_table(constants.FEATURE_TABLE, (
+    db.add_table(const.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -150,7 +150,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    db.add_table(constants.EG_RELATION_TABLE, (
+    db.add_table(const.EG_RELATION_TABLE, (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
@@ -164,7 +164,7 @@ def update_1_0_0(db, ibs=None):
     ##########################
     # THIRD ORDER            #
     ##########################
-    db.add_table(constants.GL_RELATION_TABLE, (
+    db.add_table(const.GL_RELATION_TABLE, (
         ('glr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('lblimage_rowid',               'INTEGER NOT NULL'),
@@ -176,7 +176,7 @@ def update_1_0_0(db, ibs=None):
         Used to store one-to-many the relationship between images
         and labels''')
 
-    db.add_table(constants.AL_RELATION_TABLE, (
+    db.add_table(const.AL_RELATION_TABLE, (
         ('alr_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('lblannot_rowid',               'INTEGER NOT NULL'),
@@ -192,7 +192,7 @@ def update_1_0_0(db, ibs=None):
 def post_1_0_0(db, ibs=None):
     # We are dropping the versions table and rather using the metadata table
     print('applying post_1_0_0')
-    db.drop_table(constants.VERSIONS_TABLE)
+    db.drop_table(const.VERSIONS_TABLE)
 
 
 def post_1_2_0(db, ibs=None):
@@ -213,7 +213,7 @@ def post_1_2_0(db, ibs=None):
 @profile
 def update_1_0_1(db, ibs=None):
     # Add a contributor's table
-    db.add_table(constants.CONTRIBUTOR_TABLE, (
+    db.add_table(const.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
         ('contributor_name_first',       'TEXT'),
@@ -229,17 +229,17 @@ def update_1_0_1(db, ibs=None):
         Used to store the contributors to the project
         ''')
 
-    db.modify_table(constants.IMAGE_TABLE, (
+    db.modify_table(const.IMAGE_TABLE, (
         # add column to v1.0.0 at index 1
         (1, 'contributor_rowid', 'INTEGER', None),
     ))
 
-    db.modify_table(constants.ANNOTATION_TABLE, (
+    db.modify_table(const.ANNOTATION_TABLE, (
         # add column to v1.0.0 at index 1
         (1, 'annot_parent_rowid', 'INTEGER', None),
     ))
 
-    db.modify_table(constants.FEATURE_TABLE, (
+    db.modify_table(const.FEATURE_TABLE, (
         # append column to v1.0.0 because None
         (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
     ))
@@ -253,7 +253,7 @@ def update_1_0_1(db, ibs=None):
 @profile
 def update_1_0_2(db, ibs=None):
     # Fix the contibutor table's constraint
-    db.modify_table(constants.CONTRIBUTOR_TABLE, (
+    db.modify_table(const.CONTRIBUTOR_TABLE, (
         # add column to v1.0.1 at index 1
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
@@ -269,17 +269,17 @@ def update_1_0_2(db, ibs=None):
 @profile
 def update_1_1_0(db, ibs=None):
     # Moving chips and features to their own cache database
-    db.drop_table(constants.CHIP_TABLE)
-    db.drop_table(constants.FEATURE_TABLE)
+    db.drop_table(const.CHIP_TABLE)
+    db.drop_table(const.FEATURE_TABLE)
 
     # Add viewpoint (radians) to annotations
-    db.modify_table(constants.ANNOTATION_TABLE, (
+    db.modify_table(const.ANNOTATION_TABLE, (
         # add column to v1.0.2 at index 11
         (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
     ))
 
     # Add contributor to configs
-    db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(const.CONFIG_TABLE, (
         # add column to v1.0.2 at index 1
         (1, 'contributor_uuid', 'UUID', None),
     ),
@@ -289,7 +289,7 @@ def update_1_1_0(db, ibs=None):
     )
 
     # Add config to encounters
-    db.modify_table(constants.ENCOUNTER_TABLE, (
+    db.modify_table(const.ENCOUNTER_TABLE, (
         # add column to v1.0.2 at index 2
         (2, 'config_rowid', 'INTEGER', None),
     ),
@@ -298,7 +298,7 @@ def update_1_1_0(db, ibs=None):
     )
 
     # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
-    db.drop_table(constants.VERSIONS_TABLE)
+    db.drop_table(const.VERSIONS_TABLE)
 
 
 # =======================
@@ -309,7 +309,7 @@ def update_1_1_0(db, ibs=None):
 @profile
 def update_1_1_1(db, ibs=None):
     # Change name of column
-    db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(const.CONFIG_TABLE, (
         # rename column and change it's type
         ('contributor_uuid', 'contributor_rowid', '', None),
     ),
@@ -318,13 +318,13 @@ def update_1_1_1(db, ibs=None):
     )
 
     # Change type of column
-    db.modify_table(constants.CONFIG_TABLE, (
+    db.modify_table(const.CONFIG_TABLE, (
         # rename column and change it's type
         ('contributor_rowid', '', 'INTEGER', None),
     ))
 
     # Change type of columns
-    db.modify_table(constants.CONTRIBUTOR_TABLE, (
+    db.modify_table(const.CONTRIBUTOR_TABLE, (
         # Update column's types
         ('contributor_location_zip', '', 'TEXT', None),
         ('contributor_note', '', 'TEXT', None),
@@ -334,16 +334,22 @@ def update_1_1_1(db, ibs=None):
 @profile
 def update_1_2_0(db, ibs=None):
     # Add columns to annotaiton table
-    db.modify_table(constants.ANNOTATION_TABLE, (
+    tablename = const.ANNOTATION_TABLE
+    colmap_list = (
         # the visual uuid will be unique w.r.t. the appearence of the annotation
         (None, 'annot_visual_uuid', 'UUID', None),
         # the visual uuid will be unique w.r.t. the appearence, name, and species of the annotation
         (None, 'annot_semantic_uuid', 'UUID', None),
         (None, 'name_rowid',    'INTEGER DEFAULT 0', None),
         (None, 'species_rowid', 'INTEGER DEFAULT 0', None),
-
-    ),
     )
+    aid_before = db.get_all_rowids(const.ANNOTATION_TABLE)
+    #import utool as ut
+    #ut.embed()
+    db.modify_table(tablename, colmap_list)
+    # Sanity check
+    aid_after = db.get_all_rowids(const.ANNOTATION_TABLE)
+    assert aid_before == aid_after
 
 
 # ========================
@@ -353,7 +359,7 @@ def update_1_2_0(db, ibs=None):
 # TODO: do we save a backup with the older version number in the file name?
 
 
-base = constants.BASE_DATABASE_VERSION
+base = const.BASE_DATABASE_VERSION
 VALID_VERSIONS = utool.odict([
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
     (base   ,    (None,                 None,               None                )),

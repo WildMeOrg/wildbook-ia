@@ -318,7 +318,6 @@ def get_valid_fids(ibs):
     return fid_list
 
 
-
 if __name__ == '__main__':
     """
     CommandLine:

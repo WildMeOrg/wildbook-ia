@@ -125,6 +125,7 @@ from plottool import fig_presenter
 # IBEIS
 import ibeis
 from ibeis import constants
+from ibeis import constants as const
 from ibeis import model
 from ibeis import control
 from ibeis import gui

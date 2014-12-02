@@ -223,8 +223,7 @@ def ingest_testdb1(dbname):
         for ix in range(10, 12):
             species_text_list[ix] = Species.POLAR_BEAR
 
-        with ut.EmbedOnException():
-            ibs.set_annot_species(aid_list, species_text_list)
+        ibs.set_annot_species(aid_list, species_text_list)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
         ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
         ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
