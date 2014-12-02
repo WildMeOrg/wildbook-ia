@@ -161,6 +161,9 @@ class IBEIS_Image(object):
             # print(score)
             if score >= margin:
                 bin_size = 2.0 * math.pi / len(bins)
+                if _obj.pose == "Unspecified":
+                    print(ibsi, _obj.name)
+                    print(objects)
                 pose = float(_obj.pose) + 0.5 * bin_size
                 pose %= 2.0 * math.pi
                 bin_ = int(pose / bin_size)
