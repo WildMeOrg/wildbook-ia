@@ -117,39 +117,6 @@ cd ibeis
 
 ```
 
-# Code Sytle Guidelines
-
-For Python try to conform to pep8. 
-You should set up your prefered editor to use flake8 as linter.
-If using vim I recomend syntastic.
-
-DISABLE THESE ERRORS 
-* 'E127', # continuation line over-indented for visual indent
-* 'E201', # whitespace after '('
-* 'E202', # whitespace before ']'
-* 'E203', # whitespace before ', '
-* 'E221', # multiple spaces before operator
-* 'E222', # multiple spaces after operator
-* 'E241', # multiple spaces after ,
-* 'E265', # block comment should start with "# "
-* 'E271', # multiple spaces after keyword 
-* 'E272', # multiple spaces before keyword
-* 'E301', # expected 1 blank line, found 0
-* 'E501', # > 79
-
-flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
-
-( Dev comment: my laptop seemst to report these flake8 errors while my desktops
-  don't. I'm going to list errors that might need to be explicitly enabled here:
-
-* 'F821',  # undefined name
-* 'F403',  # import * used, unable to detect names
-
-)
-
-For C++ code use astyle to format your code:
-atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
-
 
 # Running Tests
 
@@ -193,6 +160,39 @@ The following examples runs the 1st doctest belonging to the function (or class)
 _query_chips4 in the module ibeis.control.IBEISControl:
 
     python -m ibeis.control.IBEISControl --test-_query_chips4:0
+
+# Code Sytle Guidelines
+
+For Python try to conform to pep8. 
+You should set up your prefered editor to use flake8 as linter.
+If using vim I recomend syntastic.
+
+DISABLE THESE ERRORS 
+* 'E127', # continuation line over-indented for visual indent
+* 'E201', # whitespace after '('
+* 'E202', # whitespace before ']'
+* 'E203', # whitespace before ', '
+* 'E221', # multiple spaces before operator
+* 'E222', # multiple spaces after operator
+* 'E241', # multiple spaces after ,
+* 'E265', # block comment should start with "# "
+* 'E271', # multiple spaces after keyword 
+* 'E272', # multiple spaces before keyword
+* 'E301', # expected 1 blank line, found 0
+* 'E501', # > 79
+
+flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
+
+( Dev comment: my laptop seemst to report these flake8 errors while my desktops
+  don't. I'm going to list errors that might need to be explicitly enabled here:
+
+* 'F821',  # undefined name
+* 'F403',  # import * used, unable to detect names
+
+)
+
+For C++ code use astyle to format your code:
+atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
 
 
 # Updating Documentation
