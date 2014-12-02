@@ -16,9 +16,7 @@ def get_query_components(ibs, qaids):
     qaid = qaids[0]
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
-    qreq_.lazy_load(ibs)
-    metadata = {}
-    qreq_.metadata = metadata
+    qreq_.lazy_load()
     pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, None)
     qaid2_nns            = pipeline_locals_['qaid2_nns']
     qaid2_nnfilt0        = pipeline_locals_['qaid2_nnfilt0']
