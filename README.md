@@ -151,6 +151,50 @@ For C++ code use astyle to format your code:
 atyle --style=ansi --indent=spaces --attach-inlines --indent-classes --indent-modifiers --indent-switches --indent-preproc-cond --indent-col1-comments --pad-oper --unpad-paren --delete-empty-lines --add-brackets 
 
 
+# Running Tests
+
+NOTE: Make sure whatever editor you are using can perform syntax highlighting on
+doctests. The majority of the tests are written in a doctest-like format.  
+
+There are two testing scripts:
+
+run_tests.py
+
+and 
+
+shell_run_tests.sh
+
+
+run_tests.py performs only a subset of doctests which are not labeled as SLOW. 
+
+this allows for me to have a high confidence that I'm not breaking things
+while also allowing for a high throughput. Because run_tests.py is a python
+script only one instance of python is started and all tests are run from that. 
+This means that the controller is not reloaded for each individual test.
+
+run_test.py --testall will test all enabled doctests including slow ones. This
+adds about a minute onto the runtime of the tests.
+
+
+shell_run_tests.sh is the old test script that I had written. By default it only
+runs non-slow doctests, but it creates a new python instance for each test.
+While this is slower it allows for system testing from another angle in case a
+tests was incidentally passing due to a cached local variable.
+
+shell_run_tests.sh --testall will run all tests including slow doctests and the
+original test scripts that we had written in June and July. 
+
+A text file records any test that fails as well as all test times.
+
+Tests can easily be run individually using documentation found in each module
+with doctests.
+
+The following examples runs the 1st doctest belonging to the function (or class)
+_query_chips4 in the module ibeis.control.IBEISControl:
+
+    python -m ibeis.control.IBEISControl --test-_query_chips4:0
+
+
 # Updating Documentation
 ```bash
 # utool script to run sphinx-apidoc

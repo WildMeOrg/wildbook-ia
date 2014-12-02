@@ -84,6 +84,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
+        >>> prevalid = ibs.get_valid_aids()
         >>> num_add = 2
         >>> gid_list = ibs.get_valid_gids()[0:num_add]
         >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
@@ -109,6 +110,11 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> print('Cleaning up. Removing added annotations')
         >>> ibs.delete_annots(aid_list)
         >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
+        >>> postvalid = ibs.get_valid_aids()
+        >>> assert prevalid == postvalid
+        >>> result = postvalid
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
     """
     from vtool import geometry
@@ -786,10 +792,10 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> result = get_annot_num_feats(ibs, aid_list)
+        >>> aid_list = ibs.get_valid_aids()[0:3]
+        >>> result = get_annot_num_feats(ibs, aid_list, ensure=True)
         >>> print(result)
-        [1257, 920, 1342, 367, 1344, 664, 34, 521, 872, 2260, 98, 635, 944]
+        [1257, 920, 1342]
     """
     fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput)
     nFeats_list = ibs.get_num_feats(fid_list)
