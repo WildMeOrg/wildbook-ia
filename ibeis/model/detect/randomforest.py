@@ -195,7 +195,8 @@ def _get_detector(species, quick=True, single=False, modeldir='default'):
         >>> species = 'zebra_plains'
         >>> quick = True
         >>> single = False
-        >>> (detector, forest) = randomforest._get_detector(species, quick, single)
+        >>> modeldir = 'default'
+        >>> (detector, forest) = randomforest._get_detector(species, quick, single, modeldir)
         >>> result = str(list(map(type, (detector, forest))))
         >>> print(result)
         [<class 'pyrf._pyrf.Random_Forest_Detector'>, <type 'int'>]
@@ -208,7 +209,8 @@ def _get_detector(species, quick=True, single=False, modeldir='default'):
         >>> species = 'dropbear'
         >>> quick = True
         >>> single = False
-        >>> (detector, forest) = randomforest._get_detector(species, quick, single)
+        >>> modeldir = 'default'
+        >>> (detector, forest) = randomforest._get_detector(species, quick, single, modeldir)
         >>> result = str(list(map(type, (detector, forest))))
         >>> print(result)
         [<type 'NoneType'>, <type 'NoneType'>]
@@ -238,11 +240,11 @@ def _get_detector(species, quick=True, single=False, modeldir='default'):
                 'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20',
             }
     print('[randomforest] building detector')
-    detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
     if ut.checkpath(trees_path, verbose=True):
         # Load forest, so we don't have to reload every time
         print('[randomforest] loading forest')
+        detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
         forest = detector.load(trees_path, species + '-', num_trees=25)
         # TODO: WE NEED A WAY OF ASKING IF THE LOAD WAS SUCCESSFUL
         # SO WE CAN HANDLE IT GRACEFULLY FROM PYTHON

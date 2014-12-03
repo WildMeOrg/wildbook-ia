@@ -29,7 +29,8 @@ def _expand_modeldir(modeldir='default'):
 
 def get_species_trees_paths(species, modeldir='default'):
     modeldir = _expand_modeldir(modeldir)
-    rf_model_dir = MODEL_ALGO_SUBDIRS[DETECTOR_KEY_RF]
+    algosubdir = MODEL_ALGO_SUBDIRS[DETECTOR_KEY_RF]
+    rf_model_dir = join(modeldir, algosubdir)
     trees_path   = join(rf_model_dir, species)
     return trees_path
 
