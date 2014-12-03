@@ -21,6 +21,7 @@ ANNOT_ROWID         = 'annot_rowid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_THETA         = 'annot_theta'
 ANNOT_VERTS         = 'annot_verts'
+ANNOT_UUID          = 'annot_uuid'
 ANNOT_VIEWPOINT     = 'annot_viewpoint'
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 CONFIG_ROWID        = 'config_rowid'
@@ -47,8 +48,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 detect_confidence_list=None, notes_list=None,
                 vert_list=None, annot_uuid_list=None, viewpoint_list=None,
-                quiet_delete_thumbs=False):
-    """
+                quiet_delete_thumbs=False, prevent_visual_duplicates=False):
+    r"""
     Adds an annotation to images
 
     Args:
@@ -72,8 +73,21 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         python -m ibeis.control.manual_annot_funcs --test-add_annots
         python -m ibeis.control.manual_annot_funcs --test-add_annots --verbose --print-caller
 
+    Ignore:
+       theta_list = None
+       species_list = None
+       nid_list = None
+       name_list = None
+       detect_confidence_list = None
+       notes_list = None
+       vert_list = None
+       annot_uuid_list = None
+       viewpoint_list = None
+       quiet_delete_thumbs = False
+       prevent_visual_duplicates = False
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -100,16 +114,50 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> assert bbox_list2 == bbox_list
         >>> # Be sure to remove test annotation
         >>> # if this test fails a resetdbs might be nessary
+        >>> result = ''
+        >>> visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+        >>> semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
+        >>> result += str(visual_uuid_list) + '\n'
+        >>> result += str(semantic_uuid_list) + '\n'
         >>> print('Cleaning up. Removing added annotations')
         >>> ibs.delete_annots(aid_list)
         >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
         >>> postvalid = ibs.get_valid_aids()
         >>> assert prevalid == postvalid
-        >>> result = postvalid
+        >>> result += str(postvalid)
         >>> print(result)
+        [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
+        [UUID('68160c90-4b82-dc96-dafa-b12948739577'), UUID('03e74d19-1bf7-bc43-a291-8ee06a44da2e')]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
+    Example2:
+        >>> # Test with prevent_visual_duplicates on
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> prevalid = ibs.get_valid_aids()
+        >>> num_add = 1
+        >>> gid_list = ibs.get_valid_gids()[0:1] * num_add
+        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
+        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
+        >>> bbox_list2 = [(int(w * .2), int(h * .6), int(w * .5), int(h *  .3))
+        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
+        >>> # Add a test annotation
+        >>> print('Testing add_annots')
+        >>> aid_list1 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
+        >>> aid_list2 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
+        >>> aid_list3 = ibs.add_annots(gid_list, bbox_list=bbox_list2, prevent_visual_duplicates=True)
+        >>> assert aid_list1 == aid_list2
+        >>> assert aid_list1 != aid_list3
+        >>> aid_list_new = aid_list1 + aid_list3
+        >>> result = aid_list_new
+        >>> print('Cleaning up. Removing added annotations')
+        >>> ibs.delete_annots(aid_list_new)
+        >>> print(result)
+        [14, 15]
     """
+    from ibeis.model.preproc import preproc_annot
     from vtool import geometry
     if ut.VERBOSE:
         print('[ibs] adding annotations')
@@ -122,10 +170,16 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         theta_list = [0.0 for _ in range(len(gid_list))]
     if name_list is not None:
         nid_list = ibs.add_names(name_list)
+    else:
+        if nid_list is None:
+            nid_list = [ibs.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
+        name_list = ibs.get_name_texts(nid_list)
+
     if species_list is not None:
-        species_rowid_list = ibs.add_spcies(species_list)
+        species_rowid_list = ibs.add_species(species_list)
     else:
         species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+        species_list = ibs.get_species_texts(species_rowid_list)
     if detect_confidence_list is None:
         detect_confidence_list = [0.0 for _ in range(len(gid_list))]
     if notes_list is None:
@@ -135,9 +189,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     elif bbox_list is None:
         bbox_list = geometry.bboxes_from_vert_list(vert_list)
-
-    if nid_list is None:
-        nid_list = [ibs.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
 
     len_bbox    = len(bbox_list)
     len_vert    = len(vert_list)
@@ -160,33 +211,53 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         print(ut.dict_str(locals()))
         return []
 
-    # Build ~~deterministic?~~ random and unique ANNOTATION ids
-    #image_uuid_list = ibs.get_image_uuids(gid_list)
-    #annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
-    #                                                      theta_list, deterministic=False)
-    if annot_uuid_list is None:
-        annot_uuid_list = [uuid.uuid4() for _ in range(len(gid_list))]
     if viewpoint_list is None:
         viewpoint_list = [-1.0] * len(gid_list)
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [const.__STR__(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
+
+    # Build ~~deterministic?~~ random and unique ANNOTATION ids
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    if annot_uuid_list is None:
+        annot_uuid_list = [uuid.uuid4() for _ in range(len(gid_list))]
+
+    # Careful this code is very fragile. It might go out of sync
+    # with the updating of the determenistic uuids. Find a way to
+    # integrate both pieces of code without too much reundancy.
+    # Make sure these tuples are constructed correctly
+    #if annot_visual_uuid_list is None:
+    #if annot_semantic_uuid_list is None:
+    visual_infotup = (image_uuid_list, vert_list, theta_list)
+    semantic_infotup = (image_uuid_list, vert_list, theta_list, viewpoint_list,
+                        name_list, species_list)
+    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(ibs, visual_infotup=visual_infotup)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(ibs, semantic_infotup=semantic_infotup)
+
     # Define arguments to insert
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
                 'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
                 'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
-                'annot_note', 'name_rowid', 'species_rowid')
+                'annot_note', 'name_rowid', 'species_rowid',
+                'annot_visual_uuid', 'annot_semantic_uuid')
 
     params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
                             width_list, height_list, theta_list, nVert_list,
                             vertstr_list, viewpoint_list, detect_confidence_list,
-                            notes_list, nid_list, species_rowid_list))
+                            notes_list, nid_list, species_rowid_list,
+                           annot_visual_uuid_list, annot_semantic_uuid_list))
 
     # Execute add ANNOTATIONs SQL
-    get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
-    aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
-    ibs.update_annot_visual_uuids(aid_list)
+    if prevent_visual_duplicates:
+        superkey_paramx = (14,)
+        get_rowid_from_superkey = ibs.get_annot_aids_from_visual_uuid
+    else:
+        superkey_paramx = (0,)
+        get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
+    aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter,
+                                  get_rowid_from_superkey, superkey_paramx)
+    #ibs.update_annot_visual_uuids(aid_list)
 
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs)
@@ -250,7 +321,7 @@ def get_annot_aids_from_uuid(ibs, uuid_list):
         list_ (list): annot rowids
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_rowid',), uuid_list, id_colname='annot_uuid')
+    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), uuid_list, id_colname=ANNOT_UUID)
     return aids_list
 
 
@@ -889,7 +960,7 @@ def get_annot_species(ibs, aid_list):
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_species
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
@@ -898,6 +969,17 @@ def get_annot_species(ibs, aid_list):
         >>> result = get_annot_species(ibs, aid_list)
         >>> print(result)
         [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> species_list = get_annot_species(ibs, aid_list)
+        >>> result = set(
+        >>> print(result)
+        set([u'zebra_plains'])
     """
     species_rowid_list = ibs.get_annot_species_rowids(aid_list)
     speceis_text_list  = ibs.get_species_texts(species_rowid_list)
@@ -1364,7 +1446,7 @@ def testdata_annot():
 def update_annot_semantic_uuids(ibs, aid_list):
     """ Updater for semantic uuids """
     from ibeis.model.preproc import preproc_annot
-    annot_semantic_uuid_list = preproc_annot.make_annot_semeantic_uuid(ibs, aid_list)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(ibs, aid_list)
     ibs.set_annot_semantic_uuids(aid_list, annot_semantic_uuid_list)
 
 

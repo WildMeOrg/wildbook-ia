@@ -53,6 +53,121 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 # and then go in _devcmds_ibeis.py
 
 
+@devcmd('incremental', 'inc')
+@profile
+def incremental_test(ibs, qaid_list, daid_list=None):
+    """
+    Plots the scores/ranks of correct matches while varying the size of the
+    database.
+
+    Args:
+        ibs       (list) : IBEISController object
+        qaid_list (list) : list of annotation-ids to query
+
+    CommandLine:
+        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
+
+        python dev.py --db PZ_MTEST --allgt --cmd
+
+    Example:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()
+        >>> daid_list = None
+    """
+    # Take a known dataase
+    ibs1 = ibs
+    del ibs
+    del qaid_list
+    del daid_list
+    # Create an empty database to test in
+    dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
+    ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=True, use_cache=False)
+    assert len(ibs2.get_valid_aids())  == 0
+    assert len(ibs2.get_valid_gids())  == 0
+    assert len(ibs2.get_valid_nids())  == 0
+
+    # Get annotations and their images from database 1
+    aid_list1 = ibs1.get_aids_with_groundtruth()
+    gid_list1 = ibs1.get_annot_gids(aid_list1)
+    gpath_list1 = ibs1.get_image_paths(gid_list1)
+
+    # Add all images from database 1 to database 2
+    gid_list2 = ibs2.add_images(gpath_list1, auto_localize=False)
+
+    # Image UUIDS should be consistent between databases
+    image_uuid_list1 = ibs1.get_image_uuids(gid_list1)
+    image_uuid_list2 = ibs2.get_image_uuids(gid_list2)
+    assert image_uuid_list1 == image_uuid_list2
+    ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
+
+    aid1_to_aid2 = {}
+    def register_annot_mapping(aids1_chunk, aids2_chunk):
+        # Should be 1 to 1
+        for aid1, aid2 in zip(aids1_chunk, aids2_chunk):
+            if aid1 in aid1_to_aid2:
+                assert aid1_to_aid2[aid1] == aid2
+            else:
+                aid1_to_aid2[aid1] = aid2
+
+    for aids1_chunk in ut.ichunks(aid_list1, 1):
+        break
+
+    def execute_teststep(aids1_chunk):
+        """ Add an unseen annotation and run a query """
+        gids1_chunk    = ibs1.get_annot_gids(aids1_chunk)
+        guuids1_chunk  = ibs1.get_image_uuids(gids1_chunk)
+        species1_chunk = ibs1.get_annot_species(aids1_chunk)
+        verts1_chunk   = ibs1.get_annot_verts(aids1_chunk)
+        thetas1_chunk  = ibs1.get_annot_thetas(aids1_chunk)
+
+        gids2_chunk = ibs2.get_image_gids_from_uuid(guuids1_chunk)
+
+        addkw = dict(species_list=species1_chunk, vert_list=verts1_chunk,
+                     theta_list=thetas1_chunk, prevent_visual_duplicates=True)
+        aids2_chunk = ibs2.add_annots(gids2_chunk, **addkw)
+        print(aids2_chunk)
+        register_annot_mapping(aids1_chunk, aids2_chunk)
+        pass
+
+    for aids1_chunk in ut.ichunks(aid_list1, 1):
+        break
+        execute_teststep(aids1_chunk)
+        #pass
+
+    #upsizetup = ibs.get_upsize_data(qaid_list, daid_list, **upsizekw)
+    #qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal = upsizetup
+    # Create a progress marking function
+    progkw = dict(nTotal=nTotal, flushfreq=20, approx=False)
+    mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
+    count = 0
+    # Set up output containers and run test iterations
+    upscores_dict = utool.ddict(lambda: utool.ddict(list))
+    input_iter = zip(qaid_list, qaid_trues_list, qaid_false_samples_list)
+    # For each query annotation runs it as a query multiple times
+    # each time it increases the number of false annotation in the database
+    # so we can see how a score degrades as the number of false
+    # database annotations increases
+    for qaid, true_aids, false_aids_samples in input_iter:
+        #print('qaid = %r' % (qaid,))
+        #print('true_aids=%r' % (true_aids,))
+        # For each true match and false sample
+        for gt_aid, false_sample in utool.iprod(true_aids, false_aids_samples):
+            #print('  gt_aid=%r' % (gt_aid,))
+            #print('  false_sample=%r' % (false_sample,))
+            mark_(count)
+            count += 1
+            # Execute query
+            daids = false_sample + [gt_aid]
+            qres = ibs._query_chips4([qaid], daids)[qaid]
+            # Elicit information
+            score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
+            # Append result
+            upscores_dict[(qaid, gt_aid)]['dbsizes'].append(len(false_sample))
+            upscores_dict[(qaid, gt_aid)]['score'].append(score)
+    end_()
+
+
 @devcmd('scores', 'score')
 def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """
@@ -121,7 +236,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
         qaid_list (list) : list of annotation-ids to query
 
     CommandLine:
-        python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 --cmd
+        python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 --cmd
 
     Example:
         >>> from ibeis.all_imports import *  # NOQA

@@ -127,22 +127,25 @@ def get_annot_visual_uuid_info(ibs, aid_list):
     Returns:
         list: visual_info_list
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_annot --test-get_annot_visual_uuid_info
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> visual_info_list = get_annot_visual_uuid_info(ibs, aid_list)
-        >>> result = str(visual_info_list[0])
+        >>> visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+        >>> result = str(list(zip(*visual_infotup))[0])
         >>> print(result)
-        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0, None)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
     """
     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
     verts_list      = ibs.get_annot_verts(aid_list)
     theta_list      = ibs.get_annot_thetas(aid_list)
-    view_list       = ibs.get_annot_viewpoints(aid_list)
-    visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
-    visual_info_list = list(visual_info_iter)
-    return visual_info_list
+    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
+    #visual_info_list = list(visual_info_iter)
+    visual_infotup = (image_uuid_list, verts_list, theta_list)
+    return visual_infotup
 
 
 def get_annot_semantic_uuid_info(ibs, aid_list):
@@ -154,30 +157,31 @@ def get_annot_semantic_uuid_info(ibs, aid_list):
     Returns:
         list: semantic_info_list
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_annot --test-get_annot_semantic_uuid_info
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> semantic_info_list = get_annot_semantic_uuid_info(ibs, aid_list)
-        >>> result = str(semantic_info_list[0])
+        >>> semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
+        >>> result = str(list(zip(*semantic_infotup))[0])
         >>> print(result)
         (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0, None, '____', u'zebra_plains')
 
     """
     # Semantic info depends on visual info
-    visual_info_list = get_annot_visual_uuid_info(ibs, aid_list)
+    image_uuid_list, verts_list, theta_list = get_annot_visual_uuid_info(ibs, aid_list)
     # It is visual info augmented with name and species
+    view_list       = ibs.get_annot_viewpoints(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
     species_list    = ibs.get_annot_species(aid_list)
-    aug_info_list = zip(name_list, species_list)
-    # Perform augmentation
-    semantic_info_iter = (visinfo + auginfo for visinfo, auginfo in
-                          zip(visual_info_list, aug_info_list))
-    semantic_info_list = list(semantic_info_iter)
-    return semantic_info_list
+    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
+                        name_list, species_list)
+    return semantic_infotup
 
 
-def make_annot_visual_uuid(ibs, aid_list):
+def make_annot_visual_uuid(ibs, aid_list=None, visual_infotup=None):
     """
     make_annot_visual_uuid:
 
@@ -197,13 +201,13 @@ def make_annot_visual_uuid(ibs, aid_list):
         >>> print(result)
         76de0416-7c92-e1b3-4a17-25df32e9c2b4
     """
-    get_annot_visual_uuid_info(ibs, aid_list)
-    determenistic_info_list = get_annot_visual_uuid_info(ibs, aid_list)
-    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in determenistic_info_list]
+    if visual_infotup is None:
+        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
     return annot_visual_uuid_list
 
 
-def make_annot_semeantic_uuid(ibs, aid_list):
+def make_annot_semantic_uuid(ibs, aid_list=None, semantic_infotup=None):
     """
     Args:
         ibs      (IBEISController):
@@ -216,14 +220,14 @@ def make_annot_semeantic_uuid(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> annot_semantic_uuid_list = make_annot_semeantic_uuid(ibs, aid_list)
+        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(ibs, aid_list)
         >>> result = str(annot_semantic_uuid_list[0])
         >>> print(result)
         215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
     """
-    get_annot_visual_uuid_info(ibs, aid_list)
-    determenistic_info_list = get_annot_semantic_uuid_info(ibs, aid_list)
-    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in determenistic_info_list]
+    if semantic_infotup is None:
+        semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
+    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
     return annot_semantic_uuid_list
 
 

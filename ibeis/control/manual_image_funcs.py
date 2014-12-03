@@ -76,7 +76,7 @@ def get_num_images(ibs, **kwargs):
 
 @register_ibs_method
 @adder
-def add_images(ibs, gpath_list, params_list=None, as_annots=False):
+def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None):
     """
     Adds a list of image paths to the database.
 
@@ -90,6 +90,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False):
             specified outright or can be parsed from the image data directly if None
         as_annots (bool): if True, an annotation is automatically added for the entire
             image
+        auto_localize (bool): if None uses the default specified in ibs.cfg
 
     Returns:
         gid_list (list of rowids): gids are image rowids
@@ -145,7 +146,9 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False):
         print('[postadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
 
     #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
-    if ibs.cfg.other_cfg.auto_localize:
+    if auto_localize is None:
+        auto_localize = ibs.cfg.other_cfg.auto_localize
+    if auto_localize:
         # Move to ibeis database local cache
         ibs.localize_images(gid_list)
 

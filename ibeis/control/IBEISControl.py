@@ -55,9 +55,10 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
 
 
-def new_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True):
+def new_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True, use_cache=True):
+    # TODO: change name from new to request
     global __IBEIS_CONTROLLER_CACHE__
-    if dbdir in __IBEIS_CONTROLLER_CACHE__:
+    if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
             print('[new_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
