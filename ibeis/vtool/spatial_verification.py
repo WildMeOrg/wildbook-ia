@@ -594,8 +594,6 @@ def ibeis_test(qreq_):
     ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
     locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
     qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
-    prescore_method = qreq_.qparams.prescore_method
-    nShortlist      = qreq_.qparams.nShortlist
     xy_thresh       = qreq_.qparams.xy_thresh
     scale_thresh    = qreq_.qparams.scale_thresh
     ori_thresh      = qreq_.qparams.ori_thresh
@@ -603,14 +601,8 @@ def ibeis_test(qreq_):
     min_nInliers    = qreq_.qparams.min_nInliers
     qaid = six.next(six.iterkeys(qaid2_chipmatch))
     chipmatch = qaid2_chipmatch[qaid]
-    daid2_prescore = pipeline.score_chipmatch(qaid, chipmatch, prescore_method, qreq_)
     (daid2_fm, daid2_fs, daid2_fk) = chipmatch
-    if prescore_method == 'nsum':
-        topx2_aid = pipeline.prescore_nsum(qreq_, daid2_prescore, nShortlist)
-        nRerank = len(topx2_aid)
-    else:
-        topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
-        nRerank = min(len(topx2_aid), nShortlist)
+    topx2_aid, nRerank = pipeline.get_prescore_shortlist(qaid, chipmatch, qreq_)
     daid2_fm_V, daid2_fs_V, daid2_fk_V = pipeline.new_fmfsfk()
     kpts1 = qreq_.ibs.get_annot_kpts(qaid)
     topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
