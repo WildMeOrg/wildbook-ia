@@ -445,7 +445,7 @@ class IBEISController(object):
         from ibeis.dev import sysres
         return sysres.get_ibeis_resource_dir()
 
-    def get_scorenorm_cachedir(ibs):
+    def get_scorenorm_cachedir(ibs, ensure=True):
         """
 
         Args:
@@ -467,7 +467,8 @@ class IBEISController(object):
             score_normalizers
         """
         scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'score_normalizers')
-        ut.ensurepath(scorenorm_cachedir)
+        if ensure:
+            ut.ensurepath(scorenorm_cachedir)
         return scorenorm_cachedir
 
     def get_species_scorenorm_cachedir(ibs, species_text, ensure=True):
@@ -500,6 +501,8 @@ class IBEISController(object):
         """
         scorenorm_cachedir = ibs.get_scorenorm_cachedir()
         species_cachedir = join(scorenorm_cachedir, species_text)
+        if ensure:
+            ut.ensuredir(species_cachedir)
         return species_cachedir
 
     def get_detect_modeldir(ibs):

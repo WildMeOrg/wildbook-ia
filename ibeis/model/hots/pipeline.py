@@ -743,6 +743,24 @@ def spatial_verification(qaid2_chipmatch, qreq_):
         return qaid2_chipmatchSV
 
 
+def get_prescore_shortlist(qaid, chipmatch, qreq_):
+    """
+    computes which of the annotations should continue in the next pipeline step
+    """
+    prescore_method = qreq_.qparams.prescore_method
+    nShortlist      = qreq_.qparams.nShortlist
+    daid2_prescore = score_chipmatch(qaid, chipmatch, prescore_method, qreq_, isprescore=True)
+    #print('Prescore: %r' % (daid2_prescore,))
+    # HACK FOR NAME PRESCORING
+    if prescore_method == 'nsum':
+        topx2_aid = prescore_nsum(qreq_, daid2_prescore, nShortlist)
+        nRerank = len(topx2_aid)
+    else:
+        topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
+        nRerank = min(len(topx2_aid), nShortlist)
+    return topx2_aid, nRerank
+
+
 #@ut.indent_func('[_sv]')
 @profile
 def _spatial_verification(qaid2_chipmatch, qreq_):
@@ -789,8 +807,6 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
     # TODO: Make sure vsone isn't being messed up by some stupid assumption here
     # spatial verification
     print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
-    prescore_method = qreq_.qparams.prescore_method
-    nShortlist      = qreq_.qparams.nShortlist
     xy_thresh       = qreq_.qparams.xy_thresh
     scale_thresh    = qreq_.qparams.scale_thresh
     ori_thresh      = qreq_.qparams.ori_thresh
@@ -813,16 +829,8 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
     #for qaid in six.iterkeys(qaid2_chipmatch):
     for qaid in qaid_iter:
         chipmatch = qaid2_chipmatch[qaid]
-        daid2_prescore = score_chipmatch(qaid, chipmatch, prescore_method, qreq_, isprescore=True)
-        #print('Prescore: %r' % (daid2_prescore,))
+        topx2_aid, nRerank = get_prescore_shortlist(qaid, chipmatch, qreq_)
         (daid2_fm, daid2_fs, daid2_fk) = chipmatch
-        # HACK FOR NAME PRESCORING
-        if prescore_method == 'nsum':
-            topx2_aid = prescore_nsum(qreq_, daid2_prescore, nShortlist)
-            nRerank = len(topx2_aid)
-        else:
-            topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
-            nRerank = min(len(topx2_aid), nShortlist)
         # Precompute output container
         if qreq_.qparams.with_metadata:
             daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
@@ -943,9 +951,8 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> chipmatch = qaid2_chipmatch[qaid]
         >>> prescore_method = qreq_.qparams.prescore_method
-        >>> daid2_prescore = pipeline.score_chipmatch(qaid, chipmatch, prescore_method, qreq_, isprescore=True)
+        >>> topx2_aid, nRerank = pipeline.get_prescore_shortlist(qaid, chipmatch, qreq_)
         >>> (daid2_fm, daid2_fs, daid2_fk) = chipmatch
-        >>> topx2_aid = utool.util_dict.keys_sorted_by_value(daid2_prescore)[::-1]
         >>> kpts1 = qreq_.ibs.get_annot_kpts(qaid)
         >>> topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
         >>> use_chip_extent = True
