@@ -64,9 +64,10 @@ def ensure_models(modeldir='default'):
         >>> result = ensure_models(modeldir)
         >>> print(result)
     """
+    modeldir = _expand_modeldir(modeldir)
     for algo, algo_modeldir in iter_algo_modeldirs(modeldir, ensurebase=True):
         if not exists(algo_modeldir):
-            _download_model(algo, algo_modeldir)
+            _download_model(algo, modeldir)
     assert_models(modeldir)
 
 

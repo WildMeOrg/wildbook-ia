@@ -1551,7 +1551,11 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     Returns:
         tuple: upsizetup
 
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_upsize_data
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -1568,8 +1572,9 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
         >>> assert len(qaid_false_samples_list) == 119
         >>> assert nTotal == 525
         >>> qaid, true_aids, false_aids_samples = six.next(zip(qaid_list, qaid_trues_list, qaid_false_samples_list))
-        >>> result = str(upsizetup)
+        >>> result = ut.hashstr(str(upsizetup))
         >>> print(result)
+        b9lvi3nz&ld9u8rg
     """
     if seed is not False:
         # Determanism
@@ -1770,6 +1775,22 @@ def annotstr(ibs, aid):
 
 @__injectable
 def redownload_detection_models(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):
+
+    CommandLine:
+        python -c "from ibeis.model.detect import grabmodels; grabmodels.redownload_models()"
+        python -c "import utool, ibeis.model; utool.view_directory(ibeis.model.detect.grabmodels._expand_modeldir())"
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> result = redownload_detection_models(ibs)
+        >>> print(result)
+    """
     print('[ibsfuncs] redownload_detection_models')
     from ibeis.model.detect import grabmodels
     modeldir = ibs.get_detect_modeldir()
