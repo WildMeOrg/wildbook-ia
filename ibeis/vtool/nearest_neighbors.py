@@ -87,12 +87,13 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
 #@utool.indent_func
 def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True,
-                use_data_hash=True, appname='vtool'):
+                use_data_hash=True, appname='vtool', verbose=utool.NOT_QUIET,
+                quiet=utool.QUIET):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
     """
-    if utool.NOT_QUIET:
+    if verbose:
         print('+--- START CACHED FLANN INDEX ')
     if len(dpts) == 0:
         raise AssertionError(
@@ -113,14 +114,16 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         except Exception as ex:
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
-    print('...flann cache miss.')
-    print('...building kdtree over %d points (this may take a sec).' %
-          len(dpts))
+    num_dpts = len(dpts)
+    if verbose or (not quiet and num_dpts > 1E6):
+        print('...flann cache miss.')
+        print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     flann.build_index(dpts, **flann_params)
-    print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
+    if not quiet:
+        print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     if save:
         flann.save_index(flann_fpath)
-    if utool.NOT_QUIET:
+    if verbose:
         print('L___ END CACHED FLANN INDEX ')
     return flann
 

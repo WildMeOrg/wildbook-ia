@@ -98,7 +98,7 @@ pyflann.set_distance_type('hellinger', order=0)
 """
 
 
-def _make_pts(nPts=53, nDims=11, dtype=np.float64):
+def testdata_points(nPts=53, nDims=11, dtype=np.float64):
     pts = np.array(randint(0, 255, (nPts, nDims)), dtype=dtype)
     return pts
 
@@ -126,7 +126,7 @@ def test_pyflann_hkmeans():
     branch_size = 5
     num_branches = 7
     print('HKmeans')
-    pts = _make_pts(nPts=1009)
+    pts = testdata_points(nPts=1009)
     hkmean_centroids = flann.hierarchical_kmeans(pts, branch_size, num_branches,
                                                  max_iterations=1000, dtype=None)
     print(utool.truncate_str(str(hkmean_centroids)))
@@ -154,7 +154,7 @@ def test_pyflann_kmeans():
     print('Kmeans')
     flann = pyflann.FLANN()
     num_clusters = 7
-    pts = _make_pts(nPts=1009)
+    pts = testdata_points(nPts=1009)
     kmeans_centroids = flann.kmeans(pts, num_clusters, max_iterations=None,
                                     dtype=None)
     print(utool.truncate_str(str(kmeans_centroids)))
@@ -171,9 +171,9 @@ def test_pyflann_add_point():
     """
     # Test parameters
     num_neighbors = 3
-    pts = _make_pts(nPts=1009)
-    qpts = _make_pts(nPts=7)
-    newpts = _make_pts(nPts=1013)
+    pts = testdata_points(nPts=1009)
+    qpts = testdata_points(nPts=7)
+    newpts = testdata_points(nPts=1013)
 
     # build index
     print('Build Index')
@@ -200,8 +200,8 @@ def test_pyflann_searches():
     """
     try:
         num_neighbors = 3
-        pts = _make_pts(nPts=5743, nDims=2)
-        qpts = _make_pts(nPts=7, nDims=2)
+        pts = testdata_points(nPts=5743, nDims=2)
+        qpts = testdata_points(nPts=7, nDims=2)
         from vtool import linalg
         # sample a radius
         radius = linalg.L2(pts[0:1], qpts[0:1])[0] * 2 + 1
@@ -244,8 +244,8 @@ def test_pyflann_tune():
     #>>> test_pyflann_tune()
     """
     print('Create random qpts and database data')
-    pts = _make_pts(nPts=1009)
-    qpts = _make_pts(nPts=7)
+    pts = testdata_points(nPts=1009)
+    qpts = testdata_points(nPts=7)
     num_neighbors = 3
     #num_data = len(data)
     # untuned query
@@ -279,12 +279,23 @@ def test_pyflann_io():
     """
     #>>> from vtool.tests.test_pyflann import * # NOQA
     #>>> test_pyflann_io()
+
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_io
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> result = test_pyflann_io()
+        >>> print(result)
     """
     # Create qpts and database data
     print('Create random qpts and database data')
     num_neighbors = 3
-    pts = _make_pts(nPts=1009)
-    qpts = _make_pts(nPts=31)
+    nPts = 1009
+    nQPts = 31
+    qpts = testdata_points(nPts=nQPts)
+    pts = testdata_points(nPts=nPts)
 
     # Create flann object
     print('Create flann object')
@@ -292,7 +303,8 @@ def test_pyflann_io():
 
     # Build kd-tree index over the data
     print('Build the kd tree')
-    _build_params = flann.build_index(pts)  # noqa
+    with utool.Timer('Buliding the kd-tree with %d pts' % (len(pts),)):
+        _build_params = flann.build_index(pts)  # noqa
 
     # Find the closest few points to num_neighbors
     print('Find nn_index nearest neighbors')
@@ -353,3 +365,15 @@ if __name__ == '__main__':
     for test in tests:
         passed += not (False is utool.run_test(test))
     print('%d/%d passed in test_pyflann' % (passed, len(tests)))
+
+#if __name__ == '__main__':
+#    """
+#    CommandLine:
+#        python -m vtool.tests.test_pyflann
+#        python -m vtool.tests.test_pyflann --allexamples
+#        python -m vtool.tests.test_pyflann --allexamples --noface --nosrc
+#    """
+#    import multiprocessing
+#    multiprocessing.freeze_support()  # for win32
+#    import utool as ut  # NOQA
+#    ut.doctest_funcs()
