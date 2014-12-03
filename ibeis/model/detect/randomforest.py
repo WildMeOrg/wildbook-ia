@@ -2,28 +2,20 @@
 Interface to pyrf random forest object detection.
 """
 from __future__ import absolute_import, division, print_function
-# Python
-#from os.path import exists, join, split  # UNUSED
 from os.path import splitext, exists
-# UTool
 from six.moves import zip, map, range
-import utool
-import utool as ut
-from vtool import image as gtool
 from ibeis.model.detect import grabmodels
+from vtool import image as gtool
+import utool as ut
 import pyrf
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[randomforest]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[randomforest]')
 
 
 """
-
 from ibeis.model.detect import randomforest
 dir(randomforest)
-import utool
 func = randomforest.ibeis_generate_image_detections
-print(utool.make_default_docstr(func))
-
+print(ut.make_default_docstr(func))
 """
 
 
@@ -54,7 +46,9 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
     # Resize to a standard image size prior to detection
     src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
     dst_gpath_list = [splitext(gpath)[0] + '_result' for gpath in src_gpath_list]
-    utool.close_pool()
+
+    # Close any open processes
+    ut.close_pool()
 
     # Get sizes of the original and resized images for final scale correction
     neww_list = [gtool.open_image_size(gpath)[0] for gpath in src_gpath_list]
@@ -64,9 +58,11 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
     # Detect on scaled images
     #ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
     use_chunks = ibs.cfg.other_cfg.detect_use_chunks
+    modeldir   = ibs.get_detect_modeldir()
 
     generator = detect_species_bboxes(src_gpath_list, dst_gpath_list, species,
-                                      use_chunks=use_chunks, **detectkw)
+                                      use_chunks=use_chunks, modeldir=modeldir,
+                                      **detectkw)
 
     for gid, scale, detect_tup in zip(gid_list, scale_list, generator):
         (bboxes, confidences, img_conf) = detect_tup
@@ -80,7 +76,8 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
         print('[randomforest] L___ FINISH ibeis_generate_image_detections')
 
 
-def compute_hough_images(src_gpath_list, dst_gpath_list, species, use_chunks=True, quick=True):
+def compute_hough_images(src_gpath_list, dst_gpath_list, species,
+                         use_chunks=True, quick=True, modeldir='default'):
     """
     Args:
         src_gpath_list (list):
@@ -99,10 +96,17 @@ def compute_hough_images(src_gpath_list, dst_gpath_list, species, use_chunks=Tru
         'save_detection_images': True,
         'save_scales': False,
     }
-    _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=use_chunks, **detectkw)
+    _compute_hough(src_gpath_list, dst_gpath_list, species,
+                   use_chunks=use_chunks, modeldir=modeldir, **detectkw)
 
 
-def compute_probability_images(src_gpath_list, dst_gpath_list, species, use_chunks=True, quick=False):
+# TODO use this function so modeldir can just be dependant on an
+# ibs or qreq_ object
+#def computed_ibeis_probability_images(src_gpath_list, dst_gpath_list, species):
+
+
+def compute_probability_images(src_gpath_list, dst_gpath_list, species,
+                               use_chunks=True, quick=False, modeldir='default'):
     """
     Args:
         src_gpath_list (list):
@@ -123,28 +127,29 @@ def compute_probability_images(src_gpath_list, dst_gpath_list, species, use_chun
         'save_detection_images': True,
         'save_scales': False,
     }
-    _compute_hough(src_gpath_list, dst_gpath_list, species, **detectkw)
+    _compute_hough(src_gpath_list, dst_gpath_list, species, modeldir=modeldir, **detectkw)
 
 
-def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True, **detectkw):
+def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True,
+                    modeldir='default', **detectkw):
     """
     FIXME. This name is not accurate
-
     """
     assert len(src_gpath_list) == len(dst_gpath_list)
 
     # FIXME: images are not invalidated so this cache doesnt always work
     isvalid_list = [exists(gpath + '.png') for gpath in dst_gpath_list]
-    dirty_src_gpaths = utool.get_dirty_items(src_gpath_list, isvalid_list)
-    dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
+    dirty_src_gpaths = ut.get_dirty_items(src_gpath_list, isvalid_list)
+    dirty_dst_gpaths = ut.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[detect.rf] making hough images for %d images' % num_dirty)
         generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths, species,
-                                          use_chunks=use_chunks, **detectkw)
+                                          use_chunks=use_chunks, modeldir=modeldir, **detectkw)
         # Execute generator
         for tup in generator:
+            # FIXME: pyrf does not respect destintation image paths
             pass
 
 
@@ -155,6 +160,8 @@ def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True, **d
 
 def _scale_bbox(bbox, s):
     """
+    helper function
+
     Args:
         bbox (tuple): bounding box
         s (float): scale factor
@@ -169,14 +176,13 @@ def _scale_bbox(bbox, s):
     return bbox2
 
 
-def _get_detector(species, quick=True, single=False):
+def _get_detector(species, quick=True, single=False, modeldir='default'):
     """
-    _get_detector
-
     Args:
-        species (?):
+        species (str): species key
         quick (bool):
         single (bool):
+        modeldir (str): directory where models will be
 
     Returns:
         tuple: (detector, forest)
@@ -209,7 +215,7 @@ def _get_detector(species, quick=True, single=False):
 
     """
     # Ensure all models downloaded and accounted for
-    grabmodels.ensure_models()
+    grabmodels.ensure_models(modeldir=modeldir)
     # Create detector
     if single:
         if quick:
@@ -233,8 +239,8 @@ def _get_detector(species, quick=True, single=False):
             }
     print('[randomforest] building detector')
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
-    trees_path = grabmodels.get_species_trees_paths(species)
-    if utool.checkpath(trees_path, verbose=True):
+    trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
+    if ut.checkpath(trees_path, verbose=True):
         # Load forest, so we don't have to reload every time
         print('[randomforest] loading forest')
         forest = detector.load(trees_path, species + '-', num_trees=25)
@@ -260,7 +266,7 @@ def _get_detect_config(**detectkw):
 
 
 def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
-                          single=False, use_chunks=False, **detectkw):
+                          single=False, use_chunks=False, modeldir='default', **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
@@ -268,10 +274,10 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     nImgs = len(src_gpath_list)
     print('[detect.rf] Begining %s detection' % (species,))
     detect_lbl = 'detect %s: ' % species
-    #mark_prog, end_prog = utool.progress_func(nImgs, detect_lbl, flush_after=1)
+    #mark_prog, end_prog = ut.progress_func(nImgs, detect_lbl, flush_after=1)
 
     detect_config = _get_detect_config(**detectkw)
-    detector, forest = _get_detector(species, quick=quick, single=single)
+    detector, forest = _get_detector(species, quick=quick, single=single, modeldir=modeldir)
     if detector is None:
         raise StopIteration('species=%s does not have models trained' % (species,))
     detector.set_detect_params(**detect_config)
@@ -284,7 +290,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     if use_chunks_:
         print('[rf] detect in chunks')
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
-        chunk_iter = utool.ichunks(pathtup_iter, chunksize)
+        chunk_iter = ut.ichunks(pathtup_iter, chunksize)
         chunk_progiter = ut.ProgressIter(chunk_iter, lbl=detect_lbl,
                                          nTotal=int(nImgs / chunksize), freq=1)
         for ic, chunk in enumerate(chunk_progiter):
@@ -343,19 +349,10 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.model.detect.randomforest; utool.doctest_funcs(ibeis.model.detect.randomforest)"
-        python ibeis/model/detect/randomforest.py
+        python -m ibeis.model.detect.randomforest
+        python -m ibeis.model.detect.randomforest --allexamples
+        python -m ibeis.model.detect.randomforest --allexamples --noface --nosrc
     """
-    import utool as ut  # NOQA
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
     ut.doctest_funcs()
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python ibeis/model/detect/randomforest.py --test-_get_detector
-
-    """
-    testable_list = [
-        _get_detector
-    ]
-    ut.doctest_funcs(testable_list)

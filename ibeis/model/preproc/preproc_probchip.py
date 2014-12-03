@@ -194,6 +194,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
 
     grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
     cachedir   = get_probchip_cachedir(ibs)
+    modeldir   = ibs.get_detect_modeldir()
     ut.ensuredir(cachedir)
 
     gropued_probchip_fpath_lists = []
@@ -210,7 +211,8 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         # Ensure that all chips are computed
         # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to
-        randomforest.compute_probability_images(cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks)
+        randomforest.compute_probability_images(
+            cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks, modeldir=modeldir)
         # Fix stupid bug in pyrf
         fixed_probchip_fpath_list = [fpath + '.png' for fpath in probchip_fpath_list]
         gropued_probchip_fpath_lists.append(fixed_probchip_fpath_list)

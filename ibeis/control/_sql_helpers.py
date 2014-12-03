@@ -330,7 +330,10 @@ class SQLExecutionContext(object):
     def execute_and_generate_results(context, params):
         """ helper for context statment """
         try:
+            #print(context.cur.rowcount)
+            #print(id(context.cur))
             context.cur.execute(context.operation, params)
+            #print(context.cur.rowcount)
         except lite.Error as ex:
             utool.printex(ex, 'sql.Error', keys=['params'])
             #print('[sql.Error] %r' % (type(ex),))

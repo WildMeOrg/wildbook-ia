@@ -44,7 +44,7 @@ USE_FUNCTYPE_HEADERS = False  # True
 
 REMOVE_NPARAMS = True
 REMOVE_EAGER = True
-REMOVE_QREQ = False
+REMOVE_QREQ = False  # False
 WITH_PEP8 = True
 WITH_DECOR = True
 

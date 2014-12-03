@@ -200,6 +200,8 @@ class MultiNeighborIndex(object):
             >>> result = mxer.num_indexed_vecs()
             >>> print(result)
             54244
+
+        54200 on win32
         """
         return np.sum([nnindexer.num_indexed_vecs()
                        for nnindexer in mxer.nn_indexer_list])

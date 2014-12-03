@@ -20,13 +20,16 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
 
     if species is None:
         species = ibs.cfg.detect_cfg.species
-    use_chunks = ibs.cfg.other_cfg.detect_use_chunks
-
     src_gpath_list = list(map(str, ibs.get_image_detectpaths([gid])))
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
     # FIXME and add species to output path in randomforest as well
     hough_gpath_list = [gpath + '_' + species + '_hough' for gpath in dst_gpath_list]
-    randomforest.compute_hough_images(src_gpath_list, hough_gpath_list, species, use_chunks=use_chunks)
+    # TODO: custom randomforst ibs func so modeldir and use chunks dont need
+    # specificiation here
+    modeldir = ibs.get_detect_modeldir()
+    use_chunks = ibs.cfg.other_cfg.detect_use_chunks
+    randomforest.compute_hough_images(src_gpath_list, hough_gpath_list, species,
+                                      use_chunks=use_chunks, modeldir=modeldir)
     # HACK: THIS SHOULD BE DONE PREVIOUSLY NOT IN PYRF
     hough_gpath = hough_gpath_list[0] + '.png'
     img = gtool.imread(hough_gpath)
@@ -65,7 +68,14 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
         src_cpath_list = list(map(str, ibs.get_annot_chip_fpaths([aid])))
         dst_cpath_list = [splitext(gpath)[0] for gpath in src_cpath_list]
         hough_cpath_list = [gpath + '_hough' for gpath in dst_cpath_list]
-        randomforest.compute_probability_images(src_cpath_list, hough_cpath_list, species, use_chunks=use_chunks)
+        # TODO: custom randomforst ibs func so modeldir and use chunks dont need
+        # specificiation here
+        # or just use probchip_fpaths
+        modeldir = ibs.get_detect_modeldir()
+        use_chunks = ibs.cfg.other_cfg.detect_use_chunks
+        randomforest.compute_probability_images(
+            src_cpath_list, hough_cpath_list, species, use_chunks=use_chunks,
+            modeldir=modeldir)
         # HACK: THIS SHOULD BE DONE PREVIOUSLY NOT IN PYRF
         hough_cpath = hough_cpath_list[0] + '.png'
     else:

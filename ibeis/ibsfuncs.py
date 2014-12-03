@@ -1768,12 +1768,21 @@ def annotstr(ibs, aid):
     return 'aid=%d' % aid
 
 
-def redownload_detection_models():
-    from ibeis.model.detect import grabmodels
+@__injectable
+def redownload_detection_models(ibs):
     print('[ibsfuncs] redownload_detection_models')
-    utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
-    grabmodels.ensure_models()
-    print('[ibsfuncs] finished redownload_detection_models')
+    from ibeis.model.detect import grabmodels
+    modeldir = ibs.get_detect_modeldir()
+    grabmodels.redownload_models(modeldir=modeldir)
+
+
+@__injectable
+def view_model_dir(ibs):
+    print('[ibsfuncs] redownload_detection_models')
+    modeldir = ibs.get_detect_modeldir()
+    ut.view_directory(modeldir)
+    #grabmodels.redownload_models(modeldir=modeldir)
+
 
 if __name__ == '__main__':
     """

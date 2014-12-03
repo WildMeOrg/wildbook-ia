@@ -475,6 +475,10 @@ class IBEISController(object):
         ut.ensurepath(species_cachedir)
         return species_cachedir
 
+    def get_detect_modeldir(ibs):
+        from ibeis.dev import sysres
+        return join(sysres.get_ibeis_resource_dir(), 'detectmodels')
+
     def get_detectimg_cachedir(ibs):
         """
         Returns:
