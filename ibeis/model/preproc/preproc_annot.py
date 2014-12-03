@@ -181,10 +181,8 @@ def get_annot_semantic_uuid_info(ibs, aid_list):
     return semantic_infotup
 
 
-def make_annot_visual_uuid(ibs, aid_list=None, visual_infotup=None):
+def make_annot_visual_uuid(visual_infotup):
     """
-    make_annot_visual_uuid:
-
     Args:
         ibs      (IBEISController):
         aid_list (list):
@@ -196,18 +194,18 @@ def make_annot_visual_uuid(ibs, aid_list=None, visual_infotup=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> annot_visual_uuid_list = make_annot_visual_uuid(ibs, aid_list)
+        >>> visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+        >>> annot_visual_uuid_list = make_annot_visual_uuid(visual_infotup)
         >>> result = str(annot_visual_uuid_list[0])
         >>> print(result)
-        76de0416-7c92-e1b3-4a17-25df32e9c2b4
+        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
     """
-    if visual_infotup is None:
-        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
     annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
     return annot_visual_uuid_list
 
 
-def make_annot_semantic_uuid(ibs, aid_list=None, semantic_infotup=None):
+def make_annot_semantic_uuid(semantic_infotup):
     """
     Args:
         ibs      (IBEISController):
@@ -220,13 +218,13 @@ def make_annot_semantic_uuid(ibs, aid_list=None, semantic_infotup=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(ibs, aid_list)
+        >>> semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
+        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
         >>> result = str(annot_semantic_uuid_list[0])
         >>> print(result)
         215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
     """
-    if semantic_infotup is None:
-        semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
+    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
     annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
     return annot_semantic_uuid_list
 

@@ -232,8 +232,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     visual_infotup = (image_uuid_list, vert_list, theta_list)
     semantic_infotup = (image_uuid_list, vert_list, theta_list, viewpoint_list,
                         name_list, species_list)
-    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(ibs, visual_infotup=visual_infotup)
-    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(ibs, semantic_infotup=semantic_infotup)
+    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
 
     # Define arguments to insert
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
@@ -977,7 +977,7 @@ def get_annot_species(ibs, aid_list):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> species_list = get_annot_species(ibs, aid_list)
-        >>> result = set(
+        >>> result = set(species_list)
         >>> print(result)
         set([u'zebra_plains'])
     """
@@ -1059,6 +1059,9 @@ def get_annot_semantic_uuids(ibs, aid_list):
     Returns:
         list: annot_semantic_uuid_list
 
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuids
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
@@ -1089,6 +1092,9 @@ def get_annot_visual_uuids(ibs, aid_list):
     Returns:
         list: annot_visual_uuid_list
 
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuids
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
@@ -1097,6 +1103,8 @@ def get_annot_visual_uuids(ibs, aid_list):
         >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_visual_uuid_list)
         >>> result = annot_visual_uuid_list
+        [UUID('8687dcb6-1f1f-fdd3-8b72-8f36f9f41905')]
+
         [UUID('76de0416-7c92-e1b3-4a17-25df32e9c2b4')]
     """
     id_iter = aid_list
@@ -1446,7 +1454,8 @@ def testdata_annot():
 def update_annot_semantic_uuids(ibs, aid_list):
     """ Updater for semantic uuids """
     from ibeis.model.preproc import preproc_annot
-    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(ibs, aid_list)
+    semantic_infotup = preproc_annot.get_annot_semantic_uuid_info(ibs, aid_list)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
     ibs.set_annot_semantic_uuids(aid_list, annot_semantic_uuid_list)
 
 
@@ -1454,7 +1463,8 @@ def update_annot_semantic_uuids(ibs, aid_list):
 def update_annot_visual_uuids(ibs, aid_list):
     """ Updater for visual uuids """
     from ibeis.model.preproc import preproc_annot
-    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(ibs, aid_list)
+    visual_infotup = preproc_annot.get_annot_visual_uuid_info(ibs, aid_list)
+    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
     ibs.set_annot_visual_uuids(aid_list, annot_visual_uuid_list)
     # If visual uuids are changes semantic ones are also changed
     ibs.update_annot_semantic_uuids(aid_list)
