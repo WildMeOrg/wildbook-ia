@@ -33,7 +33,6 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 import six
 from collections import defaultdict
-import sys
 # Scientific
 import numpy as np
 import vtool as vt
@@ -818,42 +817,37 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
     nFeatMatchSV = 0
     if qreq_.qparams.with_metadata:
         qaid2_svtups = {}  # dbg info (can remove if there is a speed issue)
-    def print_(msg, count=0):
-        """ temp print_. Using count in this way is a hack """
-        if NOT_QUIET:
-            if count % 25 == 0:
-                sys.stdout.write(msg)
-            count += 1
-    # Find a transform from chip2 to chip1 (the old way was 1 to 2)
-    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch), nTotal=len(qaid2_chipmatch), lbl='SVER: ', freq=20, time_thresh=2.0)
-    #for qaid in six.iterkeys(qaid2_chipmatch):
+    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch),
+                                nTotal=len(qaid2_chipmatch), lbl='SVER: ',
+                                freq=20, time_thresh=2.0)
     for qaid in qaid_iter:
+        # Find a transform from chip2 to chip1 (the old way was 1 to 2)
         chipmatch = qaid2_chipmatch[qaid]
         topx2_aid, nRerank = get_prescore_shortlist(qaid, chipmatch, qreq_)
         (daid2_fm, daid2_fs, daid2_fk) = chipmatch
         # Precompute output container
-        if qreq_.qparams.with_metadata:
-            daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         daid2_fm_V, daid2_fs_V, daid2_fk_V = new_fmfsfk()
         # Query Keypoints
         kpts1 = qreq_.ibs.get_annot_kpts(qaid)
         topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
         # Check the diaglen sizes before doing the homography
-        topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid,
-                                                      topx2_kpts, nRerank,
-                                                      use_chip_extent)
+        topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(
+            qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
+        if qreq_.qparams.with_metadata:
+            daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         # spatially verify the top __NUM_RERANK__ results
         for topx in range(nRerank):
             daid = topx2_aid[topx]
             fm = daid2_fm[daid]
             if len(fm) == 0:
-                #print_('o')  # sv failure
+                # skip results without any matches
                 continue
             dlen_sqrd2 = topx2_dlen_sqrd[topx]
             kpts2 = topx2_kpts[topx]
             fs    = daid2_fs[daid]
             fk    = daid2_fk[daid]
             try:
+                # Compute homography from chip2 to chip1
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers,
@@ -865,7 +859,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 sv_tup = None
             nFeatSVTotal += len(fm)
             if sv_tup is not None:
-                # Return the inliers to the homography
+                # Return the inliers to the homography from chip2 to chip1
                 homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sv_tup
                 if qreq_.qparams.with_metadata:
                     daid2_svtup[daid] = sv_tup
@@ -873,6 +867,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 fs_SV = fs[homog_inliers]
                 fk_SV = fk[homog_inliers]
                 if sver_weighting:
+                    # Rescore based on homography errors
                     #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
                     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
                     homog_xy_errors = homog_errors[0][homog_inliers]
@@ -883,17 +878,11 @@ def _spatial_verification(qaid2_chipmatch, qreq_):
                 daid2_fk_V[daid] = fk_SV
                 nFeatMatchSV += len(homog_inliers)
                 #nFeatMatchSVAff += len(aff_inliers)
-                #if NOT_QUIET:
-                #    #print(inliers)
-                #    print_('.')  # verified something
-            #else:
-            #    print_('o')  # sv failure
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(daid2_fm_V, daid2_fs_V, daid2_fk_V)
         if qreq_.qparams.with_metadata:
             qaid2_svtups[qaid] = daid2_svtup
         qaid2_chipmatchSV[qaid] = chipmatchSV
-    #print_('\n')
     if NOT_QUIET:
         #print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
         print('[hs] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
@@ -950,13 +939,11 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> chipmatch = qaid2_chipmatch[qaid]
-        >>> prescore_method = qreq_.qparams.prescore_method
         >>> topx2_aid, nRerank = pipeline.get_prescore_shortlist(qaid, chipmatch, qreq_)
         >>> (daid2_fm, daid2_fs, daid2_fk) = chipmatch
         >>> kpts1 = qreq_.ibs.get_annot_kpts(qaid)
         >>> topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
         >>> use_chip_extent = True
-        >>> nRerank = len(topx2_aid)
         >>> topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
 
     """
