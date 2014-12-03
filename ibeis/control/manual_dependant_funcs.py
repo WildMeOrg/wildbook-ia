@@ -57,7 +57,7 @@ def add_chips(ibs, aid_list):
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
     dirty_aids = ut.get_dirty_items(aid_list, cid_list)
     if len(dirty_aids) > 0:
-        if not ut.QUIET:
+        if ut.VERBOSE:
             print('[ibs] adding chips')
         try:
             # FIXME: Cant be lazy until chip config / delete issue is fixed

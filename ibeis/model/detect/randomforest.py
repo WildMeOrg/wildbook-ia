@@ -19,12 +19,15 @@ print(ut.make_default_docstr(func))
 """
 
 
+VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
+
+
 #=================
 # IBEIS INTERFACE
 #=================
 
 
-def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
+def ibeis_generate_image_detections(ibs, gid_list, species, verbose=VERBOSE_RF, **detectkw):
     """
     detectkw can be: save_detection_images, save_scales, draw_supressed,
     detection_width, detection_height, percentage_left, percentage_top,
@@ -38,7 +41,7 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
     Yeilds:
         tuple: tuples of image ids and bounding boxes
     """
-    if True or ut.VERBOSE:
+    if verbose:
         print('[randomforest] +--- BEGIN ibeis_generate_image_detections')
         print('[randomforest] * species = %r' % (species,))
         print('[randomforest] * len(gid_list) = %r' % (len(gid_list),))
@@ -72,12 +75,13 @@ def ibeis_generate_image_detections(ibs, gid_list, species, **detectkw):
             bbox = unscaled_bboxes[index]
             confidence = float(confidences[index])
             yield gid, bbox, confidence, img_conf
-    if True or ut.VERBOSE:
+    if verbose:
         print('[randomforest] L___ FINISH ibeis_generate_image_detections')
 
 
 def compute_hough_images(src_gpath_list, dst_gpath_list, species,
-                         use_chunks=True, quick=True, modeldir='default'):
+                         use_chunks=True, quick=True, verbose=VERBOSE_RF,
+                         modeldir='default'):
     """
     Args:
         src_gpath_list (list):
@@ -106,7 +110,8 @@ def compute_hough_images(src_gpath_list, dst_gpath_list, species,
 
 
 def compute_probability_images(src_gpath_list, dst_gpath_list, species,
-                               use_chunks=True, quick=False, modeldir='default'):
+                               use_chunks=True, quick=False, modeldir='default',
+                               verbose=VERBOSE_RF):
     """
     Args:
         src_gpath_list (list):
@@ -127,11 +132,12 @@ def compute_probability_images(src_gpath_list, dst_gpath_list, species,
         'save_detection_images': True,
         'save_scales': False,
     }
-    _compute_hough(src_gpath_list, dst_gpath_list, species, modeldir=modeldir, **detectkw)
+    _compute_hough(src_gpath_list, dst_gpath_list, species, modeldir=modeldir,
+                   verbose=verbose, **detectkw)
 
 
 def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True,
-                    modeldir='default', **detectkw):
+                    modeldir='default', verbose=VERBOSE_RF, **detectkw):
     """
     FIXME. This name is not accurate
     """
@@ -143,10 +149,12 @@ def _compute_hough(src_gpath_list, dst_gpath_list, species, use_chunks=True,
     dirty_dst_gpaths = ut.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
-        if ut.VERBOSE:
+        if verbose:
             print('[detect.rf] making hough images for %d images' % num_dirty)
-        generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths, species,
-                                          use_chunks=use_chunks, modeldir=modeldir, **detectkw)
+        generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths,
+                                          species, use_chunks=use_chunks,
+                                          modeldir=modeldir, verbose=verbose,
+                                          **detectkw)
         # Execute generator
         for tup in generator:
             # FIXME: pyrf does not respect destintation image paths
@@ -176,7 +184,8 @@ def _scale_bbox(bbox, s):
     return bbox2
 
 
-def _get_detector(species, quick=True, single=False, modeldir='default'):
+def _get_detector(species, quick=True, single=False, modeldir='default',
+                  verbose=VERBOSE_RF):
     """
     Args:
         species (str): species key
@@ -217,7 +226,7 @@ def _get_detector(species, quick=True, single=False, modeldir='default'):
 
     """
     # Ensure all models downloaded and accounted for
-    grabmodels.ensure_models(modeldir=modeldir)
+    grabmodels.ensure_models(modeldir=modeldir, verbose=verbose)
     # Create detector
     if single:
         if quick:
@@ -239,12 +248,14 @@ def _get_detector(species, quick=True, single=False, modeldir='default'):
             config = {
                 'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20',
             }
-    print('[randomforest] building detector')
+    if verbose:
+        print('[randomforest] building detector')
     trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
-    if ut.checkpath(trees_path, verbose=True):
+    if ut.checkpath(trees_path, verbose=verbose):
         # Load forest, so we don't have to reload every time
-        print('[randomforest] loading forest')
-        detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
+        if verbose:
+            print('[randomforest] loading forest')
+        detector = pyrf.Random_Forest_Detector(verbose=verbose, rebuild=False, **config)
         forest = detector.load(trees_path, species + '-', num_trees=25)
         # TODO: WE NEED A WAY OF ASKING IF THE LOAD WAS SUCCESSFUL
         # SO WE CAN HANDLE IT GRACEFULLY FROM PYTHON
@@ -268,7 +279,8 @@ def _get_detect_config(**detectkw):
 
 
 def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
-                          single=False, use_chunks=False, modeldir='default', **detectkw):
+                          single=False, use_chunks=False, modeldir='default',
+                          verbose=VERBOSE_RF, **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
@@ -279,7 +291,8 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     #mark_prog, end_prog = ut.progress_func(nImgs, detect_lbl, flush_after=1)
 
     detect_config = _get_detect_config(**detectkw)
-    detector, forest = _get_detector(species, quick=quick, single=single, modeldir=modeldir)
+    detector, forest = _get_detector(species, quick=quick, single=single,
+                                     modeldir=modeldir, verbose=verbose)
     if detector is None:
         raise StopIteration('species=%s does not have models trained' % (species,))
     detector.set_detect_params(**detect_config)
@@ -287,10 +300,12 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
     chunksize = 8
     use_chunks_ = use_chunks and nImgs >= chunksize
 
-    print('[rf] src_gpath_list = ' + ut.truncate_str(ut.list_str(src_gpath_list)))
-    print('[rf] dst_gpath_list = ' + ut.truncate_str(ut.list_str(dst_gpath_list)))
+    if verbose:
+        print('[rf] src_gpath_list = ' + ut.truncate_str(ut.list_str(src_gpath_list)))
+        print('[rf] dst_gpath_list = ' + ut.truncate_str(ut.list_str(dst_gpath_list)))
     if use_chunks_:
-        print('[rf] detect in chunks')
+        if verbose:
+            print('[rf] detect in chunks')
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
         chunk_iter = ut.ichunks(pathtup_iter, chunksize)
         chunk_progiter = ut.ProgressIter(chunk_iter, lbl=detect_lbl,
@@ -324,7 +339,8 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
 
                 yield bboxes, confidences, image_confidence
     else:
-        print('[rf] detect one image at a time')
+        if verbose:
+            print('[rf] detect one image at a time')
         pathtup_iter = zip(src_gpath_list, dst_gpath_list)
         pathtup_progiter = ut.ProgressIter(pathtup_iter, lbl=detect_lbl,
                                            nTotal=nImgs, freq=1)

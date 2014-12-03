@@ -43,13 +43,13 @@ def iter_algo_modeldirs(modeldir='default', ensurebase=False):
         yield algo, join(modeldir, algosubdir)
 
 
-def assert_models(modeldir='default'):
+def assert_models(modeldir='default', verbose=True):
     for algo, algo_modeldir in iter_algo_modeldirs(modeldir):
-        ut.assertpath(algo_modeldir, verbose=True)
+        ut.assertpath(algo_modeldir, verbose=verbose)
         #assert ut.checkpath(algo_modeldir, verbose=True), ('algo_modeldir=%r does not exist' % algo_modeldir)
 
 
-def ensure_models(modeldir='default'):
+def ensure_models(modeldir='default', verbose=True):
     r"""
     Args:
         modeldir (str):
@@ -68,15 +68,16 @@ def ensure_models(modeldir='default'):
     for algo, algo_modeldir in iter_algo_modeldirs(modeldir, ensurebase=True):
         if not exists(algo_modeldir):
             _download_model(algo, modeldir)
-    assert_models(modeldir)
+    assert_models(modeldir, verbose=verbose)
 
 
-def redownload_models(modeldir='default'):
+def redownload_models(modeldir='default', verbose=True):
     print('[grabmodels] redownload_detection_models')
     modeldir = _expand_modeldir(modeldir)
     ut.delete(modeldir)
-    ensure_models(modeldir=modeldir)
-    print('[grabmodels] finished redownload_detection_models')
+    ensure_models(modeldir=modeldir, verbose=verbose)
+    if verbose:
+        print('[grabmodels] finished redownload_detection_models')
 
 
 def _download_model(algo, algo_modeldir):

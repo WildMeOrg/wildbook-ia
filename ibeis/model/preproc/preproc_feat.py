@@ -55,7 +55,8 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
     dict_args         = feat_cfg.get_dict_args()
     feat_config_rowid = ibs.get_feat_config_rowid()
     cfpath_list       = ibs.get_chip_paths(cid_list)
-    print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
+    if ut.VERBOSE:
+        print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         featgen_mp = gen_feat_openmp(cid_list, cfpath_list, dict_args)
@@ -105,7 +106,8 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     feat_cfg          = ibs.cfg.feat_cfg
     dict_args         = feat_cfg.get_dict_args()
     cfpath_list       = ibs.get_chip_paths(cid_list)
-    print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
+    if ut.VERBOSE:
+        print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         featgen_mp = gen_feat_openmp(cid_list, cfpath_list, dict_args)

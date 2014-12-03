@@ -176,18 +176,11 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
         >>> print(ut.dict_str(groupid2_items, newlines=False))
     """
     nid_list_ = [const.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
-    if const.USING_LBLANNOT:
-        # TODO: Optimize
-        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-        aids_list = ibs.get_alr_annot_rowids_from_lblannot_rowid(nid_list_)
-        # TODO: QUESTION: Should negative nids return the empty list
-        # when asked for their member aids? Because we know that it should be
-        # the negated nid and have 1 member. Here is code to fix it if we should
-    else:
-        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                               nid_list_, id_colname=NAME_ROWID,
-                               unpack_scalars=False)
+    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                           nid_list_, id_colname=NAME_ROWID,
+                           unpack_scalars=False)
     if enable_unknown_fix:
+        # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
         aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]
     return aids_list
 
@@ -198,10 +191,27 @@ def get_name_exemplar_aids(ibs, nid_list):
     """
     Returns:
         list_ (list):  a list of list of cids in each name
+
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_exemplar_aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> nid_list = ibs.get_annot_name_rowids(aid_list)
+        >>> exemplar_aids_list = ibs.get_name_exemplar_aids(nid_list)
+        >>> result = exemplar_aids_list
+        >>> print(result)
+        [[], [2, 3], [2, 3], [], [5, 6], [5, 6], [7], [8], [], [10], [], [12], [13]]
     """
     nid_list_ = [const.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    aids_list = ibs.get_alr_annot_rowids_from_lblannot_rowid(nid_list_)
+    # Get all annot ids for each name
+    aids_list = ibs.get_name_aids(nid_list_)
+    # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
     exemplar_aids_list = [ut.filter_items(aids, flags) for aids, flags in
                           zip(aids_list, flags_list)]
@@ -214,6 +224,17 @@ def get_name_gids(ibs, nid_list):
     """
     Returns:
         list_ (list): the image ids associated with name ids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_name_rowids()
+        >>> gids_list = ibs.get_name_gids(nid_list)
+        >>> result = gids_list
+        >>> print(result)
+        [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
     """
     # TODO: Optimize
     aids_list = ibs.get_name_aids(nid_list)
@@ -238,6 +259,19 @@ def get_name_num_annotations(ibs, nid_list):
     """
     Returns:
         list_ (list):  the number of annotations for each name
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_num_annotations
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_name_rowids()
+        >>> result = get_name_num_annotations(ibs, nid_list)
+        >>> print(result)
+        [2, 2, 1, 1, 1, 1, 1]
     """
     # TODO: Optimize
     return list(map(len, ibs.get_name_aids(nid_list)))
@@ -259,6 +293,20 @@ def get_name_texts(ibs, nid_list):
     """
     Returns:
         list_ (list): text names
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> name_text_list = get_name_texts(ibs, nid_list)
+        >>> result = str(name_text_list)
+        >>> print(result)
+        [u'easy', u'hard', u'jeff', u'lena', u'occl', u'polar', u'zebra']
     """
     # FIXME: Use standalone name table
     # TODO:
@@ -274,7 +322,21 @@ def get_name_texts(ibs, nid_list):
 
 @register_ibs_method
 def get_num_names(ibs, **kwargs):
-    """ Number of valid name (subset of lblannot) """
+    """
+    Number of valid name (subset of lblannot)
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_num_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> result = get_num_names(ibs)
+        >>> print(result)
+        7
+    """
     nid_list = ibs.get_valid_nids(**kwargs)
     return len(nid_list)
 
@@ -309,8 +371,6 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> result = species_text
         >>> print(result)
         [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
-
-
 
     """
     if ensure:
@@ -349,6 +409,9 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
         >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
         >>> ibs.print_lblannot_table()
+        >>> result = name_rowid_list
+        >>> print(result)
+        [11, 12, 0, 13, 14, 0]
     """
     if ensure:
         name_rowid_list = ibs.add_names(name_text_list)
@@ -374,13 +437,14 @@ def get_species_texts(ibs, species_rowid_list):
         python -m ibeis.control.manual_name_species_funcs --test-get_species_texts --enableall
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_texts(ibs, species_rowid_list)
         >>> print(result)
+        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
     """
     # FIXME: use standalone species table
     species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -434,7 +498,7 @@ def set_name_texts(ibs, nid_list, name_list):
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> nid_list = ibs.get_valid_nids()
+        >>> nid_list = ibs.get_valid_nids()[0:2]
         >>> name_list = ibs.get_name_texts(nid_list)
         >>> # result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)

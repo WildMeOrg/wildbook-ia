@@ -38,7 +38,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
             chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
         if not ut.QUIET:
-            ut.printex(ex, '[preproc_chip] Handing Exception: ')
+            ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
         ibs.add_chips(aid_list)
         try:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -175,7 +175,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
             chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
         if not ut.QUIET:
-            ut.printex(ex, '[preproc_chip] Handing Exception: ')
+            ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
         # Remove bad annotations from the sql database
         aid_list = ibs.get_chip_aids(cid_list)
         valid_list    = [cid is not None for cid in cid_list]
@@ -496,12 +496,12 @@ def compute_and_write_chips(ibs, aid_list):
                             newsize_list, filtlist_iter)
     arg_list = list(arg_prepend_iter)
     chip_async_iter = ut.util_parallel.generate(gen_chip, arg_list)
-    if not ut.QUIET:
+    if ut.VERBOSE:
         print('Computing %d chips asynchronously' % (len(cfpath_list)))
     for cfpath in chip_async_iter:
         #print('Wrote chip: %r' % cfpath)
         pass
-    if not ut.QUIET:
+    if not ut.VERBOSE:
         print('Done computing chips')
     #ut.print_traceback()
 
@@ -521,13 +521,15 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_chip()
     """
-    print('[preproc_chip] compute_and_write_chips_lazy')
+    if ut.VERBOSE:
+        print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
     cfpath_list = get_annot_cfpath_list(ibs, aid_list)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
     invalid_aids = ut.get_dirty_items(aid_list, exists_flags)
-    print('[preproc_chip] %d / %d chips need to be computed' %
-          (len(invalid_aids), len(aid_list)))
+    if ut.VERBOSE:
+        print('[preproc_chip] %d / %d chips need to be computed' %
+              (len(invalid_aids), len(aid_list)))
     compute_and_write_chips(ibs, invalid_aids)
     return cfpath_list
 

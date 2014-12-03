@@ -24,7 +24,7 @@ MIN_BIGCACHE_BUNDLE = 20
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
-                         cfgdict=None, qreq_=None):
+                         cfgdict=None, qreq_=None, verbose=pipeline.VERB_PIPELINE):
     """
     The standard query interface.
 
@@ -58,12 +58,13 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     if use_bigcache is None:
         use_bigcache = USE_BIGCACHE
     # Create new query request object to store temporary state
-    if utool.NOT_QUIET:
+    if verbose:
         print(' --- Submit QueryRequest_ --- ')
     # ------------
     # Build query request
     if qreq_ is None:
-        qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+        qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list,
+                                                      cfgdict, verbose=verbose)
         #qreq_.qparams
     # --- BIG CACHE ---
     # Do not use bigcache single queries
@@ -155,7 +156,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         #if __debug__:
         #    pipeline.try_load_resdict(qreq_, force_miss=True)
         qaid2_qres_hit = {}
-    qreq_.assert_self(ibs)  # SANITY CHECK
+    #qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
     if qreq_.qparams.pipeline_root == 'vsone':
         # Make sure that only one external query is requested per pipeline call

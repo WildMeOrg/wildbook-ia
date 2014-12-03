@@ -311,7 +311,7 @@ def test():
         pass
 
 
-def request_ibeis_normalizer(qreq_):
+def request_ibeis_normalizer(qreq_, verbose=True):
     """
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
@@ -330,7 +330,8 @@ def request_ibeis_normalizer(qreq_):
     try:
         normalizer = ScoreNormalizer(cfgstr)
         normalizer.load(cachedir)
-        print('returning baseline normalizer')
+        if verbose:
+            print('returning baseline normalizer')
         return normalizer
     except Exception:
         try:

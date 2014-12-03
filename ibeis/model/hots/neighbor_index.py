@@ -48,7 +48,7 @@ def __cleanup():
 def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params={},
                          flann_cachedir=None, indexer_cfgstr='',
                          hash_rowids=True, use_cache=not NOCACHE_FLANN,
-                         use_params_hash=True):
+                         use_params_hash=True, verbose=True):
     """
     new_neighbor_indexer
 
@@ -66,11 +66,12 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
     Returns:
         nnindexer
     """
-    print('[nnindexer] building NeighborIndex object')
+    if verbose:
+        print('[nnindexer] building NeighborIndex object')
     _check_input(aid_list, vecs_list)
     # Create indexes into the input aids
     ax_list = np.arange(len(aid_list))
-    idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list)
+    idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list, verbose=verbose)
     if fgws_list is not None:
         idx2_fgw = np.hstack(fgws_list)
         try:
@@ -88,7 +89,7 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
         # Dont hash rowids when given enough info in indexer_cfgstr
         cfgstr = indexer_cfgstr
     # Build/Load the flann index
-    flann = nntool.flann_cache(idx2_vec, **{
+    flann = nntool.flann_cache(idx2_vec, verbose=verbose, **{
         'cache_dir': flann_cachedir,
         'cfgstr': cfgstr,
         'flann_params': flann_params,
@@ -99,7 +100,7 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
     return nnindexer
 
 
-def new_ibeis_nnindexer(qreq_, _internal_daids=None):
+def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
     """
 
     CALLED BY QUERYREQUST::LOAD_INDEXER
@@ -164,7 +165,8 @@ def new_ibeis_nnindexer(qreq_, _internal_daids=None):
             flann_cachedir = qreq_.ibs.get_flann_cachedir()
             nnindexer = new_neighbor_indexer(
                 daid_list, vecs_list, fgws_list, flann_params, flann_cachedir,
-                indexer_cfgstr, hash_rowids=False, use_params_hash=False)
+                indexer_cfgstr, hash_rowids=False, use_params_hash=False,
+                verbose=verbose)
             if len(NEIGHBOR_CACHE) > MAX_NEIGHBOR_CACHE_SIZE:
                 NEIGHBOR_CACHE.clear()
             NEIGHBOR_CACHE[indexer_cfgstr] = nnindexer
@@ -349,11 +351,11 @@ class NeighborIndex(object):
         return qfx2_fgw
 
 
-def invert_index(vecs_list, ax_list):
+def invert_index(vecs_list, ax_list, verbose=utool.NOT_QUIET):
     """
     Aggregates descriptors of input annotations and returns inverted information
     """
-    if utool.NOT_QUIET:
+    if verbose:
         print('[hsnbrx] stacking descriptors from %d annotations'
                 % len(ax_list))
     try:
@@ -363,7 +365,7 @@ def invert_index(vecs_list, ax_list):
     except MemoryError as ex:
         utool.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
-    if utool.NOT_QUIET:
+    if verbose:
         print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
     return idx2_vec, idx2_ax, idx2_fx

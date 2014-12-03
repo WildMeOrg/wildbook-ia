@@ -69,6 +69,8 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 
         python dev.py --db PZ_MTEST --allgt --cmd
 
+        python dev.py --db PZ_MTEST --allgt -t inc
+
     Example:
         >>> from ibeis.all_imports import *  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -76,10 +78,11 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         >>> daid_list = None
     """
     # Take a known dataase
-    ibs1 = ibs
-    del ibs
-    del qaid_list
-    del daid_list
+    if 'ibs' in vars():
+        ibs1 = ibs
+        del ibs
+        del qaid_list
+        del daid_list
     # Create an empty database to test in
     dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
     ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=True, use_cache=False)
@@ -102,70 +105,117 @@ def incremental_test(ibs, qaid_list, daid_list=None):
     ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
 
     aid1_to_aid2 = {}
-    def register_annot_mapping(aids1_chunk, aids2_chunk):
+    def register_annot_mapping(aids_chunk1, aids_chunk2):
         # Should be 1 to 1
-        for aid1, aid2 in zip(aids1_chunk, aids2_chunk):
+        for aid1, aid2 in zip(aids_chunk1, aids_chunk2):
             if aid1 in aid1_to_aid2:
                 assert aid1_to_aid2[aid1] == aid2
             else:
                 aid1_to_aid2[aid1] = aid2
 
-    for aids1_chunk in ut.ichunks(aid_list1, 1):
-        break
+    #for aids_chunk1 in aids_chunk1_iter:
+    #    break
+    def mark_as_new_name(aid):
+        if ibs2.is_aid_unknown(aid):
+            print('adding as new name')
+            newname = ibs2.make_next_name()
+            ibs2.set_annot_names([aid], [newname])
+        else:
+            print('already has name')
+        if not ibs2.get_annot_exemplar_flag(aid):
+            print('marking as exemplar')
+            ibs2.set_annot_exemplar_flag([aid], [1])
+        else:
+            print('already is exemplar')
 
-    def execute_teststep(aids1_chunk):
+    def mark_as_match(aid, nid):
+        print('setting nameid to nid=%r' % nid)
+        ibs2.set_annot_name_rowids([aid], [nid])
+        if not ibs2.get_annot_exemplar_flag(aid):
+            print('marking as exemplar')
+            ibs2.set_annot_exemplar_flag([aid], [1])
+        else:
+            print('already is exemplar')
+            ibs2.get_name_exemplar_aids(nid)
+
+    def execute_teststep(aids_chunk1):
         """ Add an unseen annotation and run a query """
-        gids1_chunk    = ibs1.get_annot_gids(aids1_chunk)
-        guuids1_chunk  = ibs1.get_image_uuids(gids1_chunk)
-        species1_chunk = ibs1.get_annot_species(aids1_chunk)
-        verts1_chunk   = ibs1.get_annot_verts(aids1_chunk)
-        thetas1_chunk  = ibs1.get_annot_thetas(aids1_chunk)
+        print('---- EXECUTING TESTSTEP -----')
+        gids_chunk1    = ibs1.get_annot_gids(aids_chunk1)
+        guuids_chunk1  = ibs1.get_image_uuids(gids_chunk1)
+        species_chunk1 = ibs1.get_annot_species(aids_chunk1)
+        verts_chunk1   = ibs1.get_annot_verts(aids_chunk1)
+        thetas_chunk1  = ibs1.get_annot_thetas(aids_chunk1)
 
-        gids2_chunk = ibs2.get_image_gids_from_uuid(guuids1_chunk)
+        gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
+        # Add this new unseen test case to the database
+        addkw = dict(species_list=species_chunk1, vert_list=verts_chunk1,
+                     theta_list=thetas_chunk1, prevent_visual_duplicates=True)
+        aids_chunk2 = ibs2.add_annots(gids_chunk2, **addkw)
+        register_annot_mapping(aids_chunk1, aids_chunk2)
+        print('Added: aids_chunk2=%r' % (aids_chunk2,))
 
-        addkw = dict(species_list=species1_chunk, vert_list=verts1_chunk,
-                     theta_list=thetas1_chunk, prevent_visual_duplicates=True)
-        aids2_chunk = ibs2.add_annots(gids2_chunk, **addkw)
-        print(aids2_chunk)
-        register_annot_mapping(aids1_chunk, aids2_chunk)
-        pass
+        threshold = .9
+        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
 
-    for aids1_chunk in ut.ichunks(aid_list1, 1):
-        break
-        execute_teststep(aids1_chunk)
-        #pass
+        K = ibs2.cfg.query_cfg.nn_cfg.K
+        if len(exemplar_aids) < 10:
+            K = 1
+        if len(ut.intersect_ordered(aids_chunk1, exemplar_aids)) > 0:
+            # if self is in query bump k
+            K += 1
+        cfgdict = {
+            'K': K
+        }
 
-    #upsizetup = ibs.get_upsize_data(qaid_list, daid_list, **upsizekw)
-    #qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal = upsizetup
-    # Create a progress marking function
-    progkw = dict(nTotal=nTotal, flushfreq=20, approx=False)
-    mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
-    count = 0
-    # Set up output containers and run test iterations
-    upscores_dict = utool.ddict(lambda: utool.ddict(list))
-    input_iter = zip(qaid_list, qaid_trues_list, qaid_false_samples_list)
-    # For each query annotation runs it as a query multiple times
-    # each time it increases the number of false annotation in the database
-    # so we can see how a score degrades as the number of false
-    # database annotations increases
-    for qaid, true_aids, false_aids_samples in input_iter:
-        #print('qaid = %r' % (qaid,))
-        #print('true_aids=%r' % (true_aids,))
-        # For each true match and false sample
-        for gt_aid, false_sample in utool.iprod(true_aids, false_aids_samples):
-            #print('  gt_aid=%r' % (gt_aid,))
-            #print('  false_sample=%r' % (false_sample,))
-            mark_(count)
-            count += 1
-            # Execute query
-            daids = false_sample + [gt_aid]
-            qres = ibs._query_chips4([qaid], daids)[qaid]
-            # Elicit information
-            score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
-            # Append result
-            upscores_dict[(qaid, gt_aid)]['dbsizes'].append(len(false_sample))
-            upscores_dict[(qaid, gt_aid)]['score'].append(score)
-    end_()
+        if len(exemplar_aids) == 0:
+            print('No exemplars in database')
+            for aid in aids_chunk2:
+                mark_as_new_name(aid)
+        else:
+            qaid2_qres = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict)
+            for qaid, qres in six.iteritems(qaid2_qres):
+                nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
+                if len(nid_list) == 0:
+                    print('No matches made')
+                    mark_as_new_name(qaid)
+                else:
+                    candidate_indexes = np.where(score_list > threshold)[0]
+                    if len(candidate_indexes) == 0:
+                        print('No candidates above threshold')
+                        mark_as_new_name(qaid)
+                    elif len(candidate_indexes) == 1:
+                        nid = nid_list[candidate_indexes[0]]
+                        score = score_list[candidate_indexes[0]]
+                        print('One candidate above threshold with score=%r' % (score,))
+                        mark_as_match(qaid, nid)
+                    else:
+                        print('Multiple candidates above threshold')
+                        nids = nid_list[candidate_indexes]  # NOQA
+                        scores = score_list[candidate_indexes]
+                        print('One candidate above threshold with scores=%r' % (scores,))
+                        nid = scores.argmax()
+                        mark_as_match(qaid, nid)
+
+    # TESTING
+    chunksize = 1
+    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
+
+    for _ in range(2):
+        aids_chunk1 = six.next(aids_chunk1_iter)
+        execute_teststep(aids_chunk1)
+
+    ut.embed()
+
+    aids_chunk1 = six.next(aids_chunk1_iter)
+    execute_teststep(aids_chunk1)
+
+    # FULL INCREMENT
+    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
+    #for aids_chunk1 in aids_chunk1_iter:
+    #    break
+    #    execute_teststep(aids_chunk1)
+    #    #pass
 
 
 @devcmd('scores', 'score')

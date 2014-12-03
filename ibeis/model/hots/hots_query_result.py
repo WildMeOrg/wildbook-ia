@@ -340,7 +340,7 @@ class QueryResult(__OBJECT_BASE__):
         return nscoretup
 
     def get_sorted_nids_and_scores(qres, ibs):
-        nscoretup = qres.get_nscoretup()
+        nscoretup = qres.get_nscoretup(ibs)
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
         return sorted_nids, sorted_nscores
 

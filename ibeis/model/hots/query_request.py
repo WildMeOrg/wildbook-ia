@@ -8,7 +8,8 @@ import numpy as np
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
 
 
-def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
+def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
+                            verbose=ut.NOT_QUIET):
     """
     ibeis entry point to create a new query request object
 
@@ -61,7 +62,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
         NAUT_test_DUUIDS((5)4e972cjxcj30a8u1)
 
     """
-    if ut.NOT_QUIET:
+    if verbose:
         print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
@@ -76,7 +77,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None):
     qreq_ = QueryRequest(qaid_list, quuid_list,
                          daid_list, duuid_list,
                          qparams, qresdir, ibs)
-    if ut.NOT_QUIET:
+    if verbose:
         print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
     qreq_.unique_species = unique_species  # HACK
     return qreq_
@@ -330,28 +331,29 @@ class QueryRequest(object):
 
     # --- Lazy Loading ---
 
-    def lazy_load(qreq_):
+    def lazy_load(qreq_, verbose=True):
         """
         Performs preloading of all data needed for a batch of queries
         """
         print('[qreq] lazy loading')
-        qreq_.hasloaded = True
-        #qreq_.ibs = ibs  # HACK
-        if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-            qreq_.load_indexer()
-            # FIXME: not sure if this is even used
-            #qreq_.load_query_vectors()
-            #qreq_.load_query_keypoints()
-        #if qreq_.qparams.pipeline_root in ['smk']:
-        #    # TODO load vocabulary indexer
-        if qreq_.qparams.featweight_on is True:
-            qreq_.ensure_featweights()
-        if qreq_.qparams.score_normalization is True:
-            qreq_.load_score_normalizer()
+        with ut.Indenter('[qreq.lazy_load]'):
+            qreq_.hasloaded = True
+            #qreq_.ibs = ibs  # HACK
+            if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+                qreq_.load_indexer(verbose=verbose)
+                # FIXME: not sure if this is even used
+                #qreq_.load_query_vectors()
+                #qreq_.load_query_keypoints()
+            #if qreq_.qparams.pipeline_root in ['smk']:
+            #    # TODO load vocabulary indexer
+            if qreq_.qparams.featweight_on is True:
+                qreq_.ensure_featweights(verbose=verbose)
+            if qreq_.qparams.score_normalization is True:
+                qreq_.load_score_normalizer(verbose=verbose)
 
     # load query data structures
 
-    def ensure_featweights(qreq_):
+    def ensure_featweights(qreq_, verbose=True):
         """ ensure feature weights are computed """
         internal_qaids = qreq_.get_internal_qaids()
         internal_daids = qreq_.get_internal_daids()
@@ -359,18 +361,18 @@ class QueryRequest(object):
         qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True)
         qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True)
 
-    def load_indexer(qreq_):
+    def load_indexer(qreq_, verbose=True):
         if qreq_.indexer is not None:
             return False
         # TODO: SYSTEM updatable indexer
-        indexer = neighbor_index.new_ibeis_nnindexer(qreq_)
+        indexer = neighbor_index.new_ibeis_nnindexer(qreq_, verbose=verbose)
         qreq_.indexer = indexer
 
-    def load_score_normalizer(qreq_):
+    def load_score_normalizer(qreq_, verbose=True):
         if qreq_.normalizer is not None:
             return False
         # TODO: SYSTEM updatable normalizer
-        normalizer = score_normalization.request_ibeis_normalizer(qreq_)
+        normalizer = score_normalization.request_ibeis_normalizer(qreq_, verbose=verbose)
         qreq_.normalizer = normalizer
 
     # load data lists
@@ -415,7 +417,7 @@ class QueryRequest(object):
         _dauuids = qreq_.get_internal_duuids()
         def assert_uuids(aids, uuids):
             if ut.NOT_QUIET:
-                print('[qreq_] asserting %s ids' % len(aids))
+                print('[qreq_] asserting %s aids' % len(aids))
             assert len(aids) == len(uuids)
             assert all([u1 == u2 for u1, u2 in
                         zip(ibs.get_annot_uuids(aids), uuids)])

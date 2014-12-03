@@ -212,14 +212,14 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         # Ensure that all chips are computed
         # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to
         randomforest.compute_probability_images(
-            cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks, modeldir=modeldir)
+            cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks,
+            modeldir=modeldir, verbose=ut.VERBOSE)
         # Fix stupid bug in pyrf
         fixed_probchip_fpath_list = [fpath + '.png' for fpath in probchip_fpath_list]
         gropued_probchip_fpath_lists.append(fixed_probchip_fpath_list)
     probchip_fpath_list_ = ut.flatten(gropued_probchip_fpath_lists)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
-    if ut.VERBOSE:
         print('[preproc_probchip] L_______________________')
     return probchip_fpath_list_
 
