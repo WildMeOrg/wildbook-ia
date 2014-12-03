@@ -79,6 +79,9 @@ class IBEIS_Image(object):
                 y_length = float(ibsi.height - patch_height - 1)
                 x_bins = int(x_length / kwargs['mine_patch_stride_suggested'])
                 y_bins = int(y_length / kwargs['mine_patch_stride_suggested'])
+		
+		x_bins = max(1, x_bins)
+		y_bins = max(1, y_bins)
                 patch_stride_x = x_length / x_bins
                 patch_stride_y = y_length / y_bins
                 # ibsi.show()
