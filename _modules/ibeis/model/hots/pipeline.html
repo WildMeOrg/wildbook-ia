@@ -702,9 +702,8 @@
         <span class="c"># the amount of appends.</span>
         <span class="n">match_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">valid_lists</span><span class="p">)</span>
 
-        <span class="c">#+-----</span>
+        <span class="c">#-----</span>
         <span class="c"># Vsmany - Append query feature matches to database aids</span>
-        <span class="c">#+-----</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">is_vsone</span><span class="p">:</span>
             <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">new_fmfsfk</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">match_iter</span><span class="p">:</span>
@@ -714,15 +713,14 @@
                 <span class="n">nFeatMatches</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span>
             <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">chipmatch</span>
-            <span class="c">#if not QUIET:</span>
+            <span class="c">#if DEBUG_PIPELINE:</span>
             <span class="c">#    nFeats_in_matches = [len(fm) for fm in six.itervalues(aid2_fm)]</span>
             <span class="c">#    print(&#39;nFeats_in_matches_stats = &#39; +</span>
             <span class="c">#          utool.dict_str(utool.get_stats(nFeats_in_matches)))</span>
         <span class="c">#L_____</span>
 
-        <span class="c">#+-----</span>
+        <span class="c">#-----</span>
         <span class="c"># Vsone - Append database feature matches to query aids</span>
-        <span class="c">#+-----</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">match_iter</span><span class="p">:</span>
                 <span class="c"># Remember in vsone internal qaids = external daids</span>
@@ -736,7 +734,6 @@
         <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span>
         <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">chipmatch</span>
-    <span class="c">#end_()</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * made </span><span class="si">%d</span><span class="s"> feat matches&#39;</span> <span class="o">%</span> <span class="n">nFeatMatches</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qaid2_chipmatch</span>

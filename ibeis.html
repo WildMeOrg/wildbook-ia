@@ -583,8 +583,8 @@ python -m doctest ibeis/model/hots/hots_nn_index.py</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.assert_lblannot_rowids_are_type">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_lblannot_rowids_are_type</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_lblannot_rowids_are_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_lblannot_rowids_are_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(assert_lblannot_rowids_are_type)</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_lblannot_rowids_are_type</tt><big>(</big><em>ibs</em>, <em>lblannot_rowid_list</em>, <em>valid_lbltype_rowid</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_lblannot_rowids_are_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_lblannot_rowids_are_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(assert_lblannot_rowids_are_type)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;lblannot_rowid_list&#8217;, &#8216;valid_lbltype_rowid&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -736,7 +736,7 @@ Can specify to delete encoutners and chips as well.</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.delete_non_exemplars">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_non_exemplars</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_non_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_non_exemplars" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_non_exemplars</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_non_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_non_exemplars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_time(delete_non_exemplars)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
@@ -1083,10 +1083,10 @@ to try it as a query against.</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.is_nid_unknown">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">is_nid_unknown</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#is_nid_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.is_nid_unknown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(is_nid_unknown)</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">is_nid_unknown</tt><big>(</big><em>ibs</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#is_nid_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.is_nid_unknown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(is_nid_unknown)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;nid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr = Wrapped function wrp_noexectb(is_nid_unknown)</p>
+<p>orig_docstr = Wrapped function _wrp_preserve(is_nid_unknown)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;nid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -1313,7 +1313,7 @@ This is more efficient for calls that can take a list of inputs</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.update_all_image_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_all_image_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_all_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_all_image_encounter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_all_image_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_all_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_all_image_encounter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_time(update_all_image_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
@@ -1321,7 +1321,7 @@ This is more efficient for calls that can take a list of inputs</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.update_exemplar_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_exemplar_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_exemplar_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_exemplar_encounter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_exemplar_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_exemplar_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_exemplar_encounter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_time(update_exemplar_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
@@ -1329,7 +1329,7 @@ This is more efficient for calls that can take a list of inputs</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_reviewed_unreviewed_image_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_reviewed_unreviewed_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_reviewed_unreviewed_image_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_reviewed_unreviewed_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_time(update_reviewed_unreviewed_image_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
@@ -1337,7 +1337,7 @@ This is more efficient for calls that can take a list of inputs</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.update_special_encounters">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_special_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_special_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_special_encounters" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_special_encounters</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_special_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_special_encounters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_time(update_special_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
