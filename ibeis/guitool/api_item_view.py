@@ -25,7 +25,7 @@ from guitool.api_item_model import APIItemModel
 VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 API_VIEW_BASE = QtGui.QAbstractItemView
-register_view_method = utool.make_class_method_decorator(API_VIEW_BASE)
+register_view_method = utool.make_class_method_decorator(API_VIEW_BASE, __name__)
 
 injectviewinstance = partial(utool.inject_instance, classtype=API_VIEW_BASE)
 
