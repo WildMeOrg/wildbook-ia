@@ -50,39 +50,27 @@
             
   <h1>Source code for ibeis.control.manual_ibeiscontrol_funcs</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">functools</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>  <span class="c"># NOQA</span>
-<span class="c">#from ibeis.control.IBEISControl import IBEISController</span>
-<span class="kn">import</span> <span class="nn">utool</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autogen_ibsfuncs]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_newfuncs]&#39;</span><span class="p">)</span>
 
-<span class="c"># Create dectorator to inject these functions into the IBEISController</span>
-<span class="n">register_ibs_aliased_method</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">((</span><span class="s">&#39;IBEISController&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">))</span>
-<span class="n">register_ibs_unaliased_method</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">((</span><span class="s">&#39;IBEISController&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">))</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="register_ibs_method"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.register_ibs_method">[docs]</a><span class="k">def</span> <span class="nf">register_ibs_method</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="n">aliastup</span> <span class="o">=</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;manual_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-    <span class="n">register_ibs_unaliased_method</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="n">register_ibs_aliased_method</span><span class="p">(</span><span class="n">aliastup</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">func</span>
-
-</div>
 <span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">):</span>
+<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    daid_list = ibs.get_valid_aids()</span>
 <span class="sd">    qaid_list = daid_list[0:1]</span>
-<span class="sd">    custom_qparams = {}</span>
+<span class="sd">    cfgdict = {}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_</span>
 
 </div>
+<span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_vocab_cfgstr"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># TODO: change into config_rowid</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -102,7 +90,7 @@
             <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
 
-    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="s">&#39;_TAIDS&#39;</span><span class="p">)</span>
+    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_uuid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="s">&#39;_TAIDS&#39;</span><span class="p">)</span>
     <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">vocab_cfgstr_</span> <span class="o">+</span> <span class="n">tannot_hashid</span> <span class="o">+</span> <span class="n">feat_cfgstr_</span>
     <span class="k">return</span> <span class="n">vocab_cfgstr</span>
 
@@ -159,9 +147,23 @@
         <span class="n">words</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">temporary_state</span><span class="p">[</span><span class="n">vocab_cfgstr</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">words</span>
 
+
+<span class="c">#@register_ibs_method</span>
+<span class="c">#def get_vocab_assignments(ibs, qreq_=None):</span>
+<span class="c">#    pass</span>
+
 </div>
-<div class="viewcode-block" id="get_vocab_assignments"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_assignments">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_assignments</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs</span>
+<span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples</span>
+<span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

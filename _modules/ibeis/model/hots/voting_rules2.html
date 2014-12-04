@@ -82,18 +82,22 @@
 <span class="sd">        chipmatch (tuple):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        dict: aid2_score</span>
+<span class="sd">        tuple: aid_list, score_list</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.voting_rules2 import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()</span>
-<span class="sd">        &gt;&gt;&gt; aid2_score = score_chipmatch_csum(qaid, chipmatch, qreq_)</span>
-<span class="sd">        &gt;&gt;&gt; print(aid2_score)</span>
+<span class="sd">        &gt;&gt;&gt; (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(aid_list, score_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
-    <span class="n">aid2_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">)}</span>
-    <span class="k">return</span> <span class="n">aid2_score</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">))</span>
+    <span class="n">fs_list</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">))</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">fs_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
+    <span class="c">#aid2_score = {aid: np.sum(fs) for (aid, fs) in six.iteritems(aid2_fs)}</span>
+    <span class="c">#return aid2_score</span>
 
 </div>
 <div class="viewcode-block" id="score_chipmatch_nsum"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.voting_rules2.score_chipmatch_nsum">[docs]</a><span class="k">def</span> <span class="nf">score_chipmatch_nsum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
@@ -106,37 +110,27 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: nid2_score</span>
 
-<span class="sd">    Dev:</span>
-<span class="sd">        ibs = qreq_.ibs</span>
-<span class="sd">        aid2_score = score_chipmatch_csum(qaid, chipmatch, qreq_)</span>
-<span class="sd">        nid2_score = score_chipmatch_nsum(qaid, chipmatch, qreq_)</span>
-<span class="sd">        ut.dict_take_list(aid2_score, ibs.get_annot_groundtruth(qaid))</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.voting_rules2 import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()</span>
-<span class="sd">        &gt;&gt;&gt; nid2_score = score_chipmatch_nsum(qaid, chipmatch, qreq_)</span>
-
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python dev.py -t nsum_nosv --db GZ_ALL --allgt --noqcache</span>
 <span class="sd">        python dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032 --noqcache</span>
 <span class="sd">        python dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032 --noqcache</span>
 <span class="sd">        qaid=1032_res_gooc+f4msr4ouy9t_quuid=c4f78a6d.npz</span>
 <span class="sd">        qaid=1032_res_5ujbs8h&amp;%vw1olnx_quuid=c4f78a6d.npz</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.voting_rules2 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()</span>
+<span class="sd">        &gt;&gt;&gt; (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#ut.embed()</span>
-    <span class="c">#return nid2_score</span>
-    <span class="n">nid2_score</span> <span class="o">=</span> <span class="n">score_chipmatch_true_nsum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-    <span class="n">unique_nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nid2_score</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">nsum_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">score_chipmatch_true_nsum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="c"># for now apply a hack to return aid scores</span>
-    <span class="n">aid2_csum</span> <span class="o">=</span> <span class="n">score_chipmatch_csum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">aid2_csum</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">score_chipmatch_csum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)))</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">aid2_nscore</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">aid2_csum</span><span class="p">)),</span>
                            <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">())</span>
-    <span class="k">for</span> <span class="n">nitem</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">nid2_score</span><span class="p">),</span> <span class="n">aids_list</span><span class="p">):</span>
-        <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nsum</span><span class="p">)</span> <span class="o">=</span> <span class="n">nitem</span>
+    <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nsum</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">nsum_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
         <span class="n">aids_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">aid2_nscore</span><span class="p">[</span><span class="n">aids_</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nsum</span>
@@ -150,7 +144,9 @@
                 <span class="n">aid2_nscore</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning in voting rules nsum&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">aid2_nscore</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">aid2_nscore</span><span class="p">))</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">aid2_nscore</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
     <span class="c">#raise NotImplementedError(&#39;nsum&#39;)</span>
 
 </div>
@@ -158,12 +154,13 @@
     <span class="c"># Nonhacky version of name scoring</span>
     <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">))</span>
-    <span class="n">score_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">)])</span>
-    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-    <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-    <span class="n">grouped_scores</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
-    <span class="n">nid2_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">nid</span><span class="p">:</span> <span class="n">scores</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">grouped_scores</span><span class="p">)}</span>
-    <span class="k">return</span> <span class="n">nid2_score</span>
+    <span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">)])</span>
+    <span class="n">annot_nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">annot_nid_list</span><span class="p">)</span>
+    <span class="n">grouped_scores</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">annot_score_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">unique_nids</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">grouped_scores</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">score_list</span>
 
 </div>
 <div class="viewcode-block" id="score_chipmatch_nunique"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.voting_rules2.score_chipmatch_nunique">[docs]</a><span class="k">def</span> <span class="nf">score_chipmatch_nunique</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq</span><span class="p">):</span>
@@ -500,8 +497,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/model/hots/voting_rules2.py</span>
-<span class="sd">    python ibeis/model/hots/voting_rules2.py --allexamples</span>
+<span class="sd">    python -m ibeis.model.hots.voting_rules2</span>
+<span class="sd">    python -m ibeis.model.hots.voting_rules2 --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

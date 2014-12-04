@@ -58,7 +58,7 @@
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA:</span>
 <span class="kn">import</span> <span class="nn">parse</span>
@@ -68,8 +68,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Maps unknonwn names to the standard ____</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">ACCEPTED_UNKNOWN_NAMES</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">INDIVIDUAL_KEY</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">ACCEPTED_UNKNOWN_NAMES</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">INDIVIDUAL_KEY</span>
     <span class="k">return</span> <span class="n">name</span>
 
 </div>
@@ -80,7 +80,7 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">normalize_name</span><span class="p">,</span> <span class="n">name_list</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="get_name_text_from_parent_folder"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_text_from_parent_folder">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_name_texts_from_parent_folder"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_texts_from_parent_folder">[docs]</a><span class="k">def</span> <span class="nf">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input: gpath_list</span>
 <span class="sd">    Output: names based on the parent folder of each image</span>
@@ -98,7 +98,7 @@
     <span class="n">seal2_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:Phsd*}{id:[A-Z]}.{ext}&#39;</span>
 
 </div>
-<div class="viewcode-block" id="get_name_text_from_gnames"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_text_from_gnames">[docs]</a><span class="k">def</span> <span class="nf">get_name_text_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;{name:*}[aid:d].{ext}&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_name_texts_from_gnames"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.get_name_texts_from_gnames">[docs]</a><span class="k">def</span> <span class="nf">get_name_texts_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="o">=</span><span class="s">&#39;{name:*}[aid:d].{ext}&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input: gpath_list</span>
 <span class="sd">    Output: names based on the parent folder of each image</span>
@@ -231,7 +231,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">)</span>
         <span class="c"># Unname first aid in every name</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">nid</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
         <span class="n">unique_flag</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">unique_flag</span><span class="p">)</span>
@@ -254,25 +254,26 @@
             <span class="n">print2</span><span class="p">(</span><span class="s">&#39;flagged_aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flagged_aids</span><span class="p">)</span>
             <span class="c"># print2(&#39;new_nids=%r&#39; % new_nids)</span>
         <span class="c"># Unname, some annotations for testing</span>
-        <span class="n">delete_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="n">delete_aids</span><span class="p">)</span>
+        <span class="n">unname_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="n">unname_aids</span><span class="p">)</span>
         <span class="c"># Add all annotations with names as exemplars</span>
         <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISController</span><span class="p">)</span>
         <span class="n">unflagged_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">exemplar_flags</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flag</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">,</span> <span class="n">exemplar_flags</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">,</span> <span class="n">exemplar_flags</span><span class="p">)</span>
         <span class="c"># Set some test species labels</span>
         <span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">Species</span>
-        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
-            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+            <span class="n">species_text_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
         <span class="c"># These are actually plains zebras.</span>
         <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
-            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
+            <span class="n">species_text_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
         <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">):</span>
-            <span class="n">species_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+            <span class="n">species_text_list</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span>
+
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;this is actually a plains zebra&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;aid 1 and 2 are correct matches&#39;</span><span class="p">])</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;very simple image to debug feature detector&#39;</span><span class="p">])</span>
@@ -303,7 +304,7 @@
                       <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">seal2_fmt</span><span class="p">,</span>
                       <span class="c">#img_dir=&#39;/raid/raw/snails_drop1_59MB&#39;,</span>
                       <span class="n">adjust_percent</span><span class="o">=.</span><span class="mi">20</span><span class="p">,</span>
-                      <span class="n">species</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span>
+                      <span class="n">species</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span>
                       <span class="p">)</span>
 
 </div>
@@ -422,14 +423,15 @@
     <span class="n">gpath_list</span>  <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">img_dir</span><span class="p">)</span>
     <span class="c"># Parse structure for image names</span>
     <span class="k">if</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_folders&#39;</span><span class="p">:</span>
-        <span class="n">name_list</span> <span class="o">=</span> <span class="n">get_name_text_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
         <span class="k">pass</span>
     <span class="k">if</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_images&#39;</span><span class="p">:</span>
-        <span class="n">name_list</span> <span class="o">=</span> <span class="n">get_name_text_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="n">get_name_texts_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;unknown&#39;</span><span class="p">:</span>
-        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">INDIVIDUAL_KEY</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))]</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">INDIVIDUAL_KEY</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))]</span>
 
     <span class="c"># Add Images</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
     <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="c"># &lt;DEBUG&gt;</span>
     <span class="c">#print(&#39;added: &#39; + utool.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
@@ -598,7 +600,7 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">auto_localize</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;adding to table: &#39;</span><span class="p">)</span>
     <span class="c"># Add images to ibeis</span>
-    <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">img_dpath</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">]</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">img_dpath</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">]</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
 
     <span class="c"># 1) Add Query Annotations</span>

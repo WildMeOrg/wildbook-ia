@@ -106,7 +106,7 @@
     <span class="sd">&quot;&quot;&quot; helper</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST_ENABLE</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
@@ -125,7 +125,7 @@
         <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">featweight_species</span><span class="p">]</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
-    <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_lblannot_rowid</span><span class="p">(</span><span class="n">species_list</span><span class="p">))</span>
+    <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_list</span><span class="p">))</span>
     <span class="n">unique_species_rowids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
     <span class="n">grouped_aids</span>    <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">grouped_species</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
@@ -155,11 +155,11 @@
 <span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
 <span class="sd">        &gt;&gt;&gt; probchip_fname_fmt = get_probchip_fname_fmt(ibs)</span>
-<span class="sd">        &gt;&gt;&gt; #want = &#39;probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png&#39;</span>
+<span class="sd">        &gt;&gt;&gt; #want = &#39;probchip_aid=%d_bbox=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png&#39;</span>
 <span class="sd">        &gt;&gt;&gt; #assert probchip_fname_fmt == want, probchip_fname_fmt</span>
 <span class="sd">        &gt;&gt;&gt; result = probchip_fname_fmt</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        probchip_aid=%d_auuid=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png</span>
+<span class="sd">        probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
@@ -195,33 +195,30 @@
 <span class="sd">        probchip_fpath_list</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST_ENABLE</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_probchip import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc import preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
 <span class="sd">        &gt;&gt;&gt; ibs, aid_list = preproc_chip.testdata_preproc_chip()</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
 <span class="sd">        &gt;&gt;&gt; probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; result = basename(probchip_fpath_list[1])</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        probchip_aid=2_auuid=35a418d7-5168-4404-8bce-63d75935b54c_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png</span>
+<span class="sd">        probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0tau_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">probchipdir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-
     <span class="c">#grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)</span>
-
-    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="n">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
-    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-
+    <span class="c">#annot_uuid_list = ibs.get_annot_uuids(aid_list)</span>
     <span class="c">#for aids, species in zip(grouped_aids, unique_species):</span>
     <span class="c">#probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid</span>
     <span class="c">#                       for auuid in annot_uuid_list)</span>
-    <span class="n">probchip_fname_iter</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">auuid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">probchip_fname_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">auuid</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">auuid</span><span class="p">)</span> <span class="ow">in</span>
-                           <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">))</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-                           <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">probchip_fname_iter</span><span class="p">]</span>
+    <span class="c">##probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in</span>
+    <span class="c">#                       #zip(aid_list, annot_uuid_list))</span>
+    <span class="c">##probchip_fpath_list = [None if fname is None else join(cachedir, fname)</span>
+    <span class="c">#                       #for fname in probchip_fname_iter]</span>
+    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="n">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">format_aid_bbox_theta_gid_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">probchip_fname_fmt</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">probchip_fpath_list</span>
 
 </div>
@@ -249,6 +246,7 @@
 
     <span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span> <span class="o">=</span> <span class="n">group_aids_by_featweight_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="n">cachedir</span>   <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">modeldir</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_detect_modeldir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
 
     <span class="n">gropued_probchip_fpath_lists</span> <span class="o">=</span> <span class="p">[]</span>
@@ -261,18 +259,19 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
-        <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_cpaths</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
         <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
         <span class="c"># Ensure that all chips are computed</span>
         <span class="c"># LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to</span>
-        <span class="n">randomforest</span><span class="o">.</span><span class="n">compute_probability_images</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">)</span>
-        <span class="c"># Fix stupid bug in pyrf</span>
+        <span class="n">randomforest</span><span class="o">.</span><span class="n">compute_probability_images</span><span class="p">(</span>
+            <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">,</span>
+            <span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+        <span class="c"># HACK: Fix stupid bug in pyrf</span>
         <span class="n">fixed_probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
         <span class="n">gropued_probchip_fpath_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixed_probchip_fpath_list</span><span class="p">)</span>
     <span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gropued_probchip_fpath_lists</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">probchip_fpath_list_</span>
 </div>
@@ -281,8 +280,9 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)&quot;</span>
-<span class="sd">        python ibeis/model/preproc/preproc_probchip.py</span>
-<span class="sd">        python ibeis/model/preproc/preproc_probchip.py --allexamples</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_probchip</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_probchip --allexamples</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_probchip --allexamples --serial --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

@@ -93,10 +93,10 @@
     <span class="n">kpts_numpy</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_numpy</span><span class="p">)</span>
 
     <span class="c"># Test lazy (noneager eval)</span>
-    <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s">&#39;should be a list&#39;</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">fid_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">fid_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="kn">import</span> <span class="nn">types</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fid_gen</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)</span>

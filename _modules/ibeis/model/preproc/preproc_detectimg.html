@@ -118,7 +118,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_detectimg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
@@ -152,7 +152,7 @@
 <span class="sd">    in the SQL database</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_detectimg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
@@ -174,9 +174,9 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py</span>
-<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py --allexamples</span>
-<span class="sd">        python ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_detectimg</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_detectimg --allexamples</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_detectimg --test-compute_and_write_detectimg_lazy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>

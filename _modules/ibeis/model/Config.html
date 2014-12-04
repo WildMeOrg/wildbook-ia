@@ -206,7 +206,7 @@
 <span class="sd">        &gt;&gt;&gt; filt_cfg.fg_weight = 1</span>
 <span class="sd">        &gt;&gt;&gt; result2 = filt_cfg.get_cfgstr()</span>
 <span class="sd">        &gt;&gt;&gt; result = result1</span>
-<span class="sd">        _FILT(lnbnn;1.0,fg;1.0)</span>
+<span class="sd">        _FILT(lnbnn;1.0,dupvote;1.0,fg;1.0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -239,7 +239,7 @@
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;bursty&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;ratio&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;lnbnn&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
-        <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="s">&#39;dupvote&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="s">&#39;dupvote&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;lograt&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&#39;normonly&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="s">&#39;logdist&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
@@ -334,7 +334,8 @@
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span>   <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="mf">4.0</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span> <span class="o">=</span> <span class="mi">4</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nShortlist</span> <span class="o">=</span> <span class="mi">50</span>
-        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
+        <span class="c">#sv_cfg.prescore_method = &#39;csum&#39;</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># BAD CONFIG?</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_weighting</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># weight feature scores with sver errors</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -365,8 +366,11 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AggregateConfig</span><span class="p">,</span> <span class="n">agg_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;agg_cfg&#39;</span><span class="p">)</span>
         <span class="c"># chipsum, namesum, placketluce</span>
-        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># nsum, pl</span>
-        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>  <span class="c"># nsum, pl</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c">#agg_cfg.score_method = &#39;csum&#39;</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
+        <span class="c">#agg_cfg.score_normalization = False</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">alt_methods</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;topk&#39;</span><span class="p">:</span> <span class="s">&#39;topk&#39;</span><span class="p">,</span>
             <span class="s">&#39;borda&#39;</span><span class="p">:</span> <span class="s">&#39;borda&#39;</span><span class="p">,</span>
@@ -393,13 +397,15 @@
 
 <div class="viewcode-block" id="AggregateConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.AggregateConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">agg_cfgstr</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">agg_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;_AGG(&#39;</span><span class="p">]</span>
-        <span class="n">agg_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="p">]</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;_AGG(&#39;</span><span class="p">)</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span><span class="p">:</span>
-            <span class="n">agg_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;w&#39;</span><span class="p">]</span>
+            <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span>  <span class="o">==</span> <span class="s">&#39;pl&#39;</span><span class="p">:</span>
-            <span class="n">agg_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;,</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span><span class="p">,)]</span>
-        <span class="n">agg_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;)&#39;</span><span class="p">]</span>
+            <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span><span class="p">:</span>
+            <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,norm&#39;</span><span class="p">)</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">agg_cfgstr</span>
 
 </div></div>
@@ -644,18 +650,28 @@
         <span class="n">agg_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span>
         <span class="n">sv_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span>
         <span class="c"># TODO:</span>
-        <span class="k">if</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;csum&#39;</span><span class="p">):</span>
+            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
+            <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
+        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;nsum&#39;</span><span class="p">):</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
             <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
             <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
+            <span class="k">if</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;nsum_unnorm&#39;</span><span class="p">:</span>
+                <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span><span class="p">:</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;vsmany&#39;</span>
-        <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsone&#39;</span><span class="p">):</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
             <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="mf">1.6</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;vsone_unnorm&#39;</span><span class="p">:</span>
+                <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;asmk&#39;</span><span class="p">:</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;asmk&#39;</span>
         <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
@@ -669,6 +685,11 @@
         <span class="c">#if query_cfg.species_code == &#39;zebra_grevys&#39;:</span>
         <span class="c">#    query_cfg.fg_weight = 1.0</span>
             <span class="c"># TODO:</span>
+
+        <span class="k">assert</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">==</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="p">,</span> <span class="s">&#39;cannot be different yet.&#39;</span>
+
+        <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span>
 
         <span class="k">if</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;asmk&#39;</span><span class="p">:</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;smk&#39;</span>
@@ -1100,8 +1121,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config)&quot;</span>
-<span class="sd">        python ibeis/model/Config.py</span>
-<span class="sd">        python ibeis/model/Config.py --allexamples</span>
+<span class="sd">        python -m ibeis.model.Config</span>
+<span class="sd">        python -m ibeis.model.Config --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>

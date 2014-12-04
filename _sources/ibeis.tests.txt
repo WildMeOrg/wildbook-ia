@@ -156,14 +156,6 @@ ibeis.tests.test_ibs_add_name module
     :undoc-members:
     :show-inheritance:
 
-ibeis.tests.test_ibs_annotation_uuid module
--------------------------------------------
-
-.. automodule:: ibeis.tests.test_ibs_annotation_uuid
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.tests.test_ibs_chip_compute module
 ----------------------------------------
 

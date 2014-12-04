@@ -57,8 +57,9 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
 
@@ -139,13 +140,14 @@
     <span class="c"># Keep 60 days worth of database backups</span>
     <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fname</span><span class="p">)</span>
     <span class="n">src_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">)</span>
-    <span class="kn">import</span> <span class="nn">datetime</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">manual</span><span class="p">:</span>
         <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_00_00_00&#39;</span><span class="p">)</span>
-    <span class="n">dst_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_backup_</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">now_str</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="c">#dst_fpath = join(backup_dir, &#39;%s_backup_%s%s&#39; % (fname, now_str, ext))</span>
+    <span class="n">dst_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="s">&#39;_backup_&#39;</span><span class="p">,</span> <span class="n">now_str</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="n">dst_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="n">dst_fname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">dst_fpath</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Daily backup of database: </span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">)</span>
@@ -182,9 +184,9 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control._sql_helpers import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; db = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; version_expected = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; schema_spec = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; db = ibs.db</span>
+<span class="sd">        &gt;&gt;&gt; version_expected = ibs.db_version_expected</span>
+<span class="sd">        &gt;&gt;&gt; schema_spec = DB_SCHEMA</span>
 <span class="sd">        &gt;&gt;&gt; dobackup = True</span>
 <span class="sd">        &gt;&gt;&gt; autogenerate = False</span>
 <span class="sd">        &gt;&gt;&gt; result = ensure_correct_version(ibs, db, version_expected, schema_spec, dobackup, autogenerate)</span>
@@ -198,7 +200,7 @@
         <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-    <span class="n">want_base_version</span> <span class="o">=</span> <span class="n">version_expected</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+    <span class="n">want_base_version</span> <span class="o">=</span> <span class="n">version_expected</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
     <span class="k">if</span> <span class="n">want_base_version</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SQL_] base version expected... returning&#39;</span><span class="p">)</span>
         <span class="c"># Nothing to do. autogenerated file is pointless</span>
@@ -207,7 +209,7 @@
     <span class="n">version</span>     <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
     <span class="c"># NEW DATABASE CONDITION</span>
     <span class="n">force_incremental</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">force_incremental_db_update</span>
-    <span class="n">is_base_version</span> <span class="o">=</span> <span class="p">(</span><span class="n">version</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span><span class="p">)</span>
+    <span class="n">is_base_version</span> <span class="o">=</span> <span class="p">(</span><span class="n">version</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span><span class="p">)</span>
     <span class="n">can_skip</span> <span class="o">=</span> <span class="n">is_base_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_incremental</span>
     <span class="c"># &lt;DEBUG&gt;</span>
     <span class="c">#if utool.get_flag(&#39;--verbsql&#39;) or utool.VERBOSE or True:</span>
@@ -221,7 +223,9 @@
     <span class="k">if</span> <span class="n">can_skip</span><span class="p">:</span>
         <span class="n">current_schema_exists</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">current_schema_exists</span><span class="p">:</span>
-            <span class="n">current_schema_compatible</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="o">&lt;=</span> <span class="n">version_expected</span>
+            <span class="c"># check to see if more than the metadata table exists</span>
+            <span class="n">is_newdb</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">]</span>
+            <span class="n">current_schema_compatible</span> <span class="o">=</span> <span class="n">is_newdb</span> <span class="ow">and</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="o">&lt;=</span> <span class="n">version_expected</span>
             <span class="k">if</span> <span class="n">current_schema_compatible</span><span class="p">:</span>
                 <span class="c"># Since this is a new database, we do not have to worry about backinng up the</span>
                 <span class="c"># current database.  The subsequent update functions (if needed) will handle</span>
@@ -239,7 +243,7 @@
     <span class="c">#+--------------------------------------</span>
     <span class="c"># Check version again for sanity&#39;s sake, update if exported current is behind expected</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
-    <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
+    <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL.</span><span class="si">%s</span><span class="s">] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(),</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">version</span> <span class="o">&lt;</span> <span class="n">version_expected</span><span class="p">:</span>
         <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
         <span class="n">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span>
@@ -266,23 +270,33 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_schema_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.update_schema_version">[docs]</a><span class="k">def</span> <span class="nf">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_target</span><span class="p">,</span>
-                          <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                          <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">clearbackup</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    version_target = version_expected</span>
+<span class="sd">    clearbackup = False</span>
 <span class="sd">    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">db_fpath</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
     <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
-        <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
-        <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_backup</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
+        <span class="n">db_fname_noext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fname</span><span class="p">)</span>
+        <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+        <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_backup_fname</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)</span>
+        <span class="k">while</span> <span class="n">utool</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="s">&#39;_copy&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">ext</span><span class="p">))</span>
+            <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_backup_fname</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_backup_fpath</span><span class="p">)</span>
     <span class="n">valid_versions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">db_versions</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">compare_string_versions</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">start_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] The current database version is unknown&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">end_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version_target</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] The target database version is unknown&#39;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -303,14 +317,15 @@
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">)</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">clearbackup</span><span class="p">:</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
             <span class="c"># Why are we using the logging module when utool does it for us?</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;The database update failed, and no backup was made. I hope you didnt need that data :P&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="k">raise</span>
-    <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">dobackup</span> <span class="ow">and</span> <span class="n">clearbackup</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
 
 
@@ -320,7 +335,10 @@
 
 </div>
 <div class="viewcode-block" id="SQLExecutionContext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext">[docs]</a><span class="k">class</span> <span class="nc">SQLExecutionContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; A good with context to use around direct sql calls</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context manager for transactional database calls</span>
+
+<span class="sd">    FIXME: has out details</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                  <span class="n">start_transaction</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">PRINT_SQL</span><span class="p">):</span>
@@ -363,7 +381,10 @@
 <div class="viewcode-block" id="SQLExecutionContext.execute_and_generate_results"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results">[docs]</a>    <span class="k">def</span> <span class="nf">execute_and_generate_results</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; helper for context statment &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="c">#print(context.cur.rowcount)</span>
+            <span class="c">#print(id(context.cur))</span>
             <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="c">#print(context.cur.rowcount)</span>
         <span class="k">except</span> <span class="n">lite</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;sql.Error&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">])</span>
             <span class="c">#print(&#39;[sql.Error] %r&#39; % (type(ex),))</span>

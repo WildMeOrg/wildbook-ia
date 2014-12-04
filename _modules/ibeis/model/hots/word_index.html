@@ -123,7 +123,7 @@
 <span class="sd">    &gt;&gt;&gt; windex, qreq_, ibs = test_windex() # doctest: +ELLIPSIS</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DUUIDS&#39;</span><span class="p">)</span>
+    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DUUIDS&#39;</span><span class="p">)</span>
     <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="n">indexer_cfgstr</span> <span class="o">=</span> <span class="n">daids_hashid</span> <span class="o">+</span> <span class="n">flann_cfgstr</span> <span class="o">+</span> <span class="n">feat_cfgstr</span>

@@ -51,20 +51,39 @@
   <h1>Source code for ibeis.model.detect</h1><div class="highlight"><pre>
 <span class="c"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">grabmodels</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">randomforest</span>
+
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.model.detect.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[detect]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.model.detect]&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../../ibeis.model.detect.html#ibeis.model.detect.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Reloads detect and submodules &quot;&quot;&quot;</span>
-    <span class="n">rrr</span><span class="p">()</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">grabmodels</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">randomforest</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
-    <span class="n">rrr</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../../ibeis.model.detect.html#ibeis.model.detect.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reloads ibeis.model.detect and submodules &quot;&quot;&quot;</span>
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fbrrr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; fallback reload &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">grabmodels</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">randomforest</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
-<span class="c"># autogenerated __init__.py for: &#39;C:/Users/joncrall/code/ibeis/ibeis/model/detect&#39;</span>
+
+<span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&#39;grabmodels&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;randomforest&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Regen Command:</span>
+<span class="sd">    cd /home/joncrall/code/ibeis/ibeis/model/detect</span>
+<span class="sd">    makeinit.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># autogenerated __init__.py for: &#39;/home/joncrall/code/ibeis/ibeis/model/detect&#39;</span>
 </pre></div>
 
           </div>

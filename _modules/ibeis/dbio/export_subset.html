@@ -140,6 +140,8 @@
         <span class="s">&#39;annot_detection_confidence_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;annot_exemplar_flag_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;annot_note_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_name_rowid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_species_rowid_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;lblannot_td_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
@@ -179,11 +181,11 @@
         <span class="k">return</span> <span class="bp">None</span>
 
 
-<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">urllib2</span>
         <span class="kn">import</span> <span class="nn">json</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="n">json_string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">location</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
@@ -329,7 +331,7 @@
     <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get encounter data</span>
-    <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_index</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_config</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="n">config_rowid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span> <span class="p">]</span>
+    <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_index</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_configid</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="n">config_rowid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span> <span class="p">]</span>
     <span class="c"># Create Encounter TransferData</span>
     <span class="n">encounter_td</span> <span class="o">=</span> <span class="n">ENCOUNTER_TransferData</span><span class="p">(</span>
         <span class="n">config_INDEX_list</span><span class="p">,</span>
@@ -413,7 +415,9 @@
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_exemplar_flag</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">lblannot_td_list</span>
     <span class="p">)</span>
@@ -787,6 +791,8 @@
         <span class="n">vert_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_verts_list</span><span class="p">,</span>
         <span class="n">annotation_uuid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">,</span>
         <span class="n">viewpoint_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_viewpoint_list</span><span class="p">,</span>
+        <span class="n">name_rowid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">name_rowid_list</span><span class="p">,</span>
+        <span class="n">species_rowid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">species_rowid_list</span><span class="p">,</span>
         <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span>  <span class="c"># Turns off thumbnail deletion print statements</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -797,7 +803,7 @@
         <span class="k">if</span> <span class="n">annot_parent_INDEX</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">annot_parent_INDEX</span> <span class="ow">and</span> <span class="n">annot_parent_INDEX</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
             <span class="n">parent_aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">annot_parent_INDEX</span><span class="p">]</span>
             <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_annot_parent_rowid</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">parent_aid</span><span class="p">])</span>
-    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_annot_exemplar_flag</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">annot_exemplar_flag_list</span><span class="p">)</span>
+    <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">annot_exemplar_flag_list</span><span class="p">)</span>
     <span class="c"># Add lblannots</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;[import_transfer_data]       Importing lblannots...&quot;</span><span class="p">)</span>
@@ -911,7 +917,7 @@
 <span class="sd">            +---</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dbio import export_subset</span>
 <span class="sd">        &gt;&gt;&gt; ibs_src = ibeis.opendb(dbdir=&#39;testdb1&#39;)</span>
@@ -1018,8 +1024,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/dbio/export_subset.py</span>
-<span class="sd">    python ibeis/dbio/export_subset.py --allexamples</span>
+<span class="sd">    python -m ibeis.dbio.export_subset</span>
+<span class="sd">    python -m ibeis.dbio.export_subset --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

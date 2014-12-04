@@ -108,7 +108,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
 <span class="sd">        &gt;&gt;&gt; #tup = nn_weights.testdata_nn_weights(&#39;testdb1&#39;, slice(0, 1), slice(0, 11))</span>
-<span class="sd">        &gt;&gt;&gt; dbname = &#39;GZ_ALL&#39;  # &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; dbname = &#39;testdb1&#39;  # &#39;GZ_ALL&#39;  # &#39;testdb1&#39;</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=10, Knorm=10, codename=&#39;nsum&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; tup = nn_weights.testdata_nn_weights(dbname, cfgdict=cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup</span>
@@ -117,7 +117,7 @@
 <span class="sd">        &gt;&gt;&gt; # Check consistency</span>
 <span class="sd">        &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
 <span class="sd">        &gt;&gt;&gt; flags = qaid2_dupvote_weight[qaid] &gt; .5</span>
-<span class="sd">        &gt;&gt;&gt; qfx2_topnid = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))</span>
+<span class="sd">        &gt;&gt;&gt; qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))</span>
 <span class="sd">        &gt;&gt;&gt; isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]</span>
 <span class="sd">        &gt;&gt;&gt; assert all(isunique_list), &#39;dupvote should only allow one vote per name&#39;</span>
 
@@ -140,7 +140,7 @@
         <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">qfx2_topidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">qfx2_topaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_topidx</span><span class="p">)</span>
-        <span class="n">qfx2_topnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
+        <span class="n">qfx2_topnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
         <span class="c"># Don&#39;t let current query count as a valid match</span>
         <span class="c"># Change those names to the unused name</span>
         <span class="c"># qfx2_topnid[qfx2_topaid == qaid] = 0</span>
@@ -186,8 +186,8 @@
 
 
 <span class="sd">    Dev::</span>
-<span class="sd">        qnid = ibs.get_annot_nids(qaid)</span>
-<span class="sd">        qfx2_nids = ibs.get_annot_nids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))</span>
+<span class="sd">        qnid = ibs.get_annot_name_rowids(qaid)</span>
+<span class="sd">        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))</span>
 
 <span class="sd">        # remove first match</span>
 <span class="sd">        qfx2_nids_ = qfx2_nids.T[1:].T</span>
@@ -296,7 +296,7 @@
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        #from ibeis.model.hots import neighbor_index as hsnbrx</span>
-<span class="sd">        #nnindexer = hsnbrx.new_ibeis_nnindexer(ibs, daid_list)</span>
+<span class="sd">        #nnindexer = hsnbrx.new_ibeis_nnindexer(qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#utool.stash_testdata(&#39;qaid2_nns&#39;)</span>
     <span class="c">#</span>
@@ -353,7 +353,7 @@
 <span class="sd">        ndarray: qfx2_normweight</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;}</span>
@@ -434,15 +434,15 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get the top names you do not want your normalizer to be from</span>
-    <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
     <span class="n">nTop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
     <span class="n">qfx2_topidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nTop</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
     <span class="n">qfx2_normidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="n">Knorm</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
     <span class="c"># Apply temporary uniquish name</span>
     <span class="n">qfx2_topaid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_topidx</span><span class="p">)</span>
     <span class="n">qfx2_normaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_normidx</span><span class="p">)</span>
-    <span class="n">qfx2_topnid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
-    <span class="n">qfx2_normnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_normaid</span><span class="p">)</span>
+    <span class="n">qfx2_topnid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
+    <span class="n">qfx2_normnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_normaid</span><span class="p">)</span>
     <span class="c"># Inspect the potential normalizers</span>
     <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qfx2_normnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">qnid</span><span class="p">)</span>
     <span class="n">qfx2_normk</span> <span class="o">+=</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>  <span class="c"># convert form negative to pos indexes</span>
@@ -556,16 +556,15 @@
         <span class="n">test_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="testdata_nn_weights"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.testdata_nn_weights">[docs]</a><span class="k">def</span> <span class="nf">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="p">{},</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_nn_weights"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.testdata_nn_weights">[docs]</a><span class="k">def</span> <span class="nf">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{}):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
-<span class="sd">    &gt;&gt;&gt; custom_qparams = {&#39;fg_weight&#39;: 1.0}</span>
+<span class="sd">    &gt;&gt;&gt; cfgdict = {&#39;fg_weight&#39;: 1.0}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span>
                                                 <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span>
                                                 <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span>
-                                                <span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams</span><span class="p">,</span>
                                                 <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;weight_neighbors&#39;</span><span class="p">)</span>
     <span class="n">qaid2_nns</span>     <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]</span>
@@ -575,10 +574,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python utool/util_tests.py</span>
-<span class="sd">    python -c &quot;import utool, ibeis; utool.doctest_funcs(module=ibeis.model.hots.nn_weights, needs_enable=False)&quot;</span>
-<span class="sd">    python ibeis/model/hots/nn_weights.py --allexamples</span>
-<span class="sd">    python ibeis/model/hots/nn_weights.py</span>
+<span class="sd">    python -m ibeis.model.hots.nn_weights --allexamples</span>
+<span class="sd">    python -m ibeis.model.hots.nn_weights</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

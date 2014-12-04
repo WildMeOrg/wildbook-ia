@@ -218,21 +218,20 @@
         <span class="c"># Alright, this is a state issue.  An annotation, X, was querried for viewpoint and is &quot;checkedout&quot; by person A.</span>
         <span class="c"># Between the time person A checks out X and commits the annotation, person B also checks out X (random chance).</span>
         <span class="c"># Person B makes a judgment call and thinks that the bouding box for X need to be updated.  Person B updates the</span>
-        <span class="c"># bounding box for X, which deletes X and creates X&#39; to replace it.  In the meantime, person A still has the </span>
+        <span class="c"># bounding box for X, which deletes X and creates X&#39; to replace it.  In the meantime, person A still has the</span>
         <span class="c"># row_id for X (which has not been deleted).  So, when person A commits the viewpoint for X, we simply do nothing.</span>
-        <span class="c"># X&#39; viewpoint annotation will get put back into the random queue for processing and we lose a little bit of </span>
-        <span class="c"># efficiency.  </span>
-        <span class="c"># </span>
+        <span class="c"># X&#39; viewpoint annotation will get put back into the random queue for processing and we lose a little bit of</span>
+        <span class="c"># efficiency.</span>
+        <span class="c">#</span>
         <span class="c"># Essentially, any viewpoint work that was done by A for X is simply ignored because X no longer exists in that form.</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE IT NOT LONGER EXISTS&#39;</span><span class="p">)</span>
-      
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE AID_LIST: </span><span class="si">%s</span><span class="s"> NOT LONGER EXISTS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">))</span>
 
 
 <span class="c">################################################################################</span>
 
 </div>
 <div class="viewcode-block" id="replace_aids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.replace_aids">[docs]</a><span class="k">def</span> <span class="nf">replace_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Replacing </span><span class="si">%r</span><span class="s"> for </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Replacing </span><span class="si">%r</span><span class="s"> for </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">,</span> <span class="p">))</span>
     <span class="c"># Delete the old aid_list from the cache database</span>
     <span class="n">viewpoint_rowids</span> <span class="o">=</span> <span class="n">get_viewpoint_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">viewpoint_rowids</span><span class="p">)</span>
@@ -241,7 +240,7 @@
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_new</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
-  
+
 
 <span class="c">################################################################################</span>
 
@@ -253,31 +252,51 @@
         <span class="n">radians</span> <span class="o">%=</span> <span class="n">twopi</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">((</span><span class="n">radians</span> <span class="o">/</span> <span class="n">twopi</span><span class="p">)</span> <span class="o">*</span> <span class="mf">360.0</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># Detection Review</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+        <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">image_reviewed</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">image_reviewed</span> <span class="ow">in</span> <span class="n">image_reviewed_list</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;WARNING: NOT ALL IMAGES ARE NOT-REVIEWED&quot;</span><span class="p">)</span>
+            <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Enter to set to not-reviewed...&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="c"># Viewpoint Annotation</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="c"># Grab ALL viewpoints</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;WARNING: NOT ALL ANNOT THETAS ARE NULLED&quot;</span><span class="p">)</span>
+            <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Enter to null annot thetas...&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">set_annot_viewpoint</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+            <span class="c"># Grab ALL viewpoints</span>
+    <span class="k">elif</span> <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># Detection Review</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">viewpoint</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">include_only_gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">viewpoint</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
     <span class="c"># Detection Review</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_review_rowids_from_gid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
 
     <span class="c"># Viewpoint Annotation</span>
-    <span class="c"># Get data out of ibeis</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="c"># Grab viewpoints</span>
     <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
     <span class="c"># Add chips to temporary web viewpoint table</span>
-    <span class="n">redo</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">redo</span><span class="p">:</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint_value_1&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint_value_2&#39;</span><span class="p">,</span>  <span class="s">&#39;viewpoint_value_avg&#39;</span><span class="p">)</span>
-        <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
-        <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint_value_1&#39;</span><span class="p">)</span>
-        <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
-        <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span></div>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint_value_1&#39;</span><span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;ROUND: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">round</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;WEB CACHED </span><span class="si">%d</span><span class="s"> IMAGES&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;WEB CACHED </span><span class="si">%d</span><span class="s"> ANNOTATIONS&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">))</span></div>
 </pre></div>
 
           </div>

@@ -49,84 +49,182 @@
             
   <h1>Source code for ibeis.tests.assert_modules</h1><div class="highlight"><pre>
 <span class="c">#!/usr/bin/env python2.7</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Very useful script to ensure you have all the modules you need</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">parse_version</span>
+<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 
 <span class="n">ASSERT_FUNCS</span> <span class="o">=</span> <span class="p">[]</span>
 
 
-<div class="viewcode-block" id="version_check"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.version_check">[docs]</a><span class="k">def</span> <span class="nf">version_check</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="checkinfo"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.checkinfo">[docs]</a><span class="k">def</span> <span class="nf">checkinfo</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    checkinfo functions return info_dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">wrapper1</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="c"># Decorator which adds funcs to ASSERT_FUNCS</span>
         <span class="k">global</span> <span class="n">ASSERT_FUNCS</span>
         <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrapper2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-            <span class="n">current_version</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">: </span><span class="si">%r</span><span class="s"> &gt;= (target=</span><span class="si">%r</span><span class="s">)?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="n">current_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">current_version</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">target</span>
+            <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">infodict</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">current_version</span> <span class="o">=</span> <span class="n">infodict</span><span class="p">[</span><span class="s">&#39;__version__&#39;</span><span class="p">]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">infodict</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">: </span><span class="si">%r</span><span class="s"> &gt;= (target=</span><span class="si">%r</span><span class="s">)?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="n">statustext</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="n">infodict</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">],</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="n">passed</span> <span class="o">=</span> <span class="n">current_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">current_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.dev1&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">infodict</span><span class="p">,</span> <span class="n">statustext</span>
         <span class="n">ASSERT_FUNCS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wrapper2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrapper2</span>
     <span class="k">return</span> <span class="n">wrapper1</span>
 
+</div>
+<div class="viewcode-block" id="module_stdinfo_dict"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.module_stdinfo_dict">[docs]</a><span class="k">def</span> <span class="nf">module_stdinfo_dict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">versionattr</span><span class="o">=</span><span class="s">&#39;__version__&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">infodict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;__version__&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">versionattr</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="s">&#39;__name__&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">),</span>
+        <span class="s">&#39;__file__&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;__file__&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">infodict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">infodict</span>
 
-<span class="c">#@version_check(&#39;1.1.7&#39;)</span></div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;2.4.0&#39;</span><span class="p">)</span>
+</div>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;1.0.0&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="pyhesaff_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.pyhesaff_version">[docs]</a><span class="k">def</span> <span class="nf">pyhesaff_version</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">pyhesaff</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">pyhesaff</span><span class="p">)</span>
+
+</div>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;1.0.0&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="pyrf_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.pyrf_version">[docs]</a><span class="k">def</span> <span class="nf">pyrf_version</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">pyrf</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">pyrf</span><span class="p">)</span>
+
+</div>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;1.0.0&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="utool_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.utool_version">[docs]</a><span class="k">def</span> <span class="nf">utool_version</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">utool</span><span class="p">)</span>
+
+
+<span class="c">#@checkinfo(&#39;1.1.7&#39;)</span></div>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;2.4.0&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="pillow_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.pillow_version">[docs]</a><span class="k">def</span> <span class="nf">pillow_version</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-    <span class="c">#return Image.VERSION</span>
-    <span class="k">return</span> <span class="n">Image</span><span class="o">.</span><span class="n">PILLOW_VERSION</span>
+    <span class="kn">import</span> <span class="nn">PIL</span>
+    <span class="n">pil_path</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">__path__</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">PIL</span><span class="o">.</span><span class="n">__path__</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING!!! THERE ARE MULTIPLE PILS! </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">PIL</span><span class="o">.</span><span class="n">__path__</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span>
+        <span class="n">Image</span><span class="p">,</span> <span class="n">versionattr</span><span class="o">=</span><span class="s">&#39;PILLOW_VERSION&#39;</span><span class="p">,</span> <span class="n">image_version</span><span class="o">=</span><span class="n">Image</span><span class="o">.</span><span class="n">VERSION</span><span class="p">,</span> <span class="n">pil_path</span><span class="o">=</span><span class="n">pil_path</span><span class="p">)</span>
 
 </div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;1.3.1&#39;</span><span class="p">)</span>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;1.3.1&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="matplotlib_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.matplotlib_version">[docs]</a><span class="k">def</span> <span class="nf">matplotlib_version</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
-    <span class="k">return</span> <span class="n">mpl</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">mpl</span><span class="p">)</span>
 
 </div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;2.4.8&#39;</span><span class="p">)</span>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;2.4.8&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="opencv_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.opencv_version">[docs]</a><span class="k">def</span> <span class="nf">opencv_version</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">cv2</span>
-    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">cv2</span><span class="p">,</span> <span class="n">libdep</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">get_dynlib_dependencies</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">__file__</span><span class="p">))</span>
 
 </div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;0.13.2&#39;</span><span class="p">)</span>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;0.13.2&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="scipy_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.scipy_version">[docs]</a><span class="k">def</span> <span class="nf">scipy_version</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">scipy</span>
-    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">scipy</span><span class="p">)</span>
 
 </div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;1.8.0&#39;</span><span class="p">)</span>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;1.8.0&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="numpy_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.numpy_version">[docs]</a><span class="k">def</span> <span class="nf">numpy_version</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">numpy</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">numpy</span><span class="p">)</span>
 
 </div>
-<span class="nd">@version_check</span><span class="p">(</span><span class="s">&#39;4.9.1&#39;</span><span class="p">)</span>  <span class="c"># 4.10.1 on windows</span>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;4.9.1&#39;</span><span class="p">)</span>  <span class="c"># 4.10.1 on windows</span>
 <div class="viewcode-block" id="PyQt4_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.PyQt4_version">[docs]</a><span class="k">def</span> <span class="nf">PyQt4_version</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span>
-    <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">PYQT_VERSION_STR</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">QtCore</span><span class="p">,</span> <span class="s">&#39;PYQT_VERSION_STR&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="check_modules_exists"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.check_modules_exists">[docs]</a><span class="k">def</span> <span class="nf">check_modules_exists</span><span class="p">():</span>
+    <span class="c"># Modules in this list don&#39;t really need to be inspected</span>
+    <span class="c"># just make sure they are there</span>
+    <span class="n">modname_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;simplejson&#39;</span><span class="p">,</span>
+        <span class="s">&#39;flask&#39;</span><span class="p">,</span>
+        <span class="s">&#39;parse&#39;</span><span class="p">,</span>
+        <span class="s">&#39;tornado&#39;</span><span class="p">,</span>
+        <span class="s">&#39;pandas&#39;</span><span class="p">,</span>
+        <span class="s">&#39;statsmodels&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">failed_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">modname_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">globals_</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">locals_</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">exec</span><span class="p">(</span><span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="n">globals_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">failed_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;The following modules are not installed&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failed_list</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="assert_modules"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.assert_modules">[docs]</a><span class="k">def</span> <span class="nf">assert_modules</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    checkinfo functions return info_dict</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_ENABLE</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.tests.assert_modules import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; assert_modules()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MACHINE_NAME</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n\n</span><span class="s">============================&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Begining assert modules main&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;* MACHINE_NAME = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">MACHINE_NAME</span><span class="p">)</span>
+
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">ASSERT_FUNCS</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">func</span><span class="p">()</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; passed&#39;</span><span class="p">)</span>
+            <span class="n">passed</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">infodict</span><span class="p">,</span> <span class="n">statustext</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statustext</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">passed</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; passed&#39;</span><span class="p">)</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; FAILED!!!&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; FAILED!!!&#39;</span><span class="p">)</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+    <span class="n">output_text</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">output_text</span><span class="p">)</span>
+    <span class="n">check_modules_exists</span><span class="p">()</span>
+
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, ibeis.tests.assert_modules; utool.doctest_funcs(ibeis.tests.assert_modules, allexamples=True)&quot;</span>
+<span class="sd">        python -m ibeis.tests.assert_modules</span>
+<span class="sd">        python -m ibeis.tests.assert_modules --allexamples</span>
+<span class="sd">        python ~/code/ibeis/ibeis/tests/assert_modules.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># win32</span>
-    <span class="n">assert_modules</span><span class="p">()</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;in assert module main&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">assert_modules</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
