@@ -924,6 +924,7 @@ def assert_valid_names(name_list):
                                   'cannot start a name with four underscores')
 
 
+@ut.on_exception_report_input
 def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
     if utool.NO_ASSERTS:
         return
@@ -932,7 +933,8 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         # HACK: the unknown_lblannot_rowid will have a None type
         # the unknown lblannot_rowid should be handled more gracefully
         # this should just check the first condition (get rid of the or)
-        assert len(lbltype_rowid_list) == len(lbltype_rowid_list), 'lens dont match'
+        ut.assert_same_len(lbltype_rowid_list, lbltype_rowid_list)
+        ut.assert_scalar_list(lblannot_rowid_list)
         validtype_list = [
             (lbltype_rowid == valid_lbltype_rowid) or
             (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
@@ -943,8 +945,9 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
         print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + utool.indentjoin(tup_list))
         print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+
         utool.printex(ex, 'not all types match valid type',
-                      key_list=['valid_lbltype_rowid'])
+                      keys=['valid_lbltype_rowid', 'lblannot_rowid_list'])
         raise
 
 

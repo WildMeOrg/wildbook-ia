@@ -3,7 +3,7 @@ import ibeis
 import six
 import utool as ut
 import numpy as np
-from six.moves import input
+from six.moves import input  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
@@ -138,13 +138,15 @@ def autodecide_match(ibs2, aid, nid):
         ibs2.get_name_exemplar_aids(nid)
 
 
-def make_decision(ibs2, qaid, qres, threshold, interactive=True):
+def make_decision(ibs2, qaid, qres, threshold, interactive=False):
+    inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
+    print(inspectstr)
     if interactive:
-        qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)  # NOQA
         #fig = qres.ishow_top(ibs2, name_scoring=True)
         #fig.show()
-        inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
-        print(inspectstr)
+
+        qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
+
         ans = input('waiting\n')
         if ans in ['cmd', 'ipy', 'embed']:
             ut.embed()
@@ -168,7 +170,7 @@ def make_decision(ibs2, qaid, qres, threshold, interactive=True):
             nids = nid_list[candidate_indexes]  # NOQA
             scores = score_list[candidate_indexes]
             print('One candidate above threshold with scores=%r' % (scores,))
-            nid = nids[scores.argsort()[::-1]]
+            nid = nids[scores.argsort()[::-1][0]]
             autodecide_match(ibs2, qaid, nid)
 
 
@@ -228,7 +230,7 @@ def incremental_test(ibs1):
         print('\n\n==== EXECUTING TESTSTEP ====')
         aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
 
-        threshold = .96
+        threshold = .99
         exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
 
         K = ibs2.cfg.query_cfg.nn_cfg.K
@@ -240,7 +242,8 @@ def incremental_test(ibs1):
         cfgdict = {
             'K': K
         }
-        interactive = True
+        #interactive = True
+        interactive = False
 
         if len(exemplar_aids) > 0:
             qaid2_qres = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict)
