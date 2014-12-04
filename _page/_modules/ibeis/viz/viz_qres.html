@@ -135,7 +135,7 @@
         <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_gtscores</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="c"># Hack to not show too many unmatched groundtruths</span>
-            <span class="c">#_isexmp = ibs.get_annot_exemplar_flag(_gtaids)</span>
+            <span class="c">#_isexmp = ibs.get_annot_exemplar_flags(_gtaids)</span>
             <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">_gtaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">showgt_aids</span> <span class="o">=</span> <span class="n">_gtaids</span>
 
@@ -159,6 +159,8 @@
     <span class="n">show_query</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">sidebyside</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">name_scoring</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">kwargs_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">make_figtitle</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
@@ -167,7 +169,7 @@
     <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="n">top_aids</span><span class="p">)</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
 
     <span class="n">nTop</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
 

@@ -64,27 +64,45 @@
 <span id="ibeis-model-detect-grabmodels-module"></span><h2>ibeis.model.detect.grabmodels module<a class="headerlink" href="#module-ibeis.model.detect.grabmodels" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.assert_models">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">assert_models</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#assert_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.assert_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.model.detect.grabmodels.download_model">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">download_model</tt><big>(</big><em>algo</em>, <em>model_dir</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#download_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.download_model" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">assert_models</tt><big>(</big><em>modeldir='default'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#assert_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.assert_models" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.ensure_models">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">ensure_models</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#ensure_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.ensure_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.model.detect.grabmodels.get_model_dir">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">get_model_dir</tt><big>(</big><em>algo</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#get_model_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.get_model_dir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">ensure_models</tt><big>(</big><em>modeldir='default'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#ensure_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.ensure_models" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.detect.grabmodels &#8211;test-ensure_models</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.get_species_trees_paths">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">get_species_trees_paths</tt><big>(</big><em>species</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#get_species_trees_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.get_species_trees_paths" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">get_species_trees_paths</tt><big>(</big><em>species</em>, <em>modeldir='default'</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#get_species_trees_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.get_species_trees_paths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.detect.grabmodels.iter_algo_modeldirs">
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">iter_algo_modeldirs</tt><big>(</big><em>modeldir='default'</em>, <em>ensurebase=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#iter_algo_modeldirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.iter_algo_modeldirs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.detect.grabmodels.redownload_models">
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">redownload_models</tt><big>(</big><em>modeldir='default'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#redownload_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.redownload_models" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -93,7 +111,7 @@
 <p>Interface to pyrf random forest object detection.</p>
 <dl class="function">
 <dt id="ibeis.model.detect.randomforest.compute_hough_images">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_hough_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_hough_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_hough_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_hough_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=True</em>, <em>verbose=False</em>, <em>modeldir='default'</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_hough_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_hough_images" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -107,7 +125,7 @@
 
 <dl class="function">
 <dt id="ibeis.model.detect.randomforest.compute_probability_images">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_probability_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_probability_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_probability_images" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">compute_probability_images</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>use_chunks=True</em>, <em>quick=False</em>, <em>modeldir='default'</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#compute_probability_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.compute_probability_images" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -121,14 +139,44 @@
 
 <dl class="function">
 <dt id="ibeis.model.detect.randomforest.detect_species_bboxes">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">detect_species_bboxes</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>quick=True</em>, <em>single=False</em>, <em>use_chunks=False</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#detect_species_bboxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.detect_species_bboxes" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">detect_species_bboxes</tt><big>(</big><em>src_gpath_list</em>, <em>dst_gpath_list</em>, <em>species</em>, <em>quick=True</em>, <em>single=False</em>, <em>use_chunks=False</em>, <em>modeldir='default'</em>, <em>verbose=False</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#detect_species_bboxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.detect_species_bboxes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates bounding boxes for each source image
 For each image yeilds a list of bounding boxes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.detect.randomforest &#8211;test-detect_species_bboxes</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">src_gpath_list</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dst_gpath_list</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quick</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">single</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_chunks</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_species_bboxes</span><span class="p">(</span><span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">dst_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="p">,</span> <span class="n">single</span><span class="p">,</span> <span class="n">use_chunks</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.model.detect.randomforest.format_pyrf_results">
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">format_pyrf_results</tt><big>(</big><em>results</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#format_pyrf_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.format_pyrf_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.model.detect.randomforest.ibeis_generate_image_detections">
-<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">ibeis_generate_image_detections</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>species</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#ibeis_generate_image_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.ibeis_generate_image_detections" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.randomforest.</tt><tt class="descname">ibeis_generate_image_detections</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>species</em>, <em>verbose=False</em>, <em>**detectkw</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/randomforest.html#ibeis_generate_image_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.randomforest.ibeis_generate_image_detections" title="Permalink to this definition">¶</a></dt>
 <dd><p>detectkw can be: save_detection_images, save_scales, draw_supressed,
 detection_width, detection_height, percentage_left, percentage_top,
 nms_margin_percentage</p>
@@ -149,14 +197,14 @@ nms_margin_percentage</p>
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.model.detect" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.model.detect.reload_subs">
-<tt class="descclassname">ibeis.model.detect.</tt><tt class="descname">reload_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.reload_subs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads detect and submodules</p>
+<tt class="descclassname">ibeis.model.detect.</tt><tt class="descname">reload_subs</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model.detect and submodules</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.detect.rrrr">
-<tt class="descclassname">ibeis.model.detect.</tt><tt class="descname">rrrr</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.model.detect.rrrr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads detect and submodules</p>
+<tt class="descclassname">ibeis.model.detect.</tt><tt class="descname">rrrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.model.detect.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model.detect and submodules</p>
 </dd></dl>
 
 </div>

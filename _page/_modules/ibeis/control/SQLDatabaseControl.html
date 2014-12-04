@@ -70,7 +70,8 @@
     <span class="c">#return utool.indent_func(&#39;[sql.&#39; + func.__name__ + &#39;]&#39;)(func)</span>
 </div>
 <span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span>
-<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="c">#VERYVERBOSE = utool.VERYVERBOSE</span>
+<span class="n">VERYSQL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-sql&#39;</span><span class="p">)</span>
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
 <span class="n">AUTODUMP</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
 <span class="n">COPY_TO_MEMORY</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--copy-db-to-memory&#39;</span><span class="p">))</span>
@@ -185,6 +186,9 @@
         <span class="n">db</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
         <span class="n">db</span><span class="o">.</span><span class="n">_ensure_metadata_table</span><span class="p">()</span>
 
+<div class="viewcode-block" id="SQLDatabaseController.get_fpath"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_fpath</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
+</div>
 <div class="viewcode-block" id="SQLDatabaseController.close"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="n">db</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -197,11 +201,31 @@
             <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">),</span>
             <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">],</span>
+            <span class="c"># IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation</span>
             <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        The table that stores permanently all of the metadata about the</span>
 <span class="s">        database (tables, etc)&#39;&#39;&#39;</span><span class="p">)</span>
-        <span class="c"># IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation</span>
+        <span class="c"># Ensure that a version number exists</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
+<div class="viewcode-block" id="SQLDatabaseController.get_db_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_db_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_version</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">metadata_key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;database_version&#39;</span><span class="p">]</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_key</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_key</span> <span class="ow">in</span> <span class="n">metadata_key_list</span><span class="p">)</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;metadata_key=?&#39;</span>
+        <span class="c"># list of relationships for each image</span>
+        <span class="n">metadata_value_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span>
+                                           <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
+                                           <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_value_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;duplicate database_version keys in database&#39;</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">metadata_value_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+            <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s">&#39;metadata_value&#39;</span><span class="p">]</span>
+            <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">([</span><span class="s">&#39;database_version&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">version</span><span class="p">])</span>
+            <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>  <span class="c"># We don&#39;t care to find any, because we know there is no version</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">version</span>
+</div>
     <span class="k">def</span> <span class="nf">_copy_to_memory</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cStringIO</span>
@@ -299,8 +323,8 @@
     <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; ADDER NOTE: use add_cleanly &quot;&quot;&quot;</span>
         <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tblname&#39;</span>  <span class="p">:</span> <span class="n">tblname</span><span class="p">,</span>
-                    <span class="s">&#39;erotemes&#39;</span> <span class="p">:</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">)),</span>
-                    <span class="s">&#39;params&#39;</span>   <span class="p">:</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colnames</span><span class="p">),</span> <span class="p">}</span>
+                   <span class="s">&#39;erotemes&#39;</span> <span class="p">:</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">)),</span>
+                   <span class="s">&#39;params&#39;</span>   <span class="p">:</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colnames</span><span class="p">),</span> <span class="p">}</span>
         <span class="n">operation_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
 <span class="s">        INSERT INTO {tblname}(</span>
 <span class="s">        rowid,</span>
@@ -317,14 +341,21 @@
 <span class="sd">        ADDER Extra input:</span>
 <span class="sd">        the first item of params_iter must be a superkey (like a uuid),</span>
 
-<span class="sd">        add_cleanly</span>
+<span class="sd">        Does not add None values. Does not add duplicate values.</span>
+<span class="sd">        For each None input returns None ouptut.</span>
+<span class="sd">        For each duplicate input returns existing rowid</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            tblname (str): table name to add into</span>
+
 <span class="sd">            colnames (tuple of strs): columns whos values are specified in params_iter</span>
+
 <span class="sd">            params_iter (iterable): an iterable of tuples where each tuple corresonds to a row</span>
+
 <span class="sd">            get_rowid_from_superkey (func): function that tests if a row needs</span>
 <span class="sd">                to be added. It should return None for any new rows to be inserted.</span>
+<span class="sd">                It should return the existing rowid if one exists</span>
+
 <span class="sd">            superkey_paramx (tuple of ints): indicies of tuples in params_iter which</span>
 <span class="sd">                correspond to superkeys. defaults to (0,)</span>
 
@@ -334,10 +365,10 @@
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.control.SQLDatabaseControl import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; db = &#39;?&#39;</span>
-<span class="sd">            &gt;&gt;&gt; tblname = &#39;?&#39;</span>
-<span class="sd">            &gt;&gt;&gt; colnames = &#39;?&#39;</span>
-<span class="sd">            &gt;&gt;&gt; params_iter = &#39;?&#39;</span>
-<span class="sd">            &gt;&gt;&gt; get_rowid_from_superkey = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tblname = tblname_temp</span>
+<span class="sd">            &gt;&gt;&gt; colnames = dst_list</span>
+<span class="sd">            &gt;&gt;&gt; params_iter = data_list</span>
+<span class="sd">            &gt;&gt;&gt; #get_rowid_from_superkey = &#39;?&#39;</span>
 <span class="sd">            &gt;&gt;&gt; superkey_paramx = (0,)</span>
 <span class="sd">            &gt;&gt;&gt; rowid_list_ = add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)</span>
 <span class="sd">            &gt;&gt;&gt; print(rowid_list_)</span>
@@ -350,6 +381,7 @@
                           <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">superkey_paramx</span><span class="p">]</span>
         <span class="c"># ADD_CLEANLY_2: PREFORM INPUT CHECKS</span>
         <span class="c"># check which parameters are valid</span>
+        <span class="c">#and not any(ut.flag_None_items(params))</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>
         <span class="c"># Check for duplicate inputs</span>
         <span class="n">isunique_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">superkey_lists</span><span class="p">)))</span>
@@ -359,12 +391,12 @@
         <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">isunique_list</span><span class="p">):</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[WARNING]: duplicate inputs to db.add_cleanly&#39;</span><span class="p">)</span>
         <span class="c"># Flag each item that needs to added to the database</span>
-        <span class="n">isdirty_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">isvalid_list</span><span class="p">,</span> <span class="n">isunique_list</span><span class="p">,</span> <span class="n">isnew_list</span><span class="p">)))</span>
+        <span class="n">needsadd_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">isvalid_list</span><span class="p">,</span> <span class="n">isunique_list</span><span class="p">,</span> <span class="n">isnew_list</span><span class="p">)))</span>
         <span class="c"># ADD_CLEANLY_3.1: EXIT IF CLEAN</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isdirty_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">needsadd_list</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">rowid_list_</span>  <span class="c"># There is nothing to add. Return the rowids</span>
         <span class="c"># ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS</span>
-        <span class="n">dirty_params</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+        <span class="n">dirty_params</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="n">needsadd_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] adding </span><span class="si">%r</span><span class="s">/</span><span class="si">%r</span><span class="s"> new </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_params</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_list</span><span class="p">),</span> <span class="n">tblname</span><span class="p">))</span>
         <span class="c"># Add any unadded parameters to the database</span>
@@ -373,7 +405,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span>
                 <span class="s">&#39;dirty_params&#39;</span><span class="p">,</span>
-                <span class="s">&#39;isdirty_list&#39;</span><span class="p">,</span>
+                <span class="s">&#39;needsadd_list&#39;</span><span class="p">,</span>
                 <span class="s">&#39;superkey_lists&#39;</span><span class="p">,</span>
                 <span class="s">&#39;rowid_list_&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
@@ -670,6 +702,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">           tablename (str): tablename</span>
+<span class="sd">           colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)</span>
+<span class="sd">           table_constraints (str):</span>
+<span class="sd">           superkey_colnames (list)</span>
+<span class="sd">           docstr (str)</span>
+<span class="sd">           tablename_new (?)</span>
+
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; def contributor_location_zip_map(x):</span>
 <span class="sd">            ...     return x</span>
@@ -694,11 +734,8 @@
         <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">colname_original_list</span> <span class="o">=</span> <span class="n">colname_list</span><span class="p">[:]</span>
         <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-        <span class="n">colname_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">colname_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">colname</span><span class="p">:</span> <span class="n">colname</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colname_list</span><span class="p">}</span>
         <span class="n">colmap_dict</span>  <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colname_list</span><span class="p">:</span>
-            <span class="n">colname_dict</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">colname</span>
 
         <span class="n">insert</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">map_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">colmap_list</span><span class="p">:</span>
@@ -757,8 +794,9 @@
             <span class="k">if</span> <span class="n">map_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">colmap_dict</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="n">map_</span>
 
-        <span class="n">coldef_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">colname_list</span><span class="p">,</span> <span class="n">coltype_list</span><span class="p">)</span> <span class="p">]</span>
-        <span class="n">tablename_temp</span> <span class="o">=</span> <span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;_temp&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">coldef_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">colname_list</span><span class="p">,</span> <span class="n">coltype_list</span><span class="p">))</span>
+        <span class="n">tablename_orig</span> <span class="o">=</span> <span class="n">tablename</span>
+        <span class="n">tablename_temp</span> <span class="o">=</span> <span class="n">tablename_orig</span> <span class="o">+</span> <span class="s">&#39;_temp&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">docstr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">docstr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_docstr</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">table_constraints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -788,7 +826,8 @@
             <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_list</span>
         <span class="p">]</span>
         <span class="c"># Add the data to the database</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">tablename_temp</span><span class="p">,</span> <span class="n">dst_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">,</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">tablename_temp</span><span class="p">,</span> <span class="n">dst_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tablename_new</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Drop original table</span>
             <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
@@ -819,7 +858,8 @@
         <span class="c"># Copy data</span>
         <span class="n">data_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">colname_list</span><span class="p">))</span>
         <span class="c"># Add the data to the database</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">tablename_temp</span><span class="p">,</span> <span class="n">colname_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">,</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">tablename_temp</span><span class="p">,</span> <span class="n">colname_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
         <span class="c"># Drop original table</span>
         <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="c"># Rename temp table to original table name</span>
@@ -922,7 +962,7 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.executeone"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">[docs]</a>    <span class="k">def</span> <span class="nf">executeone</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                   <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
+                   <span class="n">verbose</span><span class="o">=</span><span class="n">VERYSQL</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">result_iter</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -936,7 +976,7 @@
     <span class="nd">@default_decorator</span>
     <span class="c">#@utool.memprof</span>
 <div class="viewcode-block" id="SQLDatabaseController.executemany"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYSQL</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c"># --- ARGS PREPROC ---</span>
         <span class="c"># Aggresively compute iterator if the nInput is not given</span>
@@ -944,17 +984,17 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
                 <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: aggressive eval of params_iter because nInput=None&#39;</span><span class="p">)</span>
                 <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
                 <span class="n">nInput</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Taking params_iter as iterator&#39;</span><span class="p">)</span>
 
         <span class="c"># Do not compute executemany without params</span>
         <span class="k">if</span> <span class="n">nInput</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: dont use executemany&#39;</span>
                       <span class="s">&#39;with no params use executeone instead.&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[]</span>
@@ -1010,7 +1050,7 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.dump_to_file"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">dump_to_file</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">schema_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.dump]&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auto_commit</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -1023,7 +1063,7 @@
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.dump_to_string"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_to_string">[docs]</a>    <span class="k">def</span> <span class="nf">dump_to_string</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">schema_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="n">retStr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.dump]&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auto_commit</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -1343,6 +1383,9 @@
         <span class="n">csv_table</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">csv_table</span>
 </div>
+<div class="viewcode-block" id="SQLDatabaseController.print_table_csv"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.print_table_csv">[docs]</a>    <span class="k">def</span> <span class="nf">print_table_csv</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="n">exclude_columns</span><span class="p">))</span>
+</div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.get_table_csv_header"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_table_csv_header">[docs]</a>    <span class="k">def</span> <span class="nf">get_table_csv_header</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
         <span class="n">column_nametypes</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">),</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="n">tablename</span><span class="p">))</span>
@@ -1357,21 +1400,14 @@
         <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">():</span>
             <span class="k">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv_header</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="SQLDatabaseController.get_db_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_db_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_version</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="n">metadata_key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;database_version&#39;</span><span class="p">]</span>
-        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_key</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_key</span> <span class="ow">in</span> <span class="n">metadata_key_list</span><span class="p">)</span>
-        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;metadata_key=?&#39;</span>
-        <span class="c"># list of relationships for each image</span>
-        <span class="n">metadata_value_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_value_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;duplicate database_version keys in database&#39;</span>
-        <span class="n">version</span> <span class="o">=</span> <span class="n">metadata_value_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ensure</span><span class="p">:</span>
-            <span class="n">version</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
-            <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s">&#39;metadata_value&#39;</span><span class="p">]</span>
-            <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">([</span><span class="s">&#39;database_version&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">version</span><span class="p">])</span>
-            <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>  <span class="c"># We don&#39;t care to find any, because we know there is no version</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">version</span>
+<div class="viewcode-block" id="SQLDatabaseController.view_db_in_external_reader"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.view_db_in_external_reader">[docs]</a>    <span class="k">def</span> <span class="nf">view_db_in_external_reader</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">known_readers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;sqlitebrowser&#39;</span><span class="p">,</span> <span class="s">&#39;sqliteman&#39;</span><span class="p">]</span>
+        <span class="n">sqlite3_reader</span> <span class="o">=</span> <span class="n">known_readers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sqlite3_db_fpath</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">sqlite3_reader</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">sqlite3_db_fpath</span><span class="p">)</span>
+        <span class="c">#ut.cmd(sqlite3_reader, sqlite3_db_fpath)</span>
+        <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="SQLDatabaseController.set_db_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.set_db_version">[docs]</a>    <span class="k">def</span> <span class="nf">set_db_version</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
         <span class="c"># Do things properly, get the metadata_rowid (best because we want to assert anyway)</span>

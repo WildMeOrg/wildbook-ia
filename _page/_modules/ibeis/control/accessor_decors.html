@@ -53,13 +53,13 @@
 <span class="c"># import decorator  # NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
 
 <span class="n">DEBUG_ADDERS</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-adders&#39;</span><span class="p">)</span>
 <span class="n">DEBUG_SETTERS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-setters&#39;</span><span class="p">)</span>
 <span class="n">DEBUG_GETTERS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-getters&#39;</span><span class="p">)</span>
+<span class="n">VERB_CONTROL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-control&#39;</span><span class="p">)</span>
 
 <span class="c">#</span>
 <span class="c">#-----------------</span>
@@ -128,7 +128,6 @@
         <span class="n">getter_func</span> <span class="o">=</span> <span class="n">profile</span><span class="p">(</span><span class="n">getter_func</span><span class="p">)</span>  <span class="c"># Autoprofilehack</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">getter_func</span>
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">getter_func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c"># the class must have a table_cache property</span>
             <span class="n">cache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">]</span>
@@ -166,7 +165,6 @@
     <span class="k">def</span> <span class="nf">closure_cache_invalidator</span><span class="p">(</span><span class="n">setter_func</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">setter_func</span>
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">setter_func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrp_cache_invalidator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c"># the class must have a table_cache property</span>
             <span class="n">colscache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
@@ -185,22 +183,22 @@
 <span class="c">#@decorator.decorator</span></div>
 <div class="viewcode-block" id="adder"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.adder">[docs]</a><span class="k">def</span> <span class="nf">adder</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="c">#@utool.on_exception_report_input</span>
     <span class="nd">@utool.accepts_scalar_input</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_adder</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">DEBUG_ADDERS</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DEBUG_ADDERS</span> <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
             <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">funccall_str</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;L------&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
             <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_adder</span>
 
 
@@ -211,9 +209,8 @@
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="nd">@utool.accepts_scalar_input</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_deleter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DELETE]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
             <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -232,13 +229,13 @@
 <span class="c">#@decorator.decorator</span></div>
 <div class="viewcode-block" id="setter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.setter">[docs]</a><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@utool.accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="nd">@utool.accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">outer_wrapper</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="c">#@utool.accepts_scalar_input2(argx_list=range(0, 2))</span>
     <span class="c">#@utool.accepts_scalar_input2(argx_list=range(1, 2))</span>
+    <span class="c">#@utool.on_exception_report_input</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_setter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">DEBUG_SETTERS</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DEBUG_SETTERS</span> <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
             <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -248,6 +245,7 @@
         <span class="c">#print(&#39;set: funcname=%r, args=%r, kwargs=%r&#39; % (get_funcname(func), args, kwargs))</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_setter</span>
 
 
@@ -260,15 +258,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#func_ = func</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="c">#@utool.on_exception_report_input</span>
     <span class="nd">@utool.accepts_scalar_input</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c">#if utool.DEBUG:</span>
         <span class="c">#    print(&#39;[IN GETTER] args=%r&#39; % (args,))</span>
         <span class="c">#    print(&#39;[IN GETTER] kwargs=%r&#39; % (kwargs,))</span>
-        <span class="k">if</span> <span class="n">DEBUG_GETTERS</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DEBUG_GETTERS</span>  <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[GET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
             <span class="n">funccall_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">packed</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -276,6 +273,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;L------&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_getter</span>
 
 
@@ -288,7 +286,6 @@
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="nd">@utool.accepts_scalar_input_vector_output</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">getter_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_vector_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
@@ -308,13 +305,13 @@
     <span class="c">#getter_func = getter(func)</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="nd">@utool.accepts_numpy</span>
-    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="c">#@utool.on_exception_report_input</span>
     <span class="nd">@utool.accepts_scalar_input</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">getter_numpy_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">getter_numpy_wrp</span>
 
 
@@ -327,7 +324,6 @@
     <span class="nd">@utool.accepts_numpy</span>
     <span class="nd">@utool.accepts_scalar_input_vector_output</span>
     <span class="nd">@utool.ignores_exc_tb</span>
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">getter_numpy_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_numpy_vector_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>

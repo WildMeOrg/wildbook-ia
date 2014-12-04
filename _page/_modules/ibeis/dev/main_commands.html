@@ -81,21 +81,6 @@
     <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">())</span>
 
 </div>
-<div class="viewcode-block" id="parse_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_commands.parse_cfgstr_list">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parses a list of items in the format</span>
-<span class="sd">    [&#39;var1:val1&#39;, &#39;var2:val2&#39;, &#39;var3:val3&#39;]</span>
-<span class="sd">    the &#39;=&#39; character can be used instead of the &#39;:&#39; character if desired</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfgstr_list</span><span class="p">:</span>
-        <span class="n">varval_tup</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">varval_tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;[!] Invalid cfgitem=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="p">,)</span>
-        <span class="n">var</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">varval_tup</span>
-        <span class="n">cfgdict</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
-    <span class="k">return</span> <span class="n">cfgdict</span>
-
-</div>
 <div class="viewcode-block" id="preload_convert_hsdb"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_commands.preload_convert_hsdb">[docs]</a><span class="k">def</span> <span class="nf">preload_convert_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Convert the database before loading (A bit hacky) &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
@@ -142,7 +127,7 @@
         <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># Set query parameters from command line</span>
-        <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">)</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Custom cfgdict specified&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>

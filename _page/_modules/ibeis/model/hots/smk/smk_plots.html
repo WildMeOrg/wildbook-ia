@@ -204,7 +204,7 @@
         <span class="n">fx_list</span>   <span class="o">=</span> <span class="n">idx2_dfx</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
         <span class="n">chip</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">chip_kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-        <span class="n">nid</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">nid</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">patches</span><span class="p">,</span> <span class="n">subkpts</span> <span class="o">=</span> <span class="n">ptool</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">chip_kpts</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">fx</span><span class="p">,</span> <span class="n">wxs</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fx_list</span><span class="p">,</span> <span class="n">wxs_list</span><span class="p">,</span> <span class="n">patches</span><span class="p">):</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;did you multiassign the database? If so implement it here too&#39;</span>
@@ -517,7 +517,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: Put query_cfg into the qreq_ structure by itself.</span>
     <span class="c"># Don&#39;t change the IBEIS Structure</span>
-    <span class="n">custom_qparams</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s">&#39;vsmany&#39;</span><span class="p">,</span>
         <span class="s">&#39;with_metadata&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
         <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">,</span>
@@ -526,13 +526,13 @@
     <span class="p">}</span>
     <span class="c">#ibs.cfg.query_cfg.pipeline_root = &#39;vsmany&#39;</span>
     <span class="c">#ibs.cfg.query_cfg.with_metadata = True</span>
-    <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_all</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="o">=</span><span class="n">custom_qparams</span><span class="p">)</span>
+    <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_all</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
     <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
     <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;nns&#39;</span><span class="p">]</span>
-    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">qfx2_aids</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
-    <span class="n">qfx2_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_aids</span><span class="p">)</span>
+    <span class="n">qfx2_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_aids</span><span class="p">)</span>
     <span class="n">qfx2_isself</span>  <span class="o">=</span> <span class="n">qfx2_aids</span> <span class="o">!=</span> <span class="n">aid</span>
     <span class="n">qfx2_correct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_nids</span> <span class="o">==</span> <span class="n">nid</span><span class="p">,</span> <span class="n">qfx2_isself</span><span class="p">)</span>
     <span class="c"># Mark the top ranked groundtruth</span>

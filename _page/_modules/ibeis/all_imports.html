@@ -49,6 +49,11 @@
             
   <h1>Source code for ibeis.all_imports</h1><div class="highlight"><pre>
 <span class="c"># flake8: noqa</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file contains most every module I&#39;ve ever used.</span>
+<span class="sd">Serves as a good check to make sure either everything I</span>
+<span class="sd">want to use is imported / exists.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
@@ -118,6 +123,7 @@
 <span class="kn">from</span> <span class="nn">PIL.ExifTags</span> <span class="kn">import</span> <span class="n">TAGS</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">fclusterdata</span>
 <span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
+<span class="kn">import</span> <span class="nn">statsmodels</span>
 <span class="c">#import pandas as pd</span>
 <span class="c">#import networkx as netx</span>
 <span class="c">#try:</span>
@@ -159,6 +165,7 @@
 
 <span class="c"># PlotTool</span>
 <span class="kn">import</span> <span class="nn">plottool</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
@@ -169,6 +176,7 @@
 <span class="c"># IBEIS</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">model</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">control</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">gui</span>
@@ -206,6 +214,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">preproc</span>
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">hots</span>
 <span class="c"># IBEIS MODEL PREPROCESSING</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_image</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
@@ -244,6 +253,8 @@
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_matches</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">iselect_bbox</span>
 
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[all_imports]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="find_unregisterd"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.find_unregisterd">[docs]</a><span class="k">def</span> <span class="nf">find_unregisterd</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">sys</span>

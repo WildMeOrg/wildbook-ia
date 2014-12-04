@@ -60,10 +60,18 @@ ibeis.control.__SQLITE3__ module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._autogen_ibeiscontrol_funcs module
-------------------------------------------------
+ibeis.control._autogen_annot_funcs module
+-----------------------------------------
 
-.. automodule:: ibeis.control._autogen_ibeiscontrol_funcs
+.. automodule:: ibeis.control._autogen_annot_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_featweight_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control._autogen_featweight_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -92,10 +100,82 @@ ibeis.control.accessor_decors module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.controller_inject module
+--------------------------------------
+
+.. automodule:: ibeis.control.controller_inject
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_annot_funcs module
+---------------------------------------
+
+.. automodule:: ibeis.control.manual_annot_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_dependant_funcs module
+-------------------------------------------
+
+.. automodule:: ibeis.control.manual_dependant_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control.manual_ibeiscontrol_funcs module
 ----------------------------------------------
 
 .. automodule:: ibeis.control.manual_ibeiscontrol_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_image_funcs module
+---------------------------------------
+
+.. automodule:: ibeis.control.manual_image_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lblannot_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_lblannot_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lblimage_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_lblimage_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lbltype_funcs module
+-----------------------------------------
+
+.. automodule:: ibeis.control.manual_lbltype_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_meta_funcs module
+--------------------------------------
+
+.. automodule:: ibeis.control.manual_meta_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_name_species_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control.manual_name_species_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -108,10 +188,10 @@ ibeis.control.template_definitions module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control.templates module
-------------------------------
+ibeis.control.template_generator module
+---------------------------------------
 
-.. automodule:: ibeis.control.templates
+.. automodule:: ibeis.control.template_generator
     :members:
     :undoc-members:
     :show-inheritance:

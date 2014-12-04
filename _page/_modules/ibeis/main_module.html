@@ -162,7 +162,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printWARN</span><span class="p">(</span><span class="s">&#39;[main!] WARNING args.dbdir is None&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">new_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">new_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">webapp</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">app</span>
             <span class="n">app</span><span class="o">.</span><span class="n">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
@@ -287,7 +287,7 @@
 
 </div>
 <div class="viewcode-block" id="opendb"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb">[docs]</a><span class="k">def</span> <span class="nf">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-           <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+           <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; main without the preload (except for option to delete database before</span>
 <span class="sd">    opening) &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
@@ -296,7 +296,7 @@
     <span class="k">if</span> <span class="n">delete_ibsdir</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="s">&#39;must be making new directory if you are deleting everything!&#39;</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span>
 
 </div>
@@ -323,7 +323,7 @@
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="k">if</span>  <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;MainProcess&#39;</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="c">#_parse_args()</span>
+    <span class="n">_parse_args</span><span class="p">()</span>
     <span class="c"># mpl backends</span>
     <span class="k">if</span> <span class="n">logging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nologging</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">start_logging</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
@@ -350,6 +350,18 @@
 <span class="sd">    for embedding an IPython terminal if requested.</span>
 
 <span class="sd">    If rungui is False the gui will not loop even if back has been created</span>
+
+<span class="sd">    the main locals dict must be callsed main_locals in the scope you call this</span>
+<span class="sd">    function in.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        main_locals (dict_):</span>
+<span class="sd">        rungui      (bool):</span>
+<span class="sd">        ipy         (bool):</span>
+<span class="sd">        persist     (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: execstr</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main] ibeis.main_module.main_loop()&#39;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>

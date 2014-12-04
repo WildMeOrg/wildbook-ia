@@ -63,31 +63,35 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inspect_gui]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inspect_gui]&#39;</span><span class="p">)</span>
 
 
-<span class="n">USE_FILTER_PROXY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">USE_FILTER_PROXY</span> <span class="o">=</span> <span class="bp">False</span>
 
 
 <div class="viewcode-block" id="QueryResultsWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget">[docs]</a><span class="k">class</span> <span class="nc">QueryResultsWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Window for gui inspection &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres_wgt] Init QueryResultsWidget&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres_wgt] Init QueryResultsWidget&#39;</span><span class="p">)</span>
         <span class="c"># Uncomment below to turn on FilterProxyModel</span>
         <span class="k">if</span> <span class="n">USE_FILTER_PROXY</span><span class="p">:</span>
             <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
                                     <span class="n">model_class</span><span class="o">=</span><span class="n">CustomFilterModel</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">button_list</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_new</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_join</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_split</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
         <span class="c"># Set results data</span>
-        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">add_checkboxes</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_new</span><span class="p">,</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_join</span><span class="p">,</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_split</span><span class="p">)</span>
-        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">set_query_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">USE_FILTER_PROXY</span><span class="p">:</span>
+            <span class="n">qres_wgt</span><span class="o">.</span><span class="n">add_checkboxes</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_new</span><span class="p">,</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_join</span><span class="p">,</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show_split</span><span class="p">)</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">set_query_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">connect_signals_and_slots</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">callback</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span>
@@ -124,6 +128,8 @@
                 <span class="n">qres_wgt</span><span class="o">.</span><span class="n">buttonBars</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">button</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResultsWidget.update_checkboxes"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.update_checkboxes">[docs]</a>    <span class="k">def</span> <span class="nf">update_checkboxes</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">button_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
         <span class="n">show_new</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">button_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
         <span class="n">show_join</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">button_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
         <span class="n">show_split</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">button_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
@@ -142,11 +148,11 @@
         <span class="c"># should eventually improve this to use the widths of the header columns</span>
         <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QSize</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="QueryResultsWidget.set_query_results"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.set_query_results">[docs]</a>    <span class="k">def</span> <span class="nf">set_query_results</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResultsWidget.set_query_results"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.set_query_results">[docs]</a>    <span class="k">def</span> <span class="nf">set_query_results</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres_wgt] Change QueryResultsWidget data&#39;</span><span class="p">)</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
-        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qres_api</span> <span class="o">=</span> <span class="n">make_qres_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qres_api</span> <span class="o">=</span> <span class="n">make_qres_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">qres_wgt</span><span class="o">.</span><span class="n">update_checkboxes</span><span class="p">()</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qres_api</span><span class="o">.</span><span class="n">make_headers</span><span class="p">()</span>
         <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">change_headers</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
@@ -243,12 +249,12 @@
             <span class="n">backend_callback</span><span class="p">()</span>
             <span class="k">return</span>
         <span class="k">elif</span> <span class="n">is_unknown</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_nids</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid2</span><span class="p">))</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid2</span><span class="p">))</span>
             <span class="n">update_callback</span><span class="p">()</span>
             <span class="n">backend_callback</span><span class="p">()</span>
             <span class="k">return</span>
         <span class="k">elif</span> <span class="n">is_unknown</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_nids</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid1</span><span class="p">))</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid1</span><span class="p">))</span>
             <span class="n">update_callback</span><span class="p">()</span>
             <span class="n">backend_callback</span><span class="p">()</span>
             <span class="k">return</span>
@@ -297,13 +303,16 @@
 
 </div>
 <div class="viewcode-block" id="CustomAPI"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.CustomAPI">[docs]</a><span class="k">class</span> <span class="nc">CustomAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; # TODO: Rename CustomAPI</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # TODO: Rename CustomAPI</span>
 <span class="sd">    API wrapper around a list of lists, each containing column data</span>
-<span class="sd">    Defines a single table &quot;&quot;&quot;</span>
+<span class="sd">    Defines a single table</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getters_dict</span><span class="p">,</span>
                  <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
                  <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">sort_reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[CustomAPI] &lt;__init__&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[CustomAPI] &lt;__init__&gt;&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_getter_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -313,11 +322,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parse_column_tuples</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getters_dict</span><span class="p">,</span>
                                  <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
                                  <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">sort_reverse</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[CustomAPI] &lt;/__init__&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[CustomAPI] &lt;/__init__&gt;&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CustomAPI.parse_column_tuples"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.CustomAPI.parse_column_tuples">[docs]</a>    <span class="k">def</span> <span class="nf">parse_column_tuples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getters_dict</span><span class="p">,</span>
-                            <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
-                            <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">sort_reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="CustomAPI.parse_column_tuples"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.CustomAPI.parse_column_tuples">[docs]</a>    <span class="k">def</span> <span class="nf">parse_column_tuples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">col_name_list</span><span class="p">,</span>
+                            <span class="n">col_types_dict</span><span class="p">,</span>
+                            <span class="n">col_getters_dict</span><span class="p">,</span>
+                            <span class="n">col_bgrole_dict</span><span class="p">,</span>
+                            <span class="n">col_ider_dict</span><span class="p">,</span>
+                            <span class="n">col_setter_dict</span><span class="p">,</span>
+                            <span class="n">editable_colnames</span><span class="p">,</span>
+                            <span class="n">sortby</span><span class="p">,</span>
+                            <span class="n">sort_reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c"># Unpack the column tuples into names, getters, and types</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_name_list</span> <span class="o">=</span> <span class="n">col_name_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_types_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
@@ -459,16 +476,17 @@
     <span class="k">return</span> <span class="n">buttontup</span>
 
 </div>
-<div class="viewcode-block" id="make_qres_api"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.make_qres_api">[docs]</a><span class="k">def</span> <span class="nf">make_qres_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="make_qres_api"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.make_qres_api">[docs]</a><span class="k">def</span> <span class="nf">make_qres_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds columns which are displayable in a ColumnListTableWidget</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect] make_qres_api&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect] make_qres_api&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="p">,</span> <span class="s">&#39;ranks_lt&#39;</span><span class="p">):</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">ranks_lt</span> <span class="o">=</span> <span class="n">ranks_lt</span> <span class="k">if</span> <span class="n">ranks_lt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span>
     <span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">get_automatch_candidates</span><span class="p">(</span>
-        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
+        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
     <span class="c"># Get extra info</span>
     <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">candidate_matches</span>
     <span class="c"># assert all([isinstance(qaid, np.int32) for qaid in qaids]), &quot;ERROR not all qaids are ints: %r&quot; % (qaids)</span>
@@ -490,8 +508,17 @@
     <span class="c"># TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY</span>
     <span class="c"># TO GET THOSE PAIRWISE INDEXES</span>
 
-    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;status&#39;</span><span class="p">,</span> <span class="s">&#39;querythumb&#39;</span><span class="p">,</span> <span class="s">&#39;resthumb&#39;</span><span class="p">,</span> <span class="s">&#39;qname&#39;</span><span class="p">,</span>
-                     <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;rank&#39;</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;qaid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;aid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;score&#39;</span><span class="p">,</span>
+        <span class="s">&#39;status&#39;</span><span class="p">,</span>
+        <span class="s">&#39;querythumb&#39;</span><span class="p">,</span>
+        <span class="s">&#39;resthumb&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qname&#39;</span><span class="p">,</span>
+        <span class="s">&#39;name&#39;</span><span class="p">,</span>
+        <span class="s">&#39;rank&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
 
     <span class="n">col_types_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span>
         <span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span>       <span class="nb">int</span><span class="p">),</span>
@@ -543,7 +570,76 @@
     <span class="n">qres_api</span> <span class="o">=</span> <span class="n">CustomAPI</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getters_dict</span><span class="p">,</span>
                          <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
                          <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">qres_api</span></div>
+    <span class="k">return</span> <span class="n">qres_api</span>
+
+</div>
+<div class="viewcode-block" id="test_inspect_matches"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.test_inspect_matches">[docs]</a><span class="k">def</span> <span class="nf">test_inspect_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    test_inspect_matches</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs       (IBEISController):</span>
+<span class="sd">        qaid_list (list): query annotation id list</span>
+<span class="sd">        daid_list (list): database annotation id list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: locals_</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui --enableall --test-test_inspect_matches --cmd</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; main_locals = test_inspect_matches(ibs, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; main_execstr = ibeis.main_loop(main_locals)</span>
+<span class="sd">        &gt;&gt;&gt; print(main_execstr)</span>
+<span class="sd">        &gt;&gt;&gt; exec(main_execstr)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_qres2</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
+    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">results_all</span>
+    <span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="n">tblname</span> <span class="o">=</span> <span class="s">&#39;qres&#39;</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span>
+    <span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="c"># This object is created inside QresResultsWidget</span>
+    <span class="c">#qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA</span>
+    <span class="c"># This is where you create the result widigt</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect_matches] make_qres_widget&#39;</span><span class="p">)</span>
+    <span class="n">qres_wgt</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">QueryResultsWidget</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect_matches] show&#39;</span><span class="p">)</span>
+    <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect_matches] raise&#39;</span><span class="p">)</span>
+    <span class="n">qres_wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+    <span class="c">#query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)</span>
+    <span class="c">#self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/inspect_matches&gt;&#39;</span><span class="p">)</span>
+    <span class="c"># simulate double click</span>
+    <span class="n">qres_wgt</span><span class="o">.</span><span class="n">_on_click</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="c">#qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))</span>
+    <span class="n">locals_</span> <span class="o">=</span>  <span class="nb">locals</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">locals_</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui)&quot;</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui --allexamples</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

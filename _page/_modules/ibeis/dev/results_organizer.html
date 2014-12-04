@@ -191,9 +191,9 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="sd">        &gt;&gt;&gt; custom_qparams = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
 <span class="sd">        &gt;&gt;&gt; qaid_list = aid_list[0:1]</span>
-<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, aid_list, custom_qparams=custom_qparams)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, aid_list, cfgdict=cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaid_list[0]]</span>
 <span class="sd">        &gt;&gt;&gt; (true_tup, false_tup) = qres2_true_and_false(ibs, qres)</span>
 <span class="sd">        &gt;&gt;&gt; print((true_tup, false_tup))</span>
@@ -255,8 +255,8 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="sd">        &gt;&gt;&gt; custom_qparams = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
-<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(aid_list, aid_list, custom_qparams=custom_qparams)</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(codename=&#39;nsum&#39;, fg_weight=1.0, featweight_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(aid_list, aid_list, cfgdict=cfgdict)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;organize_results()&#39;</span><span class="p">)</span>
     <span class="n">org_true</span>          <span class="o">=</span> <span class="n">OrganizedResult</span><span class="p">(</span><span class="s">&#39;true&#39;</span><span class="p">)</span>
@@ -339,7 +339,8 @@
     <span class="k">return</span> <span class="n">allorg</span>
 
 </div>
-<div class="viewcode-block" id="get_automatch_candidates"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.get_automatch_candidates">[docs]</a><span class="k">def</span> <span class="nf">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="get_automatch_candidates"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.get_automatch_candidates">[docs]</a><span class="k">def</span> <span class="nf">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of matches that should be inspected</span>
 <span class="sd">    This function is more lightweight than orgres or allres.</span>
@@ -370,7 +371,9 @@
     <span class="c"># For each QueryResult, Extract inspectable candidate matches</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">qaid</span> <span class="o">==</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="s">&#39;qaid2_qres and qres disagree on qaid&#39;</span>
-        <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_match_tbldata</span><span class="p">(</span><span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_match_tbldata</span><span class="p">(</span><span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span>
+                                                              <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+                                                              <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
         <span class="n">qaids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
         <span class="n">aids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
         <span class="n">scores_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>

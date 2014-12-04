@@ -107,7 +107,8 @@
     <span class="n">dict_args</span>         <span class="o">=</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
     <span class="n">feat_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">()</span>
     <span class="n">cfpath_list</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">USE_OPENMP</span><span class="p">:</span>
         <span class="c"># Use Avi&#39;s openmp parallelization</span>
         <span class="n">featgen_mp</span> <span class="o">=</span> <span class="n">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">dict_args</span><span class="p">)</span>
@@ -140,7 +141,7 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[::2]</span>
-<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_cids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
 <span class="sd">        &gt;&gt;&gt; nInput = None</span>
 <span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, qreq_, nInput)</span>
@@ -157,7 +158,8 @@
     <span class="n">feat_cfg</span>          <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span>
     <span class="n">dict_args</span>         <span class="o">=</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
     <span class="n">cfpath_list</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_paths</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">USE_OPENMP</span><span class="p">:</span>
         <span class="c"># Use Avi&#39;s openmp parallelization</span>
         <span class="n">featgen_mp</span> <span class="o">=</span> <span class="n">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">dict_args</span><span class="p">)</span>
@@ -217,8 +219,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/model/preproc/preproc_feat.py</span>
-<span class="sd">    python ibeis/model/preproc/preproc_feat.py --allexamples</span>
+<span class="sd">    python -m ibeis.model.preproc.preproc_feat</span>
+<span class="sd">    python -m ibeis.model.preproc.preproc_feat --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

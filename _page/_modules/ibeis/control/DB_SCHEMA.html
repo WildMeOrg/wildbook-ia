@@ -53,7 +53,7 @@
 <span class="sd">Module Licence and docstring</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA_CURRENT</span>
     <span class="n">UPDATE_CURRENT</span>  <span class="o">=</span> <span class="n">DB_SCHEMA_CURRENT</span><span class="o">.</span><span class="n">update_current</span>
@@ -73,12 +73,12 @@
 
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_0_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span>                   <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_uri&#39;</span><span class="p">,</span>                    <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_ext&#39;</span><span class="p">,</span>                    <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s">&#39;image_original_name&#39;</span><span class="p">,</span>          <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># We could parse this out</span>
+        <span class="p">(</span><span class="s">&#39;image_original_name&#39;</span><span class="p">,</span>          <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># We could parse this out of original_path</span>
         <span class="c">#(&#39;image_original_path&#39;,          &#39;TEXT NOT NULL&#39;),</span>
         <span class="p">(</span><span class="s">&#39;image_width&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER DEFAULT -1&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_height&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT -1&#39;</span><span class="p">),</span>
@@ -93,7 +93,7 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        First class table used to store image locations and meta-data&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span>               <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
@@ -103,7 +103,7 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        List of all encounters&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLTYPE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLTYPE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lbltype_text&#39;</span><span class="p">,</span>                 <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lbltype_default&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
@@ -115,7 +115,7 @@
 <span class="s">        lblannot_value of annotations with a relationship of some</span>
 <span class="s">        lbltype_rowid&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_suffix&#39;</span><span class="p">,</span>                <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
     <span class="p">),</span>
@@ -128,7 +128,7 @@
     <span class="c">##########################</span>
     <span class="c"># FIRST ORDER            #</span>
     <span class="c">##########################</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;annot_uuid&#39;</span><span class="p">,</span>                   <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
@@ -150,7 +150,7 @@
 <span class="s">        encoded here Attributes are stored in the Annotation Label Relationship</span>
 <span class="s">        Table&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;lblimage_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lblimage_uuid&#39;</span><span class="p">,</span>                <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># this is &quot;category&quot; in the proposal</span>
@@ -161,7 +161,7 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store the labels (attributes) of images&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lblannot_uuid&#39;</span><span class="p">,</span>                <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># this is &quot;category&quot; in the proposal</span>
@@ -177,7 +177,7 @@
     <span class="c"># SECOND ORDER           #</span>
     <span class="c">##########################</span>
     <span class="c"># TODO: constraint needs modification</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
@@ -189,7 +189,7 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store *processed* annots as chips&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
@@ -201,7 +201,7 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
@@ -215,7 +215,7 @@
     <span class="c">##########################</span>
     <span class="c"># THIRD ORDER            #</span>
     <span class="c">##########################</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;glr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lblimage_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
@@ -227,7 +227,7 @@
 <span class="s">        Used to store one-to-many the relationship between images</span>
 <span class="s">        and labels&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
@@ -240,10 +240,20 @@
 <span class="s">        and labels&#39;&#39;&#39;</span><span class="p">)</span>
 
 </div>
-<span class="nd">@profile</span>
 <div class="viewcode-block" id="post_1_0_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.post_1_0_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_0_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># We are dropping the versions table and rather using the metadata table</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;applying post_1_0_0&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="post_1_2_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.post_1_2_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_2_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;applying post_1_2_0&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+        <span class="n">preproc_annot</span><span class="o">.</span><span class="n">schema_1_2_0_postprocess_fixuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning: ibs is None, so cannot apply name / species column fixes to existing database&#39;</span><span class="p">)</span>
 
 
 <span class="c"># =======================</span>
@@ -254,7 +264,7 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_0_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Add a contributor&#39;s table</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;contributor_name_first&#39;</span><span class="p">,</span>       <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
@@ -270,17 +280,17 @@
 <span class="s">        Used to store the contributors to the project</span>
 <span class="s">        &#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.0 at index 1</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.0 at index 1</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;annot_parent_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># append column to v1.0.0 because None</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;feature_weight&#39;</span><span class="p">,</span> <span class="s">&#39;REAL DEFAULT 1.0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
@@ -294,7 +304,7 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_0_2"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_2">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Fix the contibutor table&#39;s constraint</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.1 at index 1</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
@@ -310,17 +320,17 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_1_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_1_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_1_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Moving chips and features to their own cache database</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">)</span>
 
     <span class="c"># Add viewpoint (radians) to annotations</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.2 at index 11</span>
         <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="s">&#39;annot_viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
     <span class="c"># Add contributor to configs</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.2 at index 1</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
@@ -330,7 +340,7 @@
     <span class="p">)</span>
 
     <span class="c"># Add config to encounters</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.2 at index 2</span>
         <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
@@ -339,7 +349,7 @@
     <span class="p">)</span>
 
     <span class="c"># Error in the drop table script, re-drop again from post_1_0_0 to kill table&#39;s metadata</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
 
 
 <span class="c"># =======================</span>
@@ -350,7 +360,7 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_1_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_1_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_1_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Change name of column</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># rename column and change it&#39;s type</span>
         <span class="p">(</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
@@ -359,25 +369,48 @@
     <span class="p">)</span>
 
     <span class="c"># Change type of column</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># rename column and change it&#39;s type</span>
         <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
     <span class="c"># Change type of columns</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># Update column&#39;s types</span>
         <span class="p">(</span><span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;contributor_note&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="update_1_2_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_2_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_2_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># Add columns to annotaiton table</span>
+    <span class="n">tablename</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span>
+    <span class="n">colmap_list</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="c"># the visual uuid will be unique w.r.t. the appearence of the annotation</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_visual_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c"># the visual uuid will be unique w.r.t. the appearence, name, and species of the annotation</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_semantic_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;name_rowid&#39;</span><span class="p">,</span>    <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;species_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">aid_before</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+    <span class="c">#import utool as ut</span>
+    <span class="c">#ut.embed()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">colmap_list</span><span class="p">)</span>
+    <span class="c"># Sanity check</span>
+    <span class="n">aid_after</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">aid_before</span> <span class="o">==</span> <span class="n">aid_after</span>
 
 
 <span class="c"># ========================</span>
 <span class="c"># Valid Versions &amp; Mapping</span>
 <span class="c"># ========================</span>
 
+<span class="c"># TODO: do we save a backup with the older version number in the file name?</span>
+
 </div>
-<span class="n">base</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
     <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
     <span class="p">(</span><span class="n">base</span>   <span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="bp">None</span><span class="p">,</span>               <span class="bp">None</span>                <span class="p">)),</span>
@@ -386,6 +419,7 @@
     <span class="p">(</span><span class="s">&#39;1.0.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_2</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.1.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_1_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.1.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_1_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.2.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_2_0</span><span class="p">,</span>       <span class="n">post_1_2_0</span>          <span class="p">)),</span>
 <span class="p">])</span>
 
 
@@ -394,11 +428,11 @@
 <span class="sd">    test_dbschema</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python ibeis/control/DB_SCHEMA.py</span>
-<span class="sd">        python ibeis/control/DB_SCHEMA.py -n=0</span>
-<span class="sd">        python ibeis/control/DB_SCHEMA.py -n=1</span>
-<span class="sd">        python ibeis/control/DB_SCHEMA.py -n=-1</span>
-<span class="sd">        python ibeis/control/DB_SCHEMA.py --force-incremental-db-update</span>
+<span class="sd">        python -m ibeis.control.DB_SCHEMA</span>
+<span class="sd">        python -m ibeis.control.DB_SCHEMA -n=0</span>
+<span class="sd">        python -m ibeis.control.DB_SCHEMA -n=1</span>
+<span class="sd">        python -m ibeis.control.DB_SCHEMA -n=-1</span>
+<span class="sd">        python -m ibeis.control.DB_SCHEMA --force-incremental-db-update</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -418,8 +452,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/model/preproc/preproc_chip.py</span>
-<span class="sd">    python ibeis/control/DB_SCHEMA.py --allexamples</span>
+<span class="sd">    python -m ibeis.model.preproc.preproc_chip</span>
+<span class="sd">    python -m ibeis.control.DB_SCHEMA --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

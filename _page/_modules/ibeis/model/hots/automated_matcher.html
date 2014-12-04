@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.automated_matcher &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.automated_matcher</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">input</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inc]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="register_annot_mapping"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.register_annot_mapping">[docs]</a><span class="k">def</span> <span class="nf">register_annot_mapping</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aids_chunk2</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">):</span>
+    <span class="c"># Should be 1 to 1</span>
+    <span class="k">for</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aids_chunk2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">aid1</span> <span class="ow">in</span> <span class="n">aid1_to_aid2</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">aid1_to_aid2</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">aid1_to_aid2</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid2</span>
+
+</div>
+<div class="viewcode-block" id="add_annot_chunk"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.add_annot_chunk">[docs]</a><span class="k">def</span> <span class="nf">add_annot_chunk</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    aids_chunk1 = aid_list1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Visual info</span>
+    <span class="n">guuids_chunk1</span>  <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
+    <span class="n">verts_chunk1</span>   <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
+    <span class="n">thetas_chunk1</span>  <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
+    <span class="c"># Non-name semantic info</span>
+    <span class="n">species_chunk1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
+
+    <span class="n">gids_chunk2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">guuids_chunk1</span><span class="p">)</span>
+    <span class="c"># Add this new unseen test case to the database</span>
+    <span class="n">aids_chunk2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gids_chunk2</span><span class="p">,</span>
+                                  <span class="n">species_list</span><span class="o">=</span><span class="n">species_chunk1</span><span class="p">,</span>
+                                  <span class="n">vert_list</span><span class="o">=</span><span class="n">verts_chunk1</span><span class="p">,</span>
+                                  <span class="n">theta_list</span><span class="o">=</span><span class="n">thetas_chunk1</span><span class="p">,</span>
+                                  <span class="n">prevent_visual_duplicates</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">register_annot_mapping</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aids_chunk2</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Added: aids_chunk2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids_chunk2</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">aids_chunk2</span>
+
+</div>
+<div class="viewcode-block" id="make_incremental_test_database"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.make_incremental_test_database">[docs]</a><span class="k">def</span> <span class="nf">make_incremental_test_database</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">reset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; makes test db &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_incremental_test_database. reset=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reset</span><span class="p">,))</span>
+    <span class="n">dbname2</span> <span class="o">=</span> <span class="s">&#39;_INCREMENTALTEST_&#39;</span> <span class="o">+</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname2</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="n">reset</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">reset</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
+
+        <span class="c"># Get annotations and their images from database 1</span>
+        <span class="n">gid_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+        <span class="n">gpath_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
+
+        <span class="c"># Add all images from database 1 to database 2</span>
+        <span class="n">gid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list1</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Image UUIDS should be consistent between databases</span>
+        <span class="n">image_uuid_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
+        <span class="n">image_uuid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">image_uuid_list1</span> <span class="o">==</span> <span class="n">image_uuid_list2</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">image_uuid_list1</span><span class="p">,</span> <span class="n">image_uuid_list2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ibs2</span>
+
+</div>
+<div class="viewcode-block" id="assert_annot_consistency"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.assert_annot_consistency">[docs]</a><span class="k">def</span> <span class="nf">assert_annot_consistency</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; just tests uuids</span>
+
+<span class="sd">    if anything goes wrong this should fix it:</span>
+<span class="sd">        ibs1.update_annot_visual_uuids(aid_list1)</span>
+<span class="sd">        ibs2.update_annot_visual_uuids(aid_list2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">visualtup1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">visualtup2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
+
+    <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">visualtup1</span><span class="p">)]</span>
+    <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">visualtup2</span><span class="p">)]</span>
+
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">)</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">visualtup2</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c">#semantic_uuid_list1 = ibs1.get_annot_semantic_uuids(aid_list1)</span>
+    <span class="c">#semantic_uuid_list2 = ibs2.get_annot_semantic_uuids(aid_list2)</span>
+
+    <span class="n">visual_uuid_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">visual_uuid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">,</span> <span class="n">visual_uuid_list2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ensure_clean_data"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.ensure_clean_data">[docs]</a><span class="k">def</span> <span class="nf">ensure_clean_data</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    removes previously set names and exemplars</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Make sure that there are not any names in this database</span>
+    <span class="n">nid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">nid_list2</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Removing names from database&#39;</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">))</span>
+
+    <span class="n">exemplarflag_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">exemplarflag_list2</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unsetting all exemplars from database&#39;</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">))</span>
+
+    <span class="n">ibs2</span><span class="o">.</span><span class="n">delete_invalid_nids</span><span class="p">()</span>
+
+    <span class="c"># this test is for plains</span>
+    <span class="k">assert</span>  <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">),</span> <span class="s">&#39;zebra_plains&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="autodecide_newname"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.autodecide_newname">[docs]</a><span class="k">def</span> <span class="nf">autodecide_newname</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;adding as new name&#39;</span><span class="p">)</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">make_next_name</span><span class="p">()</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">newname</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;already has name&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;marking as exemplar&#39;</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;already is exemplar&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="autodecide_match"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.autodecide_match">[docs]</a><span class="k">def</span> <span class="nf">autodecide_match</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nid</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;setting nameid to nid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid</span><span class="p">)</span>
+    <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">nid</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;marking as exemplar&#39;</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;already is exemplar&#39;</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">get_name_exemplar_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="make_decision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.make_decision">[docs]</a><span class="k">def</span> <span class="nf">make_decision</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">inspectstr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">inspectstr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+        <span class="c">#fig = qres.ishow_top(ibs2, name_scoring=True)</span>
+        <span class="c">#fig.show()</span>
+
+        <span class="n">qres_wgt</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qt_inspect_gui</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">ans</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;waiting</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ans</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">,</span> <span class="s">&#39;ipy&#39;</span><span class="p">,</span> <span class="s">&#39;embed&#39;</span><span class="p">]:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">nid_list</span><span class="p">,</span> <span class="n">score_list</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_sorted_nids_and_scores</span><span class="p">(</span><span class="n">ibs2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No matches made&#39;</span><span class="p">)</span>
+        <span class="n">autodecide_newname</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">candidate_indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">score_list</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;No candidates above threshold&#39;</span><span class="p">)</span>
+            <span class="n">autodecide_newname</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="n">nid_list</span><span class="p">[</span><span class="n">candidate_indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">score_list</span><span class="p">[</span><span class="n">candidate_indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;One candidate above threshold with score=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,))</span>
+            <span class="n">autodecide_match</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Multiple candidates above threshold&#39;</span><span class="p">)</span>
+            <span class="n">nids</span> <span class="o">=</span> <span class="n">nid_list</span><span class="p">[</span><span class="n">candidate_indexes</span><span class="p">]</span>  <span class="c"># NOQA</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">score_list</span><span class="p">[</span><span class="n">candidate_indexes</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;One candidate above threshold with scores=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scores</span><span class="p">,))</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="n">nids</span><span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">autodecide_match</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="incremental_test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.incremental_test">[docs]</a><span class="k">def</span> <span class="nf">incremental_test</span><span class="p">(</span><span class="n">ibs1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the scores/ranks of correct matches while varying the size of the</span>
+<span class="sd">    database.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs       (list) : IBEISController object</span>
+<span class="sd">        qaid_list (list) : list of annotation-ids to query</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --cmd</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt -t inc</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.automated_matcher --test-incremental_test</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs1 = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; incremental_test(ibs1)</span>
+
+<span class="sd">    Have:</span>
+<span class="sd">        * semantic and visual uuids</span>
+<span class="sd">        * Test that accepts unknown annotations one at a time and</span>
+<span class="sd">          for each runs query, makes decision about name, and executes decision.</span>
+<span class="sd">        * As a placeholder for exemplar decisions  an exemplar is added if</span>
+<span class="sd">          number of exemplars per name is less than threshold.</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        *</span>
+<span class="sd">        * vs-one score normalizer ~~/ score normalizer for different values of K * / different params~~</span>
+<span class="sd">          vs-many score normalization doesnt actually matter. We just need the ranking.</span>
+<span class="sd">        * ~~Remember confidence of decisions for manual review~~</span>
+<span class="sd">          Defer</span>
+<span class="sd">        * need a vs-one reranking pipeline node</span>
+<span class="sd">        * need to add in the multi-indexer code into the pipeline. Need to</span>
+<span class="sd">          decide which subindexers to load given a set of daids</span>
+<span class="sd">        * need to use set query as an exemplar if its vs-one reranking scores</span>
+<span class="sd">          are below a threshold</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Take a known dataase</span>
+    <span class="c"># Create an empty database to test in</span>
+    <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_aids_with_groundtruth</span><span class="p">()</span>
+    <span class="c">#reset = True</span>
+    <span class="n">reset</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c"># Helper functions</span>
+
+    <span class="n">aid1_to_aid2</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">execute_teststep</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Add an unseen annotation and run a query &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">==== EXECUTING TESTSTEP ====&#39;</span><span class="p">)</span>
+        <span class="n">aids_chunk2</span> <span class="o">=</span> <span class="n">add_annot_chunk</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
+
+        <span class="n">threshold</span> <span class="o">=</span> <span class="o">.</span><span class="mi">99</span>
+        <span class="n">exemplar_aids</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">K</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exemplar_aids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">intersect_ordered</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">exemplar_aids</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># if self is in query bump k</span>
+            <span class="n">K</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="n">K</span>
+        <span class="p">}</span>
+        <span class="c">#interactive = True</span>
+        <span class="n">interactive</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exemplar_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">query_exemplars</span><span class="p">(</span><span class="n">aids_chunk2</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
+                <span class="n">make_decision</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;No exemplars in database&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aids_chunk2</span><span class="p">:</span>
+                <span class="n">autodecide_newname</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">make_incremental_test_database</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">reset</span><span class="p">)</span>
+
+    <span class="c"># Add the annotations without names</span>
+    <span class="n">aid_list2</span> <span class="o">=</span> <span class="n">add_annot_chunk</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
+
+    <span class="c"># Assert visual uuids</span>
+    <span class="n">assert_annot_consistency</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
+
+    <span class="c"># Remove name exemplars</span>
+    <span class="n">ensure_clean_data</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
+
+    <span class="c"># Preprocess features and such</span>
+    <span class="n">ibs2</span><span class="o">.</span><span class="n">ensure_annotation_data</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">featweights</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># TESTING</span>
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">aids_chunk1_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="c">#ut.embed()</span>
+
+    <span class="n">aids_chunk1</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">aids_chunk1_iter</span><span class="p">)</span>
+    <span class="n">execute_teststep</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">aids_chunk1</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">aids_chunk1_iter</span><span class="p">)</span>
+        <span class="n">execute_teststep</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">)</span>
+
+    <span class="n">aids_chunk1</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">aids_chunk1_iter</span><span class="p">)</span>
+    <span class="n">execute_teststep</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">)</span>
+
+    <span class="c"># FULL INCREMENT</span>
+    <span class="c">#aids_chunk1_iter = ut.ichunks(aid_list1, 1)</span>
+    <span class="k">for</span> <span class="n">aids_chunk1</span> <span class="ow">in</span> <span class="n">aids_chunk1_iter</span><span class="p">:</span>
+        <span class="n">execute_teststep</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">)</span>
+    <span class="c">#    break</span>
+    <span class="c">#    #pass</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.automated_matcher</span>
+<span class="sd">        python -m ibeis.model.hots.automated_matcher --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.automated_matcher --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

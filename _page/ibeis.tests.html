@@ -61,6 +61,7 @@
 </div>
 <div class="section" id="module-ibeis.tests.assert_modules">
 <span id="ibeis-tests-assert-modules-module"></span><h2>ibeis.tests.assert_modules module<a class="headerlink" href="#module-ibeis.tests.assert_modules" title="Permalink to this headline">¶</a></h2>
+<p>Very useful script to ensure you have all the modules you need</p>
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.PyQt4_version">
 <tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">PyQt4_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#PyQt4_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.PyQt4_version" title="Permalink to this definition">¶</a></dt>
@@ -69,11 +70,34 @@
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.assert_modules">
 <tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">assert_modules</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#assert_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.assert_modules" title="Permalink to this definition">¶</a></dt>
+<dd><p>checkinfo functions return info_dict</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DOCTEST_ENABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.assert_modules</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_modules</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.tests.assert_modules.check_modules_exists">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">check_modules_exists</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#check_modules_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.check_modules_exists" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.tests.assert_modules.checkinfo">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">checkinfo</tt><big>(</big><em>target=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#checkinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.checkinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>checkinfo functions return info_dict</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.matplotlib_version">
 <tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">matplotlib_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#matplotlib_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.matplotlib_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.tests.assert_modules.module_stdinfo_dict">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">module_stdinfo_dict</tt><big>(</big><em>module</em>, <em>versionattr='__version__'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#module_stdinfo_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.module_stdinfo_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -92,13 +116,23 @@
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.tests.assert_modules.pyhesaff_version">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">pyhesaff_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pyhesaff_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pyhesaff_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.tests.assert_modules.pyrf_version">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">pyrf_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pyrf_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pyrf_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.tests.assert_modules.scipy_version">
 <tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">scipy_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#scipy_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.scipy_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.tests.assert_modules.version_check">
-<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">version_check</tt><big>(</big><em>target=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#version_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.version_check" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.tests.assert_modules.utool_version">
+<tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">utool_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#utool_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.utool_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -258,15 +292,6 @@ Selects things</p>
 <dt id="ibeis.tests.test_ibs_add_name.TEST_ADD_NAMES">
 <tt class="descclassname">ibeis.tests.test_ibs_add_name.</tt><tt class="descname">TEST_ADD_NAMES</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/test_ibs_add_name.html#TEST_ADD_NAMES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_add_name.TEST_ADD_NAMES" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_annotation_uuid">
-<span id="ibeis-tests-test-ibs-annotation-uuid-module"></span><h2>ibeis.tests.test_ibs_annotation_uuid module<a class="headerlink" href="#module-ibeis.tests.test_ibs_annotation_uuid" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_annotation_uuid.test_annotation_uuid">
-<tt class="descclassname">ibeis.tests.test_ibs_annotation_uuid.</tt><tt class="descname">test_annotation_uuid</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/test_ibs_annotation_uuid.html#test_annotation_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_annotation_uuid.test_annotation_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Consistency test</p>
-</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.tests.test_ibs_chip_compute">
@@ -674,7 +699,6 @@ Selects things</p>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs">ibeis.tests.test_ibs module</a></li>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs_add_images">ibeis.tests.test_ibs_add_images module</a></li>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs_add_name">ibeis.tests.test_ibs_add_name module</a></li>
-<li><a class="reference internal" href="#module-ibeis.tests.test_ibs_annotation_uuid">ibeis.tests.test_ibs_annotation_uuid module</a></li>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs_chip_compute">ibeis.tests.test_ibs_chip_compute module</a></li>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs_control">ibeis.tests.test_ibs_control module</a></li>
 <li><a class="reference internal" href="#module-ibeis.tests.test_ibs_convert_bbox_poly">ibeis.tests.test_ibs_convert_bbox_poly module</a></li>

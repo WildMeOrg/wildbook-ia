@@ -184,8 +184,8 @@
 <span class="sd">        &gt;&gt;&gt; test_dbcache_schema()</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python ibeis/control/DBCACHE_SCHEMA.py</span>
-<span class="sd">        python ibeis/control/DBCACHE_SCHEMA.py --force-incremental-db-update</span>
+<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA</span>
+<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DBCACHE_SCHEMA</span>
@@ -201,8 +201,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/control/DBCACHE_SCHEMA.py</span>
-<span class="sd">    python ibeis/control/DBCACHE_SCHEMA.py --allexamples</span>
+<span class="sd">    python -m ibeis.control.DBCACHE_SCHEMA</span>
+<span class="sd">    python -m ibeis.control.DBCACHE_SCHEMA --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

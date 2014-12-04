@@ -86,16 +86,20 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.name_scoring">ibeis.model.hots.name_scoring module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.neighbor_index">ibeis.model.hots.neighbor_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.nn_weights">ibeis.model.hots.nn_weights module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.pipeline">ibeis.model.hots.pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.precision_recall">ibeis.model.hots.precision_recall module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.score_normalization">ibeis.model.hots.score_normalization module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
@@ -103,6 +107,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ibeis.model.preproc.html">ibeis.model.preproc package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_annot">ibeis.model.preproc.preproc_annot module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_chip">ibeis.model.preproc.preproc_chip module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_detectchip">ibeis.model.preproc.preproc_detectchip module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_detectimg">ibeis.model.preproc.preproc_detectimg module</a></li>
@@ -306,7 +311,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result2</span> <span class="o">=</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">result1</span>
-<span class="go">_FILT(lnbnn;1.0,fg;1.0)</span>
+<span class="go">_FILT(lnbnn;1.0,dupvote;1.0,fg;1.0)</span>
 </pre></div>
 </div>
 <dl class="method">
@@ -603,14 +608,14 @@ into a flat list. (there must not be name conflicts)</p>
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.model" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.model.reload_subs">
-<tt class="descclassname">ibeis.model.</tt><tt class="descname">reload_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.reload_subs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads model and submodules</p>
+<tt class="descclassname">ibeis.model.</tt><tt class="descname">reload_subs</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model and submodules</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.rrrr">
-<tt class="descclassname">ibeis.model.</tt><tt class="descname">rrrr</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.model.rrrr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reloads model and submodules</p>
+<tt class="descclassname">ibeis.model.</tt><tt class="descname">rrrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.model.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model and submodules</p>
 </dd></dl>
 
 </div>

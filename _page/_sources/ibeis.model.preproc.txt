@@ -4,6 +4,14 @@ ibeis.model.preproc package
 Submodules
 ----------
 
+ibeis.model.preproc.preproc_annot module
+----------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_annot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.preproc.preproc_chip module
 ---------------------------------------
 

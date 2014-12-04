@@ -79,11 +79,11 @@
 <span class="n">MAX_NEIGHBOR_CACHE_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
 
 
-<div class="viewcode-block" id="rrr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.rrr">[docs]</a><span class="k">def</span> <span class="nf">rrr</span><span class="p">():</span>
+<div class="viewcode-block" id="rrr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.rrr">[docs]</a><span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="c"># TODO: Weakref?</span>
     <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
     <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-    <span class="n">rrr_</span><span class="p">()</span>
+    <span class="n">rrr_</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
 </div>
 <span class="nd">@atexit.register</span>
@@ -97,28 +97,10 @@
         <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="test_nnindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.test_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">test_nnindexer</span><span class="p">(</span><span class="n">with_indexer</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="n">new_ibeis_query_request</span>
-    <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">with_indexer</span><span class="p">:</span>
-        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">())</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">nnindexer</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">return</span> <span class="n">nnindexer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
-
-</div>
 <div class="viewcode-block" id="new_neighbor_indexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.new_neighbor_indexer">[docs]</a><span class="k">def</span> <span class="nf">new_neighbor_indexer</span><span class="p">(</span><span class="n">aid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">vecs_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">fgws_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="p">{},</span>
                          <span class="n">flann_cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">indexer_cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
                          <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="ow">not</span> <span class="n">NOCACHE_FLANN</span><span class="p">,</span>
-                         <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                         <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    new_neighbor_indexer</span>
 
@@ -136,11 +118,12 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        nnindexer</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindexer] building NeighborIndex object&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindexer] building NeighborIndex object&#39;</span><span class="p">)</span>
     <span class="n">_check_input</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">)</span>
     <span class="c"># Create indexes into the input aids</span>
     <span class="n">ax_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-    <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span> <span class="o">=</span> <span class="n">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)</span>
+    <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span> <span class="o">=</span> <span class="n">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fgws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">idx2_fgw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">fgws_list</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -158,7 +141,7 @@
         <span class="c"># Dont hash rowids when given enough info in indexer_cfgstr</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">indexer_cfgstr</span>
     <span class="c"># Build/Load the flann index</span>
-    <span class="n">flann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span>
         <span class="s">&#39;cache_dir&#39;</span><span class="p">:</span> <span class="n">flann_cachedir</span><span class="p">,</span>
         <span class="s">&#39;cfgstr&#39;</span><span class="p">:</span> <span class="n">cfgstr</span><span class="p">,</span>
         <span class="s">&#39;flann_params&#39;</span><span class="p">:</span> <span class="n">flann_params</span><span class="p">,</span>
@@ -169,11 +152,15 @@
     <span class="k">return</span> <span class="n">nnindexer</span>
 
 </div>
-<div class="viewcode-block" id="new_ibeis_nnindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.new_ibeis_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="new_ibeis_nnindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.new_ibeis_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">_internal_daids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">    FIXME: this needs to take in a qreq_ instead of a daid list</span>
-<span class="sd">    and use params from qparams instead of ibs.cfg</span>
+<span class="sd">    CALLED BY QUERYREQUST::LOAD_INDEXER</span>
+
+<span class="sd">    TODO: naming convetion of new_ sucks. use request_ or</span>
+<span class="sd">    anything else.</span>
+
+<span class="sd">    FIXME: and use params from qparams instead of ibs.cfg</span>
 
 <span class="sd">    IBEIS interface into neighbor_index</span>
 
@@ -183,21 +170,24 @@
 <span class="sd">        ibs (IBEISController):</span>
 <span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
 <span class="sd">        _aids (list): for multiindexer use only</span>
+<span class="sd">            lets multindexer avoid shallow copies</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        nnindexer</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer(None) # doctest: +ELLIPSIS</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer = new_ibeis_nnindexer(ibs, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer(None)</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = new_ibeis_nnindexer(qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
-    <span class="k">if</span> <span class="n">_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">_aids</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c">#daid_list = qreq_.get_external_daids()</span>
+    <span class="k">if</span> <span class="n">_internal_daids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
-    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DUUIDS&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">_internal_daids</span>
+    <span class="c"># TODO: SYSTEM use visual uuids</span>
+    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>  <span class="c"># get_internal_data_hashid()</span>
     <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
     <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
 
@@ -214,20 +204,21 @@
             <span class="c"># Grab the keypoints names and image ids before query time</span>
             <span class="c">#rx2_kpts = ibs.get_annot_kpts(daid_list)</span>
             <span class="c">#rx2_gid  = ibs.get_annot_gids(daid_list)</span>
-            <span class="c">#rx2_nid  = ibs.get_annot_nids(daid_list)</span>
+            <span class="c">#rx2_nid  = ibs.get_annot_name_rowids(daid_list)</span>
             <span class="n">flann_params</span> <span class="o">=</span>  <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_params</span>
             <span class="c"># Get annotation descriptors that will be searched</span>
-            <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+            <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fg_weight</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c"># HACK</span>
-                <span class="n">fgws_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">fgws_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fgws_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fgws_list</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
+            <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
             <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">new_neighbor_indexer</span><span class="p">(</span>
                 <span class="n">daid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">flann_params</span><span class="p">,</span> <span class="n">flann_cachedir</span><span class="p">,</span>
-                <span class="n">indexer_cfgstr</span><span class="p">,</span> <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">indexer_cfgstr</span><span class="p">,</span> <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_NEIGHBOR_CACHE_SIZE</span><span class="p">:</span>
                 <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
             <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">indexer_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer</span>
@@ -239,7 +230,7 @@
 
 </div>
 <span class="k">def</span> <span class="nf">_check_input</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="s">&#39;invalid input&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="s">&#39;invalid input. bad len&#39;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;len(aid_list) == 0.&#39;</span>
                                     <span class="s">&#39;Cannot invert index without features!&#39;</span><span class="p">)</span>
 
@@ -250,8 +241,9 @@
 <span class="sd">    Abstract wrapper around flann</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">ax2_aid</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_fgw</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">flann</span><span class="p">):</span>
@@ -276,8 +268,9 @@
 <span class="sd">            qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth</span>
 <span class="sd">                        approximate nearest data vector w.r.t. qfx2_vec[n]</span>
 
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()</span>
 <span class="sd">        &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
 <span class="sd">        &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">        &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list)</span>
@@ -295,8 +288,9 @@
 </div>
 <div class="viewcode-block" id="NeighborIndex.add_points"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.add_points">[docs]</a>    <span class="k">def</span> <span class="nf">add_points</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">,</span> <span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_fgws_list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()</span>
 <span class="sd">        &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
 <span class="sd">        &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">        &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list)</span>
@@ -353,15 +347,20 @@
 <span class="sd">                                kth approximate nearest data vector</span>
 
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots import pipeline</span>
-<span class="sd">            &gt;&gt;&gt; qparams = dict()</span>
+<span class="sd">            &gt;&gt;&gt; cfgdict = dict()</span>
 <span class="sd">            &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
+<span class="sd">            &gt;&gt;&gt; ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)</span>
 <span class="sd">            &gt;&gt;&gt; nnindexer = qreq_.indexer</span>
-<span class="sd">            &gt;&gt;&gt; ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, qparams=qparams)</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = qreq_.get_internal_qvecs()[0]</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0])</span>
 <span class="sd">            &gt;&gt;&gt; num_neighbors = 4</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1024</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors, checks)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)</span>
+<span class="sd">            &gt;&gt;&gt; result = qfx2_aid.shape</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            (1257, 4)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]</span>
         <span class="c">#qfx2_aid = nnindexer.ax2_aid[qfx2_ax]</span>
@@ -392,6 +391,7 @@
 <span class="sd">            qfx2_fgw : (N x K) qfx2_fgw[n][k] is the annotation id index of the</span>
 <span class="sd">                                kth forground weight</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS</span>
 <span class="sd">            &gt;&gt;&gt; qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])</span>
@@ -403,11 +403,11 @@
         <span class="k">return</span> <span class="n">qfx2_fgw</span>
 
 </div></div>
-<div class="viewcode-block" id="invert_index"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.invert_index">[docs]</a><span class="k">def</span> <span class="nf">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">):</span>
+<div class="viewcode-block" id="invert_index"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.invert_index">[docs]</a><span class="k">def</span> <span class="nf">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Aggregates descriptors of input annotations and returns inverted information</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hsnbrx] stacking descriptors from </span><span class="si">%d</span><span class="s"> annotations&#39;</span>
                 <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax_list</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
@@ -417,16 +417,42 @@
     <span class="k">except</span> <span class="ne">MemoryError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="s">&#39;[!memerror]&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;stacked nVecs={nVecs} from nAnnots={nAnnots}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">nVecs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">),</span> <span class="n">nAnnots</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ax_list</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span>
 
+</div>
+<div class="viewcode-block" id="test_nnindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.test_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">test_nnindexer</span><span class="p">(</span><span class="n">with_indexer</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = test_nnindexer()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="n">new_ibeis_query_request</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_indexer</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">nnindexer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
 
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    #python -m doctest -v ibeis/model/hots/neighbor_index.py</span>
-<span class="c">#    import doctest</span>
-<span class="c">#    doctest.testmod()</span></div>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.neighbor_index</span>
+<span class="sd">        python -m ibeis.model.hots.neighbor_index --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.neighbor_index --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

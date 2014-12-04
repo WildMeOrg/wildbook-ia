@@ -52,11 +52,14 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">sysres.py == system_resources</span>
 <span class="sd">Module for dealing with system resoureces in the context of IBEIS</span>
+<span class="sd">but without the need for an actual IBEIS Controller</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">realpath</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cache</span><span class="p">,</span> <span class="n">util_list</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
@@ -71,6 +74,10 @@
 <span class="n">__APPNAME__</span> <span class="o">=</span> <span class="s">&#39;ibeis&#39;</span>
 
 
+<div class="viewcode-block" id="get_ibeis_resource_dir"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.sysres.get_ibeis_resource_dir">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_resource_dir</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
+
+</div>
 <span class="k">def</span> <span class="nf">_ibeis_cache_dump</span><span class="p">():</span>
     <span class="n">util_cache</span><span class="o">.</span><span class="n">global_cache_dump</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="n">__APPNAME__</span><span class="p">)</span>
 

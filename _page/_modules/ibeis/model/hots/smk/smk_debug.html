@@ -134,10 +134,10 @@
     <span class="c">#qaids = [valid_aids[0], valid_aids[4]]</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">valid_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
     <span class="c"># FIXME: can&#39;t set to a list right now</span>
-    <span class="n">custom_qparams</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;vocab_taids&#39;</span><span class="p">:</span> <span class="s">&#39;all&#39;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">custom_qparams</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>  <span class="c"># Hack</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span>
 

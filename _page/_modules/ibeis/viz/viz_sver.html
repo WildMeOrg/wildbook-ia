@@ -90,7 +90,7 @@
 <span class="sd">    Compiles IBEIS information and sends it to plottool</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_sver import *   # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
@@ -122,8 +122,8 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python ibeis/viz/viz_sver.py --allexamples</span>
-<span class="sd">        python ibeis/viz/viz_sver.py --allexamples --show</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --allexamples --show</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>

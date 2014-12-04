@@ -946,9 +946,12 @@ print(argdoc)</dd>
 <dl class="function">
 <dt id="ibeis.model.hots.smk.smk_match.execute_smk_L5">
 <tt class="descclassname">ibeis.model.hots.smk.smk_match.</tt><tt class="descname">execute_smk_L5</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_match.html#execute_smk_L5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_match.execute_smk_L5" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>ibeis query interface</p>
+<dd><p>Wrapped function wrp_noexectb(execute_smk_L5)</p>
+<p>orig_argspec = ArgSpec(args=[&#8216;<a href="#id5"><span class="problematic" id="id6">qreq_</span></a>&#8216;], varargs=None, keywords=None, defaults=None)</p>
 <dl class="docutils">
+<dt>orig_docstr =</dt>
+<dd><p class="first">ibeis query interface</p>
+<dl class="last docutils">
 <dt>Example:</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_match</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
@@ -962,10 +965,10 @@ print(argdoc)</dd>
 <dd>from ibeis.model.hots import pipeline
 filt2_meta = {}
 # Get both spatial verified and not
-<a href="#id5"><span class="problematic" id="id6">qaid2_chipmatch_FILT_</span></a> = qaid2_chipmatch
-<a href="#id7"><span class="problematic" id="id8">qaid2_chipmatch_SVER_</span></a> = pipeline.spatial_verification(<a href="#id9"><span class="problematic" id="id10">qaid2_chipmatch_FILT_</span></a>, <a href="#id11"><span class="problematic" id="id12">qreq_</span></a>)
-<a href="#id13"><span class="problematic" id="id14">qaid2_qres_FILT_</span></a> = pipeline.chipmatch_to_resdict(<a href="#id15"><span class="problematic" id="id16">qaid2_chipmatch_FILT_</span></a>, filt2_meta, <a href="#id17"><span class="problematic" id="id18">qreq_</span></a>)
-<a href="#id19"><span class="problematic" id="id20">qaid2_qres_SVER_</span></a> = pipeline.chipmatch_to_resdict(<a href="#id21"><span class="problematic" id="id22">qaid2_chipmatch_SVER_</span></a>, filt2_meta, <a href="#id23"><span class="problematic" id="id24">qreq_</span></a>)
+<a href="#id7"><span class="problematic" id="id8">qaid2_chipmatch_FILT_</span></a> = qaid2_chipmatch
+<a href="#id9"><span class="problematic" id="id10">qaid2_chipmatch_SVER_</span></a> = pipeline.spatial_verification(<a href="#id11"><span class="problematic" id="id12">qaid2_chipmatch_FILT_</span></a>, <a href="#id13"><span class="problematic" id="id14">qreq_</span></a>)
+<a href="#id15"><span class="problematic" id="id16">qaid2_qres_FILT_</span></a> = pipeline.chipmatch_to_resdict(<a href="#id17"><span class="problematic" id="id18">qaid2_chipmatch_FILT_</span></a>, filt2_meta, <a href="#id19"><span class="problematic" id="id20">qreq_</span></a>)
+<a href="#id21"><span class="problematic" id="id22">qaid2_qres_SVER_</span></a> = pipeline.chipmatch_to_resdict(<a href="#id23"><span class="problematic" id="id24">qaid2_chipmatch_SVER_</span></a>, filt2_meta, <a href="#id25"><span class="problematic" id="id26">qreq_</span></a>)
 qres_FILT = qaid2_qres_FILT_[qaids[0]]
 qres_SVER = qaid2_qres_SVER_[qaids[0]]
 fig1 = qres_FILT.show_top(ibs, fnum=1, figtitle=&#8217;filt&#8217;)
@@ -994,8 +997,8 @@ python dev.py -t smk_8k &#8211;allgt &#8211;db PZ_Mothers &#8211;index 20:30 &#8
 python dev.py -t smk_8k_compare &#8211;allgt &#8211;db PZ_Mothers &#8211;index 20:30 &#8211;view-hard</p>
 </dd>
 </dl>
-</div></blockquote>
-<p>orig_func_argspec = ArgSpec(args=[&#8216;<a href="#id25"><span class="problematic" id="id26">qreq_</span></a>&#8216;], varargs=None, keywords=None, defaults=None)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1375,7 +1378,7 @@ I don&#8217;t have to change my function calls, but without all the slowness.</p
 
 <dl class="method">
 <dt id="ibeis.model.hots.smk.smk_repr.InvertedIndex.rrr">
-<tt class="descname">rrr</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.model.hots.smk.smk_repr.InvertedIndex.rrr" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">rrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.model.hots.smk.smk_repr.InvertedIndex.rrr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

@@ -51,171 +51,14 @@
             
   <h1>Source code for ibeis.model.preproc.preproc_image</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd"># DOCTEST ENABLED</span>
-<span class="sd">DoctestCMD:</span>
-<span class="sd">    python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.preproc.preproc_featweight))&quot; --quiet</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
-<span class="c"># UTool</span>
-<span class="kn">import</span> <span class="nn">utool</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">import</span> <span class="nn">vtool.patch</span> <span class="kn">as</span> <span class="nn">ptool</span>
-<span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>  <span class="c"># NOQA</span>
-<span class="c">#import vtool.image as gtool</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
-<span class="c"># Inject utool functions</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_featweight]&#39;</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="gen_featweight_worker"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.gen_featweight_worker">[docs]</a><span class="k">def</span> <span class="nf">gen_featweight_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
-<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST ENABLE</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_featweight import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ax = 12</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[ax:ax + 1]</span>
-<span class="sd">        &gt;&gt;&gt; chip_list = ibs.get_annot_chips(aid_list)</span>
-<span class="sd">        &gt;&gt;&gt; kpts_list = ibs.get_annot_kpts(aid_list)</span>
-<span class="sd">        &gt;&gt;&gt; probchip_fpath_list = preproc_chip.compute_and_write_probchip(ibs, aid_list)</span>
-<span class="sd">        &gt;&gt;&gt; probchip_list = [gtool.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]</span>
-<span class="sd">        &gt;&gt;&gt; kpts  = kpts_list[0]</span>
-<span class="sd">        &gt;&gt;&gt; aid   = aid_list[0]</span>
-<span class="sd">        &gt;&gt;&gt; probchip = probchip_list[0]</span>
-<span class="sd">        &gt;&gt;&gt; tup = (aid, kpts, probchip)</span>
-<span class="sd">        &gt;&gt;&gt; (aid, weights) = gen_featweight_worker(tup)</span>
-<span class="sd">        &gt;&gt;&gt; print(weights.sum())</span>
-<span class="sd">        275.025</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
-    <span class="k">if</span> <span class="n">probchip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="o">.</span><span class="mi">25</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c">#ptool.get_warped_patches()</span>
-        <span class="n">patch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ptool</span><span class="o">.</span><span class="n">get_warped_patch</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="n">kpts</span><span class="p">]</span>
-        <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">patch</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">patch_list</span><span class="p">]</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weight_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="compute_fgweights"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.compute_fgweights">[docs]</a><span class="k">def</span> <span class="nf">compute_fgweights</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_featweight import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
-<span class="sd">        &gt;&gt;&gt; featweight_list = compute_fgweights(ibs, aid_list)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight] Preparing to compute fgweights&#39;</span><span class="p">)</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-        <span class="n">probchip_size_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
-        <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">chipsize_list</span> <span class="o">==</span> <span class="n">probchip_size_list</span><span class="p">,</span> <span class="s">&#39;probably need to clear chip or probchip cache&#39;</span>
-
-    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">probchip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">else</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight] Computing fgweights&#39;</span><span class="p">)</span>
-    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">kpts_list</span><span class="p">,</span> <span class="n">probchip_list</span><span class="p">)</span>
-    <span class="n">featweight_gen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_featweight_worker</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-    <span class="n">featweight_param_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featweight_gen</span><span class="p">)</span>
-    <span class="c">#arg_iter = zip(aid_list, kpts_list, probchip_list)</span>
-    <span class="c">#featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]</span>
-    <span class="c">#featweight_aids = ut.get_list_column(featweight_param_list, 0)</span>
-    <span class="n">featweight_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">featweight_param_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight] Done computing fgweights&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">featweight_list</span>
-
-</div>
-<div class="viewcode-block" id="add_featweight_params_gen"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.add_featweight_params_gen">[docs]</a><span class="k">def</span> <span class="nf">add_featweight_params_gen</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    add_featweight_params_gen</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):</span>
-<span class="sd">        fid_list (list):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        featweight_list</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_featweight import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; fid_list = ibs.get_valid_fids()</span>
-<span class="sd">        &gt;&gt;&gt; result = add_featweight_params_gen(ibs, fid_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># HACK: TODO AUTOGENERATE THIS</span>
-    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
-    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">cid_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">compute_fgweights</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
-
-
-<span class="c">#def get_annot_probchip_fname_iter(ibs, aid_list):</span>
-<span class="c">#    &quot;&quot;&quot; Returns probability chip path iterator</span>
-
-<span class="c">#    Args:</span>
-<span class="c">#        ibs (IBEISController):</span>
-<span class="c">#        aid_list (list):</span>
-
-<span class="c">#    Returns:</span>
-<span class="c">#        probchip_fname_iter</span>
-
-<span class="c">#    Example:</span>
-<span class="c">#        &gt;&gt;&gt; from ibeis.model.preproc.preproc_featweight import *  # NOQA</span>
-<span class="c">#        &gt;&gt;&gt; import ibeis</span>
-<span class="c">#        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="c">#        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="c">#        &gt;&gt;&gt; probchip_fname_iter = get_annot_probchip_fname_iter(ibs, aid_list)</span>
-<span class="c">#        &gt;&gt;&gt; probchip_fname_list = list(probchip_fname_iter)</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    cfpath_list = ibs.get_annot_cpaths(aid_list)</span>
-<span class="c">#    cfname_list = [splitext(basename(cfpath))[0] for cfpath in cfpath_list]</span>
-<span class="c">#    suffix = ibs.cfg.detect_cfg.get_cfgstr()</span>
-<span class="c">#    ext = &#39;.png&#39;</span>
-<span class="c">#    probchip_fname_iter = (&#39;&#39;.join([cfname, suffix, ext]) for cfname in cfname_list)</span>
-<span class="c">#    return probchip_fname_iter</span>
-
-
-<span class="c">#def get_annot_probchip_fpath_list(ibs, aid_list):</span>
-<span class="c">#    cachedir = get_probchip_cachedir(ibs)</span>
-<span class="c">#    probchip_fname_list = get_annot_probchip_fname_iter(ibs, aid_list)</span>
-<span class="c">#    probchip_fpath_list = [join(cachedir, fname) for fname in probchip_fname_list]</span>
-<span class="c">#    return probchip_fpath_list</span>
-
-
-<span class="c">#class FeatWeightConfig(object):</span>
-<span class="c">#    # TODO: Put this in a config</span>
-<span class="c">#    def __init__(fw_cfg):</span>
-<span class="c">#        fw_cfg.sqrt_area   = 800</span>
-<span class="c"># UTool</span></div>
-<span class="kn">import</span> <span class="nn">utool</span>
-<span class="kn">import</span> <span class="nn">vtool.exif</span> <span class="kn">as</span> <span class="nn">exif</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">vtool.exif</span> <span class="kn">as</span> <span class="nn">vtexif</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">utool</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_img]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
@@ -231,10 +74,10 @@
 <span class="sd">            long lon</span>
 <span class="sd">            long exiftime</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">exif_dict</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">get_exif_dict</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
+    <span class="n">exif_dict</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_exif_dict</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
     <span class="c"># TODO: More tags</span>
-    <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">get_lat_lon</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">get_unixtime</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
+    <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_lat_lon</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_unixtime</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span>
 
 </div>
@@ -351,9 +194,10 @@
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_image import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from vtool.tests import grabdata</span>
 <span class="sd">        &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=3) + [&#39;doesnotexist.jpg&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; params_list = list(preproc_image.add_images_params_gen(gpath_list))</span>
+<span class="sd">        &gt;&gt;&gt; params_list = list(add_images_params_gen(gpath_list))</span>
 <span class="sd">        &gt;&gt;&gt; assert str(params_list[0][0]) == &#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;, &#39;UUID gen method changed&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert str(params_list[0][2]) == &#39;easy1.JPG&#39;, &#39;orig name is different&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert params_list[3] is None</span>
@@ -362,7 +206,6 @@
 <span class="sd">        cdef:</span>
 <span class="sd">            list gpath_list</span>
 <span class="sd">            dict kwargs</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#preproc_args = [(gpath, kwargs) for gpath in gpath_list]</span>
     <span class="c">#print(&#39;[about to parse]: gpath_list=%r&#39; % (gpath_list,))</span>
@@ -376,8 +219,8 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python ibeis/model/preproc/preproc_image.py</span>
-<span class="sd">    python ibeis/model/preproc/preproc_image.py --allexamples</span>
+<span class="sd">    python -m ibeis.model.preproc.preproc_image</span>
+<span class="sd">    python -m ibeis.model.preproc.preproc_image --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>

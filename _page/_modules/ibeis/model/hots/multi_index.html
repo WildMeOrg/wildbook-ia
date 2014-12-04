@@ -70,11 +70,12 @@
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr_</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[multi_index]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="new_ibeis_mindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.new_ibeis_mindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
+<div class="viewcode-block" id="new_ibeis_mindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.new_ibeis_mindexer">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_mindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span>
                        <span class="n">num_indexers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                        <span class="n">split_method</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -86,8 +87,18 @@
     <span class="k">if</span> <span class="n">split_method</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span><span class="p">:</span>
         <span class="n">split_func</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">group_annots_by_known_names</span>
         <span class="c"># each group are annotations of the same name</span>
-        <span class="n">aidgroup_list</span><span class="p">,</span> <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">split_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">aidgroup_list</span><span class="p">,</span> <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">split_func</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="c"># TODO: SYSTEM : Split method based on standard uuid sets</span>
+        <span class="c"># maintain list of standard sts</span>
+        <span class="c"># input: request_uuids</span>
+        <span class="c"># std_uuids_list &lt;-sorted by size</span>
+        <span class="c"># using_list = []</span>
+        <span class="c"># for uuids in sta_uuids_list:</span>
+        <span class="c">#     if ut.is_full_intersection(uuids, request_uuids):</span>
+        <span class="c">#         request_uuids = ut.list_diff(request_uuids, uuids)</span>
+        <span class="c">#         using_list.append(uuids)</span>
+        <span class="c"># developing_set = request_uuids</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown split_method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">split_method</span><span class="p">,))</span>
     <span class="n">largest_groupsize</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aidgroup_list</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mindex] num_indexers = </span><span class="si">%d</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_indexers</span><span class="p">,))</span>
@@ -102,13 +113,13 @@
 
     <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
         <span class="c"># All groups have the same name</span>
-        <span class="n">nidgroup_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">aidgroup_list</span><span class="p">)</span>
+        <span class="n">nidgroup_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aidgroup_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">nidgroup</span> <span class="ow">in</span> <span class="n">nidgroup_list</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nidgroup</span><span class="p">),</span> <span class="s">&#39;bad name grouping&#39;</span>
     <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
         <span class="c"># All subsiquent indexer are subsets (in name/identity space)</span>
         <span class="c"># of the previous</span>
-        <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+        <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
         <span class="n">prev_</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">prev_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -123,7 +134,9 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mindex] building forest </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> with </span><span class="si">%d</span><span class="s"> aids&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">tx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_bins</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">nbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="c"># Dont bother shallow copying qreq_ here.</span>
+            <span class="c"># just passing aids is enough</span>
+            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">nbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">_internal_daids</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
             <span class="n">nn_indexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">)</span>
     <span class="c">#if len(unknown_aids) &gt; 0:</span>
     <span class="c">#    print(&#39;[mindex] building unknown forest&#39;)</span>
@@ -147,7 +160,7 @@
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">num_indexers</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">split_method</span> <span class="o">=</span> <span class="s">&#39;name&#39;</span>
-    <span class="n">mxer</span> <span class="o">=</span> <span class="n">new_ibeis_mindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">num_indexers</span><span class="p">,</span> <span class="n">split_method</span><span class="p">)</span>
+    <span class="n">mxer</span> <span class="o">=</span> <span class="n">new_ibeis_mindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">num_indexers</span><span class="p">,</span> <span class="n">split_method</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">mxer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
 
 </div>
@@ -158,6 +171,7 @@
 <span class="sd">    More abstract wrapper around flann</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -168,11 +182,13 @@
 <div class="viewcode-block" id="MultiNeighborIndex.multi_knn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.multi_knn">[docs]</a>    <span class="k">def</span> <span class="nf">multi_knn</span><span class="p">(</span><span class="n">mxer</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">checks</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
+<span class="sd">            &gt;&gt;&gt; checks = 1024</span>
 <span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
-<span class="sd">            &gt;&gt;&gt; (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)</span>
+<span class="sd">            &gt;&gt;&gt; (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qfx2_idx_list</span>   <span class="o">=</span> <span class="p">[]</span>
         <span class="n">qfx2_dist_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -197,12 +213,13 @@
 <span class="sd">        Polymorphic interface to knn, but uses the multindex backend</span>
 
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
 <span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
-<span class="sd">            &gt;&gt;&gt; (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)</span>
+<span class="sd">            &gt;&gt;&gt; (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="p">(</span><span class="n">qfx2_idx_list</span><span class="p">,</span> <span class="n">qfx2_dist_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">multi_knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">checks</span><span class="p">)</span>
         <span class="n">qfx2_imx_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -229,11 +246,14 @@
 <div class="viewcode-block" id="MultiNeighborIndex.num_indexed_vecs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.num_indexed_vecs">[docs]</a>    <span class="k">def</span> <span class="nf">num_indexed_vecs</span><span class="p">(</span><span class="n">mxer</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
-<span class="sd">            &gt;&gt;&gt; out = mxer.num_indexed_vecs()</span>
-<span class="sd">            &gt;&gt;&gt; print(out)</span>
-<span class="sd">            54141</span>
+<span class="sd">            &gt;&gt;&gt; result = mxer.num_indexed_vecs()</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            54244</span>
+
+<span class="sd">        54200 on win32</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">num_indexed_vecs</span><span class="p">()</span>
                        <span class="k">for</span> <span class="n">nnindexer</span> <span class="ow">in</span> <span class="n">mxer</span><span class="o">.</span><span class="n">nn_indexer_list</span><span class="p">])</span>
@@ -241,10 +261,11 @@
 <div class="viewcode-block" id="MultiNeighborIndex.num_indexed_annots"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.num_indexed_annots">[docs]</a>    <span class="k">def</span> <span class="nf">num_indexed_annots</span><span class="p">(</span><span class="n">mxer</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
-<span class="sd">            &gt;&gt;&gt; out = mxer.num_indexed_annots()</span>
-<span class="sd">            &gt;&gt;&gt; print(out)</span>
+<span class="sd">            &gt;&gt;&gt; result = mxer.num_indexed_annots()</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">            53</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">num_indexed_annots</span><span class="p">()</span>
@@ -279,6 +300,7 @@
 <div class="viewcode-block" id="MultiNeighborIndex.split_imxs_gen"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.split_imxs_gen">[docs]</a>    <span class="k">def</span> <span class="nf">split_imxs_gen</span><span class="p">(</span><span class="n">mxer</span><span class="p">,</span> <span class="n">qfx2_imx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
@@ -296,6 +318,7 @@
 <div class="viewcode-block" id="MultiNeighborIndex.knn2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.knn2">[docs]</a>    <span class="k">def</span> <span class="nf">knn2</span><span class="p">(</span><span class="n">mxer</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.neighbor_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = test_mindexer()</span>
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
@@ -338,7 +361,20 @@
         <span class="n">qfx2_fx_</span>    <span class="o">=</span> <span class="n">foreach_row_sort_cols</span><span class="p">(</span><span class="n">qfx2_fx</span><span class="p">)</span>
         <span class="n">qfx2_rankx_</span> <span class="o">=</span> <span class="n">foreach_row_sort_cols</span><span class="p">(</span><span class="n">qfx2_rankx</span><span class="p">)</span>
         <span class="n">qfx2_treex_</span> <span class="o">=</span> <span class="n">foreach_row_sort_cols</span><span class="p">(</span><span class="n">qfx2_treex</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">qfx2_dist_</span><span class="p">,</span> <span class="n">qfx2_idx_</span><span class="p">,</span>  <span class="n">qfx2_fx_</span><span class="p">,</span> <span class="n">qfx2_ax_</span><span class="p">,</span> <span class="n">qfx2_rankx_</span><span class="p">,</span> <span class="n">qfx2_treex_</span><span class="p">,)</span></div></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">qfx2_dist_</span><span class="p">,</span> <span class="n">qfx2_idx_</span><span class="p">,</span>  <span class="n">qfx2_fx_</span><span class="p">,</span> <span class="n">qfx2_ax_</span><span class="p">,</span> <span class="n">qfx2_rankx_</span><span class="p">,</span> <span class="n">qfx2_treex_</span><span class="p">,)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.multi_index</span>
+<span class="sd">        python -m ibeis.model.hots.multi_index --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.multi_index --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

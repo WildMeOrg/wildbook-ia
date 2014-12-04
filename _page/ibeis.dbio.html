@@ -99,7 +99,7 @@
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData">
 <em class="property">class </em><tt class="descclassname">ibeis.dbio.export_subset.</tt><tt class="descname">ANNOTATION_TransferData</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
-<p>ANNOTATION_TransferData(annot_parent_INDEX_list, annot_uuid_list, annot_theta_list, annot_verts_list, annot_viewpoint_list, annot_detection_confidence_list, annot_exemplar_flag_list, annot_note_list, lblannot_td_list)</p>
+<p>ANNOTATION_TransferData(annot_parent_INDEX_list, annot_uuid_list, annot_theta_list, annot_verts_list, annot_viewpoint_list, annot_detection_confidence_list, annot_exemplar_flag_list, annot_note_list, annot_name_rowid_list, annot_species_rowid_list, lblannot_td_list)</p>
 <dl class="method">
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.__getnewargs__">
 <tt class="descname">__getnewargs__</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
@@ -131,6 +131,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_name_rowid_list">
+<tt class="descname">annot_name_rowid_list</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_name_rowid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_note_list">
 <tt class="descname">annot_note_list</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_note_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 7</p>
@@ -140,6 +146,12 @@
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_parent_INDEX_list">
 <tt class="descname">annot_parent_INDEX_list</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_parent_INDEX_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_species_rowid_list">
+<tt class="descname">annot_species_rowid_list</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_species_rowid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -169,7 +181,7 @@
 <dl class="attribute">
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.lblannot_td_list">
 <tt class="descname">lblannot_td_list</tt><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.lblannot_td_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 8</p>
+<dd><p>Alias for field number 10</p>
 </dd></dl>
 
 </dd></dl>
@@ -712,7 +724,7 @@ info the transfer_data named tuple.</p>
 
 <dl class="function">
 <dt id="ibeis.dbio.export_subset.geo_locate">
-<tt class="descclassname">ibeis.dbio.export_subset.</tt><tt class="descname">geo_locate</tt><big>(</big><em>default='Unknown'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#geo_locate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.geo_locate" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.dbio.export_subset.</tt><tt class="descname">geo_locate</tt><big>(</big><em>default='Unknown'</em>, <em>timeout=5</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#geo_locate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.geo_locate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -790,7 +802,7 @@ WARNING - this may cause an exception to be raised
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
@@ -866,15 +878,15 @@ WARNING - this may cause an exception to be raised
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.dbio.ingest_database.get_name_text_from_gnames">
-<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_name_text_from_gnames</tt><big>(</big><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='{name:*}[aid:d].{ext}'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_text_from_gnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_text_from_gnames" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.ingest_database.get_name_texts_from_gnames">
+<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_name_texts_from_gnames</tt><big>(</big><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='{name:*}[aid:d].{ext}'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_gnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_gnames" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input: gpath_list
 Output: names based on the parent folder of each image</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.dbio.ingest_database.get_name_text_from_parent_folder">
-<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_name_text_from_parent_folder</tt><big>(</big><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='name'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_text_from_parent_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_text_from_parent_folder" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.ingest_database.get_name_texts_from_parent_folder">
+<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_name_texts_from_parent_folder</tt><big>(</big><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='name'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_parent_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_parent_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input: gpath_list
 Output: names based on the parent folder of each image</p>
 </dd></dl>
@@ -1000,7 +1012,9 @@ Output: names based on the parent folder of each image</p>
 <dl class="function">
 <dt id="ibeis.dbio.ingest_hsdb.convert_hsdb_to_ibeis">
 <tt class="descclassname">ibeis.dbio.ingest_hsdb.</tt><tt class="descname">convert_hsdb_to_ibeis</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#convert_hsdb_to_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.convert_hsdb_to_ibeis" title="Permalink to this definition">¶</a></dt>
-<dd><p>orig_func_argspec = ArgSpec(args=[&#8216;hsdb_dir&#8217;, &#8216;force_delete&#8217;], varargs=None, keywords=None, defaults=(False,))</p>
+<dd><p>Wrapped function wrp_noexectb(convert_hsdb_to_ibeis)</p>
+<p>orig_argspec = ArgSpec(args=[&#8216;hsdb_dir&#8217;, &#8216;force_delete&#8217;], varargs=None, keywords=None, defaults=(False,))</p>
+<p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="function">

@@ -52,6 +52,10 @@
   <h1>Source code for ibeis.model.hots.smk</h1><div class="highlight"><pre>
 <span class="c"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.model.hots.smk.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">smk_core</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">smk_index</span>

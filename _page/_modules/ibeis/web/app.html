@@ -54,7 +54,7 @@
 <span class="kn">import</span> <span class="nn">tornado.wsgi</span>
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
 <span class="kn">import</span> <span class="nn">flask</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">make_response</span>
 <span class="kn">import</span> <span class="nn">optparse</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">socket</span>
@@ -64,14 +64,16 @@
 <span class="kn">from</span> <span class="nn">ibeis.control.SQLDatabaseControl</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SQLDatabaseController</span><span class="p">,</span>  <span class="c"># NOQA</span>
                                               <span class="n">SQLAtomicContext</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
-<span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
+<span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span><span class="p">,</span> <span class="n">Species</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c"># Web Internal</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span><span class="p">,</span> <span class="n">navbar</span><span class="p">,</span> <span class="n">DBWEB_SCHEMA</span>
 <span class="c"># Others</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">ibeis.web.DBWEB_SCHEMA</span> <span class="kn">import</span> <span class="n">VIEWPOINT_TABLE</span>
 
 
 <span class="n">BROWSER</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--browser&#39;</span><span class="p">)</span>
@@ -107,6 +109,7 @@
             <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
                 <span class="n">gid</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_detection_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
         <span class="n">finished</span> <span class="o">=</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="n">review</span> <span class="o">=</span> <span class="s">&#39;review&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
             <span class="n">gpath</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
@@ -130,15 +133,18 @@
                 <span class="n">temp</span><span class="p">[</span><span class="s">&#39;angle&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">annot_theta</span><span class="p">)</span>
                 <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-              <span class="n">species</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">species_list</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>  <span class="c"># Get most common species</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">species_list</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>  <span class="c"># Get most common species</span>
+            <span class="k">elif</span> <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">default_species</span>
             <span class="k">else</span><span class="p">:</span>
-              <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">gpath</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">species</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
-          
+        <span class="n">display_instructions</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;detection_instructions_seen&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">display_species_examples</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># request.cookies.get(&#39;detection_example_species_seen&#39;, 0) == 0</span>
         <span class="k">if</span> <span class="n">refer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;refer_aid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">refer_aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer_aid&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -151,31 +157,40 @@
                         <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">,</span>
                         <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
                         <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">,</span>
-                        <span class="n">refer_aid</span><span class="o">=</span><span class="n">refer_aid</span><span class="p">)</span>
+                        <span class="n">refer_aid</span><span class="o">=</span><span class="n">refer_aid</span><span class="p">,</span>
+                        <span class="n">display_instructions</span><span class="o">=</span><span class="n">display_instructions</span><span class="p">,</span>
+                        <span class="n">display_species_examples</span><span class="o">=</span><span class="n">display_species_examples</span><span class="p">,</span>
+                        <span class="n">review</span><span class="o">=</span><span class="n">review</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="s">&#39;aid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;aid&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">SQLAtomicContext</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="p">):</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_next_viewpoint_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">review</span> <span class="o">=</span> <span class="s">&#39;review&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="n">finished</span> <span class="o">=</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
             <span class="n">gid</span>       <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-            <span class="n">gpath</span>     <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_chip_paths</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">gpath</span>     <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
             <span class="n">image</span>     <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
             <span class="n">image_src</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">ADMIN: http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">/turk/viewpoint-commit.html</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
             <span class="n">gid</span>       <span class="o">=</span> <span class="bp">None</span>
             <span class="n">gpath</span>     <span class="o">=</span> <span class="bp">None</span>
             <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;VIEW:&quot;</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
+        <span class="n">display_instructions</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;viewpoint_instructions_seen&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
                         <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
                         <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
                         <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
                         <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
                         <span class="n">finished</span><span class="o">=</span><span class="n">finished</span><span class="p">,</span>
-                        <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">)</span>
+                        <span class="n">refer</span><span class="o">=</span><span class="n">refer</span><span class="p">,</span>
+                        <span class="n">display_instructions</span><span class="o">=</span><span class="n">display_instructions</span><span class="p">,</span>
+                        <span class="n">review</span><span class="o">=</span><span class="n">review</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">filename</span> <span class="o">==</span> <span class="s">&#39;viewpoint-commit&#39;</span><span class="p">:</span>
         <span class="c"># Things that need to be committed</span>
         <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&quot;viewpoint_value_avg&gt;=?&quot;</span>
@@ -202,6 +217,12 @@
 <div class="viewcode-block" id="submit_viewpoint"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.submit_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">submit_viewpoint</span><span class="p">():</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-aid&#39;</span><span class="p">])</span>
     <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-value&#39;</span><span class="p">])</span>
+    <span class="n">turk_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;turk_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;!!!!!DETECTION QUALITY CONTROL!!!!!&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">/turk/viewpoint.html?aid=</span><span class="si">%s</span><span class="s">&amp;value=</span><span class="si">%s</span><span class="s">&amp;turk_id=</span><span class="si">%s</span><span class="s">&amp;review=true&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">turk_id</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">webbrowser</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-submit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;skip&#39;</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
     <span class="c"># Get current values</span>
@@ -226,7 +247,7 @@
             <span class="n">appfuncs</span><span class="o">.</span><span class="n">set_viewpoint_values_from_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="s">&#39;viewpoint_value_avg&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] SKIPPED - TOO MANY VIEWPOINTS&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] aid: </span><span class="si">%d</span><span class="s">, value: </span><span class="si">%d</span><span class="s"> | </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value_1</span><span class="p">,</span> <span class="n">value_2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] turk_id: </span><span class="si">%s</span><span class="s">, aid: </span><span class="si">%d</span><span class="s">, value: </span><span class="si">%d</span><span class="s"> | </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">turk_id</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value_1</span><span class="p">,</span> <span class="n">value_2</span><span class="p">))</span>
     <span class="c"># Return HTML</span>
     <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;viewpoint&#39;</span><span class="p">))</span>
 
@@ -234,6 +255,13 @@
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/submit/detection.html&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="submit_detection"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.submit_detection">[docs]</a><span class="k">def</span> <span class="nf">submit_detection</span><span class="p">():</span>
     <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-gid&#39;</span><span class="p">])</span>
+    <span class="n">turk_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;turk_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;!!!!!DETECTION QUALITY CONTROL!!!!!&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">/turk/detection.html?gid=</span><span class="si">%s</span><span class="s">&amp;turk_id=</span><span class="si">%s</span><span class="s">&amp;review=true&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">turk_id</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">webbrowser</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
     <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-submit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;skip&#39;</span><span class="p">:</span>
         <span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -242,7 +270,6 @@
         <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="n">scale_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="mf">700.0</span>
         <span class="c"># Get aids</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">annotation_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-annotations&#39;</span><span class="p">])</span>
         <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -262,13 +289,30 @@
             <span class="n">annot</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
         <span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] gid: </span><span class="si">%d</span><span class="s">, bbox_list: </span><span class="si">%r</span><span class="s">, species_list: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">annotation_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[web] turk_id: </span><span class="si">%s</span><span class="s">, gid: </span><span class="si">%d</span><span class="s">, bbox_list: </span><span class="si">%r</span><span class="s">, species_list: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">turk_id</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">annotation_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">))</span>
         <span class="n">aid_list_new</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">add_annots</span><span class="p">([</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation_list</span><span class="p">),</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">([</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">appfuncs</span><span class="o">.</span><span class="n">replace_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">([</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">viewpoint_rowids</span> <span class="o">=</span> <span class="n">appfuncs</span><span class="o">.</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">viewpoint_rowids</span><span class="p">)</span>
     <span class="k">if</span> <span class="s">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;viewpoint&#39;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;detection&#39;</span><span class="p">))</span>
+
+</div>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/ajax/cookie.html&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="set_cookie"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.set_cookie">[docs]</a><span class="k">def</span> <span class="nf">set_cookie</span><span class="p">():</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="s">&#39;true&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Set Cookie: </span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">],</span> <span class="p">))</span>
+        <span class="k">return</span> <span class="n">response</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;COOKIE FAILED: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">return</span> <span class="n">make_response</span><span class="p">(</span><span class="s">&#39;false&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/api&#39;</span><span class="p">)</span>
@@ -354,10 +398,12 @@
     <span class="c"># Initialize the web server</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">server_ip_address</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="n">server_ip_address</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">webbrowser</span>
@@ -386,8 +432,14 @@
         <span class="s">&#39;--db&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s">&#39;specify an IBEIS database&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span>
+        <span class="s">&#39;--round&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&#39;specify the round of turking&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
 
     <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">round</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">round</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
     <span class="n">start_tornado</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">database_init</span><span class="o">=</span><span class="n">appfuncs</span><span class="o">.</span><span class="n">database_init</span><span class="p">)</span>
 
@@ -396,7 +448,27 @@
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Parse command line options and start the server.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">dbname</span>
+    <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;CHTA_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">CHEETAH</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;ELPH_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ELEPHANT_SAV</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;GIR_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;GZ_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;LION_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">LION</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;PZ_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&quot;WD_Master&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">WILDDOG</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">default_species</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;DEFAULT SPECIES: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">default_species</span><span class="p">))</span>
     <span class="n">app</span><span class="o">.</span><span class="n">ibeis</span> <span class="o">=</span> <span class="n">ibeis</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">round</span>
     <span class="n">start_tornado</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">database_init</span><span class="o">=</span><span class="n">appfuncs</span><span class="o">.</span><span class="n">database_init</span><span class="p">)</span>
 
 </div>

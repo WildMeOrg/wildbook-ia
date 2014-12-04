@@ -508,9 +508,11 @@
 
     <span class="k">def</span> <span class="nf">load_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">):</span>
         <span class="c"># Load / Execute the query w/ correct config</span>
+        <span class="c"># this is ok because query config is reset after</span>
+        <span class="c"># exerpiment_printres resturns</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
         <span class="c"># Force program to use cache here</span>
-        <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daids</span><span class="p">,</span>
+        <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daids</span><span class="p">,</span>
                                 <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                 <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">qres</span>
