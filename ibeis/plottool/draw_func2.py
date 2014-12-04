@@ -78,6 +78,12 @@ def get_pnum_func(nRows=1, nCols=1, base=0):
     return pnum_
 
 
+def pnum_generator(nRows=1, nCols=1, base=0):
+    pnum_func = get_pnum_func(nRows, nCols, base)
+    for px in (nRows * nCols):
+        yield pnum_func(px)
+
+
 def kwargs_fnum(kwargs):
     fnum = kwargs.get('fnum', None)
     if fnum is None:
