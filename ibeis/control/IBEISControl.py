@@ -76,11 +76,11 @@ def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True, 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> dbdir = None
+        >>> dbdir = 'testdb1'
         >>> ensure = True
         >>> wbaddr = None
         >>> verbose = True
-        >>> use_cache = True
+        >>> use_cache = False
         >>> ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose, use_cache)
         >>> result = str(ibs)
         >>> print(result)

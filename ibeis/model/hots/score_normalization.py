@@ -54,6 +54,7 @@ class ScoreNormalizer(ut.Cachable):
         tn_support       (None):
         tp_labels        (None):
         fp_labels        (None):
+        clipscore        (None):
 
     CommandLine:
         python -m ibeis.model.hots.score_normalization --test-ScoreNormalizer
@@ -76,7 +77,7 @@ class ScoreNormalizer(ut.Cachable):
 
     def __init__(normalizer, cfgstr=None, score_domain=None,
                  p_tp_given_score=None, tp_support=None, tn_support=None,
-                 tp_labels=None, fp_labels=None, timestamp=None):
+                 tp_labels=None, fp_labels=None, clipscore=None, timestamp=None):
         super(ScoreNormalizer, normalizer).__init__()
         normalizer.cfgstr = cfgstr
         normalizer.score_domain = score_domain
@@ -86,6 +87,7 @@ class ScoreNormalizer(ut.Cachable):
         normalizer.tp_labels = tp_labels
         normalizer.fp_labels = fp_labels
         normalizer.timestamp = timestamp
+        normalizer.clipscore = clipscore
         #normalizer.set_values(score_domain, p_tp_given_score, tp_support,
         #                      tn_support, tp_labels, fp_labels)
 
@@ -95,9 +97,6 @@ class ScoreNormalizer(ut.Cachable):
     def get_cfgstr(normalizer):
         assert normalizer.cfgstr is not None
         return normalizer.cfgstr
-
-    #def set_values(normalizer, score_domain, p_tp_given_score,
-    #               tp_support, tn_support, tp_labels, fp_labels):
 
     #def load(normalizer, *args, **kwargs):
     #    # Inherited method
