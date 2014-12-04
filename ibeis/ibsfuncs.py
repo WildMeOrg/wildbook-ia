@@ -203,13 +203,13 @@ def get_image_annotation_thetas(ibs, gid_list):
 
 
 @__injectable
-def compute_all_chips(ibs):
+def compute_all_chips(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips
     """
     print('[ibs] compute_all_chips')
-    aid_list = ibs.get_valid_aids()
-    cid_list = ibs.add_chips(aid_list)
+    aid_list = ibs.get_valid_aids(**kwargs)
+    cid_list = ibs.add_annot_chips(aid_list)
     return cid_list
 
 
@@ -218,19 +218,36 @@ def compute_all_features(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips and features
     """
+    cid_list = ibs.compute_all_chips(**kwargs)
     print('[ibs] compute_all_features')
-    aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
-    fid_list = ibs.add_feats(cid_list)
+    fid_list = ibs.add_chip_feats(cid_list)
     return fid_list
 
 
 @__injectable
-def ensure_annotation_data(ibs, aid_list, chips=True, feats=True):
-    if chips or feats:
-        cid_list = ibs.add_chips(aid_list)
-    if feats:
-        ibs.add_feats(cid_list)
+def compute_all_featweights(ibs, **kwargs):
+    """
+    Executes lazy evaluation of all chips and features
+    """
+    fid_list = ibs.compute_all_features(**kwargs)
+    print('[ibs] compute_all_featweights')
+    featweight_rowid_list = ibs.add_feat_featweights(fid_list)
+    return featweight_rowid_list
+
+
+@__injectable
+def precompute_all_annot_dependants(ibs, **kwargs):
+    ibs.compute_all_featweights(**kwargs)
+
+
+@__injectable
+def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=False):
+    if chips or feats or featweights:
+        cid_list = ibs.add_annot_chips(aid_list)
+    if feats or featweights:
+        fid_list = ibs.add_chip_feats(cid_list)
+    if featweights:
+        featweight_rowid_list = ibs.add_feat_featweights(fid_list)  # NOQA
 
 
 @__injectable
@@ -1069,7 +1086,7 @@ def merge_databases(ibs_target, ibs_source_list):
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     aids_list = ibs.get_image_aids(gid_list)
-    flags_list = unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+    flags_list = unflat_map(ibs.get_annot_exemplar_flags, aids_list)
     delete_gid_flag_list = [not any(flags) for flags in flags_list]
     delete_gid_list = utool.filter_items(gid_list, delete_gid_flag_list)
     ibs.delete_images(delete_gid_list)
@@ -1416,7 +1433,7 @@ def prune_exemplars(ibs):
     # Get aids with the smallest bounding boxes to unexemplar
     small_aids_list = [aids[sortx][:-MAX_EXEMPLAR] for aids, sortx in zip(problem_aids, problem_sortx)]
     small_aids = utool.flatten(small_aids_list)
-    ibs.set_annot_exemplar_flag(small_aids, [False] * len(small_aids))
+    ibs.set_annot_exemplar_flags(small_aids, [False] * len(small_aids))
 
 
 def draw_thumb_helper(tup):
@@ -1784,7 +1801,7 @@ def redownload_detection_models(ibs):
         python -c "import utool, ibeis.model; utool.view_directory(ibeis.model.detect.grabmodels._expand_modeldir())"
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')

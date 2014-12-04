@@ -38,7 +38,6 @@ class REL_PATHS(object):
 
 
 # TODO: Remove anything under this block completely
-USING_LBLANNOT = False  # for names and species
 
 
 UNKNOWN_LBLANNOT_ROWID = 0

@@ -13,31 +13,35 @@ import guitool
 import numpy as np
 import six
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[inspect_gui]', DEBUG=False)
+import utool as ut
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
 
 
-USE_FILTER_PROXY = True
+USE_FILTER_PROXY = False
 
 
 class QueryResultsWidget(APIItemWidget):
     """ Window for gui inspection """
 
-    def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None, **kwargs):
-        print('[qres_wgt] Init QueryResultsWidget')
+    def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
+                 name_scoring=False, **kwargs):
+        if ut.VERBOSE:
+            print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
         if USE_FILTER_PROXY:
             APIItemWidget.__init__(qres_wgt, parent=parent,
                                     model_class=CustomFilterModel)
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
+        qres_wgt.button_list = None
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
         qres_wgt.tt = utool.tic()
         # Set results data
-        qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
-        qres_wgt.set_query_results(ibs, qaid2_qres, **kwargs)
+        if USE_FILTER_PROXY:
+            qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
+        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
             callback = lambda: None
@@ -74,6 +78,8 @@ class QueryResultsWidget(APIItemWidget):
                 qres_wgt.buttonBars[-1].addWidget(button)
 
     def update_checkboxes(qres_wgt):
+        if qres_wgt.button_list is None:
+            return
         show_new = qres_wgt.button_list[0][0].isChecked()
         show_join = qres_wgt.button_list[0][1].isChecked()
         show_split = qres_wgt.button_list[0][2].isChecked()
@@ -92,11 +98,11 @@ class QueryResultsWidget(APIItemWidget):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
 
-    def set_query_results(qres_wgt, ibs, qaid2_qres, **kwargs):
+    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
-        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, **kwargs)
+        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         APIItemWidget.change_headers(qres_wgt, headers)
@@ -255,7 +261,8 @@ class CustomAPI(object):
     def __init__(self, col_name_list, col_types_dict, col_getters_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                  editable_colnames, sortby, sort_reverse=True):
-        print('[CustomAPI] <__init__>')
+        if ut.VERBOSE:
+            print('[CustomAPI] <__init__>')
         self.col_name_list = []
         self.col_type_list = []
         self.col_getter_list = []
@@ -265,7 +272,8 @@ class CustomAPI(object):
         self.parse_column_tuples(col_name_list, col_types_dict, col_getters_dict,
                                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                                  editable_colnames, sortby, sort_reverse)
-        print('[CustomAPI] </__init__>')
+        if ut.VERBOSE:
+            print('[CustomAPI] </__init__>')
 
     def parse_column_tuples(self,
                             col_name_list,
@@ -418,16 +426,17 @@ def get_buttontup(ibs, qtindex):
     return buttontup
 
 
-def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
+def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     """
     Builds columns which are displayable in a ColumnListTableWidget
     """
-    print('[inspect] make_qres_api')
+    if ut.VERBOSE:
+        print('[inspect] make_qres_api')
     if not hasattr(ibs.cfg.other_cfg, 'ranks_lt'):
         ibs.cfg.other_cfg.ranks_lt = 2
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
-        qaid2_qres, ranks_lt=ranks_lt)
+        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
     # assert all([isinstance(qaid, np.int32) for qaid in qaids]), "ERROR not all qaids are ints: %r" % (qaids)

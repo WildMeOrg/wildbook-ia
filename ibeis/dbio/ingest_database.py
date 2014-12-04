@@ -211,7 +211,7 @@ def ingest_testdb1(dbname):
         assert isinstance(ibs, IBEISController)
         unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
-        ibs.set_annot_exemplar_flag(unflagged_aids, exemplar_flags)
+        ibs.set_annot_exemplar_flags(unflagged_aids, exemplar_flags)
         # Set some test species labels
         from ibeis.constants import Species
         species_text_list = ibs.get_annot_species(aid_list)

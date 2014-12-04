@@ -39,7 +39,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
-        ibs.add_chips(aid_list)
+        ibs.add_annot_chips(aid_list)
         try:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
         except IOError:
@@ -54,11 +54,11 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
 
 
 @ut.indent_func
-def add_chips_params_gen(ibs, aid_list, qreq_=None):
+def add_annot_chips_params_gen(ibs, aid_list, qreq_=None):
     """Computes parameters for SQLController
 
     computes chips if they do not exist.
-    generates values for add_chips sqlcommands
+    generates values for add_annot_chips sqlcommands
 
     Args:
         ibs (IBEISController):
@@ -71,7 +71,7 @@ def add_chips_params_gen(ibs, aid_list, qreq_=None):
         >>> from ibeis.model.preproc import preproc_chip
         >>> from os.path import basename
         >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
-        >>> params_iter = add_chips_params_gen(ibs, aid_list)
+        >>> params_iter = add_annot_chips_params_gen(ibs, aid_list)
         >>> params_list = list(params_iter)
         >>> (aid, chip_config_rowid, cfpath, width, height,) = params_list[0]
         >>> fname = basename(cfpath)
@@ -184,7 +184,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         bad_aids      = ut.filterfalse_items(valid_aids, map(exists, valid_cfpaths))
         ibs.delete_annot_chips(bad_aids)
         # Try readding things
-        new_cid_list = ibs.add_chips(aid_list)
+        new_cid_list = ibs.add_annot_chips(aid_list)
         cfpath_list = ibs.get_chip_paths(new_cid_list)
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
@@ -194,7 +194,7 @@ def generate_chip_properties(ibs, aid_list, qreq_=None):
     """Computes parameters for SQLController
 
     computes chips if they do not exist.
-    generates values for add_chips sqlcommands
+    generates values for add_annot_chips sqlcommands
 
     Args:
         ibs (IBEISController):

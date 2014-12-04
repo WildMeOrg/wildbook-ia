@@ -168,7 +168,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         name_list = ibs.get_annot_names(aid_list)
         texts_list.append(['name=%s' % name for name in name_list])
     if kwargs.get('show_exemplar', True):
-        flag_list = ibs.get_annot_exemplar_flag(aid_list)
+        flag_list = ibs.get_annot_exemplar_flags(aid_list)
         texts_list.append(['EX' if flag else '' for flag in flag_list])
     if kwargs.get('show_num_gt', True):
         # FIXME: This should be num_groundtruth with respect to the currently

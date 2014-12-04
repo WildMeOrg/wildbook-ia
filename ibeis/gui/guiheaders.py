@@ -273,7 +273,7 @@ def make_ibeis_headers_dict(ibs):
         'rdconf'              : ibs.get_annot_detect_confidence,
         'annotnotes'          : ibs.get_annot_notes,
         'thumb'               : ibs.get_annot_chip_thumbtup,
-        'exemplar'            : ibs.get_annot_exemplar_flag,
+        'exemplar'            : ibs.get_annot_exemplar_flags,
         'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
         'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
     }
@@ -282,7 +282,7 @@ def make_ibeis_headers_dict(ibs):
         'species'    : ibs.set_annot_species,
         'viewpoint'  : ibs.set_annot_viewpoint,
         'annotnotes' : ibs.set_annot_notes,
-        'exemplar'   : ibs.set_annot_exemplar_flag,
+        'exemplar'   : ibs.set_annot_exemplar_flags,
     }
     #
     # Name Iders/Setters/Getters
@@ -306,12 +306,12 @@ def make_ibeis_headers_dict(ibs):
         'nExAids'    : ibs.get_name_num_exemplar_annotations,
         'namenotes'  : ibs.get_name_notes,
         'aid'        : lambda aids: aids,
-        'exemplar'   : ibs.get_annot_exemplar_flag,
+        'exemplar'   : ibs.get_annot_exemplar_flags,
         'thumb'      : ibs.get_annot_chip_thumbtup,
         'annot_gname' : ibs.get_annot_image_names,
     }
     setters[NAMES_TREE] = {
-        'exemplar'   : ibs.set_annot_exemplar_flag,
+        'exemplar'   : ibs.set_annot_exemplar_flags,
         'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
     }

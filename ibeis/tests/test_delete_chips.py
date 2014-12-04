@@ -13,7 +13,7 @@ def TEST_DELETE_CHIPS(ibs, back):
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
-    cid_list = ibs.add_chips(aid_list)
+    cid_list = ibs.add_annot_chips(aid_list)
     cid = cid_list[0]
     _fid = ibs.get_chip_fids(cid, ensure=False)
     assert _fid is None, "_fid=%r should be None" % (_fid,)

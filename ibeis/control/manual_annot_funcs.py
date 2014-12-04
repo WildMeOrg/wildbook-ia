@@ -382,7 +382,7 @@ def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
     # FIXME:
     if ensure:
         try:
-            ibs.add_chips(aid_list)
+            ibs.add_annot_chips(aid_list)
         except AssertionError as ex:
             ut.printex(ex, '[!ibs.get_annot_chip_rowids]')
             print('[!ibs.get_annot_chip_rowids] aid_list = %r' % (aid_list,))
@@ -512,7 +512,7 @@ def get_annot_detect_confidence(ibs, aid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_exemplar_flag(ibs, aid_list):
+def get_annot_exemplar_flags(ibs, aid_list):
     annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
     return annot_exemplar_flag_list
 
@@ -606,7 +606,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         groundtruth_list_ = aids_list
     else:
         # Filter out non-exemplars
-        exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+        exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
         isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
         groundtruth_list_ = [ut.filter_items(aids, isvalids)
                              for aids, isvalids in zip(aids_list, isvalids_list)]
@@ -801,6 +801,12 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     else:
         nid_list = nid_list_
     return nid_list
+
+
+@register_ibs_method
+def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
+    """ alias """
+    return ibs.get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=distinguish_unknowns)
 
 
 @register_ibs_method
@@ -1205,7 +1211,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filt
         isvalid_list = [viewpoint == flag for flag in viewpoint_list]
         aid_list = ut.filter_items(aid_list, isvalid_list)
     if is_exemplar:
-        flag_list = ibs.get_annot_exemplar_flag(aid_list)
+        flag_list = ibs.get_annot_exemplar_flags(aid_list)
         aid_list = ut.filter_items(aid_list, flag_list)
     return aid_list
 
@@ -1241,7 +1247,7 @@ def set_annot_detect_confidence(ibs, aid_list, confidence_list):
 
 @register_ibs_method
 @setter
-def set_annot_exemplar_flag(ibs, aid_list, flag_list):
+def set_annot_exemplar_flags(ibs, aid_list, flag_list):
     """ Sets if an annotation is an exemplar """
     id_iter = ((aid,) for aid in aid_list)
     val_iter = ((flag,) for flag in flag_list)
@@ -1260,13 +1266,9 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
         name_rowid_list
     """
     ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    if const.USING_LBLANNOT:
-        # Convenience function for set_annot_lblannot_from_rowid
-        ibs.set_annot_lblannot_from_rowid(aid_list, name_rowid_list, const.INDIVIDUAL_KEY)
-    else:
-        id_iter = aid_list
-        colnames = (NAME_ROWID,)
-        ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
+    id_iter = aid_list
+    colnames = (NAME_ROWID,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
 
@@ -1298,12 +1300,9 @@ def set_annot_names(ibs, aid_list, name_list):
         >>> assert name_list4 != name_list2
         >>> print(result)
     """
-    if const.USING_LBLANNOT:
-        ibs.set_annot_lblannot_from_value(aid_list, name_list, const.INDIVIDUAL_KEY)
-    else:
-        #ibs.get_nids_from_text
-        name_rowid_list = ibs.get_name_rowids_from_text(name_list)
-        ibs.set_annot_name_rowids(aid_list, name_rowid_list)
+    #ibs.get_nids_from_text
+    name_rowid_list = ibs.get_name_rowids_from_text(name_list)
+    ibs.set_annot_name_rowids(aid_list, name_rowid_list)
     ibs.update_annot_semantic_uuids(aid_list)
 
 
@@ -1323,20 +1322,6 @@ def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
     id_iter = ((aid,) for aid in aid_list)
     val_iter = ((parent_aid,) for parent_aid in parent_aid_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), val_iter, id_iter)
-
-
-@register_ibs_method
-def set_annot_semantic_uuids(ibs, aid_list, annot_semantic_uuid_list):
-    """annot_semantic_uuid_list -> annot.annot_semantic_uuid[aid_list]
-
-    Args:
-        aid_list
-        annot_semantic_uuid_list
-    """
-    id_iter = aid_list
-    colnames = (ANNOT_SEMANTIC_UUID,)
-    ibs.db.set(
-        const.ANNOTATION_TABLE, colnames, annot_semantic_uuid_list, id_iter)
 
 
 @register_ibs_method
@@ -1430,17 +1415,101 @@ def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
 
 
 @register_ibs_method
-def set_annot_visual_uuids(ibs, aid_list, annot_visual_uuid_list):
-    """ annot_visual_uuid_list -> annot.annot_visual_uuid[aid_list]
+def get_annot_visual_uuid_info(ibs, aid_list):
+    """
+    Returns annotation UUID that is unique for the visual qualities
+    of the annoation. does not include name ore species information.
+
+    get_annot_visual_uuid_info
 
     Args:
-        aid_list
-        annot_visual_uuid_list
+        ibs      (IBEISController):
+        aid_list (list):
+
+    Returns:
+        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+        >>> result = str(list(zip(*visual_infotup))[0])
+        >>> print(result)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
     """
-    id_iter = aid_list
-    colnames = (ANNOT_VISUAL_UUID,)
-    ibs.db.set(
-        const.ANNOTATION_TABLE, colnames, annot_visual_uuid_list, id_iter)
+    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+    verts_list      = ibs.get_annot_verts(aid_list)
+    theta_list      = ibs.get_annot_thetas(aid_list)
+    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
+    #visual_info_list = list(visual_info_iter)
+    visual_infotup = (image_uuid_list, verts_list, theta_list)
+    return visual_infotup
+
+
+@register_ibs_method
+def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
+    """
+    Args:
+        aid_list (list):
+        _visual_infotup (tuple) : internal use only
+
+    Returns:
+        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
+        >>> result = str(list(zip(*semantic_infotup))[1])
+        >>> print(result)
+        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, None, u'easy', u'zebra_plains')
+
+    """
+    # Semantic info depends on visual info
+    if _visual_infotup is None:
+        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+    else:
+        visual_infotup = _visual_infotup
+    image_uuid_list, verts_list, theta_list = visual_infotup
+    # It is visual info augmented with name and species
+    view_list       = ibs.get_annot_viewpoints(aid_list)
+    name_list       = ibs.get_annot_names(aid_list)
+    species_list    = ibs.get_annot_species(aid_list)
+    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
+                        name_list, species_list)
+    return semantic_infotup
+
+
+@register_ibs_method
+def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
+    """ Updater for semantic uuids """
+    from ibeis.model.preproc import preproc_annot
+    semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+
+
+@register_ibs_method
+def update_annot_visual_uuids(ibs, aid_list):
+    """ Updater for visual uuids """
+    from ibeis.model.preproc import preproc_annot
+    visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+    # If visual uuids are changes semantic ones are also changed
+    ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
 def testdata_annot():
@@ -1448,26 +1517,6 @@ def testdata_annot():
     ibs = ibeis.opendb('testdb1')
     qreq_ = None
     return ibs, qreq_
-
-
-@register_ibs_method
-def update_annot_semantic_uuids(ibs, aid_list):
-    """ Updater for semantic uuids """
-    from ibeis.model.preproc import preproc_annot
-    semantic_infotup = preproc_annot.get_annot_semantic_uuid_info(ibs, aid_list)
-    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
-    ibs.set_annot_semantic_uuids(aid_list, annot_semantic_uuid_list)
-
-
-@register_ibs_method
-def update_annot_visual_uuids(ibs, aid_list):
-    """ Updater for visual uuids """
-    from ibeis.model.preproc import preproc_annot
-    visual_infotup = preproc_annot.get_annot_visual_uuid_info(ibs, aid_list)
-    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
-    ibs.set_annot_visual_uuids(aid_list, annot_visual_uuid_list)
-    # If visual uuids are changes semantic ones are also changed
-    ibs.update_annot_semantic_uuids(aid_list)
 
 
 if __name__ == '__main__':

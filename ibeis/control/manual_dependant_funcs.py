@@ -47,7 +47,7 @@ def _get_all_chip_rowids(ibs):
 
 @register_ibs_method
 @adder
-def add_chips(ibs, aid_list):
+def add_annot_chips(ibs, aid_list):
     """
     FIXME: This is a dirty dirty function
     Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
@@ -63,10 +63,10 @@ def add_chips(ibs, aid_list):
             # FIXME: Cant be lazy until chip config / delete issue is fixed
             preproc_chip.compute_and_write_chips(ibs, aid_list)
             #preproc_chip.compute_and_write_chips_lazy(ibs, aid_list)
-            params_iter = preproc_chip.add_chips_params_gen(ibs, dirty_aids)
+            params_iter = preproc_chip.add_annot_chips_params_gen(ibs, dirty_aids)
         except AssertionError as ex:
-            ut.printex(ex, '[!ibs.add_chips]')
-            print('[!ibs.add_chips] ' + ut.list_dbgstr('aid_list'))
+            ut.printex(ex, '[!ibs.add_annot_chips]')
+            print('[!ibs.add_annot_chips] ' + ut.list_dbgstr('aid_list'))
             raise
         colnames = ('annot_rowid', 'config_rowid', 'chip_uri', 'chip_width', 'chip_height',)
         get_rowid_from_superkey = functools.partial(ibs.get_annot_chip_rowids, ensure=False)
@@ -77,7 +77,7 @@ def add_chips(ibs, aid_list):
 
 @register_ibs_method
 @adder
-def add_feats(ibs, cid_list, force=False):
+def add_chip_feats(ibs, cid_list, force=False):
     """ Computes the features for every chip without them """
     from ibeis.model.preproc import preproc_feat
     fid_list = ibs.get_chip_fids(cid_list, ensure=False)
@@ -191,7 +191,7 @@ def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, qr
 @getter_1to1
 def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
     if ensure:
-        ibs.add_feats(cid_list)
+        ibs.add_chip_feats(cid_list)
     feat_config_rowid = ibs.get_feat_config_rowid()
     colnames = ('feature_rowid',)
     where_clause = 'chip_rowid=? AND config_rowid=?'

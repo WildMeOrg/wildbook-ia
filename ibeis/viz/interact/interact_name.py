@@ -112,9 +112,9 @@ class MatchVerificationInteraction(AbstractInteraction):
                 if event.button == 3:   # right-click
                     import guitool
                     ibs = self.ibs
-                    is_exemplar = ibs.get_annot_exemplar_flag(aid)
+                    is_exemplar = ibs.get_annot_exemplar_flags(aid)
                     def context_func():
-                        ibs.set_annot_exemplar_flag(aid, not is_exemplar)
+                        ibs.set_annot_exemplar_flags(aid, not is_exemplar)
                         self.show_page()
                     guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
                         ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),

@@ -288,7 +288,8 @@ def organize_results(ibs, qaid2_qres):
     return allorg
 
 
-def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
+def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
+                             name_scoring=False, ibs=None):
     """
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
@@ -319,7 +320,9 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
     # For each QueryResult, Extract inspectable candidate matches
     for qaid, qres in six.iteritems(qaid2_qres):
         assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
-        (qaids, aids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt)
+        (qaids, aids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt,
+                                                              name_scoring=name_scoring,
+                                                              ibs=ibs)
         qaids_stack.append(qaids)
         aids_stack.append(aids)
         scores_stack.append(scores)

@@ -278,15 +278,66 @@ def _get_detect_config(**detectkw):
 #=================
 
 
+def format_pyrf_results(results):
+    bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+              for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+              in results if supressed == 0]
+
+    #x_arr = results[:, 2]
+    #y_arr = results[:, 3]
+    #w_arr = results[:, 4] - results[:, 2]
+    #h_arr = results[:, 5] - results[:, 3]
+    #bboxes = np.hstack((x_arr, y_arr, w_arr, h_arr))
+    # Unpack unsupressed bounding boxes
+
+    confidences = [confidence
+                   for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                   in results if supressed == 0]
+
+    if len(results) > 0:
+        image_confidence = max([float(result[6]) for result in results])
+    else:
+        image_confidence = 0.0
+    return bboxes, confidences, image_confidence
+
+
 def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
                           single=False, use_chunks=False, modeldir='default',
                           verbose=VERBOSE_RF, **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
+
+    Args:
+        src_gpath_list (list):
+        dst_gpath_list (list):
+        species        (str):
+        quick          (bool):
+        single         (bool):
+        use_chunks     (bool):
+        modeldir       (str):
+        verbose        (bool):
+
+    CommandLine:
+        python -m ibeis.model.detect.randomforest --test-detect_species_bboxes
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.detect.randomforest import *  # NOQA
+        >>> src_gpath_list = '?'
+        >>> dst_gpath_list = '?'
+        >>> species = '?'
+        >>> quick = True
+        >>> single = False
+        >>> use_chunks = False
+        >>> modeldir = 'default'
+        >>> verbose = False
+        >>> result = detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick, single, use_chunks, modeldir, verbose)
+        >>> print(result)
     """
     nImgs = len(src_gpath_list)
-    print('[detect.rf] Begining %s detection' % (species,))
+    if verbose:
+        print('[detect.rf] Begining %s detection' % (species,))
     detect_lbl = 'detect %s: ' % species
     #mark_prog, end_prog = ut.progress_func(nImgs, detect_lbl, flush_after=1)
 
@@ -304,12 +355,13 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
         print('[rf] src_gpath_list = ' + ut.truncate_str(ut.list_str(src_gpath_list)))
         print('[rf] dst_gpath_list = ' + ut.truncate_str(ut.list_str(dst_gpath_list)))
     if use_chunks_:
-        if verbose:
-            print('[rf] detect in chunks')
+        #if verbose:
+        print('[rf] detect in chunks. chunksize=%d' % (chunksize,))
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
         chunk_iter = ut.ichunks(pathtup_iter, chunksize)
+        nTotal = ut.iceil(nImgs / chunksize)
         chunk_progiter = ut.ProgressIter(chunk_iter, lbl=detect_lbl,
-                                         nTotal=int(nImgs / chunksize), freq=1)
+                                         nTotal=nTotal, freq=1)
         for ic, chunk in enumerate(chunk_progiter):
             src_gpath_list = [tup[0] for tup in chunk]
             dst_gpath_list = [tup[1] for tup in chunk]
@@ -317,26 +369,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
             results_list = detector.detect_many(forest, src_gpath_list, dst_gpath_list, use_openmp=True)
 
             for results in results_list:
-                bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
-                          for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                          in results if supressed == 0]
-
-                #x_arr = results[:, 2]
-                #y_arr = results[:, 3]
-                #w_arr = results[:, 4] - results[:, 2]
-                #h_arr = results[:, 5] - results[:, 3]
-                #bboxes = np.hstack((x_arr, y_arr, w_arr, h_arr))
-                # Unpack unsupressed bounding boxes
-
-                confidences = [confidence
-                               for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                               in results if supressed == 0]
-
-                if len(results) > 0:
-                    image_confidence = max([float(result[6]) for result in results])
-                else:
-                    image_confidence = 0.0
-
+                bboxes, confidences, image_confidence =  format_pyrf_results(results)
                 yield bboxes, confidences, image_confidence
     else:
         if verbose:
@@ -347,19 +380,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
         for ix, (src_gpath, dst_gpath) in enumerate(pathtup_progiter):
             #mark_prog(ix)
             results = detector.detect(forest, src_gpath, dst_gpath)
-            bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
-                      for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                      in results if supressed == 0]
-
-            confidences = [confidence
-                           for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                           in results if supressed == 0]
-
-            if len(results) > 0:
-                image_confidence = max([float(result[6]) for result in results])
-            else:
-                image_confidence = 0.0
-
+            bboxes, confidences, image_confidence =  format_pyrf_results(results)
             yield bboxes, confidences, image_confidence
     #end_prog()
 

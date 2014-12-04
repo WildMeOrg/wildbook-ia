@@ -43,7 +43,7 @@ from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import results_all
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
 #------------------
@@ -77,145 +77,9 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None
     """
-    # Take a known dataase
-    if 'ibs' in vars():
-        ibs1 = ibs
-        del ibs
-        del qaid_list
-        del daid_list
-    # Create an empty database to test in
-    dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
-    ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=True, use_cache=False)
-    assert len(ibs2.get_valid_aids())  == 0
-    assert len(ibs2.get_valid_gids())  == 0
-    assert len(ibs2.get_valid_nids())  == 0
-
-    # Get annotations and their images from database 1
-    aid_list1 = ibs1.get_aids_with_groundtruth()
-    gid_list1 = ibs1.get_annot_gids(aid_list1)
-    gpath_list1 = ibs1.get_image_paths(gid_list1)
-
-    # Add all images from database 1 to database 2
-    gid_list2 = ibs2.add_images(gpath_list1, auto_localize=False)
-
-    # Image UUIDS should be consistent between databases
-    image_uuid_list1 = ibs1.get_image_uuids(gid_list1)
-    image_uuid_list2 = ibs2.get_image_uuids(gid_list2)
-    assert image_uuid_list1 == image_uuid_list2
-    ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
-
-    aid1_to_aid2 = {}
-    def register_annot_mapping(aids_chunk1, aids_chunk2):
-        # Should be 1 to 1
-        for aid1, aid2 in zip(aids_chunk1, aids_chunk2):
-            if aid1 in aid1_to_aid2:
-                assert aid1_to_aid2[aid1] == aid2
-            else:
-                aid1_to_aid2[aid1] = aid2
-
-    #for aids_chunk1 in aids_chunk1_iter:
-    #    break
-    def mark_as_new_name(aid):
-        if ibs2.is_aid_unknown(aid):
-            print('adding as new name')
-            newname = ibs2.make_next_name()
-            ibs2.set_annot_names([aid], [newname])
-        else:
-            print('already has name')
-        if not ibs2.get_annot_exemplar_flag(aid):
-            print('marking as exemplar')
-            ibs2.set_annot_exemplar_flag([aid], [1])
-        else:
-            print('already is exemplar')
-
-    def mark_as_match(aid, nid):
-        print('setting nameid to nid=%r' % nid)
-        ibs2.set_annot_name_rowids([aid], [nid])
-        if not ibs2.get_annot_exemplar_flag(aid):
-            print('marking as exemplar')
-            ibs2.set_annot_exemplar_flag([aid], [1])
-        else:
-            print('already is exemplar')
-            ibs2.get_name_exemplar_aids(nid)
-
-    def execute_teststep(aids_chunk1):
-        """ Add an unseen annotation and run a query """
-        print('---- EXECUTING TESTSTEP -----')
-        gids_chunk1    = ibs1.get_annot_gids(aids_chunk1)
-        guuids_chunk1  = ibs1.get_image_uuids(gids_chunk1)
-        species_chunk1 = ibs1.get_annot_species(aids_chunk1)
-        verts_chunk1   = ibs1.get_annot_verts(aids_chunk1)
-        thetas_chunk1  = ibs1.get_annot_thetas(aids_chunk1)
-
-        gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
-        # Add this new unseen test case to the database
-        addkw = dict(species_list=species_chunk1, vert_list=verts_chunk1,
-                     theta_list=thetas_chunk1, prevent_visual_duplicates=True)
-        aids_chunk2 = ibs2.add_annots(gids_chunk2, **addkw)
-        register_annot_mapping(aids_chunk1, aids_chunk2)
-        print('Added: aids_chunk2=%r' % (aids_chunk2,))
-
-        threshold = .9
-        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
-
-        K = ibs2.cfg.query_cfg.nn_cfg.K
-        if len(exemplar_aids) < 10:
-            K = 1
-        if len(ut.intersect_ordered(aids_chunk1, exemplar_aids)) > 0:
-            # if self is in query bump k
-            K += 1
-        cfgdict = {
-            'K': K
-        }
-
-        if len(exemplar_aids) == 0:
-            print('No exemplars in database')
-            for aid in aids_chunk2:
-                mark_as_new_name(aid)
-        else:
-            qaid2_qres = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict)
-            for qaid, qres in six.iteritems(qaid2_qres):
-                nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
-                if len(nid_list) == 0:
-                    print('No matches made')
-                    mark_as_new_name(qaid)
-                else:
-                    candidate_indexes = np.where(score_list > threshold)[0]
-                    if len(candidate_indexes) == 0:
-                        print('No candidates above threshold')
-                        mark_as_new_name(qaid)
-                    elif len(candidate_indexes) == 1:
-                        nid = nid_list[candidate_indexes[0]]
-                        score = score_list[candidate_indexes[0]]
-                        print('One candidate above threshold with score=%r' % (score,))
-                        mark_as_match(qaid, nid)
-                    else:
-                        print('Multiple candidates above threshold')
-                        nids = nid_list[candidate_indexes]  # NOQA
-                        scores = score_list[candidate_indexes]
-                        print('One candidate above threshold with scores=%r' % (scores,))
-                        nid = scores.argmax()
-                        mark_as_match(qaid, nid)
-
-    # TESTING
-    chunksize = 1
-    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
-
-    for _ in range(2):
-        aids_chunk1 = six.next(aids_chunk1_iter)
-        execute_teststep(aids_chunk1)
-
-    ut.embed()
-
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(aids_chunk1)
-
-    # FULL INCREMENT
-    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
-    #for aids_chunk1 in aids_chunk1_iter:
-    #    break
-    #    execute_teststep(aids_chunk1)
-    #    #pass
+    from ibeis.model.hots import automated_matcher
+    ibs1 = ibs
+    return automated_matcher.incremental_test(ibs1)
 
 
 @devcmd('scores', 'score')

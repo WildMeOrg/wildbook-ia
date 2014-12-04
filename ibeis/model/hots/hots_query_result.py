@@ -310,9 +310,12 @@ class QueryResult(__OBJECT_BASE__):
             mx = mx_list[0]
             return mx
 
-    def get_match_tbldata(qres, ranks_lt=5):
-        """ Returns matchinfo in table format (qaids, aids, scores, ranks) """
-        aid_arr, score_arr = qres.get_aids_and_scores()
+    def get_match_tbldata(qres, ranks_lt=5, name_scoring=False, ibs=None):
+        """
+        Returns matchinfo in table format (qaids, aids, scores, ranks)
+        """
+        # TODO: get rid of conflict with module name name_scoring
+        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
         # Sort the scores in rank order
         sortx     = score_arr.argsort()[::-1]
         score_arr = score_arr[sortx]
@@ -335,8 +338,9 @@ class QueryResult(__OBJECT_BASE__):
         return tbldata
 
     def get_nscoretup(qres, ibs):
-        aid_list, score_list = qres.get_aids_and_scores()
+        aid_list, score_list = qres.get_aids_and_scores(name_scoring=False)
         nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
+        # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
 
     def get_sorted_nids_and_scores(qres, ibs):
@@ -353,16 +357,23 @@ class QueryResult(__OBJECT_BASE__):
             nscore = sorted_nscores[0]
             return (nid, nscore)
 
-    def get_aids_and_scores(qres):
+    def get_aids_and_scores(qres, name_scoring=False, ibs=None):
         """ returns a chip index list and associated score list """
-        aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
-        score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
+        if name_scoring:
+            assert ibs is not None, 'must specify ibs for name_scoring'
+            nscoretup = qres.get_nscoretup(ibs)
+            (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+            score_arr = np.array(sorted_nscore)
+            aid_arr = np.array(ut.get_list_column(sorted_aids, 0))
+        else:
+            aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
+            score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
         return aid_arr, score_arr
 
-    def get_top_aids(qres, num=None):
+    def get_top_aids(qres, num=None, name_scoring=False, ibs=None):
         """ Returns a ranked list of chip indexes """
         # TODO: rename num to ranks_lt
-        aid_arr, score_arr = qres.get_aids_and_scores()
+        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
         # Get chip-ids sorted by scores
         top_aids = aid_arr[score_arr.argsort()[::-1]]
         num_indexed = len(top_aids)
@@ -378,14 +389,14 @@ class QueryResult(__OBJECT_BASE__):
         isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
         return isgt_list
 
-    def get_inspect_str(qres, ibs=None):
+    def get_inspect_str(qres, ibs=None, name_scoring=False):
         assert_qres(qres)
         nFeatMatch_list = get_num_feats_in_matches(qres)
         nFeatMatch_stats = utool.get_stats(nFeatMatch_list)
 
         top_lbls = [' top aids', ' scores', ' ranks']
 
-        top_aids   = np.array(qres.get_top_aids(num=5), dtype=np.int32)
+        top_aids   = np.array(qres.get_top_aids(num=5, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
         top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
         top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
         top_list   = [top_aids, top_scores, top_ranks]
@@ -394,6 +405,9 @@ class QueryResult(__OBJECT_BASE__):
             top_lbls += [' isgt']
             istrue = qres.get_aid_truth(ibs, top_aids)
             top_list.append(np.array(istrue, dtype=np.int32))
+        if name_scoring:
+            top_lbls = ['top nid'] + top_lbls
+            top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
 
         top_stack = np.vstack(top_list)
         top_stack = np.array(top_stack, dtype=object)
@@ -567,6 +581,25 @@ class QueryResult(__OBJECT_BASE__):
     def show_analysis(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
+
+    def ishow_top(qres, ibs, *args, **kwargs):
+        from ibeis.viz.interact import interact_qres
+        return interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
+
+    def qt_inspect_gui(qres, ibs, ranks_lt=5, name_scoring=False):
+        from ibeis.gui import inspect_gui
+        import guitool
+        guitool.ensure_qapp()
+        qaid2_qres = {qres.qaid: qres}
+        print('[inspect_matches] make_qres_widget')
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                                  ranks_lt=ranks_lt,
+                                                  name_scoring=name_scoring)
+        print('[inspect_matches] show')
+        qres_wgt.show()
+        print('[inspect_matches] raise')
+        qres_wgt.raise_()
+        return qres_wgt
 
     def show(qres, ibs, type_, *args, **kwargs):
         if type_ == 'top':

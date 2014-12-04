@@ -48,7 +48,7 @@ def ishow_qres(ibs, qres, **kwargs):
         return fig
 
     def _on_match_click(event):
-        'result interaction mpl event callback slot'
+        """ result interaction mpl event callback slot """
         print('[viz] clicked result')
         if ih.clicked_outside_axis(event):
             _top_matches_view(toggle=1)

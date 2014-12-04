@@ -84,7 +84,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
         _gtaids = utool.sortedby(_gtaids, _gtscores, reverse=True)
         if len(_gtaids) > 3:
             # Hack to not show too many unmatched groundtruths
-            #_isexmp = ibs.get_annot_exemplar_flag(_gtaids)
+            #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
             _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
 
@@ -108,6 +108,8 @@ def show_qres(ibs, qres, **kwargs):
     show_query  = kwargs.get('show_query', False)
     in_image    = kwargs.get('in_image', False)
     sidebyside  = kwargs.get('sidebyside', True)
+    name_scoring  = kwargs.get('name_scoring', False)
+
     fnum = df2.kwargs_fnum(kwargs)
 
     if make_figtitle is True:
@@ -116,7 +118,7 @@ def show_qres(ibs, qres, **kwargs):
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
 
     if isinstance(top_aids, int):
-        top_aids = qres.get_top_aids(num=top_aids)
+        top_aids = qres.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
 
     nTop   = len(top_aids)
 

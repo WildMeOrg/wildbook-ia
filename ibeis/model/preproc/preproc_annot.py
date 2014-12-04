@@ -113,79 +113,10 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
 
 
-def get_annot_visual_uuid_info(ibs, aid_list):
-    """
-    Returns annotation UUID that is unique for the visual qualities
-    of the annoation. does not include name ore species information.
-
-    get_annot_visual_uuid_info
-
-    Args:
-        ibs      (IBEISController):
-        aid_list (list):
-
-    Returns:
-        list: visual_info_list
-
-    CommandLine:
-        python -m ibeis.model.preproc.preproc_annot --test-get_annot_visual_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
-        >>> result = str(list(zip(*visual_infotup))[0])
-        >>> print(result)
-        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
-    """
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    verts_list      = ibs.get_annot_verts(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
-    #visual_info_list = list(visual_info_iter)
-    visual_infotup = (image_uuid_list, verts_list, theta_list)
-    return visual_infotup
-
-
-def get_annot_semantic_uuid_info(ibs, aid_list):
-    """
-    Args:
-        ibs      (IBEISController):
-        aid_list (list):
-
-    Returns:
-        list: semantic_info_list
-
-    CommandLine:
-        python -m ibeis.model.preproc.preproc_annot --test-get_annot_semantic_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
-        >>> result = str(list(zip(*semantic_infotup))[0])
-        >>> print(result)
-        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0, None, '____', u'zebra_plains')
-
-    """
-    # Semantic info depends on visual info
-    image_uuid_list, verts_list, theta_list = get_annot_visual_uuid_info(ibs, aid_list)
-    # It is visual info augmented with name and species
-    view_list       = ibs.get_annot_viewpoints(aid_list)
-    name_list       = ibs.get_annot_names(aid_list)
-    species_list    = ibs.get_annot_species(aid_list)
-    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
-                        name_list, species_list)
-    return semantic_infotup
-
-
 def make_annot_visual_uuid(visual_infotup):
     """
     Args:
-        ibs      (IBEISController):
-        aid_list (list):
+        visual_infotup (tuple):  (image_uuid_list, verts_list, theta_list)
 
     Returns:
         list: annot_visual_uuid_list
@@ -194,7 +125,7 @@ def make_annot_visual_uuid(visual_infotup):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
         >>> annot_visual_uuid_list = make_annot_visual_uuid(visual_infotup)
         >>> result = str(annot_visual_uuid_list[0])
         >>> print(result)
@@ -207,9 +138,9 @@ def make_annot_visual_uuid(visual_infotup):
 
 def make_annot_semantic_uuid(semantic_infotup):
     """
+
     Args:
-        ibs      (IBEISController):
-        aid_list (list):
+        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
 
     Returns:
         list: annot_semantic_uuid_list
@@ -218,7 +149,7 @@ def make_annot_semantic_uuid(semantic_infotup):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> ibs, aid_list = testdata_preproc_annot()
-        >>> semantic_infotup = get_annot_semantic_uuid_info(ibs, aid_list)
+        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
         >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
         >>> result = str(annot_semantic_uuid_list[0])
         >>> print(result)

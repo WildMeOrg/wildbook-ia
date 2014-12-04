@@ -365,7 +365,7 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
         ibs_src.get_annot_verts(aid_list),
         ibs_src.get_annot_viewpoints(aid_list),
         ibs_src.get_annot_detect_confidence(aid_list),
-        ibs_src.get_annot_exemplar_flag(aid_list),
+        ibs_src.get_annot_exemplar_flags(aid_list),
         ibs_src.get_annot_name_rowids(aid_list),
         ibs_src.get_annot_species_rowids(aid_list),
         ibs_src.get_annot_notes(aid_list),
@@ -753,7 +753,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list)
         if annot_parent_INDEX is not None and 0 <= annot_parent_INDEX and annot_parent_INDEX < len(aid_list):
             parent_aid = aid_list[annot_parent_INDEX]
             ibs_dst.set_annot_parent_rowid([aid], [parent_aid])
-    ibs_dst.set_annot_exemplar_flag(aid_list, annot_td.annot_exemplar_flag_list)
+    ibs_dst.set_annot_exemplar_flags(aid_list, annot_td.annot_exemplar_flag_list)
     # Add lblannots
     if utool.VERBOSE:
         print("[import_transfer_data]       Importing lblannots...")

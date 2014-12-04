@@ -183,7 +183,7 @@ def get_annot_detect_confidences(ibs, aid_list):
 
 
 @register_ibs_method
-def get_annot_exemplar_flags(ibs, aid_list):
+def get_annot_exemplar_flagss(ibs, aid_list):
     """ annot_exemplar_flag_list <- annot.annot_exemplar_flag[aid_list]
 
     gets data from the "native" column "annot_exemplar_flag" in the "annot" table
@@ -204,7 +204,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
         >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> aid_list = ibs._get_all_aids()
-        >>> annot_exemplar_flag_list = ibs.get_annot_exemplar_flags(aid_list)
+        >>> annot_exemplar_flag_list = ibs.get_annot_exemplar_flagss(aid_list)
         >>> assert len(aid_list) == len(annot_exemplar_flag_list)
     """
     id_iter = aid_list
@@ -635,7 +635,7 @@ def set_annot_detect_confidences(ibs, aid_list, annot_detect_confidence_list):
 
 
 @register_ibs_method
-def set_annot_exemplar_flags(ibs, aid_list, annot_exemplar_flag_list):
+def set_annot_exemplar_flagss(ibs, aid_list, annot_exemplar_flag_list):
     """ annot_exemplar_flag_list -> annot.annot_exemplar_flag[aid_list]
 
     Args:

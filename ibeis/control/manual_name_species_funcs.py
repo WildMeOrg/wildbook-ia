@@ -34,6 +34,12 @@ def _get_all_known_name_rowids(ibs):
 
 
 @register_ibs_method
+def _get_all_known_nids(ibs):
+    """ alias """
+    return _get_all_known_name_rowids(ibs)
+
+
+@register_ibs_method
 @ider
 def _get_all_species_rowids(ibs):
     """
@@ -134,16 +140,42 @@ def delete_names(ibs, nid_list):
 
 
 @register_ibs_method
+@deleter
+#@cache_invalidator(const.LBLANNOT_TABLE)
+def delete_species(ibs, species_rowid_list):
+    """
+    deletes species from the database
+
+    CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
+    at least ensure that no annot is associated with any of these species rowids
+    """
+    ibs.delete_lblannots(species_rowid_list)
+
+
+@register_ibs_method
 @ider
 def get_invalid_nids(ibs):
     """
     Returns:
         list: nid_list - all names without any animals (does not include unknown names)
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aids_list = get_invalid_nids(ibs)
+        >>> result = str(aids_list)
+        >>> print(result)
     """
     _nid_list = ibs._get_all_known_name_rowids()
     nRois_list = ibs.get_name_num_annotations(_nid_list)
-    nid_list = [nid for nid, nRois in zip(_nid_list, nRois_list)
-                if nRois <= 0]
+    isempty_list = (nRois <= 0 for nRois in nRois_list)
+    nid_list = list(ut.ifilter_items(_nid_list, isempty_list))
+    #[nid for nid, nRois in zip(_nid_list, nRois_list) if nRois <= 0]
     return nid_list
 
 
@@ -212,7 +244,7 @@ def get_name_exemplar_aids(ibs, nid_list):
     # Get all annot ids for each name
     aids_list = ibs.get_name_aids(nid_list_)
     # Flag any annots that are not exemplar and remove them
-    flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+    flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
     exemplar_aids_list = [ut.filter_items(aids, flags) for aids, flags in
                           zip(aids_list, flags_list)]
     return exemplar_aids_list
@@ -302,7 +334,7 @@ def get_name_texts(ibs, nid_list):
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> nid_list = ibs._get_all_known_nids()
+        >>> nid_list = ibs._get_all_known_name_rowids()
         >>> name_text_list = get_name_texts(ibs, nid_list)
         >>> result = str(name_text_list)
         >>> print(result)
@@ -322,7 +354,7 @@ def get_name_texts(ibs, nid_list):
 
 @register_ibs_method
 def get_num_names(ibs, **kwargs):
-    """
+    r"""
     Number of valid name (subset of lblannot)
 
     CommandLine:
@@ -344,7 +376,7 @@ def get_num_names(ibs, **kwargs):
 @register_ibs_method
 @getter_1to1
 def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
-    """
+    r"""
     Returns:
         species_rowid_list (list): Creates one if it doesnt exist
 
@@ -368,9 +400,16 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_lblannot_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
-        >>> result = species_text
+        >>> # Ensure we leave testdb1 in a clean state
+        >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
+        >>> all_species_rowids = ibs._get_all_species_rowids()
+        >>> result = str(species_text) + '\n'
+        >>> result += str(all_species_rowids) + '\n'
+        >>> result += str(ibs.get_species_texts(all_species_rowids))
         >>> print(result)
         [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
+        [8, 9, 10]
+        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
 
     """
     if ensure:
@@ -389,9 +428,13 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 @register_ibs_method
 @getter_1to1
 def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
-    """
+    r"""
+
     Returns:
         species_rowid_list (list): Creates one if it doesnt exist
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_rowids_from_text
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -399,19 +442,22 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> import ibeis
         >>> import utool as ut
         >>> ibs = ibeis.opendb('testdb1')
-        >>> name_text_list = [
-        ...     u'Fred', u'Sue', '____',
-        ...     u'zebra_grevys', 'TYPO', '____']
+        >>> name_text_list = [u'Fred', u'Sue', '____', u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
         >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
         >>> ensure = True
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
         >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
-        >>> ibs.print_lblannot_table()
-        >>> result = name_rowid_list
+        >>> #ibs.print_lblannot_table()
+        >>> result = str(name_rowid_list) + '\n'
+        >>> typo_rowids = ibs.get_name_rowids_from_text(['TYPO', 'Fred', 'Sue', 'zebra_grevys'])
+        >>> ibs.delete_names(typo_rowids)
+        >>> result += str(ibs._get_all_known_name_rowids())
         >>> print(result)
         [11, 12, 0, 13, 14, 0]
+        [1, 2, 3, 4, 5, 6, 7]
+
     """
     if ensure:
         name_rowid_list = ibs.add_names(name_text_list)
@@ -468,8 +514,8 @@ def get_valid_nids(ibs, eid=None, filter_empty=False):
         _nid_list = ibs.get_encounter_nids(eid)
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     if filter_empty:
-        nid_list = [nid for nid, nRois in zip(_nid_list, nRois_list)
-                    if nRois > 0]
+        nonempty_list = (nRois > 0 for nRois in nRois_list)
+        nid_list = list(ut.ifilter_items(_nid_list, nonempty_list))
     else:
         nid_list = _nid_list
     return nid_list

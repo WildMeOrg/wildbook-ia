@@ -178,7 +178,7 @@ def setter_general(func):
 #@decorator.decorator
 def setter(func):
     func_ = default_decorator(func)
-    @utool.accepts_scalar_input2(argx_list=[0, 1])
+    @utool.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
     #@utool.accepts_scalar_input2(argx_list=range(0, 2))
     #@utool.accepts_scalar_input2(argx_list=range(1, 2))
     #@utool.on_exception_report_input
