@@ -118,8 +118,9 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
     num_dpts = len(dpts)
-    if verbose or (not quiet and num_dpts > 1E6):
+    if not quiet:
         print('...flann cache miss.')
+    if verbose or (not quiet and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     flann.build_index(dpts, **flann_params)
     if verbose:
