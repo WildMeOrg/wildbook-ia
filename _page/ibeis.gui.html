@@ -68,8 +68,8 @@
 <p>Sends and recieves signals to and from the frontend</p>
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.add_annot">
-<tt class="descname">add_annot</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.add_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.add_annot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(add_annot)</p>
+<tt class="descname">add_annot</tt><big>(</big><em>back</em>, <em>gid=None</em>, <em>bbox=None</em>, <em>theta=0.0</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.add_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.add_annot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(add_annot)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gid&#8217;, &#8216;bbox&#8217;, &#8216;theta&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(None, None, 0.0, True))</p>
 <p>orig_docstr =  Action -&gt; Add ANNOTATION</p>
 </dd></dl>
@@ -82,24 +82,24 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.backup_database">
-<tt class="descname">backup_database</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.backup_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.backup_database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(backup_database)</p>
+<tt class="descname">backup_database</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.backup_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.backup_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(backup_database)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  File -&gt; Backup Database</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.change_detection_species">
-<tt class="descname">change_detection_species</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.change_detection_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.change_detection_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(change_detection_species)</p>
+<tt class="descname">change_detection_species</tt><big>(</big><em>back</em>, <em>index</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.change_detection_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.change_detection_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(change_detection_species)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;index&#8217;, &#8216;value&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.change_query_mode">
-<tt class="descname">change_query_mode</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.change_query_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.change_query_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(change_query_mode)</p>
+<tt class="descname">change_query_mode</tt><big>(</big><em>back</em>, <em>index</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.change_query_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.change_query_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(change_query_mode)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;index&#8217;, &#8216;value&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -111,32 +111,32 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_encounters">
-<tt class="descname">compute_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(compute_encounters)</p>
+<tt class="descname">compute_encounters</tt><big>(</big><em>back</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(compute_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(True,))</p>
 <p>orig_docstr =  Batch -&gt; Compute Encounters</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_feats">
-<tt class="descname">compute_feats</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_feats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(compute_feats)</p>
+<tt class="descname">compute_feats</tt><big>(</big><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_feats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(compute_feats)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(True,))</p>
 <p>orig_docstr =  Batch -&gt; Precompute Feats</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_queries">
-<tt class="descname">compute_queries</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_queries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(compute_queries)</p>
+<tt class="descname">compute_queries</tt><big>(</big><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_queries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(compute_queries)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(True,))</p>
 <p>orig_docstr =  Batch -&gt; Precompute Queries</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_thumbs">
-<tt class="descname">compute_thumbs</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_thumbs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(compute_thumbs)</p>
+<tt class="descname">compute_thumbs</tt><big>(</big><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_thumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(compute_thumbs)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(True,))</p>
 <p>orig_docstr =  Batch -&gt; Precompute Thumbs</p>
 </dd></dl>
@@ -148,24 +148,24 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.default_config">
-<tt class="descname">default_config</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.default_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.default_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(default_config)</p>
+<tt class="descname">default_config</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.default_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(default_config)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Button Click -&gt; Preferences Defaults</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_all_encounters">
-<tt class="descname">delete_all_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_all_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_all_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(delete_all_encounters)</p>
+<tt class="descname">delete_all_encounters</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_all_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_all_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(delete_all_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_annot">
-<tt class="descname">delete_annot</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_annot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(delete_annot)</p>
+<tt class="descname">delete_annot</tt><big>(</big><em>back</em>, <em>aid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_annot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(delete_annot)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid_list&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr =  Action -&gt; Delete Chip</p>
 </dd></dl>
@@ -178,8 +178,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_encounter">
-<tt class="descname">delete_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_encounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(delete_encounter)</p>
+<tt class="descname">delete_encounter</tt><big>(</big><em>back</em>, <em>eid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(delete_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;eid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -191,8 +191,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_image">
-<tt class="descname">delete_image</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(delete_image)</p>
+<tt class="descname">delete_image</tt><big>(</big><em>back</em>, <em>gid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(delete_image)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gid&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr =  Action -&gt; Delete Images</p>
 </dd></dl>
@@ -204,16 +204,16 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.dev_cls">
-<tt class="descname">dev_cls</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_cls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_cls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(dev_cls)</p>
+<tt class="descname">dev_cls</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_cls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_cls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(dev_cls)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Help -&gt; Developer Mode</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.dev_dumpdb">
-<tt class="descname">dev_dumpdb</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_dumpdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_dumpdb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(dev_dumpdb)</p>
+<tt class="descname">dev_dumpdb</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_dumpdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_dumpdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(dev_dumpdb)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Help -&gt; Developer Mode</p>
 </dd></dl>
@@ -225,16 +225,16 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.dev_mode">
-<tt class="descname">dev_mode</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(dev_mode)</p>
+<tt class="descname">dev_mode</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(dev_mode)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Help -&gt; Developer Mode</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.dev_reload">
-<tt class="descname">dev_reload</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_reload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(dev_reload)</p>
+<tt class="descname">dev_reload</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.dev_reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.dev_reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(dev_reload)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Help -&gt; Developer Reload</p>
 </dd></dl>
@@ -252,56 +252,56 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.encounter_set_species">
-<tt class="descname">encounter_set_species</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.encounter_set_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.encounter_set_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(encounter_set_species)</p>
+<tt class="descname">encounter_set_species</tt><big>(</big><em>back</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.encounter_set_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.encounter_set_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(encounter_set_species)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(True,))</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.export_database">
-<tt class="descname">export_database</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(export_database)</p>
+<tt class="descname">export_database</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(export_database)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  File -&gt; Export Database</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.export_encounters">
-<tt class="descname">export_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(export_encounters)</p>
+<tt class="descname">export_encounters</tt><big>(</big><em>back</em>, <em>eid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(export_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;eid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_aid">
-<tt class="descname">get_selected_aid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_aid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_selected_aid)</p>
+<tt class="descname">get_selected_aid</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_aid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(get_selected_aid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  selected annotation id</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_eid">
-<tt class="descname">get_selected_eid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_eid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_selected_eid)</p>
+<tt class="descname">get_selected_eid</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_eid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(get_selected_eid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  selected encounter id</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_gid">
-<tt class="descname">get_selected_gid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_gid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_selected_gid)</p>
+<tt class="descname">get_selected_gid</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_gid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(get_selected_gid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  selected image id</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_qres">
-<tt class="descname">get_selected_qres</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_selected_qres)</p>
+<tt class="descname">get_selected_qres</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qres" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(get_selected_qres)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  selected query result</p>
 </dd></dl>
@@ -313,40 +313,40 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images">
-<tt class="descname">import_images</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(import_images)</p>
+<tt class="descname">import_images</tt><big>(</big><em>back</em>, <em>gpath_list=None</em>, <em>dir_=None</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(import_images)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gpath_list&#8217;, &#8216;<a href="#id1"><span class="problematic" id="id2">dir_</span></a>&#8216;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(None, None, True))</p>
 <p>orig_docstr =  File -&gt; Import Images (ctrl + i)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_as_annots_from_file">
-<tt class="descname">import_images_as_annots_from_file</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_as_annots_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_as_annots_from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(import_images_as_annots_from_file)</p>
+<tt class="descname">import_images_as_annots_from_file</tt><big>(</big><em>back</em>, <em>gpath_list=None</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_as_annots_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_as_annots_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(import_images_as_annots_from_file)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gpath_list&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(None, True))</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_from_dir">
-<tt class="descname">import_images_from_dir</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_from_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(import_images_from_dir)</p>
+<tt class="descname">import_images_from_dir</tt><big>(</big><em>back</em>, <em>dir_=None</em>, <em>size_filter=None</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_from_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(import_images_from_dir)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;<a href="#id3"><span class="problematic" id="id4">dir_</span></a>&#8216;, &#8216;size_filter&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(None, None, True))</p>
 <p>orig_docstr =  File -&gt; Import Images From Directory</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_from_file">
-<tt class="descname">import_images_from_file</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(import_images_from_file)</p>
+<tt class="descname">import_images_from_file</tt><big>(</big><em>back</em>, <em>gpath_list=None</em>, <em>refresh=True</em>, <em>as_annots=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(import_images_from_file)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gpath_list&#8217;, &#8216;refresh&#8217;, &#8216;as_annots&#8217;], varargs=None, keywords=None, defaults=(None, True, False))</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.layout_figures">
-<tt class="descname">layout_figures</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.layout_figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.layout_figures" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(layout_figures)</p>
+<tt class="descname">layout_figures</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.layout_figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.layout_figures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(layout_figures)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Options -&gt; Layout Figures</p>
 </dd></dl>
@@ -359,16 +359,16 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.merge_encounters">
-<tt class="descname">merge_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.merge_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.merge_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(merge_encounters)</p>
+<tt class="descname">merge_encounters</tt><big>(</big><em>back</em>, <em>eid_list</em>, <em>destination_eid</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.merge_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.merge_encounters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(merge_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;eid_list&#8217;, &#8216;destination_eid&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.new_database">
-<tt class="descname">new_database</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.new_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.new_database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(new_database)</p>
+<tt class="descname">new_database</tt><big>(</big><em>back</em>, <em>new_dbdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.new_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.new_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(new_database)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;new_dbdir&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr =  File -&gt; New Database</p>
 </dd></dl>
@@ -387,8 +387,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.open_database">
-<tt class="descname">open_database</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.open_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.open_database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(open_database)</p>
+<tt class="descname">open_database</tt><big>(</big><em>back</em>, <em>dbdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.open_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.open_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(open_database)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;dbdir&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr =  File -&gt; Open Database</p>
 </dd></dl>
@@ -400,8 +400,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.query">
-<tt class="descname">query</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(query)</p>
+<tt class="descname">query</tt><big>(</big><em>back</em>, <em>aid=None</em>, <em>refresh=True</em>, <em>query_mode=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(query)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;refresh&#8217;, &#8216;query_mode&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True, None))</p>
 <p>orig_docstr =  Action -&gt; Query</p>
 </dd></dl>
@@ -430,55 +430,55 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.reselect_annotation">
-<tt class="descname">reselect_annotation</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.reselect_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.reselect_annotation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(reselect_annotation)</p>
+<tt class="descname">reselect_annotation</tt><big>(</big><em>back</em>, <em>aid=None</em>, <em>bbox=None</em>, <em>refresh=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.reselect_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.reselect_annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(reselect_annotation)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;bbox&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, None, True))</p>
 <p>orig_docstr =  Action -&gt; Reselect ANNOTATION</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.reselect_ori">
-<tt class="descname">reselect_ori</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.reselect_ori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.reselect_ori" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(reselect_ori)</p>
+<tt class="descname">reselect_ori</tt><big>(</big><em>back</em>, <em>aid=None</em>, <em>theta=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.reselect_ori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.reselect_ori" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(reselect_ori)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;theta&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, None))</p>
 <p>orig_docstr =  Action -&gt; Reselect ORI</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.review_detections">
-<tt class="descname">review_detections</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_detections" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(review_detections)</p>
+<tt class="descname">review_detections</tt><big>(</big><em>back</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_detections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(review_detections)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.review_queries">
-<tt class="descname">review_queries</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_queries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(review_queries)</p>
+<tt class="descname">review_queries</tt><big>(</big><em>back</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_queries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(review_queries)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_coarse">
-<tt class="descname">run_detection_coarse</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_coarse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_coarse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(run_detection_coarse)</p>
+<tt class="descname">run_detection_coarse</tt><big>(</big><em>back</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_coarse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_coarse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(run_detection_coarse)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(True,))</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_fine">
-<tt class="descname">run_detection_fine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_fine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_fine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(run_detection_fine)</p>
+<tt class="descname">run_detection_fine</tt><big>(</big><em>back</em>, <em>refresh=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_fine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_fine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(run_detection_fine)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;refresh&#8217;], varargs=None, keywords=None, defaults=(True,))</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_aid">
-<tt class="descname">select_aid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_aid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_aid</tt><big>(</big><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em>, <em>show_annotation=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_aid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;eid&#8217;, &#8216;show&#8217;, &#8216;show_annotation&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True, True))</p>
 <p>orig_docstr =  Table Click -&gt; Chip Table</p>
@@ -491,7 +491,7 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_eid">
-<tt class="descname">select_eid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_eid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_eid</tt><big>(</big><em>back</em>, <em>eid=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_eid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_eid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;eid&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None,))</p>
 <p>orig_docstr =  Table Click -&gt; Result Table</p>
@@ -499,7 +499,7 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_gid">
-<tt class="descname">select_gid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_gid</tt><big>(</big><em>back</em>, <em>gid</em>, <em>eid=None</em>, <em>show=True</em>, <em>sel_aids=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_gid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gid&#8217;, &#8216;eid&#8217;, &#8216;show&#8217;, &#8216;sel_aids&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True, None))</p>
 <p>orig_docstr =  Table Click -&gt; Image Table</p>
@@ -507,7 +507,7 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid">
-<tt class="descname">select_gid_from_aid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_gid_from_aid</tt><big>(</big><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_gid_from_aid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;eid&#8217;, &#8216;show&#8217;], varargs=None, keywords=None, defaults=(None, True))</p>
 <p>orig_docstr =</p>
@@ -515,15 +515,15 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_next">
-<tt class="descname">select_next</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_next" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(select_next)</p>
+<tt class="descname">select_next</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(select_next)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Action -&gt; Next</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_nid">
-<tt class="descname">select_nid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_nid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_nid</tt><big>(</big><em>back</em>, <em>nid</em>, <em>eid=None</em>, <em>show=True</em>, <em>show_name=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_nid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_nid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;nid&#8217;, &#8216;eid&#8217;, &#8216;show&#8217;, &#8216;show_name&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True, True))</p>
 <p>orig_docstr =  Table Click -&gt; Name Table</p>
@@ -531,15 +531,15 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_prev">
-<tt class="descname">select_prev</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_prev" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(select_prev)</p>
+<tt class="descname">select_prev</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(select_prev)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Action -&gt; Prev</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_qres_aid">
-<tt class="descname">select_qres_aid</tt><big>(</big><em>back</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_qres_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_qres_aid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">select_qres_aid</tt><big>(</big><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_qres_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_qres_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function bacblock_wrapper(select_qres_aid)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;aid&#8217;, &#8216;eid&#8217;, &#8216;show&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True))</p>
 <p>orig_docstr =  Table Click -&gt; Result Table</p>
@@ -547,8 +547,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter">
-<tt class="descname">send_to_new_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_to_new_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(send_to_new_encounter)</p>
+<tt class="descname">send_to_new_encounter</tt><big>(</big><em>back</em>, <em>gid_list</em>, <em>mode='move'</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_to_new_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(send_to_new_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;, &#8216;gid_list&#8217;, &#8216;mode&#8217;], varargs=None, keywords=None, defaults=(&#8216;move&#8217;,))</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -590,8 +590,8 @@
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.toggle_thumbnails">
-<tt class="descname">toggle_thumbnails</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.toggle_thumbnails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.toggle_thumbnails" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(toggle_thumbnails)</p>
+<tt class="descname">toggle_thumbnails</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.toggle_thumbnails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.toggle_thumbnails" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function _wrp_preserve(toggle_thumbnails)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;back&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>

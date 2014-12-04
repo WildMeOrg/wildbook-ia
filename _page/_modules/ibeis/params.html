@@ -95,7 +95,6 @@
         <span class="n">parser2</span><span class="o">.</span><span class="n">add_flag</span><span class="p">((</span><span class="s">&#39;--silent&#39;</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;turns off verbosity&#39;</span><span class="p">)</span>
         <span class="n">parser2</span><span class="o">.</span><span class="n">add_flag</span><span class="p">((</span><span class="s">&#39;--print-inject-order&#39;</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;shows import order of any module registered with utool&#39;</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">behavior_argparse</span><span class="p">(</span><span class="n">parser2</span><span class="p">):</span>
         <span class="c"># Program behavior</span>
         <span class="n">parser2</span> <span class="o">=</span> <span class="n">parser2</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s">&#39;Behavior&#39;</span><span class="p">)</span>
@@ -186,7 +185,8 @@
 
 <span class="c"># Dont parse args if environment variable is off</span>
 <span class="c"># We use this to turn off arg parsing when Sphinx is running</span></div>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;IBIES_PARSE_ARGS&#39;</span><span class="p">,</span> <span class="s">&#39;ON&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;ON&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;IBIES_PARSE_ARGS&#39;</span><span class="p">,</span> <span class="s">&#39;ON&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;ON&#39;</span> <span class="ow">and</span>
+     <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;</span><span class="p">,</span> <span class="s">&#39;OFF&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;OFF&#39;</span><span class="p">):</span>
     <span class="n">parse_args</span><span class="p">()</span>
 
 
