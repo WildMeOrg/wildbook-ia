@@ -67,7 +67,8 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
 
 #@utool.indent_func
 def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
-                    use_params_hash=True, use_data_hash=True, appname='vtool'):
+                    use_params_hash=True, use_data_hash=True, appname='vtool',
+                    verbose=True):
     """ returns filepath for flann index """
     if cache_dir == 'default':
         print('[flann] using default cache dir')
@@ -76,7 +77,7 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
-    if utool.NOT_QUIET:
+    if verbose:
         print('...flann_cache cfgstr = %r: ' % flann_cfgstr)
     # Append any user labels
     flann_fname = 'flann_index' + flann_cfgstr + '.flann'
@@ -100,15 +101,17 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
             'cannot build flann when len(dpts) == 0. (prevents a segfault)')
     flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params,
                                   use_params_hash=use_params_hash,
-                                  use_data_hash=use_data_hash, appname=appname)
+                                  use_data_hash=use_data_hash, appname=appname,
+                                  verbose=verbose)
     # Load the index if it exists
     flann = pyflann.FLANN()
     flann.flann_fpath = flann_fpath
     if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, dpts)
-            if utool.NOT_QUIET:
+            if not quiet:
                 print('...flann cache hit')
+            if verbose:
                 print('L___ END FLANN INDEX ')
             return flann
         except Exception as ex:
@@ -119,7 +122,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         print('...flann cache miss.')
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     flann.build_index(dpts, **flann_params)
-    if not quiet:
+    if verbose:
         print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     if save:
         flann.save_index(flann_fpath)
