@@ -45,7 +45,6 @@ def parse_args():
         parser2.add_flag(('--silent'), help='turns off verbosity')
         parser2.add_flag(('--print-inject-order'), help='shows import order of any module registered with utool')
 
-
     def behavior_argparse(parser2):
         # Program behavior
         parser2 = parser2.add_argument_group('Behavior')
@@ -136,7 +135,8 @@ def parse_args():
 
 # Dont parse args if environment variable is off
 # We use this to turn off arg parsing when Sphinx is running
-if os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON':
+if (os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON' and
+     os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF'):
     parse_args()
 
 

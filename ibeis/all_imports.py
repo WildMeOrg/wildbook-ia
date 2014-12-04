@@ -175,6 +175,7 @@ from ibeis.model.hots import pipeline as hspipe
 from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import automated_matcher
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import query_helpers
@@ -223,13 +224,17 @@ def find_unregisterd():
     set(sys_module_strs) - set(all_module_strs)
 
 def reload_all():
+    # reload self
     rrr()
-    guiback.rrr()
-    ibeis.reload_subs()
+    # This should reload modules roughtly in the order they were imported
+    # reload utool first so class functions will be reregistered
     utool.reload_subs()
+    guiback.rrr()
     vtool.reload_subs()
     guitool.reload_subs()
     plottool.reload_subs()
+    # reload ibeis last
+    ibeis.reload_subs()
 
 def class_reload():
     ibs.change_class(IBEISControl.IBEISController)

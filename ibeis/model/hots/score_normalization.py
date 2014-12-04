@@ -39,14 +39,55 @@ import six  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[scorenorm]', DEBUG=False)
 
 
+# NORMALIZER STORAGE AND CACHINE CLASS
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(ut.Cachable):
+    r"""
+    Args:
+        normalizer       (?):
+        cfgstr           (None):
+        score_domain     (None):
+        p_tp_given_score (None):
+        tp_support       (None):
+        tn_support       (None):
+        tp_labels        (None):
+        fp_labels        (None):
+
+    CommandLine:
+        python -m ibeis.model.hots.score_normalization --test-ScoreNormalizer
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> normalizer = '?'
+        >>> cfgstr = None
+        >>> score_domain = None
+        >>> p_tp_given_score = None
+        >>> tp_support = None
+        >>> tn_support = None
+        >>> tp_labels = None
+        >>> fp_labels = None
+        >>> result = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score, tp_support, tn_support, tp_labels, fp_labels)
+        >>> print(result)
+    """
     prefix = 'normalizer_'
 
-    def __init__(normalizer, cfgstr=None, score_domain=None, p_tp_given_score=None):
+    def __init__(normalizer, cfgstr=None, score_domain=None,
+                 p_tp_given_score=None, tp_support=None, tn_support=None,
+                 tp_labels=None, fp_labels=None, timestamp=None):
         super(ScoreNormalizer, normalizer).__init__()
         normalizer.cfgstr = cfgstr
-        normalizer.set_values(score_domain, p_tp_given_score)
+        normalizer.score_domain = score_domain
+        normalizer.p_tp_given_score = p_tp_given_score
+        normalizer.tp_support = tp_support
+        normalizer.tn_support = tn_support
+        normalizer.tp_labels = tp_labels
+        normalizer.fp_labels = fp_labels
+        normalizer.timestamp = timestamp
+        #normalizer.set_values(score_domain, p_tp_given_score, tp_support,
+        #                      tn_support, tp_labels, fp_labels)
 
     def get_prefix(normalizer):
         return 'normalizer_'
@@ -55,9 +96,8 @@ class ScoreNormalizer(ut.Cachable):
         assert normalizer.cfgstr is not None
         return normalizer.cfgstr
 
-    def set_values(normalizer, score_domain, p_tp_given_score):
-        normalizer.score_domain = score_domain
-        normalizer.p_tp_given_score = p_tp_given_score
+    #def set_values(normalizer, score_domain, p_tp_given_score,
+    #               tp_support, tn_support, tp_labels, fp_labels):
 
     #def load(normalizer, *args, **kwargs):
     #    # Inherited method
@@ -86,13 +126,46 @@ class ScoreNormalizer(ut.Cachable):
 
     def visualize(normalizer, update=True):
         """
+        CommandLine:
+            python -m ibeis.model.hots.score_normalization --test-visualize
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> import plottool as pt
             >>> from ibeis.model.hots.score_normalization import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> normalizer = load_precomputed_normalizer(ibs, 0)
             >>> normalizer.visualize()
+            >>> exec(pt.present())
+            >>> #pt.plt.show()
+
         """
         import plottool as pt
+        normalizer.visualize_probs(update=False)
+        normalizer.visualize_support(update=False)
+        if update:
+            pt.update()
+
+    def visualize_support(normalizer, update=True, fnum=None, pnum=(1, 1, 1)):
+        import plottool as pt
+        if fnum is None:
+            fnum = pt.next_fnum()
+        true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+        false_color = pt.FALSE_RED
+        pt.plots.plot_sorted_scores(
+            (normalizer.tn_support, normalizer.tp_support),
+            ('trueneg scores', 'truepos scores'),
+            score_colors=(false_color, true_color),
+            logscale=True,
+            figtitle='sorted nscores',
+            fnum=fnum,
+            pnum=pnum)
+
+    def visualize_probs(normalizer, update=True, fnum=None, pnum=(1, 1, 1)):
+        import plottool as pt
+        if fnum is None:
+            fnum = pt.next_fnum()
         p_tp_given_score = normalizer.p_tp_given_score
         p_tn_given_score = 1 - p_tp_given_score
         score_domain = normalizer.score_domain
@@ -105,13 +178,13 @@ class ScoreNormalizer(ut.Cachable):
             ('p(tn | score)', 'p(tp | score)'),
             prob_colors=(false_color, true_color,),
             figtitle='post_bayes pdf score ' + cfgstr,
-            xdata=score_domain)
-
-        if update:
-            pt.update()
+            xdata=score_domain, fnum=fnum, pnum=pnum)
 
     def __call__(normalizer, score_list):
         return normalizer.normalize_score_list(score_list)
+
+
+# DEVELOPER FUNCTIONS
 
 
 def parse_available_normalizers(ibs):
@@ -182,28 +255,26 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     return normalizer_fpaths
 
 
-#def test_normalizer(with_indexer=True):
-#    """
-#    Example:
-#        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-#        >>> nnindexer, qreq_, ibs = test_normalizer() # doctest: +ELLIPSIS
-#    """
-
-
 def delete_all_learned_normalizers():
     """
+    DELETES ALL CACHED NORMALIZERS IN ALL DATABASES
+
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-delete_all_learned_normalizers --enableall
+        python ibeis/model/hots/score_normalization.py --test-delete_all_learned_normalizers
 
     Example:
+        >>> # DOCTEST_DISABLE
         >>> from ibeis.model.hots import score_normalization
         >>> score_normalization.delete_all_learned_normalizers()
     """
     from ibeis.model.hots import score_normalization
     import utool as ut
+    print('DELETE_ALL_LEARNED_NORMALIZERS')
     normalizer_fpath_list = score_normalization.list_available_score_normalizers()
-    for path in normalizer_fpath_list:
-        ut.delete(path)
+    ut.remove_fpaths(normalizer_fpath_list)
+
+
+# TRAINING FUNCTIONS
 
 
 def train_baseline_for_all_dbs():
@@ -239,15 +310,16 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         ScoreNormalizer: normalizer
 
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --enableall
-        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --enableall --noshow
+        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --cmd
+        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --noshow
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> from ibeis.all_imports import *
         >>> import ibeis
         >>> from ibeis.model.hots import score_normalization
-        >>> score_normalization.rrr()
+        >>> #score_normalization.rrr()
         >>> dbname = 'GZ_ALL'
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
@@ -259,20 +331,24 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         >>> import plottool as pt
         >>> exec(pt.present())
     """
+    from ibeis.model.hots import query_request
     # TRAIN BASELINE
     tag = '<TRAINING> '
     print(utool.msgblock(tag, 'Begning Training'))
     with utool.Timer(tag):
         #with utool.Indenter('TRAIN >>> '):
-        from ibeis.model.hots import query_request
         qaid_list = ibs.get_valid_aids()
         daid_list = ibs.get_valid_aids()
-        cfgdict = {'codename': 'nsum_unnorm'}
+        #cfgdict = dict(codename='nsum_unnorm')
+        codename = 'vsone_unnorm'
+        cfgdict = dict(codename=codename)
         qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
-        qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, cfgdict=None)
+        use_qcache = True
+        qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, use_cache=use_qcache)
         normalizer = cached_ibeis_score_normalizer(ibs, qaid_list,
                                                    qres_list,
-                                                   use_cache=use_cache, **learnkw)
+                                                   use_cache=use_cache,
+                                                   **learnkw)
         # Save as baseline for this species
         species_text = '_'.join(qreq_.get_unique_species())  # HACK
         baseline_cfgstr = 'baseline_' + species_text
@@ -282,6 +358,398 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         #learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr)
     print('\n' + utool.msgblock(tag, 'Finished Training'))
     return normalizer
+
+
+# IBEIS FUNCTIONS
+
+
+def request_ibeis_normalizer(qreq_, verbose=True):
+    """
+    FIXME: do what is in the docstr
+
+    Tries to load the best possible normalizer for this query request.
+    If none are found then a it tries to load a downloaded baseline. If
+    none exists then it starts to compute a custom baseline.
+
+    The basline probability for an empty normalizer should be 1/2.
+    The probability of a baseline normalizer should be regularized to
+    stay close to 1/2 when there is little support.
+
+    Returns:
+        ScoreNormalizer: cached or prebuilt score normalizer
+
+    Example:
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> from ibeis.model.hots import query_request
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5n
+        >>> cfgdict = dict(codename='nsum_unnorm')
+        >>> #cfgdict = dict(codename='vsone_unnorm')
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> normalizer = request_ibeis_normalizer(qreq_)
+    """
+    species_text = '_'.join(qreq_.get_unique_species())  # HACK
+    cfgstr = 'baseline_' + species_text
+    cachedir = qreq_.ibs.get_species_scorenorm_cachedir(species_text)
+    try:
+        normalizer = ScoreNormalizer(cfgstr)
+        normalizer.load(cachedir)
+        if verbose:
+            print('returning baseline normalizer')
+        return normalizer
+    except Exception:
+        try:
+            print('Baseline does not exist. Training baseline')
+            normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
+            return normalizer
+        except Exception as ex:
+            ut.printex(ex)
+            raise
+
+
+def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list,
+                                  use_cache=True, **learnkw):
+    """
+    Builds a normalizer trained on query results for a database
+
+    Args:
+        qaid2_qres (int): query annotation id
+
+    Returns:
+        ScoreNormalizer: cached or freshly trained score normalizer
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *   # NOQA
+        >>> import ibeis
+        >>> dbname = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(dbname)
+        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
+        >>> cfgdict = dict(codename='nsum_unnorm')
+        >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
+        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
+        >>> result = score_normalizer.get_fname()
+        >>> print(result)
+        normalizer_PZ_MTEST_SUUIDS((9)67j%dr%&bl%4oh4+).cPkl
+    """
+    # Collect training data
+    cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
+    try:
+        if use_cache is False:
+            raise Exception('forced cache miss')
+        normalizer = ScoreNormalizer(cfgstr)
+        normalizer.load(ibs.cachedir)
+        print('returning cached normalizer')
+    except Exception as ex:
+        ut.printex(ex, iswarning=True)
+        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw)
+        normalizer.save(ibs.cachedir)
+    return normalizer
+
+
+# LEARNING FUNCTIONS
+
+
+def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
+    """
+    Takes the result of queries and trains a score normalizer
+
+    Args:
+        ibs       (IBEISController):
+        qaid_list (int):  query annotation id
+        qres_list (list):  object of feature correspondences and scores
+        cfgstr    (str):
+
+    Returns:
+        ScoreNormalizer: freshly trained score normalizer
+    """
+    print('learning normalizer')
+    # Get support
+    datatup = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
+    # Train normalizer
+    learntup = learn_score_normalization(tp_support, tn_support,
+                                         return_all=False, **learnkw)
+    (score_domain, p_tp_given_score, clip_score) = learntup
+    # Return normalizer structure
+    # NOTE: this is the only place that the normalizer is construct with
+    # noncache args keep it that way.
+    timestamp = ut.get_printable_timestamp()
+    normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,
+                                 tp_support, tn_support, tp_support_labels,
+                                 tn_support_labels, clip_score, timestamp)
+    return normalizer
+
+
+def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
+    """
+    Returns "good" taining examples
+    """
+    good_tp_nscores = []
+    good_tn_nscores = []
+    good_tp_aidnid_pairs = []
+    good_tn_aidnid_pairs = []
+    for qx, qres in enumerate(qres_list):
+        qaid = qres.get_qaid()
+        if not qres.is_nsum():
+            raise AssertionError('must be nsum')
+        if not ibs.get_annot_has_groundtruth(qaid):
+            continue
+        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+
+        nscoretup = qres.get_nscoretup(ibs)
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+
+        sorted_ndiff = -np.diff(sorted_nscores.tolist())
+        sorted_nids = np.array(sorted_nids)
+        is_positive  = sorted_nids == qnid
+        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+        if not np.any(is_positive) or not np.any(is_negative):
+            continue
+        gt_rank = np.nonzero(is_positive)[0][0]
+        gf_rank = np.nonzero(is_negative)[0][0]
+        if gt_rank == 0 and len(sorted_nscores) > gf_rank:
+            if len(sorted_ndiff) > gf_rank:
+                good_tp_nscores.append(sorted_nscores[gt_rank])
+                good_tn_nscores.append(sorted_nscores[gf_rank])
+                good_tp_aidnid_pairs.append((qaid, sorted_nids[gt_rank]))
+                good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
+    tp_support = np.array(good_tp_nscores)
+    tn_support = np.array(good_tn_nscores)
+    tp_support_labels = good_tp_aidnid_pairs
+    tn_support_labels = good_tp_aidnid_pairs
+    return (tp_support, tn_support, tp_support_labels, tn_support_labels)
+
+
+def learn_score_normalization(tp_support, tn_support, gridsize=1024,
+                              adjust=8, return_all=False, monotonize=True,
+                              clip_factor=(ut.PHI + 1)):
+    r"""
+    Takes collected data and applys parzen window density estimation and bayes rule.
+
+    Args:
+        tp_support (ndarray):
+        tn_support (ndarray):
+        gridsize       (int): default 512
+        adjust         (int): default 8
+        return_all     (bool): default False
+        monotonize     (bool): default True
+        clip_factor    (float): default phi ** 2
+
+    Returns:
+        tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, clip_score)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> tp_support = np.linspace(100, 10000, 512)
+        >>> tn_support = np.linspace(0, 120, 512)
+        >>> (score_domain, p_tp_given_score, clip_score) = learn_score_normalization(tp_support, tn_support)
+        >>> result = int(p_tp_given_score.sum())
+        >>> print(result)
+        92
+    """
+    # Estimate true positive density
+    score_tp_pdf = ut.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
+    score_tn_pdf = ut.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
+    # Find good maximum score (for domain not learning)
+    #clip_score = 2000
+    clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)
+    score_domain = np.linspace(0, clip_score, 1024)
+    # Evaluate true negative density
+    p_score_given_tp = score_tp_pdf.evaluate(score_domain)
+    p_score_given_tn = score_tn_pdf.evaluate(score_domain)
+    # Average to get probablity of any score
+    p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
+    # Apply bayes
+    p_tp = .5
+    p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
+    if monotonize:
+        p_tp_given_score = vt.ensure_monotone_strictly_increasing(
+            p_tp_given_score, zerohack=True, onehack=True)
+    if return_all:
+        p_tn_given_score = 1 - p_tp_given_score
+        return (score_domain, p_tp_given_score, p_tn_given_score,
+                p_score_given_tp, p_score_given_tn, p_score, clip_score)
+    else:
+        return (score_domain, p_tp_given_score, clip_score)
+
+
+def find_score_maxclip(tp_support, tn_support, clip_factor=ut.PHI + 1):
+    """
+    returns score to clip true positives past.
+
+    Args:
+        tp_support (ndarray):
+        tn_support (ndarray):
+
+    Returns:
+        float: clip_score
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> tp_support = np.array([100, 200, 50000])
+        >>> tn_support = np.array([10, 30, 110])
+        >>> clip_score = find_score_maxclip(tp_support, tn_support)
+        >>> result = str(clip_score)
+        >>> print(result)
+        287.983738762
+    """
+    max_true_positive_score = tp_support.max()
+    max_true_negative_score = tn_support.max()
+    if clip_factor is None:
+        clip_score = max_true_positive_score
+    else:
+        overshoot_factor = max_true_positive_score / max_true_negative_score
+        if overshoot_factor > clip_factor:
+            clip_score = max_true_negative_score * clip_factor
+        else:
+            clip_score = max_true_positive_score
+    return clip_score
+
+
+# DEBUGGING FUNCTIONS
+
+
+def test_score_normalization():
+    """
+
+    CommandLine:
+        python ibeis/model/hots/score_normalization.py --test-test_score_normalization
+
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0:8:3 --dindex 0:10 --verbose
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> #from ibeis.model.hots import score_normalization
+        >>> #score_normalization.rrr()
+        >>> from ibeis.model.hots.score_normalization import *   # NOQA
+        >>> locals_ = test_score_normalization()
+        >>> execstr = ut.execstr_dict(locals_)
+        >>> #print(execstr)
+        >>> exec(execstr)
+        >>> import plottool as pt
+        >>> exec(pt.present())
+
+    """
+    import ibeis
+    import plottool as pt  # NOQA
+
+    # Load IBEIS database
+    dbname = 'PZ_MTEST'
+    #dbname = 'GZ_ALL'
+
+    ibs = ibeis.opendb(dbname)
+    qaid_list = daid_list = ibs.get_valid_aids()
+
+    # Get unnormalized query results
+    #cfgdict = dict(codename='nsum_unnorm')
+    cfgdict = dict(codename='vsone_unnorm')
+    qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
+
+    # Get a training sample
+    datatup = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
+
+    # Print raw score statistics
+    ut.print_stats(tp_support, lbl='tp_support')
+    ut.print_stats(tn_support, lbl='tn_support')
+
+    normkw_list = ut.util_dict.all_dict_combinations(
+        {
+            'monotonize': [True],  # [True, False],
+            #'adjust': [1, 4, 8],
+            'adjust': [4, 8],
+            #'adjust': [8],
+        }
+    )
+
+    if len(normkw_list) > 32:
+        raise AssertionError('Too many plots to test!')
+
+    fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    unknown_color = pt.UNKNOWN_PURP
+    pt.plots.plot_sorted_scores(
+        (tn_support, tp_support),
+        ('true negative scores', 'true positive scores'),
+        score_colors=(false_color, true_color),
+        logscale=True,
+        figtitle='sorted nscores',
+        fnum=fnum)
+
+    for normkw in normkw_list:
+        # Learn the appropriate normalization
+        #normkw = {}  # dict(gridsize=1024, adjust=8, clip_factor=ut.PHI + 1, return_all=True)
+        (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn,
+         p_score, clip_score) = learn_score_normalization(tp_support, tn_support, return_all=True, **normkw)
+
+        assert clip_score > tn_support.max()
+
+        inspect_pdfs(tn_support, tp_support, score_domain,
+                     p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score)
+
+        pt.set_figtitle('ScoreNorm ' + ibs.get_dbname() + ' ' + ut.dict_str(normkw))
+    locals_ = locals()
+    return locals_
+
+
+def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
+                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
+                 with_scores=False):
+    import plottool as pt  # NOQA
+
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    unknown_color = pt.UNKNOWN_PURP
+
+    fnum = pt.next_fnum()
+    nRows = 2 + with_scores
+    pnum_ = pt.get_pnum_func(nRows=nRows, nCols=1)
+    #pnum_ = pt.get_pnum_func(nRows=3, nCols=1)
+    #def next_pnum():
+    #    return pnum_(
+
+    def generate_pnum():
+        for px in range(nRows):
+            yield pnum_(px)
+
+    _pnumiter = generate_pnum().next
+
+    pt.figure(fnum=fnum, pnum=pnum_(0))
+
+    if with_scores:
+        pt.plots.plot_sorted_scores(
+            (tn_support, tp_support),
+            ('trueneg scores', 'truepos scores'),
+            score_colors=(false_color, true_color),
+            logscale=True,
+            figtitle='sorted nscores',
+            fnum=fnum,
+            pnum=_pnumiter())
+
+    pt.plots.plot_probabilities(
+        (p_score_given_tn,  p_score_given_tp, p_score),
+        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
+        prob_colors=(false_color, true_color, unknown_color),
+        figtitle='pre_bayes pdf score',
+        xdata=score_domain,
+        fnum=fnum,
+        pnum=_pnumiter())
+
+    pt.plots.plot_probabilities(
+        (p_tn_given_score, p_tp_given_score),
+        ('p(tn | score)', 'p(tp | score)'),
+        prob_colors=(false_color, true_color,),
+        figtitle='post_bayes pdf score',
+        xdata=score_domain,
+        fnum=fnum,
+        pnum=_pnumiter())
 
 
 def test():
@@ -311,320 +779,12 @@ def test():
         pass
 
 
-def request_ibeis_normalizer(qreq_, verbose=True):
-    """
-    Example:
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> from ibeis.model.hots import query_request
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5n
-        >>> cfgdict = {'codename': 'nsum_unnorm'}
-        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-        >>> normalizer = request_ibeis_normalizer(qreq_)
-    """
-    species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    cfgstr = 'baseline_' + species_text
-    cachedir = qreq_.ibs.get_species_scorenorm_cachedir(species_text)
-    try:
-        normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load(cachedir)
-        if verbose:
-            print('returning baseline normalizer')
-        return normalizer
-    except Exception:
-        try:
-            print('Baseline does not exist. Training baseline')
-            normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
-            return normalizer
-        except Exception as ex:
-            ut.printex(ex)
-            raise
+# DOCTEST MAIN
 
-
-def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list, use_cache=True, **learnkw):
-    """
-    Args:
-        qaid2_qres (int): query annotation id
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *   # NOQA
-        >>> import ibeis
-        >>> dbname = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
-        >>> cfgdict = dict(codename='nsum_unnorm')
-        >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
-        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
-        >>> result = score_normalizer.get_fname()
-        >>> print(result)
-        normalizer_PZ_MTEST_UUIDS((9)t4g!b5zov%chc%+v).cPkl
-    """
-    # Collect training data
-    cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_uuid(qaid_list)
-    try:
-        if use_cache is False:
-            raise Exception('forced cache miss')
-        normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load(ibs.cachedir)
-        print('returning cached normalizer')
-    except Exception as ex:
-        ut.printex(ex, iswarning=True)
-        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw)
-        normalizer.save(ibs.cachedir)
-    return normalizer
-
-
-def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
-    print('learning normalizer')
-    (truepos_scores, trueneg_scores) = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
-    (score_domain, p_tp_given_score) = learn_score_normalization(truepos_scores, trueneg_scores, **learnkw)
-    normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score)
-    return normalizer
-
-
-def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
-    """
-    Returns "good" taining examples
-    """
-    good_tp_nscores = []
-    good_tn_nscores = []
-    good_tp_aidnid_pairs = []
-    good_tn_aidnid_pairs = []
-    for qx, qres in enumerate(qres_list):
-        qaid = qres.get_qaid()
-        if not qres.is_nsum():
-            raise AssertionError('must be nsum')
-        if not ibs.get_annot_has_groundtruth(qaid):
-            continue
-        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
-
-        nscoretup = qres.get_nscoretup(ibs)
-        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-
-        sorted_ndiff = -np.diff(sorted_nscores.tolist())
-        sorted_nids = np.array(sorted_nids)
-        is_positive  = sorted_nids == qnid
-        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
-        if not np.any(is_positive) or not np.any(is_negative):
-            continue
-        gt_rank = np.where(is_positive)[0][0]
-        gf_rank = np.nonzero(is_negative)[0][0]
-        if gt_rank == 0 and len(sorted_nscores) > gf_rank:
-            if len(sorted_ndiff) > gf_rank:
-                good_tp_nscores.append(sorted_nscores[gt_rank])
-                good_tn_nscores.append(sorted_nscores[gf_rank])
-                good_tp_aidnid_pairs.append((qaid, sorted_nids[gt_rank]))
-                good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
-    truepos_scores = np.array(good_tp_nscores)
-    trueneg_scores = np.array(good_tn_nscores)
-    return (truepos_scores, trueneg_scores)
-
-
-def learn_score_normalization(truepos_scores, trueneg_scores, gridsize=1024,
-                              adjust=8, return_all=False, monotonize=True,
-                              clip_factor=(ut.PHI + 1)):
-    r"""
-    Takes collected data and applys parzen window density estimation and bayes rule.
-
-    learn_score_normalization
-
-    Args:
-        truepos_scores (ndarray):
-        trueneg_scores (ndarray):
-        gridsize       (int): default 512
-        adjust         (int): default 8
-        return_all     (bool): default False
-        monotonize     (bool): default True
-        clip_factor    (float): default phi ** 2
-
-    Returns:
-        tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, clip_score)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> truepos_scores = np.linspace(100, 10000, 512)
-        >>> trueneg_scores = np.linspace(0, 120, 512)
-        >>> (score_domain, p_tp_given_score) = learn_score_normalization(truepos_scores, trueneg_scores)
-        >>> result = int(p_tp_given_score.sum())
-        >>> print(result)
-        92
-    """
-    #clip_score = 2000
-    # Find good maximum score
-    clip_score = find_score_maxclip(truepos_scores, trueneg_scores, clip_factor)
-    score_domain = np.linspace(0, clip_score, 1024)
-    # Estimate true positive density
-    score_tp_pdf = ut.estimate_pdf(truepos_scores, gridsize=gridsize, adjust=adjust)
-    score_tn_pdf = ut.estimate_pdf(trueneg_scores, gridsize=gridsize, adjust=adjust)
-    # Evaluate true negative density
-    p_score_given_tp = score_tp_pdf.evaluate(score_domain)
-    p_score_given_tn = score_tn_pdf.evaluate(score_domain)
-    # Average to get probablity of any score
-    p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
-    # Apply bayes
-    p_tp = .5
-    p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
-    if monotonize:
-        #p_tp_given_score = vt.ensure_monotone_increasing(p_tp_given_score)
-        p_tp_given_score = vt.ensure_monotone_strictly_increasing(p_tp_given_score, zerohack=True, onehack=True)
-    if return_all:
-        #p_tn = 1.0 - p_tp  # NOT SURE WHY THIS CANT BE .5
-        #p_tn_given_score = ut.bayes_rule(p_score_given_tn, 1.0, p_score)
-        p_tn_given_score = 1 - p_tp_given_score
-        #if monotonize:
-        #    p_tn_given_score = vt.ensure_monotone_decreasing(p_tn_given_score)
-        return (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, clip_score)
-    else:
-        return (score_domain, p_tp_given_score)
-
-
-def find_score_maxclip(truepos_scores, trueneg_scores, clip_factor=ut.PHI + 1):
-    """
-    returns score to clip true positives past.
-
-    Args:
-        truepos_scores (ndarray):
-        trueneg_scores (ndarray):
-
-    Returns:
-        float: clip_score
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> truepos_scores = np.array([100, 200, 50000])
-        >>> trueneg_scores = np.array([10, 30, 110])
-        >>> clip_score = find_score_maxclip(truepos_scores, trueneg_scores)
-        >>> result = str(clip_score)
-        >>> print(result)
-        287.983738762
-    """
-    max_true_positive_score = truepos_scores.max()
-    max_true_negative_score = trueneg_scores.max()
-    if clip_factor is None:
-        clip_score = max_true_positive_score
-    else:
-        overshoot_factor = max_true_positive_score / max_true_negative_score
-        if overshoot_factor > clip_factor:
-            clip_score = max_true_negative_score * clip_factor
-        else:
-            clip_score = max_true_positive_score
-    return clip_score
-
-
-def test_score_normalization():
-    """
-
-    CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-test_score_normalization --enableall
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> #from ibeis.model.hots import score_normalization
-        >>> #score_normalization.rrr()
-        >>> from ibeis.model.hots.score_normalization import *   # NOQA
-        >>> locals_ = test_score_normalization()
-        >>> execstr = ut.execstr_dict(locals_)
-        >>> #print(execstr)
-        >>> exec(execstr)
-        >>> import plottool as pt
-        >>> exec(pt.present())
-
-    """
-    import ibeis
-
-    # Load IBEIS database
-    dbname = 'PZ_MTEST'
-    #dbname = 'GZ_ALL'
-
-    ibs = ibeis.opendb(dbname)
-    qaid_list = daid_list = ibs.get_valid_aids()
-
-    # Get unnormalized query results
-    cfgdict = dict(codename='nsum_unnorm')
-    qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
-
-    # Get a training sample
-    (truepos_scores, trueneg_scores) = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
-
-    # Print raw score statistics
-    ut.print_stats(truepos_scores, lbl='truepos_scores')
-    ut.print_stats(trueneg_scores, lbl='trueneg_scores')
-
-    normkw_list = ut.util_dict.all_dict_combinations(
-        {
-            'monotonize': [True, False],
-            'adjust': [1, 4, 8],
-        }
-    )
-
-    if len(normkw_list) > 32:
-        raise AssertionError('Too many plots to test!')
-
-    for normkw in normkw_list:
-        # Learn the appropriate normalization
-        #normkw = {}  # dict(gridsize=1024, adjust=8, clip_factor=ut.PHI + 1, return_all=True)
-        (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn,
-         p_score, clip_score) = learn_score_normalization(truepos_scores, trueneg_scores, return_all=True, **normkw)
-
-        assert clip_score > trueneg_scores.max()
-        import plottool as pt  # NOQA
-
-        inspect_pdfs(trueneg_scores, truepos_scores, score_domain,
-                     p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score)
-
-        pt.set_figtitle('ScoreNorm ' + ibs.get_dbname() + ' ' + ut.dict_str(normkw))
-    locals_ = locals()
-    return locals_
-
-
-def inspect_pdfs(trueneg_scores, truepos_scores, score_domain, p_tp_given_score,
-                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score):
-    import plottool as pt  # NOQA
-
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    unknown_color = pt.UNKNOWN_PURP
-
-    fnum = pt.next_fnum()
-    pnum_ = pt.get_pnum_func(nRows=3, nCols=1)
-    pt.figure(fnum=fnum, pnum=pnum_(0))
-
-    pt.plots.plot_sorted_scores(
-        (trueneg_scores, truepos_scores),
-        ('true negative scores', 'true positive scores'),
-        score_colors=(false_color, true_color),
-        logscale=True,
-        figtitle='sorted nscores',
-        fnum=fnum,
-        pnum=pnum_(0))
-
-    pt.plots.plot_probabilities(
-        (p_score_given_tn,  p_score_given_tp, p_score),
-        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
-        prob_colors=(false_color, true_color, unknown_color),
-        figtitle='pre_bayes pdf score',
-        xdata=score_domain,
-        fnum=fnum,
-        pnum=pnum_(1))
-
-    pt.plots.plot_probabilities(
-        (p_tn_given_score, p_tp_given_score),
-        ('p(tn | score)', 'p(tp | score)'),
-        prob_colors=(false_color, true_color,),
-        figtitle='post_bayes pdf score',
-        xdata=score_domain,
-        fnum=fnum,
-        pnum=pnum_(2))
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.model.hots.score_normalization; utool.doctest_funcs(ibeis.model.hots.score_normalization, allexamples=True)"
         python -m ibeis.model.hots.score_normalization
         python -m ibeis.model.hots.score_normalization --allexamples
         python -m ibeis.model.hots.score_normalization --allexamples --noface --nosrc

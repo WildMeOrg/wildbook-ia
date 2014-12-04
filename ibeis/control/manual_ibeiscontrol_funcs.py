@@ -10,6 +10,8 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 @register_ibs_method
 def new_query_request(ibs, qaid_list, daid_list, cfgdict):
     """
+    alias for ibeis.model.hots.query_request.new_ibeis_query_request
+
     daid_list = ibs.get_valid_aids()
     qaid_list = daid_list[0:1]
     cfgdict = {}

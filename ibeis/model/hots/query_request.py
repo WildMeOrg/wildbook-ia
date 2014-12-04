@@ -365,7 +365,7 @@ class QueryRequest(object):
         if qreq_.indexer is not None:
             return False
         # TODO: SYSTEM updatable indexer
-        indexer = neighbor_index.new_ibeis_nnindexer(qreq_, verbose=verbose)
+        indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
         qreq_.indexer = indexer
 
     def load_score_normalizer(qreq_, verbose=True):

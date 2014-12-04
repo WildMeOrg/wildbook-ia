@@ -186,7 +186,7 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     # Reset query config so nothing unexpected happens
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
-    ibs.cfg.set_query_cfg(orig_query_cfg)
+    ibs.set_query_cfg(orig_query_cfg)
 
 
 if __name__ == '__main__':

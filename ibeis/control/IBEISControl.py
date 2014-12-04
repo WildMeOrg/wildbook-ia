@@ -55,12 +55,41 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
 
 
-def new_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True, use_cache=True):
+def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True, use_cache=True):
+    r"""
+    Alternative to directory instantiating a new controller object. Might
+    return a memory cached object
+
+    Args:
+        dbdir     (str):
+        ensure    (bool):
+        wbaddr    (None):
+        verbose   (bool):
+        use_cache (bool):
+
+    Returns:
+        IBEISController: ibs
+
+    CommandLine:
+        python -m ibeis.control.IBEISControl --test-request_IBEISController
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> dbdir = None
+        >>> ensure = True
+        >>> wbaddr = None
+        >>> verbose = True
+        >>> use_cache = True
+        >>> ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose, use_cache)
+        >>> result = str(ibs)
+        >>> print(result)
+    """
     # TODO: change name from new to request
     global __IBEIS_CONTROLLER_CACHE__
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
-            print('[new_IBEISController] returning cached controller')
+            print('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
     else:
         ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
@@ -681,6 +710,8 @@ class IBEISController(object):
                       use_bigcache=None, return_request=False,
                       cfgdict=None, qreq_=None):
         """
+        main entrypoint to submitting a query request
+
         Example:
             >>> # SLOW_DOCTEST
             >>> #from ibeis.all_imports import *  # NOQA
@@ -722,6 +753,7 @@ class IBEISController(object):
         """ _query_chips wrapper """
         daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
+        # HACK IN ENCOUNTER INFO
         for qres in six.itervalues(qaid2_qres):
             qres.eid = eid
         return qaid2_qres
@@ -731,8 +763,7 @@ class IBEISController(object):
         """ Queries vs the exemplars """
         daid_list = ibs.get_valid_aids(is_exemplar=True)
         assert len(daid_list) > 0, 'there are no exemplars'
-        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
-        return qaid2_qres
+        return ibs._query_chips4(qaid_list, daid_list, **kwargs)
 
     @default_decorator
     def query_all(ibs, qaid_list, **kwargs):

@@ -402,6 +402,11 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     sel_cols = []
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
+        print('other options:')
+        print('   --vf - view figure dir')
+        print('   --va - view all')
+        print('   --vh - view hard')
+        print('   --ve - view easy')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
@@ -462,8 +467,8 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         ibs.set_query_cfg(query_cfg)
         # Force program to use cache here
         qres = ibs._query_chips4([qaid], daids,
-                                use_cache=True,
-                                use_bigcache=False)[qaid]
+                                 use_cache=True,
+                                 use_bigcache=False)[qaid]
         return qres
 
     #DELETE              = False

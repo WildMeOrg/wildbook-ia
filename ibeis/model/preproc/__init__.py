@@ -22,36 +22,37 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs(verbose=True):
     """ Reloads ibeis.model.preproc and submodules """
     rrr(verbose=verbose)
-    getattr(preproc_chip, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_detectchip, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_detectimg, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_encounter, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_feat, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_featweight, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_image, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_probchip, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_residual, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(preproc_rvec, 'rrr', lambda verbose: None)(verbose=verbose)
+    def fbrrr(*args, **kwargs):
+        """ fallback reload """
+        pass
+    getattr(preproc_annot, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_chip, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_detectchip, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_detectimg, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_encounter, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_feat, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_featweight, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_image, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_probchip, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_residual, 'rrr', fbrrr)(verbose=verbose)
+    getattr(preproc_rvec, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
-    try:
-        # hackish way of propogating up the new reloaded submodule attributes
-        reassign_submodule_attributes(verbose=verbose)
-    except Exception as ex:
-        print(ex)
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('preproc_chip', None, False),
-    ('preproc_detectchip', None, False),
-    ('preproc_detectimg', None, False),
-    ('preproc_encounter', None, False),
-    ('preproc_feat', None, False),
-    ('preproc_featweight', None, False),
-    ('preproc_image', None, False),
-    ('preproc_probchip', None, False),
-    ('preproc_residual', None, False),
-    ('preproc_rvec', None, False),
+    ('preproc_annot', None),
+    ('preproc_chip', None),
+    ('preproc_detectchip', None),
+    ('preproc_detectimg', None),
+    ('preproc_encounter', None),
+    ('preproc_feat', None),
+    ('preproc_featweight', None),
+    ('preproc_image', None),
+    ('preproc_probchip', None),
+    ('preproc_residual', None),
+    ('preproc_rvec', None),
 ]
+
 """
 Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/model/preproc

@@ -244,7 +244,7 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
-        #nnindexer = hsnbrx.new_ibeis_nnindexer(qreq_)
+        #nnindexer = hsnbrx.request_ibeis_nnindexer(qreq_)
     """
     #utool.stash_testdata('qaid2_nns')
     #

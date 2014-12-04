@@ -318,8 +318,8 @@ class AggregateConfig(ConfigBase):
         agg_cfg.isWeighted = False
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
-        #agg_cfg.score_normalization = False
-        agg_cfg.score_normalization = True
+        agg_cfg.score_normalization = False
+        #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
             'borda': 'borda',
@@ -360,7 +360,7 @@ class AggregateConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
-    """ FlannConfig
+    """
 
     this flann is only for neareset neighbors in vsone/many
     TODO: this might not need to be here
@@ -394,7 +394,6 @@ class FlannConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class SMKConfig(ConfigBase):
     """
-    SMKConfig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -447,7 +446,7 @@ class SMKConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class VocabTrainConfig(ConfigBase):
-    """ VocabTrainConfig
+    """
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -489,7 +488,7 @@ class VocabTrainConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class VocabAssignConfig(ConfigBase):
-    """ VocabAssignConfig
+    """
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -613,12 +612,18 @@ class QueryConfig(ConfigBase):
                 agg_cfg.score_normalization = True
         elif codename == 'vsmany':
             query_cfg.pipeline_root = 'vsmany'
-        elif codename == 'vsone':
+        elif codename.startswith('vsone'):
             query_cfg.pipeline_root = 'vsone'
-            nn_cfg.K = 2
+            nn_cfg.K = 1
             nn_cfg.Knorm = 1
+            filt_cfg.lnbnn_weight = 0.0
             filt_cfg.ratio_thresh = 1.6
             filt_cfg.ratio_weight = 1.0
+            filt_cfg.dupvote_weight = 0.0
+            if codename == 'vsone_unnorm':
+                agg_cfg.score_normalization = False
+            elif codename == 'vsone_norm':
+                agg_cfg.score_normalization = True
         elif codename == 'asmk':
             query_cfg.pipeline_root = 'asmk'
         elif codename == 'smk':

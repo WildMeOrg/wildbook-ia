@@ -68,12 +68,12 @@ from ibeis.control.accessor_decors import getter_1to1
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
 CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
-__injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY)
+__injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
 #def __injectable(func):
 #    return func
 
 
-@ut.make_class_postinject_decorator(CLASS_INJECT_KEY)
+@ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
 def postinject_func(ibs):
     # List of getters to _unflatten
     to_unflatten = [
@@ -1517,19 +1517,22 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
 
 
 def group_annots_by_known_names(ibs, aid_list, checks=True):
-    """
+    r"""
     #>>> import ibeis
 
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-group_annots_by_known_names
+
     Example:
-        >>> from ibeis import ibsfuncst *  # NOQA
-        >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
-        [main]...
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = ibeis.opendb(db='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
         >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
-        >>> print(known_aids_list)
+        >>> result = str(known_aids_list) + '\n'
+        >>> result += str(unknown_aids)
+        >>> print(result)
         [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
-        >>> print(unknown_aids)
         [11, 9, 4, 1]
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
@@ -1693,7 +1696,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
 
 
 @__injectable
-def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
+def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     """
     get_annot_groundtruth_sample
 
@@ -1701,6 +1704,9 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
         ibs (IBEISController):
         aid_list (list):
         per_name (int):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_groundtruth_sample --verbose-class
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1713,7 +1719,7 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
         >>> print(result)
         [[], [2], [6], [], [], [], []]
     """
-    all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=True)
+    all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=isexemplar)
     def random_choice(aids):
         size = min(len(aids), per_name)
         return np.random.choice(aids, size, replace=False).tolist()
@@ -1823,6 +1829,9 @@ def view_model_dir(ibs):
     modeldir = ibs.get_detect_modeldir()
     ut.view_directory(modeldir)
     #grabmodels.redownload_models(modeldir=modeldir)
+
+
+#def get_
 
 
 if __name__ == '__main__':

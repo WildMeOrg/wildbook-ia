@@ -51,7 +51,8 @@ def reassign_submodule_attributes(verbose=True):
     import ibeis.viz
     # Implicit reassignment.
     seen_ = set([])
-    for submodname, fromimports in IMPORT_TUPLES:
+    for tup in IMPORT_TUPLES:
+        submodname, fromimports = tup
         submod = getattr(ibeis.viz, submodname)
         for attr in dir(submod):
             if attr.startswith('_'):
@@ -67,19 +68,20 @@ def reassign_submodule_attributes(verbose=True):
 
 def reload_subs(verbose=True):
     """ Reloads ibeis.viz and submodules """
-    if not __LOADED__:
-        import_subs()
     rrr(verbose=verbose)
-    getattr(viz_chip, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_hough, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_image, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_matches, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_name, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_nearest_descriptors, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_qres, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(viz_sver, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    def fbrrr(*args, **kwargs):
+        """ fallback reload """
+        pass
+    getattr(viz_chip, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_helpers, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_hough, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_image, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_matches, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_name, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_nearest_descriptors, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_qres, 'rrr', fbrrr)(verbose=verbose)
+    getattr(viz_sver, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact, 'reload_subs', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -89,16 +91,18 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('viz_chip', None, False),
-    ('viz_helpers', None, False),
-    ('viz_hough', None, False),
-    ('viz_image', None, False),
-    ('viz_matches', None, False),
-    ('viz_name', None, False),
-    ('viz_nearest_descriptors', None, False),
-    ('viz_qres', None, False),
-    ('viz_sver', None, False),
+    ('viz_chip', None),
+    ('viz_helpers', None),
+    ('viz_hough', None),
+    ('viz_image', None),
+    ('viz_matches', None),
+    ('viz_name', None),
+    ('viz_nearest_descriptors', None),
+    ('viz_qres', None),
+    ('viz_sver', None),
+    ('interact', None, True),
 ]
+
 """
 Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/viz

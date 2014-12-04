@@ -45,12 +45,12 @@ def __cleanup():
         pass
 
 
-def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params={},
-                         flann_cachedir=None, indexer_cfgstr='',
-                         hash_rowids=True, use_cache=not NOCACHE_FLANN,
-                         use_params_hash=True, verbose=True):
+def request_neighbor_index(aid_list=[], vecs_list=[], fgws_list=None, flann_params={},
+                           flann_cachedir=None, indexer_cfgstr='',
+                           hash_rowids=True, use_cache=not NOCACHE_FLANN,
+                           use_params_hash=True, verbose=True):
     """
-    new_neighbor_indexer
+    request_neighbor_index
 
     Args:
         aid_list (list):
@@ -100,7 +100,7 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], fgws_list=None, flann_params
     return nnindexer
 
 
-def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
+def request_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
     """
 
     CALLED BY QUERYREQUST::LOAD_INDEXER
@@ -112,7 +112,7 @@ def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
 
     IBEIS interface into neighbor_index
 
-    new_ibeis_nnindexer
+    request_ibeis_nnindexer
 
     Args:
         ibs (IBEISController):
@@ -127,7 +127,7 @@ def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = test_nnindexer(None)
-        >>> nnindexer = new_ibeis_nnindexer(qreq_)
+        >>> nnindexer = request_ibeis_nnindexer(qreq_)
     """
     global NEIGHBOR_CACHE
     if _internal_daids is None:
@@ -144,7 +144,7 @@ def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
     indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr + fw_cfgstr
 
     try:
-        # neighbor cache
+        # neighbor memory cache
         if indexer_cfgstr in NEIGHBOR_CACHE:
             nnindexer = NEIGHBOR_CACHE[indexer_cfgstr]
             return nnindexer
@@ -163,7 +163,7 @@ def new_ibeis_nnindexer(qreq_, _internal_daids=None, verbose=True):
             else:
                 fgws_list = None
             flann_cachedir = qreq_.ibs.get_flann_cachedir()
-            nnindexer = new_neighbor_indexer(
+            nnindexer = request_neighbor_index(
                 daid_list, vecs_list, fgws_list, flann_params, flann_cachedir,
                 indexer_cfgstr, hash_rowids=False, use_params_hash=False,
                 verbose=verbose)
@@ -384,7 +384,7 @@ def test_nnindexer(with_indexer=True):
     ibs = ibeis.opendb(db='testdb1')
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     if with_indexer:
-        nnindexer = new_ibeis_nnindexer(qreq_)
+        nnindexer = request_ibeis_nnindexer(qreq_)
     else:
         nnindexer = None
     return nnindexer, qreq_, ibs

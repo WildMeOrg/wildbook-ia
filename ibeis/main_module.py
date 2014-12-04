@@ -112,7 +112,7 @@ def _init_ibeis(dbdir=None, verbose=True, use_cache=True):
         ibs = None
         utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
-        ibs = IBEISControl.new_IBEISController(dbdir=dbdir, use_cache=use_cache)
+        ibs = IBEISControl.request_IBEISController(dbdir=dbdir, use_cache=use_cache)
         if params.args.webapp:
             from ibeis.web import app
             app.start_from_ibeis(ibs)

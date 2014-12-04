@@ -13,11 +13,11 @@ def make_ibs_register_decorator(modname):
     #global INJECTED_MODULES
     if __name__ == '__main__':
         print('WARNING: cannot register controller functions as main')
-    else:
-        CLASS_INJECT_KEY = ('IBEISController', modname)
+    #else:
+    CLASS_INJECT_KEY = ('IBEISController', modname)
     # Create dectorator to inject these functions into the IBEISController
     #register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-    register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY)
+    register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY, modname)
 
     # TODO Replace IBEISContoller INEJECTED MODULES with this one
     #INJECTED_MODULES.append(sys.modules[modname])

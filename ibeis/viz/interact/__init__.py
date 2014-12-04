@@ -42,7 +42,10 @@ def reassign_submodule_attributes(verbose=True):
     import ibeis.viz.interact
     # Implicit reassignment.
     seen_ = set([])
-    for submodname, fromimports in IMPORT_TUPLES:
+    for tup in IMPORT_TUPLES:
+        if len(tup) > 2 and tup[2]:
+            continue  # dont import package names
+        submodname, fromimports = tup[0:2]
         submod = getattr(ibeis.viz.interact, submodname)
         for attr in dir(submod):
             if attr.startswith('_'):
@@ -59,15 +62,18 @@ def reassign_submodule_attributes(verbose=True):
 def reload_subs(verbose=True):
     """ Reloads ibeis.viz.interact and submodules """
     rrr(verbose=verbose)
-    getattr(interact_annotations2, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_bbox, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_chip, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_image, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_matches, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_name, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_qres, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_qres2, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(interact_sver, 'rrr', lambda verbose: None)(verbose=verbose)
+    def fbrrr(*args, **kwargs):
+        """ fallback reload """
+        pass
+    getattr(interact_annotations2, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_bbox, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_chip, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_image, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_matches, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_name, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_qres, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_qres2, 'rrr', fbrrr)(verbose=verbose)
+    getattr(interact_sver, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -77,16 +83,17 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('interact_annotations2', None, False),
-    ('interact_bbox', None, False),
-    ('interact_chip', None, False),
-    ('interact_image', None, False),
-    ('interact_matches', None, False),
-    ('interact_name', None, False),
-    ('interact_qres', None, False),
-    ('interact_qres2', None, False),
-    ('interact_sver', None, False),
+    ('interact_annotations2', None),
+    ('interact_bbox', None),
+    ('interact_chip', None),
+    ('interact_image', None),
+    ('interact_matches', None),
+    ('interact_name', None),
+    ('interact_qres', None),
+    ('interact_qres2', None),
+    ('interact_sver', None),
 ]
+
 """
 Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/viz/interact

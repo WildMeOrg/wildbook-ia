@@ -1,10 +1,227 @@
+"""
+
+Have:
+    * semantic and visual uuids
+    * Test that accepts unknown annotations one at a time and
+      for each runs query, makes decision about name, and executes decision.
+    * As a placeholder for exemplar decisions  an exemplar is added if
+      number of exemplars per name is less than threshold.
+
+TODO:
+    *
+    * vs-one score normalizer ~~/ score normalizer for different values of K * / different params~~
+      vs-many score normalization doesnt actually matter. We just need the ranking.
+    * ~~Remember confidence of decisions for manual review~~
+      Defer
+    * need a vs-one reranking pipeline node
+    * need to add in the multi-indexer code into the pipeline. Need to
+      decide which subindexers to load given a set of daids
+    * need to use set query as an exemplar if its vs-one reranking scores
+      are below a threshold
+"""
 from __future__ import absolute_import, division, print_function
 import ibeis
 import six
 import utool as ut
 import numpy as np
-from six.moves import input  # NOQA
+from six.moves import input, filter  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
+
+
+DEFAULT_INTERACTIVE = True
+
+
+def test_vsone_verified(ibs):
+    """
+    hack in vsone-reranking
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> test_vsone_verified(ibs)
+    """
+    import plottool as pt
+    #qaids = ibs.get_easy_annot_rowids()
+    nids = ibs.get_valid_nids(filter_empty=True)
+    grouped_aids_ = ibs.get_name_aids(nids)
+    grouped_aids = list(filter(lambda x: len(x) > 1, grouped_aids_))
+    items_list = grouped_aids
+
+    sample_aids = ut.flatten(ut.sample_lists(items_list, num=2, seed=0))
+    qaid2_qres = query_vsone_verified(ibs, sample_aids, sample_aids, cfgdict=None, return_request=False)
+    for qres in ut.InteractiveIter(list(six.itervalues(qaid2_qres))):
+        pt.close_all_figures()
+        fig = qres.ishow_top(ibs)
+        fig.show()
+    #return qaid2_qres
+
+
+def query_vsone_verified(ibs, qaids, daids, cfgdict=None, return_request=False):
+    """
+    hack in vsone-reranking
+    """
+    from ibeis import ibsfuncs  # NOQA
+    qaid2_qres_vsmany, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=cfgdict, return_request=True)
+    #qaid2_qres, qreq_ = ibs._query_chips4(sample_aids, [], return_request=True)
+
+    isnsum = qreq_.qparams.score_method == 'nsum'
+    assert isnsum
+    assert qreq_.qparams.pipeline_root != 'vsone'
+    #qreq_.qparams.prescore_method
+
+    # build vs one list
+    vsone_query_pairs = []
+    nShortlistVsone = 5
+    for qaid, qres in six.iteritems(qaid2_qres_vsmany):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs=ibs)
+        nShortlistVsone_ = min(len(sorted_nids), nShortlistVsone)
+        top_nids = sorted_nids[0:nShortlistVsone_]
+        # get top annotations beloning to the database query
+        # TODO: allow annots not in daids to be included
+        top_aids = ut.intersect_ordered(ut.flatten(ibs.get_name_aids(top_nids)), qres.daids)
+        vsone_query_pairs.append((qaid, top_aids))
+
+    # vs-one reranking
+    qaid2_qres_vsone = {}
+    for qaid, top_aids in vsone_query_pairs:
+        cfgdict = dict(codename='vsone_norm')
+        qaid2_qres_vsone_, qreq_ = ibs._query_chips4([qaid], top_aids, cfgdict=cfgdict, return_request=True)
+        qres = qaid2_qres_vsone_[qaid]
+        qaid2_qres_vsone[qaid] = qres
+
+    qaid2_qres = qaid2_qres_vsone
+    if return_request:
+        return qaid2_qres, qreq_
+    return qaid2_qres
+    #ibsfuncs.unflat_map(ibs.get_annot_is_hard, grouped_aids)
+
+
+def setup_incremental_test(ibs1):
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test
+
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0 4 8 --verbose
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> #reload_all()
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> import ibeis
+        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
+    """
+    # Take a known dataase
+    # Create an empty database to test in
+    aid_list1 = ibs1.get_aids_with_groundtruth()
+    #reset = True
+    reset = False
+    # Helper functions
+
+    aid1_to_aid2 = {}
+
+    ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
+
+    # Add the annotations without names
+    aid_list2 = add_annot_chunk(ibs1, ibs2, aid_list1, aid1_to_aid2)
+
+    # Assert visual uuids
+    assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+
+    # Remove name exemplars
+    ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
+
+    # Preprocess features and such
+    ibs2.ensure_annotation_data(aid_list2, featweights=True)
+    return ibs2, aid_list1, aid1_to_aid2
+
+
+def incremental_test(ibs1):
+    """
+    Plots the scores/ranks of correct matches while varying the size of the
+    database.
+
+    Args:
+        ibs       (list) : IBEISController object
+        qaid_list (list) : list of annotation-ids to query
+
+    CommandLine:
+        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
+
+        python dev.py --db PZ_MTEST --allgt --cmd
+
+        python dev.py --db PZ_MTEST --allgt -t inc
+
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test
+
+    Example:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> incremental_test(ibs1)
+    """
+
+    def execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
+        """ Add an unseen annotation and run a query """
+        print('\n\n==== EXECUTING TESTSTEP ====')
+        # ensure new annot is added (most likely it will have been preadded)
+        aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+        threshold = 1.99
+        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
+
+        K = ibs2.cfg.query_cfg.nn_cfg.K
+        if len(exemplar_aids) < 10:
+            K = 1
+        if len(ut.intersect_ordered(aids_chunk1, exemplar_aids)) > 0:
+            # if self is in query bump k
+            K += 1
+        cfgdict = {
+            'K': K
+        }
+        interactive = DEFAULT_INTERACTIVE
+        #interactive = False
+
+        if len(exemplar_aids) > 0:
+            #qaid2_qres, qreq_ = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict, return_request=True)
+            qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2,
+                                                     exemplar_aids,
+                                                     cfgdict=cfgdict,
+                                                     return_request=True)
+            for qaid, qres in six.iteritems(qaid2_qres):
+                make_decision(ibs2, qaid, qres, threshold, interactive=interactive)
+        else:
+            print('No exemplars in database')
+            for aid in aids_chunk2:
+                autodecide_newname(ibs2, aid)
+
+    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
+
+    # TESTING
+    chunksize = 1
+    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
+    #ut.embed()
+
+    aids_chunk1 = six.next(aids_chunk1_iter)
+    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    for _ in range(2):
+        aids_chunk1 = six.next(aids_chunk1_iter)
+        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    aids_chunk1 = six.next(aids_chunk1_iter)
+    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    # FULL INCREMENT
+    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
+    for aids_chunk1 in aids_chunk1_iter:
+        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+    #    break
+    #    #pass
 
 
 def register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2):
@@ -172,123 +389,6 @@ def make_decision(ibs2, qaid, qres, threshold, interactive=False):
             print('One candidate above threshold with scores=%r' % (scores,))
             nid = nids[scores.argsort()[::-1][0]]
             autodecide_match(ibs2, qaid, nid)
-
-
-def incremental_test(ibs1):
-    """
-    Plots the scores/ranks of correct matches while varying the size of the
-    database.
-
-    Args:
-        ibs       (list) : IBEISController object
-        qaid_list (list) : list of annotation-ids to query
-
-    CommandLine:
-        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
-
-        python dev.py --db PZ_MTEST --allgt --cmd
-
-        python dev.py --db PZ_MTEST --allgt -t inc
-
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test
-
-    Example:
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs1 = ibeis.opendb('PZ_MTEST')
-        >>> incremental_test(ibs1)
-
-    TODO:
-        *
-        * vs-one score normalizer / score normalizer for different values of K / different params
-          vs-many score normalization doesnt actually matter. We just need the ranking.
-        * Remember confidence of decisions for manual review
-        * need to add in the multi-indexer code into the pipeline. Need to
-          decide which subindexers to load given a set of daids
-        * need a vs-one reranking pipeline node
-        * need to use set query as an exemplar if its vs-one reranking scores
-          are below a threshold
-
-    Have:
-        * semantic and visual uuids
-        * test that accepts unknown annotations one at a time and
-          for each runs query, makes decision about name, and executes decision
-        * exemplar added if number of exemplars per name is less than threshold
-    """
-    # Take a known dataase
-    # Create an empty database to test in
-    aid_list1 = ibs1.get_aids_with_groundtruth()
-    #reset = True
-    reset = False
-    # Helper functions
-
-    aid1_to_aid2 = {}
-
-    def execute_teststep(ibs1, ibs2, aids_chunk1):
-        """ Add an unseen annotation and run a query """
-        print('\n\n==== EXECUTING TESTSTEP ====')
-        aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-        threshold = .99
-        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
-
-        K = ibs2.cfg.query_cfg.nn_cfg.K
-        if len(exemplar_aids) < 10:
-            K = 1
-        if len(ut.intersect_ordered(aids_chunk1, exemplar_aids)) > 0:
-            # if self is in query bump k
-            K += 1
-        cfgdict = {
-            'K': K
-        }
-        #interactive = True
-        interactive = False
-
-        if len(exemplar_aids) > 0:
-            qaid2_qres = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict)
-            for qaid, qres in six.iteritems(qaid2_qres):
-                make_decision(ibs2, qaid, qres, threshold, interactive=interactive)
-        else:
-            print('No exemplars in database')
-            for aid in aids_chunk2:
-                autodecide_newname(ibs2, aid)
-
-    ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
-
-    # Add the annotations without names
-    aid_list2 = add_annot_chunk(ibs1, ibs2, aid_list1, aid1_to_aid2)
-
-    # Assert visual uuids
-    assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
-
-    # Remove name exemplars
-    ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
-
-    # Preprocess features and such
-    ibs2.ensure_annotation_data(aid_list2, featweights=True)
-
-    # TESTING
-    chunksize = 1
-    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
-    #ut.embed()
-
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(ibs1, ibs2, aids_chunk1)
-
-    for _ in range(2):
-        aids_chunk1 = six.next(aids_chunk1_iter)
-        execute_teststep(ibs1, ibs2, aids_chunk1)
-
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(ibs1, ibs2, aids_chunk1)
-
-    # FULL INCREMENT
-    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
-    for aids_chunk1 in aids_chunk1_iter:
-        execute_teststep(ibs1, ibs2, aids_chunk1)
-    #    break
-    #    #pass
 
 
 if __name__ == '__main__':

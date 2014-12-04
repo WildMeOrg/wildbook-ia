@@ -40,39 +40,30 @@ from ibeis.main_module import main, _preload, main_loop, test_main, opendb
 from ibeis.control.IBEISControl import IBEISController
 from ibeis.dev.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
 
-__LOADED__ = False
 __version__ = '0.1.0.dev1'
 
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
-    global __LOADED__
     from ibeis import model
     from ibeis import viz
     from ibeis import web
-    #from ibeis import gui
-
-    __LOADED__ = True
-
-def ensure_subs():
-    if not __LOADED__:
-        import_subs
+    from ibeis import gui
 
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """
-    if not __LOADED__:
-        import_subs()
+    import_subs()
     rrr(verbose=verbose)
     getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(ibsfuncs, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(dev, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    #getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(viz, 'reload_subs', lambda: None)()
 

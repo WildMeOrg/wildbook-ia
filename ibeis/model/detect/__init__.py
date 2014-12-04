@@ -11,48 +11,22 @@ print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[ibeis.model.detect]')
 
 
-def reassign_submodule_attributes(verbose=True):
-    """
-    why reloading all the modules doesnt do this I don't know
-    """
-    import sys
-    if verbose and '--quiet' not in sys.argv:
-        print('dev reimport')
-    # Self import
-    import ibeis.model.detect
-    # Implicit reassignment.
-    seen_ = set([])
-    for submodname, fromimports in IMPORT_TUPLES:
-        submod = getattr(ibeis.model.detect, submodname)
-        for attr in dir(submod):
-            if attr.startswith('_'):
-                continue
-            if attr in seen_:
-                # This just holds off bad behavior
-                # but it does mimic normal util_import behavior
-                # which is good
-                continue
-            seen_.add(attr)
-            setattr(ibeis.model.detect, attr, getattr(submod, attr))
-
-
 def reload_subs(verbose=True):
     """ Reloads ibeis.model.detect and submodules """
     rrr(verbose=verbose)
-    getattr(grabmodels, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(randomforest, 'rrr', lambda verbose: None)(verbose=verbose)
+    def fbrrr(*args, **kwargs):
+        """ fallback reload """
+        pass
+    getattr(grabmodels, 'rrr', fbrrr)(verbose=verbose)
+    getattr(randomforest, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
-    try:
-        # hackish way of propogating up the new reloaded submodule attributes
-        reassign_submodule_attributes(verbose=verbose)
-    except Exception as ex:
-        print(ex)
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('grabmodels', None, False),
-    ('randomforest', None, False),
+    ('grabmodels', None),
+    ('randomforest', None),
 ]
+
 """
 Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/model/detect

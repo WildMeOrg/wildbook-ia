@@ -18,9 +18,7 @@ import ibeis.model.hots.neighbor_index as nbrx
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[multi_index]', DEBUG=False)
 
 
-def new_ibeis_mindexer(qreq_,
-                       num_indexers=8,
-                       split_method='name'):
+def request_ibeis_mindexer(qreq_, num_indexers=8, split_method='name'):
     """
     Examples:
         >>> # ENABLE_DOCTEST
@@ -84,7 +82,7 @@ def new_ibeis_mindexer(qreq_,
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = nbrx.new_ibeis_nnindexer(qreq_, _internal_daids=aids)
+            nnindexer = nbrx.request_ibeis_nnindexer(qreq_, _internal_daids=aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -108,7 +106,7 @@ def test_mindexer():
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     num_indexers = 4
     split_method = 'name'
-    mxer = new_ibeis_mindexer(qreq_, num_indexers, split_method)
+    mxer = request_ibeis_mindexer(qreq_, num_indexers, split_method)
     return mxer, qreq_, ibs
 
 
