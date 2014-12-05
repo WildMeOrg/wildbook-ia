@@ -25,7 +25,7 @@ GOALS:
 
     5) Add exemplars that are distinct from exiting (matches below threshold)
 
-    (no rebuilding ing kd-tree for each image)
+    (no rebuilding kd-tree for each image)
 
 
 
@@ -53,7 +53,7 @@ class ScoreNormalizer(ut.Cachable):
         tp_support       (None):
         tn_support       (None):
         tp_labels        (None):
-        fp_labels        (None):
+        fn_labels        (None):
         clipscore        (None):
 
     CommandLine:
@@ -62,22 +62,23 @@ class ScoreNormalizer(ut.Cachable):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> normalizer = '?'
         >>> cfgstr = None
         >>> score_domain = None
         >>> p_tp_given_score = None
         >>> tp_support = None
         >>> tn_support = None
         >>> tp_labels = None
-        >>> fp_labels = None
-        >>> result = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score, tp_support, tn_support, tp_labels, fp_labels)
-        >>> print(result)
+        >>> fn_labels = None
+        >>> normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,
+        ...                              tp_support, tn_support, tp_labels,
+        ...                              fn_labels)
     """
     prefix = 'normalizer_'
 
     def __init__(normalizer, cfgstr=None, score_domain=None,
                  p_tp_given_score=None, tp_support=None, tn_support=None,
-                 tp_labels=None, fp_labels=None, clipscore=None, timestamp=None):
+                 tp_labels=None, fn_labels=None, clipscore=None,
+                 timestamp=None):
         super(ScoreNormalizer, normalizer).__init__()
         normalizer.cfgstr = cfgstr
         normalizer.score_domain = score_domain
@@ -85,11 +86,11 @@ class ScoreNormalizer(ut.Cachable):
         normalizer.tp_support = tp_support
         normalizer.tn_support = tn_support
         normalizer.tp_labels = tp_labels
-        normalizer.fp_labels = fp_labels
+        normalizer.fn_labels = fn_labels
         normalizer.timestamp = timestamp
         normalizer.clipscore = clipscore
         #normalizer.set_values(score_domain, p_tp_given_score, tp_support,
-        #                      tn_support, tp_labels, fp_labels)
+        #                      tn_support, tp_labels, fn_labels)
 
     def get_prefix(normalizer):
         return 'normalizer_'
@@ -123,61 +124,57 @@ class ScoreNormalizer(ut.Cachable):
         prob_list = [normalizer.normalize_score(score) for score in score_list]
         return prob_list
 
+    def get_infostr(normalizer):
+        infostr_list = [
+            ut.get_stats_str(normalizer.tp_support, lbl='tp_support'),
+            ut.get_stats_str(normalizer.tn_support, lbl='tn_support'),
+            ut.get_stats_str(normalizer.p_tp_given_score, lbl='p_tp_given_score'),
+            ut.get_stats_str(normalizer.score_domain, keys=['max', 'min', 'shape'], lbl='score_domain'),
+            'clipscore = %.2f' % normalizer.clipscore,
+            'cfgstr = %r' % normalizer.cfgstr,
+            'timestamp = %r' % normalizer.timestamp,
+        ]
+        infostr = '\n'.join(infostr_list)
+        return infostr
+
     def visualize(normalizer, update=True):
         """
         CommandLine:
-            python -m ibeis.model.hots.score_normalization --test-visualize
+            python -m ibeis.model.hots.score_normalization --test-visualize --index 0
+            --cmd
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> import plottool as pt
             >>> from ibeis.model.hots.score_normalization import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
-            >>> normalizer = load_precomputed_normalizer(ibs, 0)
+            >>> #import ibeis
+            >>> index = ut.get_argval('--index', type_=int, default=0)
+            >>> normalizer = load_precomputed_normalizer(index, with_global=False)
             >>> normalizer.visualize()
-            >>> exec(pt.present())
+            >>> six.exec_(pt.present(), globals(), locals())
             >>> #pt.plt.show()
 
         """
         import plottool as pt
+        print(normalizer.get_infostr())
         normalizer.visualize_probs(update=False)
         normalizer.visualize_support(update=False)
         if update:
             pt.update()
 
     def visualize_support(normalizer, update=True, fnum=None, pnum=(1, 1, 1)):
-        import plottool as pt
-        if fnum is None:
-            fnum = pt.next_fnum()
-        true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-        false_color = pt.FALSE_RED
-        pt.plots.plot_sorted_scores(
-            (normalizer.tn_support, normalizer.tp_support),
-            ('trueneg scores', 'truepos scores'),
-            score_colors=(false_color, true_color),
-            logscale=True,
-            figtitle='sorted nscores',
-            fnum=fnum,
-            pnum=pnum)
+        plot_support(normalizer.tn_support, normalizer.tp_support, fnum=fnum, pnum=pnum)
+        if update:
+            import plottool as pt
+            pt.update()
 
     def visualize_probs(normalizer, update=True, fnum=None, pnum=(1, 1, 1)):
-        import plottool as pt
-        if fnum is None:
-            fnum = pt.next_fnum()
-        p_tp_given_score = normalizer.p_tp_given_score
-        p_tn_given_score = 1 - p_tp_given_score
-        score_domain = normalizer.score_domain
-        cfgstr = normalizer.get_cfgstr()
-        true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-        false_color = pt.FALSE_RED
-
-        pt.plots.plot_probabilities(
-            (p_tn_given_score, p_tp_given_score),
-            ('p(tn | score)', 'p(tp | score)'),
-            prob_colors=(false_color, true_color,),
-            figtitle='post_bayes pdf score ' + cfgstr,
-            xdata=score_domain, fnum=fnum, pnum=pnum)
+        plot_postbayes_pdf(normalizer.score_domain, 1 - normalizer.p_tp_given_score,
+                           normalizer.p_tp_given_score,
+                           cfgstr=normalizer.get_cfgstr(), fnum=fnum, pnum=pnum)
+        if update:
+            import plottool as pt
+            pt.update()
 
     def __call__(normalizer, score_list):
         return normalizer.normalize_score_list(score_list)
@@ -186,9 +183,9 @@ class ScoreNormalizer(ut.Cachable):
 # DEVELOPER FUNCTIONS
 
 
-def parse_available_normalizers(ibs):
+def parse_available_normalizers(*args, **kwargs):
     import parse
-    normalizers_fpaths = list_available_score_normalizers(ibs)
+    normalizers_fpaths = list_available_score_normalizers(*args, **kwargs)
     parsestr = '{cachedir}/' + ScoreNormalizer.prefix + '{cfgstr}' + ScoreNormalizer.ext
     result_list = [parse.parse(parsestr, path) for path in normalizers_fpaths]
     cfgstr_list = [result['cfgstr'] for result in result_list]
@@ -196,17 +193,25 @@ def parse_available_normalizers(ibs):
     return cfgstr_list, cachedir_list
 
 
-def load_precomputed_normalizer(ibs, choice):
+def load_precomputed_normalizer(index, *args, **kwargs):
     """
+    python -m ibeis.model.hots.score_normalization --test-load_precomputed_normalizer
+
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> normalizer = load_precomputed_normalizer(ibs, 0)
+        >>> normalizer = load_precomputed_normalizer(None)
+        >>> normalizer.visualize()
+        >>> import plottool as pt
+        >>> six.exec_(pt.present(), globals(), locals())
     """
-    cfgstr_list, cachedir_list = parse_available_normalizers(ibs)
-    cfgstr = cfgstr_list[0]
-    cachedir = cachedir_list[0]
+    cfgstr_list, cachedir_list = parse_available_normalizers(*args, **kwargs)
+    if index is None or index == 'None':
+        print('Avaliable indexes:')
+        print(ut.indentjoin(map(str, enumerate(cfgstr_list))))
+        index = int(input('what index?'))
+    cfgstr = cfgstr_list[index]
+    cachedir = cachedir_list[index]
     normalizer = ScoreNormalizer(cfgstr=cfgstr)
     normalizer.load(cachedir)
     return normalizer
@@ -215,7 +220,7 @@ def load_precomputed_normalizer(ibs, choice):
 def list_available_score_normalizers(with_global=True, with_local=True):
     r"""
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-list_available_score_normalizers --enableall
+        python -m ibeis.model.hots.score_normalization --test-list_available_score_normalizers
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -228,8 +233,6 @@ def list_available_score_normalizers(with_global=True, with_local=True):
         >>> # global_normalizers_fpaths = ['"%s"' % fpath for fpath in global_normalizers_fpaths]
         >>> print('Available LOCAL normalizers: ' + ut.indentjoin(local_normalizers_fpaths, '\n  '))
         >>> print('Available GLOBAL normalizers: ' + ut.indentjoin(global_normalizers_fpaths, '\n  '))
-        >>> #  [ut.delete(fpath) for fpath in local_normalizers_fpaths]
-        >>> #  [ut.delete(fpath) for fpath in global_normalizers_fpaths]
 
     """
     from ibeis.dev import sysres
@@ -245,11 +248,11 @@ def list_available_score_normalizers(with_global=True, with_local=True):
         normalizer_fpaths += global_normalizers
     if with_local:
         ibsdbdir_list = sysres.get_ibsdb_list(workdir)
-        searchdirs = [join(ibsdbdir, constants.PATH_NAMES._ibsdb, constants.PATH_NAMES.cache)
+        searchdirs = [join(ibsdbdir, constants.REL_PATHS.cache)
                       for ibsdbdir in ibsdbdir_list]
         local_normalizers_list = [ut.glob(path, pattern, recursive=True) for path in  searchdirs]
         local_normalizers = ut.flatten(local_normalizers_list)
-        normalizer_fpaths += local_normalizers
+        normalizer_fpaths.extend(local_normalizers)
     # Just search localdb cachedirs (otherwise it will take forever)
     return normalizer_fpaths
 
@@ -259,7 +262,7 @@ def delete_all_learned_normalizers():
     DELETES ALL CACHED NORMALIZERS IN ALL DATABASES
 
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-delete_all_learned_normalizers
+        python -m ibeis.model.hots.score_normalization --test-delete_all_learned_normalizers -y
 
     Example:
         >>> # DOCTEST_DISABLE
@@ -269,8 +272,9 @@ def delete_all_learned_normalizers():
     from ibeis.model.hots import score_normalization
     import utool as ut
     print('DELETE_ALL_LEARNED_NORMALIZERS')
-    normalizer_fpath_list = score_normalization.list_available_score_normalizers()
-    ut.remove_fpaths(normalizer_fpath_list)
+    if ut.are_you_sure('Deleting all learned normalizers'):
+        normalizer_fpath_list = score_normalization.list_available_score_normalizers()
+        ut.remove_fpaths(normalizer_fpath_list)
 
 
 # TRAINING FUNCTIONS
@@ -281,7 +285,7 @@ def train_baseline_for_all_dbs():
     Runs unnormalized queries to compute normalized queries
 
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-train_baseline_for_all_dbs --enableall
+        python -m ibeis.model.hots.score_normalization --test-train_baseline_for_all_dbs
 
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
@@ -703,10 +707,6 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                  with_scores=False):
     import plottool as pt  # NOQA
 
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    unknown_color = pt.UNKNOWN_PURP
-
     fnum = pt.next_fnum()
     nRows = 2 + with_scores
     pnum_ = pt.get_pnum_func(nRows=nRows, nCols=1)
@@ -723,14 +723,39 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     pt.figure(fnum=fnum, pnum=pnum_(0))
 
     if with_scores:
-        pt.plots.plot_sorted_scores(
-            (tn_support, tp_support),
-            ('trueneg scores', 'truepos scores'),
-            score_colors=(false_color, true_color),
-            logscale=True,
-            figtitle='sorted nscores',
-            fnum=fnum,
-            pnum=_pnumiter())
+        plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter())
+
+    plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                      cfgstr='', fnum=fnum, pnum=_pnumiter())
+
+    plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                       cfgstr='', fnum=fnum, pnum=_pnumiter())
+
+
+def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    pt.plots.plot_sorted_scores(
+        (tn_support, tp_support),
+        ('trueneg scores', 'truepos scores'),
+        score_colors=(false_color, true_color),
+        logscale=True,
+        figtitle='sorted nscores',
+        fnum=fnum,
+        pnum=pnum)
+
+
+def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                      cfgstr='', fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    unknown_color = pt.UNKNOWN_PURP
 
     pt.plots.plot_probabilities(
         (p_score_given_tn,  p_score_given_tp, p_score),
@@ -739,16 +764,23 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
         figtitle='pre_bayes pdf score',
         xdata=score_domain,
         fnum=fnum,
-        pnum=_pnumiter())
+        pnum=pnum)
+
+
+def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                       cfgstr='', fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
 
     pt.plots.plot_probabilities(
         (p_tn_given_score, p_tp_given_score),
         ('p(tn | score)', 'p(tp | score)'),
         prob_colors=(false_color, true_color,),
-        figtitle='post_bayes pdf score',
-        xdata=score_domain,
-        fnum=fnum,
-        pnum=_pnumiter())
+        figtitle='post_bayes pdf score ' + cfgstr,
+        xdata=score_domain, fnum=fnum, pnum=pnum)
 
 
 def test():
