@@ -6,14 +6,15 @@ Have:
       for each runs query, makes decision about name, and executes decision.
     * As a placeholder for exemplar decisions  an exemplar is added if
       number of exemplars per name is less than threshold.
+    * vs-one reranking query mode
+
+    * test harness but start with larger test set
 
 TODO:
-    *
     * vs-one score normalizer ~~/ score normalizer for different values of K * / different params~~
       vs-many score normalization doesnt actually matter. We just need the ranking.
     * ~~Remember confidence of decisions for manual review~~
       Defer
-    * need a vs-one reranking pipeline node
     * need to add in the multi-indexer code into the pipeline. Need to
       decide which subindexers to load given a set of daids
     * need to use set query as an exemplar if its vs-one reranking scores
@@ -140,6 +141,17 @@ def setup_incremental_test(ibs1):
     return ibs2, aid_list1, aid1_to_aid2
 
 
+def choose_vsmany_K(ibs, qaids, daids):
+    K = ibs.cfg.query_cfg.nn_cfg.K
+    if len(daids) < 10:
+        K = 1
+    if len(ut.intersect_ordered(qaids, daids)) > 0:
+        # if self is in query bump k
+        K += 1
+    return K
+    pass
+
+
 def incremental_test(ibs1):
     """
     Plots the scores/ranks of correct matches while varying the size of the
@@ -174,17 +186,11 @@ def incremental_test(ibs1):
         threshold = 1.99
         exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
 
-        K = ibs2.cfg.query_cfg.nn_cfg.K
-        if len(exemplar_aids) < 10:
-            K = 1
-        if len(ut.intersect_ordered(aids_chunk1, exemplar_aids)) > 0:
-            # if self is in query bump k
-            K += 1
-        cfgdict = {
-            'K': K
-        }
         interactive = DEFAULT_INTERACTIVE
         #interactive = False
+        cfgdict = {
+            'K': choose_vsmany_K(ibs2, aids_chunk2, exemplar_aids)
+        }
 
         if len(exemplar_aids) > 0:
             #qaid2_qres, qreq_ = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict, return_request=True)
@@ -368,27 +374,28 @@ def make_decision(ibs2, qaid, qres, threshold, interactive=False):
         if ans in ['cmd', 'ipy', 'embed']:
             ut.embed()
         qres_wgt.close()
-    nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
-    if len(nid_list) == 0:
-        print('No matches made')
-        autodecide_newname(ibs2, qaid)
     else:
-        candidate_indexes = np.where(score_list > threshold)[0]
-        if len(candidate_indexes) == 0:
-            print('No candidates above threshold')
+        nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
+        if len(nid_list) == 0:
+            print('No matches made')
             autodecide_newname(ibs2, qaid)
-        elif len(candidate_indexes) == 1:
-            nid = nid_list[candidate_indexes[0]]
-            score = score_list[candidate_indexes[0]]
-            print('One candidate above threshold with score=%r' % (score,))
-            autodecide_match(ibs2, qaid, nid)
         else:
-            print('Multiple candidates above threshold')
-            nids = nid_list[candidate_indexes]  # NOQA
-            scores = score_list[candidate_indexes]
-            print('One candidate above threshold with scores=%r' % (scores,))
-            nid = nids[scores.argsort()[::-1][0]]
-            autodecide_match(ibs2, qaid, nid)
+            candidate_indexes = np.where(score_list > threshold)[0]
+            if len(candidate_indexes) == 0:
+                print('No candidates above threshold')
+                autodecide_newname(ibs2, qaid)
+            elif len(candidate_indexes) == 1:
+                nid = nid_list[candidate_indexes[0]]
+                score = score_list[candidate_indexes[0]]
+                print('One candidate above threshold with score=%r' % (score,))
+                autodecide_match(ibs2, qaid, nid)
+            else:
+                print('Multiple candidates above threshold')
+                nids = nid_list[candidate_indexes]  # NOQA
+                scores = score_list[candidate_indexes]
+                print('One candidate above threshold with scores=%r' % (scores,))
+                nid = nids[scores.argsort()[::-1][0]]
+                autodecide_match(ibs2, qaid, nid)
 
 
 if __name__ == '__main__':

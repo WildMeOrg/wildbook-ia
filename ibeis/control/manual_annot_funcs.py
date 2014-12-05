@@ -633,29 +633,34 @@ def get_annot_has_groundtruth(ibs, aid_list):
     return has_gt_list
 
 
-@register_ibs_method
-def get_annot_hashid_rowid(ibs, aid_list, label='_AIDS'):
-    aids_hashid = ut.hashstr_arr(aid_list, label)
-    return aids_hashid
+#@register_ibs_method
+#def get_annot_hashid_rowid(ibs, aid_list, prefix=''):
+#    raise AssertionError('You probably want to call a uuid hash id method')
+#    label = ''.join(('_', prefix, 'UUIDS'))
+#    aids_hashid = ut.hashstr_arr(aid_list, label)
+#    return aids_hashid
 
 
 @register_ibs_method
-def get_annot_hashid_uuid(ibs, aid_list, label='_UUIDS'):
+def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
     uuid_list    = ibs.get_annot_uuids(aid_list)
+    label = ''.join(('_', prefix, 'UUIDS'))
     uuid_hashid  = ut.hashstr_arr(uuid_list, label)
     return uuid_hashid
 
 
 @register_ibs_method
-def get_annot_hashid_visual_uuid(ibs, aid_list, label='_VUUIDS'):
+def get_annot_hashid_visual_uuid(ibs, aid_list, prefix=''):
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    label = ''.join(('_', prefix, 'VUUIDS'))
     visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)
     return visual_uuid_hashid
 
 
 @register_ibs_method
-def get_annot_hashid_semantic_uuid(ibs, aid_list, label='_SUUIDS'):
+def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
+    label = ''.join(('_', prefix, 'SUUIDS'))
     semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
     return semantic_uuid_hashid
 
@@ -806,7 +811,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
 @register_ibs_method
 def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
     """ alias """
-    return ibs.get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=distinguish_unknowns)
+    return ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns)
 
 
 @register_ibs_method

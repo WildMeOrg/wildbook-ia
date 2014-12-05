@@ -82,7 +82,7 @@ def request_ibeis_mindexer(qreq_, num_indexers=8, split_method='name'):
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = nbrx.request_ibeis_nnindexer(qreq_, _internal_daids=aids)
+            nnindexer = nbrx.internal_request_ibeis_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')

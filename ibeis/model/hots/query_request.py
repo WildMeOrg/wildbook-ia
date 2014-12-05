@@ -36,7 +36,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> dbname = ibs.get_dbname()
         >>> result = dbname + datahashid
         >>> print(result)
-        PZ_MTEST_DUUIDS((5)q87ho9a0@9s02imh)
+        PZ_MTEST_DSUUIDS((5)q87ho9a0@9s02imh)
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -59,7 +59,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> dbname = ibs.get_dbname()
         >>> result = dbname + datahashid
         >>> print(result)
-        NAUT_test_DUUIDS((5)4e972cjxcj30a8u1)
+        NAUT_test_DSUUIDS((5)4e972cjxcj30a8u1)
 
     """
     if verbose:
@@ -71,7 +71,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     unique_species = apply_species_with_detector_hack(ibs, cfgdict)
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
-    # FIXME: SYSTEM
+    # FIXME: SYSTEM use semantic uuids
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
     qreq_ = QueryRequest(qaid_list, quuid_list,
@@ -296,14 +296,14 @@ class QueryRequest(object):
         daids = qreq_.get_external_daids()
         assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(daids, '_DUUIDS')
+        data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(daids, prefix='D')
         return data_hashid
 
     def get_query_hashid(qreq_):
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qaids, '_QUUIDS')
+        query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qaids, prefix='Q')
         return query_hashid
 
     def get_cfgstr(qreq_):
@@ -358,8 +358,8 @@ class QueryRequest(object):
         internal_qaids = qreq_.get_internal_qaids()
         internal_daids = qreq_.get_internal_daids()
         # TODO: pass qreq_ down so the right parameters are computed
-        qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True)
-        qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True)
+        qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, qreq_=qreq_)
+        qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, qreq_=qreq_)
 
     def load_indexer(qreq_, verbose=True):
         if qreq_.indexer is not None:

@@ -1634,6 +1634,21 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 
 @__injectable
+def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0):
+    #qaids = ibs.get_easy_annot_rowids()
+    import vtool as vt
+    all_aids = np.array(ibs.get_valid_aids())
+    all_nids = np.array(ibs.get_annot_name_rowids(all_aids, distinguish_unknowns=False))
+    unique_nids, groupxs_list = vt.group_indicies(all_nids)
+    grouped_aids_ = vt.apply_grouping(all_aids, groupxs_list)
+    #nids = ibs.get_valid_nids(filter_empty=True)
+    #grouped_aids_ = ibs.get_name_aids(nids)
+    grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
+    sample_aids = ut.flatten(ut.sample_lists(grouped_aids, num=per_name, seed=seed))
+    return sample_aids
+
+
+@__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     """
     get_annot_groundfalse_sample

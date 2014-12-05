@@ -71,7 +71,7 @@ def new_ibeis_windex(ibs, daid_list):
     >>> windex, qreq_, ibs = test_windex() # doctest: +ELLIPSIS
 
     """
-    daids_hashid = ibs.get_annot_hashid_uuid(daid_list, '_DUUIDS')
+    daids_hashid = ibs.get_annot_hashid_visual_uuid(daid_list, 'D')
     flann_cfgstr = ibs.cfg.query_cfg.flann_cfg.get_cfgstr()
     feat_cfgstr  = ibs.cfg.query_cfg._feat_cfg.get_cfgstr()
     indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr

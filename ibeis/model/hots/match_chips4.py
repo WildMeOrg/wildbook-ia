@@ -14,7 +14,8 @@ from ibeis.model.hots import pipeline
 USE_CACHE    = not utool.get_argflag(('--nocache-query', '--noqcache'))
 USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
 SAVE_CACHE   = not utool.get_argflag('--nocache-save')
-MIN_BIGCACHE_BUNDLE = 20
+#MIN_BIGCACHE_BUNDLE = 20
+MIN_BIGCACHE_BUNDLE = 150
 
 
 #----------------------
@@ -72,8 +73,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
-        qhashid = ibs.get_annot_hashid_uuid(qaid_list, '_QAUUIDS')
-        dhashid = ibs.get_annot_hashid_uuid(daid_list, '_DAUUIDS')
+        qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
+        dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
         if use_bigcache_:

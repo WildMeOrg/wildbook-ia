@@ -461,8 +461,8 @@ __QRESREQ_CACHE__ = {}
 def build_cache_key(ibs, qaid_list, daid_list, cfgdict):
     # a little overconstrained
     cfgstr = ibs.cfg.query_cfg.get_cfgstr()
-    query_hashid = ibs.get_annot_hashid_uuid(qaid_list, '_QAUUID')
-    data_hashid  = ibs.get_annot_hashid_uuid(daid_list, '_DAUUID')
+    query_hashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
+    data_hashid  = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
     key = (query_hashid, data_hashid, cfgstr, str(cfgdict))
     return key
 

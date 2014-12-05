@@ -8,7 +8,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def new_query_request(ibs, qaid_list, daid_list, cfgdict):
+def new_query_request(ibs, qaid_list, daid_list, cfgdict=None):
     """
     alias for ibeis.model.hots.query_request.new_ibeis_query_request
 
@@ -17,7 +17,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict):
     cfgdict = {}
     """
     from ibeis.model.hots import query_request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
     return qreq_
 
 
@@ -41,7 +41,7 @@ def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
             # TODO: Incorporated taids (vocab training ids) into qreq
             taids = cfg.vocab_taids
 
-    tannot_hashid = ibs.get_annot_hashid_uuid(taids, '_TAIDS')
+    tannot_hashid = ibs.get_annot_hashid_visual_uuid(taids, prefix='T')
     vocab_cfgstr = vocab_cfgstr_ + tannot_hashid + feat_cfgstr_
     return vocab_cfgstr
 
