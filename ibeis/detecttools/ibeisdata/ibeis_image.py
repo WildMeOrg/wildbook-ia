@@ -79,9 +79,9 @@ class IBEIS_Image(object):
                 y_length = float(ibsi.height - patch_height - 1)
                 x_bins = int(x_length / kwargs['mine_patch_stride_suggested'])
                 y_bins = int(y_length / kwargs['mine_patch_stride_suggested'])
-		
-		x_bins = max(1, x_bins)
-		y_bins = max(1, y_bins)
+
+                x_bins = max(1, x_bins)
+                y_bins = max(1, y_bins)
                 patch_stride_x = x_length / x_bins
                 patch_stride_y = y_length / y_bins
                 # ibsi.show()
@@ -121,39 +121,8 @@ class IBEIS_Image(object):
         return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
 
     def _overlaps(ibsi, objects, obj, margin=0.50, bins=['left', 'front', 'right', 'back']):
-        bins = ['left', 'front_left', 'front', 'front_right', 'right', 'back_right', 'back', 'back_left']
         names = []
         for _obj in objects:
-            # leftA   = obj['xmin']
-            # rightA  = obj['xmax']
-            # bottomA = obj['ymin']
-            # topA    = obj['ymax']
-            # widthA = rightA - leftA
-            # heightA = topA - bottomA
-
-            # leftB   = _obj.xmin + (margin * min(_obj.width, widthA))
-            # rightB  = _obj.xmax - (margin * min(_obj.width, widthA))
-            # bottomB = _obj.ymin + (margin * min(_obj.height, heightA))
-            # topB    = _obj.ymax - (margin * min(_obj.height, heightA))
-
-            # print(leftA < rightB, rightA > leftB, topA > bottomB, bottomA < topB)
-
-            # if (leftA < rightB) and (rightA > leftB) and \
-            #    (topA > bottomB) and (bottomA < topB):
-            #     bin_size = 2.0 * math.pi / len(bins)
-            #     pose = float(_obj.pose) + 0.5 * bin_size
-            #     pose %= 2.0 * math.pi
-            #     bin_ = int(pose / bin_size)
-            #     pose_str = bins[bin_]
-            #     print(pose, bin_, pose_str)
-            #     names.append(_obj.name + "_" + pose_str)
-
-            # leftA   = obj['xmin']
-            # rightA  = obj['xmax']
-            # bottomA = obj['ymin']
-            # topA    = obj['ymax']
-            # widthA = rightA - leftA
-            # heightA = topA - bottomA
             x_overlap = max(0, min(obj['xmax'], _obj.xmax) - max(obj['xmin'], _obj.xmin))
             y_overlap = max(0, min(obj['ymax'], _obj.ymax) - max(obj['ymin'], _obj.ymin))
             area_overlap = float(x_overlap * y_overlap)
@@ -163,16 +132,7 @@ class IBEIS_Image(object):
             score = area_overlap / area_total
             # print(score)
             if score >= margin:
-                bin_size = 2.0 * math.pi / len(bins)
-                if _obj.pose == "Unspecified":
-                    print(ibsi, _obj.name)
-                    print(objects)
-                pose = float(_obj.pose) + 0.5 * bin_size
-                pose %= 2.0 * math.pi
-                bin_ = int(pose / bin_size)
-                pose_str = bins[bin_]
-                # print(pose, bin_, pose_str)
-                names.append(_obj.name + ":" + pose_str)
+                names.append(_obj.name + ":" + _obj.pose_str)
         return list(set(names))
 
     def image_path(ibsi):

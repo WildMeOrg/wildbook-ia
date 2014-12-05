@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-
+import math
 from . import common as com
 from .ibeis_part import IBEIS_Part
+
+
+BINS = ['left', 'front_left', 'front', 'front_right', 'right', 'back_right', 'back', 'back_left']
 
 
 class IBEIS_Object(object):
@@ -23,7 +26,7 @@ class IBEIS_Object(object):
             ibso.parts = [ IBEIS_Part(part) for part in com.get(_xml, 'part', text=False, singularize=False)]
         else:
             ibso.name = name
-            ibso.pose = 'Unspecified'
+            ibso.pose = -1
             ibso.truncated = False
             ibso.difficult = False
 
@@ -33,6 +36,14 @@ class IBEIS_Object(object):
             ibso.ymin = max(0,      int(_xml['ymin']))
 
             ibso.parts = []
+        # Pose
+        if ibso.pose < 0:
+            ibso.pose_str = 'Unspecified'
+        else:
+            bin_size = 2.0 * math.pi / len(BINS)
+            temp = float(ibso.pose) + 0.5 * bin_size
+            temp %= 2.0 * math.pi
+            ibso.pose_str = BINS[int(temp / bin_size)]
 
         ibso.width = ibso.xmax - ibso.xmin
         ibso.height = ibso.ymax - ibso.ymin
