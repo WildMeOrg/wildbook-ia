@@ -47,6 +47,8 @@ TODO:
       threshold
 
     * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
+
+    * spawn background process to reindex chunks of data
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
