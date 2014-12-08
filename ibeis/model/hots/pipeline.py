@@ -26,6 +26,23 @@ Module Concepts::
 
     * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
              = qaid2_nnfilt[qaid]
+
+
+TODO:
+    * need to allow for scores to be re-added post spatial verification
+      e.g. when the first match initially is invalidated through
+      spatial verification but the next matches survive.
+
+    * score normalization update
+
+    * paramater to only add exemplar if post-normlized score is above a
+      threshold
+
+    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
+
+    * test case where there is a 360 view that is linkable from the tests case
+
+
 """
 
 from __future__ import absolute_import, division, print_function
