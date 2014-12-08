@@ -289,6 +289,8 @@ python dev.py <optional-arguments> [--help]
 ./main.py --set-workdir /raid/work --preload-exit
 ./main.py --set-logdir /raid/logs/ibeis --preload-exit
 
+./dev.py --set-workdir ~/data/work --preload-exit
+
 # use --db to specify a database in your WorkDir
 # --setdb makes that directory your default directory
 python dev.py --db <dbname> --setdb

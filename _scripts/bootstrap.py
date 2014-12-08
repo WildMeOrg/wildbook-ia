@@ -172,6 +172,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'parse',
         'simplejson',
         'pyinstaller',
+        'statsmodel',
     ]
 
     OPTIONAL_PYPKG_LIST = [
@@ -193,7 +194,6 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'pyzmq',
         'scikit-image',
         'sphinxcontrib-napoleon',
-        'statsmodel',
         'virtualenv',
     ]
 
