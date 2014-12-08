@@ -24,3 +24,12 @@ echo "PYEXE = $PYEXE"
 
 
 #profiler.sh ibeis/tests/reset_testdbs.py
+
+reset_pz_mtest()
+{
+    # Delete PZ_MTEST
+    #python -c "import ibeis, os, utool; utool.delete(os.path.join(ibeis.sysres.get_workdir(), 'PZ_MTEST'))"
+    python -c "import ibeis, os, utool; utool.vd(os.path.join(ibeis.sysres.get_workdir(), 'PZ_MTEST'))"
+    python dev.py -t mtest
+
+}

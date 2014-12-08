@@ -19,6 +19,13 @@ TODO:
       decide which subindexers to load given a set of daids
     * need to use set query as an exemplar if its vs-one reranking scores
       are below a threshold
+
+New TODO:
+
+    * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
+    * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
+    * Improve vsone scoring.
+    * Put this query mode into the main application and work on the interface for it.
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -38,6 +45,8 @@ def test_vsone_verified(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> #reload_all()
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -57,6 +66,70 @@ def test_vsone_verified(ibs):
         fig = qres.ishow_top(ibs)
         fig.show()
     #return qaid2_qres
+
+
+def setup_incremental_test(ibs1, num_initial=0):
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test
+
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va
+        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0 4 8 --verbose
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> import ibeis
+        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> import ibeis
+        >>> ibs1 = ibeis.opendb('GZ_ALL')
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=100)
+    """
+    # Take a known dataase
+    # Create an empty database to test in
+    aid_list1 = ibs1.get_aids_with_groundtruth()
+    reset = False
+    #reset = True
+    # Helper functions
+
+    aid1_to_aid2 = {}
+
+    ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
+
+    # Add the annotations without names
+
+    aids_chunk1 = aid_list1
+    aid_list2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    # Assert visual uuids
+    try:
+        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+    except Exception as ex:
+        ut.printex(ex, ('warning: consistency check failed.'
+                        'updating and trying once more'), iswarning=True)
+        ibs1.update_annot_visual_uuids(aid_list1)
+        ibs2.update_annot_visual_uuids(aid_list2)
+        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+
+    # Remove name exemplars
+    ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
+
+    # Preprocess features and such
+    ibs2.ensure_annotation_data(aid_list2, featweights=True)
+
+    if num_initial > 0:
+        # Transfer some initial data
+        aid_sublist1 = aid_list1[0:num_initial]
+        aid_sublist2 = aid_list2[0:num_initial]
+        name_list = ibs1.get_annot_names(aid_sublist1)
+        ibs2.set_annot_names(aid_sublist2, name_list)
+        ibs2.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
+    return ibs2, aid_list1, aid1_to_aid2
 
 
 def query_vsone_verified(ibs, qaids, daids, cfgdict=None, return_request=False):
@@ -97,55 +170,6 @@ def query_vsone_verified(ibs, qaids, daids, cfgdict=None, return_request=False):
         return qaid2_qres, qreq_
     return qaid2_qres
     #ibsfuncs.unflat_map(ibs.get_annot_is_hard, grouped_aids)
-
-
-def setup_incremental_test(ibs1):
-    r"""
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test
-
-        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va
-        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0 4 8 --verbose
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> #reload_all()
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> ibs1 = ibeis.opendb('PZ_MTEST')
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
-    """
-    # Take a known dataase
-    # Create an empty database to test in
-    aid_list1 = ibs1.get_aids_with_groundtruth()
-    reset = False
-    #reset = True
-    # Helper functions
-
-    aid1_to_aid2 = {}
-
-    ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
-
-    # Add the annotations without names
-    aid_list2 = add_annot_chunk(ibs1, ibs2, aid_list1, aid1_to_aid2)
-
-    # Assert visual uuids
-    try:
-        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
-    except Exception as ex:
-        ut.printex(ex, ('warning: consistency check failed.'
-                        'updating and trying once more'), iswarning=True)
-        ibs1.update_annot_visual_uuids(aid_list1)
-        ibs2.update_annot_visual_uuids(aid_list2)
-        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
-
-    # Remove name exemplars
-    ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
-
-    # Preprocess features and such
-    ibs2.ensure_annotation_data(aid_list2, featweights=True)
-    return ibs2, aid_list1, aid1_to_aid2
 
 
 def choose_vsmany_K(ibs, qaids, daids):
@@ -212,7 +236,7 @@ def incremental_test(ibs1):
             for aid in aids_chunk2:
                 autodecide_newname(ibs2, aid)
 
-    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
+    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=0)
 
     # TESTING
     chunksize = 1
@@ -265,7 +289,7 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
                                   theta_list=thetas_chunk1,
                                   prevent_visual_duplicates=True)
     register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2)
-    print('Added: aids_chunk2=%r' % (aids_chunk2,))
+    print('Added: aids_chunk2=%s' % (ut.truncate_str(repr(aids_chunk2)),))
     return aids_chunk2
 
 
@@ -343,7 +367,7 @@ def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
     ibs2.delete_invalid_nids()
 
     # this test is for plains
-    assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
+    #assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
 
 
 def autodecide_newname(ibs2, aid):

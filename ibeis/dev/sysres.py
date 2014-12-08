@@ -346,6 +346,15 @@ def ensure_pz_mtest():
     mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
     mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
+    # update the the newest database version
+    import ibeis
+    ibs = ibeis.opendb('PZ_MTEST')
+    print('cleaning up old database and ensureing everything is properly computed')
+    ibs.db.vacuum()
+    valid_aids = ibs.get_valid_aids()
+    assert len(valid_aids) == 119
+    ibs.update_annot_semantic_uuids(valid_aids)
+    ibs.print_annotation_table()
 
 
 def ensure_nauts():

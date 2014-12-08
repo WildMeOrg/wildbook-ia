@@ -781,6 +781,7 @@ def get_encounter_nids(ibs, eid_list):
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_encounters(ibs.get_valid_eids())
         >>> ibs.compute_encounters()
         >>> eid_list = ibs.get_valid_eids()
         >>> nids_list = ibs.get_encounter_nids(eid_list)
