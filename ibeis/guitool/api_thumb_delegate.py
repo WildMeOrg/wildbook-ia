@@ -49,20 +49,33 @@ def unregister_thread(key):
 
 
 class APIThumbDelegate(DELEGATE_BASE):
-    """ TODO: The delegate can have a reference to the view, and it is allowed
+    """
+    TODO: The delegate can have a reference to the view, and it is allowed
     to resize the rows to fit the images.  It probably should not resize columns
-    but it can get the column width and resize the image to that size.  """
-    def __init__(dgt, parent=None):
+    but it can get the column width and resize the image to that size.
+
+    get_thumb_size is a callback function which should return whatever the
+    requested thumbnail size is
+    """
+    def __init__(dgt, parent=None, get_thumb_size=None):
         if VERBOSE:
             print('[ThumbDelegate] __init__')
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = None
-        dgt.thumbsize = 128
+        if get_thumb_size is None:
+            dgt.get_thumb_size = lambda: 128  # 256
+        else:
+            dgt.get_thumb_size = get_thumb_size  # 256
+        dgt.last_thumbsize = None
 
     def get_model_data(dgt, qtindex):
-        """ The model data for a thumb should be a (thumb_path, img_path, bbox_list) tuple """
+        """
+        The model data for a thumb should be a tuple:
+        (thumb_path, img_path, imgsize, bboxes, thetas)
+        """
         model = qtindex.model()
-        data = model.data(qtindex, QtCore.Qt.DisplayRole, thumbsize=dgt.thumbsize)
+        datakw = dict(thumbsize=dgt.get_thumb_size())
+        data = model.data(qtindex, QtCore.Qt.DisplayRole, **datakw)
         if data is None:
             return None
         # The data should be specified as a thumbtup
@@ -78,7 +91,8 @@ class APIThumbDelegate(DELEGATE_BASE):
 
     def try_get_thumb_path(dgt, view, offset, qtindex):
         """ Checks if the thumbnail is ready to paint
-        Returns thumb_path if computed. Otherwise returns None """
+        Returns thumb_path if computed. Otherwise returns None
+        """
 
         # Check if still in viewport
         if view_would_not_be_visible(view, offset):
@@ -89,12 +103,14 @@ class APIThumbDelegate(DELEGATE_BASE):
             data = dgt.get_model_data(qtindex)
             if data is None:
                 return
-            thumb_path, img_path, img_size, bbox_list, theta_list = data
-            if thumb_path is None or img_path is None or bbox_list is None or img_size is None:
+            (thumb_path, img_path, img_size, bbox_list, theta_list) = data
+            valid = (thumb_path is None or img_path is None or bbox_list is None
+                     or img_size is None)
+            if valid:
                 print('something is wrong')
                 return
         except AssertionError as ex:
-            utool.printex(ex)
+            utool.printex(ex, 'error getting thumbnail data')
             return
 
         # Check if still in viewport
@@ -108,8 +124,8 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return None
             # Start computation of thumb if needed
             #qtindex.model()._update()  # should probably be deleted
-            thumbsize = dgt.thumbsize
             # where you are when you request the run
+            thumbsize = dgt.get_thumb_size()
             thumb_creation_thread = ThumbnailCreationThread(
                 thumb_path,
                 img_path,
@@ -151,11 +167,20 @@ class APIThumbDelegate(DELEGATE_BASE):
                     col_width = view.columnWidth(qtindex.column())
                     col_height = view.rowHeight(qtindex)
                 elif isinstance(view, QtGui.QTableView):
+                    # dimensions of the table cells
                     col_width = view.columnWidth(qtindex.column())
                     col_height = view.rowHeight(qtindex.row())
+                    thumbsize = dgt.get_thumb_size()
+                    if thumbsize != dgt.last_thumbsize:
+                        # has thumbsize changed?
+                        if thumbsize != col_width:
+                            view.setColumnWidth(qtindex.column(), thumbsize)
+                        if height != col_height:
+                            view.setRowHeight(qtindex.row(), height)
+                        dgt.last_thumbsize = thumbsize
                     # Let columns shrink
-                    if dgt.thumbsize != col_width:
-                        view.setColumnWidth(qtindex.column(), dgt.thumbsize)
+                    if thumbsize != col_width:
+                        view.setColumnWidth(qtindex.column(), thumbsize)
                     # Let rows grow
                     if height > col_height:
                         view.setRowHeight(qtindex.row(), height)
@@ -204,7 +229,9 @@ def view_would_not_be_visible(view, offset):
 
 
 class ThumbnailCreationThread(RUNNABLE_BASE):
-    """ Helper to compute thumbnails concurrently """
+    """
+    Helper to compute thumbnails concurrently
+    """
 
     def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex, view, offset, bbox_list, theta_list):
         RUNNABLE_BASE.__init__(thread)

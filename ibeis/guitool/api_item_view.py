@@ -50,6 +50,7 @@ class APIItemView(API_VIEW_BASE):
 @register_view_method
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
+    get_thumb_size = headers.get('get_thumb_size', None)
     col_type_list = headers.get('col_type_list', [])
     num_cols = view.model().columnCount()
     num_duplicates = int(num_cols / len(col_type_list))
@@ -58,7 +59,7 @@ def infer_delegates(view, **headers):
         if coltype in  qtype.QT_PIXMAP_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
-            view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
+            view.setItemDelegateForColumn(colx, APIThumbDelegate(view, get_thumb_size))
         elif coltype in qtype.QT_BUTTON_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
