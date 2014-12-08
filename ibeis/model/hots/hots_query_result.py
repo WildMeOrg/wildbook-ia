@@ -268,6 +268,11 @@ class QueryResult(__OBJECT_BASE__):
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
 
+    def get_sorted_nids_and_scores(qres, ibs):
+        nscoretup = qres.get_nscoretup(ibs)
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+        return sorted_nids, sorted_nscores
+
     def get_aids_and_scores(qres, name_scoring=False, ibs=None):
         """ returns a chip index list and associated score list """
         if name_scoring:
@@ -292,11 +297,6 @@ class QueryResult(__OBJECT_BASE__):
             return [qres.aid2_prob.get(aid, fillvalue) for aid in aid_arr]
 
     # ----------------------------------------
-
-    def get_sorted_nids_and_scores(qres, ibs):
-        nscoretup = qres.get_nscoretup(ibs)
-        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
-        return sorted_nids, sorted_nscores
 
     def get_name_decisiontup(qres, ibs):
         sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs)

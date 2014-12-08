@@ -24,7 +24,7 @@ class QueryResultsWidget(APIItemWidget):
     """ Window for gui inspection """
 
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
-                 name_scoring=False, **kwargs):
+                 name_scoring=False, singlematch_api=False, **kwargs):
         if ut.VERBOSE:
             print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
@@ -34,6 +34,7 @@ class QueryResultsWidget(APIItemWidget):
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
         qres_wgt.button_list = None
+        qres_wgt.singlematch_api = singlematch_api
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
@@ -102,9 +103,13 @@ class QueryResultsWidget(APIItemWidget):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
-        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
+        if qres_wgt.singlematch_api:
+            qres_wgt.qres_api = make_singlematch_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
+        else:
+            qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
+        # super call
         APIItemWidget.change_headers(qres_wgt, headers)
 
     def connect_signals_and_slots(qres_wgt):
@@ -254,13 +259,16 @@ class CustomFilterModel(FilterProxyModel):
 
 class CustomAPI(object):
     """
+    Allows list of lists to be represented as an abstract api table
+
     # TODO: Rename CustomAPI
     API wrapper around a list of lists, each containing column data
     Defines a single table
     """
     def __init__(self, col_name_list, col_types_dict, col_getters_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
-                 editable_colnames, sortby, sort_reverse=True):
+                 editable_colnames, sortby, get_thumb_size=None,
+                 sort_reverse=True):
         if ut.VERBOSE:
             print('[CustomAPI] <__init__>')
         self.col_name_list = []
@@ -269,6 +277,10 @@ class CustomAPI(object):
         self.col_setter_list = []
         self.nCols = 0
         self.nRows = 0
+        if get_thumb_size is None:
+            self.get_thumb_size = lambda: 128
+        else:
+            self.get_thumb_size = get_thumb_size
         self.parse_column_tuples(col_name_list, col_types_dict, col_getters_dict,
                                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                                  editable_colnames, sortby, sort_reverse)
@@ -285,6 +297,9 @@ class CustomAPI(object):
                             editable_colnames,
                             sortby,
                             sort_reverse=True):
+        """
+        parses simple lists into information suitable for making guitool headers
+        """
         # Unpack the column tuples into names, getters, and types
         self.col_name_list = col_name_list
         self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
@@ -317,16 +332,36 @@ class CustomAPI(object):
         self.col_sort_reverse = sort_reverse
 
     def _infer_index(self, column, row):
-        """ returns the row based on the columns iders.
-        This is the identity for the default ider """
+        """
+        returns the row based on the columns iders.
+        This is the identity for the default ider
+
+        Args:
+            column (int):
+            row    (int):
+
+        Returns:
+             function that applies
+
+        """
         ider_ = self.col_ider_list[column]
         if ider_ is None:
             return row
-        return utool.uinput_1to1(lambda func: func(row), ider_)
+        iderfunc = lambda func_: func_(row)
+        return utool.uinput_1to1(iderfunc, ider_)
 
     def get(self, column, row, **kwargs):
-        """ getters always receive primary rowids, rectify if col_ider is
-        specified (row might be a row_pair) """
+        """
+        getters always receive primary rowids, rectify if col_ider is
+        specified (row might be a row_pair)
+
+        Args:
+            column (int): column index
+            row    (int): row index (or tuple of rows)
+
+        Returns:
+            data
+        """
         index = self._infer_index(column, row)
         column_getter = self.col_getter_list[column]
         # Columns might be getter funcs indexable read/write arrays
@@ -358,7 +393,9 @@ class CustomAPI(object):
         return list(range(self.nRows))
 
     def make_headers(self, tblname='qres_api', tblnice='Query Results'):
-        """ Builds headers for APIItemModel """
+        """
+        Builds headers for APIItemModel
+        """
         headers = {
             'name': tblname,
             'nice': tblname if tblnice is None else tblnice,
@@ -372,7 +409,8 @@ class CustomAPI(object):
             'col_getter_list'  : self._make_getter_list(),
             'col_setter_list'  : self._make_setter_list(),
             'col_setter_list'  : self._make_setter_list(),
-            'col_bgrole_getter_list' : self._make_bgrole_getter_list()
+            'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
+            'get_thumb_size'   : self.get_thumb_size,
         }
         return headers
 
@@ -413,6 +451,9 @@ def get_status_bgrole(ibs, aid_pair):
 
 
 def get_buttontup(ibs, qtindex):
+    """
+    helper for make_qres_api
+    """
     model = qtindex.model()
     aid1 = model.get_header_data('qaid', qtindex)
     aid2 = model.get_header_data('aid', qtindex)
@@ -432,8 +473,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     """
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
-    if not hasattr(ibs.cfg.other_cfg, 'ranks_lt'):
-        ibs.cfg.other_cfg.ranks_lt = 2
+    ibs.cfg.other_cfg.ranks_lt = 2
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
         qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
@@ -516,16 +556,89 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
     sortby = 'score'
+    get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
     # Insert info into dict
     qres_api = CustomAPI(col_name_list, col_types_dict, col_getters_dict,
                          col_bgrole_dict, col_ider_dict, col_setter_dict,
-                         editable_colnames, sortby)
+                         editable_colnames, sortby, get_thumb_size)
     return qres_api
 
 
-def test_inspect_matches(ibs, qaid_list, daid_list):
+def make_singlematch_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     """
-    test_inspect_matches
+    Builds columns which are displayable in a ColumnListTableWidget
+    """
+    if ut.VERBOSE:
+        print('[inspect] make_qres_api')
+    ibs.cfg.other_cfg.ranks_lt = 2
+    ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
+    # Get extra info
+    assert len(qaid2_qres) == 1
+    qaid = list(qaid2_qres.keys())[0]
+    qres = qaid2_qres[qaid]
+    (aids, scores) = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
+    #ranks = scores.argsort()
+    qaid = qres.get_qaid()
+
+    def get_rowid_button(rowid):
+        def get_button(ibs, qtindex):
+            model = qtindex.model()
+            aid2 = model.get_header_data('aid', qtindex)
+            truth = ibs.get_match_truth(qaid, aid2)
+            truth_color = vh.get_truth_color(truth, base255=True,
+                                                lighten_amount=0.35)
+            truth_text = ibs.get_match_text(qaid, aid2)
+            callback = partial(review_match, ibs, qaid, aid2)
+            #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
+            buttontup = (truth_text, callback, truth_color)
+            return buttontup
+
+    col_name_list = [
+        'aid',
+        'score',
+        #'status',
+        'resthumb',
+    ]
+
+    col_types_dict = dict([
+        ('aid',        int),
+        ('score',      float),
+        #('status',     str),
+        ('resthumb',   'PIXMAP'),
+    ])
+
+    col_getters_dict = dict([
+        ('aid',        np.array(aids)),
+        ('score',      np.array(scores)),
+        ('resthumb',   ibs.get_annot_chip_thumbtup),
+        #('status',     partial(get_status, ibs)),
+        #('querythumb', ibs.get_annot_chip_thumbtup),
+        #('truth',     truths),
+        #('opt',       opts),
+    ])
+
+    col_bgrole_dict = {
+        #'status': partial(get_status_bgrole, ibs),
+    }
+    col_ider_dict = {
+        #'status'     : ('qaid', 'aid'),
+        'resthumb'   : ('aid'),
+        #'name'       : ('aid'),
+    }
+    col_setter_dict = {
+    }
+    editable_colnames =  []
+    sortby = 'score'
+    # Insert info into dict
+    get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
+    qres_api = CustomAPI(col_name_list, col_types_dict, col_getters_dict,
+                         col_bgrole_dict, col_ider_dict, col_setter_dict,
+                         editable_colnames, sortby, get_thumb_size)
+    return qres_api
+
+
+def test_singleres_api(ibs, qaid_list, daid_list):
+    """
 
     Args:
         ibs       (IBEISController):
@@ -536,7 +649,51 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         dict: locals_
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --enableall --test-test_inspect_matches --cmd
+        python -m ibeis.gui.inspect_gui --test-test_singleres_api --cmd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:1]
+        >>> daid_list = ibs.get_valid_aids()
+        >>> main_locals = test_singleres_api(ibs, qaid_list, daid_list)
+        >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> print(main_execstr)
+        >>> exec(main_execstr)
+    """
+    from ibeis.viz.interact import interact_qres2  # NOQA
+    from ibeis.gui import inspect_gui
+    from ibeis.dev import results_all
+    allres = results_all.get_allres(ibs, qaid_list[0:1])
+    guitool.ensure_qapp()
+    tblname = 'qres'
+    qaid2_qres = allres.qaid2_qres
+    ranks_lt = 5
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                              ranks_lt=ranks_lt,
+                                              name_scoring=True,
+                                              singlematch_api=True)
+    qres_wgt.show()
+    qres_wgt.raise_()
+    locals_ =  locals()
+    return locals_
+
+
+def test_inspect_matches(ibs, qaid_list, daid_list):
+    """
+
+    Args:
+        ibs       (IBEISController):
+        qaid_list (list): query annotation id list
+        daid_list (list): database annotation id list
+
+    Returns:
+        dict: locals_
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -1063,6 +1063,7 @@ def default_query_cfg(**kwargs):
 
 
 def default_vsone_cfg(ibs, **kwargs):
+    # DEPRICATE
     kwargs['pipeline_root'] = 'vsone'
     utool.dict_update_newkeys(kwargs, {
         'lnbnn_weight': 0.0,

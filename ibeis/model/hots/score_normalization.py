@@ -234,6 +234,8 @@ def list_available_score_normalizers(with_global=True, with_local=True):
         >>> # global_normalizers_fpaths = ['"%s"' % fpath for fpath in global_normalizers_fpaths]
         >>> print('Available LOCAL normalizers: ' + ut.indentjoin(local_normalizers_fpaths, '\n  '))
         >>> print('Available GLOBAL normalizers: ' + ut.indentjoin(global_normalizers_fpaths, '\n  '))
+        >>> print(list(map(ut.get_file_nBytes_str, local_normalizers_fpaths)))
+        >>> print(list(map(ut.get_file_nBytes_str, global_normalizers_fpaths)))
 
     """
     from ibeis.dev import sysres
@@ -364,6 +366,19 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
     return normalizer
 
 
+def download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
+    baseline_url_dict = {
+        # TODO: Populate
+    }
+    baseline_url = baseline_url_dict.get(cfgstr, None)
+    if baseline_url is None:
+        if ut.is_developer():
+            print('Baseline does not exist and cannot be downlaoded. Training baseline')
+            normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
+            return normalizer
+        else:
+            raise NotImplementedError('return the nodata noramlizer with 1/2 default')
+
 # IBEIS FUNCTIONS
 
 
@@ -402,15 +417,13 @@ def request_ibeis_normalizer(qreq_, verbose=True):
         normalizer.load(cachedir)
         if verbose:
             print('returning baseline normalizer')
-        return normalizer
     except Exception:
         try:
-            print('Baseline does not exist. Training baseline')
-            normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
-            return normalizer
+            normalizer = download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir)
         except Exception as ex:
             ut.printex(ex)
             raise
+    return normalizer
 
 
 def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list,
