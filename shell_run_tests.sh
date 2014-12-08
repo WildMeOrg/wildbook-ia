@@ -321,9 +321,11 @@ cat <<EOF
     |  \ |  | |        |  |___ [__   |  [__  
     |__/ |__| |___     |  |___ ___]  |  ___]
 EOF
+    RUN_TEST ibeis/ibsfuncs.py --test-check_annot_consistency:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-get_annot_groundfalse_sample:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-get_annot_groundtruth_sample:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-get_annot_is_hard:0 --sysexitonfail
+    RUN_TEST ibeis/ibsfuncs.py --test-get_upsize_data:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-invertable_flatten2:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-print_annotation_table:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-unflatten2:0 --sysexitonfail
@@ -338,6 +340,10 @@ EOF
     RUN_TEST ibeis/model/Config.py --test-VocabAssignConfig:0 --sysexitonfail
     RUN_TEST ibeis/model/Config.py --test-VocabTrainConfig:0 --sysexitonfail
     RUN_TEST ibeis/model/Config.py --test-parse_config_items:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/neighbor_index.py --test-NeighborIndex:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/neighbor_index.py --test-get_nn_aids:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/neighbor_index.py --test-request_ibeis_nnindexer:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/neighbor_index.py --test-test_nnindexer:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-apply_normweight:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-cos_match_weighter:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-dupvote_match_weighter:0 --sysexitonfail
@@ -359,15 +365,24 @@ EOF
     RUN_TEST ibeis/model/hots/score_normalization.py --test-find_score_maxclip:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/score_normalization.py --test-learn_score_normalization:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/query_request.py --test-new_ibeis_query_request:0 --sysexitonfail
-    RUN_TEST ibeis/model/hots/query_request.py --test-qreq_shallow_copy:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/query_request.py --test-new_ibeis_query_request:1 --sysexitonfail
+    RUN_TEST ibeis/model/hots/query_request.py --test-shallowcopy:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/query_request.py --test-test_cfg_deepcopy:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-MultiNeighborIndex:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-knn:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-knn2:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-multi_knn:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-num_indexed_annots:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-num_indexed_vecs:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-request_ibeis_mindexer:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-split_imxs_gen:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_csum:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_nsum:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/match_chips4.py --test-submit_query_request:0 --sysexitonfail
-    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-get_annot_semantic_uuid_info:0 --sysexitonfail
-    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-get_annot_visual_uuid_info:0 --sysexitonfail
-    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-make_annot_semeantic_uuid:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/automated_matcher.py --test-setup_incremental_test:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/automated_matcher.py --test-setup_incremental_test:1 --sysexitonfail
+    RUN_TEST ibeis/model/preproc/preproc_annot.py --test-make_annot_semantic_uuid:0 --sysexitonfail
     RUN_TEST ibeis/model/preproc/preproc_annot.py --test-make_annot_visual_uuid:0 --sysexitonfail
     RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg:0 --sysexitonfail
     RUN_TEST ibeis/model/preproc/preproc_detectimg.py --test-compute_and_write_detectimg_lazy:0 --sysexitonfail
@@ -388,13 +403,35 @@ EOF
     RUN_TEST ibeis/model/preproc/preproc_probchip.py --test-group_aids_by_featweight_species:0 --sysexitonfail
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:0 --sysexitonfail
     RUN_TEST ibeis/model/detect/randomforest.py --test-_get_detector:1 --sysexitonfail
+    RUN_TEST ibeis/model/detect/grabmodels.py --test-ensure_models:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-add_annots:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-add_annots:1 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_chip_thumbtup:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_gids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_groundtruth:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_groundtruth:1 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_groundtruth:2 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_has_groundtruth:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_image_uuids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_images:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_name_rowids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_names:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_num_feats:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_num_groundtruth:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_num_groundtruth:1 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_semantic_uuid_info:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_semantic_uuids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_species:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_species:1 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_thetas:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_viewpoints:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_visual_uuid_info:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_annot_funcs.py --test-get_annot_visual_uuids:0 --sysexitonfail
     RUN_TEST ibeis/control/controller_inject.py --test-find_unregistered_methods:0 --sysexitonfail
     RUN_TEST ibeis/control/IBEISControl.py --test-_query_chips4:0 --sysexitonfail
+    RUN_TEST ibeis/control/IBEISControl.py --test-get_scorenorm_cachedir:0 --sysexitonfail
+    RUN_TEST ibeis/control/IBEISControl.py --test-get_species_scorenorm_cachedir:0 --sysexitonfail
+    RUN_TEST ibeis/control/IBEISControl.py --test-request_IBEISController:0 --sysexitonfail
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-_get_all_featweight_rowids:0 --sysexitonfail
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-add_annot_featweights:0 --sysexitonfail
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-add_feat_featweights:0 --sysexitonfail
@@ -404,9 +441,16 @@ EOF
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-get_feat_featweight_rowids:0 --sysexitonfail
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-get_featweight_config_rowid:0 --sysexitonfail
     RUN_TEST ibeis/control/_autogen_featweight_funcs.py --test-get_featweight_fgweights:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_invalid_nids:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_aids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_exemplar_aids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_gids:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_num_annotations:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_rowids_from_text:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_texts:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_num_names:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_species_rowids_from_text:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_species_texts:0 --sysexitonfail
     RUN_TEST ibeis/control/DB_SCHEMA.py --test-test_dbschema:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_image_funcs.py --test-get_encounter_nids:0 --sysexitonfail
     RUN_TEST ibeis/control/DBCACHE_SCHEMA.py --test-test_dbcache_schema:0 --sysexitonfail

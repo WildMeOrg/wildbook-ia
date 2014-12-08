@@ -266,6 +266,17 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
 
 @register_ibs_method
+def get_annot_rows(ibs, aid_list):
+    colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
+                'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
+                'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
+                'annot_note', 'name_rowid', 'species_rowid',
+                'annot_visual_uuid', 'annot_semantic_uuid')
+    rows_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list, unpack_scalars=False)
+    return rows_list
+
+
+@register_ibs_method
 @deleter
 def delete_annot_nids(ibs, aid_list):
     """ Deletes nids of a list of annotations """
@@ -593,12 +604,52 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     gets all annotations with the same names
 
     Args:
-        aid_list (list): list of annotation rowids to get groundtruth of
+        aid_list    (list): list of annotation rowids to get groundtruth of
+        is_exemplar (None):
+        noself      (bool):
+        daid_list   (list):
 
     Returns:
         groundtruth_list (list): a list of aids with the same name foreach
         aid in aid_list.  a set of aids belonging to the same name is called
         a groundtruth.  A list of these is called a groundtruth_list.
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> is_exemplar, noself, daid_list = None, True, None
+        >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
+        >>> result = str(groundtruth_list)
+        >>> print(result)
+        [[9, 11, 4], [3], [2], [1, 11, 9], [6], [5], [], [], [1, 11, 4], [], [1, 4, 9], [], []]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> is_exemplar, noself, daid_list = True, True, None
+        >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
+        >>> result = str(groundtruth_list)
+        >>> print(result)
+        [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> is_exemplar, noself, daid_list = False, True, None
+        >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
+        >>> result = str(groundtruth_list)
+        >>> print(result)
+        [[9, 11, 4], [], [], [1, 11, 9], [], [], [], [], [1, 11, 4], [], [1, 4, 9], [], []]
+
     """
     # TODO: Optimize
     nid_list = ibs.get_annot_name_rowids(aid_list)
@@ -627,9 +678,38 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
 @register_ibs_method
 @getter_1to1
-def get_annot_has_groundtruth(ibs, aid_list):
+def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_list=None):
+    r"""
+    Args:
+        aid_list    (list):
+        is_exemplar (None):
+        noself      (bool):
+        daid_list   (list):
+
+    Returns:
+        list: has_gt_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_has_groundtruth
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> is_exemplar = None
+        >>> noself = True
+        >>> daid_list = None
+        >>> has_gt_list = get_annot_has_groundtruth(ibs, aid_list, is_exemplar, noself, daid_list)
+        >>> result = str(has_gt_list)
+        >>> print(result)
+    """
     # TODO: Optimize
-    numgts_list = ibs.get_annot_num_groundtruth(aid_list)
+    numgts_list = ibs.get_annot_num_groundtruth(aid_list, is_exemplar=is_exemplar,
+                                                noself=noself,
+                                                daid_list=daid_list)
+
     has_gt_list = [num_gts > 0 for num_gts in numgts_list]
     return has_gt_list
 
@@ -741,6 +821,21 @@ def get_annot_images(ibs, aid_list):
 
     Returns:
         list of ndarrays: the images of each annotation
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_images
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import numpy as np
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> image_list = ibs.get_annot_images(aid_list)
+        >>> result = str(map(np.shape, image_list))
+        >>> print(result)
+        [(715, 1047, 3)]
     """
     gid_list = ibs.get_annot_gids(aid_list)
     image_list = ibs.get_images(gid_list)
@@ -869,6 +964,9 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # this test might fail on different machines due to
+        >>> # determenism bugs in hesaff maybe? or maybe jpeg...
+        >>> # in which case its hopeless
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -884,13 +982,16 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_num_groundtruth(ibs, aid_list, noself=True):
+def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
+                              daid_list=None):
     """
     Returns:
         list_ (list): number of other chips with the same name
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -899,7 +1000,7 @@ def get_annot_num_groundtruth(ibs, aid_list, noself=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> noself = True
-        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself)
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
         >>> print(result)
         [3, 1, 1, 3, 1, 1, 0, 0, 3, 0, 3, 0, 0]
 
@@ -910,13 +1011,16 @@ def get_annot_num_groundtruth(ibs, aid_list, noself=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> noself = False
-        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself)
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
         >>> print(result)
         [4, 2, 2, 4, 2, 2, 1, 1, 4, 1, 4, 1, 1]
 
     """
     # TODO: Optimize
-    groundtruth_list = ibs.get_annot_groundtruth(aid_list, noself=noself)
+    groundtruth_list = ibs.get_annot_groundtruth(aid_list,
+                                                 is_exemplar=is_exemplar,
+                                                 noself=noself,
+                                                 daid_list=daid_list)
     nGt_list = list(map(len, groundtruth_list))
     return nGt_list
 
@@ -962,7 +1066,6 @@ def get_annot_species(ibs, aid_list):
     """
 
     Args:
-        ibs      (IBEISController):
         aid_list (list):
 
     Returns:
@@ -1430,7 +1533,6 @@ def get_annot_visual_uuid_info(ibs, aid_list):
     get_annot_visual_uuid_info
 
     Args:
-        ibs      (IBEISController):
         aid_list (list):
 
     Returns:

@@ -32,6 +32,7 @@ import ibeis
 import six
 import utool as ut
 import numpy as np
+import functools
 from six.moves import input, filter  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
@@ -39,39 +40,10 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 DEFAULT_INTERACTIVE = True
 
 
-def test_vsone_verified(ibs):
-    """
-    hack in vsone-reranking
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> #reload_all()
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> test_vsone_verified(ibs)
-    """
-    import plottool as pt
-    #qaids = ibs.get_easy_annot_rowids()
-    nids = ibs.get_valid_nids(filter_empty=True)
-    grouped_aids_ = ibs.get_name_aids(nids)
-    grouped_aids = list(filter(lambda x: len(x) > 1, grouped_aids_))
-    items_list = grouped_aids
-
-    sample_aids = ut.flatten(ut.sample_lists(items_list, num=2, seed=0))
-    qaid2_qres = query_vsone_verified(ibs, sample_aids, sample_aids, cfgdict=None, return_request=False)
-    for qres in ut.InteractiveIter(list(six.itervalues(qaid2_qres))):
-        pt.close_all_figures()
-        fig = qres.ishow_top(ibs)
-        fig.show()
-    #return qaid2_qres
-
-
 def setup_incremental_test(ibs1, num_initial=0):
     r"""
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test
+        python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test:0
 
         python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va
         python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0 4 8 --verbose
@@ -81,23 +53,24 @@ def setup_incremental_test(ibs1, num_initial=0):
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
         >>> ibs1 = ibeis.opendb('PZ_MTEST')
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1)
+        >>> num_initial = 0
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial)
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
         >>> ibs1 = ibeis.opendb('GZ_ALL')
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=100)
+        >>> num_initial = 100
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial)
     """
     # Take a known dataase
     # Create an empty database to test in
     aid_list1 = ibs1.get_aids_with_groundtruth()
     reset = False
     #reset = True
-    # Helper functions
 
-    aid1_to_aid2 = {}
+    aid1_to_aid2 = {}  # annotation mapping
 
     ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
 
@@ -106,10 +79,11 @@ def setup_incremental_test(ibs1, num_initial=0):
     aids_chunk1 = aid_list1
     aid_list2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
 
-    # Assert visual uuids
+    # Assert annotation visual uuids are in agreement
     try:
         assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
     except Exception as ex:
+        # update and try again on failure
         ut.printex(ex, ('warning: consistency check failed.'
                         'updating and trying once more'), iswarning=True)
         ibs1.update_annot_visual_uuids(aid_list1)
@@ -129,12 +103,96 @@ def setup_incremental_test(ibs1, num_initial=0):
         name_list = ibs1.get_annot_names(aid_sublist1)
         ibs2.set_annot_names(aid_sublist2, name_list)
         ibs2.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
+        aid_list1 = aid_list1[num_initial:]
     return ibs2, aid_list1, aid1_to_aid2
+
+
+def incremental_test(ibs1):
+    """
+    Plots the scores/ranks of correct matches while varying the size of the
+    database.
+
+    Args:
+        ibs       (list) : IBEISController object
+        qaid_list (list) : list of annotation-ids to query
+
+    CommandLine:
+        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
+
+        python dev.py --db PZ_MTEST --allgt --cmd
+
+        python dev.py --db PZ_MTEST --allgt -t inc
+
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test
+
+    Example:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> incremental_test(ibs1)
+
+    Example2:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs1 = ibeis.opendb('GZ_ALL')
+        >>> incremental_test(ibs1)
+    """
+
+    def execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
+        """ Add an unseen annotation and run a query """
+        print('\n\n==== EXECUTING TESTSTEP ====')
+        # ensure new annot is added (most likely it will have been preadded)
+        aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+        threshold = 1.99
+        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
+
+        interactive = DEFAULT_INTERACTIVE
+        #interactive = False
+        cfgdict = {
+            'K': choose_vsmany_K(ibs2, aids_chunk2, exemplar_aids),
+            'index_method': 'multi',
+        }
+
+        if len(exemplar_aids) > 0:
+            #qaid2_qres, qreq_ = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict, return_request=True)
+            qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2,
+                                                     exemplar_aids,
+                                                     cfgdict=cfgdict,
+                                                     return_request=True)
+            for qaid, qres in six.iteritems(qaid2_qres):
+                make_decision(ibs2, qaid, qres, threshold, interactive=interactive)
+        else:
+            print('No exemplars in database')
+            for aid in aids_chunk2:
+                autodecide_newname(ibs2, aid)
+
+    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=0)
+
+    # TESTING
+    chunksize = 1
+    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
+
+    aids_chunk1 = six.next(aids_chunk1_iter)
+    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    for _ in range(2):
+        aids_chunk1 = six.next(aids_chunk1_iter)
+        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    aids_chunk1 = six.next(aids_chunk1_iter)
+    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+
+    # FULL INCREMENT
+    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
+    for aids_chunk1 in aids_chunk1_iter:
+        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
 
 
 def query_vsone_verified(ibs, qaids, daids, cfgdict=None, return_request=False):
     """
-    hack in vsone-reranking
+    A hacked in vsone-reranked pipeline
+    Actually just two calls to the pipeline
     """
     from ibeis import ibsfuncs  # NOQA
     qaid2_qres_vsmany, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=cfgdict, return_request=True)
@@ -183,85 +241,10 @@ def choose_vsmany_K(ibs, qaids, daids):
     pass
 
 
-def incremental_test(ibs1):
-    """
-    Plots the scores/ranks of correct matches while varying the size of the
-    database.
-
-    Args:
-        ibs       (list) : IBEISController object
-        qaid_list (list) : list of annotation-ids to query
-
-    CommandLine:
-        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
-
-        python dev.py --db PZ_MTEST --allgt --cmd
-
-        python dev.py --db PZ_MTEST --allgt -t inc
-
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test
-
-    Example:
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs1 = ibeis.opendb('PZ_MTEST')
-        >>> incremental_test(ibs1)
-    """
-
-    def execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
-        """ Add an unseen annotation and run a query """
-        print('\n\n==== EXECUTING TESTSTEP ====')
-        # ensure new annot is added (most likely it will have been preadded)
-        aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-        threshold = 1.99
-        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
-
-        interactive = DEFAULT_INTERACTIVE
-        #interactive = False
-        cfgdict = {
-            'K': choose_vsmany_K(ibs2, aids_chunk2, exemplar_aids)
-        }
-
-        if len(exemplar_aids) > 0:
-            #qaid2_qres, qreq_ = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict, return_request=True)
-            qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2,
-                                                     exemplar_aids,
-                                                     cfgdict=cfgdict,
-                                                     return_request=True)
-            for qaid, qres in six.iteritems(qaid2_qres):
-                make_decision(ibs2, qaid, qres, threshold, interactive=interactive)
-        else:
-            print('No exemplars in database')
-            for aid in aids_chunk2:
-                autodecide_newname(ibs2, aid)
-
-    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=0)
-
-    # TESTING
-    chunksize = 1
-    aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
-    #ut.embed()
-
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-    for _ in range(2):
-        aids_chunk1 = six.next(aids_chunk1_iter)
-        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-    # FULL INCREMENT
-    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
-    for aids_chunk1 in aids_chunk1_iter:
-        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-    #    break
-    #    #pass
-
-
 def register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2):
+    """
+    called by add_annot_chunk
+    """
     # Should be 1 to 1
     for aid1, aid2 in zip(aids_chunk1, aids_chunk2):
         if aid1 in aid1_to_aid2:
@@ -272,7 +255,19 @@ def register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2):
 
 def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
     """
+    adds annotations to the tempoarary database and prevents duplicate
+    additions.
+
     aids_chunk1 = aid_list1
+
+    Args:
+        ibs1         (IBEISController):
+        ibs2         (IBEISController):
+        aids_chunk1  (list):
+        aid1_to_aid2 (dict):
+
+    Returns:
+        list: aids_chunk2
     """
     # Visual info
     guuids_chunk1  = ibs1.get_annot_image_uuids(aids_chunk1)
@@ -288,6 +283,7 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
                                   vert_list=verts_chunk1,
                                   theta_list=thetas_chunk1,
                                   prevent_visual_duplicates=True)
+    # Register the mapping from ibs1 to ibs2
     register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2)
     print('Added: aids_chunk2=%s' % (ut.truncate_str(repr(aids_chunk2)),))
     return aids_chunk2
@@ -295,7 +291,17 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
 
 def make_incremental_test_database(ibs1, aid_list1, reset):
     """
-    makes test db
+    Makes test database. adds image and annotations but does not transfer names.
+    if reset is true the new database is gaurenteed to be built from a fresh
+    start.
+
+    Args:
+        ibs1      (IBEISController):
+        aid_list1 (list):
+        reset     (bool):
+
+    Returns:
+        IBEISController: ibs2
     """
     print('make_incremental_test_database. reset=%r' % (reset,))
     dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
@@ -324,11 +330,13 @@ def make_incremental_test_database(ibs1, aid_list1, reset):
 
 
 def assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2):
-    """ just tests uuids
+    """
+    just tests uuids
 
     if anything goes wrong this should fix it:
         ibs1.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
+        ibsfuncs.fix_remove_visual_dupliate_annotations(ibs1)
     """
     assert len(aid_list2) == len(aid_list1)
     visualtup1 = ibs1.get_annot_visual_uuid_info(aid_list1)
@@ -348,6 +356,13 @@ def assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2):
     visual_uuid_list2 = ibs2.get_annot_visual_uuids(aid_list2)
     ut.assert_lists_eq(visual_uuid_list1, visual_uuid_list2)
 
+    ibs1_dup_annots = ut.debug_duplicate_items(visual_uuid_list1)
+    ibs2_dup_annots = ut.debug_duplicate_items(visual_uuid_list2)
+
+    # if these fail try ibsfuncs.fix_remove_visual_dupliate_annotations
+    assert len(ibs1_dup_annots) == 0
+    assert len(ibs2_dup_annots) == 0
+
 
 def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
     """
@@ -364,10 +379,9 @@ def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
         print('Unsetting all exemplars from database')
         ibs2.set_annot_exemplar_flags(aid_list2, [0] * len(aid_list2))
 
-    ibs2.delete_invalid_nids()
-
     # this test is for plains
     #assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
+    ibs2.delete_invalid_nids()
 
 
 def autodecide_newname(ibs2, aid):
@@ -377,59 +391,112 @@ def autodecide_newname(ibs2, aid):
         ibs2.set_annot_names([aid], [newname])
     else:
         print('already has name')
-    if not ibs2.get_annot_exemplar_flags(aid):
-        print('marking as exemplar')
-        ibs2.set_annot_exemplar_flags([aid], [1])
-    else:
-        print('already is exemplar')
+    autodecide_exemplar_update(ibs2, aid)
 
 
 def autodecide_match(ibs2, aid, nid):
     print('setting nameid to nid=%r' % nid)
     ibs2.set_annot_name_rowids([aid], [nid])
+    autodecide_exemplar_update(ibs2, aid)
+
+
+def autodecide_exemplar_update(ibs2, aid):
+    """
+    SeeAlso:
+        ibsfuncs.prune_exemplars
+    """
+    max_exemplars = ibs2.cfg.other_cfg.max_exemplars
+    if ibs2.get_annot_num_groundtruth(aid, is_exemplar=True) < max_exemplars:
+        print('annotation already has too mnay exemplars')
+
     if not ibs2.get_annot_exemplar_flags(aid):
         print('marking as exemplar')
         ibs2.set_annot_exemplar_flags([aid], [1])
     else:
         print('already is exemplar')
-        ibs2.get_name_exemplar_aids(nid)
+
+
+def get_suggested_decision(ibs2, qaid, qres, threshold):
+    nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
+    if len(nid_list) == 0:
+        msg = 'No matches made'
+        func = functools.partial(autodecide_newname, ibs2, qaid)
+    else:
+        candidate_indexes = np.where(score_list > threshold)[0]
+        if len(candidate_indexes) == 0:
+            msg = 'No candidates above threshold'
+            func = functools.partial(autodecide_newname, ibs2, qaid)
+        elif len(candidate_indexes) == 1:
+            nid = nid_list[candidate_indexes[0]]
+            score = score_list[candidate_indexes[0]]
+            msg = 'One candidate above threshold with score=%r' % (score,)
+            func = functools.partial(autodecide_match, ibs2, qaid, nid)
+        else:
+            #print('Multiple candidates above threshold')
+            nids = nid_list[candidate_indexes]  # NOQA
+            scores = score_list[candidate_indexes]
+            msg = 'One candidate above threshold with scores=%r' % (scores,)
+            nid = nids[scores.argsort()[::-1][0]]
+            func = functools.partial(autodecide_match, ibs2, qaid, nid)
+    return msg, func
 
 
 def make_decision(ibs2, qaid, qres, threshold, interactive=False):
+    r"""
+    Either makes automatic decision or asks user for feedback.
+
+    Args:
+        ibs2        (IBEISController):
+        qaid        (int):  query annotation id
+        qres        (QueryResult):  object of feature correspondences and scores
+        threshold   (float): threshold for automatic decision
+        interactive (bool):
+
+    """
     inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
     print(inspectstr)
+    msg, func = get_suggested_decision(ibs2, qaid, qres, threshold)
+    print(msg)
     if interactive:
-        #fig = qres.ishow_top(ibs2, name_scoring=True)
-        #fig.show()
-
-        qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
-
-        ans = input('waiting\n')
-        if ans in ['cmd', 'ipy', 'embed']:
-            ut.embed()
-        qres_wgt.close()
+        fig = qres.ishow_top(ibs2, name_scoring=True)
+        fig.show()
+        #
+        #qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
+        #ans = input('waiting\n')
+        #if ans in ['cmd', 'ipy', 'embed']:
+        #    ut.embed()
+        #qres_wgt.close()
     else:
-        nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
-        if len(nid_list) == 0:
-            print('No matches made')
-            autodecide_newname(ibs2, qaid)
-        else:
-            candidate_indexes = np.where(score_list > threshold)[0]
-            if len(candidate_indexes) == 0:
-                print('No candidates above threshold')
-                autodecide_newname(ibs2, qaid)
-            elif len(candidate_indexes) == 1:
-                nid = nid_list[candidate_indexes[0]]
-                score = score_list[candidate_indexes[0]]
-                print('One candidate above threshold with score=%r' % (score,))
-                autodecide_match(ibs2, qaid, nid)
-            else:
-                print('Multiple candidates above threshold')
-                nids = nid_list[candidate_indexes]  # NOQA
-                scores = score_list[candidate_indexes]
-                print('One candidate above threshold with scores=%r' % (scores,))
-                nid = nids[scores.argsort()[::-1][0]]
-                autodecide_match(ibs2, qaid, nid)
+        func()
+
+
+def test_vsone_verified(ibs):
+    """
+    hack in vsone-reranking
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> #reload_all()
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> test_vsone_verified(ibs)
+    """
+    import plottool as pt
+    #qaids = ibs.get_easy_annot_rowids()
+    nids = ibs.get_valid_nids(filter_empty=True)
+    grouped_aids_ = ibs.get_name_aids(nids)
+    grouped_aids = list(filter(lambda x: len(x) > 1, grouped_aids_))
+    items_list = grouped_aids
+
+    sample_aids = ut.flatten(ut.sample_lists(items_list, num=2, seed=0))
+    qaid2_qres = query_vsone_verified(ibs, sample_aids, sample_aids, cfgdict=None, return_request=False)
+    for qres in ut.InteractiveIter(list(six.itervalues(qaid2_qres))):
+        pt.close_all_figures()
+        fig = qres.ishow_top(ibs)
+        fig.show()
+    #return qaid2_qres
 
 
 if __name__ == '__main__':

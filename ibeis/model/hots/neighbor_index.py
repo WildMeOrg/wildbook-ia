@@ -435,7 +435,7 @@ def test_incremental_add(ibs):
         python -m ibeis.model.hots.neighbor_index --test-test_incremental_add
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

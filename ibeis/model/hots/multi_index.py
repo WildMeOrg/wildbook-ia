@@ -233,8 +233,9 @@ class MultiNeighborIndex(object):
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> result = mxer.num_indexed_vecs()
             >>> print(result)
-            54244
+            60482
 
+        54244
         54200 on win32
         """
         return np.sum([nnindexer.num_indexed_vecs()
@@ -248,7 +249,7 @@ class MultiNeighborIndex(object):
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> result = mxer.num_indexed_annots()
             >>> print(result)
-            53
+            59
         """
         return np.sum([nnindexer.num_indexed_annots()
                        for nnindexer in mxer.nn_indexer_list])

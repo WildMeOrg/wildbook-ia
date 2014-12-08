@@ -1033,6 +1033,8 @@ class OtherConfig(ConfigBase):
         othercfg.thumb_size     = 64
         othercfg.ranks_lt       = 2
         othercfg.auto_localize  = True
+        # maximum number of exemplars per name
+        othercfg.max_exemplars  = 6
         othercfg.detect_add_after = 1
         othercfg.detect_use_chunks = True
         othercfg.update(**kwargs)
