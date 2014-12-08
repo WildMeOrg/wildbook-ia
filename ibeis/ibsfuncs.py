@@ -1516,6 +1516,7 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
     return list(nid2_aids.values())
 
 
+@__injectable
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     r"""
     #>>> import ibeis

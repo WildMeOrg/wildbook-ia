@@ -119,8 +119,8 @@ def setup_incremental_test(ibs1):
     # Take a known dataase
     # Create an empty database to test in
     aid_list1 = ibs1.get_aids_with_groundtruth()
-    #reset = True
     reset = False
+    #reset = True
     # Helper functions
 
     aid1_to_aid2 = {}
@@ -131,7 +131,14 @@ def setup_incremental_test(ibs1):
     aid_list2 = add_annot_chunk(ibs1, ibs2, aid_list1, aid1_to_aid2)
 
     # Assert visual uuids
-    assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+    try:
+        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+    except Exception as ex:
+        ut.printex(ex, ('warning: consistency check failed.'
+                        'updating and trying once more'), iswarning=True)
+        ibs1.update_annot_visual_uuids(aid_list1)
+        ibs2.update_annot_visual_uuids(aid_list2)
+        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
 
     # Remove name exemplars
     ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
@@ -249,8 +256,8 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
     thetas_chunk1  = ibs1.get_annot_thetas(aids_chunk1)
     # Non-name semantic info
     species_chunk1 = ibs1.get_annot_species(aids_chunk1)
-
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
+    ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
     # Add this new unseen test case to the database
     aids_chunk2 = ibs2.add_annots(gids_chunk2,
                                   species_list=species_chunk1,
@@ -263,12 +270,15 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
 
 
 def make_incremental_test_database(ibs1, aid_list1, reset):
-    """ makes test db """
+    """
+    makes test db
+    """
     print('make_incremental_test_database. reset=%r' % (reset,))
     dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
     ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=reset, use_cache=False)
 
-    if reset:
+    # reset if flag specified or no data in ibs2
+    if reset or len(ibs2.get_valid_gids()) == 0:
         assert len(ibs2.get_valid_aids())  == 0
         assert len(ibs2.get_valid_gids())  == 0
         assert len(ibs2.get_valid_nids())  == 0

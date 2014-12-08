@@ -7,8 +7,8 @@ from ibeis.model import Config
 from ibeis.model import detect
 from ibeis.model import hots
 from ibeis.model import preproc
-import utool
-print, print_, printDBG, rrr, profile = utool.inject(
+
+print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[ibeis.model]')
 
 

@@ -1,77 +1,115 @@
-"""
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.multi_index))"
-python -m doctest -v ibeis/model/hots/multi_index.py
-python -m doctest ibeis/model/hots/multi_index.py
-"""
 from __future__ import absolute_import, division, print_function
-# Standard
 import six
 from six.moves import zip, map, range
-#from itertools import chain
 from ibeis import ibsfuncs
-# Science
 import numpy as np
-# UTool
-import utool
-import ibeis.model.hots.neighbor_index as nbrx
-# VTool
-(print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[multi_index]', DEBUG=False)
+import utool as ut
+from ibeis.model.hots import neighbor_index
+(print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
 
-def request_ibeis_mindexer(qreq_, num_indexers=8, split_method='name'):
+def group_daids_by_cached_nnindexer(ibs, aid_list):
+    r"""
+    Args:
+        ibs       (IBEISController):
+        daid_list (list):
+
+    CommandLine:
+        python -m ibeis.model.hots.multi_index --test-group_daids_by_cached_nnindexer
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, aid_list)
+        >>> result = uncovered_aids, covered_aids_list
+        >>> print(result)
     """
-    Examples:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
+    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
+    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(ibs)
+    # read which annotations have prebuilt caches
+    with ut.shelf_open(uuid_map_fpath) as uuid_map:
+        candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
+    # find a maximum independent set cover
+    tup = ut.greedy_max_inden_setcover(candidate_uuids, annot_vuuid_list)
+    uncovered_vuuids, covered_vuuids_list = tup[0:2]
+    # return the grouped covered items (so they can be loaded) and
+    # the remaining uuids which need to have an index computed.
+    uncovered_aids_ = ibs.get_annot_aids_from_visual_uuid(uncovered_vuuids)  # NOQA
+    covered_aids_list_ = ibsfuncs.unflat_map(ibs.get_annot_aids_from_visual_uuid, covered_vuuids_list)
+    uncovered_aids = sorted(uncovered_aids_)
+    covered_aids_list = list(map(sorted, covered_aids_list_))
+    return uncovered_aids, covered_aids_list
+
+
+def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
+                                     verbose=True):
     """
-
-    daid_list = qreq_.get_internal_daids()
-    print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
-
-    # Split annotations into groups accorindg to split_method
-    if split_method == 'name':
-        split_func = ibsfuncs.group_annots_by_known_names
-        # each group are annotations of the same name
-        aidgroup_list, invalid_aids = split_func(qreq_.ibs, daid_list)
-    else:
-        # TODO: SYSTEM : Split method based on standard uuid sets
-        # maintain list of standard sts
-        # input: request_uuids
-        # std_uuids_list <-sorted by size
-        # using_list = []
-        # for uuids in sta_uuids_list:
-        #     if ut.is_full_intersection(uuids, request_uuids):
-        #         request_uuids = ut.list_diff(request_uuids, uuids)
-        #         using_list.append(uuids)
-        # developing_set = request_uuids
-        raise AssertionError('unknown split_method=%r' % (split_method,))
+    returns groups with only one annotation per name in each group
+    """
+    tup = ibs.group_annots_by_known_names(daid_list)
+    aidgroup_list, invalid_aids = tup
     largest_groupsize = max(map(len, aidgroup_list))
-    print('[mindex] num_indexers = %d ' % (num_indexers,))
-    print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
     num_bins = min(largest_groupsize, num_indexers)
-    print('[mindex] num_bins = %d ' % (num_bins,))
-    #
-
+    if verbose:
+        print('[mindex] num_indexers = %d ' % (num_indexers,))
+        print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
+        print('[mindex] num_bins = %d ' % (num_bins,))
     # Group annotations for indexing according to the split criteria
-    aids_list, overflow_aids = utool.sample_zip(
+    aids_list, overflow_aids = ut.sample_zip(
         aidgroup_list, num_bins, allow_overflow=True, per_bin=1)
-
     if __debug__:
         # All groups have the same name
-        nidgroup_list = ibsfuncs.unflat_map(qreq_.ibs.get_annot_name_rowids, aidgroup_list)
+        nidgroup_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
         for nidgroup in nidgroup_list:
-            assert utool.list_allsame(nidgroup), 'bad name grouping'
+            assert ut.list_allsame(nidgroup), 'bad name grouping'
     if __debug__:
         # All subsiquent indexer are subsets (in name/identity space)
         # of the previous
-        nids_list = ibsfuncs.unflat_map(qreq_.ibs.get_annot_name_rowids, aids_list)
+        nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
         prev_ = None
         for nids in nids_list:
             if prev_ is None:
                 prev_ = set(nids)
             else:
                 assert prev_.issuperset(nids), 'bad indexer grouping'
+    return aids_list, overflow_aids, num_bins
+
+
+def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
+    """
+
+    Examples:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> daid_list = valid_aids[1:60]
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> index_method = 'multi'
+        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+    """
+
+    daid_list = qreq_.get_internal_daids()
+    print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
+
+    # Split annotations into groups accorindg to index_method
+    ibs = qreq_.ibs
+    if index_method == 'name':
+        # each group are annotations of the same name
+        num_indexers = 8
+        aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
+    elif index_method == 'multi':
+        uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list)
+        aids_list = covered_aids_list
+        if len(uncovered_aids) > 0:
+            aids_list.append(uncovered_aids)
+        num_bins = len(aids_list)
+    else:
+        raise AssertionError('unknown index_method=%r' % (index_method,))
 
     # Build a neighbor indexer for each
     nn_indexer_list = []
@@ -82,7 +120,7 @@ def request_ibeis_mindexer(qreq_, num_indexers=8, split_method='name'):
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = nbrx.internal_request_ibeis_nnindexer(qreq_, aids)
+            nnindexer = neighbor_index.internal_request_ibeis_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -99,18 +137,16 @@ def request_ibeis_mindexer(qreq_, num_indexers=8, split_method='name'):
 
 
 def test_mindexer():
-    from ibeis.model.hots.query_request import new_ibeis_query_request
     import ibeis
     ibs = ibeis.opendb(db='PZ_MTEST')
     daid_list = ibs.get_valid_aids()[1:60]
-    qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
-    num_indexers = 4
-    split_method = 'name'
-    mxer = request_ibeis_mindexer(qreq_, num_indexers, split_method)
+    qreq_ = ibs.new_query_request(daid_list, daid_list)
+    index_method = 'name'
+    mxer = request_ibeis_mindexer(qreq_, index_method)
     return mxer, qreq_, ibs
 
 
-@six.add_metaclass(utool.ReloadingMetaclass)
+@six.add_metaclass(ut.ReloadingMetaclass)
 class MultiNeighborIndex(object):
     """
     Generalization of a NeighborIndex
@@ -319,5 +355,4 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
     ut.doctest_funcs()

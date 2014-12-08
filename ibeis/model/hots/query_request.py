@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.model.hots import neighbor_index, score_normalization
+from ibeis.model.hots import neighbor_index, multi_index, score_normalization
 from ibeis.model import Config
 import copy
 import six
@@ -364,8 +364,12 @@ class QueryRequest(object):
     def load_indexer(qreq_, verbose=True):
         if qreq_.indexer is not None:
             return False
-        # TODO: SYSTEM updatable indexer
-        indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
+        index_method = qreq_.qparams.index_method
+        if index_method == 'single':
+            # TODO: SYSTEM updatable indexer
+            indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
+        else:
+            indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
         qreq_.indexer = indexer
 
     def load_score_normalizer(qreq_, verbose=True):

@@ -165,6 +165,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     assert name_list is None or nid_list is None, 'cannot specify both names and nids'
     # For import only, we can specify both by setting import_override to True
     assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
+    ut.assert_all_not_None(gid_list, 'gid_list')
 
     if theta_list is None:
         theta_list = [0.0 for _ in range(len(gid_list))]
@@ -726,6 +727,7 @@ def get_annot_image_uuids(ibs, aid_list):
         [UUID('66ec193a-1619-b3b6-216d-1784b4833b61')]
     """
     gid_list = ibs.get_annot_gids(aid_list)
+    ut.assert_all_not_None(gid_list, 'gid_list')
     image_uuid_list = ibs.get_image_uuids(gid_list)
     return image_uuid_list
 

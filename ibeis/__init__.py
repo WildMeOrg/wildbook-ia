@@ -9,6 +9,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 
+__version__ = '0.1.0.dev1'
+
 utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
 
 
@@ -40,7 +42,7 @@ from ibeis.main_module import main, _preload, main_loop, test_main, opendb
 from ibeis.control.IBEISControl import IBEISController
 from ibeis.dev.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
 
-__version__ = '0.1.0.dev1'
+from ibeis import model
 
 def import_subs():
     # Weird / Fancy loading.

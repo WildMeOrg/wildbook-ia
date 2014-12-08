@@ -122,6 +122,9 @@ class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
+        nn_cfg.valid_index_methods = ['single', 'multi', 'name']
+        nn_cfg.index_method = 'multi'
+        nn_cfg.index_method = 'single'
         nn_cfg.Knorm = 1
         nn_cfg.normalizer_rule = ['last', 'name'][0]
         nn_cfg.checks  = 1024  # 512#128
@@ -129,12 +132,14 @@ class NNConfig(ConfigBase):
 
     def make_feasible(nn_cfg):
         # normalizer rule depends on Knorm
+        assert nn_cfg.index_method in nn_cfg.valid_index_methods
         if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
             nn_cfg.normalizer_rule = 'last'
 
     def get_cfgstr_list(nn_cfg, **kwargs):
         nn_cfgstr  = ['_NN(',
-                      'K', str(nn_cfg.K),
+                      nn_cfg.index_method,
+                      ',K', str(nn_cfg.K),
                       '+', str(nn_cfg.Knorm),
                       ',', nn_cfg.normalizer_rule,
                       ',cks', str(nn_cfg.checks),

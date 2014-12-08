@@ -11,6 +11,7 @@ from ibeis.model.hots import hstypes
 from ibeis.model.hots import match_chips4
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import multi_index
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import pipeline
 from ibeis.model.hots import precision_recall
@@ -31,6 +32,7 @@ def reload_subs(verbose=True):
     getattr(match_chips4, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(name_scoring, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(neighbor_index, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(multi_index, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(nn_weights, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(pipeline, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(precision_recall, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -47,6 +49,7 @@ IMPORT_TUPLES = [
     ('match_chips4', None, False),
     ('name_scoring', None, False),
     ('neighbor_index', None, False),
+    ('multi_index', None, False),
     ('nn_weights', None, False),
     ('pipeline', None, False),
     ('precision_recall', None, False),
@@ -56,7 +59,7 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    makeinit.py -x smk word_index multi_index
+    makeinit.py -x smk word_index
 """
 
 ## flake8: noqa
