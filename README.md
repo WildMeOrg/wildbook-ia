@@ -88,6 +88,9 @@ cd ibeis
 # Generate the prereq install script (does not install anything)
 # 
 ./_scripts/bootstrap.py
+or 
+./super_setup.py --bootstrap
+
 
 # Run the prereq install script (installs prereq libraries)
 ./_scripts/__install_prereqs__.sh
@@ -112,8 +115,16 @@ cd ibeis
 # configure itself on the first run. (Either running it twice wont hurt)
 ./super_setup.py --build --develop
 
-# Optional: download a test dataset
+# Optional: set a workdir and download a test dataset
+./dev.py --set-workdir ~/data/work --preload-exit
 ./dev.py -t mtest 
+./dev.py -t nauts 
+./reset_dbs.py
+
+
+# make sure everyhing is set up correctly
+./assert_modules.sh
+
 
 ```
 
@@ -545,6 +556,7 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 
 # Ensures the mtest dataset is in your workdir (by downloading it from dropbox)
 ./dev.py -t mtest 
+./dev.py -t nauts 
 
 # Cyth timings (screen disables the backspaces in progress)
 ./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --screen --cyth --quiet

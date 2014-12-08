@@ -172,7 +172,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'parse',
         'simplejson',
         'pyinstaller',
-        'statsmodel',
+        'statsmodels',
     ]
 
     OPTIONAL_PYPKG_LIST = [
