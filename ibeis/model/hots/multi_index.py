@@ -154,7 +154,7 @@ class MultiNeighborIndex(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> mxer, qreq_, ibs = test_mindexer()
     """
 
@@ -163,16 +163,22 @@ class MultiNeighborIndex(object):
 
     def multi_knn(mxer, qfx2_vec, K, checks):
         """
+        Does a query on each of the subindexer kdtrees
+        returns list of the results
+
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
-            >>> K = 3
-            >>> checks = 1024
+            >>> K, checks = 3, 1024
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
+            >>> result = str(list(map(np.shape, qfx2_idx_list)))
+            >>> print(result)
+            [(1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3)]
         """
-        qfx2_idx_list   = []
+        qfx2_idx_list  = []
         qfx2_dist_list = []
         for nnindexer in mxer.nn_indexer_list:
             # Returns distances in ascending order for each query descriptor
@@ -181,34 +187,30 @@ class MultiNeighborIndex(object):
             qfx2_dist_list.append(_qfx2_dist)
         return qfx2_idx_list, qfx2_dist_list
 
-    def get_nIndexed_list(mxer):
-        nIndexed_list = [nnindexer.num_indexed_vecs() for nnindexer in mxer.nn_indexer_list]
-        return nIndexed_list
-
-    def get_offsets(mxer):
-        nIndexed_list = mxer.get_nIndexed_list()
-        offset_list = np.cumsum(nIndexed_list)
-        return offset_list
-
     def knn(mxer, qfx2_vec, K, checks):
         """
         Polymorphic interface to knn, but uses the multindex backend
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
-            >>> K = 3
-            >>> checks = 1028
+            >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> result = str(np.shape(qfx2_imx))
+            >>> print(result)
+            (1074, 18)
         """
         (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
         qfx2_imx_list = []
         offset_list = mxer.get_offsets()
+        prev = 0
         for _qfx2_idx, offset in zip(qfx2_idx_list, offset_list):
             # Returns distances in ascending order for each query descriptor
-            qfx2_imx_list.append(_qfx2_idx + offset)
+            qfx2_imx_list.append(_qfx2_idx + prev)
+            prev = offset
         # Combine results from each tree
         qfx2_imx_   = np.hstack(qfx2_imx_list)
         qfx2_dist_  = np.hstack(qfx2_dist_list)
@@ -216,20 +218,64 @@ class MultiNeighborIndex(object):
         qfx2_sortx = qfx2_dist_.argsort(axis=1)
         # Apply sorting to concatenated results
         def sortaxis1(qfx2_xxx):
-            return  np.vstack([row[sortx] for sortx, row
-                               in zip(qfx2_sortx, qfx2_xxx)])
+            return np.vstack([row[sortx] for sortx, row
+                              in zip(qfx2_sortx, qfx2_xxx)])
         qfx2_dist  = sortaxis1(qfx2_dist_)
         qfx2_imx   = sortaxis1(qfx2_imx_)
         return (qfx2_imx, qfx2_dist)
 
-    def add_points(mxer, new_aid_list, new_vecs_list):
+    def get_offsets(mxer):
+        r"""
+        Returns:
+            list:
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-get_offsets
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> result = mxer.get_offsets()
+            >>> print(result)
+            [21384 36627 49435 54244 57786 60482]
+        """
+        nIndexed_list = mxer.get_nIndexed_list()
+        offset_list = np.cumsum(nIndexed_list)
+        return offset_list
+
+    def get_nIndexed_list(mxer):
+        """
+        returns a list of the number of indexed vectors in each subindexer
+
+        Args:
+
+        Returns:
+            list : nIndexed_list
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-get_nIndexed_list
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> result = mxer.get_nIndexed_list()
+            >>> print(result)
+            [21384, 15243, 12808, 4809, 3542, 2696]
+        """
+        nIndexed_list = [nnindexer.num_indexed_vecs()
+                         for nnindexer in mxer.nn_indexer_list]
+        return nIndexed_list
+
+    def add_points(mxer, new_aid_list, new_vecs_list, new_fgws_list):
         raise NotImplementedError()
 
     def num_indexed_vecs(mxer):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> result = mxer.num_indexed_vecs()
             >>> print(result)
@@ -245,7 +291,7 @@ class MultiNeighborIndex(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> result = mxer.num_indexed_annots()
             >>> print(result)
@@ -254,55 +300,145 @@ class MultiNeighborIndex(object):
         return np.sum([nnindexer.num_indexed_annots()
                        for nnindexer in mxer.nn_indexer_list])
 
-    def get_nn_aids(mxer, qfx2_imx):
-        qfx2_aid = np.empty(qfx2_imx.shape, dtype=np.int32)
+    def iter_subindexers(mxer, qfx2_imx):
+        """
+        generates subindexers, indicies, and maskss within them
+        that partially correspond to indicies in qfx2_imx that belong
+        to that subindexer
+
+        Args:
+            qfx2_imx (ndarray):
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-iter_subindexers
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K, checks = 3, 1028
+            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> genlist_ = list(mxer.iter_subindexers(qfx2_imx))
+            >>> covered = np.zeros(qfx2_imx.shape)
+            >>> for nnindexer, idxs, mask in genlist_:
+            ...     print(covered.sum())
+            ...     assert idxs.size == mask.sum()
+            ...     assert covered[mask].sum() == 0
+            ...     covered[mask] = True
+            >>> print(covered.sum())
+            >>> assert covered.sum() == covered.size
+            >>> print(result)
+        """
         nn_indexer_list = mxer.nn_indexer_list
         offset_list = mxer.get_offsets()
         prev = 0
         for nnindexer, offset in zip(nn_indexer_list, offset_list):
             mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
             idxs = qfx2_imx[mask] - prev
-            aids = nnindexer.get_nn_aids(idxs)
-            qfx2_aid[mask] = aids
+            yield nnindexer, idxs, mask
             prev = offset
+
+    #def get_nn_featxs(mxer, qfx2_imx):
+    #    qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
+    #    nn_indexer_list = mxer.nn_indexer_list
+    #    offset_list = mxer.get_offsets()
+    #    prev = 0
+    #    for nnindexer, offset in zip(nn_indexer_list, offset_list):
+    #        mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
+    #        idxs = qfx2_imx[mask] - prev
+    #        fxs = nnindexer.get_nn_featxs(idxs)
+    #        qfx2_fx[mask] = fxs
+    #        prev = offset
+    #    return qfx2_fx
+
+    def get_nn_aids(mxer, qfx2_imx):
+        r"""
+        Args:
+            qfx2_imx (ndarray):
+
+        Returns:
+            ndarray: qfx2_aid
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-get_nn_aids
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K, checks = 3, 1028
+            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> qfx2_aid = mxer.get_nn_aids(qfx2_imx)
+            >>> result = str(qfx2_aid)
+            >>> print(result)
+        """
+        qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
+            pass
+            qfx2_aid[mask] = nnindexer.get_nn_aids(idxs)
         return qfx2_aid
 
     def get_nn_featxs(mxer, qfx2_imx):
-        qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
-        nn_indexer_list = mxer.nn_indexer_list
-        offset_list = mxer.get_offsets()
-        prev = 0
-        for nnindexer, offset in zip(nn_indexer_list, offset_list):
-            mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
-            idxs = qfx2_imx[mask] - prev
-            fxs = nnindexer.get_nn_featxs(idxs)
-            qfx2_fx[mask] = fxs
-            prev = offset
-        return qfx2_fx
+        r"""
+        Args:
+            qfx2_imx (ndarray):
 
-    def split_imxs_gen(mxer, qfx2_imx):
-        """
+        Returns:
+            ndarray: qfx2_fx
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-get_nn_featxs
+
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
-            >>> K = 3
-            >>> checks = 1028
+            >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> qfx2_fgw = mxer.get_nn_featxs(qfx2_imx)
+            >>> result = str(qfx2_fgw)
+            >>> print(result)
         """
-        offset_list = mxer.get_offsets()
-        prev = 0
-        for offset in offset_list:
-            mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
-            yield mask, prev
-            prev = offset
+        qfx2_fx = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
+            qfx2_fx[mask] = nnindexer.get_nn_featxs(idxs)
+        return qfx2_fx
+
+    def get_nn_fgws(mxer, qfx2_imx):
+        r"""
+        Args:
+            qfx2_imx (ndarray):
+
+        Returns:
+            ndarray: qfx2_fgw
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-get_nn_fgws
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K, checks = 3, 1028
+            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> qfx2_fgw = mxer.get_nn_fgws(qfx2_imx)
+            >>> result = str(qfx2_fgw)
+            >>> print(result)
+        """
+        qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
+        for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
+            qfx2_fgw[mask] = nnindexer.get_nn_fgws(idxs)
+        return qfx2_fgw
 
     def knn2(mxer, qfx2_vec, K):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)

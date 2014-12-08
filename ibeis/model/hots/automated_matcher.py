@@ -123,7 +123,8 @@ def incremental_test(ibs1):
 
         python dev.py --db PZ_MTEST --allgt -t inc
 
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
 
     Example:
         >>> from ibeis.all_imports import *  # NOQA
