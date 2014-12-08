@@ -734,15 +734,15 @@ class IBEISController(object):
             assert np.all(qreq_.get_external_qaids() == qaid_list)
             assert np.all(qreq_.get_external_daids() == daid_list)
 
+        res = qaid2_qres, qreq_ = mc4.submit_query_request(
+            ibs,  qaid_list, daid_list, use_cache, use_bigcache,
+            return_request=return_request, cfgdict=cfgdict, qreq_=qreq_)
+
         if return_request:
-            qaid2_qres, qreq_ = mc4.submit_query_request(
-                ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-                return_request, cfgdict)
+            qaid2_qres, qreq_ = res
             return qaid2_qres, qreq_
         else:
-            qaid2_qres = mc4.submit_query_request(
-                ibs, qaid_list, daid_list, use_cache, use_bigcache, return_request,
-                cfgdict, qreq_=qreq_)
+            qaid2_qres = res
             return qaid2_qres
 
     #_query_chips = _query_chips3

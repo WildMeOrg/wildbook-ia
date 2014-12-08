@@ -65,7 +65,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     # Build query request
     if qreq_ is None:
         qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list,
-                                                      cfgdict, verbose=verbose)
+                                                      cfgdict=cfgdict, verbose=verbose)
         #qreq_.qparams
     # --- BIG CACHE ---
     # Do not use bigcache single queries
@@ -89,7 +89,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             except IOError:
                 print('... qaid2_qres bigcache miss')
     # Execute query request
-    qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache)
+    qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, verbose=verbose)
     # ------------
     if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         utool.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_qres)
@@ -98,7 +98,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     return qaid2_qres
 
 
-def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
+def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
     """
     helper
 
@@ -106,6 +106,7 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
     """
     #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
     #                     for qx, qaid in enumerate(qaid_list))
+    qreq_.lazy_preload(verbose=verbose)
     qreq_shallow_iter = ((qreq_.shallowcopy(qx), qaid)
                          for qx, qaid in enumerate(qaid_list))
     qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
@@ -117,7 +118,8 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize):
 
 
 #@profile
-def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_CACHE, chunksize=4):
+def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
+                              save_cache=SAVE_CACHE, chunksize=4, verbose=True):
     """
     Args:
         ibs (IBEISController):
@@ -165,7 +167,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE, save_cache=SAVE_C
         qaid_list = qreq_.get_external_qaids()
         qaid2_qres = {}
 
-        qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize)
+        qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
+                                        verbose=verbose)
         qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
                                 backspace=False, lbl='vsone query: ',
                                 use_rate=True)

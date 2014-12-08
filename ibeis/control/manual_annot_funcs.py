@@ -427,9 +427,13 @@ def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
 @register_ibs_method
 @getter_1to1
 def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
+    """
+    just constructs the path. does not compute it. that is done by
+    api_thumb_delegate
+    """
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
-    annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
                       for uuid in annot_uuid_list]
     return thumbpath_list
@@ -445,7 +449,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
         thumbsize (int):
 
     Returns:
-        list: thumbtup_list
+        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_thumbtup
@@ -454,7 +458,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('seals2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
@@ -466,12 +470,16 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
     #   aid_list = [aid_list]
     # HACK TO MAKE CHIPS COMPUTE
     #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=128)
+    #thumbsize = 256
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize)
+    #print(thumb_gpaths)
     chip_paths = ibs.get_annot_chip_fpaths(aid_list)
     chipsize_list = ibs.get_annot_chipsizes(aid_list)
-    thumbtup_list = [(thumb_path, chip_path, chipsize, [], [])
-                     for (thumb_path, chip_path, chipsize) in
-                     zip(thumb_gpaths, chip_paths, chipsize_list,)]
+    thumbtup_list = [
+        (thumb_path, chip_path, chipsize, [], [])
+        for (thumb_path, chip_path, chipsize) in
+        zip(thumb_gpaths, chip_paths, chipsize_list,)
+    ]
     #if not isiterable:
     #    return thumbtup_list[0]
     return thumbtup_list

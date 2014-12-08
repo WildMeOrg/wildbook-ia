@@ -157,8 +157,9 @@ class ScoreNormalizer(ut.Cachable):
         """
         import plottool as pt
         print(normalizer.get_infostr())
-        normalizer.visualize_probs(update=False)
-        normalizer.visualize_support(update=False)
+        fnum = pt.next_fnum()
+        normalizer.visualize_probs(fnum=fnum, pnum=(2, 1, 1), update=False)
+        normalizer.visualize_support(fnum=fnum, pnum=(2, 1, 2), update=False)
         if update:
             pt.update()
 

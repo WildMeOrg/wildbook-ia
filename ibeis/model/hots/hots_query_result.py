@@ -157,6 +157,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fs = None  # feat_score_list
         qres.aid2_fk = None  # feat_rank_list
         qres.aid2_score = None  # annotation score
+        qres.aid2_prob = None  # annotation normalized score
         qres.metadata = None  # messy (meta information of query)
         #qres.daid_list = None  # matchable daids
 
@@ -223,6 +224,14 @@ class QueryResult(__OBJECT_BASE__):
         qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
+    def save(qres, qresdir, verbose=utool.NOT_QUIET and utool.VERBOSE):
+        """ saves query result to directory """
+        fpath = qres.get_fpath(qresdir)
+        if verbose:
+            print('[qr] cache save: %r' % (split(fpath)[1],))
+        with open(fpath, 'wb') as file_:
+            cPickle.dump(qres.__dict__, file_)
+
     def __eq__(self, other):
         """ For testing. Do not use"""
         return all([
@@ -236,61 +245,14 @@ class QueryResult(__OBJECT_BASE__):
             _qres_dicteq(self.metadata, other.metadata),
         ])
 
-    def has_cache(qres, qresdir):
-        return exists(qres.get_fpath(qresdir))
-
     def get_fpath(qres, qresdir):
         return query_result_fpath(qresdir, qres.qaid, qres.qauuid, qres.cfgstr)
 
+    def has_cache(qres, qresdir):
+        return exists(qres.get_fpath(qresdir))
+
     def get_fname(qres, **kwargs):
         return query_result_fname(qres.qaid, qres.qauuid, qres.cfgstr, **kwargs)
-
-    def make_smaller_title(qres, remove_daids=True, remove_chip=True,
-                           remove_feat=True):
-        return qres.make_title(remove_daids=remove_daids,
-                               remove_chip=remove_chip,
-                               remove_feat=remove_feat)
-
-    def make_title(qres, pack=False, remove_daids=False, remove_chip=False,
-                   remove_feat=False, textwidth=80):
-        cfgstr = qres.cfgstr
-
-        def parse_remove(format_, string_):
-            import parse
-            # TODO: move to utool
-            # Do padding so prefix or suffix could be empty
-            pad_format_ = '{prefix}' + format_ + '{suffix}'
-            pad_string_ = '_' + string_ + '_'
-            parse_result = parse.parse(pad_format_, pad_string_)
-            new_string = parse_result['prefix'][1:] + parse_result['suffix'][:-1]
-            return new_string, parse_result
-
-        if remove_daids:
-            cfgstr, _ = parse_remove('_DAIDS(({daid_shape}){daid_hash})', cfgstr)
-        if remove_chip:
-            cfgstr, _ = parse_remove('_CHIP({chip_cfgstr})', cfgstr)
-        if remove_feat:
-            cfgstr, _ = parse_remove('_FEAT({feat_cfgstr})', cfgstr)
-
-        if pack:
-            # Separate into newlines if requested (makes it easier to fit on screen)
-            cfgstr = ut.packstr(cfgstr, textwidth=textwidth, break_words=False, breakchars='_', wordsep='_')
-
-        component_list = [
-            'qaid={qaid} '.format(qaid=qres.qaid),
-            #'qauuid={qauuid}'.format(qauuid=qres.qauuid),
-            'cfgstr={cfgstr}'.format(cfgstr=cfgstr),
-        ]
-        title_str = ''.join(component_list)
-        return title_str
-
-    def save(qres, qresdir, verbose=utool.NOT_QUIET and utool.VERBOSE):
-        """ saves query result to directory """
-        fpath = qres.get_fpath(qresdir)
-        if verbose:
-            print('[qr] cache save: %r' % (split(fpath)[1],))
-        with open(fpath, 'wb') as file_:
-            cPickle.dump(qres.__dict__, file_)
 
     def cache_bytes(qres, qresdir):
         """ Size of the cached query result on disk """
@@ -298,50 +260,38 @@ class QueryResult(__OBJECT_BASE__):
         nBytes = utool.file_bytes(fpath)
         return nBytes
 
-    def get_fmatch_index(qres, aid, qfx):
-        """ Returns the feature index in aid matching the query's qfx-th feature
-            (if it exists)
-        """
-        fm = qres.aid2_fm[aid]
-        mx_list = np.where(fm[:, 0] == qfx)[0]
-        if len(mx_list) != 1:
-            raise IndexError('[!qr] qfx=%r not found' % (qfx))
-        else:
-            mx = mx_list[0]
-            return mx
-
-    def get_match_tbldata(qres, ranks_lt=5, name_scoring=False, ibs=None):
-        """
-        Returns matchinfo in table format (qaids, aids, scores, ranks)
-        """
-        # TODO: get rid of conflict with module name name_scoring
-        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
-        # Sort the scores in rank order
-        sortx     = score_arr.argsort()[::-1]
-        score_arr = score_arr[sortx]
-        aid_arr   = aid_arr[sortx]
-        rank_arr  = np.arange(sortx.size)
-        # Return only rows where rank < ranks_lt
-        isvalid = rank_arr < ranks_lt
-        aids    =   aid_arr[isvalid]
-        scores  = score_arr[isvalid]
-        ranks   =  rank_arr[isvalid]
-        qaids   = np.full(aids.shape, qres.qaid, dtype=aids.dtype)
-        tbldata = (qaids, aids, scores, ranks)
-        # DEBUG
-        #column_lbls = ['qaids', 'aids', 'scores', 'ranks']
-        #qaid_arr      = np.full(aid_arr.shape, qres.qaid, dtype=aid_arr.dtype)
-        #tbldata2      = (qaid_arr, aid_arr, score_arr, rank_arr)
-        #print(utool.make_csv_table(tbldata, column_lbls))
-        #print(utool.make_csv_table(tbldata2, column_lbls))
-        #utool.embed()
-        return tbldata
+    # ----------------------------------------
 
     def get_nscoretup(qres, ibs):
         aid_list, score_list = qres.get_aids_and_scores(name_scoring=False)
         nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
+
+    def get_aids_and_scores(qres, name_scoring=False, ibs=None):
+        """ returns a chip index list and associated score list """
+        if name_scoring:
+            assert ibs is not None, 'must specify ibs for name_scoring'
+            nscoretup = qres.get_nscoretup(ibs)
+            (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+            score_arr = np.array(sorted_nscore)
+            aid_arr = np.array(ut.get_list_column(sorted_aids, 0))
+        else:
+            if qres.aid2_prob is None:
+                aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
+                score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
+            else:
+                aid_arr   = np.array(list(qres.aid2_prob.keys()), dtype=np.int32)
+                score_arr = np.array(list(qres.aid2_prob.values()), dtype=np.float64)
+        return aid_arr, score_arr
+
+    def get_aid_scores(qres, aid_arr, fillvalue=None, rawscore=False):
+        if rawscore or qres.aid2_prob is None:
+            return [qres.aid2_score.get(aid, fillvalue) for aid in aid_arr]
+        else:
+            return [qres.aid2_prob.get(aid, fillvalue) for aid in aid_arr]
+
+    # ----------------------------------------
 
     def get_sorted_nids_and_scores(qres, ibs):
         nscoretup = qres.get_nscoretup(ibs)
@@ -357,84 +307,17 @@ class QueryResult(__OBJECT_BASE__):
             nscore = sorted_nscores[0]
             return (nid, nscore)
 
-    def get_aids_and_scores(qres, name_scoring=False, ibs=None):
-        """ returns a chip index list and associated score list """
-        if name_scoring:
-            assert ibs is not None, 'must specify ibs for name_scoring'
-            nscoretup = qres.get_nscoretup(ibs)
-            (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
-            score_arr = np.array(sorted_nscore)
-            aid_arr = np.array(ut.get_list_column(sorted_aids, 0))
-        else:
-            aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
-            score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
-        return aid_arr, score_arr
-
     def get_top_aids(qres, num=None, name_scoring=False, ibs=None):
         """ Returns a ranked list of chip indexes """
         # TODO: rename num to ranks_lt
-        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
+        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring,
+                                                      ibs=ibs)
         # Get chip-ids sorted by scores
         top_aids = aid_arr[score_arr.argsort()[::-1]]
         num_indexed = len(top_aids)
         if num is None:
             num = num_indexed
         return top_aids[0:min(num, num_indexed)]
-
-    def get_aid_scores(qres, aid_arr, fillvalue=None):
-        return [qres.aid2_score.get(aid, fillvalue) for aid in aid_arr]
-
-    def get_aid_truth(qres, ibs, aid_list):
-        # 0: false, 1: True, 2: unknown
-        isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
-        return isgt_list
-
-    def get_inspect_str(qres, ibs=None, name_scoring=False):
-        assert_qres(qres)
-        nFeatMatch_list = get_num_feats_in_matches(qres)
-        nFeatMatch_stats = utool.get_stats(nFeatMatch_list)
-
-        top_lbls = [' top aids', ' scores', ' ranks']
-
-        top_aids   = np.array(qres.get_top_aids(num=5, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
-        top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
-        top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
-        top_list   = [top_aids, top_scores, top_ranks]
-
-        if ibs is not None:
-            top_lbls += [' isgt']
-            istrue = qres.get_aid_truth(ibs, top_aids)
-            top_list.append(np.array(istrue, dtype=np.int32))
-        if name_scoring:
-            top_lbls = ['top nid'] + top_lbls
-            top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
-
-        top_stack = np.vstack(top_list)
-        top_stack = np.array(top_stack, dtype=object)
-        #np.int32)
-        top_str = str(top_stack)
-
-        top_lbl = '\n'.join(top_lbls)
-        inspect_list = ['QueryResult',
-                        qres.cfgstr,
-                        ]
-        if ibs is not None:
-            gt_ranks  = qres.get_gt_ranks(ibs=ibs)
-            gt_scores = qres.get_gt_scores(ibs=ibs)
-            inspect_list.append('gt_ranks = %r' % gt_ranks)
-            inspect_list.append('gt_scores = %r' % gt_scores)
-
-        inspect_list.extend([
-            'qaid=%r ' % qres.qaid,
-            utool.hz_str(top_lbl, ' ', top_str),
-            'num Feat Matches stats:',
-            utool.indent(utool.dict_str(nFeatMatch_stats)),
-        ])
-
-        inspect_str = '\n'.join(inspect_list)
-
-        inspect_str = utool.indent(inspect_str, '[INSPECT] ')
-        return inspect_str
 
     @utool.accepts_scalar_input
     def get_aid_ranks(qres, aid_arr, fillvalue=None):
@@ -443,24 +326,19 @@ class QueryResult(__OBJECT_BASE__):
             aid_arr = np.array(aid_arr)
         top_aids = qres.get_top_aids()
         foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
-        ranks_   = [ranks if len(ranks) > 0 else [fillvalue] for ranks in foundpos]
-        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(aid_ranks) != 1'
+        ranks_   = [ranks if len(ranks) > 0 else [fillvalue]
+                    for ranks in foundpos]
+        assert all([len(ranks) == 1 for ranks in ranks_]), (
+            'len(aid_ranks) != 1')
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
 
-    #def get_aid_ranks(qres, aid_arr):
-        #'get ranks of chip indexes in aid_arr'
-        #score_arr = np.array(qres.aid2_score.values())
-        #aid_arr   = np.array(qres.aid2_score.keys())
-        #top_aids = aid_arr[score_arr.argsort()[::-1]]
-        #foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
-        #ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
-        #assert all([len(r) == 1 for r in ranks_])
-        #rank_list = [r[0] for r in ranks_]
-        #return rank_list
+    def get_aid_truth(qres, ibs, aid_list):
+        # 0: false, 1: True, 2: unknown
+        isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
+        return isgt_list
 
-    def is_nsum(qres):
-        return 'AGG(nsum)' in qres.cfgstr and ',nsum,' in qres.cfgstr
+    # ----------------------------------------
 
     def get_daids(qres):
         """ returns database annotation ids this query was run with """
@@ -471,20 +349,36 @@ class QueryResult(__OBJECT_BASE__):
         """ returns query database annotation id """
         return qres.qaid
 
+    def get_matching_keypoints(qres, ibs, aid2_list):
+        return qres_get_matching_keypoints(qres, ibs, aid2_list)
+
+    def is_nsum(qres):
+        return 'AGG(nsum)' in qres.cfgstr and ',nsum,' in qres.cfgstr
+
+    def get_fmatch_index(qres, aid, qfx):
+        """ Returns the feature index in aid matching the query's qfx-th feature
+            (if it exists)
+        """
+        fm = qres.aid2_fm[aid]
+        mx_list = np.where(fm[:, 0] == qfx)[0]
+        if len(mx_list) != 1:
+            raise IndexError('[!qr] qfx=%r not found' % (qfx))
+        else:
+            mx = mx_list[0]
+            return mx
+
     def get_worse_possible_rank(qres):
         """ a good non None value to use for None ranks """
         #worse_possible_rank = max(len(qres.get_daids()) + 2, 9001)
         worse_possible_rank = len(qres.get_daids()) + 1
         return worse_possible_rank
 
-    #def get_groundtruth_aids(qres, ibs):
-    #    """
-    #    returns the groundtruth with respect to what could have been matched for
-    #    this query
-    #    """
-    #    assert ibs is not None, 'must pass in valid ibs controller'
-    #    gt_aids = ibs.get_annot_groundtruth(qres.get_qaid(), daid_list=qres.get_daids())
-    #    return gt_aids
+    def get_classified_pos(qres):
+        top_aids = np.array(qres.get_top_aids())
+        pos_aids = top_aids[0:1]
+        return pos_aids
+
+    # ----------------------------------------
 
     def get_groundfalse_aids(qres, ibs):
         assert ibs is not None, 'must pass in valid ibs controller'
@@ -556,6 +450,8 @@ class QueryResult(__OBJECT_BASE__):
             best_rank = best_gtranks[0]
         return best_rank
 
+    # ----------------------------------------
+
     def get_average_percision(qres, ibs=None, gt_aids=None):
         return precision_recall.get_average_percision_(qres, ibs=ibs, gt_aids=gt_aids)
 
@@ -568,10 +464,124 @@ class QueryResult(__OBJECT_BASE__):
     def get_precision_recall_curve(qres, ibs=None, gt_aids=None):
         return precision_recall.get_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids)
 
-    def get_classified_pos(qres):
-        top_aids = np.array(qres.get_top_aids())
-        pos_aids = top_aids[0:1]
-        return pos_aids
+    # ----------------------------------------
+
+    def get_match_tbldata(qres, ranks_lt=5, name_scoring=False, ibs=None):
+        """
+        Returns matchinfo in table format (qaids, aids, scores, ranks)
+        """
+        # TODO: get rid of conflict with module name name_scoring
+        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
+        # Sort the scores in rank order
+        sortx     = score_arr.argsort()[::-1]
+        score_arr = score_arr[sortx]
+        aid_arr   = aid_arr[sortx]
+        rank_arr  = np.arange(sortx.size)
+        # Return only rows where rank < ranks_lt
+        isvalid = rank_arr < ranks_lt
+        aids    =   aid_arr[isvalid]
+        scores  = score_arr[isvalid]
+        ranks   =  rank_arr[isvalid]
+        qaids   = np.full(aids.shape, qres.qaid, dtype=aids.dtype)
+        tbldata = (qaids, aids, scores, ranks)
+        # DEBUG
+        #column_lbls = ['qaids', 'aids', 'scores', 'ranks']
+        #qaid_arr      = np.full(aid_arr.shape, qres.qaid, dtype=aid_arr.dtype)
+        #tbldata2      = (qaid_arr, aid_arr, score_arr, rank_arr)
+        #print(utool.make_csv_table(tbldata, column_lbls))
+        #print(utool.make_csv_table(tbldata2, column_lbls))
+        #utool.embed()
+        return tbldata
+
+    def get_inspect_str(qres, ibs=None, name_scoring=False):
+        assert_qres(qres)
+        nFeatMatch_list = get_num_feats_in_matches(qres)
+        nFeatMatch_stats = utool.get_stats(nFeatMatch_list)
+
+        top_lbls = [' top aids', ' scores', ' ranks']
+
+        top_aids   = np.array(qres.get_top_aids(num=5, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
+        top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
+        top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
+        top_list   = [top_aids, top_scores, top_ranks]
+
+        if ibs is not None:
+            top_lbls += [' isgt']
+            istrue = qres.get_aid_truth(ibs, top_aids)
+            top_list.append(np.array(istrue, dtype=np.int32))
+        if name_scoring:
+            top_lbls = ['top nid'] + top_lbls
+            top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
+
+        top_stack = np.vstack(top_list)
+        top_stack = np.array(top_stack, dtype=object)
+        #np.int32)
+        top_str = str(top_stack)
+
+        top_lbl = '\n'.join(top_lbls)
+        inspect_list = ['QueryResult',
+                        qres.cfgstr,
+                        ]
+        if ibs is not None:
+            gt_ranks  = qres.get_gt_ranks(ibs=ibs)
+            gt_scores = qres.get_gt_scores(ibs=ibs)
+            inspect_list.append('gt_ranks = %r' % gt_ranks)
+            inspect_list.append('gt_scores = %r' % gt_scores)
+
+        inspect_list.extend([
+            'qaid=%r ' % qres.qaid,
+            utool.hz_str(top_lbl, ' ', top_str),
+            'num Feat Matches stats:',
+            utool.indent(utool.dict_str(nFeatMatch_stats)),
+        ])
+
+        inspect_str = '\n'.join(inspect_list)
+
+        inspect_str = utool.indent(inspect_str, '[INSPECT] ')
+        return inspect_str
+
+    # ----------------------------------------
+
+    def make_smaller_title(qres, remove_daids=True, remove_chip=True,
+                           remove_feat=True):
+        return qres.make_title(remove_daids=remove_daids,
+                               remove_chip=remove_chip,
+                               remove_feat=remove_feat)
+
+    def make_title(qres, pack=False, remove_daids=False, remove_chip=False,
+                   remove_feat=False, textwidth=80):
+        cfgstr = qres.cfgstr
+
+        def parse_remove(format_, string_):
+            import parse
+            # TODO: move to utool
+            # Do padding so prefix or suffix could be empty
+            pad_format_ = '{prefix}' + format_ + '{suffix}'
+            pad_string_ = '_' + string_ + '_'
+            parse_result = parse.parse(pad_format_, pad_string_)
+            new_string = parse_result['prefix'][1:] + parse_result['suffix'][:-1]
+            return new_string, parse_result
+
+        if remove_daids:
+            cfgstr, _ = parse_remove('_DAIDS(({daid_shape}){daid_hash})', cfgstr)
+        if remove_chip:
+            cfgstr, _ = parse_remove('_CHIP({chip_cfgstr})', cfgstr)
+        if remove_feat:
+            cfgstr, _ = parse_remove('_FEAT({feat_cfgstr})', cfgstr)
+
+        if pack:
+            # Separate into newlines if requested (makes it easier to fit on screen)
+            cfgstr = ut.packstr(cfgstr, textwidth=textwidth, break_words=False, breakchars='_', wordsep='_')
+
+        component_list = [
+            'qaid={qaid} '.format(qaid=qres.qaid),
+            #'qauuid={qauuid}'.format(qauuid=qres.qauuid),
+            'cfgstr={cfgstr}'.format(cfgstr=cfgstr),
+        ]
+        title_str = ''.join(component_list)
+        return title_str
+
+    # ----------------------------------------
 
     #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, *args, **kwargs):
@@ -609,12 +619,15 @@ class QueryResult(__OBJECT_BASE__):
         else:
             raise AssertionError('Uknown type=%r' % type_)
 
-    def get_matching_keypoints(qres, ibs, aid2_list):
-        return qres_get_matching_keypoints(qres, ibs, aid2_list)
-
 
 if __name__ == '__main__':
-    """
+    r"""
+    TODO:
+        * Remove all nonmethod calls to qres
+          Find them with this:
+              rob gp 'qres\\.[A-Za-z_][A-Za-z0-9_]*\\b[^(]'
+        * Do not store results in dicts. use ndarrays
+
     CommandLine:
         python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result, allexamples=True)"
         python -c "import utool, ibeis.model.hots.hots_query_result; utool.doctest_funcs(ibeis.model.hots.hots_query_result)"

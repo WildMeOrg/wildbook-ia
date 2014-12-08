@@ -328,7 +328,6 @@ class MultiNeighborIndex(object):
             ...     covered[mask] = True
             >>> print(covered.sum())
             >>> assert covered.sum() == covered.size
-            >>> print(result)
         """
         nn_indexer_list = mxer.nn_indexer_list
         offset_list = mxer.get_offsets()
@@ -366,17 +365,20 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
             >>> qfx2_aid = mxer.get_nn_aids(qfx2_imx)
-            >>> result = str(qfx2_aid)
+            >>> result = np.array_str(qfx2_aid[0:2])
             >>> print(result)
+            [[ 8 16  8 55 53  3  3 28 38 34 48 38 34 25 21 21 33 34]
+             [34 45 30 27 18 35 28 52  8  4 60 25 14 25 21 26 15 15]]
         """
-        qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        #qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        qfx2_aid = np.empty(qfx2_imx.shape, dtype=np.int32)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
-            pass
             qfx2_aid[mask] = nnindexer.get_nn_aids(idxs)
         return qfx2_aid
 
@@ -394,15 +396,17 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
             >>> qfx2_fgw = mxer.get_nn_featxs(qfx2_imx)
-            >>> result = str(qfx2_fgw)
+            >>> result = np.array_str(qfx2_fgw)
             >>> print(result)
         """
-        qfx2_fx = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        #qfx2_fx = -np.ones(qfx2_imx.shape, dtype=np.int32)
+        qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fx[mask] = nnindexer.get_nn_featxs(idxs)
         return qfx2_fx
@@ -421,15 +425,17 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
             >>> qfx2_fgw = mxer.get_nn_fgws(qfx2_imx)
-            >>> result = str(qfx2_fgw)
+            >>> result = np.array_str(qfx2_fgw)
             >>> print(result)
         """
-        qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
+        #qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
+        qfx2_fgw = np.empty(qfx2_imx.shape, dtype=np.float32)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fgw[mask] = nnindexer.get_nn_fgws(idxs)
         return qfx2_fgw

@@ -104,10 +104,11 @@ def setup_incremental_test(ibs1, num_initial=0):
         ibs2.set_annot_names(aid_sublist2, name_list)
         ibs2.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
         aid_list1 = aid_list1[num_initial:]
+    print(ibs2.get_dbinfo_str())
     return ibs2, aid_list1, aid1_to_aid2
 
 
-def incremental_test(ibs1):
+def incremental_test(ibs1, num_initial=0):
     """
     Plots the scores/ranks of correct matches while varying the size of the
     database.
@@ -130,13 +131,15 @@ def incremental_test(ibs1):
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs1 = ibeis.opendb('PZ_MTEST')
-        >>> incremental_test(ibs1)
+        >>> num_initial = 0
+        >>> incremental_test(ibs1, num_initial)
 
     Example2:
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs1 = ibeis.opendb('GZ_ALL')
-        >>> incremental_test(ibs1)
+        >>> num_initial = 100
+        >>> incremental_test(ibs1, num_initial)
     """
 
     def execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
@@ -144,31 +147,13 @@ def incremental_test(ibs1):
         print('\n\n==== EXECUTING TESTSTEP ====')
         # ensure new annot is added (most likely it will have been preadded)
         aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
         threshold = 1.99
         exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
-
         interactive = DEFAULT_INTERACTIVE
-        #interactive = False
-        cfgdict = {
-            'K': choose_vsmany_K(ibs2, aids_chunk2, exemplar_aids),
-            'index_method': 'multi',
-        }
+        qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2, exemplar_aids)
+        make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=interactive)
 
-        if len(exemplar_aids) > 0:
-            #qaid2_qres, qreq_ = ibs2.query_exemplars(aids_chunk2, cfgdict=cfgdict, return_request=True)
-            qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2,
-                                                     exemplar_aids,
-                                                     cfgdict=cfgdict,
-                                                     return_request=True)
-            for qaid, qres in six.iteritems(qaid2_qres):
-                make_decision(ibs2, qaid, qres, threshold, interactive=interactive)
-        else:
-            print('No exemplars in database')
-            for aid in aids_chunk2:
-                autodecide_newname(ibs2, aid)
-
-    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=0)
+    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=num_initial)
 
     # TESTING
     chunksize = 1
@@ -181,54 +166,10 @@ def incremental_test(ibs1):
         aids_chunk1 = six.next(aids_chunk1_iter)
         execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
 
-    aids_chunk1 = six.next(aids_chunk1_iter)
-    execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
     # FULL INCREMENT
     #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
     for aids_chunk1 in aids_chunk1_iter:
         execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-
-
-def query_vsone_verified(ibs, qaids, daids, cfgdict=None, return_request=False):
-    """
-    A hacked in vsone-reranked pipeline
-    Actually just two calls to the pipeline
-    """
-    from ibeis import ibsfuncs  # NOQA
-    qaid2_qres_vsmany, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=cfgdict, return_request=True)
-    #qaid2_qres, qreq_ = ibs._query_chips4(sample_aids, [], return_request=True)
-
-    isnsum = qreq_.qparams.score_method == 'nsum'
-    assert isnsum
-    assert qreq_.qparams.pipeline_root != 'vsone'
-    #qreq_.qparams.prescore_method
-
-    # build vs one list
-    vsone_query_pairs = []
-    nShortlistVsone = 5
-    for qaid, qres in six.iteritems(qaid2_qres_vsmany):
-        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs=ibs)
-        nShortlistVsone_ = min(len(sorted_nids), nShortlistVsone)
-        top_nids = sorted_nids[0:nShortlistVsone_]
-        # get top annotations beloning to the database query
-        # TODO: allow annots not in daids to be included
-        top_aids = ut.intersect_ordered(ut.flatten(ibs.get_name_aids(top_nids)), qres.daids)
-        vsone_query_pairs.append((qaid, top_aids))
-
-    # vs-one reranking
-    qaid2_qres_vsone = {}
-    for qaid, top_aids in vsone_query_pairs:
-        cfgdict = dict(codename='vsone_norm')
-        qaid2_qres_vsone_, qreq_ = ibs._query_chips4([qaid], top_aids, cfgdict=cfgdict, return_request=True)
-        qres = qaid2_qres_vsone_[qaid]
-        qaid2_qres_vsone[qaid] = qres
-
-    qaid2_qres = qaid2_qres_vsone
-    if return_request:
-        return qaid2_qres, qreq_
-    return qaid2_qres
-    #ibsfuncs.unflat_map(ibs.get_annot_is_hard, grouped_aids)
 
 
 def choose_vsmany_K(ibs, qaids, daids):
@@ -271,9 +212,9 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
         list: aids_chunk2
     """
     # Visual info
-    guuids_chunk1  = ibs1.get_annot_image_uuids(aids_chunk1)
-    verts_chunk1   = ibs1.get_annot_verts(aids_chunk1)
-    thetas_chunk1  = ibs1.get_annot_thetas(aids_chunk1)
+    guuids_chunk1 = ibs1.get_annot_image_uuids(aids_chunk1)
+    verts_chunk1  = ibs1.get_annot_verts(aids_chunk1)
+    thetas_chunk1 = ibs1.get_annot_thetas(aids_chunk1)
     # Non-name semantic info
     species_chunk1 = ibs1.get_annot_species(aids_chunk1)
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
@@ -286,7 +227,7 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
                                   prevent_visual_duplicates=True)
     # Register the mapping from ibs1 to ibs2
     register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2)
-    print('Added: aids_chunk2=%s' % (ut.truncate_str(repr(aids_chunk2)),))
+    print('Added: aids_chunk2=%s' % (ut.truncate_str(repr(aids_chunk2), maxlen=60),))
     return aids_chunk2
 
 
@@ -442,7 +383,26 @@ def get_suggested_decision(ibs2, qaid, qres, threshold):
     return msg, func
 
 
-def make_decision(ibs2, qaid, qres, threshold, interactive=False):
+def interactive_decision(ibs2, qres):
+    mplshowtop = False
+    qtinspect = True
+    if mplshowtop:
+        fig = qres.ishow_top(ibs2, name_scoring=True)
+        fig.show()
+    if qtinspect:
+        qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
+    ans = input('waiting\n')
+    if ans in ['cmd', 'ipy', 'embed']:
+        ut.embed()
+        #print(ibs2.get_dbinfo_str())
+        #qreq_ = ut.search_stack_for_localvar('qreq_')
+        #qreq_.normalizer
+    if qtinspect:
+            qres_wgt.close()
+
+
+@ut.indent_func
+def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False):
     r"""
     Either makes automatic decision or asks user for feedback.
 
@@ -453,22 +413,100 @@ def make_decision(ibs2, qaid, qres, threshold, interactive=False):
         threshold   (float): threshold for automatic decision
         interactive (bool):
 
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
+
     """
-    inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
-    print(inspectstr)
-    msg, func = get_suggested_decision(ibs2, qaid, qres, threshold)
-    print(msg)
-    if interactive:
-        fig = qres.ishow_top(ibs2, name_scoring=True)
-        fig.show()
-        #
-        #qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
-        #ans = input('waiting\n')
-        #if ans in ['cmd', 'ipy', 'embed']:
-        #    ut.embed()
-        #qres_wgt.close()
-    else:
-        func()
+    if qreq_ is not None:
+        qreq_.normalizer.visualize(update=False)
+
+    for qaid, qres in six.iteritems(qaid2_qres):
+        if qres is not None:
+            inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
+            print(inspectstr)
+            msg, autodecide = get_suggested_decision(ibs2, qaid, qres, threshold)
+            print(msg)
+            if interactive:
+                interactive_decision(ibs2, qres)
+            else:
+                autodecide()
+        else:
+            autodecide_newname(ibs2, qaid)
+
+
+@ut.indent_func
+def query_vsone_verified(ibs, qaids, daids):
+    """
+    A hacked in vsone-reranked pipeline
+    Actually just two calls to the pipeline
+
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
+    """
+    from ibeis import ibsfuncs  # NOQA
+
+    if len(daids) == 0:
+        return {qaid: None for qaid in qaids}, None
+
+    print('issuing vsmany part')
+
+    #interactive = False
+    cfgdict = {
+        'K': choose_vsmany_K(ibs, qaids, daids),
+        'index_method': 'multi',
+    }
+
+    use_cache = False
+
+    qaid2_qres_vsmany, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=cfgdict,
+                                                 return_request=True,
+                                                 use_cache=use_cache)
+    #qaid2_qres, qreq_ = ibs._query_chips4(sample_aids, [], return_request=True)
+
+    print('finished vsmany part')
+
+    isnsum = qreq_.qparams.score_method == 'nsum'
+    assert isnsum
+    assert qreq_.qparams.pipeline_root != 'vsone'
+    #qreq_.qparams.prescore_method
+
+    # build vs one list
+    print('[query_vsone_verified] building vsone pairs')
+    vsone_query_pairs = []
+    nShortlistVsone = 5
+    for qaid, qres in six.iteritems(qaid2_qres_vsmany):
+        sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs=ibs)
+        nShortlistVsone_ = min(len(sorted_nids), nShortlistVsone)
+        top_nids = sorted_nids[0:nShortlistVsone_]
+        # get top annotations beloning to the database query
+        # TODO: allow annots not in daids to be included
+        flat_top_nids = ut.flatten(ibs.get_name_aids(top_nids))
+        top_aids = ut.intersect_ordered(flat_top_nids, qres.daids)
+        vsone_query_pairs.append((qaid, top_aids))
+
+    print('built %d pairs' % (len(vsone_query_pairs),))
+
+    # vs-one reranking
+    qaid2_qres_vsone = {}
+    for qaid, top_aids in vsone_query_pairs:
+        vsone_cfgdict = dict(codename='vsone_norm')
+        qaid2_qres_vsone_, qreq_ = ibs._query_chips4([qaid], top_aids,
+                                                     cfgdict=vsone_cfgdict,
+                                                     return_request=True,
+                                                     use_cache=use_cache)
+        qres = qaid2_qres_vsone_[qaid]
+        qaid2_qres_vsone[qaid] = qres
+        #ut.embed()
+
+    print('finished vsone queries')
+
+    # FIXME: returns the last qreq_. There should be a notion of a query
+    # request for a vsone reranked query
+
+    qaid2_qres = qaid2_qres_vsone
+    return qaid2_qres, qreq_
 
 
 def test_vsone_verified(ibs):
@@ -492,7 +530,7 @@ def test_vsone_verified(ibs):
     items_list = grouped_aids
 
     sample_aids = ut.flatten(ut.sample_lists(items_list, num=2, seed=0))
-    qaid2_qres = query_vsone_verified(ibs, sample_aids, sample_aids, cfgdict=None, return_request=False)
+    qaid2_qres, qreq_ = query_vsone_verified(ibs, sample_aids, sample_aids)
     for qres in ut.InteractiveIter(list(six.itervalues(qaid2_qres))):
         pt.close_all_figures()
         fig = qres.ishow_top(ibs)

@@ -118,6 +118,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     """
     # Load data for nearest neighbors
+    #if qreq_.qparams.pipeline_root == 'vsone':
+    #    ut.embed()
+
     qreq_.lazy_load(verbose=verbose)
 
     if verbose:
@@ -746,7 +749,7 @@ def get_prescore_shortlist(qaid, chipmatch, qreq_):
     """
     prescore_method = qreq_.qparams.prescore_method
     nShortlist      = qreq_.qparams.nShortlist
-    daid2_prescore = score_chipmatch(qaid, chipmatch, prescore_method, qreq_, isprescore=True)
+    daid2_prescore = score_chipmatch(qaid, chipmatch, prescore_method, qreq_)
     #print('Prescore: %r' % (daid2_prescore,))
     # HACK FOR NAME PRESCORING
     if prescore_method == 'nsum':
@@ -1045,12 +1048,18 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
         # Perform final scoring
         qaid2_scores = None  # HACK. Used to be arg, still in in case smk breaks
         if qaid2_scores is None:
-            daid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore=False)
+            daid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         else:
             daid2_score = qaid2_scores[qaid]
             if not isinstance(daid2_score, dict):
                 # Pandas hack
                 daid2_score = daid2_score.to_dict()
+        if qreq_.qparams.score_normalization:
+            normalizer = qreq_.normalizer
+            score_list = list(six.itervalues(daid2_score))
+            prob_list = normalizer.normalize_score_list(score_list)
+            daid2_prob = dict(zip(six.iterkeys(daid2_score), prob_list))
+            qres.aid2_prob = daid2_prob
         # Populate query result fields
         qres.aid2_score = daid2_score  # FIXME fig qreq name
 
@@ -1068,11 +1077,12 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
 
 #@ut.indent_func('[scm]')
 @profile
-def score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore):
+def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     """
     Assigns scores to database annotation ids for a particualry query's
     chipmatch
 
+    DOES NOT APPLY SCORE NORMALIZATION
 
     Args:
         qaid (int): query annotation id
@@ -1100,8 +1110,7 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore):
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> chipmatch = qaid2_chipmatch[qaid]
         >>> score_method = qreq_.qparams.prescore_method
-        >>> isprescore = True
-        >>> daid2_score_pre = pipeline.score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore)
+        >>> daid2_score_pre = pipeline.score_chipmatch(qaid, chipmatch, score_method, qreq_)
 
     Example2:
         >>> # POSTSCORE
@@ -1115,8 +1124,7 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore):
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> chipmatch = qaid2_chipmatch[qaid]
         >>> score_method = qreq_.qparams.score_method
-        >>> isprescore = False
-        >>> daid2_score_post = pipeline.score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore)
+        >>> daid2_score_post = pipeline.score_chipmatch(qaid, chipmatch, score_method, qreq_)
     """
     #(aid2_fm, aid2_fs, aid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
@@ -1140,11 +1148,6 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_, isprescore):
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
 
-    # HACKED IN SCORE NORMALIZATION
-    if not isprescore and qreq_.qparams.score_normalization:
-        normalizer = qreq_.normalizer
-        prob_list = normalizer.normalize_score_list(score_list)
-        score_list = prob_list
     # HACK: should not use dicts in pipeline if it can be helped
     daid2_score = dict(zip(aid_list, score_list))
     return daid2_score

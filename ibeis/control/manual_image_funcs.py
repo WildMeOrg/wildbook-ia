@@ -332,15 +332,20 @@ def get_images(ibs, gid_list):
 def get_image_thumbtup(ibs, gid_list, thumbsize=128):
     """
     Returns:
-        list_ (list): tuple of image paths, thumb paths, bboxes and thetas """
+        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
+    """
     # print('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
-    thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=128)
+    thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=thumbsize)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
-    thumbtup_list = list(zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list))
+    thumbtup_list = [
+        (thumb_path, img_path, img_size, bboxes, thetas)
+        for thumb_path, img_path, img_size, bboxes, thetas in
+        zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list)
+    ]
     return thumbtup_list
 
 

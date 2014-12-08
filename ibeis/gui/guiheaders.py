@@ -386,6 +386,7 @@ def make_ibeis_headers_dict(ibs):
             'col_level_list': collevels,
             'col_hidden_list' : hiddencols,
             'num_duplicates'  : numstripes,
+            'get_thumb_size'  : lambda: ibs.cfg.other_cfg.thumb_size,
         }
         return header
 

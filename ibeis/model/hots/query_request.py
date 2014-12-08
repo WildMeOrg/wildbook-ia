@@ -331,6 +331,16 @@ class QueryRequest(object):
 
     # --- Lazy Loading ---
 
+    def lazy_preload(qreq_, verbose=True):
+        """
+        feature weights and normalizers should be loaded before vsone queries
+        are issued. They do not depened only on qparams
+        """
+        if qreq_.qparams.featweight_on is True:
+            qreq_.ensure_featweights(verbose=verbose)
+        if qreq_.qparams.score_normalization is True:
+            qreq_.load_score_normalizer(verbose=verbose)
+
     def lazy_load(qreq_, verbose=True):
         """
         Performs preloading of all data needed for a batch of queries
@@ -339,6 +349,7 @@ class QueryRequest(object):
         with ut.Indenter('[qreq.lazy_load]'):
             qreq_.hasloaded = True
             #qreq_.ibs = ibs  # HACK
+            qreq_.lazy_preload(verbose=verbose)
             if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
                 qreq_.load_indexer(verbose=verbose)
                 # FIXME: not sure if this is even used
@@ -346,10 +357,6 @@ class QueryRequest(object):
                 #qreq_.load_query_keypoints()
             #if qreq_.qparams.pipeline_root in ['smk']:
             #    # TODO load vocabulary indexer
-            if qreq_.qparams.featweight_on is True:
-                qreq_.ensure_featweights(verbose=verbose)
-            if qreq_.qparams.score_normalization is True:
-                qreq_.load_score_normalizer(verbose=verbose)
 
     # load query data structures
 

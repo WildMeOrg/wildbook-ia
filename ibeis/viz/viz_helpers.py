@@ -218,8 +218,14 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
             #utool.embed()
             raise
         text_list.append(rank_str)
+    if kwargs.get('show_rawscore', True):
+        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+        rawscore_str = ('rawscore=' + utool.num_fmt(rawscore))
+        if len(text_list) > 0:
+            rawscore_str = '\n' + rawscore_str
+        text_list.append(rawscore_str)
     if kwargs.get('show_score', True):
-        score = qres.aid2_score.get(aid2, None)
+        score = qres.get_aid_scores([aid2])[0]
         score_str = ('score=' + utool.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str
