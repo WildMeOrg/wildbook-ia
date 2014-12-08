@@ -26,6 +26,27 @@ New TODO:
     * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
     * Improve vsone scoring.
     * Put this query mode into the main application and work on the interface for it.
+    * normalization gets a cfgstr based on the query
+
+TODO:
+    * need to allow for scores to be re-added post spatial verification
+      e.g. when the first match initially is invalidated through
+      spatial verification but the next matches survive.
+
+    * tell me the correct answer in the automated test
+
+    * start from nothing and let the system make the first few decisions
+      correctly
+
+    * score normalization update. on a decision add the point and redo score
+      normalization
+
+    * test case where there is a 360 view that is linkable from the tests case
+
+    * paramater to only add exemplar if post-normlized score is above a
+      threshold
+
+    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -344,6 +365,10 @@ def autodecide_match(ibs2, aid, nid):
 
 def autodecide_exemplar_update(ibs2, aid):
     """
+    TODO:
+        do a vsone query between all of the exemplars to see if this one is good
+        enough to be added.
+
     SeeAlso:
         ibsfuncs.prune_exemplars
     """
