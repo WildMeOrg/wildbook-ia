@@ -107,7 +107,11 @@ class ScoreNormalizer(ut.Cachable):
     #    # Inherited method
     #    super(ScoreNormalizer, normalizer).save(*args, **kwargs)
 
-    def normalize_score(normalizer, score):
+    def normalize_score_(normalizer, score):
+        """ for internal use only """
+        if normalizer.score_domain is None:
+            raise AssertionError('user normalize score list')
+            return .5
         if score < normalizer.score_domain[0]:
             prob = 0.0
         elif score > normalizer.score_domain[-1]:
@@ -121,10 +125,27 @@ class ScoreNormalizer(ut.Cachable):
         return prob
 
     def normalize_score_list(normalizer, score_list):
-        prob_list = [normalizer.normalize_score(score) for score in score_list]
+        if normalizer.score_domain is None:
+            # HACK
+            # return scores from .4 to .6 if we have no idea
+            score_arr = np.array(score_list)
+            if len(score_arr) < 2 or score_arr.max() == score_arr.min():
+                return np.full(score_arr.shape, .5)
+            else:
+                def norm01(a):
+                    return (a - a.min()) / (a.max() - a.min())
+                prob_list = (norm01(score_arr) * .2) + .4
+            return prob_list
+
+        prob_list = [normalizer.normalize_score_(score) for score in score_list]
         return prob_list
 
+    def __call__(normalizer, score_list):
+        return normalizer.normalize_score_list(score_list)
+
     def get_infostr(normalizer):
+        if normalizer.score_domain is None:
+            return 'empty normalizer'
         infostr_list = [
             ut.get_stats_str(normalizer.tp_support, lbl='tp_support'),
             ut.get_stats_str(normalizer.tn_support, lbl='tn_support'),
@@ -136,6 +157,9 @@ class ScoreNormalizer(ut.Cachable):
         ]
         infostr = '\n'.join(infostr_list)
         return infostr
+
+    def add_support():
+        raise NotImplementedError('todo')
 
     def visualize(normalizer, update=True):
         """
@@ -157,6 +181,8 @@ class ScoreNormalizer(ut.Cachable):
         """
         import plottool as pt
         print(normalizer.get_infostr())
+        if normalizer.score_domain is None:
+            return
         fnum = pt.next_fnum()
         normalizer.visualize_probs(fnum=fnum, pnum=(2, 1, 1), update=False)
         normalizer.visualize_support(fnum=fnum, pnum=(2, 1, 2), update=False)
@@ -176,9 +202,6 @@ class ScoreNormalizer(ut.Cachable):
         if update:
             import plottool as pt
             pt.update()
-
-    def __call__(normalizer, score_list):
-        return normalizer.normalize_score_list(score_list)
 
 
 # DEVELOPER FUNCTIONS
@@ -372,12 +395,13 @@ def download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
     }
     baseline_url = baseline_url_dict.get(cfgstr, None)
     if baseline_url is None:
-        if ut.is_developer():
+        if ut.is_developer(['hyrule']):
             print('Baseline does not exist and cannot be downlaoded. Training baseline')
             normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
-            return normalizer
         else:
-            raise NotImplementedError('return the nodata noramlizer with 1/2 default')
+            normalizer = ScoreNormalizer()
+            #raise NotImplementedError('return the nodata noramlizer with 1/2 default')
+    return normalizer
 
 # IBEIS FUNCTIONS
 
@@ -815,7 +839,7 @@ def test():
         aid_list = list(six.iterkeys(qres.aid2_score))
         score_list = list(six.itervalues(qres.aid2_score))
         #normalizer  = normalizer
-        prob_list = [normalizer.normalize_score(score) for score in score_list]
+        prob_list = normalizer.normalize_score_list(score_list)
         qres.qaid2_score = dict(zip(aid_list, prob_list))
     for qres in qres_list:
         print(list(six.itervalues(qres.qaid2_score)))

@@ -48,11 +48,13 @@ TODO:
     * paramater to only add exemplar if post-normlized score is above a
       threshold
 
-    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
-
     * spawn background process to reindex chunks of data
 
     * keep distinctiveness weights from vsmany for vsone weighting
+
+HAVEDONE:
+
+    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -354,23 +356,34 @@ def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
     ibs2.delete_invalid_nids()
 
 
-def autodecide_newname(ibs2, aid):
-    if ibs2.is_aid_unknown(aid):
-        print('adding as new name')
-        newname = ibs2.make_next_name()
-        ibs2.set_annot_names([aid], [newname])
+def autodecide_newname(ibs2, qaid, metatup):
+    if ibs2.is_aid_unknown(qaid):
+        if metatup is not None:
+            #ut.embed()
+            (ibs1, ibs2, aid1_to_aid2) = metatup
+            aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
+            qaid1 = aid2_to_aid1[qaid]
+            # Wow, the program just happend to choose a new
+            # name that was the same as the other database
+            # I wonder how it did that...
+            newname = ibs1.get_annot_names(qaid1)
+        else:
+            # actuall new name
+            newname = ibs2.make_next_name()
+        print('Adding qaid=%r as newname=%r' % (qaid, newname))
+        ibs2.set_annot_names([qaid], [newname])
     else:
         print('already has name')
-    autodecide_exemplar_update(ibs2, aid)
+    autodecide_exemplar_update(ibs2, qaid)
 
 
-def autodecide_match(ibs2, aid, nid):
+def autodecide_match(ibs2, qaid, nid):
     print('setting nameid to nid=%r' % nid)
-    ibs2.set_annot_name_rowids([aid], [nid])
-    autodecide_exemplar_update(ibs2, aid)
+    ibs2.set_annot_name_rowids([qaid], [nid])
+    autodecide_exemplar_update(ibs2, qaid)
 
 
-def autodecide_exemplar_update(ibs2, aid):
+def autodecide_exemplar_update(ibs2, qaid):
     """
     TODO:
         do a vsone query between all of the exemplars to see if this one is good
@@ -380,17 +393,45 @@ def autodecide_exemplar_update(ibs2, aid):
         ibsfuncs.prune_exemplars
     """
     max_exemplars = ibs2.cfg.other_cfg.max_exemplars
-    if ibs2.get_annot_num_groundtruth(aid, is_exemplar=True) < max_exemplars:
+    if ibs2.get_annot_num_groundtruth(qaid, is_exemplar=True) < max_exemplars:
         print('annotation already has too mnay exemplars')
 
-    if not ibs2.get_annot_exemplar_flags(aid):
+    if not ibs2.get_annot_exemplar_flags(qaid):
         print('marking as exemplar')
-        ibs2.set_annot_exemplar_flags([aid], [1])
+        ibs2.set_annot_exemplar_flags([qaid], [1])
     else:
         print('already is exemplar')
 
 
 def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
+    r"""
+    Args:
+        ibs2      (IBEISController):
+        qaid      (int):  query annotation id
+        qres      (QueryResult):  object of feature correspondences and scores
+        threshold (float):
+        metatup   (None):
+
+    Returns:
+        tuple: (msg, func)
+
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-get_suggested_decision
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs2 = '?'
+        >>> qaid = '?'
+        >>> qres = '?'
+        >>> threshold = '?'
+        >>> metatup = None
+        >>> (msg, func) = get_suggested_decision(ibs2, qaid, qres, threshold, metatup)
+        >>> result = str((msg, func))
+        >>> print(result)
+    """
     nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
     if len(nid_list) == 0:
         msg = 'No matches made'
@@ -416,7 +457,7 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
         # Find what the correct decision should be
         # ibs2 is the database we are working with ibs1 is pristine groundtruth
         from ibeis import ibsfuncs
-        ibs1, ibs2, aid1_to_aid2 = metatup
+        (ibs1, ibs2, aid1_to_aid2) = metatup
         aids_list2 = ibs2.get_name_aids(nid_list)
         name_list2 = ibs2.get_name_texts(nid_list)
         #names_list2 = ibsfuncs.unflat_map(ibs2.get_annot_names, aids_list2)
@@ -427,10 +468,11 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
         aids_list1 = [ut.dict_take_list(aid2_to_aid1, aids2) for aids2 in aids_list2]
         names_list1 = ibsfuncs.unflat_map(ibs1.get_annot_names, aids_list1)
         name_list1 = ut.get_list_column(names_list1, 0)
-        ut.listfind(name_list2, name)
-
-        nids_list1 = ibsfuncs.unflat_map(ibs1.get_annot_name_rowids, aids_list1)
-        #qaid1 = aid1_to_aid2[qaid]
+        correct_index = ut.listfind(name_list2, name)
+        if correct_index is not None:
+            nid = nid_list[correct_index]
+            msg = ('Program was able to choose correct_index=%r' % correct_index)
+            func = functools.partial(autodecide_match, ibs2, qaid, nid)
         ut.embed()
     return msg, func
 
@@ -486,7 +528,7 @@ def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False,
             else:
                 autodecide()
         else:
-            autodecide_newname(ibs2, qaid)
+            autodecide_newname(ibs2, qaid, metatup)
 
 
 @ut.indent_func
