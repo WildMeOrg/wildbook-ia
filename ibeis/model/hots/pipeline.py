@@ -520,6 +520,10 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
         filt2_weights (dict):
         qreq_ (QueryRequest): hyper-parameters
 
+    CommandLine:
+        python main.py --query 1 --cfg codename:vsone
+
+
     Return:
         tuple : (qfx2_score, qfx2_valid)
 
@@ -571,7 +575,7 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
         if weight != 0:
             # Score if weight is specified
             if filt == 'ratio' and sign == +1:
-                qfx2_score = (1.0 - thresh)
+                qfx2_weights = (1.0 - qfx2_weights)
             qfx2_score *= (weight * qfx2_weights)
     nnfilt = (qfx2_score, qfx2_valid)
     return nnfilt

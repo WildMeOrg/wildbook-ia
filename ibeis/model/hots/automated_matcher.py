@@ -51,6 +51,8 @@ TODO:
     * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
 
     * spawn background process to reindex chunks of data
+
+    * keep distinctiveness weights from vsmany for vsone weighting
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -176,7 +178,8 @@ def incremental_test(ibs1, num_initial=0):
         exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
         interactive = DEFAULT_INTERACTIVE
         qaid2_qres, qreq_ = query_vsone_verified(ibs2, aids_chunk2, exemplar_aids)
-        make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=interactive)
+        make_decisions(ibs2, qaid2_qres, qreq_, threshold,
+                       interactive=interactive, metatup=(ibs1, ibs2, aid1_to_aid2))
 
     ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=num_initial)
 
@@ -387,7 +390,7 @@ def autodecide_exemplar_update(ibs2, aid):
         print('already is exemplar')
 
 
-def get_suggested_decision(ibs2, qaid, qres, threshold):
+def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
     nid_list, score_list = qres.get_sorted_nids_and_scores(ibs2)
     if len(nid_list) == 0:
         msg = 'No matches made'
@@ -409,12 +412,32 @@ def get_suggested_decision(ibs2, qaid, qres, threshold):
             msg = 'One candidate above threshold with scores=%r' % (scores,)
             nid = nids[scores.argsort()[::-1][0]]
             func = functools.partial(autodecide_match, ibs2, qaid, nid)
+    if metatup is not None:
+        # Find what the correct decision should be
+        # ibs2 is the database we are working with ibs1 is pristine groundtruth
+        from ibeis import ibsfuncs
+        ibs1, ibs2, aid1_to_aid2 = metatup
+        aids_list2 = ibs2.get_name_aids(nid_list)
+        name_list2 = ibs2.get_name_texts(nid_list)
+        #names_list2 = ibsfuncs.unflat_map(ibs2.get_annot_names, aids_list2)
+        # ibs1 info
+        aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
+        qaid1 = aid2_to_aid1[qaid]
+        name = ibs1.get_annot_names(qaid1)
+        aids_list1 = [ut.dict_take_list(aid2_to_aid1, aids2) for aids2 in aids_list2]
+        names_list1 = ibsfuncs.unflat_map(ibs1.get_annot_names, aids_list1)
+        name_list1 = ut.get_list_column(names_list1, 0)
+        ut.listfind(name_list2, name)
+
+        nids_list1 = ibsfuncs.unflat_map(ibs1.get_annot_name_rowids, aids_list1)
+        #qaid1 = aid1_to_aid2[qaid]
+        ut.embed()
     return msg, func
 
 
 def interactive_decision(ibs2, qres):
-    mplshowtop = False
-    qtinspect = True
+    mplshowtop = True
+    qtinspect = False
     if mplshowtop:
         fig = qres.ishow_top(ibs2, name_scoring=True)
         fig.show()
@@ -431,7 +454,8 @@ def interactive_decision(ibs2, qres):
 
 
 @ut.indent_func
-def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False):
+def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False,
+                   metatup=None):
     r"""
     Either makes automatic decision or asks user for feedback.
 
@@ -454,7 +478,8 @@ def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False):
         if qres is not None:
             inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
             print(inspectstr)
-            msg, autodecide = get_suggested_decision(ibs2, qaid, qres, threshold)
+            msg, autodecide = get_suggested_decision(ibs2, qaid, qres,
+                                                     threshold, metatup)
             print(msg)
             if interactive:
                 interactive_decision(ibs2, qres)
