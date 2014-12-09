@@ -191,7 +191,7 @@ class FilterConfig(ConfigBase):
         addfilt(+1,  'bboxdist',   None,    0.0)
         addfilt(-1,     'recip',    0.0,    0.0, 'filt_cfg.Krecip > 0')
         addfilt(+1,    'bursty',   None,    0.0)
-        addfilt(-1,     'ratio',   None,    0.0)
+        addfilt(+1,     'ratio',   None,    0.0)
         addfilt(-1,     'lnbnn',   None,    1.0)
         addfilt(-1,   'dupvote',   None,    1.0)
         addfilt(-1,    'lograt',   None,    0.0)
@@ -622,7 +622,8 @@ class QueryConfig(ConfigBase):
             nn_cfg.K = 1
             nn_cfg.Knorm = 1
             filt_cfg.lnbnn_weight = 0.0
-            filt_cfg.ratio_thresh = 1.6
+            #filt_cfg.ratio_thresh = 1.6
+            filt_cfg.ratio_thresh = .625
             filt_cfg.ratio_weight = 1.0
             filt_cfg.dupvote_weight = 0.0
             if codename == 'vsone_unnorm':

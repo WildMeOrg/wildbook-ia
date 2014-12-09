@@ -522,6 +522,34 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
 
     Return:
         tuple : (qfx2_score, qfx2_valid)
+
+    Example:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import pipeline
+        >>> pipeline.rrr()
+        >>> cfgdict = dict(dupvote_weight=1.0)
+        >>> cfgdict = dict(codename='vsone')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'filter_neighbors')
+        >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt0', 'filt2_weights']]
+        >>> qaid2_nns, qaid2_nnfilt0, filt2_weights = args
+        >>> # Continue with function logic
+        >>> K = qreq_.qparams.K
+        >>> qaid = six.next(six.iterkeys(qaid2_nns))
+        >>> (qfx2_idx, _) = qaid2_nns[qaid]
+        >>> qfx2_nnidx = qfx2_idx.T[0:K].T
+        >>> qfx2_score0, qfx2_valid0 = qaid2_nnfilt0[qaid]
+
+
+        Baseline is all matches have score 1 and all matches are valid
+
+        #if qreq_.qparams.score_method == 'nsum':
+        qfx2_score0, qfx2_valid0 = qaid2_nnfilt0[qaid]
+
+        # Get a numeric score score and valid flag for each feature match
+        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights,
+                                                              qfx2_score0, qfx2_valid0, qreq_)
     """
     qfx2_score = qfx2_score0.copy()
     qfx2_valid = qfx2_valid0.copy()
@@ -529,11 +557,11 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
     for filt, aid2_weights in six.iteritems(filt2_weights):
         qfx2_weights = aid2_weights[qaid]
         sign, thresh, weight = qreq_.qparams.filt2_stw[filt]  # stw = sign, thresh, weight
+
         if thresh is not None:
             # Filter if threshold is specified
             qfx2_trueweights = sign * qfx2_weights
-            truethresh = sign * thresh
-            qfx2_passed = qfx2_trueweights <= truethresh
+            qfx2_passed = qfx2_trueweights <= (sign * thresh)
             #if DEBUG_PIPELINE:
             #    print('[pipe.thresh] TEST(%r): (truethresh:%r) <= (qfx2_trueweights.min()=%r)' %
             #            (filt, truethresh, qfx2_trueweights.min()))
@@ -542,6 +570,8 @@ def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qfx2_score0,
             qfx2_valid  = np.logical_and(qfx2_valid, qfx2_passed)
         if weight != 0:
             # Score if weight is specified
+            if filt == 'ratio' and sign == +1:
+                qfx2_score = (1.0 - thresh)
             qfx2_score *= (weight * qfx2_weights)
     nnfilt = (qfx2_score, qfx2_valid)
     return nnfilt

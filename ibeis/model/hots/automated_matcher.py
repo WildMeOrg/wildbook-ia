@@ -1,4 +1,6 @@
 """
+Idea:
+    what about the probability of a descriptor match being a score.
 
 Have:
     * semantic and visual uuids

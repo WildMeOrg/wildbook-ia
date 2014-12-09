@@ -186,6 +186,8 @@ def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
 @_register_nn_simple_weight_func
 def fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     r"""
+    foreground feature match weighting
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -457,7 +459,8 @@ def loglnbnn_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def ratio_fn(vdist, ndist):
-    return np.divide(ndist, vdist + EPS)
+    return np.divide(vdist, ndist)  # + EPS)
+    #return np.divide(ndist, vdist + EPS)
 
 
 @_register_nn_normalized_weight_func
