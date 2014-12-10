@@ -34,6 +34,25 @@ __injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
 
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
 def postinject_func(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-postinject_func
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aids_list = ibs.get_name_aids(ibs.get_valid_nids())
+        >>> # indirectly test postinject_func
+        >>> thetas_list = ibs.get_unflat_annot_thetas(aids_list)
+        >>> result = str(thetas_list)
+        >>> print(result)
+        [[0.0, 0.0], [0.0, 0.0], [0.0], [0.0], [0.0], [0.0], [0.0]]
+    """
     # List of getters to _unflatten
     to_unflatten = [
         ibs.get_annot_uuids,
@@ -46,6 +65,8 @@ def postinject_func(ibs):
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
         ut.inject_func_as_method(ibs, unflat_getter, allow_override=ibs.allow_override)
+    # very hacky, but useful
+    ibs.unflat_map = unflat_map
 
 
 @__injectable
@@ -877,6 +898,28 @@ def unflat_map(method, unflat_rowids, **kwargs):
     In essence this is equivilent to map(method, unflat_rowids).
     The utility of this function is that it only calls method once.
     This is more efficient for calls that can take a list of inputs
+
+    Args:
+        method        (method):  ibeis controller method
+        unflat_rowids (list): list of rowid lists
+
+    Returns:
+        list of values: unflat_vals
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-unflat_map
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> method = ibs.get_annot_name_rowids
+        >>> unflat_rowids = ibs.get_name_aids(ibs.get_valid_nids())
+        >>> unflat_vals = unflat_map(method, unflat_rowids)
+        >>> result = str(unflat_vals)
+        >>> print(result)
+        [[1, 1], [2, 2], [3], [4], [5], [6], [7]]
     """
     #ut.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
@@ -905,6 +948,9 @@ unflat_lookup = unflat_map
 
 
 def _make_unflat_getter_func(flat_getter):
+    """
+    makes an unflat version of an ibeis getter
+    """
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
         func = get_imfunc(flat_getter)

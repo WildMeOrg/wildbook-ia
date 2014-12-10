@@ -263,6 +263,28 @@ class QueryResult(__OBJECT_BASE__):
     # ----------------------------------------
 
     def get_nscoretup(qres, ibs):
+        r"""
+        Args:
+            ibs (IBEISController):
+
+        Returns:
+            tuple: nscoretup
+
+        CommandLine:
+            python -m ibeis.model.hots.hots_query_result --test-get_nscoretup
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.hots_query_result import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> qaids = ibs.get_valid_aids()[0:1]
+            >>> qres = ibs.query_chips(qaids)[0]
+            >>> nscoretup = qres.get_nscoretup(ibs)
+            >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+            >>> result = str(nscoretup)
+            >>> print(result)
+        """
         aid_list, score_list = qres.get_aids_and_scores(name_scoring=False)
         nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
@@ -537,7 +559,7 @@ class QueryResult(__OBJECT_BASE__):
 
         inspect_str = '\n'.join(inspect_list)
 
-        inspect_str = utool.indent(inspect_str, '[INSPECT] ')
+        #inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 
     # ----------------------------------------

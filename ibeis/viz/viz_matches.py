@@ -1,18 +1,23 @@
 from __future__ import absolute_import, division, print_function
-# UTool
 import utool
-# Drawtool
 import plottool.draw_func2 as df2
 import plottool.plot_helpers as ph
-# IBEIS
-from . import viz_helpers as vh
+from ibeis.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[viz_matches]', DEBUG=False)
 
 
 @utool.indent_func
 def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
-    """ shows single annotated match result. """
+    """
+    shows single annotated match result.
+
+    Args:
+        ibs (IBEISController):
+        qres (QueryResult):  object of feature correspondences and scores
+        aid2 (int): result annotation id
+        sel_fm (list): selected features match indicies
+    """
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     aid1 = qres.qaid
@@ -61,6 +66,14 @@ def annotate_matches(ibs, qres, aid2,
                      xywh2=(0, 0, 0, 0),
                      xywh1=(0, 0, 0, 0),
                      **kwargs):
+    """
+    Helper function
+    Draws annotation on top of a matching chip plot
+
+    does not draw feature matches. that is done in plottool.draw_func2.show_chipmatch2
+    this handles things like the labels and borders based on
+    groundtruth score
+    """
     # TODO Use this function when you clean show_matches
     in_image    = kwargs.get('in_image', False)
     show_query  = kwargs.get('show_query', True)

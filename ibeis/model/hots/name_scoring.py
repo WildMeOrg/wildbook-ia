@@ -12,17 +12,21 @@ def get_one_score_per_name(ibs, aid_list, score_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.hots_query_result import *   # NOQA
+        >>> from ibeis.model.hots.name_scoring import *   # NOQA
         >>> import ibeis
         >>> from ibeis.dev import results_all
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> daid_list = ibs.get_valid_aids()
         >>> qaid_list = daid_list[0:1]
+        >>> cfgdict = dict()
         >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
         >>> qres = qaid2_qres[qaid_list[0]]
         >>> aid_list, score_list = qres.get_aids_and_scores()
         >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+        >>> result = str(sorted_nids[0:3])
+        >>> print(result)
+        [2 6 5]
     """
     score_arr = np.array(score_list)
     aid_list  = np.array(aid_list)
@@ -41,7 +45,20 @@ def get_one_score_per_name(ibs, aid_list, score_list):
     _sorted_scores = grouped_scores.take(group_sortx, axis=0)
     # Secondary sort of aids
     sorted_sortx  = [scores.argsort()[::-1] for scores in _sorted_scores]
-    sorted_scores = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
+    sorted_scores = [scores.take(sortx) for scores, sortx in zip(_sorted_scores, sorted_sortx)]
     sorted_aids   = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
     nscoretup     = (sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
     return nscoretup
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring
+        python -m ibeis.model.hots.name_scoring --allexamples
+        python -m ibeis.model.hots.name_scoring --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

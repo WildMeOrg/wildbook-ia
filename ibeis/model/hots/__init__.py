@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 ut.noinject(__name__, '[ibeis.model.hots.__init__]', DEBUG=False)
 
+from ibeis.model.hots import automated_helpers
+from ibeis.model.hots import automated_matcher
 from ibeis.model.hots import exceptions
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes
@@ -26,6 +28,8 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs(verbose=True):
     """ Reloads ibeis.model.hots and submodules """
     rrr(verbose=verbose)
+    getattr(automated_helpers, 'rrr', fbrrr)(verbose=verbose)
+    getattr(automated_matcher, 'rrr', fbrrr)(verbose=verbose)
     getattr(exceptions, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(hots_query_result, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(hstypes, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -43,6 +47,8 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
+    ('automated_helpers', None),
+    ('automated_matcher', None),
     ('exceptions', None, False),
     ('hots_query_result', None, False),
     ('hstypes', None, False),
@@ -59,7 +65,7 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    makeinit.py -x smk word_index
+    makeinit.py -x smk word_index --modname ibeis.model.hots
 """
 
 ## flake8: noqa

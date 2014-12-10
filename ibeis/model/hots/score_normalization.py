@@ -132,9 +132,7 @@ class ScoreNormalizer(ut.Cachable):
             if len(score_arr) < 2 or score_arr.max() == score_arr.min():
                 return np.full(score_arr.shape, .5)
             else:
-                def norm01(a):
-                    return (a - a.min()) / (a.max() - a.min())
-                prob_list = (norm01(score_arr) * .2) + .4
+                prob_list = (ut.norm_zero_one(score_arr) * .2) + .4
             return prob_list
 
         prob_list = [normalizer.normalize_score_(score) for score in score_list]
@@ -158,8 +156,16 @@ class ScoreNormalizer(ut.Cachable):
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def add_support():
+    def add_support(normalizer):
         raise NotImplementedError('todo')
+
+    def retrain(normalizer):
+        tp_support = normalizer.tp_support
+        tn_support = normalizer.tn_support
+        learnkw = dict()
+        learntup = learn_score_normalization(tp_support, tn_support,
+                                             return_all=False, **learnkw)
+        (score_domain, p_tp_given_score, clip_score) = learntup
 
     def visualize(normalizer, update=True):
         """
@@ -389,13 +395,18 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
     return normalizer
 
 
-def download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
+def try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
+    """
+    tries to download a baseline normalizer for some species.
+    creates an empty normalizer if it cannot
+    """
     baseline_url_dict = {
         # TODO: Populate
     }
     baseline_url = baseline_url_dict.get(cfgstr, None)
     if baseline_url is None:
         if ut.is_developer(['hyrule']):
+            # only do this on hyrule
             print('Baseline does not exist and cannot be downlaoded. Training baseline')
             normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
         else:
@@ -443,7 +454,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
             print('returning baseline normalizer')
     except Exception:
         try:
-            normalizer = download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir)
+            normalizer = try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir)
         except Exception as ex:
             ut.printex(ex)
             raise
