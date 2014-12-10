@@ -147,13 +147,14 @@ def _close_parallel():
 
 def _init_numpy():
     import numpy as np
-    floating_error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
-    on_float_err = floating_error_options[0]
+    error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
+    on_err = error_options[0]
+    #np.seterr(divide='ignore', invalid='ignore')
     numpy_err = {
-        'divide':  on_float_err,
-        'over':    on_float_err,
-        'under':   on_float_err,
-        'invalid': on_float_err,
+        'divide':  on_err,
+        'over':    on_err,
+        'under':   on_err,
+        'invalid': on_err,
     }
     numpy_print = {
         'precision': 8,
@@ -238,8 +239,35 @@ def main(gui=True, dbdir=None, defaultdb='cache',
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True):
-    """ main without the preload (except for option to delete database before
-    opening) """
+    """
+    main without the preload (except for option to delete database before opening)
+
+    Args:
+        db (str):  database name in your workdir used only if dbdir is None
+        dbdir (None): full database path
+        defaultdb (str): dbdir search stratagy when db is None and dbdir is None
+        allow_newdir (bool): (default=True) if True errors when opening a nonexisting database
+        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the entire
+        verbose (bool): verbosity flag
+        use_cache (bool): if True will try to return a previously loaded controller
+
+    Returns:
+        IBEISController: ibs
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.main_module import *  # NOQA
+        >>> db = None
+        >>> dbdir = None
+        >>> defaultdb = 'cache'
+        >>> allow_newdir = False
+        >>> delete_ibsdir = False
+        >>> verbose = False
+        >>> use_cache = True
+        >>> ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir, verbose, use_cache)
+        >>> result = str(ibs)
+        >>> print(result)
+    """
     from ibeis.dev import sysres
     from ibeis import ibsfuncs
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)

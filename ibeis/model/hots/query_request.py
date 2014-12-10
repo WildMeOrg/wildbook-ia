@@ -336,6 +336,8 @@ class QueryRequest(object):
         feature weights and normalizers should be loaded before vsone queries
         are issued. They do not depened only on qparams
         """
+        if verbose:
+            print('[qreq] lazy preloading')
         if qreq_.qparams.featweight_on is True:
             qreq_.ensure_featweights(verbose=verbose)
         if qreq_.qparams.score_normalization is True:

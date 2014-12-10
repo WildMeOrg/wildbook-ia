@@ -297,7 +297,8 @@ def delete_all_learned_normalizers():
     DELETES ALL CACHED NORMALIZERS IN ALL DATABASES
 
     CommandLine:
-        python -m ibeis.model.hots.score_normalization --test-delete_all_learned_normalizers -y
+        python -m ibeis.model.hots.score_normalization --test-delete_all_learned_normalizers
+        #-y
 
     Example:
         >>> # DOCTEST_DISABLE
@@ -309,7 +310,7 @@ def delete_all_learned_normalizers():
     print('DELETE_ALL_LEARNED_NORMALIZERS')
     if ut.are_you_sure('Deleting all learned normalizers'):
         normalizer_fpath_list = score_normalization.list_available_score_normalizers()
-        ut.remove_fpaths(normalizer_fpath_list)
+        ut.remove_fpaths(normalizer_fpath_list, verbose=True)
 
 
 # TRAINING FUNCTIONS
@@ -330,9 +331,13 @@ def train_baseline_for_all_dbs():
     #from ibeis.model.hots import score_normalization
     dbname = 'GZ_ALL'
     dbname = 'PZ_MTEST'
+    dbname_list = [
+        'PZ_MTEST',
+        #'GZ_ALL',
+    ]
     learnkw = dict()
 
-    for dbname in ['GZ_ALL', 'PZ_MTEST']:
+    for dbname in dbname_list:
         ibs = ibeis.opendb(dbname)
         train_baseline_ibeis_normalizer(ibs, use_cache=False, **learnkw)
 
@@ -383,7 +388,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
         use_qcache = True
         qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, use_cache=use_qcache)
-        normalizer = cached_ibeis_score_normalizer(ibs, qaid_list,
+        normalizer = cached_ibeis_score_normalizer(ibs, qreq_, qaid_list,
                                                    qres_list,
                                                    use_cache=use_cache,
                                                    **learnkw)
@@ -408,7 +413,7 @@ def try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
     }
     baseline_url = baseline_url_dict.get(cfgstr, None)
     if baseline_url is None:
-        if ut.is_developer(['hyrule']):
+        if False and ut.is_developer(['hyrule']):
             # only do this on hyrule
             print('Baseline does not exist and cannot be downlaoded. Training baseline')
             normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
@@ -464,7 +469,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
     return normalizer
 
 
-def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list,
+def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
                                   use_cache=True, **learnkw):
     """
     Builds a normalizer trained on query results for a database
@@ -482,15 +487,16 @@ def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list,
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
         >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
-        >>> cfgdict = dict(codename='nsum_unnorm')
-        >>> qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
-        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qaid_list, qres_list)
+        >>> cfgdict = dict(codename='vsone_unnorm')
+        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, return_request=True)
+        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
         >>> result = score_normalizer.get_fname()
         >>> print(result)
         normalizer_PZ_MTEST_SUUIDS((9)67j%dr%&bl%4oh4+).cPkl
     """
     # Collect training data
-    cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
+    #cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
+    cfgstr = ibs.get_dbname() + qreq_.get_cfgstr()
     try:
         if use_cache is False:
             raise Exception('forced cache miss')
@@ -499,6 +505,7 @@ def cached_ibeis_score_normalizer(ibs, qaid_list, qres_list,
         print('returning cached normalizer')
     except Exception as ex:
         ut.printex(ex, iswarning=True)
+        qaid_list = qreq_.get_external_qaids()
         normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw)
         normalizer.save(ibs.cachedir)
     return normalizer

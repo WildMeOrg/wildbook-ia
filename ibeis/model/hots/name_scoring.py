@@ -6,7 +6,6 @@ import utool as ut
 
 
 def get_one_score_per_name(ibs, aid_list, score_list):
-    # TODO : rectify with code in pipeline
     """
     Converts annotation scores to name scores
 

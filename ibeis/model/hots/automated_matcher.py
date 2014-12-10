@@ -18,39 +18,39 @@ Have:
 TODO:
     * ~~Remember confidence of decisions for manual review~~
       Defer
-    * need to use set query as an exemplar if its vs-one reranking scores
-      are below a threshold
 
 New TODO:
     * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
     * Improve vsone scoring.
-    * Put this query mode into the main application and work on the interface for it.
     * normalization gets a cfgstr based on the query
 
 TODO:
-    * need to allow for scores to be re-added post spatial verification
+    * need to allow for scores to be un-invalidatd post spatial verification
       e.g. when the first match initially is invalidated through
       spatial verification but the next matches survive.
 
-    * score normalization update. on a decision add the point and redo score
-      normalization
+    * score normalization update. on add the new support data, reapply bayes
+     rule, and save to the current cache for a given algorithm configuration.
 
     * test case where there is a 360 view that is linkable from the tests case
 
+    * keep distinctiveness weights from vsmany for vsone weighting
+      basically involves keeping weights from different filters and not
+      aggregating match weights until the end.
+
+    * Put test query mode into the main application and work on the interface for it.
+
     * spawn background process to reindex chunks of data
 
-    * keep distinctiveness weights from vsmany for vsone weighting
-
-    * ensure vsone ratio test is happening correctly
-
 HAVEDONE:
+    * need to use set query as an exemplar if its vs-one reranking scores
+      are below a threshold
     * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
-    * start from nothing and let the system make the first few decisions
-      correctly
+    * start from nothing and let the system make the first few decisions correctly
     * tell me the correct answer in the automated test
     * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
-    * paramater to only add exemplar if post-normlized score is above a
-      threshold
+    * paramater to only add exemplar if post-normlized score is above a threshold
+    * ensure vsone ratio test is happening correctly
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -331,23 +331,35 @@ def get_suggested_exemplar_decision(ibs2, qaid):
     other_exemplars = ibs2.get_annot_groundtruth(qaid, is_exemplar=True)
     num_other_exemplars = len(other_exemplars)
     #
-    is_non_exemplar = ibs2.get_annot_exemplar_flags(qaid)
+    is_non_exemplar = not ibs2.get_annot_exemplar_flags(qaid)
     can_add_more = num_other_exemplars < max_exemplars
+    print('num_other_exemplars = %r' % num_other_exemplars)
+    print('max_exemplars = %r' % max_exemplars)
+    print('is_non_exemplar = %r' % is_non_exemplar)
 
-    if is_non_exemplar and can_add_more:
-        ENABLE_DISTINCTIVENESS_METHOD = True
-        if ENABLE_DISTINCTIVENESS_METHOD:
+    if num_other_exemplars == 0:
+        print('First exemplar of this name.')
+        is_distinctive = True
+    elif is_non_exemplar and can_add_more:
+        print('Testing exemplar disinctiveness')
+        with ut.Indenter('[exemplar_test]'):
             exemplar_distinctivness_thresh = ibs2.cfg.other_cfg.exemplar_distinctivness_thresh
             # Logic to choose query based on exemplar score distance
-            qres = ibs2.query_chips([qaid], other_exemplars, cfgdict=dict(codename='vsone_norm_csum'))[0]
-            aid_arr, score_arr = qres.get_aids_and_scores()
-            is_distinctive = np.all(aid_arr < exemplar_distinctivness_thresh)
-        else:
-            is_distinctive = True
+            qaid_list = [qaid]
+            daid_list = other_exemplars
+            cfgdict = dict(codename='vsone_norm_csum')
+            qres = ibs2.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
+            if qres is None:
+                is_distinctive = True
+            else:
+                #ut.embed()
+                aid_arr, score_arr = qres.get_aids_and_scores()
+                is_distinctive = np.all(aid_arr < exemplar_distinctivness_thresh)
     else:
         is_distinctive = True
+        print('Not testing exemplar disinctiveness')
 
-    do_exemplar_add = (can_add_more and is_distinctive and not is_non_exemplar)
+    do_exemplar_add = (can_add_more and is_distinctive and is_non_exemplar)
     if do_exemplar_add:
         autoexmplr_msg = ('marking as qaid=%r exemplar' % (qaid,))
         autoexmplr_func = functools.partial(ibs2.set_annot_exemplar_flags, [qaid], [1])

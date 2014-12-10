@@ -23,6 +23,7 @@ from ibeis.control.accessor_decors import (default_decorator, )
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
+from ibeis.model.hots import pipeline
 #from ibeis.control import controller_inject
 
 
@@ -700,25 +701,30 @@ class IBEISController(object):
 
     def query_chips(ibs, qaid_list, daid_list=None, cfgdict=None,
                     use_cache=None, use_bigcache=None, qreq_=None,
-                    return_request=False):
+                    return_request=False, verbose=pipeline.VERB_PIPELINE):
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
+
+        res = ibs._query_chips4(
+            qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
+            use_bigcache=use_bigcache, qreq_=qreq_,
+            return_request=return_request, verbose=verbose)
+
         if return_request:
-            qaid2_qres, qreq_ = ibs._query_chips4(
-                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
-                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
-            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            qaid2_qres, qreq_ = res
+        else:
+            qaid2_qres = res
+
+        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+
+        if return_request:
             return qres_list, qreq_
         else:
-            qaid2_qres = ibs._query_chips4(
-                qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
-                use_bigcache=use_bigcache, qreq_=qreq_, return_request=return_request)
-            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
             return qres_list
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
                       use_bigcache=None, return_request=False,
-                      cfgdict=None, qreq_=None):
+                      cfgdict=None, qreq_=None, verbose=pipeline.VERB_PIPELINE):
         """
         main entrypoint to submitting a query request
 
@@ -737,8 +743,21 @@ class IBEISController(object):
         #>>> qreq = ibs.qreq
         """
         from ibeis.model.hots import match_chips4 as mc4
-        assert len(daid_list) > 0, 'there are no database chips'
-        assert len(qaid_list) > 0, 'there are no query chips'
+        try:
+            assert len(daid_list) > 0, 'there are no database chips'
+            assert len(qaid_list) > 0, 'there are no query chips'
+        except AssertionError as ex:
+            ut.printex(ex, 'Impossible query request', iswarning=True,
+                       keys=['qaid_list', 'daid_list'])
+            if ut.SUPER_STRICT:
+                raise
+            qaid2_qres = {qaid: None for qaid in qaid_list}
+            if return_request:
+                return qaid2_qres, qreq_
+            else:
+                return qaid2_qres
+
+        # Actually run query
         if qreq_ is not None:
             import numpy as np
             assert np.all(qreq_.get_external_qaids() == qaid_list)
@@ -746,7 +765,8 @@ class IBEISController(object):
 
         res = mc4.submit_query_request(
             ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-            return_request=return_request, cfgdict=cfgdict, qreq_=qreq_)
+            return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
+            verbose=verbose)
 
         if return_request:
             qaid2_qres, qreq_ = res

@@ -63,7 +63,7 @@ vsone = augbase(small_best, {
     'Knorm':         [1],
     'lnbnn_weight':  [0],
     'ratio_weight':  [1.0],
-    'ratio_thresh':  [1.6],
+    'ratio_thresh':  [.625],
 })
 
 pzmastertest = augbase(small_best, {
@@ -472,7 +472,7 @@ vsone_1 = {
     'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
-    'ratio_thresh':    [1.5],  # 1.2, 1.6
+    'ratio_thresh':    [.6666],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
     'lograt_thresh':    [None],  #
     'nShortlist':      [50],
@@ -489,7 +489,7 @@ vsone_std = {
     'Krecip':        0,
     'ratio_weight':  1,
     'lnbnn_weight':  0,
-    'ratio_thresh':  1.5,
+    'ratio_thresh':  .666,
 }
 
 vsmany_scoremethod = {

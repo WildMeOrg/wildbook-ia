@@ -174,8 +174,10 @@ from ibeis.model.hots import pipeline
 from ibeis.model.hots import pipeline as hspipe
 from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import nn_weights
+from ibeis.model.hots import query_request
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import automated_matcher
+from ibeis.model.hots import automated_helpers
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import query_helpers

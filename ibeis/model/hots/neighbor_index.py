@@ -180,10 +180,11 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list=None, flann_params={},
     flannkw = dict(cache_dir=flann_cachedir, cfgstr=cfgstr,
                    flann_params=flann_params, use_cache=use_cache,
                    use_params_hash=use_params_hash)
+    cores = flann_params.get('cores', 0)
     # Build/Load the flann index
     flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
     nnindexer = NeighborIndex(ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx,
-                              flann, cfgstr)
+                              flann, cores, cfgstr)
     return nnindexer
 
 
@@ -227,7 +228,7 @@ class NeighborIndex(object):
     """
 
     def __init__(nnindexer, ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx,
-                 flann, cfgstr):
+                 flann, cores, cfgstr):
         nnindexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
         nnindexer.idx2_fgw = idx2_fgw  # (M x 1) Descriptor forground weight
@@ -235,6 +236,7 @@ class NeighborIndex(object):
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
         nnindexer.flann    = flann     # Approximate search structure
         nnindexer.cfgstr   = cfgstr    # configuration id
+        nnindexer.cores    = cores
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
@@ -260,7 +262,8 @@ class NeighborIndex(object):
         >>> checks = 1028
         >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
         """
-        (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+        (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
+            qfx2_vec, K, checks=checks, cores=nnindexer.cores)
         return (qfx2_idx, qfx2_dist)
 
     def empty_neighbors(nnindexer, K):

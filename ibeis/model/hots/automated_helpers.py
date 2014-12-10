@@ -85,7 +85,7 @@ def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1
     Find what the correct decision should be ibs2 is the database we are working
     with ibs1 has pristine groundtruth
     """
-    print('Oracle is making decision')
+    print('Oracle is making decision using oracle_method=%r' % oracle_method)
     if metatup is None:
         return None
 
@@ -120,10 +120,8 @@ def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1
     qnid1 = ibs1.get_annot_name_rowids(qannot_rowid1)
     # Make an oracle decision by choosing a name (like a user would)
     if oracle_method == 1:
-        print('Oracle is using method 1')
         name2 = oracle_method1(ibs1, ibs2, qnid1, aid_list2, aid2_to_aid1)
     elif oracle_method == 2:
-        print('Oracle is using method 2')
         name2 = oracle_method2(ibs1, qnid1)
     else:
         raise AssertionError('unknown oracle method %r' % (oracle_method,))

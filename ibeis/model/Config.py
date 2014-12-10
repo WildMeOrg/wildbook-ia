@@ -205,7 +205,7 @@ class FilterConfig(ConfigBase):
 
     def make_feasible(filt_cfg):
         # Ensure the list of on filters is valid given the weight and thresh
-        if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
+        if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh >= 1:
             filt_cfg.ratio_thresh = None
         if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
             filt_cfg.bboxdist_thresh = None
@@ -375,14 +375,16 @@ class FlannConfig(ConfigBase):
         flann_cfg.algorithm = 'kdtree'
         #flann_cfg.algorithm = 'linear'
         flann_cfg.trees = 4
+        flann_cfg.flann_cores = 0  # doesnt change config, just speed
         #flann_cfg.trees = 16
         flann_cfg.update(**kwargs)
 
     def get_dict_args(flann_cfg):
-        return {
-            'algorithm' : flann_cfg.algorithm,
-            'trees' : flann_cfg.trees,
-        }
+        return dict(
+            algorithm=flann_cfg.algorithm,
+            trees=flann_cfg.trees,
+            cores=flann_cfg.flann_cores,
+        )
 
     def get_cfgstr_list(flann_cfg, **kwargs):
         flann_cfgstrs = ['_FLANN(']
@@ -468,7 +470,7 @@ class VocabTrainConfig(ConfigBase):
         vocabtrain_cfg.nWords = int(8E3)  #
         vocabtrain_cfg.vocab_init_method = 'akmeans++'
         vocabtrain_cfg.vocab_nIters = 128
-        vocabtrain_cfg.vocab_flann_params = {}  # TODO: easy flann params cfgstr
+        vocabtrain_cfg.vocab_flann_params = dict(cores=0)  # TODO: easy flann params cfgstr
         vocabtrain_cfg.update(**kwargs)
 
     def get_cfgstr_list(vocabtrain_cfg, **kwargs):
@@ -570,44 +572,46 @@ class QueryConfig(ConfigBase):
         if utool.VERYVERBOSE:
             print('[config] NEW QueryConfig')
 
-    def update_query_cfg(query_cfg, **kwargs):
+    def update_query_cfg(query_cfg, **cfgdict):
         # Each config paramater should be unique
         # So updating them all should not cause conflicts
         # FIXME: Should be able to infer all the children that need updates
-        query_cfg.nn_cfg.update(**kwargs)
-        query_cfg.filt_cfg.update(**kwargs)
-        query_cfg.sv_cfg.update(**kwargs)
-        query_cfg.agg_cfg.update(**kwargs)
-        query_cfg.flann_cfg.update(**kwargs)
-        query_cfg.smk_cfg.update(**kwargs)
-        query_cfg.smk_cfg.vocabassign_cfg.update(**kwargs)
-        query_cfg.smk_cfg.vocabtrain_cfg.update(**kwargs)
-        query_cfg._featweight_cfg.update(**kwargs)
-        query_cfg._featweight_cfg._feat_cfg.update(**kwargs)
-        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**kwargs)
-        query_cfg.update(**kwargs)
+        #
+        # apply codename before updating subconfigs
+        query_cfg.apply_codename(cfgdict.get('codename', None))
+        # update subconfigs
+        query_cfg.nn_cfg.update(**cfgdict)
+        query_cfg.filt_cfg.update(**cfgdict)
+        query_cfg.sv_cfg.update(**cfgdict)
+        query_cfg.agg_cfg.update(**cfgdict)
+        query_cfg.flann_cfg.update(**cfgdict)
+        query_cfg.smk_cfg.update(**cfgdict)
+        query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
+        query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
+        query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
+        query_cfg.update(**cfgdict)
         # Ensure feasibility of the configuration
         query_cfg.make_feasible()
 
-    def make_feasible(query_cfg):
+    def apply_codename(query_cfg, codename=None):
         """
-        removes invalid parameter settings over all cfgs (move to QueryConfig)
+        codenames denote mass changes to configurations
         """
-        codename = query_cfg.codename
+        if codename is None:
+            codename = query_cfg.codename
+
         filt_cfg = query_cfg.filt_cfg
         nn_cfg   = query_cfg.nn_cfg
-        featweight_cfg = query_cfg._featweight_cfg
-        feat_cfg = query_cfg._featweight_cfg._feat_cfg
-        smk_cfg = query_cfg.smk_cfg
-        vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
         agg_cfg = query_cfg.agg_cfg
         sv_cfg = query_cfg.sv_cfg
-        # TODO:
+
         if codename.startswith('csum') or codename.endswith('_csum'):
             filt_cfg.dupvote_weight = 0.0
             sv_cfg.prescore_method = 'csum'
             agg_cfg.score_method = 'csum'
-        elif codename.startswith('nsum'):
+        if codename.startswith('nsum'):
             filt_cfg.dupvote_weight = 1.0
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
@@ -615,7 +619,7 @@ class QueryConfig(ConfigBase):
                 agg_cfg.score_normalization = False
             else:
                 agg_cfg.score_normalization = True
-        elif codename.startswith('vsmany'):
+        if codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
             query_cfg.pipeline_root = 'vsone'
@@ -642,11 +646,23 @@ class QueryConfig(ConfigBase):
         #    query_cfg.fg_weight = 1.0
         #if query_cfg.species_code == 'zebra_grevys':
         #    query_cfg.fg_weight = 1.0
-            # TODO:
+
+    def make_feasible(query_cfg):
+        """
+        removes invalid parameter settings over all cfgs (move to QueryConfig)
+        """
+        filt_cfg = query_cfg.filt_cfg
+        nn_cfg   = query_cfg.nn_cfg
+        featweight_cfg = query_cfg._featweight_cfg
+        feat_cfg = query_cfg._featweight_cfg._feat_cfg
+        smk_cfg = query_cfg.smk_cfg
+        vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+        agg_cfg = query_cfg.agg_cfg
+        sv_cfg = query_cfg.sv_cfg
 
         assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
 
-        if agg_cfg.score_normalization:
+        if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
             assert agg_cfg.score_method == 'nsum'
 
         if query_cfg.pipeline_root == 'asmk':
@@ -1073,7 +1089,7 @@ def default_vsone_cfg(ibs, **kwargs):
         'K': 1,
         'Knorm': 1,
         'ratio_weight': 1.0,
-        'ratio_thresh': 1.5,
+        'ratio_thresh': .6666  # 1.5,
     })
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
