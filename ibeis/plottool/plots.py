@@ -159,7 +159,7 @@ def plot_sorted_scores(scores_list,
         markersize = markersizes[lblx]
         xdata = np.where(sorted_labelx == lblx)[0]
         ydata = sorted_scores[xdata]
-        print('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
+        #printDBG('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
         df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
                  markersize=markersize)
         #ut.embed()
@@ -214,7 +214,7 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     knee_indexes = np.where(nStdDevs > nStdDevs_thresh)[0]
     knee_mag = nStdDevs[knee_indexes]
     knee_points = dy_sortx[knee_indexes]
-    print('[df2] knee_points = %r' % (knee_points,))
+    #printDBG('[df2] knee_points = %r' % (knee_points,))
     # Check to see that we have found a knee
     if len(knee_points) > 0 and adaptive_knee_scaling:
         # Use linear scaling up the the knee points and
