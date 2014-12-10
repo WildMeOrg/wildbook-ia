@@ -488,7 +488,7 @@ class QueryResult(__OBJECT_BASE__):
 
     # ----------------------------------------
 
-    def get_match_tbldata(qres, ranks_lt=5, name_scoring=False, ibs=None):
+    def get_match_tbldata(qres, ranks_lt=6, name_scoring=False, ibs=None):
         """
         Returns matchinfo in table format (qaids, aids, scores, ranks)
         """
@@ -522,7 +522,7 @@ class QueryResult(__OBJECT_BASE__):
 
         top_lbls = [' top aids', ' scores', ' ranks']
 
-        top_aids   = np.array(qres.get_top_aids(num=5, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
+        top_aids   = np.array(qres.get_top_aids(num=6, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
         top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
         top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
         top_list   = [top_aids, top_scores, top_ranks]
@@ -618,7 +618,7 @@ class QueryResult(__OBJECT_BASE__):
         from ibeis.viz.interact import interact_qres
         return interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
 
-    def qt_inspect_gui(qres, ibs, ranks_lt=5, name_scoring=False):
+    def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
         from ibeis.gui import inspect_gui
         import guitool
         guitool.ensure_qapp()

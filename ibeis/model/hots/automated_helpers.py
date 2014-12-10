@@ -55,12 +55,12 @@ def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
     nid_list2 = ibs2.get_annot_name_rowids(aid_list2, distinguish_unknowns=False)
     if not ut.list_all_eq_to(nid_list2, 0):
         print('Removing names from database')
-        ibs2.set_annot_name_rowids(aid_list2, [0] * len(aid_list2))
+        ibs2.set_annot_name_rowids(aid_list2, [ibs2.UNKNOWN_NAME_ROWID] * len(aid_list2))
 
-    exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)
-    if not ut.list_all_eq_to(exemplarflag_list2, 0):
-        print('Unsetting all exemplars from database')
-        ibs2.set_annot_exemplar_flags(aid_list2, [0] * len(aid_list2))
+    #exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)
+    #if not ut.list_all_eq_to(exemplarflag_list2, 0):
+    print('Unsetting all exemplars from database')
+    ibs2.set_annot_exemplar_flags(aid_list2, [False] * len(aid_list2))
 
     # this test is for plains
     #assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
@@ -136,10 +136,6 @@ def query_vsone_verified(ibs, qaids, daids):
     """
     A hacked in vsone-reranked pipeline
     Actually just two calls to the pipeline
-
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
     """
     from ibeis import ibsfuncs  # NOQA
 
@@ -159,6 +155,7 @@ def query_vsone_verified(ibs, qaids, daids):
 
     #interactive = False
     cfgdict = {
+        #'pipeline_root': 'vsmany',
         'K': choose_vsmany_K(ibs, qaids, daids),
         'index_method': 'multi',
     }
@@ -211,7 +208,7 @@ def query_vsone_verified(ibs, qaids, daids):
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsmany = qaid2_qres_vsmany[qaid]
         if qres_vsmany is not None:
-            vsmanyinspectstr = qres_vsone.get_inspect_str(ibs=ibs, name_scoring=True)
+            vsmanyinspectstr = qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True)
             print(ut.msgblock(
                 'VSMANY-INITIAL-RESULT qaid=%r' % (qaid,),
                 vsmanyinspectstr))

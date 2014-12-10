@@ -36,7 +36,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
     Wrapper around show_qres.
 
     KWARGS:
-        aid_list - show matches against aid_list (default top 5)
+        aid_list - show matches against aid_list (default top 3)
     """
     print('[show_qres] qres.show_analysis()')
     # Parse arguments
@@ -96,7 +96,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
 def show_qres(ibs, qres, **kwargs):
     """
     Display Query Result Logic
-    Defaults to: query chip, groundtruth matches, and top 5 matches
+    Defaults to: query chip, groundtruth matches, and top matches
     """
     annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
@@ -122,7 +122,8 @@ def show_qres(ibs, qres, **kwargs):
 
     nTop   = len(top_aids)
 
-    max_nCols = 5
+    #max_nCols = 5
+    max_nCols = 3
     if nTop in [6, 7]:
         max_nCols = 3
     if nTop in [8]:

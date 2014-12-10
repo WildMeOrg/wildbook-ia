@@ -603,7 +603,7 @@ class QueryConfig(ConfigBase):
         agg_cfg = query_cfg.agg_cfg
         sv_cfg = query_cfg.sv_cfg
         # TODO:
-        if codename.startswith('csum'):
+        if codename.startswith('csum') or codename.endswith('_csum'):
             filt_cfg.dupvote_weight = 0.0
             sv_cfg.prescore_method = 'csum'
             agg_cfg.score_method = 'csum'
@@ -611,11 +611,11 @@ class QueryConfig(ConfigBase):
             filt_cfg.dupvote_weight = 1.0
             agg_cfg.score_method = 'nsum'
             sv_cfg.prescore_method = 'nsum'
-            if codename == 'nsum_unnorm':
+            if codename.startswith('nsum_unnorm'):
                 agg_cfg.score_normalization = False
             else:
                 agg_cfg.score_normalization = True
-        elif codename == 'vsmany':
+        elif codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
             query_cfg.pipeline_root = 'vsone'
@@ -626,13 +626,13 @@ class QueryConfig(ConfigBase):
             filt_cfg.ratio_thresh = .625
             filt_cfg.ratio_weight = 1.0
             filt_cfg.dupvote_weight = 0.0
-            if codename == 'vsone_unnorm':
+            if codename.startswith('vsone_unnorm'):
                 agg_cfg.score_normalization = False
-            elif codename == 'vsone_norm':
+            elif codename.startswith('vsone_norm'):
                 agg_cfg.score_normalization = True
-        elif codename == 'asmk':
+        elif codename.startswith('asmk'):
             query_cfg.pipeline_root = 'asmk'
-        elif codename == 'smk':
+        elif codename.startswith('smk'):
             query_cfg.pipeline_root = 'smk'
         elif codename == 'None':
             pass
@@ -1037,6 +1037,7 @@ class OtherConfig(ConfigBase):
         othercfg.auto_localize  = True
         # maximum number of exemplars per name
         othercfg.max_exemplars  = 6
+        othercfg.exemplar_distinctivness_thresh  = .95
         othercfg.detect_add_after = 1
         othercfg.detect_use_chunks = True
         othercfg.update(**kwargs)

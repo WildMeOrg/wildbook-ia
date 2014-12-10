@@ -1,14 +1,14 @@
 from __future__ import absolute_import, division, print_function
 # import decorator  # NOQA
-import utool
+import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[decor]')
 
-DEBUG_ADDERS  = utool.get_argflag('--debug-adders')
-DEBUG_SETTERS = utool.get_argflag('--debug-setters')
-DEBUG_GETTERS = utool.get_argflag('--debug-getters')
-VERB_CONTROL = utool.get_argflag('--verb-control')
+DEBUG_ADDERS  = ut.get_argflag('--debug-adders')
+DEBUG_SETTERS = ut.get_argflag('--debug-setters')
+DEBUG_GETTERS = ut.get_argflag('--debug-getters')
+VERB_CONTROL = ut.get_argflag('--verb-control')
 
 #
 #-----------------
@@ -19,16 +19,16 @@ VERB_CONTROL = utool.get_argflag('--verb-control')
 # DECORATORS::OTHERS
 
 def default_decorator(input_):
-    if utool.is_funclike(input_):
+    if ut.is_funclike(input_):
         func_ = input_
-        #return utool.indent_func(profile(func_))
+        #return ut.indent_func(profile(func_))
         #return profile(func_)
         return func_
     else:
         #@decorator.decorator
         def closure_default(func):
-            #return utool.indent_func(input_)(profile(func))
-            return utool.indent_func(input_)(func)
+            #return ut.indent_func(input_)(profile(func))
+            return ut.indent_func(input_)(func)
         return closure_default
 
 
@@ -50,8 +50,8 @@ def default_decorator(input_):
 #        del self._cache[index]
 
 
-API_CACHE = utool.get_argflag('--api-cache')
-if utool.in_main_process():
+API_CACHE = ut.get_argflag('--api-cache')
+if ut.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
     else:
@@ -60,8 +60,8 @@ if utool.in_main_process():
 
 
 def init_tablecache():
-    #return utool.ddict(ColumnsCache)
-    return utool.ddict(lambda: utool.ddict(dict))
+    #return ut.ddict(ColumnsCache)
+    return ut.ddict(lambda: ut.ddict(dict))
 
 
 def _delete_items(dict_, key_list):
@@ -92,7 +92,7 @@ def cache_getter(tblname, colname):
             #    print('\n[get] %s.%s %d / %d cache hits' % (tblname, colname, num_hit, num_total))
             if not any(miss_list):
                 return vals_list
-            miss_rowid_list = utool.filter_items(rowid_list, miss_list)
+            miss_rowid_list = ut.filter_items(rowid_list, miss_list)
             miss_vals = getter_func(self, miss_rowid_list, *args, **kwargs)
             # Write the misses to the cache
             miss_iter_ = iter(enumerate(iter(miss_vals)))
@@ -103,7 +103,7 @@ def cache_getter(tblname, colname):
                     vals_list[index] = miss_val  # Output write
                     cache_[rowid] = miss_val  # Cache write
             return vals_list
-        wrp_getter_cacher = utool.preserve_sig(wrp_getter_cacher, getter_func)
+        wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
     return closure_getter_cacher
 
@@ -124,7 +124,7 @@ def cache_invalidator(tblname, colnames=None):
                 _delete_items(cache_, rowid_list)
             # Preform set action
             setter_func(self, rowid_list, *args, **kwargs)
-        wrp_cache_invalidator = utool.preserve_sig(wrp_cache_invalidator, setter_func)
+        wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
 
@@ -132,22 +132,22 @@ def cache_invalidator(tblname, colnames=None):
 #@decorator.decorator
 def adder(func):
     func_ = default_decorator(func)
-    #@utool.on_exception_report_input
-    @utool.accepts_scalar_input
-    @utool.ignores_exc_tb
+    #@ut.on_exception_report_input
+    @ut.accepts_scalar_input
+    @ut.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or VERB_CONTROL:
             print('+------')
             print('[ADD]: ' + get_funcname(func))
-            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            funccall_str = ut.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
         if VERB_CONTROL:
             print('[ADD]: ' + get_funcname(func))
-            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+            builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
-    wrp_adder = utool.preserve_sig(wrp_adder, func)
-    wrp_adder = utool.on_exception_report_input(wrp_adder)
+    wrp_adder = ut.preserve_sig(wrp_adder, func)
+    wrp_adder = ut.on_exception_report_input(wrp_adder)
     return wrp_adder
 
 
@@ -156,14 +156,14 @@ def adder(func):
 #@decorator.decorator
 def deleter(func):
     func_ = default_decorator(func)
-    @utool.accepts_scalar_input
-    @utool.ignores_exc_tb
+    @ut.accepts_scalar_input
+    @ut.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
             print('[DELETE]: ' + get_funcname(func))
-            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+            builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
-    wrp_deleter = utool.preserve_sig(wrp_deleter, func)
+    wrp_deleter = ut.preserve_sig(wrp_deleter, func)
     return wrp_deleter
 
 
@@ -178,23 +178,24 @@ def setter_general(func):
 #@decorator.decorator
 def setter(func):
     func_ = default_decorator(func)
-    @utool.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
-    #@utool.accepts_scalar_input2(argx_list=range(0, 2))
-    #@utool.accepts_scalar_input2(argx_list=range(1, 2))
-    #@utool.on_exception_report_input
-    @utool.ignores_exc_tb
+    @ut.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
+    #@ut.accepts_scalar_input2(argx_list=range(0, 2))
+    #@ut.accepts_scalar_input2(argx_list=range(1, 2))
+    #@ut.on_exception_report_input
+    @ut.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
             print('+------')
             print('[SET]: ' + get_funcname(func))
-            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            print('[SET]: called by: ' + ut.get_caller_name(range(1, 7)))
+            funccall_str = ut.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
             #builtins.print('\n' + funccall_str + '\n')
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func_(*args, **kwargs)
-    wrp_setter = utool.preserve_sig(wrp_setter, func)
-    wrp_setter = utool.on_exception_report_input(wrp_setter)
+    wrp_setter = ut.preserve_sig(wrp_setter, func)
+    wrp_setter = ut.on_exception_report_input(wrp_setter)
     return wrp_setter
 
 
@@ -207,22 +208,22 @@ def getter(func):
     """
     #func_ = func
     func_ = default_decorator(func)
-    #@utool.on_exception_report_input
-    @utool.accepts_scalar_input
-    @utool.ignores_exc_tb
+    #@ut.on_exception_report_input
+    @ut.accepts_scalar_input
+    @ut.ignores_exc_tb
     def wrp_getter(*args, **kwargs):
-        #if utool.DEBUG:
+        #if ut.DEBUG:
         #    print('[IN GETTER] args=%r' % (args,))
         #    print('[IN GETTER] kwargs=%r' % (kwargs,))
         if DEBUG_GETTERS  or VERB_CONTROL:
             print('+------')
             print('[GET]: ' + get_funcname(func))
-            funccall_str = utool.func_str(func, args, kwargs, packed=True)
+            funccall_str = ut.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
         return func_(*args, **kwargs)
-    wrp_getter = utool.preserve_sig(wrp_getter, func)
-    wrp_getter = utool.on_exception_report_input(wrp_getter)
+    wrp_getter = ut.preserve_sig(wrp_getter, func)
+    wrp_getter = ut.on_exception_report_input(wrp_getter)
     return wrp_getter
 
 
@@ -233,11 +234,11 @@ def getter_vector_output(func):
     list and returns a homogenous list of values
     """
     func_ = default_decorator(func)
-    @utool.accepts_scalar_input_vector_output
-    @utool.ignores_exc_tb
+    @ut.accepts_scalar_input_vector_output
+    @ut.ignores_exc_tb
     def getter_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_vector_wrp = utool.preserve_sig(getter_vector_wrp, func)
+    getter_vector_wrp = ut.preserve_sig(getter_vector_wrp, func)
     return getter_vector_wrp
 
 getter_1toM = getter_vector_output
@@ -253,14 +254,14 @@ def getter_numpy(func):
     """
     #getter_func = getter(func)
     func_ = default_decorator(func)
-    @utool.accepts_numpy
-    #@utool.on_exception_report_input
-    @utool.accepts_scalar_input
-    @utool.ignores_exc_tb
+    @ut.accepts_numpy
+    #@ut.on_exception_report_input
+    @ut.accepts_scalar_input
+    @ut.ignores_exc_tb
     def getter_numpy_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_numpy_wrp = utool.preserve_sig(getter_numpy_wrp, func)
-    getter_numpy_wrp = utool.on_exception_report_input(getter_numpy_wrp)
+    getter_numpy_wrp = ut.preserve_sig(getter_numpy_wrp, func)
+    getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)
     return getter_numpy_wrp
 
 
@@ -270,17 +271,17 @@ def getter_numpy_vector_output(func):
     id list and returns a heterogeous list of values """
     #getter_func = getter_vector_output(func)
     func_ = default_decorator(func)
-    @utool.accepts_numpy
-    @utool.accepts_scalar_input_vector_output
-    @utool.ignores_exc_tb
+    @ut.accepts_numpy
+    @ut.accepts_scalar_input_vector_output
+    @ut.ignores_exc_tb
     def getter_numpy_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_numpy_vector_wrp = utool.preserve_sig(getter_numpy_vector_wrp, func)
+    getter_numpy_vector_wrp = ut.preserve_sig(getter_numpy_vector_wrp, func)
     return getter_numpy_vector_wrp
 
 
 def ider(func):
     """ This function takes returns ids subject to conditions """
     ider_func = default_decorator(func)
-    ider_func = utool.preserve_sig(ider_func, func)
+    ider_func = ut.preserve_sig(ider_func, func)
     return ider_func
