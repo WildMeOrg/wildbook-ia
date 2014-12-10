@@ -102,7 +102,7 @@ def plot_probabilities(prob_list,
         df2.plot(xdata, ydata, color=color, label=label, alpha=.7)
         #ut.embed()
         #help(df2.plot)
-    df2.set_xlabel('score')
+    df2.set_xlabel('score value')
     df2.set_ylabel('probability')
     df2.dark_background()
     df2.set_title(figtitle)
@@ -168,8 +168,8 @@ def plot_sorted_scores(scores_list,
     if logscale:
         set_logyscale_from_data(sorted_scores)
 
-    df2.set_xlabel('sorted scores')
-    df2.set_ylabel('scores')
+    df2.set_xlabel('sorted score indicies')
+    df2.set_ylabel('score values')
     df2.dark_background()
     df2.set_title(figtitle)
     df2.legend(loc='upper left')
