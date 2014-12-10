@@ -214,7 +214,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return QtCore.QSize()
         except Exception as ex:
             print("Error in APIThumbDelegate")
-            utool.printex(ex, 'Error in APIThumbDelegate')
+            utool.printex(ex, 'Error in APIThumbDelegate', tb=True)
             return QtCore.QSize()
 
 
