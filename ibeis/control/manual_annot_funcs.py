@@ -1374,6 +1374,7 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 
 @register_ibs_method
 @setter
+#@cache_invalidator(const.NAME_TABLE)
 def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     """ name_rowid_list -> annot.name_rowid[aid_list]
 
@@ -1383,7 +1384,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
         aid_list
         name_rowid_list
     """
-    ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     id_iter = aid_list
     colnames = (NAME_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
@@ -1469,7 +1470,7 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
 
     """
     #ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)
-    ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list, ibs.lbltype_ids[const.SPECIES_KEY])
+    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list, ibs.lbltype_ids[const.SPECIES_KEY])
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)

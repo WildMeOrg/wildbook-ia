@@ -795,8 +795,6 @@ def get_encounter_nids(ibs, eid_list):
         [[1, 2, 3], [4, 5, 6, 7]]
     """
     aids_list = ibs.get_encounter_aids(eid_list)
-    #nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
-    #                                _lbltype=const.INDIVIDUAL_KEY)
     nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
     #nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
     # Remove any unknown anmes

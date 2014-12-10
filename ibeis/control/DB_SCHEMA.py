@@ -352,6 +352,72 @@ def update_1_2_0(db, ibs=None):
     assert aid_before == aid_after
 
 
+@profile
+def update_1_2_1(db, ibs=None):
+    # Names and species are taken away from lblannot table and upgraded
+    # to their own thing
+    db.add_table(const.NAME_TABLE, (
+        ('name_rowid',               'INTEGER PRIMARY KEY'),
+        ('name_uuid',                'UUID NOT NULL'),
+        ('name_text',                'TEXT NOT NULL'),
+        ('name_note',                'TEXT'),
+    ),
+        superkey_colnames=['name_text'],
+        docstr='''
+        Stores the individual animal names
+        ''')
+
+    db.add_table(const.SPECIES_TABLE, (
+        ('species_rowid',               'INTEGER PRIMARY KEY'),
+        ('species_uuid',                'UUID NOT NULL'),
+        ('species_text',                'TEXT NOT NULL'),
+        ('species_note',                'TEXT'),
+    ),
+        superkey_colnames=['species_text'],
+        docstr='''
+        Stores the different animal species
+        ''')
+
+
+def post_1_2_1(db, ibs=None):
+    import utool as ut
+    print('applying post_1_2_1')
+    if ibs is not None:
+        ibs._init_rowid_constants()
+        #db = ibs.db
+    UNKNOWN_ROWID = 0
+    SPECIES_ROWID       = 'species_rowid'
+    NAME_ROWID          = 'name_rowid'
+    lblannot_colnames     =  ('lblannot_uuid', 'lblannot_value', 'lblannot_note',)
+    name_colnames         =  ('name_uuid', 'name_text', 'name_note',)
+    species_colspeciess   =  ('species_uuid', 'species_text', 'species_note',)
+    # Get old name and species rowids from annotaiton tables
+    aid_list = db.get_all_rowids(const.ANNOTATION_TABLE)
+    name_rowids1    = db.get(const.ANNOTATION_TABLE, (NAME_ROWID,), aid_list)
+    species_rowids1 = db.get(const.ANNOTATION_TABLE, (SPECIES_ROWID,), aid_list)
+    # Look at the unique non-unknown ones
+    unique_name_rowids1    = sorted(list(set(name_rowids1) - set([UNKNOWN_ROWID])))
+    unique_species_rowids1 = sorted(list(set(species_rowids1) - set([UNKNOWN_ROWID])))
+    # Get params out of label annotation tables
+    name_params_list    = db.get(const.LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1)
+    species_params_list = db.get(const.LBLANNOT_TABLE, lblannot_colnames, unique_species_rowids1)
+    # Move params into name and species tables
+    unique_name_rowids2 = db._add(const.NAME_TABLE, name_colnames, name_params_list)
+    unique_species_rowids2 = db._add(const.SPECIES_TABLE, species_colspeciess, species_params_list)
+    # Build mapping from old table to new table
+    name_rowid_mapping = dict(zip(unique_name_rowids1, unique_name_rowids2))
+    speices_rowid_mapping = dict(zip(unique_species_rowids1, unique_species_rowids2))
+    name_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
+    speices_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
+    # Apply mapping
+    name_rowids2   = ut.dict_take_list(name_rowid_mapping, name_rowids1)
+    species_rowid2 = ut.dict_take_list(speices_rowid_mapping, species_rowids1)
+    # Put new rowids back into annotation table
+    db.set(const.ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
+    db.set(const.ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
+    #ut.embed()
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -369,6 +435,7 @@ VALID_VERSIONS = utool.odict([
     ('1.1.0',    (None,                 update_1_1_0,       None                )),
     ('1.1.1',    (None,                 update_1_1_1,       None                )),
     ('1.2.0',    (None,                 update_1_2_0,       post_1_2_0          )),
+    ('1.2.1',    (None,                 update_1_2_1,       post_1_2_1          )),
 ])
 
 

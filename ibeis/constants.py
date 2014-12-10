@@ -83,6 +83,9 @@ BASE_DATABASE_VERSION = '0.0.0'
 #################################################################
 # DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
 # THIS GOES FOR OLD AND DEPRICATED TABLENAMES AS WELL!!!
+# TODO:
+# What should happen is when they are depricated they should go into a
+# depricated tablename structure with the relevant versions suffixed
 #################################################################
 AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
 ANNOTATION_TABLE     = 'annotations'
@@ -99,6 +102,8 @@ LBLANNOT_TABLE       = 'lblannot'
 LBLIMAGE_TABLE       = 'lblimage'
 LBLTYPE_TABLE        = 'keys'
 METADATA_TABLE       = 'metadata'
+NAME_TABLE           = 'name'
+SPECIES_TABLE        = 'species'
 RESIDUAL_TABLE       = 'residuals'
 VERSIONS_TABLE       = 'versions'
 #################################################################

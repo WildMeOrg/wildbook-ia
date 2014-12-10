@@ -422,13 +422,36 @@ def fix_remove_visual_dupliate_annotations(ibs):
             assert len(ibs_dup_annots) == 0
 
 
+@__injectable
+def vacuum_and_clean_databases(ibs):
+    ibs.vdd()
+    print(ibs.db.get_table_names())
+    # Removes all lblannots and lblannot relations as we are not using them
+    if False:
+        print(ibs.db.get_table_csv(const.NAME_TABLE))
+        print(ibs.db.get_table_csv(const.ANNOTATION_TABLE))
+        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
+        print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
+        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
+    # Get old table indexes
+    #lbltype_rowids = ibs.db.get_all_rowids(const.LBLTYPE_TABLE)
+    lblannot_rowids = ibs.db.get_all_rowids(const.LBLANNOT_TABLE)
+    alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)
+    # delete those tables
+    #ibs.db.delete_rowids(const.LBLTYPE_TABLE, lbltype_rowids)
+    ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowids)
+    ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
+    ibs.db.vacuum()
+
+
 def check_name_consistency(ibs, nid_list):
     #aids_list = ibs.get_name_aids(nid_list)
     print('check name consistency. len(nid_list)=%r' % len(nid_list))
-    lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
-    individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
-    for lbltype_rowid in lbltype_rowid_list:
-        assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
+    print('WARNING: check_name_consistency function is not longer used')
+    #lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
+    #individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
+    #for lbltype_rowid in lbltype_rowid_list:
+    #    assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
 
 
 @__injectable
@@ -1395,6 +1418,20 @@ def print_lblannot_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
+
+
+@__injectable
+def print_name_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv(const.NAME_TABLE))
+
+
+@__injectable
+def print_species_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv(const.SPECIES_TABLE))
 
 
 @__injectable
