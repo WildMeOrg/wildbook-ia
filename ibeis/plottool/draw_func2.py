@@ -1229,7 +1229,22 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
            data_colorbar=False, darken=DARKEN, **kwargs):
-    'other interpolations = nearest, bicubic, bilinear'
+    """
+    Args:
+        img (ndarray):  image data
+        fnum (int):  figure number
+        title (str):
+        figtitle (None):
+        pnum (tuple):  plot number
+        interpolation (str): other interpolations = nearest, bicubic, bilinear
+        cmap (None):
+        heatmap (bool):
+        data_colorbar (bool):
+        darken (None):
+
+    Returns:
+        tuple: (fig, ax)
+    """
     printDBG('imshow()')
     #printDBG('[df2] ----- IMSHOW ------ ')
     #printDBG('[***df2.imshow] fnum=%r pnum=%r title=%r *** ' % (fnum, pnum, title))
@@ -1351,10 +1366,26 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
                     draw_fmatch=True, **kwargs):
-    """Draws two chips and the feature matches between them. feature matches
-    kpts1 and kpts2 use the (x,y,a,c,d)
     """
-    printDBG('[df2] draw_matches2() fnum=%r, pnum=%r' % (fnum, pnum))
+    Draws two chips and the feature matches between them. feature matches
+    kpts1 and kpts2 use the (x,y,a,c,d)
+
+    Args:
+        rchip1 (ndarray): rotated annotation 1 image data
+        rchip2 (ndarray): rotated annotation 2 image data
+        kpts1 (ndarray): keypoints for annotation 1
+        kpts2 (ndarray): keypoints for annotation 2
+        fm (list):  list of feature matches as tuples (qfx, dfx)
+        fs (list):  list of feature scores
+        title (str):
+        vert (None):
+        fnum (int):  figure number
+        pnum (tuple):  plot number
+        heatmap (bool):
+        draw_fmatch (bool):
+    """
+    printDBG('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
+    #printDBG('[df2] show_chipmatch2() locals_=%s' % (ut.dict_str(locals())))
     # get matching keypoints + offset
     (h1, w1) = rchip1.shape[0:2]  # get chip (h, w) dimensions
     (h2, w2) = rchip2.shape[0:2]
@@ -1374,9 +1405,23 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
                 draw_border=False, **kwargs):
-    """Draws the matching features. This is draw because it is an overlay
-    xywh1 - location of rchip1 in the axes
-    xywh2 - location or rchip2 in the axes
+    """
+    Overlays the matching features over chips that were previously plotted.
+
+    Args:
+        xywh1 (tuple): location of rchip1 in the axes
+        xywh2 (tuple): location or rchip2 in the axes
+        kpts1 (ndarray):  keypoints in rchip1
+        kpts2 (ndarray):  keypoints in rchip1
+        fm (list): feature matches
+        fs (list): features scores
+        lbl1 (None): rchip1 label
+        lbl2 (None): rchip2 label
+        fnum (None): figure number
+        pnum (None): plot number
+        rect (bool):
+        colorbar_ (bool):
+        draw_border (bool):
     """
     printDBG('[df2] plot_fmatch')
     if fm is None:
@@ -1412,8 +1457,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         draw_bbox(xywh1, bbox_color=BLACK, draw_arrow=False)
         draw_bbox(xywh2, bbox_color=BLACK, draw_arrow=False)
 
-    # Draw Lines and Ellipses and Points oh my
     if nMatch > 0:
+        # draw lines and ellipses and points
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)
         if fs is not None:
             colors = scores_to_color(fs, 'hot')
@@ -1432,7 +1477,6 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
             _kwargs.update(kwargs)
             draw_lines2(kpts1, kpts2, fm, fs, kpts2_offset=offset2, **_kwargs)
 
-        # User utool
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
         if pts:
@@ -1441,8 +1485,13 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         if lines:
             _drawlines(color_list=colors)
     else:
+        # if not matches draw a big red X
         draw_boxedX(xywh2)
-    if fs is not None and colorbar_ and 'colors' in vars() and colors is not None:
+    # Turn off colorbar if there are no features being drawn
+    # or the user doesnt want a colorbar
+    drew_anything = fs is not None and (ell or pts or lines)
+    has_colors = nMatch > 0 and colors is not None  # 'colors' in vars()
+    if drew_anything and has_colors and colorbar_:
         colorbar(fs, colors)
     #legend()
     return None
