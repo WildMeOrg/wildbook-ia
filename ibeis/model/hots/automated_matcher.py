@@ -396,13 +396,6 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
             nid = None
             score = None
             rank = None
-        #elif len(candidate_indexes) == 1:
-        #    nid = sorted_nids[candidate_indexes[0]]
-        #    score = sorted_nscore[candidate_indexes[0]]
-        #    autoname_msg = '\n'.join((
-        #        'Single candidates above threshold',
-        #        'suggesting score=%r, nid=%r' % (score, nid),
-        #    ))
         else:
             nids = sorted_nids[candidate_indexes]
             scores = sorted_nscore[candidate_indexes]

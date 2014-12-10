@@ -26,7 +26,9 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         >>> result = str(sorted_nids[0:3])
         >>> print(result)
-        [2 6 5]
+        [1 5 4]
+
+    [2 6 5]
     """
     score_arr = np.array(score_list)
     aid_list  = np.array(aid_list)

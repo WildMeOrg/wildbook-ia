@@ -167,7 +167,7 @@ END_TESTS()
         echo "-----"
         printf "Failed Tests:"
         printf "$FAILED_TESTS\n"
-        printf "$FAILED_TESTS\n" >> failed.txt
+        printf "$FAILED_TESTS\n" >> failed_shelltests.txt
         echo "-----"
     fi
     echo "$num_passed / $num_ran tests passed"
@@ -327,7 +327,9 @@ EOF
     RUN_TEST ibeis/ibsfuncs.py --test-get_annot_is_hard:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-get_upsize_data:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-invertable_flatten2:0 --sysexitonfail
+    RUN_TEST ibeis/ibsfuncs.py --test-postinject_func:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-print_annotation_table:0 --sysexitonfail
+    RUN_TEST ibeis/ibsfuncs.py --test-unflat_map:0 --sysexitonfail
     RUN_TEST ibeis/ibsfuncs.py --test-unflatten2:0 --sysexitonfail
     RUN_TEST ibeis/viz/viz_sver.py --test-show_sver:0 --sysexitonfail
     RUN_TEST ibeis/model/Config.py --test-DetectionConfig:0 --sysexitonfail
@@ -340,10 +342,12 @@ EOF
     RUN_TEST ibeis/model/Config.py --test-VocabAssignConfig:0 --sysexitonfail
     RUN_TEST ibeis/model/Config.py --test-VocabTrainConfig:0 --sysexitonfail
     RUN_TEST ibeis/model/Config.py --test-parse_config_items:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/name_scoring.py --test-get_one_score_per_name:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/neighbor_index.py --test-NeighborIndex:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/neighbor_index.py --test-get_nn_aids:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/neighbor_index.py --test-request_ibeis_nnindexer:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/neighbor_index.py --test-test_nnindexer:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/hots_query_result.py --test-get_nscoretup:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-apply_normweight:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-cos_match_weighter:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-dupvote_match_weighter:0 --sysexitonfail
@@ -351,6 +355,7 @@ EOF
     RUN_TEST ibeis/model/hots/nn_weights.py --test-lnbnn_fn:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-nn_normalized_weight:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/nn_weights.py --test-test_all_normalized_weights:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/pipeline.py --test-_threshold_and_scale_weights:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/pipeline.py --test-build_chipmatches:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/pipeline.py --test-chipmatch_to_resdict:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/pipeline.py --test-filter_neighbors:0 --sysexitonfail
@@ -369,13 +374,17 @@ EOF
     RUN_TEST ibeis/model/hots/query_request.py --test-shallowcopy:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/query_request.py --test-test_cfg_deepcopy:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-MultiNeighborIndex:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-get_nIndexed_list:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-get_nn_aids:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-get_nn_featxs:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-get_nn_fgws:0 --sysexitonfail
+    RUN_TEST ibeis/model/hots/multi_index.py --test-get_offsets:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-knn:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-knn2:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-multi_knn:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-num_indexed_annots:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-num_indexed_vecs:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/multi_index.py --test-request_ibeis_mindexer:0 --sysexitonfail
-    RUN_TEST ibeis/model/hots/multi_index.py --test-split_imxs_gen:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_csum:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/voting_rules2.py --test-score_chipmatch_nsum:0 --sysexitonfail
     RUN_TEST ibeis/model/hots/match_chips4.py --test-execute_query_and_save_L1:0 --sysexitonfail
@@ -447,9 +456,11 @@ EOF
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_gids:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_num_annotations:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_rowids_from_text:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_rowids_from_text:1 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_name_texts:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_num_names:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_species_rowids_from_text:0 --sysexitonfail
+    RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_species_rowids_from_text:1 --sysexitonfail
     RUN_TEST ibeis/control/manual_name_species_funcs.py --test-get_species_texts:0 --sysexitonfail
     RUN_TEST ibeis/control/DB_SCHEMA.py --test-test_dbschema:0 --sysexitonfail
     RUN_TEST ibeis/control/manual_image_funcs.py --test-get_encounter_nids:0 --sysexitonfail
