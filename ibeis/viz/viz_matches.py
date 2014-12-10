@@ -94,8 +94,11 @@ def annotate_matches(ibs, qres, aid2,
     ph.set_plotdat(ax, 'aid2', aid2)
     if draw_lbl:
         name1, name2 = ibs.get_annot_names([aid1, aid2])
-        lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_aidstrs(aid1)
-        lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
+        nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2], distinguish_unknowns=False)
+        #lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_aidstrs(aid1)
+        #lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
+        lbl1 = ' : '.join([repr(name1), vh.get_nidstrs(nid1), 'q' + vh.get_aidstrs(aid1)])
+        lbl2 = ' : '.join([repr(name2), vh.get_nidstrs(nid2), vh.get_aidstrs(aid2)])
     else:
         lbl1, lbl2 = None, None
     if vh.NO_LBL_OVERRIDE:

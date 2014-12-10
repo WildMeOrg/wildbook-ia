@@ -96,6 +96,13 @@ def get_aidstrs(aid_list, **kwargs):
         return ibsfuncs.aidstr(aid_list, **kwargs)
 
 
+def get_nidstrs(nid_list, **kwargs):
+    if utool.isiterable(nid_list):
+        return ['nid%d' for nid in nid_list]
+    else:
+        return 'nid%d' % nid_list
+
+
 def get_vsstr(qaid, aid):
     return ibsfuncs.vsstr(qaid, aid)
 
@@ -167,6 +174,9 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     if kwargs.get('show_name', True):
         name_list = ibs.get_annot_names(aid_list)
         texts_list.append(['name=%s' % name for name in name_list])
+    if kwargs.get('show_nid', False):
+        nid_list = ibs.get_annot_name_rowids(aid_list)
+        texts_list.append(['nid=%d' % nid for nid in nid_list])
     if kwargs.get('show_exemplar', True):
         flag_list = ibs.get_annot_exemplar_flags(aid_list)
         texts_list.append(['EX' if flag else '' for flag in flag_list])

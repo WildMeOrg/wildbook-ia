@@ -145,9 +145,9 @@ class ScoreNormalizer(ut.Cachable):
         if normalizer.score_domain is None:
             return 'empty normalizer'
         infostr_list = [
-            ut.get_stats_str(normalizer.tp_support, lbl='tp_support'),
-            ut.get_stats_str(normalizer.tn_support, lbl='tn_support'),
-            ut.get_stats_str(normalizer.p_tp_given_score, lbl='p_tp_given_score'),
+            ut.get_stats_str(normalizer.tp_support, lbl='tp_support', exclude_keys=['nMin', 'nMax']),
+            ut.get_stats_str(normalizer.tn_support, lbl='tn_support', exclude_keys=['nMin', 'nMax']),
+            ut.get_stats_str(normalizer.p_tp_given_score, lbl='p_tp_given_score', exclude_keys=['nMin', 'nMax']),
             ut.get_stats_str(normalizer.score_domain, keys=['max', 'min', 'shape'], lbl='score_domain'),
             'clipscore = %.2f' % normalizer.clipscore,
             'cfgstr = %r' % normalizer.cfgstr,
@@ -167,7 +167,7 @@ class ScoreNormalizer(ut.Cachable):
                                              return_all=False, **learnkw)
         (score_domain, p_tp_given_score, clip_score) = learntup
 
-    def visualize(normalizer, update=True):
+    def visualize(normalizer, update=True, verbose=True, fnum=None):
         """
         CommandLine:
             python -m ibeis.model.hots.score_normalization --test-visualize --index 0
@@ -186,10 +186,13 @@ class ScoreNormalizer(ut.Cachable):
 
         """
         import plottool as pt
-        print(normalizer.get_infostr())
+        if verbose:
+            print(normalizer.get_infostr())
         if normalizer.score_domain is None:
             return
-        fnum = pt.next_fnum()
+        if fnum is None:
+            fnum = pt.next_fnum()
+        pt.figure(fnum=fnum, pnum=(2, 1, 1), doclf=True, docla=True)
         normalizer.visualize_probs(fnum=fnum, pnum=(2, 1, 1), update=False)
         normalizer.visualize_support(fnum=fnum, pnum=(2, 1, 2), update=False)
         if update:

@@ -88,7 +88,7 @@ def incremental_test(ibs1, num_initial=0):
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs1 = ibeis.opendb('PZ_MTEST')
         >>> #num_initial = 0
-        >>> num_initial = 20
+        >>> num_initial = 0
         >>> incremental_test(ibs1, num_initial)
 
     Example2:
@@ -121,26 +121,27 @@ def incremental_test(ibs1, num_initial=0):
     aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
 
     #interactive = DEFAULT_INTERACTIVE
-    interact_after = 10
+    interact_after = 0
     #interact_after = 100
     #interact_after = None
 
     # FULL INCREMENT
     #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
-        try:
-            interactive = (interact_after is not None and count > interact_after)
-            execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive)
-        except KeyboardInterrupt:
-            print('Caught keyboard interupt')
-            print('interact_after is currently=%r' % (interact_after))
-            print('What would you like to change it to?')
-            #you like to become interactive?')
-            ans = input('...enter new interact after val')
-            if ans == 'None':
-                interact_after = None
-            else:
-                interact_after = int(ans)
+        #try:
+        interactive = (interact_after is not None and count > interact_after)
+        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive)
+        # doesnt work on windows
+        #except KeyboardInterrupt:
+        #    print('Caught keyboard interupt')
+        #    print('interact_after is currently=%r' % (interact_after))
+        #    print('What would you like to change it to?')
+        #    #you like to become interactive?')
+        #    ans = input('...enter new interact after val')
+        #    if ans == 'None':
+        #        interact_after = None
+        #    else:
+        #        interact_after = int(ans)
 
 
 def setup_incremental_test(ibs1, num_initial=0):
@@ -370,77 +371,102 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
         tuple: (autoname_msg, autoname_func)
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-get_suggested_decision
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
     """
     if qres is None:
         nscoretup = list(map(np.array, ([], [], [], [])))
+        (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
     else:
         nscoretup = qres.get_nscoretup(ibs2)
-    # Get System Responce
+
     (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+    sorted_rawscore = [qres.get_aid_scores(aids, rawscore=True) for aids in sorted_aids]
+
+    autoname_msg_list = []
     if len(sorted_nids) == 0:
-        autoname_msg = '\n'.join((
-            'Unable to find any matches',
-            'suggesting new name',))
-        nid = None
-        score = None
-        rank = None
+        autoname_msg_list.append('Unable to find any matches')
+        nid, score, rank = None, None, None
     else:
         candidate_indexes = np.where(sorted_nscore > threshold)[0]
         if len(candidate_indexes) == 0:
-            autoname_msg = '\n'.join((
-                'No candidates above threshold',
-                'suggesting new name',))
-            nid = None
-            score = None
             rank = None
+            autoname_msg_list.append('No candidates above threshold')
+            #autoname_msg = '\n'.join((
+            #    'No candidates above threshold',
+            #    'suggesting new name',))
+            #nid, score, rank = None, None, None
         else:
-            nids = sorted_nids[candidate_indexes]
-            scores = sorted_nscore[candidate_indexes]
-            sortx = scores.argsort()[::-1]
+            sortx = sorted_nscore[candidate_indexes].argsort()[::-1]
             rank = sortx[0]
-            score = scores[rank]
-            nid = nids[rank]
-            autoname_msg = '\n'.join((
-                ('Multiple candidates above threshold'
-                    if len(candidate_indexes) > 1 else
-                    'Single candidate above threshold'),
-                #'with scores=%r, nids=%r' % (scores, nids),
-                'suggesting score=%r, nid=%r' % (score, nid),
-            ))
-    # If we have metainformation use the oracle to make a decision
+            multiple_candidates = len(candidate_indexes) > 1
+            if multiple_candidates:
+                autoname_msg_list.append('Multiple candidates above threshold')
+            else:
+                autoname_msg_list.append('Single candidate above threshold')
+
+            #autoname_msg = '\n'.join((
+            #    ('Multiple candidates above threshold'
+            #        if multiple_candidates else
+            #        'Single candidate above threshold'),
+            #    #'with scores=%r, nids=%r' % (scores, nids),
+            #))
+
+    # Get system suggested nid and message
+    if rank is not None:
+        score = sorted_nscore[rank]
+        nid = sorted_nids[rank]
+        rawscore = sorted_rawscore[rank][0]
+        autoname_msg_list.append('suggesting nid=%r, score=%.2f, rank=%r, rawscore=%.2f' % (nid, score, rank, rawscore))
+    else:
+        nid, score, rawscore = None, None, None
+        autoname_msg_list.append('suggesting new name')
+    autoname_msg = '\n'.join(autoname_msg_list)
+
+    # ---------------------------------------------
+    # Get oracle suggestion if we have the metadata
+    # override the system suggestion
     if metatup is not None:
+        oracle_msg_list = []
+        oracle_msg_list.append('The overrided system responce was:\n%s'
+                               % (ut.indent(autoname_msg, '  ~~'),))
         name2 = ah.get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids)
-        system_msg = 'The overrided system responce was:\n%s\n' % (ut.indent(autoname_msg),)
         if name2 is not None:
             nid = ibs2.get_name_rowids_from_text(name2)
-            sorted_rawscore = [qres.get_aid_scores(aids, rawscore=True) for aids in sorted_aids]
-            rank = np.where(sorted_nids == nid)[0]
+            rank = ut.listfind(sorted_nids.tolist(), nid)
             if rank is None:
-                score = None
-                rawscore = None
+                print('Warning: impossible state if oracle_method == 1')
+                score, rawscore = None
             else:
                 score = sorted_nscore[rank]
                 rawscore = sorted_rawscore[rank][0]
             #ut.embed()
-            autoname_msg = system_msg + 'The oracle suggests score=%r nid=%r at rank=%r' % (score, nid, rank)
+            oracle_msg_list.append(
+                'Oracle suggests nid=%r, score=%.2f, rank=%r, rawscore=%.2f' % (nid, score, rank, rawscore))
         else:
-            autoname_msg = system_msg + 'The oracle suggests a new name'
-            score = None
-            nid = None
+            nid, score, rawscore = None, None, None
+            oracle_msg_list.append('Oracle suggests a new name')
+        autoname_msg = '\n'.join(oracle_msg_list)
         #print(autoname_msg)
         #ut.embed()
-    # Get new support data for score normalization
-    if rank is not None:
-        if rank > 0:
-            rawscore_false = sorted_rawscore[0][0]
-        else:
-            if len(sorted_rawscore) > rank + 1:
-                rawscore_false = sorted_rawscore[rank + 1][0]
-            else:
-                rawscore_false = None
+    # ---------------------------------------------
+
+    # Get new True Negative support data for score normalization
+    tp_rawscore = rawscore
+    valid_falseranks = set(range(len(sorted_rawscore))) - set([rank])
+    if len(valid_falseranks) > 0:
+        tn_rank = min(valid_falseranks)
+        tn_rawscore = sorted_rawscore[tn_rank][0]
+    else:
+        tn_rawscore = None
+
+    if tp_rawscore is not None and tn_rawscore is not None:
+        # UPDATE SCORE NORMALIZER HERE
+        print('new normalization example: tp_rawscore={}, tn_rawscore={}'.format(tp_rawscore, tn_rawscore))
+    else:
+        print('cannot update score normalization')
+
+    #
     # Build decision function
     if nid is not None:
         autoname_func = functools.partial(autodecide_match, ibs2, qaid, nid)
@@ -454,12 +480,14 @@ def interactive_prompt(msg, decisiontype):
         '''
         Accept system {decisiontype} decision?
         ==========
+
         {msg}
+
         ==========
-        Enter {no_phrase} to reject
-        Enter {embed_phrase} to embed into ipython
-        Any other inputs accept system decision
-        (input is case insensitive)
+        * enter {no_phrase} to reject
+        * enter {embed_phrase} to embed into ipython
+        * any other inputs accept system decision
+        * (input is case insensitive)
         '''
     )
     ans_list_embed = ['cmd', 'ipy', 'embed']
@@ -484,7 +512,7 @@ def interactive_prompt(msg, decisiontype):
         return True
 
 
-def interactive_decision(ibs2, qres, autoname_msg, autoname_func):
+def interactive_decision(ibs2, qres, qreq_, autoname_msg, autoname_func):
     r"""
     Prompts the user for input
 
@@ -503,6 +531,8 @@ def interactive_decision(ibs2, qres, autoname_msg, autoname_func):
         fig.show()
     if qtinspect:
         qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
+    if qreq_ is not None:
+        qreq_.normalizer.visualize(update=False, fnum=2)
     # Ask the user if they like the
     if interactive_prompt(autoname_msg, 'name'):
         autoexmplr_msg, autoexmplr_func = autoname_func()
@@ -537,9 +567,6 @@ def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False,
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
 
     """
-    if qreq_ is not None:
-        qreq_.normalizer.visualize(update=False)
-
     for qaid, qres in six.iteritems(qaid2_qres):
         #inspectstr = qres.get_inspect_str(ibs=ibs2, name_scoring=True)
         #print(ut.msgblock('VSONE-VERIFIED-RESULT', inspectstr))
@@ -547,7 +574,7 @@ def make_decisions(ibs2, qaid2_qres, qreq_, threshold, interactive=False,
         autoname_msg, autoname_func = get_suggested_decision(
             ibs2, qaid, qres, threshold, metatup)
         if interactive:
-            interactive_decision(ibs2, qres, autoname_msg, autoname_func)
+            interactive_decision(ibs2, qres, qreq_, autoname_msg, autoname_func)
         else:
             print(autoname_msg)
             autoexmplr_msg, autoexmplr_func = autoname_func()

@@ -517,15 +517,14 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_inspect_str(qres, ibs=None, name_scoring=False):
         assert_qres(qres)
-        nFeatMatch_list = get_num_feats_in_matches(qres)
-        nFeatMatch_stats = utool.get_stats(nFeatMatch_list)
 
-        top_lbls = [' top aids', ' scores', ' ranks']
+        top_lbls = [' top aids', ' scores', ' rawscores', ' ranks']
 
         top_aids   = np.array(qres.get_top_aids(num=6, name_scoring=name_scoring, ibs=ibs), dtype=np.int32)
         top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
+        top_rawscores = np.array(qres.get_aid_scores(top_aids, rawscore=True), dtype=np.float64)
         top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
-        top_list   = [top_aids, top_scores, top_ranks]
+        top_list   = [top_aids, top_scores, top_rawscores, top_ranks]
 
         if ibs is not None:
             top_lbls += [' isgt']
@@ -536,9 +535,10 @@ class QueryResult(__OBJECT_BASE__):
             top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
 
         top_stack = np.vstack(top_list)
-        top_stack = np.array(top_stack, dtype=object)
+        #top_stack = np.array(top_stack, dtype=object)
+        top_stack = np.array(top_stack, dtype=np.float32)
         #np.int32)
-        top_str = str(top_stack)
+        top_str = np.array_str(top_stack, precision=3, suppress_small=True, max_line_width=200)
 
         top_lbl = '\n'.join(top_lbls)
         inspect_list = ['QueryResult',
@@ -550,11 +550,15 @@ class QueryResult(__OBJECT_BASE__):
             inspect_list.append('gt_ranks = %r' % gt_ranks)
             inspect_list.append('gt_scores = %r' % gt_scores)
 
+        nFeatMatch_list = get_num_feats_in_matches(qres)
+        nFeatMatch_stats_str = utool.get_stats_str(nFeatMatch_list, newlines=True, exclude_keys=('nMin', 'nMax'))
+
         inspect_list.extend([
             'qaid=%r ' % qres.qaid,
             utool.hz_str(top_lbl, ' ', top_str),
-            'num Feat Matches stats:',
-            utool.indent(utool.dict_str(nFeatMatch_stats)),
+            'num feat matches per annotation stats:',
+            #utool.indent(utool.dict_str(nFeatMatch_stats)),
+            utool.indent(nFeatMatch_stats_str),
         ])
 
         inspect_str = '\n'.join(inspect_list)

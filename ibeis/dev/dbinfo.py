@@ -47,6 +47,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     returning locals
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> from ibeis.dev import dbinfo
         >>> import ibeis
@@ -414,3 +415,16 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         fnum = 0
 
     return fnum + 1
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.dbinfo
+        python -m ibeis.dev.dbinfo --allexamples
+        python -m ibeis.dev.dbinfo --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
