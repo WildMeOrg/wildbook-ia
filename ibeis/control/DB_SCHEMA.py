@@ -449,7 +449,7 @@ def test_dbschema():
         python -m ibeis.control.DB_SCHEMA -n=1
         python -m ibeis.control.DB_SCHEMA -n=-1
         python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.DB_SCHEMA --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --dump-autogen-schema
 
     Example:
         >>> # ENABLE_DOCTEST

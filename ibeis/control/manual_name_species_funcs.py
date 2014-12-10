@@ -353,7 +353,7 @@ def get_name_notes(ibs, name_rowid_list):
     Returns:
         list_ (list): notes_list - name notes
     """
-    notes_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
+    notes_list = ibs.db.get(const.NAME_TABLE, (NAME_NOTE,), name_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
     return notes_list
 

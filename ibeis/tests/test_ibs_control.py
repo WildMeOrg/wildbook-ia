@@ -45,6 +45,7 @@ def TEST_IBS_CONTROL(ibs):
     nid_notes_list2 = ibs.get_name_notes(nid_list)
     print('[TEST] nid_notes_list = %r' % nid_notes_list)
     print('[TEST] nid_notes_list2 = %r' % nid_notes_list2)
+    utool.assert_lists_eq(nid_notes_list, nid_notes_list2, 'nid notes lists do not match', verbose=True)
     assert nid_notes_list == nid_notes_list2, 'nid notes lists do not match'
 
     """ set_image_notes / get_image_notes """
@@ -174,25 +175,27 @@ def TEST_IBS_CONTROL(ibs):
     assert orig_species == ibs.get_annot_species(aid_list), 'species were not reset'
 
     """ set alr confidence / get alr confidence """
-    aid_list = ibs.get_valid_aids()
-    assert aid_list, 'aid_list is empty'
-    alrids_list = ibs.get_annot_alrids(aid_list)
-    assert alrids_list, 'alrids_list is empty'
-    alrid_list = utool.flatten(alrids_list)
-    orig_confidences = ibs.get_alr_confidence(alrid_list)
-    new_confidences = list(range(len(alrid_list)))
-    #ibs.print_alr_table()
-    ibs.set_alr_confidence(alrid_list, new_confidences)
-    #ibs.print_alr_table()
-    new_confidences2 = ibs.get_alr_confidence(alrid_list)
-    assert new_confidences == new_confidences2, 'new_confidences == new_confidences2 failed'
-    ibs.set_alr_confidence(alrid_list, orig_confidences)
-    assert orig_confidences == ibs.get_alr_confidence(alrid_list), 'alr confidences were not reset'
+    if False:
+        # NOT USING ALR TABLE CURRENTLY
+        aid_list = ibs.get_valid_aids()
+        assert aid_list, 'aid_list is empty'
+        alrids_list = ibs.get_annot_alrids(aid_list)
+        assert alrids_list, 'alrids_list is empty'
+        alrid_list = utool.flatten(alrids_list)
+        orig_confidences = ibs.get_alr_confidence(alrid_list)
+        new_confidences = list(range(len(alrid_list)))
+        #ibs.print_alr_table()
+        ibs.set_alr_confidence(alrid_list, new_confidences)
+        #ibs.print_alr_table()
+        new_confidences2 = ibs.get_alr_confidence(alrid_list)
+        assert new_confidences == new_confidences2, 'new_confidences == new_confidences2 failed'
+        ibs.set_alr_confidence(alrid_list, orig_confidences)
+        assert orig_confidences == ibs.get_alr_confidence(alrid_list), 'alr confidences were not reset'
 
     """ test metadata  """
     #ibs.print_tables()
-    ibs.print_lblannot_table()
-    ibs.print_alr_table()
+    #ibs.print_lblannot_table()
+    #ibs.print_alr_table()
 
     return locals()
 
@@ -205,5 +208,5 @@ if __name__ == '__main__':
     main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
     test_locals = utool.run_test(TEST_IBS_CONTROL, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
+    #execstr = utool.execstr_dict(test_locals, 'test_locals')
+    #exec(execstr)

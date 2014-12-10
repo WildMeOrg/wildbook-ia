@@ -432,7 +432,7 @@ def vacuum_and_clean_databases(ibs):
         print(ibs.db.get_table_csv(const.ANNOTATION_TABLE))
         print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
         print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
-        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
+        print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
     # Get old table indexes
     #lbltype_rowids = ibs.db.get_all_rowids(const.LBLTYPE_TABLE)
     lblannot_rowids = ibs.db.get_all_rowids(const.LBLANNOT_TABLE)
@@ -1707,7 +1707,9 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
         >>> qaid, true_aids, false_aids_samples = six.next(zip(qaid_list, qaid_trues_list, qaid_false_samples_list))
         >>> result = ut.hashstr(str(upsizetup))
         >>> print(result)
-        b9lvi3nz&ld9u8rg
+        objl8qnhyics@0cr
+
+    b9lvi3nz&ld9u8rg
     """
     if seed is not False:
         # Determanism

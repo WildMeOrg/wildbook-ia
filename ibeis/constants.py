@@ -41,6 +41,8 @@ class REL_PATHS(object):
 
 
 UNKNOWN_LBLANNOT_ROWID = 0
+UNKNOWN_NAME_ROWID = 0
+UNKNOWN_SPECIES_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
