@@ -38,7 +38,7 @@ def _register_nn_simple_weight_func(func):
 
 
 @_register_nn_simple_weight_func
-def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
+def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     """
     dupvotes gives duplicate name votes a weight close to 0.
 
@@ -59,9 +59,9 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> dbname = 'testdb1'  # 'GZ_ALL'  # 'testdb1'
         >>> cfgdict = dict(K=10, Knorm=10, codename='nsum')
         >>> tup = nn_weights.testdata_nn_weights(dbname, cfgdict=cfgdict)
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> # Test Function Call
-        >>> qaid2_dupvote_weight = nn_weights.dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_dupvote_weight = nn_weights.dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> flags = qaid2_dupvote_weight[qaid] > .5
@@ -79,8 +79,8 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     qaid2_dupvote_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
-        (qfx2_score, qfx2_valid) = qaid2_nnfilt0[qaid]
-        if len(qfx2_valid) == 0:
+        qfx2_valid0 = qaid2_nnvalid0[qaid]
+        if len(qfx2_valid0) == 0:
             # hack for empty query features (should never happen, but it
             # inevitably will)
             qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=np.float32)
@@ -92,11 +92,11 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         # Don't let current query count as a valid match
         # Change those names to the unused name
         # qfx2_topnid[qfx2_topaid == qaid] = 0
-        qfx2_topnid[~qfx2_valid] = 0
+        qfx2_topnid[~qfx2_valid0] = 0
         # A duplicate vote is when any vote for a name after the first
         qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
         # set invalids to be duplicates as well (for testing)
-        qfx2_isnondup[~qfx2_valid] = False
+        qfx2_isnondup[~qfx2_valid0] = False
         qfx2_dupvote_weight = (qfx2_isnondup.astype(np.float32) * (1 - 1E-7)) + 1E-7
         qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
     return qaid2_dupvote_weight
@@ -119,7 +119,7 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
 
 
 @_register_nn_simple_weight_func
-def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
+def cos_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     r"""
 
     Example:
@@ -128,9 +128,9 @@ def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> from ibeis.model.hots import nn_weights
         >>> cfgdict = dict(cos_weight=1.0, K=10, Knorm=10)
         >>> tup = nn_weights.testdata_nn_weights('PZ_MTEST', cfgdict=cfgdict)
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> assert qreq_.qparams.cos_weight == 1, 'bug setting custom params cos_weight'
-        >>> qaid2_cos_weight = nn_weights.cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_cos_weight = nn_weights.cos_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
 
 
     Dev::
@@ -184,7 +184,7 @@ def cos_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
 
 
 @_register_nn_simple_weight_func
-def fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
+def fg_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     r"""
     foreground feature match weighting
 
@@ -194,11 +194,11 @@ def fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> from ibeis.model.hots import nn_weights
         >>> cfgdict = dict(featweight_on=True, fg_weight=1.0)
         >>> tup = nn_weights.testdata_nn_weights('PZ_MTEST', cfgdict=cfgdict)
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> print(ut.dict_str(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.featweight_on == True, 'bug setting custom params featweight_on'
         >>> assert qreq_.qparams.fg_weight == 1, 'bug setting custom params fg_weight'
-        >>> qaid2_fgvote_weight = nn_weights.fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_fgvote_weight = nn_weights.fg_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
     """
     # Prealloc output
     K = qreq_.qparams.K
@@ -216,7 +216,7 @@ def fg_match_weighter(qaid2_nns, qaid2_nnfilt0, qreq_):
     return qaid2_fgvote_weight
 
 
-def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
+def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnvalid0, qreq_):
     """
     Weights nearest neighbors using the chosen function
 
@@ -234,13 +234,29 @@ def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_):
         >>> from ibeis.model.hots import nn_weights
         >>> dbname = 'PZ_MTEST'
         >>> tup = nn_weights.testdata_nn_weights(dbname)
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> qaid = qreq_.get_external_daids()[0]
         >>> normweight_fn = lnbnn_fn
-        >>> qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnvalid0, qreq_)
         >>> weights1 = qaid2_weight1[qaid]
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
-        >>> qaid2_weight2 = nn_normonly_weight(qaid2_nns, qaid2_nnfilt0, qreq_)
+        >>> qaid2_weight2 = nn_normonly_weight(qaid2_nns, qaid2_nnvalid0, qreq_)
+        >>> weights2 = qaid2_weight2[qaid]
+        >>> assert np.all(weights1 == weights2)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> dbname = 'PZ_MTEST'
+        >>> tup = nn_weights.testdata_nn_weights(dbname)
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
+        >>> qaid = qreq_.get_external_daids()[0]
+        >>> normweight_fn = ratio_fn
+        >>> qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnvalid0, qreq_)
+        >>> weights1 = qaid2_weight1[qaid]
+        >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['ratio']
+        >>> qaid2_weight2 = nn_normonly_weight(qaid2_nns, qaid2_nnvalid0, qreq_)
         >>> weights2 = qaid2_weight2[qaid]
         >>> assert np.all(weights1 == weights2)
 
@@ -308,7 +324,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         >>> from ibeis.model.hots import nn_weights
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
         >>> tup = nn_weights.testdata_nn_weights(cfgdict=cfgdict)
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> K = qreq_.qparams.K
         >>> Knorm = qreq_.qparams.Knorm
@@ -324,6 +340,12 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
     Timeits:
         %timeit qfx2_dist.T[0:K].T
         %timeit qfx2_dist[:, 0:K]
+
+    Ignore:
+        print('\n'.join(((
+        '>>> ndist = np.' + np.array_repr(ndist.T).replace(' ...,', '') + '.T'),
+        '>>> vdist = np.' + np.array_repr(vdist.T).replace(' ...,', '') + '.T')
+        ))
 
     """
 
@@ -342,7 +364,9 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
                               for (idxs, normk) in zip(qfx2_idx, qfx2_normk)])
     # Ensure shapes are valid
     qfx2_normdist.shape = (len(qfx2_idx), 1)
-    qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
+    vdist = qfx2_nndist    # voting distance
+    ndist = qfx2_normdist  # normalizer distance
+    qfx2_normweight = normweight_fn(vdist, ndist)
     # build meta
     if with_metadata:
         normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
@@ -374,7 +398,7 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> tup = nn_weights.testdata_nn_weights()
-        >>> ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> qaid = qreq_.get_external_daids()[0]
         >>> K = ibs.cfg.query_cfg.nn_cfg.K
         >>> Knorm = ibs.cfg.query_cfg.nn_cfg.Knorm
@@ -459,8 +483,35 @@ def loglnbnn_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def ratio_fn(vdist, ndist):
-    return np.divide(vdist, ndist)  # + EPS)
-    #return np.divide(ndist, vdist + EPS)
+    r"""
+    Args:
+        vdist (ndarray): voting array
+        ndist (ndarray): normalizing array
+
+    Returns:
+        ndarray: out
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> vdist = np.array([[ 0.,  0.,  0.,  0.,  0.,  0.]], dtype=np.float32).T
+        >>> ndist = np.array([[  60408.,   61594.,  111387., 120138., 124307.,  125625.]], dtype=np.float32).T
+        >>> out = ratio_fn(vdist, ndist)
+        >>> result = np.array_repr(out.T, precision=2)
+        >>> print(result)
+        array([[ 0.,  0.,  0.,  0.,  0.,  0.]], dtype=float32)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> vdist = np.array([[  79260.,  138617.,   47964.,  127839.,  123543.,  112204.]], dtype=np.float32).T
+        >>> ndist = np.array([[  83370.,  146245.,  128620.,  129598.,  126165.,  124761.]], dtype=np.float32).T
+        >>> out = ratio_fn(vdist, ndist)
+        >>> result = np.array_repr(out.T, precision=2)
+        >>> print(result)
+        array([[ 0.95,  0.95,  0.37,  0.99,  0.98,  0.9 ]], dtype=float32)
+    """
+    return np.divide(vdist, ndist)
 
 
 @_register_nn_normalized_weight_func
@@ -482,20 +533,20 @@ def test_all_normalized_weights():
     from ibeis.model.hots import nn_weights
     import six
     tup = nn_weights.testdata_nn_weights()
-    ibs, qreq_, qaid2_nns, qaid2_nnfilt0 = tup
+    ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
     qaid = qreq_.get_external_qaids()[0]
 
     def test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid):
         from ibeis.model.hots import nn_weights
         #----
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
-        qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnfilt0, qreq_)
+        qaid2_weight1 = nn_weights.nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnvalid0, qreq_)
         weights1 = qaid2_weight1[qaid]
         #---
         # test NN_WEIGHT_FUNC_DICT
         #---
         nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
-        qaid2_weight2 = nn_normonly_weight(qaid2_nns, qaid2_nnfilt0, qreq_)
+        qaid2_weight2 = nn_normonly_weight(qaid2_nns, qaid2_nnvalid0, qreq_)
         weights2 = qaid2_weight2[qaid]
         assert np.all(weights1 == weights2)
         print(nn_weight + ' passed')
@@ -519,8 +570,8 @@ def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdic
                                                 cfgdict=cfgdict)
     pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
     qaid2_nns     = pipeline_locals_['qaid2_nns']
-    qaid2_nnfilt0 = pipeline_locals_['qaid2_nnfilt0']
-    return ibs, qreq_, qaid2_nns, qaid2_nnfilt0
+    qaid2_nnvalid0 = pipeline_locals_['qaid2_nnvalid0']
+    return ibs, qreq_, qaid2_nns, qaid2_nnvalid0
 
 
 if __name__ == '__main__':

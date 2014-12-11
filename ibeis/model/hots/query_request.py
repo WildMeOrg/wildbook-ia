@@ -496,10 +496,16 @@ class QueryRequest(object):
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def get_query_groundtruth(qreq_, qaids):
+    def get_external_query_groundtruth(qreq_, qaids):
         """ gets groundtruth that are accessible via this query """
         external_daids = qreq_.get_external_daids()
         gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=external_daids)
+        return gt_aids
+
+    def get_internal_query_groundtruth(qreq_, qaids):
+        """ gets groundtruth that are accessible via this query """
+        internal_daids = qreq_.get_internal_daids()
+        gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=internal_daids)
         return gt_aids
 
     def assert_self(qreq_, ibs):
