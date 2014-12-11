@@ -12,8 +12,8 @@ from numpy import (array, sin, cos)
 import utool
 
 profile = utool.profile
-#(print, print_, printDBG, rrr, profile) = utool.inject(
-#    __name__, '[linalg]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[linalg]', DEBUG=False)
 
 '''
 #if CYTH
@@ -262,6 +262,10 @@ def get_uncovered_mask(covered_array, covering_array):
 
 def get_covered_mask(covered_array, covering_array):
     return ~get_uncovered_mask(covered_array, covering_array)
+
+
+def mult_lists(*args):
+    return np.multiply.reduce(args)
 
 
 def or_lists(*args):
