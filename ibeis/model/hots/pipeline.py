@@ -806,7 +806,7 @@ def get_sparse_matchinfo(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_):
         >>> qaid = qreq_.get_internal_qaids()[0]
         >>> qfx2_idx = qaid2_nns[qaid][0]
         >>> (qfx2_score_agg, qfx2_valid_agg) = qaid2_nnfiltagg[qaid]
-        >>> (qfx2_score_list, qfx2_valid_list) = qaid2_nnfilts[qaid]
+        >>> (filt_list, qfx2_score_list, qfx2_valid_list) = qaid2_nnfilts[0]
         >>>
     """
     K = qreq_.qparams.K
