@@ -117,7 +117,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0
 
-
     TO FIX THE INVALIDATED SCORES ISSUE WE COULD DO THE FOLLOWING:
       * have each item in the fm list point back to the place in the qfx2_dfx matrix
       dont like this so much
@@ -142,8 +141,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     if verbose:
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
-        print('[hs] * len(internal_qaids) = %r' % len(qreq_.get_internal_qaids()))
-        print('[hs] * len(internal_daids) = %r' % len(qreq_.get_internal_daids()))
+        print(qreq_.get_infostr())
 
     qreq_.lazy_load(verbose=verbose)
 
@@ -652,6 +650,7 @@ def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
 
 
 def new_fmfsfk():
+    """ returns new chipmatch """
     aid2_fm = defaultdict(list)
     aid2_fs = defaultdict(list)
     aid2_fk = defaultdict(list)
@@ -679,39 +678,48 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_, verbose=VERB_PIPELINE):
         weights and thershold are applied to the matches. Essientally
         nearest neighbors are converted into weighted assignments
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
-        >>> cfgdict = dict(dupvote_weight=1.0)
+        >>> verbose = True
         >>> cfgdict = dict(codename='vsone')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('NAUT_test', cfgdict=cfgdict)
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
         >>> qaid2_nns, qaid2_nnfilt = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt']]
         >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
-    """
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> gt_daids = qreq_.get_query_groundtruth(qaid)
 
-    # Config
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> from ibeis.model.hots import pipeline
+        >>> verbose = True
+        >>> cfgdict = dict(codename='vsmany')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
+        >>> qaid2_nns, qaid2_nnfilt = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilt']]
+        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> gt_daids = qreq_.get_query_groundtruth(qaid)
+
+    Ignore:
+        pass
+    """
     K = qreq_.qparams.K
     is_vsone =  qreq_.qparams.vsone
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
         print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
-    # Return var
     qaid2_chipmatch = {}
     nFeatMatches = 0
-    #Vsone
     if is_vsone:
         assert len(qreq_.get_external_qaids()) == 1
         assert len(qreq_.get_internal_daids()) == 1
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
-    # Iterate over chips with nearest neighbors
-    mark_, end_ = log_progress('Build Chipmatch: ', len(qaid2_nns))
-
     # Iterate over INTERNAL query annotation ids
     qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_nns), nTotal=len(qaid2_nns), lbl='Build Chipmatch: ', freq=20, time_thresh=2.0)
-    #for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
-    #    mark_(count)  # Mark progress
     for qaid in qaid_iter:
         (qfx2_idx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
@@ -746,7 +754,6 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_, verbose=VERB_PIPELINE):
             #    print('nFeats_in_matches_stats = ' +
             #          ut.dict_str(ut.get_stats(nFeats_in_matches)))
         #L_____
-
         #-----
         # Vsone - Append database feature matches to query aids
         else:
@@ -782,9 +789,6 @@ def assert_qaid2_chipmatch(ibs, qreq_, qaid2_chipmatch):
         nQVecs = ibs.get_annot_vecs(qaid).shape[0]  # NOQA
         (daid2_fm, daid2_fs, daid2_fk) = chipmatch
         assert external_daids.tolist() == list(daid2_fm.keys())
-        daid2_fm
-
-        pass
 
 
 #============================
@@ -803,15 +807,25 @@ def spatial_verification(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
     Returns:
         dict or tuple(dict, dict)
 
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-spatial_verification
+
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
-        >>> spatial_verification(qaid2_chipmatch, qreq_)
-    """
+        >>> qaid2_chipmatchSV = pipeline.spatial_verification(qaid2_chipmatch, qreq_)
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> gt_daids = qreq_.get_query_groundtruth(qaid)
+        >>> daid = gt_daids[0]
+        >>> fm = qaid2_chipmatch[qaid][0][daid]
+        >>> fmSV = qaid2_chipmatchSV[qaid][0][daid]
+        >>> assert len(fmSV) < len(fm), 'feature matches were not filtered'
+        """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
             print('[hs] Step 5) Spatial verification: off')
@@ -827,7 +841,7 @@ def _spatial_verification(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
     """
     make only spatially valid features survive
 
-    Dev:
+    Ignore:
         >>> import pyflann
         >>> qaid = 1
         >>> daid = ibs.get_annot_groundtruth(qaid)[0]
@@ -848,8 +862,10 @@ def _spatial_verification(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, [qaid], [daid])
         >>> qreq_.ibs = ibs
 
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-_spatial_verification
+
     Example:
-        >>> # one-vs-one
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> import ibeis
@@ -868,82 +884,33 @@ def _spatial_verification(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
     # spatial verification
     if verbose:
         print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
-    xy_thresh       = qreq_.qparams.xy_thresh
-    scale_thresh    = qreq_.qparams.scale_thresh
-    ori_thresh      = qreq_.qparams.ori_thresh
     use_chip_extent = qreq_.qparams.use_chip_extent
-    min_nInliers    = qreq_.qparams.min_nInliers
-    sver_weighting  = qreq_.qparams.sver_weighting
     qaid2_chipmatchSV = {}
     nFeatSVTotal = 0
     nFeatMatchSV = 0
-    if qreq_.qparams.with_metadata:
-        qaid2_svtups = {}  # dbg info (can remove if there is a speed issue)
-    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch),
-                                nTotal=len(qaid2_chipmatch), lbl='SVER: ',
-                                freq=20, time_thresh=2.0)
-    for qaid in qaid_iter:
+    # dbg info (can remove if there is a speed issue)
+    qaid2_svtups = {} if qreq_.qparams.with_metadata else None
+    qaid_progiter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch),
+                                    nTotal=len(qaid2_chipmatch), lbl='SVER: ',
+                                    freq=20, time_thresh=2.0)
+    for qaid in qaid_progiter:
         # Find a transform from chip2 to chip1 (the old way was 1 to 2)
         chipmatch = qaid2_chipmatch[qaid]
         topx2_aid, nRerank = get_prescore_shortlist(qaid, chipmatch, qreq_)
-        (daid2_fm, daid2_fs, daid2_fk) = chipmatch
-        # Precompute output container
-        daid2_fm_V, daid2_fs_V, daid2_fk_V = new_fmfsfk()
-        # Query Keypoints
+        daid2_fm = chipmatch[0]
+        # Get information for sver, query keypoints, diaglen
         kpts1 = qreq_.ibs.get_annot_kpts(qaid)
         topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
-        # Check the diaglen sizes before doing the homography
         topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(
             qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
-        if qreq_.qparams.with_metadata:
-            daid2_svtup = {}  # dbg info (can remove if there is a speed issue)
-        # spatially verify the top __NUM_RERANK__ results
-        for topx in range(nRerank):
-            daid = topx2_aid[topx]
-            fm = daid2_fm[daid]
-            if len(fm) == 0:
-                # skip results without any matches
-                continue
-            dlen_sqrd2 = topx2_dlen_sqrd[topx]
-            kpts2 = topx2_kpts[topx]
-            fs    = daid2_fs[daid]
-            fk    = daid2_fk[daid]
-            try:
-                # Compute homography from chip2 to chip1
-                sv_tup = sver.spatially_verify_kpts(
-                    kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-                    dlen_sqrd2, min_nInliers,
-                    returnAff=qreq_.qparams.with_metadata)
-            except Exception as ex:
-                ut.printex(ex, 'Unknown error in spatial verification.',
-                              keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                                    'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
-                sv_tup = None
-            nFeatSVTotal += len(fm)
-            if sv_tup is not None:
-                # Return the inliers to the homography from chip2 to chip1
-                homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sv_tup
-                if qreq_.qparams.with_metadata:
-                    daid2_svtup[daid] = sv_tup
-                fm_SV = fm[homog_inliers]
-                fs_SV = fs[homog_inliers]
-                fk_SV = fk[homog_inliers]
-                if sver_weighting:
-                    # Rescore based on homography errors
-                    #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-                    xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-                    homog_xy_errors = homog_errors[0][homog_inliers]
-                    homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
-                    fs_SV *= homog_err_weight
-                daid2_fm_V[daid] = fm_SV
-                daid2_fs_V[daid] = fs_SV
-                daid2_fk_V[daid] = fk_SV
-                nFeatMatchSV += len(homog_inliers)
-                #nFeatMatchSVAff += len(aff_inliers)
-        # Rebuild the feature match / score arrays to be consistent
-        chipmatchSV = _fix_fmfsfk(daid2_fm_V, daid2_fs_V, daid2_fk_V)
+        chipmatchSV, daid2_svtup = _inner_spatial_verification(kpts1, topx2_aid,
+                                                               topx2_kpts,
+                                                               topx2_dlen_sqrd,
+                                                               nRerank,
+                                                               chipmatch, qreq_)
         if qreq_.qparams.with_metadata:
             qaid2_svtups[qaid] = daid2_svtup
+        # Rebuild the feature match / score arrays to be consistent
         qaid2_chipmatchSV[qaid] = chipmatchSV
     if verbose:
         #print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
@@ -951,6 +918,70 @@ def _spatial_verification(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
     if qreq_.qparams.with_metadata:
         qreq_.metadata['qaid2_svtups'] = qaid2_svtups
     return qaid2_chipmatchSV
+
+
+def _inner_spatial_verification(kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
+                                nRerank, chipmatch, qreq_):
+    """
+    loops over a shortlist of results for a specific query annotation
+    """
+    xy_thresh       = qreq_.qparams.xy_thresh
+    scale_thresh    = qreq_.qparams.scale_thresh
+    ori_thresh      = qreq_.qparams.ori_thresh
+    min_nInliers    = qreq_.qparams.min_nInliers
+    sver_weighting  = qreq_.qparams.sver_weighting
+    # unpack chipmatch
+    (daid2_fm, daid2_fs, daid2_fk) = chipmatch
+    # Precompute sver chipmatch
+    (daid2_fm_V, daid2_fs_V, daid2_fk_V) = new_fmfsfk()
+    # dbg info (can remove if there is a speed issue)
+    daid2_svtup = {} if qreq_.qparams.with_metadata else None
+    nFeatSVTotal = 0
+    nFeatMatchSV = 0
+    for topx in range(nRerank):
+        daid = topx2_aid[topx]
+        fm = daid2_fm[daid]
+        if len(fm) == 0:
+            # skip results without any matches
+            continue
+        dlen_sqrd2 = topx2_dlen_sqrd[topx]
+        kpts2 = topx2_kpts[topx]
+        fs    = daid2_fs[daid]
+        fk    = daid2_fk[daid]
+        try:
+            # Compute homography from chip2 to chip1
+            sv_tup = sver.spatially_verify_kpts(
+                kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
+                dlen_sqrd2, min_nInliers,
+                returnAff=qreq_.qparams.with_metadata)
+        except Exception as ex:
+            ut.printex(ex, 'Unknown error in spatial verification.',
+                          keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
+                                'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
+            sv_tup = None
+        nFeatSVTotal += len(fm)
+        if sv_tup is not None:
+            # Return the inliers to the homography from chip2 to chip1
+            homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sv_tup
+            if qreq_.qparams.with_metadata:
+                daid2_svtup[daid] = sv_tup
+            fm_SV = fm[homog_inliers]
+            fs_SV = fs[homog_inliers]
+            fk_SV = fk[homog_inliers]
+            if sver_weighting:
+                # Rescore based on homography errors
+                #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
+                xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
+                homog_xy_errors = homog_errors[0][homog_inliers]
+                homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
+                fs_SV *= homog_err_weight
+            daid2_fm_V[daid] = fm_SV
+            daid2_fs_V[daid] = fs_SV
+            daid2_fk_V[daid] = fk_SV
+            nFeatMatchSV += len(homog_inliers)
+            #nFeatMatchSVAff += len(aff_inliers)
+    chipmatchSV = _fix_fmfsfk(daid2_fm_V, daid2_fs_V, daid2_fk_V)
+    return chipmatchSV, daid2_svtup
 
 
 def get_prescore_shortlist(qaid, chipmatch, qreq_):
@@ -1111,10 +1142,12 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
         qaid2_chipmatch (dict):
         metadata (dict):
         qreq_ (QueryRequest): hyper-parameters
-        qaid2_scores (dict): optional
 
     Returns:
         qaid2_qres
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1128,46 +1161,28 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
     """
     if verbose:
         print('[hs] Step 6) Convert chipmatch -> qres')
-    qaids   = qreq_.get_external_qaids()
-    qauuids = qreq_.get_external_quuids()
+    external_qaids   = qreq_.get_external_qaids()
+    external_qauuids = qreq_.get_external_quuids()
     # Matchable daids
-    daids   = qreq_.get_external_daids()
+    daids  = qreq_.get_external_daids()
     cfgstr = qreq_.get_cfgstr()
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
-    qaid2_qres = {}
-    # Currently not looping over the keys so we have access to uuids
-    # using qreq_ externals aids should be equivalent
-    #for qaid in six.iterkeys(qaid2_chipmatch):
-    for qaid, qauuid in zip(qaids, qauuids):
-        # Create a query result structure
-        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-        qaid2_qres[qaid] = qres
+    qres_list = [hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+                 for qaid, qauuid in zip(external_qaids, external_qauuids)]
 
-    for qaid, qres in six.iteritems(qaid2_qres):
-        pass
+    for qaid, qres in zip(external_qaids, qres_list):
         # For each query's chipmatch
-        chipmatch = qaid2_chipmatch[qaid]
+        chipmatch = qaid2_chipmatch[qaid]  # FIXME: use a list
+        # unpack the chipmatch and populate qres
         if chipmatch is not None:
-            try:
-                aid2_fm, aid2_fs, aid2_fk = chipmatch
-            except Exception as ex:
-                ut.printex(ex, 'error converting chipmatch',
-                              keys=['chipmatch'])
-                raise
+            aid2_fm, aid2_fs, aid2_fk = chipmatch
             qres.aid2_fm = aid2_fm
             qres.aid2_fs = aid2_fs
             qres.aid2_fk = aid2_fk
-
         # Perform final scoring
-        qaid2_scores = None  # HACK. Used to be arg, still in in case smk breaks
-        if qaid2_scores is None:
-            daid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
-        else:
-            daid2_score = qaid2_scores[qaid]
-            if not isinstance(daid2_score, dict):
-                # Pandas hack
-                daid2_score = daid2_score.to_dict()
+        daid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
+        # Normalize scores if requested
         if qreq_.qparams.score_normalization:
             normalizer = qreq_.normalizer
             score_list = list(six.itervalues(daid2_score))
@@ -1175,13 +1190,13 @@ def chipmatch_to_resdict(qaid2_chipmatch, qreq_, verbose=VERB_PIPELINE):
             daid2_prob = dict(zip(six.iterkeys(daid2_score), prob_list))
             qres.aid2_prob = daid2_prob
         # Populate query result fields
-        qres.aid2_score = daid2_score  # FIXME fig qreq name
-
-        metadata = qreq_.metadata
-        qres.metadata = {}  # dbgstats
-        for key, qaid2_meta in six.iteritems(metadata):
-            qres.metadata[key] = qaid2_meta[qaid]  # things like k+1th
-    # Retain original score method
+        qres.aid2_score = daid2_score
+        # Populate query result metadata (things like k+1th neighbor)
+        qres.metadata = {}
+        for key, qaid2_meta in six.iteritems(qreq_.metadata):
+            qres.metadata[key] = qaid2_meta[qaid]
+    # Build dictionary structure to maintain functionality
+    qaid2_qres = {qaid: qres for qaid, qres in zip(external_qaids, qres_list)}
     return qaid2_qres
 
 

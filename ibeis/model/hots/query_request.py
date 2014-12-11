@@ -484,6 +484,24 @@ class QueryRequest(object):
     #    nids = ibs.get_annot_name_rowids(aids)
     #    qreq_.aid2_nid = dict(zip(aids, nids))
 
+    def get_infostr(qreq_):
+        infostr_list = []
+        app = infostr_list.append
+        qaid_internal = qreq_.get_internal_qaids()
+        daid_internal = qreq_.get_internal_daids()
+        qd_intersection = ut.intersect_ordered(daid_internal, qaid_internal)
+        app(' * len(internal_qaids) = %r' % len(daid_internal))
+        app(' * len(internal_daids) = %r' % len(qaid_internal))
+        app(' * len(qd_intersection) = %r' % len(qd_intersection))
+        infostr = '\n'.join(infostr_list)
+        return infostr
+
+    def get_query_groundtruth(qreq_, qaids):
+        """ gets groundtruth that are accessible via this query """
+        external_daids = qreq_.get_external_daids()
+        gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=external_daids)
+        return gt_aids
+
     def assert_self(qreq_, ibs):
         print('[qreq] ASSERT SELF')
         qaids    = qreq_.get_external_qaids()
