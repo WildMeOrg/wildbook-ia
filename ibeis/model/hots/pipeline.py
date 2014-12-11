@@ -173,15 +173,17 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # * scores for feature matches are aggregated
         # * nnfilt = (qfx2_valid, qfx2_score)
         # qfx2_score is an aggregate of all the weights
-        qaid2_nnfiltagg_ = filter_neighbors(qaid2_nns_, qaid2_nnvalid0_,
-                                            qaid2_filtweights_, qreq_,
-                                            verbose=verbose)
+        qaid2_nnfilts_, qaid2_nnfiltagg_ = filter_neighbors(qaid2_nns_,
+                                                            qaid2_nnvalid0_,
+                                                            qaid2_filtweights_,
+                                                            qreq_,
+                                                            verbose=verbose)
 
         # Nearest neighbors to chip matches (qaid2_chipmatch)
         # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
         # * Initial scoring occurs
         # * vsone un-swapping occurs here
-        qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfiltagg_,
+        qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilts_, qaid2_nnfiltagg_,
                                                   qreq_, verbose=verbose)
     else:
         print('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
@@ -439,29 +441,24 @@ def weight_neighbors(qaid2_nns, qaid2_nnvalid0, qreq_, verbose=VERB_PIPELINE):
     """
     if verbose:
         print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
+    # Gravity weighting does not work well enough yet
+    if qreq_.qparams.gravity_weighting:
+        #filtkey_list.append('gravity')
+        raise NotImplementedError('have not finished gv weighting')
     if qreq_.qparams.filt_on:
-        # Get list of active weighting filters
-        filtkey_list = qreq_.qparams.active_filter_list
-        # build list of weighting functions
-        filtfn_list  = [nn_weights.NN_WEIGHT_FUNC_DICT[filtkey] for filtkey in filtkey_list]
-        # Apply [filtkey] weight to each nearest neighbor
-        qweights_list = [filtfn(qaid2_nns, qaid2_nnvalid0, qreq_) for filtfn in filtfn_list]
-        # Pivot keys to get qaids first
+        # Build weights for each active filter
         internal_qaids = list(six.iterkeys(qaid2_nns))
+        filtkey_list = qreq_.qparams.active_filter_list
+        filtfn_list  = [nn_weights.NN_WEIGHT_FUNC_DICT[filtkey] for filtkey in filtkey_list]
+        # compute weighting
+        qweights_list = [filtfn(qaid2_nns, qaid2_nnvalid0, qreq_) for filtfn in filtfn_list]
+        # Index by qaids first
         filtweights_list = [
-            dict(zip(
-                filtkey_list,
-                [qaid2_weights[qaid] for qaid2_weights in qweights_list]
-            ))
-            for qaid in internal_qaids
-        ]
+            dict(zip(filtkey_list,
+                     [qaid2_weights[qaid] for qaid2_weights in qweights_list]))
+            for qaid in internal_qaids]
         # Use dictionary output until ready to move completely to lists
         qaid2_filtweights = dict(zip(internal_qaids, filtweights_list))
-
-        # Gravity weighting does not work well enough yet
-        if qreq_.qparams.gravity_weighting:
-            filtkey_list.append('gravity')
-            raise NotImplementedError('have not finished gv weighting')
     else:
         qaid2_filtweights = {}
     return qaid2_filtweights
@@ -479,17 +476,19 @@ def weight_neighbors(qaid2_nns, qaid2_nnvalid0, qreq_, verbose=VERB_PIPELINE):
 @profile
 def filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_, verbose=VERB_PIPELINE):
     """
+    converts feature weights to feature scores and validity masks
+
     Args:
         qaid2_nns (dict):
         qaid2_filtweights (dict):
         qreq_ (QueryRequest): hyper-parameters
 
     Returns:
-        qaid2_nnfiltagg
+        nnfilts_list, qaid2_nnfiltagg
 
     Example:
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict = dict(dupvote_weight=1.0)
         >>> verbose = True
@@ -498,38 +497,34 @@ def filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_, verbos
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'filter_neighbors')
         >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnvalid0', 'qaid2_filtweights']]
         >>> qaid2_nns, qaid2_nnvalid0, qaid2_filtweights = args
-        >>> qaid2_nnfiltagg = filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_)
+        >>> ut.assert_lists_eq(list(six.iterkeys(qaid2_nns)), list(six.iterkeys(qaid2_nnvalid0)))
+        >>> ut.assert_lists_eq(list(six.iterkeys(qaid2_nns)), qreq_.get_internal_qaids())
+        >>> nnfilts_list, qaid2_nnfiltagg = filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_)
     """
     if verbose:
         print('[hs] Step 3) Filter neighbors: ')
-    K = qreq_.qparams.K
     nnfiltagg_list = []
+    nnfilts_list = []
     internal_qaids = list(six.iterkeys(qaid2_nns))
     qaid_iter = ut.ProgressIter(internal_qaids, lbl='Filter NN: ', freq=20, time_thresh=2.0)
     # Filter matches based on config and weights
     for qaid in qaid_iter:
+        # all the filter weights for this query
         qfx2_valid0 = qaid2_nnvalid0[qaid]
-        (qfx2_idx, _) = qaid2_nns[qaid]
-        qfx2_nnidx = qfx2_idx.T[0:K].T
-        filt2_weights = qaid2_filtweights[qaid]  # all the filter weights for this query
+        filt2_weights = qaid2_filtweights[qaid]
         # Get a numeric score score and valid flag for each feature match
-        nnfilts, nnfiltagg = threshold_and_scale_weights(qaid, qfx2_nnidx,
-                                                          qfx2_valid0,
-                                                          filt2_weights, qreq_)
-        if DEBUG_PIPELINE:
-            qfx2_valid = nnfiltagg[1]
-            print('\n[hs] * %d assignments are invalid by filter thresholds' %
-                  ((True - qfx2_valid).sum()))
-        #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
+        nnfilts, nnfiltagg = threshold_and_scale_weights(qaid, qfx2_valid0,
+                                                         filt2_weights, qreq_)
         nnfiltagg_list.append(nnfiltagg)
+        nnfilts_list.append(nnfilts)
     # dict output until pipeline moves to lists
     qaid2_nnfiltagg = dict(zip(internal_qaids, nnfiltagg_list))
-    return qaid2_nnfiltagg
+    return nnfilts_list, qaid2_nnfiltagg
 
 
 #@ut.indent_func('[_tsw]')
 @profile
-def threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qreq_):
+def threshold_and_scale_weights(qaid, qfx2_valid0, filt2_weights, qreq_):
     """
     helper function
 
@@ -539,7 +534,6 @@ def threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qr
 
     Args:
         qaid (int): query annotation id
-        qfx2_nnidx (dict):
         filt2_weights (dict): weights for this query
         qreq_ (QueryRequest): hyper-parameters
 
@@ -563,13 +557,10 @@ def threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qr
         >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnvalid0', 'qaid2_filtweights']]
         >>> qaid2_nns, qaid2_nnvalid0, qaid2_filtweights = args
         >>> # Continue with function logic
-        >>> K = qreq_.qparams.K
         >>> qaid = qreq_.get_internal_qaids()[1]
-        >>> (qfx2_idx, _) = qaid2_nns[qaid]
         >>> filt2_weights = qaid2_filtweights[qaid]
-        >>> qfx2_nnidx = qfx2_idx.T[0:K].T
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
-        >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qreq_)
+        >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qaid, qfx2_valid0, filt2_weights, qreq_)
         >>> assert nnfilts[0] == ['ratio']
         >>> ratio_scores = nnfilts[2][0]
         >>> assert np.all(ratio_scores <= 1.0)
@@ -585,13 +576,10 @@ def threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qr
         >>> args = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnvalid0', 'qaid2_filtweights']]
         >>> qaid2_nns, qaid2_nnvalid0, qaid2_filtweights = args
         >>> # Continue with function logic
-        >>> K = qreq_.qparams.K
         >>> qaid = qreq_.get_internal_qaids()[0]
-        >>> (qfx2_idx, _) = qaid2_nns[qaid]
         >>> filt2_weights = qaid2_filtweights[qaid]
-        >>> qfx2_nnidx = qfx2_idx.T[0:K].T
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
-        >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qreq_)
+        >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qaid, qfx2_valid0, filt2_weights, qreq_)
         >>> assert nnfilts[0] == ['dupvote', 'lnbnn']
 
     """
@@ -634,7 +622,7 @@ def threshold_and_scale_weights(qaid, qfx2_nnidx, qfx2_valid0, filt2_weights, qr
     qfx2_score_agg = vt.mult_lists(*ut.filter_Nones(qfx2_score_list))
     # dont need to check qfx2_valid_agg because of qfx2_valid0
     if len(qfx2_score_agg) == 0:
-        qfx2_score_agg = np.ones(qfx2_nnidx.shape, dtype=hstypes.FS_DTYPE)
+        qfx2_score_agg = np.ones(qfx2_valid0.shape, dtype=hstypes.FS_DTYPE)
 
     # outputs
     nnfilts = (filt_list, qfx2_valid_list, qfx2_score_list)
@@ -682,17 +670,32 @@ def new_fmfsfk():
 
 #@ut.indent_func('[bc]')
 @profile
-def build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_, verbose=VERB_PIPELINE):
+def build_chipmatches(qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg, qreq_, verbose=VERB_PIPELINE):
     """
+    pipeline step 4 - builds sparse chipmatches
+
+    Takes the dense feature matches from query feature to (what could be any)
+    database features and builds sparse matching pairs for each annotation to
+    annotation match.
+
     Args:
-        qaid2_nns : dict of assigned nearest features (only indexes are used here)
-        qaid2_nnfiltagg : dict of (qfx2_score, qfx2_valid)
-                        where the scores and matches correspond to the assigned
-                        nearest features
+        qaid2_nns (dict): dict of assigned nearest features (only indexes are
+            used here)
+
+        qaid2_nnfilts (dict): nonaggregate feature scores and validities for
+            each feature NEW
+
+        qaid2_nnfiltagg (dict): dict of (qfx2_score, qfx2_valid) where the
+            scores and matches correspond to the assigned nearest features
+
         qreq_ (QueryRequest) : hyper-parameters
 
     Returns:
-         dict : qaid2_chipmatch - dict of chipmatch tuples (fm fs, fk) - feat match, feat score, feat rank
+         dict : qaid2_chipmatch - mapping from qaid to chipmatch
+             a chipmatch is a tuple (fm_list, fs_list, fk_list)
+                 fm := feature match
+                 fs := feature score
+                 fk := feature rank
 
     Notes:
         The prefix ``qaid2_`` denotes a mapping where keys are query-annotation-id
@@ -709,10 +712,16 @@ def build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_, verbose=VERB_PIPELINE):
         >>> cfgdict = dict(codename='vsone')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
-        >>> qaid2_nns, qaid2_nnfiltagg = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfiltagg']]
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_)
-        >>> qaid = qreq_.get_internal_qaids()[1]
-        >>> gt_daids = qreq_.get_internal_query_groundtruth(qaid)
+        >>> qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg = [
+        ...     locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
+        >>> qaid2_chipmatch = pipeline.build_chipmatches(
+        ...     qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg, qreq_)
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> daid = qreq_.get_external_daids()[1]
+        >>> print(qaid2_chipmatch.keys())
+        >>> print(qaid)
+        >>> assert len(qaid2_chipmatch[qaid][0][daid]) > 33
+        >>> #assert len(qaid2_chipmatch[qaid][0][qaid]) > 33
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -722,79 +731,131 @@ def build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_, verbose=VERB_PIPELINE):
         >>> cfgdict = dict(codename='vsmany')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
-        >>> qaid2_nns, qaid2_nnfiltagg = [locals_[key] for key in ['qaid2_nns', 'qaid2_nnfiltagg']]
-        >>> qaid2_chipmatch = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_)
+        >>> qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg = [
+        ...     locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
+        >>> qaid2_chipmatch = pipeline.build_chipmatches(
+        ...     qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg, qreq_)
         >>> qaid = qreq_.get_internal_qaids()[0]
         >>> gt_daids = qreq_.get_internal_query_groundtruth(qaid)
+        >>> fm_list = qaid2_chipmatch[qaid][0][gt_daids[0]]
+        >>> assert fm_list.shape[1] == 2, 'bad shape'
+        >>> assert fm_list.shape[0] > 50, 'should have more matches'
 
     Ignore:
         pass
     """
-    K = qreq_.qparams.K
     is_vsone =  qreq_.qparams.vsone
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
         print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
     qaid2_chipmatch = {}
-    nFeatMatches = 0
     if is_vsone:
+        # Vsone initialization
         assert len(qreq_.get_external_qaids()) == 1
         assert len(qreq_.get_internal_daids()) == 1
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
+    #
     # Iterate over INTERNAL query annotation ids
-    qaid_iter = ut.ProgressIter(six.iterkeys(qaid2_nns), nTotal=len(qaid2_nns), lbl='Build Chipmatch: ', freq=20, time_thresh=2.0)
+    internal_qaids = list(six.iterkeys(qaid2_nns))
+    qaid_iter = ut.ProgressIter(internal_qaids, nTotal=len(qaid2_nns),
+                                lbl='Build Chipmatch: ', freq=20,
+                                time_thresh=2.0)
     for qaid in qaid_iter:
         (qfx2_idx, _) = qaid2_nns[qaid]
-        (qfx2_fs, qfx2_valid) = qaid2_nnfiltagg[qaid]
-        nQKpts = qfx2_idx.shape[0]
-        # Build feature matches
-        qfx2_nnidx = qfx2_idx.T[0:K].T
-        qfx2_aid  = qreq_.indexer.get_nn_aids(qfx2_nnidx)
-        qfx2_fx   = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
-        # FIXME: Can probably get away without using tile here
-        qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
-        qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
-        # Pack valid feature matches into an interator
-        valid_lists = (qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_aid, qfx2_fx, qfx2_fs, qfx2_k,))
-        # TODO: Sorting the valid lists by aid might help the speed of this
-        # code. Also, consolidating fm, fs, and fk into one vector will reduce
-        # the amount of appends.
-        match_iter = zip(*valid_lists)
-
-        #-----
-        # Vsmany - Append query feature matches to database aids
-        if not is_vsone:
-            aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
-            for qfx, aid, fx, fs, fk in match_iter:
-                aid2_fm[aid].append((qfx, fx))  # Note the difference
-                aid2_fs[aid].append(fs)
-                aid2_fk[aid].append(fk)
-                nFeatMatches += 1
-            chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
-            qaid2_chipmatch[qaid] = chipmatch
-            #if DEBUG_PIPELINE:
-            #    nFeats_in_matches = [len(fm) for fm in six.itervalues(aid2_fm)]
-            #    print('nFeats_in_matches_stats = ' +
-            #          ut.dict_str(ut.get_stats(nFeats_in_matches)))
-        #L_____
-        #-----
-        # Vsone - Append database feature matches to query aids
+        (qfx2_score_agg, qfx2_valid_agg) = qaid2_nnfiltagg[qaid]
+        valid_match_tup = get_sparse_matchinfo(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_)
+        # Vsone - append to chipmatches
+        if is_vsone:
+            # Note the difference in indexes into fmfsfk dicts
+            (aid2_fm[qaid], aid2_fs[qaid], aid2_fk[qaid]) = append_chipmatch_vsone(valid_match_tup)
+        # Vsmany - create new chipmatch
         else:
-            for qfx, aid, fx, fs, fk in match_iter:
-                # Remember in vsone internal qaids = external daids
-                aid2_fm[qaid].append((fx, qfx))  # Note the difference
-                aid2_fs[qaid].append(fs)
-                aid2_fk[qaid].append(fk)
-                nFeatMatches += 1
-        #L_____
-    #Vsone
+            chipmatch = append_chipmatch_vsmany(valid_match_tup)
+            qaid2_chipmatch[qaid] = chipmatch
     if is_vsone:
+        # Vsone finalization
         chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
-        qaid = qreq_.get_external_qaids()[0]
-        qaid2_chipmatch[qaid] = chipmatch
-    if verbose:
-        print('[hs] * made %d feat matches' % nFeatMatches)
+        daid = qreq_.get_internal_daids()[0]
+        qaid2_chipmatch[daid] = chipmatch
     return qaid2_chipmatch
+
+
+def get_sparse_matchinfo(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_):
+    """
+    builds sparse iterator that generates feature match pairs, scores, and ranks
+
+    Args:
+        qfx2_idx (ndarray):
+        qfx2_fs (ndarray):
+        qfx2_valid (ndarray):
+        qreq_ (QueryRequest):  hyper-parameters
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-build_match_iterator
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> from ibeis.model.hots import pipeline
+        >>> verbose = True
+        >>> cfgdict = dict(codename='vsmany')
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
+        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
+        >>> qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg = [
+        ...     locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
+        >>> qaid = qreq_.get_internal_qaids()[0]
+        >>> qfx2_idx = qaid2_nns[qaid][0]
+        >>> (qfx2_score_agg, qfx2_valid_agg) = qaid2_nnfiltagg[qaid]
+        >>> (qfx2_score_list, qfx2_valid_list) = qaid2_nnfilts[qaid]
+        >>>
+    """
+    K = qreq_.qparams.K
+    #nQKpts = qfx2_idx.shape[0]
+    # Build feature matches
+    qfx2_nnidx = qfx2_idx.T[0:K].T
+    qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
+    qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
+    # We fill filter each relavant matrix by aggregate validity
+    flat_validx = qfx2_valid_agg.ravel().nonzero()[0]
+    # Infer the valid internal query feature indexes and ranks
+    valid_qfx   = np.floor_divide(flat_validx, K)
+    valid_rank  = np.mod(flat_validx, K)
+    # Then take the valid indices from internal database
+    # annot_rowids, feature indexes, and all scores
+    valid_daid  = qfx2_daid.take(flat_validx)
+    valid_dfx   = qfx2_dfx.take(flat_validx)
+    valid_score = qfx2_score_agg.take(flat_validx)
+    # TODO: ALL nonaggregate scores
+    valid_match_tup = (valid_qfx, valid_daid, valid_dfx, valid_score, valid_rank,)
+    #matchinfo = np.vstack((valid_qfx, valid_aid, valid_dfx, valid_score, valid_rank,)).T
+    return valid_match_tup
+
+
+def append_chipmatch_vsmany(valid_match_tup):
+    aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
+    # TODO: Sorting the valid lists by aid might help the speed of this
+    # code. Also, consolidating fm, fs, and fk into one vector will reduce
+    # the amount of appends.
+    (valid_qfx, valid_daid, valid_dfx, valid_score, valid_rank,) = valid_match_tup
+    valid_fm = np.vstack((valid_qfx, valid_dfx)).T
+    for daid, fm, fs, fk in zip(valid_daid, valid_fm, valid_score, valid_rank):
+        # Note the difference in construction of fm
+        aid2_fm[daid].append(fm)
+        aid2_fs[daid].append(fs)
+        aid2_fk[daid].append(fk)
+    chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
+    return chipmatch
+
+
+def append_chipmatch_vsone(valid_match_tup):
+    (valid_qfx, valid_daid, valid_dfx, valid_score, valid_rank,) = valid_match_tup
+    # internal daids should not have different daids for vsone
+    assert ut.list_allsame(valid_daid)
+    # Note the difference in construction of fm
+    fm_list = np.vstack((valid_dfx, valid_qfx)).T
+    fs_list = valid_score
+    fk_list = valid_rank.tolist()
+    return (fm_list, fs_list, fk_list)
 
 
 def assert_qaid2_chipmatch(ibs, qreq_, qaid2_chipmatch):
@@ -1389,11 +1450,11 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=VERB_PIPELINE):
     #---
     if stop_node == 'filter_neighbors':
         return locals()
-    qaid2_nnfiltagg = filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_, verbose=verbose)
+    qaid2_nnfilts, qaid2_nnfiltagg = filter_neighbors(qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, qreq_, verbose=verbose)
     #---
     if stop_node == 'build_chipmatches':
         return locals()
-    qaid2_chipmatch_FILT = build_chipmatches(qaid2_nns, qaid2_nnfiltagg, qreq_, verbose=verbose)
+    qaid2_chipmatch_FILT = build_chipmatches(qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg, qreq_, verbose=verbose)
     #---
     if stop_node == 'spatial_verification':
         return locals()
