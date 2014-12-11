@@ -360,6 +360,7 @@ def get_chip_fname_fmt(ibs):
     #cfname_fmt = ('aid_%d' + suffix)
     #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
     #cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
+    # TODO: can use visual_uuids instead
     cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%s_gid=%d' , suffix])
     return cfname_fmt
 
@@ -372,11 +373,11 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
     Args:
         ibs (IBEISController):
         aid_list (list):
-        fname_fmt (?):
-        dpath (?):
+        fname_fmt (str):
+        dpath (str):
 
     Returns:
-        ?: fpath_list
+        list: fpath_list
 
     Example:
         >>> from ibeis.model.preproc.preproc_chip import *   # NOQA
@@ -398,6 +399,7 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
     #cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)
     #cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid)
     #               for (aid, auuid) in zip(aid_list, annot_uuid_list))
+    # TODO: can use visual_uuids instead
     annot_bbox_list  = ibs.get_annot_bboxes(aid_list)
     annot_theta_list = ibs.get_annot_thetas(aid_list)
     annot_gid_list   = ibs.get_annot_gids(aid_list)

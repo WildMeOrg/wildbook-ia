@@ -26,6 +26,7 @@ CLUTTER_PATTERNS = [
     '*.ln.pkg',
     'failed.txt',
     'failed_doctests.txt',
+    'failed_shelltests.txt',
     'test_pyflann_index.flann',
     'test_pyflann_ptsdata.npz',
     '_test_times.txt',

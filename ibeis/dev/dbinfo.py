@@ -42,9 +42,23 @@ def test_name_consistency(ibs):
 
 
 def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
-    """ Returns dictionary of digestable database information
+    """
+
+    Returns dictionary of digestable database information
     Infostr is a string summary of all the stats. Prints infostr in addition to
     returning locals
+
+    Args:
+        ibs (IBEISController):
+        verbose (bool):
+        with_imgsize (bool):
+        with_bytes (bool):
+
+    Returns:
+        dict:
+
+    CommandLine:
+        python -m ibeis.dev.dbinfo --test-get_dbinfo
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -53,13 +67,14 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> import ibeis
         >>> verbose = True
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
-        >>> #ibs = ibeis.opendb(db='PZ_Mothers')
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
         >>> ibs = ibeis.opendb(db='testdb1')
+        >>> #ibs = ibeis.opendb(db='PZ_MTEST')
         >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
-        >>> print(ut.dict_str(output))
-        >>> result = output['info_str']
-        66w+mdzw!n%3+i6h
+        >>> print(output['info_str'])
+        >>> result = ut.hashstr(output['info_str'])
+        >>> print(result)
+        &z3uturz&%s2p03!
 
     #>>> print(ut.hashstr(repr(output)))
 

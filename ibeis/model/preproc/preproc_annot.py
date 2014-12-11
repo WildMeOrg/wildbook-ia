@@ -169,6 +169,7 @@ def testdata_preproc_annot():
 
 def test_annotation_uuid(ibs):
     """ Consistency test """
+    # DEPRICATE
     aid_list        = ibs.get_valid_aids()
     bbox_list       = ibs.get_annot_bboxes(aid_list)
     theta_list      = ibs.get_annot_thetas(aid_list)

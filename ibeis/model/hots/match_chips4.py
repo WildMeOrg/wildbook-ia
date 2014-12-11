@@ -5,7 +5,8 @@ DoctestCMD:
 from __future__ import absolute_import, division, print_function
 import utool
 import utool as ut
-from ibeis.model.hots import query_request
+import six
+#from ibeis.model.hots import query_request
 from ibeis.model.hots import pipeline
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
 
@@ -42,6 +43,9 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     Returns:
         qaid2_qres (dict): dict of QueryResult objects
 
+    CommandLine:
+        python -m ibeis.model.hots.match_chips4 --test-submit_query_request
+
     Examples:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
@@ -64,9 +68,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     # ------------
     # Build query request
     if qreq_ is None:
-        qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list,
-                                                      cfgdict=cfgdict, verbose=verbose)
-        #qreq_.qparams
+        qreq_ = ibs.new_query_request(qaid_list, daid_list,
+                                      cfgdict=cfgdict, verbose=verbose)
     # --- BIG CACHE ---
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
@@ -107,7 +110,7 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
     #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
     #                     for qx, qaid in enumerate(qaid_list))
     qreq_.lazy_preload(verbose=verbose)
-    qreq_shallow_iter = ((qreq_.shallowcopy(qx), qaid)
+    qreq_shallow_iter = ((qreq_.shallowcopy(qx=qx), qaid)
                          for qx, qaid in enumerate(qaid_list))
     qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
     for qreq_chunk in qreq_chunk_iter:
@@ -129,6 +132,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
     Returns:
         qaid2_qres
 
+    CommandLine:
+        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1
+
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
@@ -147,13 +153,15 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         if utool.DEBUG2:
             qreq_.assert_self(ibs)  # SANITY CHECK
         # Try loading as many cached results as possible
-        qaid2_qres_hit, cachemiss_qaids = pipeline.try_load_resdict(qreq_, verbose=verbose)
-        cachemiss_quuids = ibs.get_annot_uuids(cachemiss_qaids)
-        qreq_.set_external_qaids(cachemiss_qaids, cachemiss_quuids)  # FIXME: changes qreq_ state
+        qaid2_qres_hit = pipeline.try_load_resdict(qreq_, verbose=verbose)
+        if len(qaid2_qres_hit) == len(qreq_.get_external_qaids()):
+            return qaid2_qres_hit
+        cachehit_qaids = list(six.iterkeys(qaid2_qres_hit))
+        qreq_.set_external_qaid_mask(cachehit_qaids)  # FIXME: changes qreq_ state
         #if utool.DEBUG2:
         #    qreq_.assert_self(ibs)  # SANITY CHECK
-        if len(cachemiss_qaids) == 0:
-            return qaid2_qres_hit
+        #if len(cachemiss_qaids) == 0:
+        #    qreq_.set_external_qaid_mask(None)  # undo state changes
     else:
         print('[mc4] cache-query is off')
         #if __debug__:
@@ -161,7 +169,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         qaid2_qres_hit = {}
     #qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
-    if qreq_.qparams.pipeline_root == 'vsone':
+    if qreq_.qparams.vsone:
         # Make sure that only one external query is requested per pipeline call
         # when doing vsone
         qaid_list = qreq_.get_external_qaids()
@@ -193,6 +201,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)
     #del qreq_  # is the query request is no longer needed?
+    qreq_.set_external_qaid_mask(None)  # undo state changes
     return qaid2_qres
 
 

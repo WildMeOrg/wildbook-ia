@@ -699,9 +699,40 @@ class IBEISController(object):
             daid_list = ibs.get_valid_aids()
         return daid_list
 
-    def query_chips(ibs, qaid_list, daid_list=None, cfgdict=None,
-                    use_cache=None, use_bigcache=None, qreq_=None,
-                    return_request=False, verbose=pipeline.VERB_PIPELINE):
+    def query_chips(ibs, qaid_list,
+                    daid_list=None,
+                    cfgdict=None,
+                    use_cache=None,
+                    use_bigcache=None,
+                    qreq_=None,
+                    return_request=False,
+                    verbose=pipeline.VERB_PIPELINE):
+        r"""
+        Args:
+            qaid_list (list):
+            daid_list (list):
+            cfgdict (None):
+            use_cache (None):
+            use_bigcache (None):
+            qreq_ (QueryRequest):  hyper-parameters
+            return_request (bool):
+            verbose (bool):
+
+        Returns:
+            tuple: (qres_list, qreq_)
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-query_chips
+
+        Example:
+            >>> # SLOW_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> qaids = ibs.get_valid_aids()[0:1]
+            >>> qres = ibs.query_chips(qaids)[0]
+            >>> assert qres.qaid == qaids[0]
+        """
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
 
@@ -710,21 +741,27 @@ class IBEISController(object):
             use_bigcache=use_bigcache, qreq_=qreq_,
             return_request=return_request, verbose=verbose)
 
-        if return_request:
-            qaid2_qres, qreq_ = res
-        else:
-            qaid2_qres = res
+        with ut.EmbedOnException():
 
-        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+            if return_request:
+                qaid2_qres, qreq_ = res
+            else:
+                qaid2_qres = res
+
+            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
 
         if return_request:
             return qres_list, qreq_
         else:
             return qres_list
 
-    def _query_chips4(ibs, qaid_list, daid_list, use_cache=None,
-                      use_bigcache=None, return_request=False,
-                      cfgdict=None, qreq_=None, verbose=pipeline.VERB_PIPELINE):
+    def _query_chips4(ibs, qaid_list, daid_list,
+                      use_cache=None,
+                      use_bigcache=None,
+                      return_request=False,
+                      cfgdict=None,
+                      qreq_=None,
+                      verbose=pipeline.VERB_PIPELINE):
         """
         main entrypoint to submitting a query request
 

@@ -121,8 +121,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     if verbose:
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
-        print('[hs] * len(internal_qaids) = %r' % len(qreq_.internal_qaids))
-        print('[hs] * len(internal_daids) = %r' % len(qreq_.internal_daids))
+        print('[hs] * len(internal_qaids) = %r' % len(qreq_.get_internal_qaids()))
+        print('[hs] * len(internal_daids) = %r' % len(qreq_.get_internal_daids()))
 
     qreq_.lazy_load(verbose=verbose)
 
@@ -1258,7 +1258,7 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
         force_miss (bool):
 
     Returns:
-        tuple : (qaid2_qres_hit, cachemiss_qaids)
+        dict : qaid2_qres_hit
     """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
@@ -1267,15 +1267,16 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
     cfgstr = qreq_.get_cfgstr()
     qresdir = qreq_.get_qresdir()
     qaid2_qres_hit = {}
-    cachemiss_qaids = []
+    #cachemiss_qaids = []
     for qaid, qauuid in zip(qaids, qauuids):
         try:
             qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
             qres.load(qresdir, force_miss=force_miss, verbose=verbose)  # 77.4 % time
-            qaid2_qres_hit[qaid] = qres  # cache hit
+            #qaid2_qres_hit[qaid] = qres  # cache hit
         except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
-            cachemiss_qaids.append(qaid)  # cache miss
-    return qaid2_qres_hit, cachemiss_qaids
+            pass
+            #cachemiss_qaids.append(qaid)  # cache miss
+    return qaid2_qres_hit  # , cachemiss_qaids
 
 
 def save_resdict(qreq_, qaid2_qres, verbose=VERB_PIPELINE):
@@ -1370,7 +1371,7 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
     ibs = ibeis.test_main(db=dbname)
     if 'with_metadata' not in cfgdict:
         cfgdict['with_metadata'] = True
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
     qreq_.lazy_load()
     return ibs, qreq_
 

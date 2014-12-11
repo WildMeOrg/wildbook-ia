@@ -8,16 +8,41 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def new_query_request(ibs, qaid_list, daid_list, cfgdict=None):
+def new_query_request(ibs, qaid_list, daid_list, cfgdict=None, verbose=ut.NOT_QUIET):
     """
     alias for ibeis.model.hots.query_request.new_ibeis_query_request
 
-    daid_list = ibs.get_valid_aids()
-    qaid_list = daid_list[0:1]
-    cfgdict = {}
+    Args:
+        qaid_list (list):
+        daid_list (list):
+        cfgdict (None):
+        verbose (bool):
+
+    Returns:
+        QueryRequest: qreq_ -  hyper-parameters
+
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs --test-new_query_request
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> daid_list = ibs.get_valid_aids()
+        >>> qaid_list = daid_list[0:2]
+        >>> cfgdict = {}
+        >>> verbose = True
+        >>> qreq_ = new_query_request(ibs, qaid_list, daid_list, cfgdict, verbose)
+        >>> qreq_.set_external_qaid_mask(qaid_list[1:2])
+        >>> print(qreq_.get_external_qaids())
+        >>> result = str(qreq_.get_query_hashid())
+        >>> print(result)
+        _QSUUIDS((1)nztoqb6&7apjltd1)
     """
     from ibeis.model.hots import query_request
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+    qreq_ = query_request.new_ibeis_query_request(
+        ibs, qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose)
     return qreq_
 
 

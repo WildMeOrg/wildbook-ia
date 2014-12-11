@@ -2,8 +2,9 @@
 """
 Exports subset of an IBEIS database to a new IBEIS database
 
-Example:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.dbio.export_subset))"
+TODO:
+    NEED TO UPDATE FILE TO USE THE NEW NAME AND SPECIES TABLE NOW THAT THEY
+    ARE NO LONGER LBLANNOTS
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function

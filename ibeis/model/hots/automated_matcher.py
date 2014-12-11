@@ -1,6 +1,7 @@
 """
 Idea:
-    what about the probability of a descriptor match being a score.
+    what about the probability of a descriptor match being a score like in SIFT.
+    we can learn that too.
 
 Have:
     * semantic and visual uuids
@@ -14,17 +15,26 @@ Have:
       vs-many score normalization doesnt actually matter. We just need the ranking.
     * need to add in the multi-indexer code into the pipeline. Need to
       decide which subindexers to load given a set of daids
+    * need to use set query as an exemplar if its vs-one reranking scores
+      are below a threshold
+    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
+    * start from nothing and let the system make the first few decisions correctly
+    * tell me the correct answer in the automated test
+    * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
+    * paramater to only add exemplar if post-normlized score is above a threshold
+    * ensure vsone ratio test is happening correctly
 
 TODO:
     * ~~Remember confidence of decisions for manual review~~
       Defer
 
-New TODO:
+TODO:
     * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
+
     * Improve vsone scoring.
+
     * normalization gets a cfgstr based on the query
 
-TODO:
     * need to allow for scores to be un-invalidatd post spatial verification
       e.g. when the first match initially is invalidated through
       spatial verification but the next matches survive.
@@ -41,16 +51,6 @@ TODO:
     * Put test query mode into the main application and work on the interface for it.
 
     * spawn background process to reindex chunks of data
-
-HAVEDONE:
-    * need to use set query as an exemplar if its vs-one reranking scores
-      are below a threshold
-    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
-    * start from nothing and let the system make the first few decisions correctly
-    * tell me the correct answer in the automated test
-    * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
-    * paramater to only add exemplar if post-normlized score is above a threshold
-    * ensure vsone ratio test is happening correctly
 """
 from __future__ import absolute_import, division, print_function
 import ibeis
@@ -84,6 +84,7 @@ def incremental_test(ibs1, num_initial=0):
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs1 = ibeis.opendb('PZ_MTEST')
@@ -92,6 +93,7 @@ def incremental_test(ibs1, num_initial=0):
         >>> incremental_test(ibs1, num_initial)
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs1 = ibeis.opendb('GZ_ALL')
@@ -161,7 +163,7 @@ def setup_incremental_test(ibs1, num_initial=0):
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial)
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
         >>> ibs1 = ibeis.opendb('GZ_ALL')

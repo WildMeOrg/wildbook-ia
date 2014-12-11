@@ -156,8 +156,19 @@ class ScoreNormalizer(ut.Cachable):
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def add_support(normalizer):
-        raise NotImplementedError('todo')
+    def add_support(normalizer, tp_scores, fp_scores, tp_labels, fp_labels):
+        # Ensure input in list format
+        (tp_scores, fp_scores, tp_labels, fp_labels) = list(
+            map(ut.ensure_iterable,
+                (tp_scores, fp_scores, tp_labels, fp_labels)))
+        # Assert that lengths are the same
+        assert ut.list_allsame(map(
+            len, (tp_scores, fp_scores, tp_labels, fp_labels))), (
+                'unequal lengths')
+        normalizer.tp_support = np.append(normalizer.tp_support, tp_scores)
+        normalizer.fp_support = np.append(normalizer.fp_support, fp_scores)
+        normalizer.tp_labels  = np.append(normalizer.tp_labels, tp_labels)
+        normalizer.fp_label   = np.append(normalizer.fp_label, fp_labels)
 
     def retrain(normalizer):
         tp_support = normalizer.tp_support
@@ -361,6 +372,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
         >>> from ibeis.all_imports import *
+        >>> import plottool as pt
         >>> import ibeis
         >>> from ibeis.model.hots import score_normalization
         >>> #score_normalization.rrr()
@@ -372,7 +384,6 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         >>> normalizer.visualize()
         >>> result = str(normalizer)
         >>> print(result)
-        >>> import plottool as pt
         >>> exec(pt.present())
     """
     from ibeis.model.hots import query_request
@@ -480,10 +491,14 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     Returns:
         ScoreNormalizer: cached or freshly trained score normalizer
 
+    CommandLine:
+        python -m ibeis.model.hots.score_normalization --test-cached_ibeis_score_normalizer
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *   # NOQA
         >>> import ibeis
+        >>> ibeis._init_numpy()
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
         >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
@@ -491,12 +506,20 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, return_request=True)
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
         >>> result = score_normalizer.get_fname()
+        >>> result += '\n' + score_normalizer.get_cfgstr()
         >>> print(result)
-        normalizer_PZ_MTEST_SUUIDS((9)67j%dr%&bl%4oh4+).cPkl
+        normalizer_5cv1%3s&.cPkl
+        PZ_MTEST_DSUUIDS((9)67j%dr%&bl%4oh4+)_QSUUIDS((9)67j%dr%&bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+
+    normalizer_PZ_MTEST_SUUIDS((9)67j%dr%&bl%4oh4+).cPkl
     """
     # Collect training data
     #cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
-    cfgstr = ibs.get_dbname() + qreq_.get_cfgstr()
+    species_text = '_'.join(qreq_.get_unique_species())  # HACK
+    data_hashid = qreq_.get_data_hashid()
+    query_hashid = qreq_.get_query_hashid()
+    query_cfgstr = qreq_.get_query_cfgstr()
+    cfgstr = ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr
     try:
         if use_cache is False:
             raise Exception('forced normalizer cache miss')

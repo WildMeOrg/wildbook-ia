@@ -157,7 +157,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     cachedir = get_probchip_cachedir(ibs)
     ut.ensuredir(cachedir)
     #grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
-    #annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    #annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     #for aids, species in zip(grouped_aids, unique_species):
     #probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
     #                       for auuid in annot_uuid_list)
