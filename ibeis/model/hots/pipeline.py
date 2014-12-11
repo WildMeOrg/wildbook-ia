@@ -114,6 +114,19 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0
 
+
+    TO FIX THE INVALIDATED SCORES ISSUE WE COULD DO THE FOLLOWING:
+      * have each item in the fm list point back to the place in the qfx2_dfx matrix
+      dont like this so much
+
+      * give qfx2_score W more dimensions. one for each weight
+      dupvote is a weight, but it needs to be recomputed after spatial verification
+      ratio weights dont need recomputation
+      lnbnn weights need to be preserved outside the query
+      nnfilt0 is just a 0 to 1 weight, but it doesnt change
+
+      qfx2_valid is almost meaninglesss could easilly just be another weight?
+
     """
     # Load data for nearest neighbors
     #if qreq_.qparams.pipeline_root == 'vsone':
@@ -133,26 +146,34 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
+        # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
         qaid2_nns_ = nearest_neighbors(qreq_, verbose=verbose)
 
         # Remove Impossible Votes
+        # a nnfilt object is an ndarray qfx2_valid
+        # * marks matches to the same image as invalid
         qaid2_nnfilt0_ = baseline_neighbor_filter(qaid2_nns_, qreq_, verbose=verbose)
 
         # Nearest neighbors weighting / scoring (filt2_weights)
-        # * feature matches are weighted
+        # filt2_weights maps filter names to qaid2_weights dictionaries
+        # a weight object is an ndarray qfx2_weight
+        # * scores for feature matches are computed
         filt2_weights_ = weight_neighbors(qaid2_nns_, qaid2_nnfilt0_, qreq_, verbose=verbose)
 
         # Thresholding and combine weights into a score
+        # * scores for feature matches are tested for valididty
+        # * scores for feature matches are aggregated
         # * nnfilt = (qfx2_valid, qfx2_score)
+        # qfx2_score is an aggregate of all the weights
         qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, qaid2_nnfilt0_,
                                          filt2_weights_, qreq_, verbose=verbose)
 
         # Nearest neighbors to chip matches (qaid2_chipmatch)
         # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
         # * Initial scoring occurs
-        # * vsone inverse swapping occurs here
+        # * vsone un-swapping occurs here
         qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_,
                                                   qreq_, verbose=verbose)
     else:
@@ -160,6 +181,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
+    # TODO: allow for reweighting of feature matches to happen.
     qaid2_chipmatch_SVER_ = spatial_verification(qaid2_chipmatch_FILT_, qreq_,
                                                  verbose=verbose)
 
@@ -228,14 +250,10 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     qvec_iter = ut.ProgressIter(qvecs_list, lbl='Assign NN: ', freq=20, time_thresh=2.0)
     for count, qfx2_vec in enumerate(qvec_iter):
         # Check that we can query this annotation
-        if len(qfx2_vec) == 0:
-            # Assign empty nearest neighbors
-            (qfx2_idx, qfx2_dist) = qreq_.indexer.empty_neighbors(num_neighbors)
-        else:
-            # Find Neareset Neighbors nntup = (indexes, dists)
-            (qfx2_idx, qfx2_dist) = qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
-            nTotalNN += qfx2_idx.size
-            nTotalDesc += len(qfx2_vec)
+        # Find Neareset Neighbors nntup = (indexes, dists)
+        (qfx2_idx, qfx2_dist) = qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
+        nTotalNN += qfx2_idx.size
+        nTotalDesc += len(qfx2_vec)
         # record number of query and result desc
         nn_idxs_arr[count]   = qfx2_idx
         nn_dists_arr[count] = qfx2_dist

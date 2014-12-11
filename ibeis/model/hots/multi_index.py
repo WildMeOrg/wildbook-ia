@@ -161,6 +161,9 @@ class MultiNeighborIndex(object):
     def __init__(mxer, nn_indexer_list):
         mxer.nn_indexer_list = nn_indexer_list  # List of single indexes
 
+    def get_dtype(mxer):
+        return mxer.nn_indexer_list[0].get_dtype()
+
     def multi_knn(mxer, qfx2_vec, K, checks):
         """
         Does a query on each of the subindexer kdtrees
@@ -202,6 +205,18 @@ class MultiNeighborIndex(object):
             >>> result = str(np.shape(qfx2_imx))
             >>> print(result)
             (1074, 18)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> import numpy as np
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K, checks = 3, 1028
+            >>> qfx2_vec = np.empty((0, 128), dtype=mxer.get_dtype())
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+            >>> result = str(np.shape(qfx2_imx))
+            >>> print(result)
+            (0, 18)
         """
         (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
         qfx2_imx_list = []
@@ -217,11 +232,13 @@ class MultiNeighborIndex(object):
         # Sort over all tree result distances
         qfx2_sortx = qfx2_dist_.argsort(axis=1)
         # Apply sorting to concatenated results
-        def sortaxis1(qfx2_xxx):
+        def sortaxis1(qfx2_xxx, qfx2_sortx):
+            if qfx2_sortx.size == 0:
+                return qfx2_xxx
             return np.vstack([row[sortx] for sortx, row
                               in zip(qfx2_sortx, qfx2_xxx)])
-        qfx2_dist  = sortaxis1(qfx2_dist_)
-        qfx2_imx   = sortaxis1(qfx2_imx_)
+        qfx2_dist  = sortaxis1(qfx2_dist_, qfx2_sortx)
+        qfx2_imx   = sortaxis1(qfx2_imx_, qfx2_sortx)
         return (qfx2_imx, qfx2_dist)
 
     def get_offsets(mxer):

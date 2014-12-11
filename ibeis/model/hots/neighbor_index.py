@@ -238,6 +238,9 @@ class NeighborIndex(object):
         nnindexer.cfgstr   = cfgstr    # configuration id
         nnindexer.cores    = cores
 
+    def get_dtype(nnindexer):
+        return nnindexer.idx2_vec.dtype
+
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
         Args:
@@ -252,18 +255,36 @@ class NeighborIndex(object):
             qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
 
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()
-        >>> new_aid_list = [2, 3, 4]
-        >>> qfx2_vec = ibs.get_annot_vecs(1)
-        >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
-        >>> K = 2
-        >>> checks = 1028
-        >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> K = 2
+            >>> checks = 1028
+            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
+            >>> print(result)
+            (1257, 2) (1257, 2)
+
+        Example2:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> qfx2_vec = np.empty((0, 128), dtype=nnindexer.get_dtype())
+            >>> K = 2
+            >>> checks = 1028
+            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
+            >>> print(result)
+            (0, 2) (0, 2)
+
         """
-        (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
-            qfx2_vec, K, checks=checks, cores=nnindexer.cores)
+        if len(qfx2_vec) == 0:
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(K)
+        else:
+            (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
+                qfx2_vec, K, checks=checks, cores=nnindexer.cores)
         return (qfx2_idx, qfx2_dist)
 
     def empty_neighbors(nnindexer, K):
