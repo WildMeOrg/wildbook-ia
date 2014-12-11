@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function
 #sys.exit(1)
 # THE NUMPY ERROR HAPPENS BECAUSE OF OPENCV
 import cv2
-import six
-import functools
+#import six
+#import functools
 import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
@@ -219,17 +219,115 @@ def nearest_point(x, y, pts, mode='random'):
     return fx, mindist
 
 
-@profile
-def and_lists(*args):
-    """ Like np.logical_and, but can take more than 2 arguments
+def get_uncovered_mask(covered_array, covering_array):
+    r"""
+    Args:
+        covered_array (ndarray):
+        covering_array (ndarray):
+
+    Returns:
+        ndarray: flags
+
+    CommandLine:
+        python -m vtool.linalg --test-get_mask_cover
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> covered_array = [1, 2, 3, 4, 5]
+        >>> covering_array = [2, 4, 5]
+        >>> flags = get_uncovered_mask(covered_array, covering_array)
+        >>> result = str(flags)
+        >>> print(result)
+        [ True False  True False False]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> covered_array = [1, 2, 3, 4, 5]
+        >>> covering_array = []
+        >>> flags = get_uncovered_mask(covered_array, covering_array)
+        >>> result = str(flags)
+        >>> print(result)
+        [ True  True  True  True  True]
+
     """
+    if len(covering_array) == 0:
+        return np.ones(np.shape(covered_array), dtype=np.bool)
+    else:
+        flags_list = (np.not_equal(covered_array, item) for item in covering_array)
+        mask_array = and_lists(*flags_list)
+        return mask_array
+
+
+def get_covered_mask(covered_array, covering_array):
+    return ~get_uncovered_mask(covered_array, covering_array)
+
+
+def or_lists(*args):
+    """
+    Like np.logical_and, but can take more than 2 arguments
+
+    SeeAlso:
+        and_lists
+    """
+    flags = np.logical_or.reduce(args)
+    return flags
+
+
+def and_lists(*args):
+    """
+    Like np.logical_and, but can take more than 2 arguments
+
+    CommandLine:
+        python -m vtool.linalg --test-and_lists
+
+    SeeAlso:
+       or_lists
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> arg1 = np.array([1, 1, 1, 1,])
+        >>> arg2 = np.array([1, 1, 0, 1,])
+        >>> arg3 = np.array([0, 1, 0, 1,])
+        >>> args = (arg1, arg2, arg3)
+        >>> flags = and_lists(*args)
+        >>> result = str(flags)
+        >>> print(result)
+        [False  True False  True]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> size = 10000
+        >>> np.random.seed(0)
+        >>> arg1 = np.random.randint(2, size=size)
+        >>> arg2 = np.random.randint(2, size=size)
+        >>> arg3 = np.random.randint(2, size=size)
+        >>> args = (arg1, arg2, arg3)
+        >>> flags = and_lists(*args)
+        >>> # ensure equal division
+        >>> segments = 5
+        >>> validx = np.where(flags)[0]
+        >>> endx = int(segments * (validx.size // (segments)))
+        >>> parts = np.split(validx[:endx], segments)
+        >>> result = str(list(map(np.sum, parts)))
+        >>> print(result)
+        [243734, 714397, 1204989, 1729375, 2235191]
+
+    %timeit reduce(np.logical_and, args)
+    %timeit np.logical_and.reduce(args)  # wins with more data
+    """
+    flags = np.logical_and.reduce(args)
+    return flags
     # TODO: Cython
     # TODO: remove reduce statement (bleh)
-    if six.PY2:
-        flags =  reduce(np.logical_and, args)
-    elif six.PY3:
-        flags =  functools.reduce(np.logical_and, args)
-    return flags
+    #if six.PY2:
+    #    flags =  reduce(np.logical_and, args)
+    #elif six.PY3:
+    #    flags =  functools.reduce(np.logical_and, args)
+    #return flags
 
 
 def and_3lists(arr1, arr2, arr3):
@@ -569,3 +667,16 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
 #        # </AUTOGEN_CYTH>
 #except Exception as ex:
 #    pass
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.linalg
+        python -m vtool.linalg --allexamples
+        python -m vtool.linalg --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
