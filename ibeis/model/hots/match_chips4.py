@@ -109,6 +109,7 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
     """
     #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
     #                     for qx, qaid in enumerate(qaid_list))
+    # normalizers are the same for all vsone queries but indexers are not
     qreq_.lazy_preload(verbose=verbose)
     qreq_shallow_iter = ((qreq_.shallowcopy(qx=qx), qaid)
                          for qx, qaid in enumerate(qaid_list))
@@ -120,9 +121,31 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
             yield (qaid, qres)
 
 
+def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
+    qaid_list = qreq_.get_external_qaids()
+    qaid2_qres = {}
+    chunksize = 4
+    qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
+                                    verbose=verbose)
+    qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
+                            backspace=False, lbl='vsone query: ',
+                            use_rate=True)
+    qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
+
+    for qres_chunk in qres_chunk_iter:
+        qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
+        # Save chunk of vsone queries
+        if save_cache:
+            print('[mc4] saving vsone chunk')
+            pipeline.save_resdict(qreq_, qaid2_qres_, verbose=verbose)
+        # Add current chunk to results
+        qaid2_qres.update(qaid2_qres_)
+    return qaid2_qres
+
+
 #@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
-                              save_cache=SAVE_CACHE, chunksize=4, verbose=True):
+                              save_cache=SAVE_CACHE, verbose=True):
     """
     Args:
         ibs (IBEISController):
@@ -141,66 +164,44 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
-        >>> chunksize = 2
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
         >>> use_cache = False
         >>> save_cache = False
-        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache, chunksize)
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
         >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
         if utool.DEBUG2:
-            qreq_.assert_self(ibs)  # SANITY CHECK
+            # sanity check
+            qreq_.assert_self(ibs)
         # Try loading as many cached results as possible
         qaid2_qres_hit = pipeline.try_load_resdict(qreq_, verbose=verbose)
         if len(qaid2_qres_hit) == len(qreq_.get_external_qaids()):
             return qaid2_qres_hit
         cachehit_qaids = list(six.iterkeys(qaid2_qres_hit))
-        qreq_.set_external_qaid_mask(cachehit_qaids)  # FIXME: changes qreq_ state
-        #if utool.DEBUG2:
-        #    qreq_.assert_self(ibs)  # SANITY CHECK
-        #if len(cachemiss_qaids) == 0:
-        #    qreq_.set_external_qaid_mask(None)  # undo state changes
+        # mask queries that have already been executed
+        qreq_.set_external_qaid_mask(cachehit_qaids)
     else:
         print('[mc4] cache-query is off')
-        #if __debug__:
-        #    pipeline.try_load_resdict(qreq_, force_miss=True)
         qaid2_qres_hit = {}
-    #qreq_.assert_self(ibs)  # SANITY CHECK
     # Execute and save cachemiss queries
     if qreq_.qparams.vsone:
-        # Make sure that only one external query is requested per pipeline call
-        # when doing vsone
-        qaid_list = qreq_.get_external_qaids()
-        qaid2_qres = {}
-
-        qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
-                                        verbose=verbose)
-        qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
-                                backspace=False, lbl='vsone query: ',
-                                use_rate=True)
-        qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
-
-        for qres_chunk in qres_chunk_iter:
-            qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
-            # Save chunk of vsone queries
-            if save_cache:
-                print('[mc4] saving vsone chunk')
-                pipeline.save_resdict(qreq_, qaid2_qres_, verbose=verbose)
-            # Add current chunk to results
-            qaid2_qres.update(qaid2_qres_)
+        # break vsone queries into multiple queries - one for each external qaid
+        qaid2_qres = execute_vsone_query(ibs, qreq_, save_cache=save_cache,
+                                         verbose=verbose)
     else:
-        qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)  # execute queries
+        # execute non-vsone queries
+        qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
         if save_cache:
             pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
     # Cache save only misses
     if utool.DEBUG2:
-        qreq_.assert_self(ibs)  # SANITY CHECK
+        # sanity check
+        qreq_.assert_self(ibs)
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)
-    #del qreq_  # is the query request is no longer needed?
     qreq_.set_external_qaid_mask(None)  # undo state changes
     return qaid2_qres
 

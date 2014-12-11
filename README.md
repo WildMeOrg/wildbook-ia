@@ -314,10 +314,10 @@ python dev.py --dbdir <full-dbpath>
 # Examples:
 # Here are are some example commands
 #--------------------
-# Run the queries for each roi with groundtruth in the PZ_Mothers database
+# Run the queries for each roi with groundtruth in the PZ_MTEST database
 # using the best known configuration of parameters
-python dev.py --db PZ_Mothers --allgt -t best
-python dev.py --db PZ_Mothers --allgt -t score
+python dev.py --db PZ_MTEST --allgt -t best
+python dev.py --db PZ_MTEST --allgt -t score
 
 
 # View work dir
@@ -337,7 +337,7 @@ python dev.py --dump-schema --postquit
 # Convert a hotspotter database to IBEIS
 #------------------
 # Set this as your workdir
-python dev.py --db PZ_Mothers --setdb
+python dev.py --db PZ_MTEST --setdb
 # If its in the same location as a hotspotter db, convert it
 python dev.py --convert --force-delete
 python dev.py --convert --force-delete --db Database_MasterGrevy_Elleni
@@ -358,7 +358,7 @@ python dev.py --convert --force-delete --db WY_Toads
 python dev.py --convert --force-delete --db WS_hard
 python dev.py --convert --force-delete --db Wildebeast
 python dev.py --convert --force-delete --db PZ_FlankHack
-python dev.py --convert --force-delete --db PZ_Mothers
+python dev.py --convert --force-delete --db PZ_MTEST
 
 
 #--------------
@@ -391,7 +391,7 @@ python main.py --merge-species JAG_
 #---------------
 # Technical Demo
 #---------------
-python dev.py --db PZ_Mothers --setdb
+python dev.py --db PZ_MTEST --setdb
 
 # See a list of tests
 python dev.py -t help
@@ -411,7 +411,7 @@ python dev.py --allgt -t inspect -w
 #----------------
 
 profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+profiler.sh dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
 
 
 #----------------
@@ -420,7 +420,7 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 # Set a default DB First
 ./dev.py --setdb --dbdir /path/to/your/DBDIR
 ./dev.py --setdb --db YOURDB
-./dev.py --setdb --db PZ_Mothers
+./dev.py --setdb --db PZ_MTEST
 ./dev.py --setdb --db PZ_FlankHack
 
 # List all available tests
@@ -469,7 +469,7 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 
 # Database Stats for all our important datasets:
 ./dev.py --allgt -t dbinfo --db PZ_RoseMary | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db PZ_Mothers | grep -F "[dbinfo]"
+./dev.py --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
 ./dev.py --allgt -t dbinfo --db PZ_FlankHack | grep -F "[dbinfo]"
 ./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-80_nImg=555 | grep -F "[dbinfo]"
 ./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-224_nImg=222 | grep -F "[dbinfo]"
@@ -525,21 +525,21 @@ python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-
 
 profiler.sh dev.py -t upsize --allgt --quiet --noshow
 
-python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 -w
+python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 -w
 
 
 dev.py -t upsize --allgt --quiet --noshow
-profiler.sh dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:30
-python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:30
-python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
+profiler.sh dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
+python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
+python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 
-%run dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
-python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
-python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
+%run dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
+python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
+python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:10:3 -w
 
 
-profiler.sh dev.py -t best --allgt --db PZ_Mothers --nocache-big --nocache-query
-./dev.py -t best --qaid 1:10 --db PZ_Mothers --nocache-big --nocache-query
+profiler.sh dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
+./dev.py -t best --qaid 1:10 --db PZ_MTEST --nocache-big --nocache-query
 
 ./main.py --db PZ_RoseMary --cmd
 
@@ -571,13 +571,13 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 ./dev.py --db PZ_MTEST -t best --allgt --nocyth
  
 # Correct output 
-python dev.py --db PZ_Mothers -t best --qaid 1:20
-python dev.py --db PZ_Mothers -t upsize --allgt --screen --cyth
+python dev.py --db PZ_MTEST -t best --qaid 1:20
+python dev.py --db PZ_MTEST -t upsize --allgt --screen --cyth
 python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 
 # EXPERIMENT DATABASES
 python dev.py --db testdb1 --setdb 
-python dev.py --db PZ_Mothers --setdb 
+python dev.py --db PZ_MTEST --setdb 
 python dev.py --db PZ_RoseMary --setdb 
 # EXPERIMENT CLEANUP
 python dev.py --delete-cache --postload-exit
@@ -592,12 +592,12 @@ python dev.py -t best --allgt --view-hard
 python dev.py -t upsize --allgt 
 
 
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
-./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
-./dev.py -t asmk --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+./dev.py -t smk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
+./dev.py -t asmk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 
-dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
+dev.py -t smk_test --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 
 
 ./dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query
@@ -606,13 +606,13 @@ dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --qinde
 ./dev.py -t smk1 --allgt --qindex 0:2 --db Oxford
 
 # SMK TESTS
-python dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query --qindex 0:20
+python dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --qindex 0:20
 
-python dev.py -t smk2 --allgt --db PZ_Mothers --qindex 20:30 --va
+python dev.py -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
 python dev.py -t smk2 --allgt --db PZ_Master0
 
-python -m memory_profiler dev.py -t smk2 --allgt --db PZ_Mothers --qindex 0
+python -m memory_profiler dev.py -t smk2 --allgt --db PZ_MTEST --qindex 0
 
 python -m memory_profiler dev.py -t smk --allgt --db PZ_Master0 --qindex 0 --nocache-query --nogui 
 
@@ -623,10 +623,10 @@ python dev.py -t oxford --allgt --db Oxford --qindex 0:55
  
 
 # Feature Tuning
-python dev.py -t test_feats -w --show --db PZ_Mothers --allgt --qindex 1:2
+python dev.py -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
 
-python dev.py -t featparams -w --show --db PZ_Mothers --allgt
-python dev.py -t featparams_big -w --show --db PZ_Mothers --allgt
+python dev.py -t featparams -w --show --db PZ_MTEST --allgt
+python dev.py -t featparams_big -w --show --db PZ_MTEST --allgt
 python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
  --allgt --qindex 1:2
 
@@ -650,12 +650,14 @@ python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -
 python dev.py -t best --db PZ_MTEST --qaid 72 --sel-rows 0 --sel-cols 0 --show -w --dump-extra --vf --va
 
 # VSONE TESTS
-python dev.py -t vsone_best --db PZ_Mothers --allgt --qindex 0:2 --print-all --va
+python dev.py -t vsone_best --db PZ_MTEST --allgt --qindex 0:2 --print-all --va --verbose
+python dev.py -t vsone_best --db PZ_MTEST --allgt --verbose --qindex 0
+# FULL TEST
+python dev.py -t vsone_best --db PZ_MTEST --allgt 
 
-# DOCTESTS
-python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_chip))" --quiet
-python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_featweight))" --quiet
-python -c "import utool, ibeis; print(utool.doctest_funcs(module=ibeis.model.preproc.preproc_feat))" --quiet --allexamples
+# VSMANY TESTS
+# FULL TEST
+python dev.py -t vsmany_best --db PZ_MTEST --allgt 
 
 
 # NEW DATABASE TEST

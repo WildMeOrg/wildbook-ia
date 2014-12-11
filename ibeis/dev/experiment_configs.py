@@ -29,6 +29,7 @@ small_best = {
     'use_chip_extent': [True],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
+    'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'chip_sqrt_area':  [450],
 
     'fg_weight'       : [1.0],
@@ -54,6 +55,8 @@ vsmany = augbase(small_best, {
     'K':               [4],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'lnbnn_weight':    [1],  # 1,]
+    'prescore_method':  ['nsum'],
+    'score_method':  ['nsum'],
 })
 
 vsone = augbase(small_best, {
@@ -64,6 +67,9 @@ vsone = augbase(small_best, {
     'lnbnn_weight':  [0],
     'ratio_weight':  [1.0],
     'ratio_thresh':  [.625],
+    'prescore_method':  ['csum'],
+    'score_method':  ['csum'],
+    'dupvote_weight':  [0],
 })
 
 pzmastertest = augbase(small_best, {
@@ -537,7 +543,8 @@ vsmany_best = {
     'xy_thresh':       [.01],  # [.002],
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
-    'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
+    'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
+    'score_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'max_alts':        [1000],
     'chip_sqrt_area':  [450],
 }

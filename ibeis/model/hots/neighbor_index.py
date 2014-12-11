@@ -34,6 +34,7 @@ def get_nnindexer_uuid_map_fpath(ibs):
 #        pass
 
 
+@profile
 def request_ibeis_nnindexer(qreq_, verbose=True, use_cache=True):
     """
 
@@ -85,6 +86,7 @@ def clear_uuid_cache(ibs):
         uuid_map.clear()
 
 
+@profile
 def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                                      use_cache=True):
     """ FOR INTERNAL USE ONLY
@@ -154,6 +156,7 @@ def get_fgweights_hack(qreq_, daid_list):
     # </HACK:featweight>
 
 
+@profile
 def new_neighbor_index(aid_list, vecs_list, fgws_list=None, flann_params={},
                        flann_cachedir=None, cfgstr='',
                        use_cache=not NOCACHE_FLANN,
@@ -241,6 +244,7 @@ class NeighborIndex(object):
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
 
+    #@profile
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
         Args:
@@ -343,6 +347,7 @@ class NeighborIndex(object):
         """ gets matching internal annotation indicies """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
+    @profile
     def get_nn_aids(nnindexer, qfx2_nnidx):
         """
         Args:
@@ -412,13 +417,13 @@ class NeighborIndex(object):
         return qfx2_fgw
 
 
+@profile
 def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     """
     Aggregates descriptors of input annotations and returns inverted information
     """
-    if verbose:
-        print('[hsnbrx] stacking descriptors from %d annotations'
-                % len(ax_list))
+    if ut.VERYVERBOSE:
+        print('[hsnbrx] stacking descriptors from %d annotations' % len(ax_list))
     try:
         idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, ax_list)
         assert idx2_vec.shape[0] == idx2_ax.shape[0]
@@ -427,7 +432,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
         ut.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
     if verbose:
-        print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
+        print('[hsnbrx] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
     return idx2_vec, idx2_ax, idx2_fx
 
@@ -522,6 +527,8 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.neighbor_index
         python -m ibeis.model.hots.neighbor_index --allexamples
         python -m ibeis.model.hots.neighbor_index --allexamples --noface --nosrc
+
+        profiler.sh ibeis/model/hots/neighbor_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

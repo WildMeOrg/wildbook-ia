@@ -8,6 +8,7 @@ from ibeis.model.hots import neighbor_index
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
 
+@profile
 def group_daids_by_cached_nnindexer(ibs, aid_list):
     r"""
     Args:
@@ -44,6 +45,7 @@ def group_daids_by_cached_nnindexer(ibs, aid_list):
     return uncovered_aids, covered_aids_list
 
 
+@profile
 def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
                                      verbose=True):
     """
@@ -78,6 +80,7 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
     return aids_list, overflow_aids, num_bins
 
 
+@profile
 def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     """
 
@@ -146,6 +149,17 @@ def test_mindexer():
     return mxer, qreq_, ibs
 
 
+#@profile
+def sort_along_rows(qfx2_xxx, qfx2_sortx):
+    """
+    sorts each row in qfx2_xxx with the corresponding row in qfx2_sortx
+    """
+    if qfx2_xxx.size == 0:
+        return qfx2_xxx
+    #return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
+    return np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class MultiNeighborIndex(object):
     """
@@ -164,6 +178,7 @@ class MultiNeighborIndex(object):
     def get_dtype(mxer):
         return mxer.nn_indexer_list[0].get_dtype()
 
+    #@profile
     def multi_knn(mxer, qfx2_vec, K, checks):
         """
         Does a query on each of the subindexer kdtrees
@@ -190,6 +205,7 @@ class MultiNeighborIndex(object):
             qfx2_dist_list.append(_qfx2_dist)
         return qfx2_idx_list, qfx2_dist_list
 
+    @profile
     def knn(mxer, qfx2_vec, K, checks):
         """
         Polymorphic interface to knn, but uses the multindex backend
@@ -232,37 +248,8 @@ class MultiNeighborIndex(object):
         # Sort over all tree result distances
         qfx2_sortx = qfx2_dist_.argsort(axis=1)
         # Apply sorting to concatenated results
-        def sortaxis1(qfx2_xxx, qfx2_sortx):
-            if qfx2_sortx.size == 0:
-                return qfx2_xxx
-            return np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
-        """
-        qfx2_xxx = qfx2_dist_
-        %timeit np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
-        %timeit np.vstack((row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)))
-        %timeit np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
-        %timeit np.vstack((row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)))
-
-        import utool as ut
-        #ut.rrrr()
-        np.set_printoptions(threshold=10000000)
-        setup = ut.unindent(
-        '''
-        import numpy as np
-        from numpy import array, float32, int32
-        qfx2_sortx = %s
-        qfx2_xxx = %s
-        ''' % (np.array_repr(qfx2_sortx), np.array_repr(qfx2_xxx)))
-        stmt1 = 'np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])'
-        stmt2 = 'np.vstack([row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)])'
-        stmt3 = 'np.vstack((row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_xxx)))'
-        iterations = 100
-        verbose = True
-        stmt_list = [stmt1, stmt2, stmt3]
-        (passed, time_list, result_list) = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
-        """
-        qfx2_dist  = sortaxis1(qfx2_dist_, qfx2_sortx)
-        qfx2_imx   = sortaxis1(qfx2_imx_, qfx2_sortx)
+        qfx2_dist  = sort_along_rows(qfx2_dist_, qfx2_sortx)
+        qfx2_imx   = sort_along_rows(qfx2_imx_, qfx2_sortx)
         return (qfx2_imx, qfx2_dist)
 
     def get_offsets(mxer):
@@ -354,7 +341,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-iter_subindexers
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
@@ -536,6 +523,8 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.multi_index
         python -m ibeis.model.hots.multi_index --allexamples
         python -m ibeis.model.hots.multi_index --allexamples --noface --nosrc
+
+        profiler.sh ibeis/model/hots/multi_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

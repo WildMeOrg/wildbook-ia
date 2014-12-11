@@ -1285,6 +1285,16 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
 
     Returns:
         dict : qaid2_qres_hit
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> qreq_ = '?'
+        >>> force_miss = False
+        >>> verbose = False
+        >>> qaid2_qres_hit = try_load_resdict(qreq_, force_miss, verbose)
+        >>> result = str(qaid2_qres_hit)
+        >>> print(result)
     """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
@@ -1294,11 +1304,12 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
     qresdir = qreq_.get_qresdir()
     qaid2_qres_hit = {}
     #cachemiss_qaids = []
+    # TODO: could prefiler paths that don't exist
     for qaid, qauuid in zip(qaids, qauuids):
         try:
             qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
             qres.load(qresdir, force_miss=force_miss, verbose=verbose)  # 77.4 % time
-            #qaid2_qres_hit[qaid] = qres  # cache hit
+            qaid2_qres_hit[qaid] = qres  # cache hit
         except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
             pass
             #cachemiss_qaids.append(qaid)  # cache miss

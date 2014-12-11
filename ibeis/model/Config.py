@@ -593,7 +593,12 @@ class QueryConfig(ConfigBase):
         query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
         query_cfg.update(**cfgdict)
         # Ensure feasibility of the configuration
-        query_cfg.make_feasible()
+        try:
+            query_cfg.make_feasible()
+        except AssertionError as ex:
+            print(ut.dict_str(cfgdict, sorted_=True))
+            ut.printex(ex)
+            raise
 
     def apply_codename(query_cfg, codename=None):
         """
@@ -648,6 +653,15 @@ class QueryConfig(ConfigBase):
         #    query_cfg.fg_weight = 1.0
 
     def make_feasible(query_cfg):
+        try:
+            query_cfg.make_feasible_()
+        except AssertionError as ex:
+            if ut.NOT_QUIET:
+                query_cfg.printme3()
+            ut.printex(ex, 'failed ot make feasible')
+            raise
+
+    def make_feasible_(query_cfg):
         """
         removes invalid parameter settings over all cfgs (move to QueryConfig)
         """

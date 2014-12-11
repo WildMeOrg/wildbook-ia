@@ -236,7 +236,7 @@ class QueryRequest(object):
             >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
             >>> masked_qaid_list = [2, 4, 5]
             >>> qreq_.set_external_qaid_mask(masked_qaid_list)
-            >>> result = repr(qreq_.get_external_qaids())
+            >>> result = np.array_str(qreq_.get_external_qaids())
             >>> print(result)
             [1 3]
         """
