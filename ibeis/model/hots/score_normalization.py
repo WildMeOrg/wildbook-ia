@@ -308,8 +308,9 @@ def delete_all_learned_normalizers():
     from ibeis.model.hots import score_normalization
     import utool as ut
     print('DELETE_ALL_LEARNED_NORMALIZERS')
+    normalizer_fpath_list = score_normalization.list_available_score_normalizers()
+    print('The following normalizers will be deleted: ' + ut.indentjoin(normalizer_fpath_list, '\n  '))
     if ut.are_you_sure('Deleting all learned normalizers'):
-        normalizer_fpath_list = score_normalization.list_available_score_normalizers()
         ut.remove_fpaths(normalizer_fpath_list, verbose=True)
 
 
@@ -353,8 +354,8 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         ScoreNormalizer: normalizer
 
     CommandLine:
-        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --cmd
-        python ibeis/model/hots/score_normalization.py --test-train_baseline_ibeis_normalizer --noshow
+        python -m ibeis.model.hots.score_normalization --test-train_baseline_ibeis_normalizer --cmd
+        python -m ibeis.model.hots.score_normalization --test-train_baseline_ibeis_normalizer --noshow
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -388,8 +389,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
         use_qcache = True
         qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, use_cache=use_qcache)
-        normalizer = cached_ibeis_score_normalizer(ibs, qreq_, qaid_list,
-                                                   qres_list,
+        normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
                                                    use_cache=use_cache,
                                                    **learnkw)
         # Save as baseline for this species
@@ -499,7 +499,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     cfgstr = ibs.get_dbname() + qreq_.get_cfgstr()
     try:
         if use_cache is False:
-            raise Exception('forced cache miss')
+            raise Exception('forced normalizer cache miss')
         normalizer = ScoreNormalizer(cfgstr)
         normalizer.load(ibs.cachedir)
         print('returning cached normalizer')
