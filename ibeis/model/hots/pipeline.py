@@ -81,24 +81,27 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     Returns:
         (dict of QueryResult): qaid2_qres mapping from query indexes to Query Result Objects
 
-    Example:
+    Example1:
         >>> # one-vs-many:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict = dict(codename='vsmany')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_)
+        >>> verbose=True
+        >>> qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
         >>> qres = qaid2_qres[list(qaid2_qres.keys())[0]]
         >>> if ut.get_argflag('--show') or ut.inIPython():
         ...     qres.show_analysis(ibs, fnum=0, make_figtitle=True)
         >>> print(qres.get_inspect_str())
 
-    Example:
+    Example2:
         >>> # one-vs-one:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
@@ -127,6 +130,11 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
       qfx2_valid is almost meaninglesss could easilly just be another weight?
 
+      How do we know that dupvote needs to be recomputed afterwards?
+      How do we get out the distinctivness scores?
+
+      Can we use metadata? seems hacky.
+      Distinctiveness scores can be outputed with metadata?
     """
     # Load data for nearest neighbors
     #if qreq_.qparams.pipeline_root == 'vsone':
