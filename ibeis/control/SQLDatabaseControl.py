@@ -256,6 +256,16 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
+    def get_all_col_rows(db, tblname, colname):
+        """ returns a list of all rowids from a table in ascending order """
+        fmtdict = {'colname': colname, 'tblname': tblname, }
+        operation_fmt = '''
+        SELECT {colname}
+        FROM {tblname}
+        ORDER BY rowid ASC
+        '''
+        return db._executeone_operation_fmt(operation_fmt, fmtdict)
+
     #@ider_sql
     def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
         """ returns a list of rowids from a table in ascending order satisfying
