@@ -9,6 +9,7 @@ from ibeis import ibsfuncs
 import numpy as np
 from ibeis.control.accessor_decors import (adder, deleter, setter, getter_1to1,
                                            getter_1toM, ider)
+from ibeis.control import accessor_decors  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_name_species]')
@@ -253,7 +254,7 @@ def get_invalid_nids(ibs):
 #@profile
 @register_ibs_method
 @getter_1toM
-#@cache_getter(const.NAME_TABLE)
+#@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
 def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid

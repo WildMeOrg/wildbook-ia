@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # import decorator  # NOQA
+import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
@@ -50,7 +51,8 @@ def default_decorator(input_):
 #        del self._cache[index]
 
 
-API_CACHE = ut.get_argflag('--api-cache')
+#API_CACHE = ut.get_argflag('--api-cache')
+API_CACHE = not ut.get_argflag('--no-api-cache')
 if ut.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
@@ -60,68 +62,126 @@ if ut.in_main_process():
 
 
 def init_tablecache():
+    r"""
+    Returns:
+       defaultdict: tablecache
+
+    CommandLine:
+        python -m ibeis.control.accessor_decors --test-init_tablecache
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.accessor_decors import *  # NOQA
+        >>> result = init_tablecache()
+        >>> print(result)
+    """
     #return ut.ddict(ColumnsCache)
-    return ut.ddict(lambda: ut.ddict(dict))
+    # 4 levels of dictionaries
+    # tablename, colname, kwargs, and then rowids
+    tablecache = ut.ddict(lambda: ut.ddict(lambda: ut.ddict(dict)))
+    return tablecache
 
 
-def _delete_items(dict_, key_list):
-    invalid_keys = iter(set(key_list) - set(dict_.rows()))
-    for key in invalid_keys:
-        del dict_[key]
+def cache_getter(tblname, colname, force=False):
+    """
+    Creates a getter cacher
 
+    Args:
+        tblname (str):
+        colname (str):
 
-def cache_getter(tblname, colname):
-    """ Creates a getter cacher """
-    #@decorator.decorator
+    Returns:
+        function: closure_getter_cacher
+
+    CommandLine:
+        python -m ibeis.control.accessor_decors --test-cache_getter
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.accessor_decors import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #ibs = ibeis.opendb('PZ_MTEST')
+        >>> valid_nids = ibs.get_valid_nids()
+        >>> rowid_list = valid_nids
+        >>> tblname = const.NAME_TABLE
+        >>> colname = 'annot_rowid'
+        >>> getter_func = ibs.get_name_aids.im_func
+        >>> wrp_getter_cacher = cache_getter(tblname, colname, force=True)(getter_func)
+        >>> ###
+        >>> val_list1 = getter_func(ibs, rowid_list)
+        >>> val_list2 = wrp_getter_cacher(ibs, rowid_list)
+        >>> ###
+        >>> print(ibs.table_cache)
+        >>> setter_func = ibs.set_name_texts
+        >>> wrp_cache_invalidator = cache_invalidator(tblname)(lambda *a: x)
+        >>> wrp_cache_invalidator(ibs, [1, 2, 3])
+        >>> print(ibs.table_cache)
+
+    Ignore:
+        %timeit getter_func(ibs, rowid_list)
+        %timeit wrp_getter_cacher(ibs, rowid_list)
+    """
     def closure_getter_cacher(getter_func):
-        getter_func = profile(getter_func)  # Autoprofilehack
-        if not API_CACHE:
+        if not API_CACHE and not force:
             return getter_func
-        def wrp_getter_cacher(self, rowid_list, *args, **kwargs):
-            # the class must have a table_cache property
-            cache_ = self.table_cache[tblname][colname]
-            # Get cached values for each rowid
-            vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
-            # Compute any cache misses
-            miss_list = [val is None for val in vals_list]
-            #DEBUG_CACHE_HITS = False
-            #if DEBUG_CACHE_HITS:
-            #    num_miss  = sum(miss_list)
-            #    num_total = len(rowid_list)
-            #    num_hit   = num_total - num_miss
-            #    print('\n[get] %s.%s %d / %d cache hits' % (tblname, colname, num_hit, num_total))
-            if not any(miss_list):
+        else:
+            def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+                # args are currently unallowed
+                # the class must have a table_cache property
+                kwargs_hash = ut.get_dict_hashid(kwargs)
+                #hash(frozenset(kwargs.items()))
+                cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+                # Get cached values for each rowid
+                vals_list = ut.dict_take_list(cache_, rowid_list, None)  # [cache_.get(rowid, None) for rowid in rowid_list]
+                # Compute any cache misses
+                miss_list = [val is None for val in vals_list]
+                #DEBUG_CACHE_HITS = True
+                #if DEBUG_CACHE_HITS:
+                #    num_miss  = sum(miss_list)
+                #    num_total = len(rowid_list)
+                #    num_hit   = num_total - num_miss
+                #    print('\n[get] %s.%s %d / %d cache hits' % (tblname, colname, num_hit, num_total))
+                if any(miss_list):
+                    miss_rowid_list = ut.filter_items(rowid_list, miss_list)
+                    # call the wrapped function
+                    miss_vals = getter_func(ibs, miss_rowid_list, **kwargs)
+                    # Write the misses to the cache
+                    miss_iter_ = enumerate(miss_vals)
+                    for index, flag in enumerate(miss_list):
+                        if flag:
+                            miss_index, miss_val = six.next(miss_iter_)
+                            rowid = rowid_list[index]
+                            vals_list[index] = miss_val  # Output write
+                            cache_[rowid] = miss_val     # Cache write
                 return vals_list
-            miss_rowid_list = ut.filter_items(rowid_list, miss_list)
-            miss_vals = getter_func(self, miss_rowid_list, *args, **kwargs)
-            # Write the misses to the cache
-            miss_iter_ = iter(enumerate(iter(miss_vals)))
-            for index, flag in enumerate(miss_list):
-                if flag:
-                    miss_index, miss_val = miss_iter_.next()
-                    rowid = rowid_list[index]
-                    vals_list[index] = miss_val  # Output write
-                    cache_[rowid] = miss_val  # Cache write
-            return vals_list
         wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
     return closure_getter_cacher
 
 
-def cache_invalidator(tblname, colnames=None):
+def cache_invalidator(tblname, colnames=None, native_rowids=False):
     """ cacher setter decorator """
-    #@decorator.decorator
     def closure_cache_invalidator(setter_func):
         if not API_CACHE:
             return setter_func
         def wrp_cache_invalidator(self, rowid_list, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
-            colnames_ =  colscache_.keys() if colnames is None else colnames
-            # Delete the cached values for the rowids in these columns of this table
+            colnames_ =  list(six.iterkeys(colscache_)) if colnames is None else colnames
+            # Clear the cache of any specified colname
+            # when the invalidator is called
             for colname in colnames_:
-                cache_ = colscache_[colname]
-                _delete_items(cache_, rowid_list)
+                kwargs_cache_ = colscache_[colname]
+                if native_rowids:
+                    # We know the rowids to delete
+                    # iterate over all getter kwargs values
+                    for cache_ in six.itervalues(kwargs_cache_):
+                        ut.delete_dict_keys(cache_, rowid_list)
+                else:
+                    # We dont know the rowsids so clear everything
+                    cache_.clear()
             # Preform set action
             setter_func(self, rowid_list, *args, **kwargs)
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
