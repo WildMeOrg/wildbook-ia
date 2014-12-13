@@ -72,6 +72,7 @@ class ChangeLayoutContext(object):
 
 def default_method_decorator(func):
     """ Dummy decorator """
+    return profile(func)
     #return checks_qt_error(profile(func))
     return func
 
@@ -201,7 +202,7 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
-    #@profile
+    @profile
     @updater
     def _update_rows(model, rebuild_structure=True):
         """
@@ -232,56 +233,60 @@ class APIItemModel(API_MODEL_BASE):
         #    with utool.Timer('lazy updater: %r' % (model.name,)):
         #        printDBG('[model] calling lazy updater: %r' % (model.name,))
         # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
-        if VERBOSE:
-            print('[APIItemModel] lazy_update_rows')
-        model.level_index_list = []
-        sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-        children = model.root_node.get_children()
-        id_list = [child.get_id() for child in children]
-        #print('ids_ generated')
-        nodes = []
-        if len(id_list) != 0:
+        with utool.Timer('[%s] _update_rows2: %r' %
+                         ('cyth' if _atn.CYTHONIZED else 'pyth',
+                          model.name,), newline=False):
             if VERBOSE:
-                print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
-            # start sort
-            if model.col_sort_index is not None:
-                getter = model.col_getter_list[sort_index]
-                values = getter(id_list)
-                #print('values got')
-            else:
-                values = id_list
-            reverse = model.col_sort_reverse
-            sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
-            nodes = [child for (value, id_, child) in sorted_pairs]
-            level = model.col_level_list[sort_index]
-            #print("row_indices sorted")
-            if level == 0:
-                model.root_node.set_children(nodes)
-            # end sort
-        if utool.USE_ASSERT:
-            assert nodes is not None, 'no indices'
-        model.level_index_list = nodes
-        #if VERBOSE:
-        #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
+                print('[APIItemModel] lazy_update_rows')
+            model.level_index_list = []
+            sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+            children = model.root_node.get_children()
+            id_list = [child.get_id() for child in children]
+            #print('ids_ generated')
+            nodes = []
+            if len(id_list) != 0:
+                if VERBOSE:
+                    print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
+                # start sort
+                if model.col_sort_index is not None:
+                    getter = model.col_getter_list[sort_index]
+                    values = getter(id_list)
+                    #print('values got')
+                else:
+                    values = id_list
+                reverse = model.col_sort_reverse
+                sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
+                nodes = [child for (value, id_, child) in sorted_pairs]
+                level = model.col_level_list[sort_index]
+                #print("row_indices sorted")
+                if level == 0:
+                    model.root_node.set_children(nodes)
+                # end sort
+            if utool.USE_ASSERT:
+                assert nodes is not None, 'no indices'
+            model.level_index_list = nodes
+            #if VERBOSE:
+            #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
 
-        # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
-        model._rows_updated.emit(model.name, len(model.level_index_list))
+            # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
+            model._rows_updated.emit(model.name, len(model.level_index_list))
 
-        # lazy method didn't work. Eagerly evaluate
-        #lazy_update_rows()
-        # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
-        #if VERBOSE:
-        #    print('[APIItemModel] build_scope_hack_list')
-        # SCOPE HACK SEEMS TO HAVE NOT HALPED
-        #model.scope_hack_list = []
-        #_atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
-        #model.lazy_updater = lazy_update_rows
-        #print("Rows updated")
-        if VERBOSE:
-            print('[APIItemModel] finished _update_rows')
-            print('[APIItemModel] L__________')
+            # lazy method didn't work. Eagerly evaluate
+            #lazy_update_rows()
+            # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
+            #if VERBOSE:
+            #    print('[APIItemModel] build_scope_hack_list')
+            # SCOPE HACK SEEMS TO HAVE NOT HALPED
+            #model.scope_hack_list = []
+            #_atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
+            #model.lazy_updater = lazy_update_rows
+            #print("Rows updated")
+            if VERBOSE:
+                print('[APIItemModel] finished _update_rows')
+                print('[APIItemModel] L__________')
         #del old_root
 
+    @profile
     def lazy_checks(model):
         if model.lazy_updater is not None:
             print('[model] lazy update %r caller %r: ' %
