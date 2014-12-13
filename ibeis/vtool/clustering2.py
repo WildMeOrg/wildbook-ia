@@ -159,6 +159,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
         http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> import utool as ut
         >>> import numpy as np
@@ -172,8 +173,12 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
         >>> flann_params = None
         >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
         >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter, flann_params)
+        >>> #result = str(initial_centers.sum())
+
+    130240088
 
     Example2:
+        >>> # SLOW_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -468,30 +473,41 @@ def group_indicies(idx2_groupid):
     Returns:
         tuple (ndarray, list of ndarrays): (keys, groupxs)
 
+    CommandLine:
+        python -m vtool.clustering2 --test-group_indicies
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> #np.random.seed(42)
         >>> #size = 10
         >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indicies(idx2_groupid)
-        >>> print((keys, groupxs))
+        >>> result = str((keys, groupxs))
+        >>> print(result)
         (array([1, 2, 3]), [array([1, 3, 5]), array([0, 2, 4, 6]), array([ 7,  8,  9, 10])])
 
     SeeAlso:
         apply_grouping
+
+    TODO:
+        Look into np.split
+        http://stackoverflow.com/questions/21888406/getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
 
     References:
         http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
     """
     # Sort items and idx2_groupid by groupid
     sortx = idx2_groupid.argsort()  # 2.9%
-    groupids_sorted = idx2_groupid[sortx]  # 3.1%
+    #groupids_sorted = idx2_groupid[sortx]  # 3.1%
+    groupids_sorted = idx2_groupid.take(sortx)
     num_items = idx2_groupid.size
     # Find the boundaries between groups
     diff = np.ones(num_items + 1, idx2_groupid.dtype)  # 8.6%
     diff[1:(num_items)] = np.diff(groupids_sorted)  # 22.5%
-    idxs = np.where(diff > 0)[0]  # 8.8%
+    #idxs = np.where(diff > 0)[0]  # 8.8%
+    idxs = np.flatnonzero(diff)
     num_groups = idxs.size - 1  # 1.3%
     # Groups are between bounding indexes
     lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
@@ -501,6 +517,46 @@ def group_indicies(idx2_groupid):
     #items_sorted = items[sortx]
     #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
     return keys, groupxs
+
+
+def find_duplicate_items(item_arr):
+    """
+    Args:
+        item_arr (?):
+
+    Returns:
+        ?: duplicate_items
+
+    CommandLine:
+        python -m vtool.clustering2 --test-find_duplicate_items
+
+    References:
+        http://stackoverflow.com/questions/21888406/getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> # build test data
+        >>> np.random.seed(0)
+        >>> item_arr = np.random.randint(100, size=30)
+        >>> # execute function
+        >>> duplicate_items = find_duplicate_items(item_arr)
+        >>> # verify results
+        >>> assert duplicate_items == list(six.iterkeys(ut.find_duplicate_items(item_arr)))
+        >>> result = str(duplicate_items)
+        >>> print(result)
+        [9, 67, 87, 88]
+    """
+    sortx = item_arr.argsort()
+    groupids_sorted = item_arr.take(sortx)
+
+    #duplicate_idxs = np.flatnonzero(~np.diff(groupids_sorted).astype(np.bool))
+    diff = np.diff(groupids_sorted)
+    #notdiff = np.bitwise_not(diff.astype(np.bool))
+    edges = np.flatnonzero(diff.astype(np.bool)) + 1
+    duplicate_items = [group[0] for group in np.split(groupids_sorted, edges) if group.shape[0] > 1]
+    #duplicate_items = groupids_sorted.take(duplicate_idxs)
+    return duplicate_items
 
 
 def apply_grouping(items, groupxs):
@@ -517,7 +573,11 @@ def apply_grouping(items, groupxs):
     SeeAlso:
         group_indicies
 
+    CommandLine:
+        python -m vtool.clustering2 --test-apply_grouping
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> #np.random.seed(42)
         >>> #size = 10
@@ -527,7 +587,8 @@ def apply_grouping(items, groupxs):
         >>> items        = np.array([1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9])
         >>> (keys, groupxs) = group_indicies(idx2_groupid)
         >>> grouped_items = apply_grouping(items, groupxs)
-        >>> print(grouped_items)
+        >>> result = str(grouped_items)
+        >>> print(result)
         [array([8, 5, 6]), array([1, 5, 8, 7]), array([5, 3, 0, 9])]
     """
     return [items.take(xs, axis=0) for xs in groupxs]
@@ -747,14 +808,11 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/vtool/vtool/clustering2.py
-        profiler.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
-        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+        python -m vtool.clustering2
+        python -m vtool.clustering2 --allexamples
+        python -m vtool.clustering2 --allexamples --noface --nosrc
     """
     import multiprocessing
-    multiprocessing.freeze_support()
-    # Run any doctests
-    testable_list = [
-        akmeans_plusplus_init
-    ]
-    ut.doctest_funcs(testable_list)
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
