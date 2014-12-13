@@ -394,6 +394,8 @@ def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
     # FIXME:
     if ensure:
         try:
+            if ut.DEBUG2:
+                assert ut.list_issubset(aid_list, ibs.get_valid_aids()), 'invalid aids'
             ibs.add_annot_chips(aid_list)
         except AssertionError as ex:
             ut.printex(ex, '[!ibs.get_annot_chip_rowids]')

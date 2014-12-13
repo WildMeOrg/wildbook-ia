@@ -129,16 +129,46 @@ def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1
     return name2
 
 
-@ut.indent_func
+#@ut.indent_func
 def query_vsone_verified(ibs, qaids, daids):
     """
     A hacked in vsone-reranked pipeline
     Actually just two calls to the pipeline
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (?):
+        daids (?):
+
+    Returns:
+        tuple: qaid2_qres, qreq_
+
+    CommandLine:
+        python -m ibeis.model.hots.automated_helpers --test-query_vsone_verified
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.automated_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> # execute function
+        >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
+        >>> qaid = qaids[0]
+        >>> qres = qaid2_qres[qaid]
+
+    Ignore:
+        >>> qres.ishow_top(ibs, update=True)
     """
     from ibeis import ibsfuncs  # NOQA
 
-    if len(daids) == 0:
-        return {qaid: None for qaid in qaids}, None
+    #if len(daids) == 0:
+    #    qreq_ = None
+    #    qaid2_qres = {qaid: None for qaid in qaids}
+    #    return qaid2_qres, qreq_
 
     print('issuing vsmany part')
 

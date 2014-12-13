@@ -64,7 +64,8 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         >>> qaid2_dupvote_weight = nn_weights.dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
-        >>> flags = qaid2_dupvote_weight[qaid] > .5
+        >>> qfx2_dupvote_weight = qaid2_dupvote_weight[qaid]
+        >>> flags = qfx2_dupvote_weight  > .5
         >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
         >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
         >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
@@ -92,11 +93,12 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         # Don't let current query count as a valid match
         # Change those names to the unused name
         # qfx2_topnid[qfx2_topaid == qaid] = 0
-        qfx2_topnid[~qfx2_valid0] = 0
+        qfx2_invalid0 = np.bitwise_not(qfx2_valid0)
+        qfx2_topnid[qfx2_invalid0] = 0
         # A duplicate vote is when any vote for a name after the first
         qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
         # set invalids to be duplicates as well (for testing)
-        qfx2_isnondup[~qfx2_valid0] = False
+        qfx2_isnondup[qfx2_invalid0] = False
         qfx2_dupvote_weight = (qfx2_isnondup.astype(np.float32) * (1 - 1E-7)) + 1E-7
         qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
     return qaid2_dupvote_weight

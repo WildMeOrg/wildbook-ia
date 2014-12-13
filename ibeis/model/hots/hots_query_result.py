@@ -612,7 +612,10 @@ class QueryResult(__OBJECT_BASE__):
     #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
-        return viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
+        fig = viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
+        if kwargs.get('update', False):
+            fig.show()
+        return fig
 
     def show_analysis(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
@@ -620,7 +623,10 @@ class QueryResult(__OBJECT_BASE__):
 
     def ishow_top(qres, ibs, *args, **kwargs):
         from ibeis.viz.interact import interact_qres
-        return interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
+        fig = interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
+        if kwargs.get('update', False):
+            fig.show()
+        return fig
 
     def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
         from ibeis.gui import inspect_gui
