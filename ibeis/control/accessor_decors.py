@@ -22,13 +22,13 @@ def default_decorator(input_):
     if ut.is_funclike(input_):
         func_ = input_
         #return ut.indent_func(profile(func_))
-        #return profile(func_)
+        return profile(func_)
         return func_
     else:
         #@decorator.decorator
         def closure_default(func):
-            #return ut.indent_func(input_)(profile(func))
-            return ut.indent_func(input_)(func)
+            return ut.indent_func(input_)(profile(func))
+            #return ut.indent_func(input_)(func)
         return closure_default
 
 

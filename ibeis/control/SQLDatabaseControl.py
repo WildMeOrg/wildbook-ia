@@ -14,8 +14,8 @@ from ibeis.control import __SQLITE3__ as lite
 
 
 def default_decorator(func):
-    #return func
-    return profile(func)
+    return func
+    #return profile(func)
     #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
 VERBOSE = utool.VERBOSE

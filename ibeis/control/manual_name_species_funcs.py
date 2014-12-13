@@ -6,6 +6,7 @@ import six  # NOQA
 #from six.moves import range
 from ibeis import constants as const
 from ibeis import ibsfuncs
+import numpy as np
 from ibeis.control.accessor_decors import (adder, deleter, setter, getter_1to1,
                                            getter_1toM, ider)
 import utool as ut
@@ -249,10 +250,7 @@ def get_invalid_nids(ibs):
     return nid_list
 
 
-import numpy as np
-
-
-@profile
+#@profile
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.NAME_TABLE)
@@ -299,19 +297,19 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
             # alt method
             valid_aids = np.array(ibs.get_valid_aids())
             valid_nids = np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list2 = [valid_aids.take(np.flatnonzero(valid_nids == nid)).tolist() for nid in nid_list]
+            aids_list2 = [valid_aids.take(np.flatnonzero(valid_nids == nid)).tolist() for nid in nid_list_]
 
         with ut.Timer('numpy2'):
             # alt method
             valid_aids = np.array(ibs.get_valid_aids())
             valid_nids = np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list3 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list]
+            aids_list3 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
 
         with ut.Timer('numpy3'):
             # alt method
             valid_aids = np.array(ibs.get_valid_aids())
             valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
-            aids_list4 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list]
+            aids_list4 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
         assert aids_list2 == aids_list3
         assert aids_list3 == aids_list4
         assert aids_list1 == aids_list2
@@ -329,16 +327,20 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
     """
     # FIXME: THIS FUNCTION IS VERY SLOW
     # ADD A LOCAL CACHE TO FIX THIS SPEED
+    # ALSO FIX GET_IMAGE_AIDS
     # really a getter for the annotation table not the name table
+    #return [[] for nid in nid_list]
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
-    #USE_NUMPY_IMPL = len(nid_list) > 10
-    USE_NUMPY_IMPL = True  # len(nid_list) > 10
+    #USE_NUMPY_IMPL = len(nid_list_) > 10
+    #USE_NUMPY_IMPL = len(nid_list_) > 10
+    USE_NUMPY_IMPL = True
+    #USE_NUMPY_IMPL = False
     if USE_NUMPY_IMPL:
         # This seems to be 30x faster for bigger inputs
         valid_aids = np.array(ibs._get_all_aids())
         valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
         #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list]
+        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
     else:
         # SQL IMPL
         aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
@@ -348,7 +350,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
     return aids_list
 
 
-@profile
+#@profile
 @register_ibs_method
 @getter_1toM
 def get_name_exemplar_aids(ibs, nid_list):
