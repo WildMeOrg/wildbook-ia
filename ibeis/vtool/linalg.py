@@ -219,6 +219,92 @@ def nearest_point(x, y, pts, mode='random'):
     return fx, mindist
 
 
+def intersect2d_indicies(A, B):
+    A_, B_, C_  = intersect2d_structured_numpy(A, B)
+    ax_list = np.flatnonzero(flag_intersection(A_, C_))
+    bx_list = np.flatnonzero(flag_intersection(A_, B_))
+    return ax_list, bx_list
+
+
+def intersect2d_structured_numpy(A, B, assume_unique=False):
+    nrows, ncols = A.shape
+    assert A.dtype is B.dtype, 'A and B must have the same dtypes'
+    dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    #try:
+    A_ = np.ascontiguousarray(A).view(dtype)
+    B_ = np.ascontiguousarray(B).view(dtype)
+    C_ = np.intersect1d(A_, B_, assume_unique=assume_unique)
+    #C = np.intersect1d(A.view(dtype),
+    #                   B.view(dtype),
+    #                   assume_unique=assume_unique)
+    #except ValueError:
+    #    C = np.intersect1d(A.copy().view(dtype),
+    #                       B.copy().view(dtype),
+    #                       assume_unique=assume_unique)
+    return A_, B_, C_
+
+
+def flag_intersection(X_, C_):
+    flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+    return flags
+
+
+def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
+    """
+    References::
+        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
+
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+        assume_unique (bool):
+
+    Returns:
+        ndarray[ndims=2]: C
+
+    CommandLine:
+        python -m vtool.linalg --test-intersect2d_numpy
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> # build test data
+        >>> A = np.array([[  0,  78,  85, 283, 396, 400, 403, 412, 535, 552],
+        ...               [152,  98,  32, 260, 387, 285,  22, 103,  55, 261]]).T
+        >>> B = np.array([[403,  85, 412,  85, 815, 463, 613, 552],
+        ...                [ 22,  32, 103, 116, 188, 199, 217, 254]]).T
+        >>> assume_unique = False
+        >>> # execute function
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> # verify results
+        >>> result = str((C.T, Ax, Bx))
+        >>> print(result)
+        (array([[ 85, 403, 412],
+               [ 32,  22, 103]]), array([2, 6, 7]), array([0, 1, 2]))
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> import utool as ut
+        >>> A = np.array([[1, 2, 3], [1, 1, 1]])
+        >>> B = np.array([[1, 2, 3], [1, 2, 14]])
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> result = str((C, Ax, Bx))
+        >>> print(result)
+        (array([[1, 2, 3]]), array([0]), array([0]))
+    """
+    nrows, ncols = A.shape
+    A_, B_, C_ = intersect2d_structured_numpy(A, B, assume_unique)
+    # This last bit is optional if you're okay with "C" being a structured array...
+    C = C_.view(A.dtype).reshape(-1, ncols)
+    if return_indicies:
+        ax_list = np.flatnonzero(flag_intersection(A_, C_))
+        bx_list = np.flatnonzero(flag_intersection(B_, C_))
+        return C, ax_list, bx_list
+    else:
+        return C
+
+
 def get_uncovered_mask(covered_array, covering_array):
     r"""
     Args:
