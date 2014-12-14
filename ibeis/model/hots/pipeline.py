@@ -73,6 +73,51 @@ VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipelin
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
 
 
+def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
+    """
+    helper
+
+    Generate vsone quries one at a time, but create shallow qreqs in chunks.
+    """
+    #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
+    #                     for qx, qaid in enumerate(qaid_list))
+    # normalizers are the same for all vsone queries but indexers are not
+    qreq_.lazy_preload(verbose=verbose)
+    qreq_shallow_iter = ((qreq_.shallowcopy(qx=qx), qaid)
+                         for qx, qaid in enumerate(qaid_list))
+    qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
+    for qreq_chunk in qreq_chunk_iter:
+        for __qreq, qaid in qreq_chunk:
+            print('Generating vsone for qaid=%d' % (qaid,))
+            qres = request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
+            yield (qaid, qres)
+
+
+SAVE_CACHE   = not ut.get_argflag('--nocache-save')
+
+
+def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
+    qaid_list = qreq_.get_external_qaids()
+    qaid2_qres = {}
+    chunksize = 4
+    qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
+                                    verbose=verbose)
+    qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
+                            backspace=False, lbl='vsone query: ',
+                            use_rate=True)
+    qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
+
+    for qres_chunk in qres_chunk_iter:
+        qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
+        # Save chunk of vsone queries
+        if save_cache:
+            print('[mc4] saving vsone chunk')
+            save_resdict(qreq_, qaid2_qres_, verbose=verbose)
+        # Add current chunk to results
+        qaid2_qres.update(qaid2_qres_)
+    return qaid2_qres
+
+
 # Query Level 0
 #@ut.indent_func('[Q0]')
 @profile
@@ -1559,11 +1604,14 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
     cfgstr = qreq_.get_cfgstr()
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
+    filtkey_list = qreq_.qparams.active_filter_list
+
     qres_list = [hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
                  for qaid, qauuid in zip(external_qaids, external_qauuids)]
 
     for qaid, qres in zip(external_qaids, qres_list):
         # For each query's chipmatch
+        qres.filtkey_list = filtkey_list
         chipmatch = qaid2_chipmatch[qaid]  # FIXME: use a list
         # unpack the chipmatch and populate qres
         if chipmatch is not None:

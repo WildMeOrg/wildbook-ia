@@ -2,7 +2,9 @@ from __future__ import absolute_import, division, print_function
 #import ibeis
 import six
 import utool as ut
+import vtool as vt
 #import numpy as np
+import numpy as np
 #import functools
 from six.moves import input, filter  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inchelp]')
@@ -151,17 +153,33 @@ def query_vsone_verified(ibs, qaids, daids):
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        #>>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> valid_aids = ibs.get_valid_aids()
         >>> qaids = valid_aids[0:1]
         >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
         >>> # execute function
         >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
-        >>> qaid = qaids[0]
         >>> qres = qaid2_qres[qaid]
 
     Ignore:
-        >>> qres.ishow_top(ibs, update=True)
+        qres = qaid2_qres_vsmany[qaid]
+
+        qres = qaid2_qres[qaid]
+        ibs.delete_qres_cache()
+        qres.show_top(ibs, update=True)
+    """
+    """
+        >>> from ibeis.model.hots.automated_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        #>>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
     """
     from ibeis import ibsfuncs  # NOQA
 
@@ -174,20 +192,19 @@ def query_vsone_verified(ibs, qaids, daids):
 
     def choose_vsmany_K(ibs, qaids, daids):
         K = ibs.cfg.query_cfg.nn_cfg.K
-        if len(daids) < 10:
+        if len(daids) < 20:
             K = 1
         if len(ut.intersect_ordered(qaids, daids)) > 0:
             # if self is in query bump k
             K += 1
         return K
 
-    #interactive = False
     cfgdict = {
         #'pipeline_root': 'vsmany',
         'K': choose_vsmany_K(ibs, qaids, daids),
         'index_method': 'multi',
     }
-
+    use_cache = True
     use_cache = False
 
     qaid2_qres_vsmany, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=cfgdict,
@@ -205,33 +222,62 @@ def query_vsone_verified(ibs, qaids, daids):
     # build vs one list
     print('[query_vsone_verified] building vsone pairs')
     vsone_query_pairs = []
-    nShortlistVsone = 5
+    nNameShortlistVsone = 3
     for qaid, qres in six.iteritems(qaid2_qres_vsmany):
         sorted_nids, sorted_nscores = qres.get_sorted_nids_and_scores(ibs=ibs)
-        nShortlistVsone_ = min(len(sorted_nids), nShortlistVsone)
-        top_nids = sorted_nids[0:nShortlistVsone_]
+        nNameShortlistVsone = min(len(sorted_nids), nNameShortlistVsone)
+        top_nids = sorted_nids[0:nNameShortlistVsone]
         # get top annotations beloning to the database query
         # TODO: allow annots not in daids to be included
-        flat_top_nids = ut.flatten(ibs.get_name_aids(top_nids))
-        top_aids = ut.intersect_ordered(flat_top_nids, qres.daids)
+        top_unflataids = ibs.get_name_aids(top_nids)
+        flat_top_aids = ut.flatten(top_unflataids)
+        top_aids = ut.intersect_ordered(flat_top_aids, qres.daids)
         vsone_query_pairs.append((qaid, top_aids))
 
     print('built %d pairs' % (len(vsone_query_pairs),))
 
     # vs-one reranking
     qaid2_qres_vsone = {}
+
+    def filter_scores(qaid2_qres_vsone, qaid2_qres_vsmany, qaid, daid, filtkey):
+        qres_vsone = qaid2_qres_vsone[qaid]
+        qres_vsmany = qaid2_qres_vsmany[qaid]
+        scorex_vsmany = ut.listfind(qres_vsmany.filtkey_list, filtkey)
+        scorex_vsone = ut.listfind(qres_vsone.filtkey_list, filtkey)
+
+        if scorex_vsone is None:
+            qres_vsone.filtkey_list.append(filtkey)
+            #scorex_vsone2 = ut.listfind(qres_vsone.filtkey_list, filtkey)
+            scores_vsone = np.full((qres_vsone.aid2_fsv[daid].shape[0], 1), np.nan)
+            fsv = np.hstack((qres_vsone.aid2_fsv[daid], scores_vsone))
+            qres_vsone.aid2_fsv[daid] = fsv
+        scores_vsone = qres_vsone.aid2_fsv[daid].T[scorex_vsone].T
+        scores_vsmany = qres_vsmany.aid2_fsv[daid].T[scorex_vsmany].T
+
+        fm_vsone  = qres_vsone.aid2_fm[daid]
+        fm_vsmany = qres_vsmany.aid2_fm[daid]
+
+        common, fmx_vsone, fmx_vsmany = vt.intersect2d_numpy(fm_vsone, fm_vsmany, return_indicies=True)
+        mutual_scores = scores_vsmany.take(fmx_vsmany)[:, None]
+        mutual_scores.shape = scores_vsone[fmx_vsone].shape
+        scores_vsone[fmx_vsone] = mutual_scores
+
     for qaid, top_aids in vsone_query_pairs:
         vsone_cfgdict = dict(codename='vsone_norm')
         qaid2_qres_vsone_, qreq_ = ibs._query_chips4([qaid], top_aids,
                                                      cfgdict=vsone_cfgdict,
                                                      return_request=True,
                                                      use_cache=use_cache)
-        qres = qaid2_qres_vsone_[qaid]
-        qaid2_qres_vsone[qaid] = qres
+        qres_vsone = qaid2_qres_vsone_[qaid]
+        qaid2_qres_vsone[qaid] = qres_vsone
+        filtkey = 'lnbnn'
+        for daid in top_aids:
+            filter_scores(qaid2_qres_vsone, qaid2_qres_vsmany, qaid, daid, filtkey)
         #ut.embed()
 
-    print('finished vsone queries')
+    # Get distinctiveness scores
 
+    print('finished vsone queries')
     for qaid in qaids:
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsmany = qaid2_qres_vsmany[qaid]

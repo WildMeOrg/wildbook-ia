@@ -11,13 +11,16 @@ import utool
     __name__, '[viz_qres]')
 
 
+DEFAULT_NTOP = 3
+
+
 @utool.indent_func
 @profile
 def show_qres_top(ibs, qres, **kwargs):
     """
     Wrapper around show_qres.
     """
-    N = kwargs.get('N', 6)
+    N = kwargs.get('N', DEFAULT_NTOP)
     top_aids = qres.get_top_aids(num=N)
     aidstr = ibsfuncs.aidstr(qres.qaid)
     figtitle = kwargs.get('figtitle', '')
@@ -40,7 +43,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
     """
     print('[show_qres] qres.show_analysis()')
     # Parse arguments
-    N = kwargs.get('N', 3)
+    N = kwargs.get('N', DEFAULT_NTOP)
     show_gt  = kwargs.pop('show_gt', True)
     show_query = kwargs.pop('show_query', True)
     aid_list   = kwargs.pop('aid_list', None)
@@ -102,7 +105,7 @@ def show_qres(ibs, qres, **kwargs):
     figtitle    = kwargs.get('figtitle', '')
     make_figtitle = kwargs.get('make_figtitle', False)
     aug         = kwargs.get('aug', '')
-    top_aids    = kwargs.get('top_aids', 6)
+    top_aids    = kwargs.get('top_aids', DEFAULT_NTOP)
     gt_aids     = kwargs.get('gt_aids',   [])
     all_kpts    = kwargs.get('all_kpts', False)
     show_query  = kwargs.get('show_query', False)
@@ -123,7 +126,7 @@ def show_qres(ibs, qres, **kwargs):
     nTop   = len(top_aids)
 
     #max_nCols = 5
-    max_nCols = 3
+    max_nCols = 5
     if nTop in [6, 7]:
         max_nCols = 3
     if nTop in [8]:
