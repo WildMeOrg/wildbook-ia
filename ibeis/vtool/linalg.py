@@ -245,6 +245,8 @@ def intersect2d_structured_numpy(A, B, assume_unique=False):
 
 
 def flag_intersection(X_, C_):
+    if X_.size == 0 or C_.size == 0:
+        return np.empty((0,), dtype=np.bool)
     flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
     return flags
 
@@ -267,7 +269,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_numpy import *  # NOQA
+        >>> from vtool.linalg import *  # NOQA
         >>> # build test data
         >>> A = np.array([[  0,  78,  85, 283, 396, 400, 403, 412, 535, 552],
         ...               [152,  98,  32, 260, 387, 285,  22, 103,  55, 261]]).T
@@ -284,8 +286,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_numpy import *  # NOQA
-        >>> import utool as ut
+        >>> from vtool.linalg import *  # NOQA
         >>> A = np.array([[1, 2, 3], [1, 1, 1]])
         >>> B = np.array([[1, 2, 3], [1, 2, 14]])
         >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
