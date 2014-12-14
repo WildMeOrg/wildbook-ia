@@ -981,9 +981,13 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
-        >>> result = get_annot_num_feats(ibs, aid_list, ensure=True)
-        >>> print(result)
-        [1257, 920, 1342]
+        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)
+        >>> assert len(nFeats_list) == 3
+        >>> ut.assert_inbounds(nFeats_list[0], 1256, 1258)
+        >>> ut.assert_inbounds(nFeats_list[1],  910,  921)
+        >>> ut.assert_inbounds(nFeats_list[2], 1340, 1342)
+
+    [1257, 920, 1342]
     """
     fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput)
     nFeats_list = ibs.get_num_feats(fid_list)

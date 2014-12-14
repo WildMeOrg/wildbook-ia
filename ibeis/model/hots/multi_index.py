@@ -210,7 +210,10 @@ class MultiNeighborIndex(object):
         """
         Polymorphic interface to knn, but uses the multindex backend
 
-        Example:
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-knn:0
+
+        Example1:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
@@ -218,11 +221,11 @@ class MultiNeighborIndex(object):
             >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
-            >>> result = str(np.shape(qfx2_imx))
-            >>> print(result)
-            (1074, 18)
+            >>> print(qfx2_imx.shape)
+            >>> assert qfx2_imx.shape[1] == 18
+            >>> ut.assert_inbounds(qfx2_imx.shape[0], 1073, 1079)
 
-        Example:
+        Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
