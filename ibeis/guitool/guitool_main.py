@@ -10,7 +10,7 @@ import utool as ut
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
 
-IS_ROOT = False
+IS_ROOT_WINDOW = False
 QAPP = None
 VERBOSE = '--verbose' in sys.argv
 QUIET = '--quiet' in sys.argv
@@ -22,10 +22,10 @@ def get_qtapp():
 
 
 def ensure_qtapp():
-    global IS_ROOT
+    global IS_ROOT_WINDOW
     global QAPP
     if QAPP is not None:
-        return QAPP, IS_ROOT
+        return QAPP, IS_ROOT_WINDOW
     parent_qapp = QtCore.QCoreApplication.instance()
     if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
@@ -33,18 +33,18 @@ def ensure_qtapp():
         QAPP = QtGui.QApplication(sys.argv)
         #print('QAPP = %r' % QAPP)
         assert QAPP is not None
-        IS_ROOT = True
+        IS_ROOT_WINDOW = True
     else:
         if not QUIET:
             print('[guitool] Using parent QApplication')
         QAPP = parent_qapp
-        IS_ROOT = False
+        IS_ROOT_WINDOW = False
     try:
         # You are not root if you are in IPYTHON
         __IPYTHON__
     except NameError:
         pass
-    return QAPP, IS_ROOT
+    return QAPP, IS_ROOT_WINDOW
 
 init_qtapp = ensure_qtapp
 ensure_qapp = ensure_qtapp
@@ -90,7 +90,7 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
     if qwin is not None:
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(**kwargs)
-    if IS_ROOT:
+    if IS_ROOT_WINDOW:
         if not QUIET:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         if not ipy:
@@ -125,7 +125,7 @@ def ping_python_interpreter(frequency=420):  # 4200):
     return timer
 
 
-@atexit.register
+#@atexit.register
 def exit_application():
     if utool.NOT_QUIET:
         print('[guitool] exiting application')
