@@ -104,6 +104,32 @@ def show_qres(ibs, qres, **kwargs):
     Display Query Result Logic
 
     Defaults to: query chip, groundtruth matches, and top matches
+<<<<<<< HEAD
+    python -c "import utool, ibeis; print(utool.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qres (QueryResult):  object of feature correspondences and scores
+    
+    Returns:
+        ?: fig
+    
+    CommandLine:
+        python -m ibeis.viz.viz_qres --test-show_qres
+    
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
+        >>> # execute function
+        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
+        >>> # verify results
+        >>> fig.show()
+
+=======
     qres.ishow calls down into this
 
     Kwargs:
@@ -114,6 +140,7 @@ def show_qres(ibs, qres, **kwargs):
             if annot_mode == 0, then draw lines and ellipse
             elif annot_mode == 1, then dont draw lines or ellipse
             elif annot_mode == 2, then draw only lines
+>>>>>>> 416025526ff287851988040477e64dd33b774a3c
     """
     annot_mode = kwargs.get('annot_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
@@ -295,3 +322,7 @@ def show_qres(ibs, qres, **kwargs):
     df2.adjust_subplots_safe()
     printDBG('[show_qres()] Finished')
     return fig
+
+if __name__ == '__main__':
+    print ("Utool dir: %r" % (dir(utool),))
+    utool.doctest_module()

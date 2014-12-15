@@ -8,6 +8,7 @@ from ibeis.model.detect import grabmodels
 from vtool import image as gtool
 import utool as ut
 import pyrf
+import multiprocessing
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[randomforest]')
 
 
@@ -348,7 +349,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
         raise StopIteration('species=%s does not have models trained' % (species,))
     detector.set_detect_params(**detect_config)
 
-    chunksize = 8
+    chunksize = min(8, multiprocessing.cpu_count())
     use_chunks_ = use_chunks and nImgs >= chunksize
 
     if verbose:
