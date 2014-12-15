@@ -43,7 +43,7 @@ def ishow_qres(ibs, qres, **kwargs):
     def _top_matches_view(toggle=0):
         # Toggle if the click is not in any axis
         printDBG('clicked none')
-        kwargs['annote_mode'] = kwargs.get('annote_mode', 0) + toggle
+        kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
         fig = viz.show_qres(ibs, qres, **kwargs)
         return fig
 

@@ -3,18 +3,17 @@ DoctestCMD:
     python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
 """
 from __future__ import absolute_import, division, print_function
-import utool
 import utool as ut
 import six
 #from ibeis.model.hots import query_request
 from ibeis.model.hots import pipeline
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[mc4]')
 
 
 # TODO: Move to params
-USE_CACHE    = not utool.get_argflag(('--nocache-query', '--noqcache'))
-USE_BIGCACHE = not utool.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
-SAVE_CACHE   = not utool.get_argflag('--nocache-save')
+USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))
+USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
+SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 #MIN_BIGCACHE_BUNDLE = 20
 MIN_BIGCACHE_BUNDLE = 150
 
@@ -83,7 +82,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         if use_bigcache_:
             # Try and load directly from a big cache
             try:
-                qaid2_qres = utool.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                qaid2_qres = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
                 print('... qaid2_qres bigcache hit')
                 if return_request:
                     return qaid2_qres, qreq_
@@ -95,51 +94,9 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, verbose=verbose)
     # ------------
     if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
-        utool.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_qres)
+        ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_qres)
     if return_request:
         return qaid2_qres, qreq_
-    return qaid2_qres
-
-
-def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
-    """
-    helper
-
-    Generate vsone quries one at a time, but create shallow qreqs in chunks.
-    """
-    #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
-    #                     for qx, qaid in enumerate(qaid_list))
-    # normalizers are the same for all vsone queries but indexers are not
-    qreq_.lazy_preload(verbose=verbose)
-    qreq_shallow_iter = ((qreq_.shallowcopy(qx=qx), qaid)
-                         for qx, qaid in enumerate(qaid_list))
-    qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
-    for qreq_chunk in qreq_chunk_iter:
-        for __qreq, qaid in qreq_chunk:
-            print('Generating vsone for qaid=%d' % (qaid,))
-            qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
-            yield (qaid, qres)
-
-
-def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
-    qaid_list = qreq_.get_external_qaids()
-    qaid2_qres = {}
-    chunksize = 4
-    qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
-                                    verbose=verbose)
-    qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
-                            backspace=False, lbl='vsone query: ',
-                            use_rate=True)
-    qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
-
-    for qres_chunk in qres_chunk_iter:
-        qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
-        # Save chunk of vsone queries
-        if save_cache:
-            print('[mc4] saving vsone chunk')
-            pipeline.save_resdict(qreq_, qaid2_qres_, verbose=verbose)
-        # Add current chunk to results
-        qaid2_qres.update(qaid2_qres_)
     return qaid2_qres
 
 
@@ -169,10 +126,22 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         >>> save_cache = False
         >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
         >>> print(qaid2_qres_hit)
+
+    Example2:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> import utool as ut
+        >>> from ibeis.model.hots import pipeline
+        >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> use_cache = False
+        >>> save_cache = False
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
+        >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
-        if utool.DEBUG2:
+        if ut.DEBUG2:
             # sanity check
             qreq_.assert_self(ibs)
         # Try loading as many cached results as possible
@@ -188,15 +157,15 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
     # Execute and save cachemiss queries
     if qreq_.qparams.vsone:
         # break vsone queries into multiple queries - one for each external qaid
-        qaid2_qres = execute_vsone_query(ibs, qreq_, save_cache=save_cache,
-                                         verbose=verbose)
+        qaid2_qres = pipeline.execute_vsone_query(ibs, qreq_, save_cache=save_cache,
+                                                  verbose=verbose)
     else:
         # execute non-vsone queries
         qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
         if save_cache:
             pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
     # Cache save only misses
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         # sanity check
         qreq_.assert_self(ibs)
     # Merge cache hits with computed misses

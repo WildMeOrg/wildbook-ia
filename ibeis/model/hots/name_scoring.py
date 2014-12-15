@@ -9,6 +9,9 @@ def get_one_score_per_name(ibs, aid_list, score_list):
     """
     Converts annotation scores to name scores
 
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-get_one_score_per_name
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *   # NOQA
@@ -19,6 +22,7 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> qaid_list = daid_list[0:1]
         >>> cfgdict = dict()
         >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
+        >>> #qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict, use_cache=False, return_request=True)
         >>> qres = qaid2_qres[qaid_list[0]]
         >>> aid_list, score_list = qres.get_aids_and_scores()
         >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)

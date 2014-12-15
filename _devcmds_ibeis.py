@@ -110,7 +110,7 @@ def query_aids(ibs, qaid_list, daid_list=None):
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
-        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1,
+        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annot_mode=1,
                             make_figtitle=True)
     return qaid2_qres
 
@@ -129,7 +129,7 @@ def sver_aids(ibs, qaid_list, daid_list=None):
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         aid2 = qres.get_top_aids()[0]
-        interact.ishow_sver(ibs, qaid, aid2, fnum=df2.next_fnum(), annote_mode=1)
+        interact.ishow_sver(ibs, qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
     return qaid2_qres
 
 

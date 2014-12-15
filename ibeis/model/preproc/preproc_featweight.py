@@ -22,6 +22,9 @@ def gen_featweight_worker(tup):
     Args:
         tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
@@ -38,10 +41,12 @@ def gen_featweight_worker(tup):
         >>> probchip = probchip_list[0]
         >>> tup = (aid, kpts, probchip)
         >>> (aid, weights) = gen_featweight_worker(tup)
-        >>> result = str((aid, np.array_str(weights[0:3], precision=3)))
-        >>> print(result)
-        (3, '[ 0.098  0.155  0.422]')
-
+        >>> weights_03_test = weights[0:3]
+        >>> print('weights[0:3] = %r' % (weights_03_test,))
+        >>> weights_03_target = [ 0.098, 0.155,  0.422]
+        >>> weights_thresh = [ 0.003, 0.002,  0.002]
+        >>> ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
+        >>> assert aid == 3
     """
     (aid, kpts, probchip) = tup
     if probchip is None:

@@ -16,8 +16,12 @@ except AttributeError:
 
 def _on_ctrl_c(signal, frame):
     print('[ibeis.main_module] Caught ctrl+c')
-    _close_parallel()
-    sys.exit(0)
+    try:
+        _close_parallel()
+    except Exception as ex:
+        print('Something very bad happened' + repr(ex))
+    finally:
+        sys.exit(0)
 
 #-----------------------
 # private init functions
@@ -42,44 +46,6 @@ def _parse_args():
 def _init_matplotlib():
     from plottool import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
-    #try:
-    #    from guitool import __PYQT__  # NOQA
-    #except ImportError:
-    #    print('[!main] WARNING guitool does not have __PYQT__')
-    #    pass
-    #import matplotlib as mpl
-    #import utool
-    #backend = mpl.get_backend()
-    #if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
-    #    # Write to files if we cannot display
-    #    TARGET_BACKEND = 'PDF'
-    #else:
-    #    TARGET_BACKEND = 'Qt4Agg'
-    #if utool.in_main_process():
-    #    if not utool.QUIET and utool.VERBOSE:
-    #        print('--- INIT MPL---')
-    #        print('[main] current backend is: %r' % backend)
-    #        print('[main] mpl.use(%r)' % TARGET_BACKEND)
-    #    if backend != TARGET_BACKEND:
-    #        mpl.use(TARGET_BACKEND, warn=True, force=True)
-    #        backend = mpl.get_backend()
-    #        if not utool.QUIET and utool.VERBOSE:
-    #            print('[main] current backend is: %r' % backend)
-    #    if utool.get_argflag('--notoolbar'):
-    #        toolbar = 'None'
-    #    else:
-    #        toolbar = 'toolbar2'
-    #    mpl.rcParams['toolbar'] = toolbar
-    #    mpl.rc('text', usetex=False)
-    #    mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
-    #    for key in mpl_keypress_shortcuts:
-    #        mpl.rcParams[key] = ''
-    #    #mpl.rcParams['text'].usetex = False
-    #    #for key in mpl_keypress_shortcuts:
-    #        #print('%s = %s' % (key, mpl.rcParams[key]))
-    #    # Disable mpl shortcuts
-    #        #mpl.rcParams['toolbar'] = 'None'
-    #        #mpl.rcParams['interactive'] = True
 
 
 #@profile
@@ -141,8 +107,12 @@ def _init_parallel():
 
 
 def _close_parallel():
-    from utool import util_parallel
-    util_parallel.close_pool(terminate=True)
+    try:
+        from utool import util_parallel
+        util_parallel.close_pool(terminate=True)
+    except Exception as ex:
+        import utool
+        utool.printex(ex, 'error closing parallel')
 
 
 def _init_numpy():
@@ -197,7 +167,17 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     Program entry point
     Inits the system environment, an IBEISControl, and a GUI if requested
 
-    If gui is False a gui instance will not be created
+    Args:
+        gui (bool): (default=True) If gui is False a gui instance will not be created
+        dbdir (None): full directory of a database to load
+        db (None): name of database to load relative to the workdir
+        allow_newdir (bool): (default=False) if False an error is raised if a
+            a new database is created
+        defaultdb (str): codename of database to load if db and dbdir is None. a value
+            of 'cache' will open the last database opened with the GUI.
+
+    Returns:
+        dict: main_locals
     """
     from ibeis.dev import main_commands
     from ibeis.dev import sysres
@@ -369,3 +349,13 @@ def main_close(main_locals=None):
 
 #if __name__ == '__main__':
 #    multiprocessing.freeze_support()
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.main_module
+        python -m ibeis.main_module --allexamples
+        python -m ibeis.main_module --allexamples --noface --nosrc
+    """
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

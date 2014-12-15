@@ -19,6 +19,7 @@ import utool as ut  # NOQA
 import ibeis  # NOQA
 from ibeis import constants as const
 from ibeis import params
+from ibeis.control import accessor_decors
 from ibeis.control.accessor_decors import (default_decorator, )
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
@@ -148,7 +149,7 @@ class IBEISController(object):
         # observer_weakref_list keeps track of the guibacks connected to this controller
         ibs.observer_weakref_list = []
         # not completely working decorator cache
-        #ibs.table_cache = init_tablecache()
+        ibs.table_cache = None
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _init_wb will do nothing if no wildbook address is specified
@@ -164,6 +165,7 @@ class IBEISController(object):
         """
         if ut.VERBOSE:
             print('[ibs] _initialize_self()')
+        ibs.table_cache = accessor_decors.init_tablecache()
 
         for module in INJECTED_MODULES:
             ut.inject_instance(
