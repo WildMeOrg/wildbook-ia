@@ -71,6 +71,8 @@ NOT_QUIET = ut.NOT_QUIET and not ut.get_argflag('--quiet-query')
 DEBUG_PIPELINE = ut.get_argflag(('--debug-pipeline', '--debug-pipe'))
 VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipeline', '--verb-pipe')))
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
+# TODO: move up one level
+SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 
 
 NN_LBL      = 'Assign NN:       '
@@ -97,9 +99,6 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
             print('Generating vsone for qaid=%d' % (qaid,))
             qres = request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
             yield (qaid, qres)
-
-
-SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 
 
 def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
@@ -291,7 +290,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
 
 def testrun_pipeline_upto(qreq_, stop_node=None, verbose=VERB_PIPELINE):
-    r'''
+    r"""
     convinience: runs pipeline for tests
     this should mirror request_ibeis_query_L0
 
@@ -308,7 +307,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=VERB_PIPELINE):
         >>> stripsource = ut.regex_replace(docstr_regex2, '', stripsource)
         >>> stripsource = ut.strip_line_comments(stripsource)
         >>> print(stripsource)
-    '''
+    """
     #---
     if stop_node == 'nearest_neighbors':
         return locals()
@@ -383,7 +382,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
         >>> # Assert nns tuple is valid
         >>> assert qfx2_idx.shape == qfx2_dist.shape
         >>> assert qfx2_idx.shape[1] == 5
-        >>> assert qfx2_idx.shape[0] > 1000
+        >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)
     """
     # Neareset neighbor configuration
     K      = qreq_.qparams.K
@@ -460,8 +459,7 @@ def baseline_neighbor_filter(qreq_, qaid2_nns, verbose=VERB_PIPELINE):
         ...    'first col should be all invalid because of self match')
         >>> assert not np.all(nnvalid0[:, 1]), (
         ...    'second col should have some good matches')
-        >>> assert nnvalid0.sum() > 1900, 'should be a lot of good matches'
-        >>> assert nnvalid0.sum() < 2000, 'but not too many'
+        >>> ut.assert_inbounds(nnvalid0.sum(), 1900, 2000)
 
     Removes matches to self, the same image, or the same name.
     """

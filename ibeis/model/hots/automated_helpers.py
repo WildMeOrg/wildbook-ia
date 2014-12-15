@@ -306,15 +306,17 @@ def query_vsone_verified(ibs, qaids, daids):
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsmany = qaid2_qres_vsmany[qaid]
         if qres_vsmany is not None:
-            vsmanyinspectstr = qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True)
-            print(ut.msgblock(
-                'VSMANY-INITIAL-RESULT qaid=%r' % (qaid,),
-                vsmanyinspectstr))
+            if ut.VERBOSE:
+                vsmanyinspectstr = qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True)
+                print(ut.msgblock(
+                    'VSMANY-INITIAL-RESULT qaid=%r' % (qaid,),
+                    vsmanyinspectstr))
         if qres_vsone is not None:
             vsoneinspectstr = qres_vsone.get_inspect_str(ibs=ibs, name_scoring=True)
-            print(ut.msgblock(
-                'VSONE-VERIFIED-RESULT qaid=%r' % (qaid,),
-                vsoneinspectstr))
+            if ut.VERBOSE:
+                print(ut.msgblock(
+                    'VSONE-VERIFIED-RESULT qaid=%r' % (qaid,),
+                    vsoneinspectstr))
 
     # FIXME: returns the last qreq_. There should be a notion of a query
     # request for a vsone reranked query

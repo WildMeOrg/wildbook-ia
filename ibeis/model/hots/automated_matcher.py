@@ -449,10 +449,11 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
         oracle_msg_list.append('The overrided system responce was:\n%s'
                                % (ut.indent(autoname_msg, '  ~~'),))
         name2 = ah.get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids)
+        MAX_LOOK = 3  # the oracle should only see what the user sees
         if name2 is not None:
             nid = ibs2.get_name_rowids_from_text(name2)
             rank = ut.listfind(sorted_nids.tolist(), nid)
-            if rank is None:
+            if rank is None or rank > MAX_LOOK:
                 print('Warning: impossible state if oracle_method == 1')
                 score, rawscore = None
             else:
