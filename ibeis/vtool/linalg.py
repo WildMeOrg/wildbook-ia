@@ -228,7 +228,8 @@ def intersect2d_indicies(A, B):
 
 def intersect2d_structured_numpy(A, B, assume_unique=False):
     nrows, ncols = A.shape
-    assert A.dtype is B.dtype, 'A and B must have the same dtypes'
+    assert A.dtype == B.dtype, ('A and B must have the same dtypes.'
+                                'A.dtype=%r, B.dtype=%r' % (A.dtype, B.dtype))
     dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
     #try:
     A_ = np.ascontiguousarray(A).view(dtype)
