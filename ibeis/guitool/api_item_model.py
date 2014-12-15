@@ -30,14 +30,14 @@ try:
     # also, it should be a function level import not module?
     #if not utool.get_argflag('--nocyth'):
     if utool.get_argflag('--cyth'):
-        from . import api_tree_node_cython as _atn
+        from guitool import api_tree_node_cython as _atn
     else:
         raise ImportError('')
     #print('[guitool] cython ON')
 except ImportError:
     #print('[guitool] cython OFF')
     # TODO: Cython should be wrapped in parent module
-    from . import api_tree_node as _atn
+    from guitool import api_tree_node as _atn
 
 
 class ChangeLayoutContext(object):
