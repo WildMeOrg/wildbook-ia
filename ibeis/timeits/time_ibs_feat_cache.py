@@ -37,7 +37,7 @@ def TIME_QUERY(ibs):
     #    #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
     #    #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
     #    interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids,
-    #                        ensure=False, annote_mode=1)
+    #                        ensure=False, annot_mode=1)
     #    df2.set_figtitle('Query Result')
     #    df2.adjust_subplots_safe(top=.8)
     print('[/TIME_QUERY]')

@@ -255,7 +255,7 @@ def get_invalid_nids(ibs):
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
-def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
+def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid
 
@@ -331,6 +331,8 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=False):
     # ALSO FIX GET_IMAGE_AIDS
     # really a getter for the annotation table not the name table
     #return [[] for nid in nid_list]
+    # TODO: should a query of the UNKNOWN_NAME_ROWID return anything?
+    # TODO: don't even run negative aids as queries
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     #USE_NUMPY_IMPL = len(nid_list_) > 10
@@ -375,9 +377,8 @@ def get_name_exemplar_aids(ibs, nid_list):
         >>> print(result)
         [[], [2, 3], [2, 3], [], [5, 6], [5, 6], [7], [8], [], [10], [], [12], [13]]
     """
-    nid_list_ = [const.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
     # Get all annot ids for each name
-    aids_list = ibs.get_name_aids(nid_list_)
+    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
     exemplar_aids_list = [ut.filter_items(aids, flags) for aids, flags in
@@ -404,7 +405,7 @@ def get_name_gids(ibs, nid_list):
         [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
     """
     # TODO: Optimize
-    aids_list = ibs.get_name_aids(nid_list)
+    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     gids_list = ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)
     return gids_list
 
@@ -442,7 +443,7 @@ def get_name_num_annotations(ibs, nid_list):
         [2, 2, 1, 1, 1, 1, 1]
     """
     # TODO: Optimize
-    return list(map(len, ibs.get_name_aids(nid_list)))
+    return list(map(len, ibs.get_name_aids(nid_list, enable_unknown_fix=True)))
 
 
 @register_ibs_method

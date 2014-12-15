@@ -19,7 +19,7 @@ def default_decorator(func):
     #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
 VERBOSE = utool.VERBOSE
-#VERYVERBOSE = utool.VERYVERBOSE
+VERYVERBOSE = utool.VERYVERBOSE
 VERYSQL = utool.get_argflag('--verb-sql')
 QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
 AUTODUMP = utool.get_argflag('--auto-dump')
@@ -178,7 +178,7 @@ class SQLDatabaseController(object):
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
         from six.moves import cStringIO
-        if not utool.QUIET:
+        if not QUIET:
             print('[sql] Copying database into RAM')
         tempfile = cStringIO()
         for line in db.connection.iterdump():
@@ -206,7 +206,7 @@ class SQLDatabaseController(object):
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        if utool.VERBOSE and not utool.QUIET:
+        if VERBOSE and not QUIET:
             print('[sql] running sql pragma optimizions')
         #db.cur.execute('PRAGMA cache_size = 0;')
         #db.cur.execute('PRAGMA cache_size = 1024;')
@@ -455,7 +455,7 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        if not QUIET and VERBOSE:
+        if not QUIET and VERYVERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))

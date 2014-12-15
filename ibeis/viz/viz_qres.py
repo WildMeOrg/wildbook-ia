@@ -28,8 +28,11 @@ def show_qres_top(ibs, qres, **kwargs):
         figtitle = ' ' + figtitle
     kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
     return show_qres(ibs, qres, top_aids=top_aids,
-                     draw_kpts=False, draw_ell=False,
-                     all_kpts=False, **kwargs)
+                     # dont use these. use annot mode instead
+                     #draw_kpts=False,
+                     #draw_ell=False,
+                     #all_kpts=False,
+                     **kwargs)
 
 
 @utool.indent_func
@@ -99,9 +102,20 @@ def show_qres_analysis(ibs, qres, **kwargs):
 def show_qres(ibs, qres, **kwargs):
     """
     Display Query Result Logic
+
     Defaults to: query chip, groundtruth matches, and top matches
+    qres.ishow calls down into this
+
+    Kwargs:
+
+        in_image (bool) show result  in image view if True else chip view
+
+        annot_mode (int):
+            if annot_mode == 0, then draw lines and ellipse
+            elif annot_mode == 1, then dont draw lines or ellipse
+            elif annot_mode == 2, then draw only lines
     """
-    annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
+    annot_mode = kwargs.get('annot_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
     make_figtitle = kwargs.get('make_figtitle', False)
     aug         = kwargs.get('aug', '')
@@ -162,7 +176,7 @@ def show_qres(ibs, qres, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG_SHOW_QRES = False
+    DEBUG_SHOW_QRES = True
 
     if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(qres.qaid)
@@ -170,7 +184,7 @@ def show_qres(ibs, qres, **kwargs):
         nAllGt = len(allgt_aids)
         print('[show_qres]========================')
         print('[show_qres]----------------')
-        print('[show_qres] * annote_mode=%r' % (annote_mode,))
+        print('[show_qres] * annot_mode=%r' % (annot_mode,))
         print('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
         print('[show_qres] * -----')
         print('[show_qres] * nRows=%r' % (nRows,))
@@ -196,12 +210,12 @@ def show_qres(ibs, qres, **kwargs):
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
         #print('[viz] Plotting Query: pnum=%r' % (pnum,))
-        _kwshow = dict(draw_kpts=annote_mode)
+        _kwshow = dict(draw_kpts=annot_mode)
         _kwshow.update(kwargs)
         _kwshow['prefix'] = 'q'
         _kwshow['pnum'] = pnum
         _kwshow['aid2_color'] = aid2_color
-        _kwshow['draw_ell'] = annote_mode >= 1
+        _kwshow['draw_ell'] = annot_mode >= 1
         viz_chip.show_chip(ibs, qres.qaid, annote=False, **_kwshow)
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
@@ -210,7 +224,9 @@ def show_qres(ibs, qres, **kwargs):
             """ Helper function for drawing matches to one aid """
             aug = 'rank=%r\n' % orank
             #printDBG('[show_qres()] plotting: %r'  % (pnum,))
-            _kwshow  = dict(draw_ell=annote_mode, draw_pts=False, draw_lines=annote_mode,
+            #draw_ell = annot_mode == 1
+            #draw_lines = annot_mode >= 1
+            _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
                             ell_alpha=.5, all_kpts=all_kpts)
             _kwshow.update(kwargs)
             _kwshow['fnum'] = fnum
@@ -219,12 +235,12 @@ def show_qres(ibs, qres, **kwargs):
             _kwshow['in_image'] = in_image
             # If we already are showing the query dont show it here
             if sidebyside:
-                _kwshow['draw_ell'] = annote_mode == 1
-                _kwshow['draw_lines'] = annote_mode >= 1
+                _kwshow['draw_ell'] = annot_mode == 1
+                _kwshow['draw_lines'] = annot_mode >= 1
                 viz_matches.show_matches(ibs, qres, aid, **_kwshow)
             else:
-                _kwshow['draw_ell'] = annote_mode >= 1
-                if annote_mode == 2:
+                _kwshow['draw_ell'] = annot_mode >= 1
+                if annot_mode == 2:
                     # TODO Find a better name
                     _kwshow['color'] = aid2_color[aid]
                     _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]

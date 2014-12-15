@@ -104,26 +104,48 @@ __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 
 def assert_qres(qres):
+    def lenmap(iter_):
+        return list(map(len, iter_))
     try:
-        assert len(qres.aid2_fm) == len(qres.aid2_fs), 'fm and fs do not agree'
-        assert len(qres.aid2_fm) == len(qres.aid2_fk), 'fm and fk do not agree'
-        assert len(qres.aid2_fm) == len(qres.aid2_score), 'fm and score do not agree'
+        fm_list = qres.get_fm_list()
+        fk_list = qres.get_fk_list()
+        fs_list = qres.get_fs_list()
+        fsv_list = qres.get_fsv_list()
+        score_list = qres.get_score_list()
+        prob_list  = qres.get_prob_list()
+        try:
+            assert len(fm_list) == len(fs_list), 'fm and fs do not agree'
+            assert len(fm_list) == len(fk_list), 'fm and fk do not agree'
+            assert len(fm_list) == len(score_list), 'fm and score do not agree'
+            assert fsv_list is None or len(fm_list) == len(fsv_list), 'fm and score do not agree'
+            assert prob_list is None or len(fm_list) == len(prob_list), 'fm and score do not agree'
+        except AssertionError as ex:
+            ut.printex(ex, '[!qr]  matching dicts do not agree',
+                       keys=[
+                           (ut.dictinfo, 'qres.aid2_fm'),
+                           (ut.dictinfo, 'qres.aid2_fs'),
+                           (ut.dictinfo, 'qres.aid2_fk'),
+                           (ut.dictinfo, 'qres.aid2_score'),
+                       ])
+            raise
+        nMatch_list = get_num_feats_in_matches(qres)
+
+        assrtlsteq = ut.assert_lists_eq
+
+        if qres.filtkey_list is not None:
+            all([fsv.shape[1] == len(qres.filtkey_list) for fsv in fsv_list])
+
+        # Assert lengths of feature maps
+        assrtlsteq(nMatch_list, lenmap(fm_list), 'fm failed')
+        assrtlsteq(nMatch_list, lenmap(fs_list), 'fs failed')
+        assrtlsteq(nMatch_list, lenmap(fk_list), 'fr failed')
+        assrtlsteq(nMatch_list, lenmap(fsv_list), 'fk failed')
+        assrtlsteq(nMatch_list, lenmap(fsv_list), 'fsv failed')
+        if qres.aid2_prob is not None:
+            assert len(qres.aid2_prob) == len(qres.aid2_score)
     except AssertionError as ex:
-        ut.printex(ex, '[!qr]  matching dicts do not agree',
-                   keys=[
-                       (ut.dictinfo, 'qres.aid2_fm'),
-                       (ut.dictinfo, 'qres.aid2_fs'),
-                       (ut.dictinfo, 'qres.aid2_fk'),
-                       (ut.dictinfo, 'qres.aid2_score'),
-                   ])
+        ut.printex(ex, 'Query Result Checks Failed')
         raise
-    nFeatMatch_list = get_num_feats_in_matches(qres)
-    assert all([num1 == num2 for (num1, num2) in
-                zip(nFeatMatch_list, (len(fm) for fm in six.itervalues(qres.aid2_fm)))])
-    assert all([num1 == num2 for (num1, num2) in
-                zip(nFeatMatch_list, (len(fs) for fs in six.itervalues(qres.aid2_fs)))])
-    assert all([num1 == num2 for (num1, num2) in
-                zip(nFeatMatch_list, (len(fk) for fk in six.itervalues(qres.aid2_fk)))])
 
 
 def get_num_chip_matches(qres):
@@ -131,7 +153,7 @@ def get_num_chip_matches(qres):
 
 
 def get_num_feats_in_matches(qres):
-    return [len(fm) for fm in six.itervalues(qres.aid2_fm)]
+    return [len(fm) for fm in qres.get_fm_list()]
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -140,6 +162,15 @@ class QueryResult(__OBJECT_BASE__):
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
     #             'metadata']
     def __init__(qres, qaid, qauuid, cfgstr, daids):
+        """
+        TODO:
+            * the dict mappings should be removed in favor using lists with
+              another list of keys that all the (previously dicts) share.
+            * make sure cfgstr includes database semantic uuid information
+            * qaid should also be a semantic uuids
+            * eid should have a uuid
+
+        """
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
@@ -153,13 +184,54 @@ class QueryResult(__OBJECT_BASE__):
         qres.cfgstr = cfgstr  # should have database info hashed in from qreq
         qres.eid = None  # encounter id
         # Assigned features matches
-        qres.aid2_fm = None  # feat_match_list
-        qres.aid2_fs = None  # feat_score_list
-        qres.aid2_fk = None  # feat_rank_list
+        qres.aid2_fm = None   # feat_match_list
+        qres.aid2_fs = None   # feat_score_list
+        qres.aid2_fsv = None  # feat_scorevec_list
+        qres.aid2_fk = None   # feat_rank_list
         qres.aid2_score = None  # annotation score
-        qres.aid2_prob = None  # annotation normalized score
+        qres.aid2_prob = None   # annotation normalized score
+        qres.filtkey_list = None   # list of filter keys for each dimension in fsv
         qres.metadata = None  # messy (meta information of query)
         #qres.daid_list = None  # matchable daids
+
+    def get_fm_list(qres):
+        """
+        returns list of fm's wrt database annotation ids
+
+        THIS AND OTHER ANALOGOUS FUNCS WILL BE FIRST LEVEL GETTERS
+        ONCE qres.aid2_xxx becomes qres.xxx_list with qres.daid_list
+        """
+        return [qres.aid2_fm[daid] for daid in qres.daids
+                if daid in qres.aid2_fm]
+
+    def get_fs_list(qres):
+        """ returns list of fs's wrt database annotation ids """
+        return [qres.aid2_fs[daid] for daid in qres.daids
+                if daid in qres.aid2_fs]
+
+    def get_fsv_list(qres):
+        """ returns list of fsv's wrt database annotation ids """
+        if qres.aid2_fsv is None:
+            return None
+        return [qres.aid2_fsv[daid] for daid in qres.daids
+                if daid in qres.aid2_fsv]
+
+    def get_fk_list(qres):
+        """ returns list of fk's wrt database annotation ids """
+        return [qres.aid2_fk[daid] for daid in qres.daids
+                if daid in qres.aid2_fk]
+
+    def get_score_list(qres):
+        """ returns list of fk's wrt database annotation ids """
+        return [qres.aid2_score[daid] for daid in qres.daids
+                if daid in qres.aid2_score]
+
+    def get_prob_list(qres):
+        """ returns list of fk's wrt database annotation ids """
+        if qres.aid2_prob is None:
+            return None
+        return [qres.aid2_prob[daid] for daid in qres.daids
+                if daid in qres.aid2_prob]
 
     def load(qres, qresdir, verbose=VERBOSE, force_miss=False):
         """ Loads the result from the given database """
@@ -516,7 +588,8 @@ class QueryResult(__OBJECT_BASE__):
         return tbldata
 
     def get_inspect_str(qres, ibs=None, name_scoring=False):
-        assert_qres(qres)
+        qres.assert_self()
+        #ut.embed()
 
         top_lbls = [' top aids', ' scores', ' rawscores', ' ranks']
 
@@ -650,6 +723,9 @@ class QueryResult(__OBJECT_BASE__):
             return qres.show_analysis(ibs, *args, **kwargs)
         else:
             raise AssertionError('Uknown type=%r' % type_)
+
+    def assert_self(qres):
+        assert_qres(qres)
 
 
 if __name__ == '__main__':

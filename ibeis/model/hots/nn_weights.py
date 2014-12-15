@@ -412,7 +412,9 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
     # Get the top names you do not want your normalizer to be from
     qnid = qreq_.ibs.get_annot_name_rowids(qaid)
     nTop = max(1, K)
+    # Get the 0th - Kth matching neighbors
     qfx2_topidx = qfx2_idx.T[0:nTop].T
+    # Get tke Kth - KNth normalizing neighbors
     qfx2_normidx = qfx2_idx.T[-Knorm:].T
     # Apply temporary uniquish name
     qfx2_topaid  = qreq_.indexer.get_nn_aids(qfx2_topidx)
@@ -524,6 +526,7 @@ def logratio_fn(vdist, ndist):
 @_register_nn_normalized_weight_func
 def normonly_fn(vdist, ndist):
     return np.tile(ndist[:, 0:1], (1, vdist.shape[1]))
+    #return ndist[None, 0:1]
 
 
 #@_register_nn_simple_weight_func

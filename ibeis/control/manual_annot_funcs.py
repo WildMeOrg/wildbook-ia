@@ -599,7 +599,7 @@ def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
         valid_aids_ = valid_aids
     # Build the set of groundfalse annotations
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    aids_list = ibs.get_name_aids(nid_list)
+    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     aids_setlist = map(set, aids_list)
     valid_aids = set(valid_aids_)
     groundfalse_list = [list(valid_aids - aids) for aids in aids_setlist]
@@ -625,7 +625,9 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         a groundtruth.  A list of these is called a groundtruth_list.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -636,7 +638,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
         >>> result = str(groundtruth_list)
         >>> print(result)
-        [[9, 11, 4], [3], [2], [1, 11, 9], [6], [5], [], [], [1, 11, 4], [], [1, 4, 9], [], []]
+        [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -654,16 +656,16 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> is_exemplar, noself, daid_list = False, True, None
+        >>> is_exemplar, noself, daid_list = False, False, None
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
         >>> result = str(groundtruth_list)
         >>> print(result)
-        [[9, 11, 4], [], [], [1, 11, 9], [], [], [], [], [1, 11, 4], [], [1, 4, 9], [], []]
+        [[1], [], [], [4], [], [], [], [], [9], [], [11], [], []]
 
     """
     # TODO: Optimize
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    aids_list = ibs.get_name_aids(nid_list)
+    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     if is_exemplar is None:
         groundtruth_list_ = aids_list
     else:
@@ -985,7 +987,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
         >>> assert len(nFeats_list) == 3
         >>> ut.assert_inbounds(nFeats_list[0], 1256, 1258)
         >>> ut.assert_inbounds(nFeats_list[1],  910,  921)
-        >>> ut.assert_inbounds(nFeats_list[2], 1340, 1342)
+        >>> ut.assert_inbounds(nFeats_list[2], 1340, 1343)
 
     [1257, 920, 1342]
     """
@@ -1016,7 +1018,7 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         >>> noself = True
         >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
         >>> print(result)
-        [3, 1, 1, 3, 1, 1, 0, 0, 3, 0, 3, 0, 0]
+        [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -1027,7 +1029,7 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         >>> noself = False
         >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
         >>> print(result)
-        [4, 2, 2, 4, 2, 2, 1, 1, 4, 1, 4, 1, 1]
+        [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]
 
     """
     # TODO: Optimize

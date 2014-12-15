@@ -73,6 +73,12 @@ VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipelin
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
 
 
+NN_LBL      = 'Assign NN:       '
+FILT_LBL    = 'Filter NN:       '
+BUILDCM_LBL = 'Build Chipmatch: '
+SVER_LVL    = 'SVER:            '
+
+
 def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
     """
     helper
@@ -383,7 +389,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
     checks = qreq_.qparams.checks
-    # Get both match neighbors and normalizer neighbors
+    # Get both match neighbors and normalizing neighbors
     num_neighbors  = K + Knorm
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: ' +
@@ -393,7 +399,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Find the nearest neighbors of each descriptor vector
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids)
     # Mark progress ane execute nearest indexer nearest neighbor code
-    qvec_iter = ut.ProgressIter(qvecs_list, lbl='Assign NN: ', freq=20,
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, freq=20,
                                 time_thresh=2.0)
     nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
                  for qfx2_vec in qvec_iter]
@@ -686,7 +692,7 @@ def filter_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, verbos
     nnfiltagg_list = []
     nnfilts_list = []
     internal_qaids = list(six.iterkeys(qaid2_nns))
-    qaid_iter = ut.ProgressIter(internal_qaids, lbl='Filter NN: ', freq=20, time_thresh=2.0)
+    qaid_iter = ut.ProgressIter(internal_qaids, lbl=FILT_LBL, freq=20, time_thresh=2.0)
     # Filter matches based on config and weights
     for qaid in qaid_iter:
         # all the filter weights for this query
@@ -918,7 +924,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         >>> num_matches = len(fm)
         >>> print('vsmany num_matches = %r' % num_matches)
         >>> assert fm.shape[1] == 2, 'vsmany fm bad shape'
-        >>> ut.assert_inbounds(num_matches, 550, 570, 'vsmany nmatches out of bounds')
+        >>> ut.assert_inbounds(num_matches, 550, 572, 'vsmany nmatches out of bounds')
 
     Ignore:
         pass
@@ -930,7 +936,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
     # Iterate over INTERNAL query annotation ids
     internal_qaids = list(six.iterkeys(qaid2_nns))
     intern_qaid_iter = ut.ProgressIter(internal_qaids, nTotal=len(qaid2_nns),
-                                       lbl='Build Chipmatch: ', freq=20,
+                                       lbl=BUILDCM_LBL, freq=20,
                                        time_thresh=2.0)
     def _get_matchinfo(qaid):
         # common code between vsone and vsmany
@@ -1186,7 +1192,7 @@ def _spatial_verification(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
     # dbg info (can remove if there is a speed issue)
     qaid2_svtups = {} if qreq_.qparams.with_metadata else None
     qaid_progiter = ut.ProgressIter(six.iterkeys(qaid2_chipmatch),
-                                    nTotal=len(qaid2_chipmatch), lbl='SVER: ',
+                                    nTotal=len(qaid2_chipmatch), lbl=SVER_LVL,
                                     freq=20, time_thresh=2.0)
     for qaid in qaid_progiter:
         # Find a transform from chip2 to chip1 (the old way was 1 to 2)
@@ -1593,7 +1599,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         >>> qres = qaid2_qres[1]
         >>> assert len(qres.filtkey_list) == 4
         >>> assert len(qres.filtkey_list) == qres.aid2_fsv[2].shape[1]
-        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 110, 115)
+        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 115)
         >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1))
         >>> #assert qres.aid2_fs[2].sum() == qres.aid2_score[2]
 
