@@ -72,6 +72,7 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
     global __IS_INITIALIZED__
     global __WHO_INITIALIZED__
     import matplotlib as mpl
+    #mpl.interactive(True)
     current_backend = mpl.get_backend()
     target_backend = get_target_backend()
     if __IS_INITIALIZED__ is True:
