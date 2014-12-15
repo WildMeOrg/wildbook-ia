@@ -7,6 +7,7 @@ from ibeis.control.accessor_decors import (ider, adder, getter_1to1, getter_1toM
 import utool as ut
 from os.path import join, exists
 from ibeis import ibsfuncs
+import numpy as np
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_image]')
 
@@ -582,17 +583,32 @@ def get_image_enctext(ibs, gid_list):
     return enctext_list
 
 
+ANNOT_ROWID = 'annot_rowid'
+IMAGE_ROWID = 'image_rowid'
+
+
 @register_ibs_method
 @getter_1toM
+#@cache_getter(const.IMAGE_TABLE)
 def get_image_aids(ibs, gid_list):
     """
     Returns:
         list_ (list): a list of aids for each image by gid """
+    # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    colnames = ('annot_rowid',)
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, gid_list,
-                           id_colname='image_rowid', unpack_scalars=False)
+    USE_NUMPY_IMPL = True  # len(gid_list) > 10
+    #USE_NUMPY_IMPL = False
+    if USE_NUMPY_IMPL:
+        # This seems to be 30x faster for bigger inputs
+        valid_aids = np.array(ibs._get_all_aids())
+        valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
+        #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_gids, gid))).tolist() for gid in gid_list]
+    else:
+        # SQL IMPL
+        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
+                                   id_colname=IMAGE_ROWID, unpack_scalars=False)
     #print('aids_list = %r' % (aids_list,))
     return aids_list
 

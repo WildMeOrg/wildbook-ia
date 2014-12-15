@@ -57,6 +57,10 @@ TABLE_COLNAMES = {
         'imgnotes',
     ],
 
+    # debug with
+    # --noannottbl
+    # --nonametree
+    # even just aid seems to be very slow
     ANNOTATION_TABLE       : [
         #'annotation_uuid',
         'aid',
@@ -100,12 +104,12 @@ TABLE_COLNAMES = {
 
     NAMES_TREE      : [
         'name',
-        'nid',
         'nAids',
+        'thumb',
+        'nid',
         'nExAids',
         'exemplar',
         'aid',
-        'thumb',
         'annot_gname',
         'namenotes',
     ],

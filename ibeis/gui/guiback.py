@@ -166,7 +166,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     def show_qres(back, qres, **kwargs):
-        kwargs['annote_mode'] = kwargs.get('annote_mode', 2)
+        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
         kwargs['top_aids'] = kwargs.get('top_aids', 6)
         interact.ishow_qres(back.ibs, qres, **kwargs)
         # HACK

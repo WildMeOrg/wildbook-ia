@@ -23,6 +23,15 @@ Have:
     * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
     * paramater to only add exemplar if post-normlized score is above a threshold
     * ensure vsone ratio test is happening correctly
+    * normalization gets a cfgstr based on the query
+    * need to allow for scores to be un-invalidatd post spatial verification
+      e.g. when the first match initially is invalidated through
+      spatial verification but the next matches survive.
+    * keep distinctiveness weights from vsmany for vsone weighting
+      basically involves keeping weights from different filters and not
+      aggregating match weights until the end.
+
+
 
 TODO:
     * ~~Remember confidence of decisions for manual review~~
@@ -33,20 +42,10 @@ TODO:
 
     * Improve vsone scoring.
 
-    * normalization gets a cfgstr based on the query
-
-    * need to allow for scores to be un-invalidatd post spatial verification
-      e.g. when the first match initially is invalidated through
-      spatial verification but the next matches survive.
-
     * score normalization update. on add the new support data, reapply bayes
      rule, and save to the current cache for a given algorithm configuration.
 
     * test case where there is a 360 view that is linkable from the tests case
-
-    * keep distinctiveness weights from vsmany for vsone weighting
-      basically involves keeping weights from different filters and not
-      aggregating match weights until the end.
 
     * Put test query mode into the main application and work on the interface for it.
 
@@ -80,8 +79,13 @@ def incremental_test(ibs1, num_initial=0):
 
         python dev.py --db PZ_MTEST --allgt -t inc
 
+        python dev.py --db PZ_MTEST --allgt -t inc
+
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
+
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0 --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1 --interact-after 444440 --noqcache
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -101,13 +105,13 @@ def incremental_test(ibs1, num_initial=0):
         >>> incremental_test(ibs1, num_initial)
     """
 
-    def execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive):
+    def execute_teststep(count, ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive):
         """ Add an unseen annotation and run a query """
         sys.stdout.write('\n')
-        print('\n==== EXECUTING TESTSTEP ====')
+        print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
         # ensure new annot is added (most likely it will have been preadded)
         aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-        threshold = 1.99
+        threshold = ut.get_sys_maxfloat()  # 1.99
         exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
         qaid2_qres, qreq_ = ah.query_vsone_verified(ibs2, aids_chunk2, exemplar_aids)
         metatup = (ibs1, ibs2, aid1_to_aid2)
@@ -123,7 +127,7 @@ def incremental_test(ibs1, num_initial=0):
     aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
 
     #interactive = DEFAULT_INTERACTIVE
-    interact_after = 0
+    interact_after = ut.get_argval(('--interactive-after', '--interact-after',), type_=int, default=0)
     #interact_after = 100
     #interact_after = None
 
@@ -132,7 +136,7 @@ def incremental_test(ibs1, num_initial=0):
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         #try:
         interactive = (interact_after is not None and count > interact_after)
-        execute_teststep(ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive)
+        execute_teststep(count, ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive)
         # doesnt work on windows
         #except KeyboardInterrupt:
         #    print('Caught keyboard interupt')
@@ -445,10 +449,11 @@ def get_suggested_decision(ibs2, qaid, qres, threshold, metatup=None):
         oracle_msg_list.append('The overrided system responce was:\n%s'
                                % (ut.indent(autoname_msg, '  ~~'),))
         name2 = ah.get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids)
+        MAX_LOOK = 3  # the oracle should only see what the user sees
         if name2 is not None:
             nid = ibs2.get_name_rowids_from_text(name2)
             rank = ut.listfind(sorted_nids.tolist(), nid)
-            if rank is None:
+            if rank is None or rank > MAX_LOOK:
                 print('Warning: impossible state if oracle_method == 1')
                 score, rawscore = None
             else:
@@ -498,9 +503,10 @@ def interactive_prompt(msg, decisiontype):
         {msg}
 
         ==========
-        * enter {no_phrase} to reject
+        * press ENTER to ACCEPT
+        * enter {no_phrase} to REJECT
         * enter {embed_phrase} to embed into ipython
-        * any other inputs accept system decision
+        * any other inputs ACCEPT system decision
         * (input is case insensitive)
         '''
     )
@@ -541,12 +547,16 @@ def interactive_decision(ibs2, qres, qreq_, autoname_msg, autoname_func):
     qtinspect = False and qres is not None
     if mplshowtop:
         fnum = 1
-        fig = qres.ishow_top(ibs2, name_scoring=True, fnum=fnum)
+        fig = qres.ishow_top(ibs2, name_scoring=True, fnum=fnum, in_image=False,
+                             annot_mode=0, sidebyside=True)
         fig.show()
     if qtinspect:
         qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
     if qreq_ is not None:
-        qreq_.normalizer.visualize(update=False, fnum=2)
+        if qreq_.normalizer is None:
+            print('normalizer is None!!')
+        else:
+            qreq_.normalizer.visualize(update=False, fnum=2)
     # Ask the user if they like the
     if interactive_prompt(autoname_msg, 'name'):
         autoexmplr_msg, autoexmplr_func = autoname_func()

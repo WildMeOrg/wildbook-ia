@@ -115,9 +115,10 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
     else:
         flann_cachedir = qreq_.ibs.get_flann_cachedir()
         # Save inverted cache uuid mappings for
-        # multi-indexer use
-        max_reindex_thresh = 200
-        if len(daid_list) > max_reindex_thresh:
+        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+        if len(daid_list) > min_reindex_thresh:
+            # let the multi-indexer know about any big caches we've made
+            # multi-indexer
             uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
             with ut.shelf_open(uuid_map_fpath) as uuid_map:
                 visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)

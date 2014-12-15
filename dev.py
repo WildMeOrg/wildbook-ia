@@ -57,8 +57,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 @profile
 def incremental_test(ibs, qaid_list, daid_list=None):
     """
-    Plots the scores/ranks of correct matches while varying the size of the
-    database.
+    Adds / queries new images one at a time to a clean test database.
+    Tests the complete system.
 
     Args:
         ibs       (list) : IBEISController object
@@ -71,6 +71,13 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 
         python dev.py --db PZ_MTEST --allgt -t inc
 
+        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd
+
+        python dev.py -t inc --db GZ_ALL --ninit 100 --noqcache
+
+        python dev.py -t inc --db PZ_MTEST --noqcache --interactive-after 40
+        python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400
+
     Example:
         >>> from ibeis.all_imports import *  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -79,7 +86,8 @@ def incremental_test(ibs, qaid_list, daid_list=None):
     """
     from ibeis.model.hots import automated_matcher
     ibs1 = ibs
-    return automated_matcher.incremental_test(ibs1)
+    num_initial = ut.get_argval('--ninit', type_=int, default=0)
+    return automated_matcher.incremental_test(ibs1, num_initial)
 
 
 @devcmd('scores', 'score')
@@ -354,7 +362,7 @@ def gvcomp(ibs, qaid_list, daid_list):
         for qaid in qaid_list:
             qres = allres.get_qres(qaid)
             interact.ishow_qres(ibs, qres,
-                                annote_mode=2,
+                                annot_mode=2,
                                 in_image=True,
                                 figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr)
                                 )

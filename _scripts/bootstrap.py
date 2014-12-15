@@ -95,6 +95,7 @@ print_sysinfo = util_cplat_packages.print_sysinfo
 DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
 OPTIONAL = '--optional' in sys.argv
 UPGRADE = '--upgrade' in sys.argv or '-U' in sys.argv
+WITH_SYSPKG = '--no-syspkg' not in sys.argv
 
 
 def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
@@ -218,7 +219,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     print_sysinfo()
     #upgrade()
     with_sysfix = True
-    with_syspkg = False
+    with_syspkg = WITH_SYSPKG
     with_pypkg  = True
     output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST, with_sysfix,
                                 with_syspkg, with_pypkg, upgrade=UPGRADE)

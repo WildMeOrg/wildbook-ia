@@ -9,7 +9,7 @@ from ibeis.model.hots import neighbor_index
 
 
 @profile
-def group_daids_by_cached_nnindexer(ibs, aid_list):
+def group_daids_by_cached_nnindexer(ibs, aid_list, min_reindex_thresh):
     r"""
     Args:
         ibs       (IBEISController):
@@ -23,17 +23,22 @@ def group_daids_by_cached_nnindexer(ibs, aid_list):
         >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
+        >>> group_daids_by_cached_nnindexer = 200
         >>> aid_list = ibs.get_valid_aids()
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, aid_list)
         >>> result = uncovered_aids, covered_aids_list
         >>> print(result)
     """
-    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
-    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(ibs)
     # read which annotations have prebuilt caches
+    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(ibs)
     with ut.shelf_open(uuid_map_fpath) as uuid_map:
         candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
-    # find a maximum independent set cover
+        for key in list(six.iterkeys(candidate_uuids)):
+            # remove any sets less than the threshold
+            if len(candidate_uuids[key]) < min_reindex_thresh:
+                del candidate_uuids[key]
+    # find a maximum independent set cover of the requested annotations
+    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
     tup = ut.greedy_max_inden_setcover(candidate_uuids, annot_vuuid_list)
     uncovered_vuuids, covered_vuuids_list = tup[0:2]
     # return the grouped covered items (so they can be loaded) and
@@ -106,7 +111,8 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         num_indexers = 8
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
-        uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list)
+        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+        uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
         aids_list = covered_aids_list
         if len(uncovered_aids) > 0:
             aids_list.append(uncovered_aids)
@@ -210,7 +216,10 @@ class MultiNeighborIndex(object):
         """
         Polymorphic interface to knn, but uses the multindex backend
 
-        Example:
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-knn:0
+
+        Example1:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
@@ -218,11 +227,11 @@ class MultiNeighborIndex(object):
             >>> K, checks = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
-            >>> result = str(np.shape(qfx2_imx))
-            >>> print(result)
-            (1074, 18)
+            >>> print(qfx2_imx.shape)
+            >>> assert qfx2_imx.shape[1] == 18
+            >>> ut.assert_inbounds(qfx2_imx.shape[0], 1073, 1079)
 
-        Example:
+        Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
