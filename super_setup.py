@@ -146,13 +146,15 @@ try:
     utool.set_userid(**userid_prompt())  # FIXME
 except Exception:
     #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
-    UTOOL_BRANCH = ' -b next'
-    UTOOL_REPO = 'git clone https://github.com/Erotemic/utool.git'
+    UTOOL_BRANCH = 'next'
+    UTOOL_REPO = 'https://github.com/Erotemic/utool.git'
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
-    os.chdir(os.path.expanduser(CODE_DIR))
+    #os.chdir(os.path.expanduser(CODE_DIR))
+    usr_code_dir = os.path.expanduser(CODE_DIR)
+    print("user code dir = %r" % usr_code_dir)
     print('cloning utool')
     if not os.path.exists('utool'):
-        syscmd('git clone ' + UTOOL_REPO + '-b' + UTOOL_BRANCH)
+        syscmd('git clone ' + UTOOL_REPO + ' -b ' + UTOOL_BRANCH)
     os.chdir('utool')
     print('pulling utool')
     syscmd('git pull')
