@@ -261,8 +261,26 @@ class QueryRequest(object):
             qreq_.internal_daids_mask = flags
 
     def set_internal_masked_qaids(qreq_, masked_qaid_list):
-        """ used by the pipeline to execute a subset of the query request
-        without modifying important state """
+        """
+        used by the pipeline to execute a subset of the query request
+        without modifying important state
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> from ibeis.model.hots import pipeline
+            >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+            >>> qaid_list = [1, 2, 3, 4]
+            >>> daid_list = [1, 2, 3, 4]
+            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            ...     qaid_list=qaid_list, daid_list=daid_list)
+            >>> qaids = qreq_.get_internal_qaids()
+            >>> ut.assert_lists_eq(qaid_list, qaids)
+            >>> masked_qaid_list = [1, 2, 3,]
+            >>> qreq_.set_internal_masked_qaids(masked_qaid_list)
+            >>> new_internal_aids = qreq_.get_internal_qaids()
+            >>> ut.assert_lists_eq(new_internal_aids, [4])
+        """
         if masked_qaid_list is None or len(masked_qaid_list) == 0:
             qreq_.internal_qaids_mask = None
         else:
@@ -270,6 +288,35 @@ class QueryRequest(object):
             # input denotes invalid elements mark all elements not in that
             # list as True
             flags = vt.get_uncovered_mask(qreq_.internal_qaids, masked_qaid_list)
+            assert len(flags) == len(qreq_.internal_qaids), 'unequal len internal qaids'
+            qreq_.internal_qaids_mask = flags
+
+    def set_internal_unmasked_qaids(qreq_, unmasked_qaid_list):
+        """
+        used by the pipeline to execute a subset of the query request
+        without modifying important state
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> from ibeis.model.hots import pipeline
+            >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+            >>> qaid_list = [1, 2, 3, 4]
+            >>> daid_list = [1, 2, 3, 4]
+            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            ...     qaid_list=qaid_list, daid_list=daid_list)
+            >>> qaids = qreq_.get_internal_qaids()
+            >>> ut.assert_lists_eq(qaid_list, qaids)
+            >>> unmasked_qaid_list = [1, 2, 3,]
+            >>> qreq_.set_internal_unmasked_qaids(unmasked_qaid_list)
+            >>> new_internal_aids = qreq_.get_internal_qaids()
+            >>> ut.assert_lists_eq(new_internal_aids, unmasked_qaid_list)
+        """
+        if unmasked_qaid_list is None:
+            qreq_.internal_qaids_mask = None
+        else:
+            # input denotes valid elements mark all elements not in that list as False
+            flags = vt.get_covered_mask(qreq_.internal_qaids, unmasked_qaid_list)
             assert len(flags) == len(qreq_.internal_qaids), 'unequal len internal qaids'
             qreq_.internal_qaids_mask = flags
 

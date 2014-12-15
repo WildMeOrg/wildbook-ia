@@ -73,6 +73,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
     """
     (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
     # for now apply a hack to return aid scores
+    # TODO: rectify this code with code in name scoring
+    # TODO: should be another version of nsum where each feature gets a single vote
     aid2_csum = dict(zip(*score_chipmatch_csum(qaid, chipmatch, qreq_)))
     aids_list = qreq_.ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     aid2_nscore = {}

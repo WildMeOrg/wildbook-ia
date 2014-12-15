@@ -126,6 +126,18 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         >>> save_cache = False
         >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
         >>> print(qaid2_qres_hit)
+
+    Example2:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> import utool as ut
+        >>> from ibeis.model.hots import pipeline
+        >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> use_cache = False
+        >>> save_cache = False
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
+        >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
