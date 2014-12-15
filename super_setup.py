@@ -67,9 +67,27 @@ import platform
 import sys
 import os
 
+
+print('USER = %r' % os.getenv("USER"))
+
+
+def is_running_as_root():
+    """
+    References:
+        http://stackoverflow.com/questions/5721529/running-python-script-as-root-with-sudo-what-is-the-username-of-the-effectiv
+        http://stackoverflow.com/questions/2806897/what-is-the-best-practices-for-checking-if-the-user-of-a-python-script-has-root
+    """
+    return os.getenv('USER') == 'root'
+
+if is_running_as_root():
+    print('Do not run super_setup.py as root')
+    sys.exit(1)
+
 #-----------------
 #  UTOOL PYTHON
 #-----------------
+
+WIN32 = sys.platform.startswith('win32')
 
 print('[super_setup] __IBEIS_SUPER_SETUP__')
 
@@ -87,7 +105,7 @@ assert '--py3' in sys.argv or python_version.startswith('2.7'), \
     'IBEIS currently needs python 2.7,  Instead got python=%r' % python_version
 
 # Default to python 2.7. Windows is werid
-pythoncmd = 'python' if sys.platform.startswith('win32') else 'python2.7'
+pythoncmd = 'python' if WIN32 else 'python2.7'
 
 
 if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
@@ -108,7 +126,7 @@ if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
             raise AssertionError('invalid python version')
         return module
 
-    if sys.platform.startswith('win32'):
+    if WIN32:
         # need to preinstall parse
         win32bootstrap_fpath = os.path.abspath('_scripts/win32bootstrap.py')
         win32bootstrap = import_module_from_fpath(win32bootstrap_fpath)
@@ -158,7 +176,8 @@ except Exception:
     syscmd('git pull')
     print('installing utool for development')
     cmdstr = '{pythoncmd} setup.py develop'.format(**locals())
-    if not sys.platform.startswith('win32'):
+    in_virtual_env = hasattr(sys, 'real_prefix')
+    if not WIN32 and not in_virtual_env:
         cmdstr = 'sudo ' + cmdstr
     syscmd(cmdstr)
     cwdpath = os.path.realpath(os.getcwd())
@@ -273,14 +292,13 @@ if GET_ARGFLAG('--build'):
         ut.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
     # Build only IBEIS repos with setup.py
     ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    #ut.gg_command('sudo {pythoncmd} setup.py build'.format(**locals()))
     ut.gg_command('{pythoncmd} setup.py build'.format(**locals()))
 
 if GET_ARGFLAG('--develop'):
     # Like install, but better if you are developing
     ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    #ut.gg_command('sudo {pythoncmd} setup.py develop'.format(**locals()))
-    ut.gg_command('{pythoncmd} setup.py develop'.format(**locals()))
+    ut.gg_command('{pythoncmd} setup.py develop'.format(**locals()),
+                  sudo=not ut.in_virtual_env())
 
 if GET_ARGFLAG('--install'):
     # Dont use this if you are a developer. Use develop instead.
@@ -329,9 +347,11 @@ if GET_ARGFLAG('--serverchmod'):
     ut.gg_command('chmod -R 755 *')
 
 if GET_ARGFLAG('--chown'):
+    # Fixes problems where repos are checked out as root
     username = os.environ['USERNAME']
     usergroup = username
-    ut.gg_command('sudo chown -R {username}:{usergroup} *'.format(**locals()))
+    ut.gg_command('chown -R {username}:{usergroup} *'.format(**locals()),
+                  sudo=True)
 
 upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
