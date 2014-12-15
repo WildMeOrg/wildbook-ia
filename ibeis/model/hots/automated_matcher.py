@@ -63,7 +63,23 @@ from ibeis.model.hots import automated_helpers as ah
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
-def incremental_test(ibs1, num_initial=0):
+def execute_incremental_matcher(ibs, qaid_list, daid_list):
+    # Execute each query as a test
+    chunksize = 1
+    #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
+    qaid_chunk_iter = ut.progress_chunks(qaid_list, chunksize, lbl='TEST QUERY')
+
+    # FULL INCREMENT
+    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
+    interactive = True
+    ibs2 = ibs
+    metatup = None
+    threshold = ut.get_sys_maxfloat()  # 1.99
+    for count, qaid_chunk in enumerate(qaid_chunk_iter):
+        execute_teststep(ibs2, qaid_chunk, count, threshold, interactive, metatup)
+
+
+def incremental_test(ibs_gt, num_initial=0):
     """
     Plots the scores/ranks of correct matches while varying the size of the
     database.
@@ -91,52 +107,39 @@ def incremental_test(ibs1, num_initial=0):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> #num_initial = 0
         >>> num_initial = 0
-        >>> incremental_test(ibs1, num_initial)
+        >>> incremental_test(ibs_gt, num_initial)
 
     Example2:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs1 = ibeis.opendb('GZ_ALL')
+        >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
-        >>> incremental_test(ibs1, num_initial)
+        >>> incremental_test(ibs_gt, num_initial)
     """
 
-    def execute_teststep(count, ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive):
-        """ Add an unseen annotation and run a query """
-        sys.stdout.write('\n')
-        print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        # ensure new annot is added (most likely it will have been preadded)
-        aids_chunk2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
-        threshold = ut.get_sys_maxfloat()  # 1.99
-        exemplar_aids = ibs2.get_valid_aids(is_exemplar=True)
-        qaid2_qres, qreq_ = ah.query_vsone_verified(ibs2, aids_chunk2, exemplar_aids)
-        metatup = (ibs1, ibs2, aid1_to_aid2)
-        make_decisions(ibs2, qaid2_qres, qreq_, threshold,
-                       interactive=interactive,
-                       metatup=metatup)
+    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial=num_initial)
 
-    ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial=num_initial)
+    #interact_after = 100
+    #interact_after = None
+    interact_after = ut.get_argval(('--interactive-after', '--interact-after',), type_=int, default=0)
+    threshold = ut.get_sys_maxfloat()  # 1.99
 
     # Execute each query as a test
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
-
-    #interactive = DEFAULT_INTERACTIVE
-    interact_after = ut.get_argval(('--interactive-after', '--interact-after',), type_=int, default=0)
-    #interact_after = 100
-    #interact_after = None
-
-    # FULL INCREMENT
-    #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
+    metatup = (ibs_gt, ibs2, aid1_to_aid2)
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
-        #try:
         interactive = (interact_after is not None and count > interact_after)
-        execute_teststep(count, ibs1, ibs2, aids_chunk1, aid1_to_aid2, interactive)
+        # ensure new annot is added (most likely it will have been preadded)
+        aids_chunk2 = add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2)
+        qaid_chunk = aids_chunk2
+        execute_teststep(ibs2, qaid_chunk, count, threshold, interactive, metatup)
+        #try:
         # doesnt work on windows
         #except KeyboardInterrupt:
         #    print('Caught keyboard interupt')
@@ -150,7 +153,17 @@ def incremental_test(ibs1, num_initial=0):
         #        interact_after = int(ans)
 
 
-def setup_incremental_test(ibs1, num_initial=0):
+def execute_teststep(ibs, qaid_chunk, count, threshold, interactive,
+                     metatup=None):
+    """ Add an unseen annotation and run a query """
+    sys.stdout.write('\n')
+    print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
+    exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
+    qaid2_qres, qreq_ = ah.query_vsone_verified(ibs, qaid_chunk, exemplar_aids)
+    make_decisions(ibs, qaid2_qres, qreq_, threshold, interactive, metatup)
+
+
+def setup_incremental_test(ibs_gt, num_initial=0):
     r"""
     CommandLine:
         python -m ibeis.model.hots.automated_matcher --test-setup_incremental_test:0
@@ -162,34 +175,34 @@ def setup_incremental_test(ibs1, num_initial=0):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
-        >>> ibs1 = ibeis.opendb('PZ_MTEST')
+        >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> num_initial = 0
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial)
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
-        >>> ibs1 = ibeis.opendb('GZ_ALL')
+        >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs1, num_initial)
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
     """
     # Take a known dataase
     # Create an empty database to test in
-    aid_list1 = ibs1.get_aids_with_groundtruth()
+    aid_list1 = ibs_gt.get_aids_with_groundtruth()
     reset = False
     #reset = True
 
     aid1_to_aid2 = {}  # annotation mapping
 
-    def make_incremental_test_database(ibs1, aid_list1, reset):
+    def make_incremental_test_database(ibs_gt, aid_list1, reset):
         """
         Makes test database. adds image and annotations but does not transfer names.
         if reset is true the new database is gaurenteed to be built from a fresh
         start.
 
         Args:
-            ibs1      (IBEISController):
+            ibs_gt      (IBEISController):
             aid_list1 (list):
             reset     (bool):
 
@@ -197,7 +210,7 @@ def setup_incremental_test(ibs1, num_initial=0):
             IBEISController: ibs2
         """
         print('make_incremental_test_database. reset=%r' % (reset,))
-        dbname2 = '_INCREMENTALTEST_' + ibs1.get_dbname()
+        dbname2 = '_INCREMENTALTEST_' + ibs_gt.get_dbname()
         ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=reset, use_cache=False)
 
         # reset if flag specified or no data in ibs2
@@ -207,31 +220,31 @@ def setup_incremental_test(ibs1, num_initial=0):
             assert len(ibs2.get_valid_nids())  == 0
 
             # Get annotations and their images from database 1
-            gid_list1 = ibs1.get_annot_gids(aid_list1)
-            gpath_list1 = ibs1.get_image_paths(gid_list1)
+            gid_list1 = ibs_gt.get_annot_gids(aid_list1)
+            gpath_list1 = ibs_gt.get_image_paths(gid_list1)
 
             # Add all images from database 1 to database 2
             gid_list2 = ibs2.add_images(gpath_list1, auto_localize=False)
 
             # Image UUIDS should be consistent between databases
-            image_uuid_list1 = ibs1.get_image_uuids(gid_list1)
+            image_uuid_list1 = ibs_gt.get_image_uuids(gid_list1)
             image_uuid_list2 = ibs2.get_image_uuids(gid_list2)
             assert image_uuid_list1 == image_uuid_list2
             ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
         return ibs2
 
-    ibs2 = make_incremental_test_database(ibs1, aid_list1, reset)
+    ibs2 = make_incremental_test_database(ibs_gt, aid_list1, reset)
 
     # Add the annotations without names
 
     aids_chunk1 = aid_list1
-    aid_list2 = add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2)
+    aid_list2 = add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2)
 
     # Assert annotation visual uuids are in agreement
-    ah.annot_consistency_checks(ibs1, ibs2, aid_list1, aid_list2)
+    ah.annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Remove name exemplars
-    ah.ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
+    ah.ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Preprocess features and such
     ibs2.ensure_annotation_data(aid_list2, featweights=True)
@@ -241,7 +254,7 @@ def setup_incremental_test(ibs1, num_initial=0):
         # Transfer some initial data
         aid_sublist1 = aid_list1[0:num_initial]
         aid_sublist2 = aid_list2[0:num_initial]
-        name_list = ibs1.get_annot_names(aid_sublist1)
+        name_list = ibs_gt.get_annot_names(aid_sublist1)
         ibs2.set_annot_names(aid_sublist2, name_list)
         ibs2.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
         aid_list1 = aid_list1[num_initial:]
@@ -249,7 +262,7 @@ def setup_incremental_test(ibs1, num_initial=0):
     return ibs2, aid_list1, aid1_to_aid2
 
 
-def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
+def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     """
     adds annotations to the tempoarary database and prevents duplicate
     additions.
@@ -257,7 +270,7 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
     aids_chunk1 = aid_list1
 
     Args:
-        ibs1         (IBEISController):
+        ibs_gt         (IBEISController):
         ibs2         (IBEISController):
         aids_chunk1  (list):
         aid1_to_aid2 (dict):
@@ -266,11 +279,11 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
         list: aids_chunk2
     """
     # Visual info
-    guuids_chunk1 = ibs1.get_annot_image_uuids(aids_chunk1)
-    verts_chunk1  = ibs1.get_annot_verts(aids_chunk1)
-    thetas_chunk1 = ibs1.get_annot_thetas(aids_chunk1)
+    guuids_chunk1 = ibs_gt.get_annot_image_uuids(aids_chunk1)
+    verts_chunk1  = ibs_gt.get_annot_verts(aids_chunk1)
+    thetas_chunk1 = ibs_gt.get_annot_thetas(aids_chunk1)
     # Non-name semantic info
-    species_chunk1 = ibs1.get_annot_species(aids_chunk1)
+    species_chunk1 = ibs_gt.get_annot_species(aids_chunk1)
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
     ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
     # Add this new unseen test case to the database
@@ -289,7 +302,7 @@ def add_annot_chunk(ibs1, ibs2, aids_chunk1, aid1_to_aid2):
                 assert aid1_to_aid2[aid1] == aid2
             else:
                 aid1_to_aid2[aid1] = aid2
-    # Register the mapping from ibs1 to ibs2
+    # Register the mapping from ibs_gt to ibs2
     register_annot_mapping(aids_chunk1, aids_chunk2, aid1_to_aid2)
     print('Added: aids_chunk2=%s' % (ut.truncate_str(repr(aids_chunk2), maxlen=60),))
     return aids_chunk2
@@ -299,13 +312,13 @@ def autodecide_newname(ibs2, qaid):
     if ibs2.is_aid_unknown(qaid):
         #if metatup is not None:
         #    #ut.embed()
-        #    (ibs1, ibs2, aid1_to_aid2) = metatup
+        #    (ibs_gt, ibs2, aid1_to_aid2) = metatup
         #    aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
         #    qaid1 = aid2_to_aid1[qaid]
         #    # Wow, the program just happend to choose a new
         #    # name that was the same as the other database
         #    # I wonder how it did that...
-        #    newname = ibs1.get_annot_names(qaid1)
+        #    newname = ibs_gt.get_annot_names(qaid1)
         #else:
         #    # actual new name
         newname = ibs2.make_next_name()
@@ -546,12 +559,17 @@ def interactive_decision(ibs2, qres, qreq_, autoname_msg, autoname_func):
     mplshowtop = True and qres is not None
     qtinspect = False and qres is not None
     if mplshowtop:
-        fnum = 1
+        fnum = 513
+        print('Showing matplotlib window')
         fig = qres.ishow_top(ibs2, name_scoring=True, fnum=fnum, in_image=False,
                              annot_mode=0, sidebyside=True)
         fig.show()
+        fig.canvas.raise_()
     if qtinspect:
+        print('Showing qt inspect window')
         qres_wgt = qres.qt_inspect_gui(ibs2, name_scoring=True)
+        qres_wgt.show()
+        qres_wgt.raise_()
     if qreq_ is not None:
         if qreq_.normalizer is None:
             print('normalizer is None!!')

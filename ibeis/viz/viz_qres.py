@@ -176,7 +176,7 @@ def show_qres(ibs, qres, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG_SHOW_QRES = True
+    DEBUG_SHOW_QRES = False
 
     if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(qres.qaid)

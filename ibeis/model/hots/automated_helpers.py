@@ -9,17 +9,17 @@ from ibeis import ibsfuncs  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inchelp]')
 
 
-def assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2):
+def assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     just tests uuids
 
     if anything goes wrong this should fix it:
-        ibs1.update_annot_visual_uuids(aid_list1)
+        ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
-        ibsfuncs.fix_remove_visual_dupliate_annotations(ibs1)
+        ibsfuncs.fix_remove_visual_dupliate_annotations(ibs_gt)
     """
     assert len(aid_list2) == len(aid_list1)
-    visualtup1 = ibs1.get_annot_visual_uuid_info(aid_list1)
+    visualtup1 = ibs_gt.get_annot_visual_uuid_info(aid_list1)
     visualtup2 = ibs2.get_annot_visual_uuid_info(aid_list2)
 
     _visual_uuid_list1 = [ut.augment_uuid(*tup) for tup in zip(*visualtup1)]
@@ -29,10 +29,10 @@ def assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2):
     ut.assert_lists_eq(visualtup1[0], visualtup2[0])
     ut.assert_lists_eq(visualtup1[1], visualtup2[1])
     ut.assert_lists_eq(visualtup1[2], visualtup2[2])
-    #semantic_uuid_list1 = ibs1.get_annot_semantic_uuids(aid_list1)
+    #semantic_uuid_list1 = ibs_gt.get_annot_semantic_uuids(aid_list1)
     #semantic_uuid_list2 = ibs2.get_annot_semantic_uuids(aid_list2)
 
-    visual_uuid_list1 = ibs1.get_annot_visual_uuids(aid_list1)
+    visual_uuid_list1 = ibs_gt.get_annot_visual_uuids(aid_list1)
     visual_uuid_list2 = ibs2.get_annot_visual_uuids(aid_list2)
 
     # make sure visual uuids are still determenistic
@@ -48,7 +48,7 @@ def assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2):
     assert len(ibs2_dup_annots) == 0
 
 
-def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
+def ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     removes previously set names and exemplars
     """
@@ -68,34 +68,34 @@ def ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2):
     ibs2.delete_invalid_nids()
 
 
-def annot_consistency_checks(ibs1, ibs2, aid_list1, aid_list2):
+def annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2):
     try:
-        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
+        assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
     except Exception as ex:
         # update and try again on failure
         ut.printex(ex, ('warning: consistency check failed.'
                         'updating and trying once more'), iswarning=True)
-        ibs1.update_annot_visual_uuids(aid_list1)
+        ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
-        assert_annot_consistency(ibs1, ibs2, aid_list1, aid_list2)
-    ensure_clean_data(ibs1, ibs2, aid_list1, aid_list2)
+        assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
+    ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
 
 def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1):
     """
     Find what the correct decision should be ibs2 is the database we are working
-    with ibs1 has pristine groundtruth
+    with ibs_gt has pristine groundtruth
     """
     print('Oracle is making decision using oracle_method=%r' % oracle_method)
     if metatup is None:
         return None
 
-    def oracle_method1(ibs1, ibs2, qnid1, aid_list2, aid2_to_aid1):
+    def oracle_method1(ibs_gt, ibs2, qnid1, aid_list2, aid2_to_aid1):
         """ METHOD 1: MAKE BEST DECISION FROM GIVEN INFORMATION """
-        # Map annotations to ibs1 annotation rowids
+        # Map annotations to ibs_gt annotation rowids
         aid_list1 = ut.dict_take_list(aid2_to_aid1, aid_list2)
-        nid_list1 = ibs1.get_annot_name_rowids(aid_list1)
-        # Using ibs1 nameids find the correct index in returned results
+        nid_list1 = ibs_gt.get_annot_name_rowids(aid_list1)
+        # Using ibs_gt nameids find the correct index in returned results
         correct_index = ut.listfind(nid_list1, qnid1)
         if correct_index is None:
             # If the correct result was not presented create a new name
@@ -106,24 +106,24 @@ def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1
             name2 = ibs2.get_name_texts(nid2)
         return name2
 
-    def oracle_method2(ibs1, qnid1):
+    def oracle_method2(ibs_gt, qnid1):
         """ METHOD 2: MAKE THE ABSOLUTE CORRECT DECISION REGARDLESS OF RESULT """
-        name2 = ibs1.get_name_texts(qnid1)
+        name2 = ibs_gt.get_name_texts(qnid1)
         return name2
 
     #ut.embed()
     # Get the annotations that the user can see
     aid_list2 = ut.get_list_column(sorted_aids, 0)
-    # Get name rowids of the query from ibs1
-    (ibs1, ibs2, aid1_to_aid2) = metatup
+    # Get name rowids of the query from ibs_gt
+    (ibs_gt, ibs2, aid1_to_aid2) = metatup
     aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
     qannot_rowid1 = aid2_to_aid1[qaid]
-    qnid1 = ibs1.get_annot_name_rowids(qannot_rowid1)
+    qnid1 = ibs_gt.get_annot_name_rowids(qannot_rowid1)
     # Make an oracle decision by choosing a name (like a user would)
     if oracle_method == 1:
-        name2 = oracle_method1(ibs1, ibs2, qnid1, aid_list2, aid2_to_aid1)
+        name2 = oracle_method1(ibs_gt, ibs2, qnid1, aid_list2, aid2_to_aid1)
     elif oracle_method == 2:
-        name2 = oracle_method2(ibs1, qnid1)
+        name2 = oracle_method2(ibs_gt, qnid1)
     else:
         raise AssertionError('unknown oracle method %r' % (oracle_method,))
     print('Oracle decision is name2=%r' % (name2,))

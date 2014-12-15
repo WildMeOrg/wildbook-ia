@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
+import six
 import sys
 from six.moves import zip
 from os.path import exists, join
@@ -16,10 +17,10 @@ from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
-# Utool
-import utool
 from ibeis import constants
 from ibeis.control import IBEISControl
+# Utool
+import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
 
@@ -580,19 +581,25 @@ class MainWindowBackend(QtCore.QObject):
         eid = back._eidfromkw(kwargs)
         print('------')
         print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
-
         if query_mode is None:
             query_mode = back.query_mode
-
+        # Get the query annotation ids to search
+        qaid_list = [aid]
+        # Get the database annotation ids to be searched
         if query_mode == constants.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(aid=%r)' % (aid,))
-            qaid2_qres = back.ibs.query_exemplars([aid])
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
         elif query_mode == constants.INTRA_ENC_KEY:
             print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
-            qaid2_qres = back.ibs.query_encounter([aid], eid)
+            daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (query_mode))
-
+        # Execute Query
+        qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
+        if back.query_mode == constants.INTRA_ENC_KEY:
+            # HACK IN ENCOUNTER INFO
+            for qres in six.itervalues(qaid2_qres):
+                qres.eid = eid
         qres = qaid2_qres[aid]
         back._set_selection(sel_qres=[qres])
         if refresh:
@@ -604,28 +611,56 @@ class MainWindowBackend(QtCore.QObject):
         """ Batch -> Precompute Queries"""
         eid = back._eidfromkw(kwargs)
         print('------')
-        print('[\n\nback] compute_queries: eid=%r, mode=%r' % (eid, back.query_mode))
+        print('\n\n[back] compute_queries: eid=%r, mode=%r' % (eid, back.query_mode))
         if eid is None:
             print('[back] invalid eid')
             return
         back.compute_feats(refresh=False, **kwargs)
-        valid_aids = back.ibs.get_valid_aids(eid=eid)
-
+        # Get the query annotation ids to search
+        qaid_list = back.ibs.get_valid_aids(eid=eid)
+        # Get the database annotation ids to be searched
         if back.query_mode == constants.VS_EXEMPLARS_KEY:
             print('query_exemplars')
-            qaid2_qres = back.ibs.query_exemplars(valid_aids)
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
         elif back.query_mode == constants.INTRA_ENC_KEY:
             print('query_encounter')
-            qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+            daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (back.query_mode))
-
+        # Execute Query
+        qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
+        if back.query_mode == constants.INTRA_ENC_KEY:
+            # HACK IN ENCOUNTER INFO
+            for qres in six.itervalues(qaid2_qres):
+                qres.eid = eid
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+
+    #@blocking_slot()
+    @slot_()
+    def incremental_query(back, refresh=True, **kwargs):
+        eid = back._eidfromkw(kwargs)
+        print('------')
+        print('\n\n[back] incremental_query: eid=%r, mode=%r' % (eid, back.query_mode))
+        if eid is None:
+            print('[back] invalid eid')
+            return
+        if back.query_mode == constants.VS_EXEMPLARS_KEY:
+            print('query_exemplars')
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        elif back.query_mode == constants.INTRA_ENC_KEY:
+            print('query_encounter')
+            daid_list = back.ibs.get_encounter_aids(eid)
+        else:
+            print('Unknown query mode: %r' % (back.query_mode))
+
+        from ibeis.model.hots import automated_matcher
+        qaid_list = back.ibs.get_encounter_aids(eid)
+        automated_matcher.execute_incremental_matcher(back.ibs, qaid_list, daid_list)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):
