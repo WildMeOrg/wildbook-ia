@@ -416,6 +416,11 @@ def post_1_2_1(db, ibs=None):
     db.set(const.ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
     db.set(const.ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
     #ut.embed()
+    # HACK TODO use actual SQL to fix and move to 1.2.0
+    ibs.update_annot_visual_uuids(aid_list)
+    ibs.update_annot_semantic_uuids(aid_list)
+
+
 
 
 # ========================

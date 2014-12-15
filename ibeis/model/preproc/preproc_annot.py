@@ -325,8 +325,10 @@ def schema_1_2_0_postprocess_fixuuids(ibs):
     set_annot_species_rowids(ibs, aid_list, speciesid_list)
 
     # Update visual uuids
-    ibs.update_annot_visual_uuids(aid_list)
-    ibs.update_annot_semantic_uuids(aid_list)
+
+    # Moved this to post_process 1.21
+    #ibs.update_annot_visual_uuids(aid_list)
+    #ibs.update_annot_semantic_uuids(aid_list)
 
     #ibs.print_annotation_table(verbosity=1)
 
