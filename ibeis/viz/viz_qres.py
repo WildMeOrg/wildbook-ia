@@ -97,6 +97,30 @@ def show_qres(ibs, qres, **kwargs):
     """
     Display Query Result Logic
     Defaults to: query chip, groundtruth matches, and top matches
+    python -c "import utool, ibeis; print(utool.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qres (QueryResult):  object of feature correspondences and scores
+    
+    Returns:
+        ?: fig
+    
+    CommandLine:
+        python -m ibeis.viz.viz_qres --test-show_qres
+    
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
+        >>> # execute function
+        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
+        >>> # verify results
+        >>> fig.show()
+
     """
     annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
@@ -276,3 +300,7 @@ def show_qres(ibs, qres, **kwargs):
     df2.adjust_subplots_safe()
     printDBG('[show_qres()] Finished')
     return fig
+
+if __name__ == '__main__':
+    print ("Utool dir: %r" % (dir(utool),))
+    utool.doctest_module()
