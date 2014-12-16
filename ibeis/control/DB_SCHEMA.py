@@ -421,6 +421,12 @@ def post_1_2_1(db, ibs=None):
     ibs.update_annot_semantic_uuids(aid_list)
 
 
+def update_1_3_0(db, ibs=None):
+    pass
+    # Need encounter processed and shipped flag
+    #db.modify_table(const.CONFIG_TABLE, (
+    #    # rename column and change it's type
+    #)
 
 
 # ========================

@@ -127,7 +127,7 @@ def empty_query(ibs, qaids):
         >>> result = str((qaid2_qres, qreq_))
         >>> print(result)
         >>> qres = qaid2_qres[1]
-        >>> qres.ishow_top(ibs, update=True, make_figtitle=True, sidebyside=False)
+        >>> qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
     """
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
@@ -178,10 +178,7 @@ def query_vsone_verified(ibs, qaids, daids):
         qres.show_top(ibs, update=True)
     """
     if len(daids) == 0:
-        qreq_ = ibs.new_query_request(qaids, daids)
-        qres_list = qreq_.make_empty_query_results()
-        qaid2_qres = dict(zip(qaids, qres_list))
-        return qaid2_qres, qreq_
+        return empty_query(ibs, qaids)
     use_cache = True
     #use_cache = False
     print('issuing vsmany part')

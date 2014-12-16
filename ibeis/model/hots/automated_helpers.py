@@ -74,64 +74,14 @@ def annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2):
         ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
         assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
-    ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
 
-def get_oracle_decision(metatup, qaid, sorted_nids, sorted_aids, oracle_method=1):
-    """
-    Find what the correct decision should be ibs2 is the database we are working
-    with ibs_gt has pristine groundtruth
-    """
-    print('Oracle is making decision using oracle_method=%r' % oracle_method)
-    if metatup is None:
-        return None
-
-    def oracle_method1(ibs_gt, ibs2, qnid1, aid_list2, aid2_to_aid1):
-        """ METHOD 1: MAKE BEST DECISION FROM GIVEN INFORMATION """
-        # Map annotations to ibs_gt annotation rowids
-        aid_list1 = ut.dict_take_list(aid2_to_aid1, aid_list2)
-        nid_list1 = ibs_gt.get_annot_name_rowids(aid_list1)
-        # Using ibs_gt nameids find the correct index in returned results
-        correct_index = ut.listfind(nid_list1, qnid1)
-        if correct_index is None:
-            # If the correct result was not presented create a new name
-            name2 = None
-        else:
-            # Otherwise return the correct result
-            nid2 = sorted_nids[correct_index]
-            name2 = ibs2.get_name_texts(nid2)
-        return name2
-
-    def oracle_method2(ibs_gt, qnid1):
-        """ METHOD 2: MAKE THE ABSOLUTE CORRECT DECISION REGARDLESS OF RESULT """
-        name2 = ibs_gt.get_name_texts(qnid1)
-        return name2
-
-    #ut.embed()
-    # Get the annotations that the user can see
-    aid_list2 = ut.get_list_column(sorted_aids, 0)
-    # Get name rowids of the query from ibs_gt
-    (ibs_gt, ibs2, aid1_to_aid2) = metatup
-    aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
-    qannot_rowid1 = aid2_to_aid1[qaid]
-    qnid1 = ibs_gt.get_annot_name_rowids(qannot_rowid1)
-    # Make an oracle decision by choosing a name (like a user would)
-    if oracle_method == 1:
-        name2 = oracle_method1(ibs_gt, ibs2, qnid1, aid_list2, aid2_to_aid1)
-    elif oracle_method == 2:
-        name2 = oracle_method2(ibs_gt, qnid1)
-    else:
-        raise AssertionError('unknown oracle method %r' % (oracle_method,))
-    print('Oracle decision is name2=%r' % (name2,))
-    return name2
-
-
-def interactive_msgbox_prompt(msg, decisiontype):
+def interactive_msgbox_prompt(ibs2, decisiontype):
     import guitool
     msg = 'Accept system {decisiontype} decision'.format(decisiontype=decisiontype)
     title = '{decisiontype} decision'.format(decisiontype=decisiontype)
     options = ['system name: %r', 'name1', 'NONE']
-    result = guitool.user_option(None, msg, title, options)
+    result = guitool.user_option(None, msg, title, options)  # NOQA
 
 
 def interactive_commandline_prompt(msg, decisiontype):
@@ -172,7 +122,7 @@ def interactive_commandline_prompt(msg, decisiontype):
         return True
 
 
-def setup_incremental_test(ibs_gt, num_initial=0):
+def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     r"""
     CommandLine:
         python -m ibeis.model.hots.automated_helpers --test-setup_incremental_test:0
@@ -244,16 +194,17 @@ def setup_incremental_test(ibs_gt, num_initial=0):
 
     ibs2 = make_incremental_test_database(ibs_gt, aid_list1, reset)
 
-    # Add the annotations without names
-
+    # Add the annotations with names
     aids_chunk1 = aid_list1
     aid_list2 = add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2)
 
+    #ut.embed()
     # Assert annotation visual uuids are in agreement
     annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Remove name exemplars
-    ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
+    if clear_names:
+        ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Preprocess features and such
     ibs2.ensure_annotation_data(aid_list2, featweights=True)
@@ -269,6 +220,53 @@ def setup_incremental_test(ibs_gt, num_initial=0):
         aid_list1 = aid_list1[num_initial:]
     print(ibs2.get_dbinfo_str())
     return ibs2, aid_list1, aid1_to_aid2
+
+
+def check_results(ibs_gt, ibs2, aid1_to_aid2):
+    import six
+    #aid_list1 = ibs_gt.get_valid_aids()
+    aid_list1 = ibs_gt.get_aids_with_groundtruth()
+    aid_list2 = ibs2.get_valid_aids()
+
+    nid_list1 = ibs_gt.get_annot_nids(aid_list1)
+    nid_list2 = ibs2.get_annot_nids(aid_list2)
+
+    grouped_aids1 = list(six.itervalues(ut.group_items(aid_list1, nid_list1)))
+    grouped_aids2 = list(map(tuple, six.itervalues(ut.group_items(aid_list2, nid_list2))))
+
+    grouped_aids12 = [tuple(ut.dict_take_list(aid1_to_aid2, aids1)) for aids1 in grouped_aids1]
+
+    set_grouped_aids2 = set(grouped_aids2)
+    set_grouped_aids12 = set(grouped_aids12)
+
+    # What we got right
+    perfect_groups = set_grouped_aids2.intersection(set_grouped_aids12)
+
+    # What we got wrong
+    missed_groups  = set_grouped_aids2.difference(perfect_groups)
+    # What we should have got
+    missed_truth_groups = set_grouped_aids12.difference(perfect_groups)
+
+    truth_group_sets = list(map(set, missed_truth_groups))
+    missed_groups_set  = list(map(set, missed_groups))
+
+    failed_links = []
+    wrong_links = []
+    for missed_set in missed_groups_set:
+        if any([missed_set.issubset(truth_set) for truth_set in truth_group_sets]):
+            failed_links.append(missed_set)
+        else:
+            wrong_links.append(missed_set)
+
+    print('# Name with failed links = %r' % len(failed_links))
+    print('# Name with wrong links = %r' % len(wrong_links))
+    print('# Name correct names = %r' % len(perfect_groups))
+
+
+
+
+
+
 
 
 def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):

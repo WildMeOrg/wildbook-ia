@@ -299,12 +299,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         back = ibswgt.back
         #_SEP = lambda: None
 
-        ibswgt.query_button = _NEWBUT('Run Identification',
-                                      ibswgt.back.compute_queries,
-                                      bgcolor=(150, 150, 255),
-                                      fgcolor=(0, 0, 0))
+        #ibswgt.query_button = _NEWBUT('Run Identification',
+        #                              ibswgt.back.compute_queries,
+        #                              bgcolor=(150, 150, 255),
+        #                              fgcolor=(0, 0, 0))
 
-        ibswgt.inc_query_button = _NEWBUT('INCREMENTAL QUERY',
+        ibswgt.inc_query_button = _NEWBUT('Step 4) Identify',  # QUERY',
                                           ibswgt.back.incremental_query,
                                           bgcolor=(255, 150, 0),
                                           fgcolor=(0, 0, 0))
@@ -316,15 +316,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 
-        ibswgt.reviewed_button = _NEWBUT('Set Encounter as Reviewed',
+        ibswgt.reviewed_button = _NEWBUT('Step 5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
                                          bgcolor=(0, 232, 211))
 
-        ibswgt.import_button = _NEWBUT('Step 1) Import Images\n(via files)',
+        ibswgt.import_button = _NEWBUT('Step 1) Import',  # Import Images\n(via files)',
                                        back.import_images_from_file,
                                        bgcolor=(235, 200, 200),)
 
-        ibswgt.encounter_button = _NEWBUT('Step 2) Group Images into Encounters',
+        ibswgt.encounter_button = _NEWBUT('Step 2) Group',  # Images into Encounters',
                                           ibswgt.back.compute_encounters,
                                           bgcolor=(255, 255, 150))
 
@@ -332,17 +332,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                        ibswgt.back.run_detection_coarse,
                                        bgcolor=(150, 255, 150))
 
-        ibswgt.species_button = _NEWBUT('Update Encounter Species',
-                                        ibswgt.back.encounter_set_species,
-                                        bgcolor=(100, 255, 150))
+        #ibswgt.species_button = _NEWBUT('Update Encounter Species',
+        #                                ibswgt.back.encounter_set_species,
+        #                                bgcolor=(100, 255, 150))
 
         detection_combo_box_options = [
             # Text              # Value
-            ('Step 4) Intra Encounter', constants.INTRA_ENC_KEY),
+            #('Step 4) Intra Encounter', constants.INTRA_ENC_KEY),
             ('Step 5) Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
         ]
-        ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
-                                      ibswgt.back.change_query_mode)
+        #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
+        #                              ibswgt.back.change_query_mode)
 
         ibswgt.button_list = [
             [
@@ -358,11 +358,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 ibswgt.encounter_button,
 
-                ibswgt.species_combo,
 
                 ibswgt.detect_button,
 
-                ibswgt.species_button,
+                ibswgt.inc_query_button,
+
+                #ibswgt.species_button,
+
+                ibswgt.reviewed_button,
 
             ],
             [
@@ -370,13 +373,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #        ibswgt.back.review_detections,
                 #        bgcolor=(170, 250, 170)),
 
-                ibswgt.querydb_combo,
+                #ibswgt.querydb_combo,
 
-                ibswgt.query_button,
+                #ibswgt.query_button,
 
-                ibswgt.inc_query_button,
+                ibswgt.species_combo,
 
-                ibswgt.reviewed_button,
 
                 #_NEWBUT('Identify\n(vs exemplar database)',
                 #        ibswgt.back.compute_queries_vs_exemplar,

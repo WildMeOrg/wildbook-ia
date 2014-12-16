@@ -673,9 +673,8 @@ class MainWindowBackend(QtCore.QObject):
             print('Unknown query mode: %r' % (back.query_mode))
         from ibeis.model.hots import automated_matcher
         qaid_list = back.ibs.get_encounter_aids(eid)
-        gen = automated_matcher.execute_incremental_matcher(back.ibs, qaid_list, daid_list)
-        six.next(gen)
-        pass
+        gen = automated_matcher.generate_incremental_queries(back.ibs, qaid_list, daid_list)
+        list(gen)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):
