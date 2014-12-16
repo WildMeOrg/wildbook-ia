@@ -6,6 +6,7 @@ import copy
 import six
 import utool as ut
 import numpy as np
+from ibeis.model.hots import hots_query_result
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
 
 
@@ -400,7 +401,10 @@ class QueryRequest(object):
 
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
-        assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
+        try:
+            assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
+        except AssertionError as ex:
+            ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(daids, prefix='D')
         return data_hashid
@@ -574,6 +578,16 @@ class QueryRequest(object):
         assert_uuids(daids, dauuids)
         assert_uuids(_qaids, _qauuids)
         assert_uuids(_daids, _dauuids)
+
+    def make_empty_query_results(qreq_):
+        """ returns empty query results for each external qaid """
+        external_qaids   = qreq_.get_external_qaids()
+        external_qauuids = qreq_.get_external_quuids()
+        daids  = qreq_.get_external_daids()
+        cfgstr = qreq_.get_cfgstr()
+        qres_list = [hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+                     for qaid, qauuid in zip(external_qaids, external_qauuids)]
+        return qres_list
 
 
 class QueryParams(object):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
+from os.path import isdir
 import functools  # NOQA
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -438,6 +439,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
+        print('[newgui] update_tables(%r)' % (tblnames,))
         hack_selections = []
         #print('[new_gui.UPDATE_TABLES]')
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
@@ -501,6 +503,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
 
+            DEFAULT_LARGEST_ENCOUNTER = True
+            if DEFAULT_LARGEST_ENCOUNTER:
+                eid_list = ibs.get_valid_eids()
+                numImg_list = ibs.get_encounter_num_gids(eid_list)
+                argx = ut.list_argsort(numImg_list)[-1]
+                eid = eid_list[argx]
+                ibswgt.select_encounter_tab(eid)
+                #ibswgt._change_enc(eid)
+
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
         if parent_ is not None:
@@ -509,7 +520,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
-        print('_change_enc(%r)' % eid)
+        print('[newgui] _change_enc(%r)' % eid)
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
             #ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call
@@ -533,8 +544,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.query_
             #ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
             #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
-        except Exception:
-            pass
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
@@ -650,6 +661,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     aid = id_
                     ibswgt.back.select_aid(aid, eid, show=False)
 
+    def select_encounter_tab(ibswgt, eid):
+        if True:
+            prefix = ut.get_caller_name(range(1, 8))
+        else:
+            prefix = ''
+        print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
+        enctext = ibswgt.ibs.get_encounter_enctext(eid)
+        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
+        #ibswgt.back.select_eid(eid)
+
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
         #printDBG('on_doubleclick')
@@ -657,9 +678,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:
             eid = id_
-            enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
-            ibswgt.back.select_eid(eid)
+            ibswgt.select_encounter_tab(eid)
         else:
             eid = model.eid
             if (model.name == IMAGE_TABLE) or (model.name == IMAGE_GRID):
@@ -730,7 +749,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):
-        from os.path import isdir
+        """ image drag and drop event """
         print('[drop_event] url_list=%r' % (url_list,))
         gpath_list = filter(utool.matches_image, url_list)
         dir_list   = filter(isdir, url_list)

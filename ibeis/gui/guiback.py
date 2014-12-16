@@ -20,17 +20,18 @@ from ibeis.viz import interact
 from ibeis import constants
 from ibeis.control import IBEISControl
 # Utool
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
+#import utool
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[back]', DEBUG=False)
 
 
-VERBOSE = utool.VERBOSE
+VERBOSE = ut.VERBOSE
 
 
 def default_decorator(func):
     return func
-    #return utool.indent_func('[back.' + func.__name__ + ']')(func)
+    #return ut.indent_func('[back.' + func.__name__ + ']')(func)
 
 
 def backblock(func):
@@ -49,7 +50,7 @@ def backblock(func):
         finally:
             back.front.blockSignals(_wasBlocked_)  # unblock regardless
         return result
-    bacblock_wrapper = utool.preserve_sig(bacblock_wrapper, func)
+    bacblock_wrapper = ut.preserve_sig(bacblock_wrapper, func)
     return bacblock_wrapper
 
 
@@ -64,13 +65,13 @@ def blocking_slot(*types_):
         @backblock
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
-            #printDBG('[back*] ' + utool.func_str(func))
-            #printDBG('[back*] ' + utool.func_str(func, args, kwargs))
+            #printDBG('[back*] ' + ut.func_str(func))
+            #printDBG('[back*] ' + ut.func_str(func, args, kwargs))
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
         #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
-        wrapped_bslot = utool.preserve_sig(wrapped_bslot, func)
+        wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot
     return wrap_bslot
 
@@ -84,6 +85,7 @@ class MainWindowBackend(QtCore.QObject):
     """
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
+    incQuerySignal = signal_(int)
 
     #------------------------
     # Constructor
@@ -101,7 +103,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_qres = []
         back.active_enc = 0
         back.query_mode = 'intra_encounter'
-        back.encounter_query_results = utool.ddict(dict)
+        back.encounter_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
@@ -111,6 +113,7 @@ class MainWindowBackend(QtCore.QObject):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
+        back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
     #    back.cleanup()
@@ -119,12 +122,12 @@ class MainWindowBackend(QtCore.QObject):
         if back.ibs is not None:
             back.ibs.remove_observer(back)
 
-    #@utool.indent_func
+    #@ut.indent_func
     def notify(back):
         """ Observer's notify function. """
         back.refresh_state()
 
-    #@utool.indent_func
+    #@ut.indent_func
     def notify_controller_killed(back):
         """ Observer's notify function that the ibeis controller has been killed. """
         back.ibs = None
@@ -193,24 +196,24 @@ class MainWindowBackend(QtCore.QObject):
     # State Management Functions (ewww... state)
     #----------------------
 
-    #@utool.indent_func
+    #@ut.indent_func
     def update_window_title(back):
         pass
 
-    #@utool.indent_func
+    #@ut.indent_func
     def refresh_state(back):
         """ Blanket refresh function. Try not to call this """
         back.front.update_tables()
 
-    #@utool.indent_func
+    #@ut.indent_func
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
         # register self with the ibeis controller
         back.register_self()
-        back.front.connect_ibeis_control(ibs)
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_eids=[None])
+        back.front.connect_ibeis_control(ibs)
 
     @blocking_slot()
     def default_config(back):
@@ -220,7 +223,7 @@ class MainWindowBackend(QtCore.QObject):
         back.edit_prefs_wgt.refresh_layout()
         back.edit_prefs_wgt.pref_model.rootPref.save()
 
-    @utool.indent_func
+    @ut.indent_func
     def get_selected_gid(back):
         """ selected image id """
         if len(back.sel_gids) == 0:
@@ -231,7 +234,7 @@ class MainWindowBackend(QtCore.QObject):
         gid = back.sel_gids[0]
         return gid
 
-    @utool.indent_func
+    @ut.indent_func
     def get_selected_aid(back):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
@@ -239,7 +242,7 @@ class MainWindowBackend(QtCore.QObject):
         aid = back.sel_aids[0]
         return aid
 
-    @utool.indent_func
+    @ut.indent_func
     def get_selected_eid(back):
         """ selected encounter id """
         if len(back.sel_eids) == 0:
@@ -247,7 +250,7 @@ class MainWindowBackend(QtCore.QObject):
         eid = back.sel_eids[0]
         return eid
 
-    @utool.indent_func
+    @ut.indent_func
     def get_selected_qres(back):
         """ selected query result """
         if len(back.sel_qres) > 0:
@@ -277,14 +280,18 @@ class MainWindowBackend(QtCore.QObject):
         if sel_qres is not None:
             back.sel_sel_qres = sel_qres
 
-    @backblock
+    #@backblock
     def select_eid(back, eid=None, **kwargs):
         """ Table Click -> Result Table """
         eid = cast_from_qt(eid)
+        if True:
+            prefix = ut.get_caller_name(range(1, 8))
+        else:
+            prefix = ''
+        print(prefix + '[back] select encounter eid=%r' % (eid))
         back._set_selection(sel_eids=(eid,), **kwargs)
-        print('[back] select encounter eid=%r' % (eid))
 
-    @backblock
+    #@backblock
     def select_gid(back, gid, eid=None, show=True, sel_aids=None, **kwargs):
         """ Table Click -> Image Table """
         # Select the first ANNOTATION in the image if unspecified
@@ -299,12 +306,12 @@ class MainWindowBackend(QtCore.QObject):
         if show:
             back.show_image(gid, sel_aids=sel_aids)
 
-    @backblock
+    #@backblock
     def select_gid_from_aid(back, aid, eid=None, show=True):
         gid = back.ibs.get_annot_gids(aid)
         back.select_gid(gid, eid=eid, show=show, sel_aids=[aid])
 
-    @backblock
+    #@backblock
     def select_aid(back, aid, eid=None, show=True, show_annotation=True, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))
@@ -463,7 +470,7 @@ class MainWindowBackend(QtCore.QObject):
             destination_eid = eid_list[destination_index]
         deprecated_eids = list(eid_list)
         deprecated_eids.pop(destination_index)
-        gid_list = utool.flatten([ ibs.get_valid_gids(eid=eid) for eid in eid_list] )
+        gid_list = ut.flatten([ ibs.get_valid_gids(eid=eid) for eid in eid_list] )
         eid_list = [destination_eid] * len(gid_list)
         ibs.set_image_eids(gid_list, eid_list)
         ibs.delete_encounters(deprecated_eids)
@@ -649,6 +656,13 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
+        print('emiting incquery signal')
+        back.incQuerySignal.emit(eid)
+        print('signal incquery emmited')
+
+    @slot_(int)
+    def incremental_query_slot(back, eid):
+        print('\n\n[back] incremental_query slot: eid=%r, mode=%r' % (eid, back.query_mode))
         if back.query_mode == constants.VS_EXEMPLARS_KEY:
             print('query_exemplars')
             daid_list = back.ibs.get_valid_aids(is_exemplar=True)
@@ -657,10 +671,11 @@ class MainWindowBackend(QtCore.QObject):
             daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (back.query_mode))
-
         from ibeis.model.hots import automated_matcher
         qaid_list = back.ibs.get_encounter_aids(eid)
-        automated_matcher.execute_incremental_matcher(back.ibs, qaid_list, daid_list)
+        gen = automated_matcher.execute_incremental_matcher(back.ibs, qaid_list, daid_list)
+        six.next(gen)
+        pass
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):
@@ -762,13 +777,13 @@ class MainWindowBackend(QtCore.QObject):
     def view_database_dir(back):
         """ Help -> View Directory Slots"""
         print('[back] view_database_dir')
-        utool.view_directory(back.ibs.get_dbdir())
+        ut.view_directory(back.ibs.get_dbdir())
         pass
 
     @slot_()
     def view_app_files_dir(back):
         print('[back] view_model_dir')
-        utool.view_directory(utool.get_app_resource_dir('ibeis'))
+        ut.view_directory(ut.get_app_resource_dir('ibeis'))
         pass
 
     @slot_()
@@ -794,7 +809,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_global_prefs')
         if not back.are_you_sure():
             return
-        utool.delete(utool.get_app_resource_dir('ibeis', 'global_cache'))
+        ut.delete(ut.get_app_resource_dir('ibeis', 'global_cache'))
         pass
 
     @slot_()
@@ -802,7 +817,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_queryresults_dir')
         if not back.are_you_sure():
             return
-        utool.delete(back.ibs.qresdir)
+        ut.delete(back.ibs.qresdir)
         pass
 
     @blocking_slot()
@@ -833,7 +848,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Help -> Developer Mode"""
         print('[back] dev_dumpdb')
         back.ibs.db.dump()
-        utool.view_directory(back.ibs._ibsdb)
+        ut.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
 
     def dev_export_annotations(back):
@@ -872,7 +887,7 @@ class MainWindowBackend(QtCore.QObject):
                 raise ValueError('Directory %r does not exist.' % putdir)
             if exists(new_dbdir):
                 raise ValueError('New DB %r already exists.' % new_dbdir)
-        utool.ensuredir(new_dbdir)
+        ut.ensuredir(new_dbdir)
         print('[back] new_database(new_dbdir=%r)' % new_dbdir)
         back.open_database(dbdir=new_dbdir)
 
@@ -885,12 +900,12 @@ class MainWindowBackend(QtCore.QObject):
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
-        with utool.Indenter(lbl='    [opendb]'):
+        with ut.Indenter(lbl='    [opendb]'):
             try:
                 ibs = IBEISControl.IBEISController(dbdir=dbdir)
                 back.connect_ibeis_control(ibs)
             except Exception as ex:
-                utool.printex(ex, 'caught Exception while opening database')
+                ut.printex(ex, 'caught Exception while opening database')
                 raise
             else:
                 sysres.set_default_dbdir(dbdir)
@@ -950,7 +965,7 @@ class MainWindowBackend(QtCore.QObject):
         #printDBG('[back] dir=%r' % dir_)
         if dir_ is None:
             return
-        gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)
+        gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
