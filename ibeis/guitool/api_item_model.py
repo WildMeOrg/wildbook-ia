@@ -240,7 +240,7 @@ class APIItemModel(API_MODEL_BASE):
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            children = model.root_node.get_children()
+            children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
             id_list = [child.get_id() for child in children]
             #print('ids_ generated')
             nodes = []

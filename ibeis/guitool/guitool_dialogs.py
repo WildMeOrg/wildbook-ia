@@ -26,7 +26,37 @@ def _guitool_cache_read(key, **kwargs):
 
 def user_option(parent=None, msg='msg', title='user_option',
                 options=['No', 'Yes'], use_cache=False):
-    """ Prompts user with several options with ability to save decision """
+    """
+    Prompts user with several options with ability to save decision
+
+    Args:
+        parent (None):
+        msg (str):
+        title (str):
+        options (list):
+        use_cache (bool):
+
+    Returns:
+        str: reply
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-user_option
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> # build test data
+        >>> parent = None
+        >>> msg = 'msg'
+        >>> title = 'user_option'
+        >>> options = ['No', 'Yes']
+        >>> use_cache = False
+        >>> # execute function
+        >>> reply = user_option(parent, msg, title, options, use_cache)
+        >>> # verify results
+        >>> result = str(reply)
+        >>> print(result)
+    """
     if utool.VERBOSE:
         print('[*guitools] user_option:\n %r: %s' % (title, msg))
     # Recall decision
@@ -65,6 +95,31 @@ def user_option(parent=None, msg='msg', title='user_option',
 
 
 def user_input(parent=None, msg='msg', title='user_input'):
+    r"""
+    Args:
+        parent (None):
+        msg (str):
+        title (str):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-user_input
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> # build test data
+        >>> parent = None
+        >>> msg = 'msg'
+        >>> title = 'user_input'
+        >>> # execute function
+        >>> dpath = user_input(parent, msg, title)
+        >>> # verify results
+        >>> result = str(dpath)
+        >>> print(result)
+    """
     reply, ok = QtGui.QInputDialog.getText(parent, title, msg)
     if not ok:
         return None

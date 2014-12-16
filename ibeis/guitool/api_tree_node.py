@@ -117,7 +117,8 @@ class TreeNode(TREE_NODE_BASE):
         # If the child is a generator, then the TreeNode hasn't been created yet
         # so create it
         if isinstance(self.child_nodes, GeneratorType):
-            printDBG('[tree_node] lazy evaluation level=%r' % self.level)
+            #printDBG('[tree_node] lazy evaluation level=%r' % self.level)
+            #print('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
 
 
