@@ -122,12 +122,36 @@ class TreeNode(TREE_NODE_BASE):
             self.child_nodes = list(self.child_nodes)
 
 
-def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
+def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
+    """ makes a recrusive string representation of a treee
+
+    HACK:if charids is 2  uses ordinals instead of characters
+    if charirsd is True triesto use Numbers
+    otherwise uses nondetermensitic python ids
+    """
+    if last is None:
+        if charids == 2:
+            last = [0]
+        else:
+            last = ['A']
+    if id_dict is None:
+        id_dict = {}
     id_ = self.get_id()
     level = self.get_level()
     id_self = id(self)
     id_parent = id(self.get_parent())
-    if charids:
+    if charids == 2:
+        if id_parent not in id_dict:
+            id_dict[id_parent] = last[0]
+            last[0] = last[0] + 1
+        if id_self not in id_dict:
+            id_dict[id_self] = last[0]
+            last[0] = last[0] + 1
+        id_self = id_dict[id_self]
+        id_parent = id_dict[id_parent]
+    if charids is True:
+        if ord(last[0]) < 255:
+            last[0] = [0]
         if id_parent not in id_dict:
             id_dict[id_parent] = last[0]
             last[0] = chr(ord(last[0]) + 1)
@@ -138,7 +162,8 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
         id_parent = id_dict[id_parent]
     tup = (id_, level, str(id_self), str(id_parent))
     self_str = (indent + "TreeNode(id_=%r, level=%r, self=%s, parent_node=%s)" % tup)
-    child_strs = [tree_node_string(child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last) for child in self.get_children()]
+    child_strs = [tree_node_string(child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last)
+                  for child in self.get_children()]
     str_ = '\n'.join([self_str] + child_strs)
     return str_
 
@@ -149,22 +174,49 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
     #@cython.boundscheck(False)
     #@cython.wraparound(False)
 
-    @returns(TreeNode)
-    <CYTH returns="TreeNode">
-    cdef:
-        TreeNode parent_node
-        size_t level
-        size_t ix
-        size_t sx
-        long id_
-        list root_ids
-        list parent_node_list
-        list ids_list
-        list id_list
-        list next_ids
-        list node_list
-        list new_node_lists
-        list new_ids_lists
+    Cyth::
+        @returns(TreeNode)
+        <CYTH returns="TreeNode">
+        cdef:
+            TreeNode parent_node
+            size_t level
+            size_t ix
+            size_t sx
+            long id_
+            list root_ids
+            list parent_node_list
+            list ids_list
+            list id_list
+            list next_ids
+            list node_list
+            list new_node_lists
+            list new_ids_lists
+
+    Args:
+        root_node (?):
+        num_levels (?):
+        ider_list (list):
+
+    CommandLine:
+        python -m guitool.api_tree_node --test-_populate_tree_iterative
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool import api_tree_node  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> # build test data
+        >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
+        >>> num_levels = len(ider_list)
+        >>> # execute function
+        >>> root_node = TreeNode(-1, None, -1)
+        >>> api_tree_node._populate_tree_iterative(root_node, num_levels, ider_list)
+        >>> # verify results
+        >>> self = root_node
+        >>> infostr = api_tree_node.tree_node_string(root_node, charids=2)
+        >>> # print(ut.truncate_str(infostr, maxlen=2000))
+        >>> result = ut.hashstr(infostr)
+        >>> print(result)
     """
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
@@ -197,7 +249,7 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
     """
     Recursively builds the tree structure
 
-    Cyth:
+    Cyth::
         <CYTH returns="TreeNode">
         cdef:
             size_t ix
@@ -205,6 +257,30 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
             list child_nodes
             TreeNode next_node
             list next_ids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool import api_tree_node  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> # build test data
+        >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
+        >>> num_levels = len(ider_list)
+        >>> root_node = TreeNode(-1, None, -1)
+        >>> if num_levels == 0:
+        >>>     root_id_list = []
+        >>> else:
+        >>>     root_id_list = ider_list[0]()
+        >>> root_node = TreeNode(-1, None, -1)
+        >>> level = 0
+        >>> # execute function
+        >>> api_tree_node._populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+        >>> # verify results
+        >>> self = root_node
+        >>> infostr = api_tree_node.tree_node_string(root_node, charids=2)
+        >>> # print(ut.truncate_str(infostr, maxlen=2000))
+        >>> result = ut.hashstr(infostr)
+        >>> print(result)
     """
     if level == num_levels - 1:
         child_nodes = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -224,7 +300,8 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
 def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
-    Cyth:
+
+    Cyth::
         <CYTH returns="TreeNode">
         cdef:
             size_t ix
@@ -232,6 +309,31 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
             list child_nodes
             TreeNode next_node
             list next_ids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool import api_tree_node  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
+        >>> # build test data
+        >>> ider_list = [ibs.get_valid_nids, ibs.get_name_aids]
+        >>> num_levels = len(ider_list)
+        >>> root_node = TreeNode(-1, None, -1)
+        >>> if num_levels == 0:
+        >>>     root_id_list = []
+        >>> else:
+        >>>     root_id_list = ider_list[0]()
+        >>> root_node = TreeNode(-1, None, -1)
+        >>> level = 0
+        >>> # execute function
+        >>> api_tree_node._populate_tree_recursive_lazy(root_node, root_id_list, num_levels, ider_list, level)
+        >>> # verify results
+        >>> self = root_node
+        >>> infostr = api_tree_node.tree_node_string(root_node, charids=2)
+        >>> # print(ut.truncate_str(infostr, maxlen=2000))
+        >>> result = ut.hashstr(infostr)
+        >>> print(result)
+
     """
     if level == num_levels - 1:
         child_nodes_iter = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -284,3 +386,18 @@ def build_scope_hack_list(root_node, scope_hack_list=[]):
 
 
 CYTHONIZED = False
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m guitool.api_tree_node
+        python -m guitool.api_tree_node --allexamples
+        python -m guitool.api_tree_node --allexamples --noface --nosrc
+        python -m guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
+        python -m guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
