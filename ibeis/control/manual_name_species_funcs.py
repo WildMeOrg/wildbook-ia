@@ -325,6 +325,33 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         valid_nids2 = ibs.db.get_all_col_rows('annotations', 'name_rowid')
         assert valid_nids1 == valid_nids2
 
+
+    opstr = '''
+        SELECT annot_rowid
+        FROM annotations
+        WHERE name_rowid=?
+        '''
+
+    ibs.db.fname
+    ibs.db.fpath
+
+    import sqlite3
+
+    con = sqlite3.connect(ibs.db.fpath)
+
+
+
+    cur = ibs.db.connection.cursor()
+
+    cur = con.execute('BEGIN IMMEDIATE TRANSACTION')
+    cur = ibs.db.connection
+    res = [cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]
+    cur.execute('COMMIT TRANSACTION')
+
+    res = [ibs.db.cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]
+
+
+
     """
     # FIXME: THIS FUNCTION IS VERY SLOW
     # ADD A LOCAL CACHE TO FIX THIS SPEED
@@ -336,7 +363,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     #USE_NUMPY_IMPL = len(nid_list_) > 10
-    USE_NUMPY_IMPL = True
+    USE_NUMPY_IMPL = False
     #USE_NUMPY_IMPL = False
     if USE_NUMPY_IMPL:
         # This seems to be 30x faster for bigger inputs
