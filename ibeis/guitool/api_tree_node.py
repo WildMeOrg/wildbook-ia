@@ -256,7 +256,8 @@ def build_internal_structure(model):
     #from guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
     num_levels = len(ider_list)
-    USE_RECURSIVE = True
+    #USE_RECURSIVE = True
+    USE_RECURSIVE = False
     if USE_RECURSIVE:
         # I trust this code more although it is slightly slower
         if num_levels == 0:

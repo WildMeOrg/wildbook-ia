@@ -72,7 +72,7 @@ class ChangeLayoutContext(object):
 
 def default_method_decorator(func):
     """ Dummy decorator """
-    return profile(func)
+    #return profile(func)
     #return checks_qt_error(profile(func))
     return func
 
@@ -164,7 +164,7 @@ class APIItemModel(API_MODEL_BASE):
         if headers is not None:
             model._update_headers(**headers)
 
-    @profile
+    #@profile
     @updater
     def _update_headers(model, **headers):
         if VERBOSE:
@@ -202,7 +202,7 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
-    @profile
+    #@profile
     @updater
     def _update_rows(model, rebuild_structure=True):
         """
@@ -240,6 +240,7 @@ class APIItemModel(API_MODEL_BASE):
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+            print('sort_index=%r' % (sort_index,))
             children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
             id_list = [child.get_id() for child in children]
             #print('ids_ generated')
@@ -286,7 +287,7 @@ class APIItemModel(API_MODEL_BASE):
                 print('[APIItemModel] L__________')
         #del old_root
 
-    @profile
+    #@profile
     def lazy_checks(model):
         if model.lazy_updater is not None:
             print('[model] lazy update %r caller %r: ' %

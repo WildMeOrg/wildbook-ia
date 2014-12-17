@@ -105,7 +105,7 @@ def locale_float(float_, precision=4):
     return LOCALE.toString(float(float_), format='g', precision=precision)
 
 
-@profile
+#@profile
 def cast_into_qt(data):
     """
     Casts python data into a representation suitable for QT (usually a string)
@@ -168,7 +168,7 @@ def cast_into_qt(data):
 
 
 @checks_qt_error
-@profile
+#@profile
 def cast_from_qt(var, type_=None):
     """ Casts a QVariant to data """
     if SIMPLE_CASTING:

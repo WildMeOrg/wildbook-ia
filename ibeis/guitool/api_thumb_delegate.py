@@ -107,7 +107,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             valid = (thumb_path is None or img_path is None or bbox_list is None
                      or img_size is None)
             if valid:
-                print('something is wrong')
+                #print('[thumb_delegate] something is wrong')
                 return
         except AssertionError as ex:
             utool.printex(ex, 'error getting thumbnail data')
