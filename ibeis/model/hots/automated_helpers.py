@@ -263,12 +263,6 @@ def check_results(ibs_gt, ibs2, aid1_to_aid2):
     print('# Name correct names = %r' % len(perfect_groups))
 
 
-
-
-
-
-
-
 def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     """
     adds annotations to the tempoarary database and prevents duplicate
