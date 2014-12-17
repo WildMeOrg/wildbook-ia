@@ -214,11 +214,13 @@ def incremental_test(ibs_gt, num_initial=0):
     metatup = (ibs_gt, aid1_to_aid2)
     print('begin interactive iter')
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
+        sys.stdout.write('\n')
+        print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
         interactive = (interact_after is not None and count > interact_after)
         # ensure new annot is added (most likely it will have been preadded)
         aids_chunk2 = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
         qaid_chunk = aids_chunk2
-        execute_teststep(ibs, qaid_chunk, count, threshold, interactive, metatup)
+        execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup)
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
@@ -258,12 +260,14 @@ def generate_incremental_queries(ibs, qaid_list, daid_list):
     metatup = None
     threshold = ut.get_sys_maxfloat()  # 1.99
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
-        yield execute_teststep(ibs, qaid_chunk, count, threshold, interactive, metatup)
+        sys.stdout.write('\n')
+        print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
+        yield execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup)
 
 
 # ---- QUERY ----
 
-def execute_teststep(ibs, qaid_chunk, count, threshold, interactive, metatup=None):
+def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None):
     """ Add an unseen annotation and run a query
 
     Args:
@@ -283,20 +287,26 @@ def execute_teststep(ibs, qaid_chunk, count, threshold, interactive, metatup=Non
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_chunk = '?'
-        >>> count = '?'
+        >>> qaid_chunk = [1]
         >>> threshold = '?'
         >>> interactive = '?'
         >>> metatup = None
         >>> # execute function
-        >>> result = execute_teststep(ibs, qaid_chunk, count, threshold, interactive, metatup)
+        >>> result = execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup)
         >>> # verify results
         >>> print(result)
     """
-    sys.stdout.write('\n')
-    print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-    exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
-    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, exemplar_aids)
+    VSEXEMPLAR = True
+    if VSEXEMPLAR:
+        daid_list = ibs.get_valid_aids(is_exemplar=True)
+    else:
+        # Hacky half-written code to get daids from an encounter that have
+        # been given a temporary name already.
+        eids_list = ibs.get_image_eids(ibs.get_annot_gids(qaid_chunk))
+        eid = eids_list[0][0]
+        daid_list = ibs.get_valid_aids(eid=eid)
+        daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
+    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
     for qaid, qres in six.iteritems(qaid2_qres):
         try_automatic_decision(ibs, qres, qreq_, threshold, interactive, metatup)
 
@@ -421,58 +431,14 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
             ibs.set_annot_exemplar_flags((qaid,), [1])
 
 
-def try_user_decision(ibs, qres, qreq_):
-    """ tries to get input from a user
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        qres (QueryResult):  object of feature correspondences and scores
-        qreq_ (QueryRequest):  query request object with hyper-parameters
-
-    Returns:
-        tuple: (autoname_msg, name, name_confidence)
-
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-try_user_decision
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(),
-        ...            return_request=True)
-        >>> qres = qaid2_qres[1]
-        >>> # execute function
-        >>> (autoname_msg, name, name_confidence) = try_user_decision(ibs, qres, qreq_)
-        >>> # verify results
-        >>> result = str((autoname_msg, name, name_confidence))
-        >>> print(result)
-    """
-    try:
-        qaid = qres.qaid
-        choicetup = get_qres_choices(ibs, qres)
-        name = get_user_name_decision(ibs, qres, qreq_, '', None, 0, choicetup)
-        execute_name_decision(ibs, qaid, name)
-        #update_normalizer(ibs, qreq_, choicetup, name)
-        autoexemplar_msg, exemplar_decision, exemplar_condience = get_system_exemplar_suggestion(ibs, qaid)
-        print(autoexemplar_msg)
-        exemplar_decision = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)
-    except Exception as ex:
-        ut.printex(ex, iswarning=True)
-        return None, None, None
-
-
 # ---- ALGORITHM / USER INPUT -----
 
-def get_system_name_suggestion(ibs, choicetup, threshold):
+def get_system_name_suggestion(ibs, choicetup):
     """ hotspotter returns an name suggestion
     Args:
         ibs      (IBEISController):
         qaid      (int):  query annotation id
         qres      (QueryResult):  object of feature correspondences and scores
-        threshold (float):
         metatup   (None):
 
     Returns:
@@ -493,14 +459,14 @@ def get_system_name_suggestion(ibs, choicetup, threshold):
         ...            return_request=True)
         >>> qres = qaid2_qres[1]
         >>> choicetup = get_qres_choices(ibs, qres)
-        >>> threshold = 0
         >>> # execute function
-        >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup, threshold)
+        >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup)
         >>> # verify results
         >>> result = str((autoname_msg, name, name_confidence))
         >>> print(result)
 
     """
+    threshold = ut.get_sys_maxfloat()
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
 
     autoname_msg_list = []

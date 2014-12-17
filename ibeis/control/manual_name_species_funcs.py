@@ -7,6 +7,7 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis import ibsfuncs
 import numpy as np
+import vtool as vt
 from ibeis.control.accessor_decors import (adder, deleter, setter, getter_1to1,
                                            getter_1toM, ider)
 from ibeis.control import accessor_decors  # NOQA
@@ -255,6 +256,7 @@ def get_invalid_nids(ibs):
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
+@profile
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -288,11 +290,36 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         #ibs = ibeis.opendb('PZ_MTEST')
         ibs = ibeis.opendb('PZ_Master0')
         #ibs = ibeis.opendb('GZ_ALL')
+
         nid_list = ibs.get_valid_nids()
+        nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
 
         with ut.Timer('sql'):
             #aids_list1 = ibs.get_name_aids(nid_list, enable_unknown_fix=False)
             aids_list1 = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+
+        with ut.Timer('hackquery + group'):
+            opstr = '''
+            SELECT annot_rowid, name_rowid
+            FROM annotations
+            WHERE name_rowid IN
+                (%s)
+                ORDER BY name_rowid ASC, annot_rowid ASC
+            ''' % (', '.join(map(str, nid_list)))
+            pair_list = ibs.db.connection.execute(opstr).fetchall()
+            aids = np.array(ut.get_list_column(pair_list, 0))
+            nids = np.array(ut.get_list_column(pair_list, 1))
+            unique_nids, groupx = vt.group_indicies(nids)
+            grouped_aids_ = vt.apply_grouping(aids, groupx)
+            aids_list5 = [sorted(arr.tolist()) for arr in grouped_aids_]
+
+        for aids1, aids5 in zip(aids_list1, aids_list5):
+            if (aids1) != (aids5):
+                print(aids1)
+                print(aids5)
+                print('-----')
+
+        ut.assert_lists_eq(list(map(tuple, aids_list5)), list(map(tuple, aids_list1)))
 
         with ut.Timer('numpy'):
             # alt method
@@ -325,13 +352,6 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         valid_nids2 = ibs.db.get_all_col_rows('annotations', 'name_rowid')
         assert valid_nids1 == valid_nids2
 
-
-    opstr = '''
-        SELECT annot_rowid
-        FROM annotations
-        WHERE name_rowid=?
-        '''
-
     ibs.db.fname
     ibs.db.fpath
 
@@ -339,7 +359,51 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
 
     con = sqlite3.connect(ibs.db.fpath)
 
+    opstr = '''
+    SELECT annot_rowid, name_rowid
+    FROM annotations
+    WHERE name_rowid IN
+        (SELECT name_rowid FROM name)
+        ORDER BY name_rowid ASC, annot_rowid ASC
+    '''
 
+    annot_rowid_list = con.execute(opstr).fetchall()
+    aid_list = ut.get_list_column(annot_rowid_list, 0)
+    nid_list = ut.get_list_column(annot_rowid_list, 1)
+
+
+    # HACKY HACKY HACK
+
+    with ut.Timer('hackquery + group'):
+        #nid_list = ibs.get_valid_nids()[10:15]
+        nid_list = ibs.get_valid_nids()
+        opstr = '''
+        SELECT annot_rowid, name_rowid
+        FROM annotations
+        WHERE name_rowid IN
+            (%s)
+            ORDER BY name_rowid ASC, annot_rowid ASC
+        ''' % (', '.join(map(str, nid_list)))
+        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        aids = np.array(ut.get_list_column(pair_list, 0))
+        nids = np.array(ut.get_list_column(pair_list, 1))
+        unique_nids, groupx = vt.group_indicies(nids)
+        grouped_aids_ = vt.apply_grouping(aids, groupx)
+        grouped_aids = [arr.tolist() for arr in grouped_aids_]
+
+
+
+    import vtool as vt
+    vt
+    vt.aid_list[0]
+
+
+    annot_rowid_list = con.execute(opstr).fetchall()
+    opstr = '''
+        SELECT annot_rowid
+        FROM annotations
+        WHERE name_rowid=?
+        '''
 
     cur = ibs.db.connection.cursor()
 
@@ -349,8 +413,6 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     cur.execute('COMMIT TRANSACTION')
 
     res = [ibs.db.cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]
-
-
 
     """
     # FIXME: THIS FUNCTION IS VERY SLOW
@@ -363,17 +425,36 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     #USE_NUMPY_IMPL = len(nid_list_) > 10
-    USE_NUMPY_IMPL = False
-    #USE_NUMPY_IMPL = False
-    if USE_NUMPY_IMPL:
-        # This seems to be 30x faster for bigger inputs
-        valid_aids = np.array(ibs._get_all_aids())
-        valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
-        #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
+    USE_GROUPING_HACK = True
+    if USE_GROUPING_HACK:
+        input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
+        opstr = '''
+        SELECT annot_rowid, name_rowid
+        FROM annotations
+        WHERE name_rowid IN
+            (%s)
+            ORDER BY name_rowid ASC, annot_rowid ASC
+        ''' % (', '.join(map(str, input_list)))
+        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        aidscol = np.array(ut.get_list_column(pair_list, 0))
+        nidscol = np.array(ut.get_list_column(pair_list, 1))
+        unique_nids, groupx = vt.group_indicies(nidscol)
+        grouped_aids_ = vt.apply_grouping(aidscol, groupx)
+        #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
+        structured_aids_list = [arr.tolist() for arr in grouped_aids_]
+        aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        # SQL IMPL
-        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+        USE_NUMPY_IMPL = False
+        #USE_NUMPY_IMPL = False
+        if USE_NUMPY_IMPL:
+            # This seems to be 30x faster for bigger inputs
+            valid_aids = np.array(ibs._get_all_aids())
+            valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
+            #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+            aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
+        else:
+            # SQL IMPL
+            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
     if enable_unknown_fix:
         # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
         aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import functools
+import vtool as vt
 import uuid
 from ibeis import constants as const
 from ibeis.control.accessor_decors import (ider, adder, getter_1to1, getter_1toM, deleter, setter)
@@ -590,6 +591,7 @@ IMAGE_ROWID = 'image_rowid'
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
+@profile
 def get_image_aids(ibs, gid_list):
     """
     Returns:
@@ -597,24 +599,44 @@ def get_image_aids(ibs, gid_list):
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    USE_NUMPY_IMPL = True  # len(gid_list) > 10
-    #USE_NUMPY_IMPL = False
-    if USE_NUMPY_IMPL:
-        # This seems to be 30x faster for bigger inputs
-        valid_aids = np.array(ibs._get_all_aids())
-        valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
-        #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_gids, gid))).tolist() for gid in gid_list]
+    USE_GROUPING_HACK = False
+    if USE_GROUPING_HACK:
+        input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
+        opstr = '''
+        SELECT annot_rowid, image_rowid
+        FROM annotations
+        WHERE image_rowid IN
+            (%s)
+            ORDER BY image_rowid ASC, annot_rowid ASC
+        ''' % (', '.join(map(str, input_list)))
+        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        aidscol = np.array(ut.get_list_column(pair_list, 0))
+        gidscol = np.array(ut.get_list_column(pair_list, 1))
+        unique_gids, groupx = vt.group_indicies(gidscol)
+        grouped_aids_ = vt.apply_grouping(aidscol, groupx)
+        #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
+        structured_aids_list = [arr.tolist() for arr in grouped_aids_]
+        aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        # SQL IMPL
-        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
-                                   id_colname=IMAGE_ROWID, unpack_scalars=False)
+        USE_NUMPY_IMPL = False  # len(gid_list) > 10
+        #USE_NUMPY_IMPL = False
+        if USE_NUMPY_IMPL:
+            # This seems to be 30x faster for bigger inputs
+            valid_aids = np.array(ibs._get_all_aids())
+            valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
+            #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+            aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_gids, gid))).tolist() for gid in gid_list]
+        else:
+            # SQL IMPL
+            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
+                                       id_colname=IMAGE_ROWID, unpack_scalars=False)
     #print('aids_list = %r' % (aids_list,))
     return aids_list
 
 
 @register_ibs_method
 @getter_1to1
+@profile
 def get_image_num_annotations(ibs, gid_list):
     """
     Returns:
