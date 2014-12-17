@@ -433,14 +433,16 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     USE_GROUPING_HACK = False
     if USE_GROUPING_HACK:
+        # This code doesn't work because it doesn't respect empty names
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
+        input_str = ', '.join(list(map(str, input_list)))
         opstr = '''
         SELECT annot_rowid, name_rowid
-        FROM annotations
+        FROM {ANNOTATION_TABLE}
         WHERE name_rowid IN
-            (%s)
+            ({input_str})
             ORDER BY name_rowid ASC, annot_rowid ASC
-        ''' % (', '.join(map(str, input_list)))
+        '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))

@@ -331,11 +331,13 @@ def get_images(ibs, gid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbtup(ibs, gid_list, thumbsize=128):
+def get_image_thumbtup(ibs, gid_list, thumbsize=None):
     """
     Returns:
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
     """
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     # print('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
@@ -353,10 +355,12 @@ def get_image_thumbtup(ibs, gid_list, thumbsize=128):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbpath(ibs, gid_list, thumbsize=128):
+def get_image_thumbpath(ibs, gid_list, thumbsize=None):
     """
     Returns:
         list_ (list): the thumbnail path of each gid """
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_dpath = ibs.thumb_dpath
     img_uuid_list = ibs.get_image_uuids(gid_list)
     thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX
@@ -638,13 +642,15 @@ def get_image_aids(ibs, gid_list):
     USE_GROUPING_HACK = False
     if USE_GROUPING_HACK:
         input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
+        # This code doesn't work because it doesn't respect empty names
+        input_str = ', '.join(list(map(str, input_list)))
         opstr = '''
         SELECT annot_rowid, image_rowid
-        FROM annotations
+        FROM {ANNOTATION_TABLE}
         WHERE image_rowid IN
-            (%s)
+            ({input_str})
             ORDER BY image_rowid ASC, annot_rowid ASC
-        ''' % (', '.join(map(str, input_list)))
+        '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         gidscol = np.array(ut.get_list_column(pair_list, 1))

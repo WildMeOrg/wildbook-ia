@@ -377,7 +377,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 #ibswgt.query_button,
 
+                guitool.newLabel(None, 'Species Selector:'),
+
                 ibswgt.species_combo,
+
+                guitool.newLabel(None, ''),
+                guitool.newLabel(None, ''),
 
 
                 #_NEWBUT('Identify\n(vs exemplar database)',

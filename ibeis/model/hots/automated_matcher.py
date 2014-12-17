@@ -406,7 +406,7 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
     #    print('WARNING: qres is None')
     # Get system suggested name
     choicetup = get_qres_choices(ibs, qres)
-    autoname_msg, name, name_confidence = get_system_name_suggestion(ibs, choicetup, threshold)
+    autoname_msg, name, name_confidence = get_system_name_suggestion(ibs, choicetup)
     # ---------------------------------------------
     # Get oracle suggestion if we have the metadata
     # override the system suggestion

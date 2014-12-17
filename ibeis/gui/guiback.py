@@ -804,6 +804,16 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    def delete_thumbnails(back):
+        """ Help -> Delete Thumbnails """
+        print('[back] delete_thumbnails')
+        if not back.are_you_sure():
+            return
+        back.ibs.delete_thumbnails()
+        print('[back] finished delete_thumbnails')
+        pass
+
+    @slot_()
     def delete_global_prefs(back):
         print('[back] delete_global_prefs')
         if not back.are_you_sure():

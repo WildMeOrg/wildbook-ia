@@ -50,7 +50,7 @@ TABLE_COLNAMES = {
         #'nAids',
         'img_gname',
         #'ext',
-        'reviewed',
+        #'reviewed',  # detection reviewed flag is not fullyused
         'datetime',
         'gps',
         'gdconf',
@@ -107,11 +107,11 @@ TABLE_COLNAMES = {
         'nAids',
         'thumb',
         'nid',
-        'nExAids',
-        'exemplar',
-        'aid',
+        #'nExAids',
+        #'exemplar',
+        #'aid',
         'annot_gname',
-        'namenotes',
+        #'namenotes',
     ],
 
     IMAGE_GRID     : [
