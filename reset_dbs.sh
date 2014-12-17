@@ -10,9 +10,9 @@ if [ "$SYSNAME" = "MINGW32_NT" ]; then
 else
     if [ "$PYMAJOR" = "3" ]; then
         # virtual env?
-        export PYEXE=python
-    else
         export PYEXE=python2.7
+    else
+        export PYEXE=python
     fi
 fi
 # </CORRECT_PYTHON>
