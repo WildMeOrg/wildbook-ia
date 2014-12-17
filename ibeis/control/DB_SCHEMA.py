@@ -422,11 +422,33 @@ def post_1_2_1(db, ibs=None):
 
 
 def update_1_3_0(db, ibs=None):
+    """
+    * New Image Columns
+        - image_posix_timedelta
+
+    * New Name Columns
+        - name_temp_flag
+        - name_alias_text
+
+        - name_uuid
+        - name_visual_uuid
+        - name_member_annot_rowids_evalstr
+        - name_member_num_annot_rowids
+
+    * New Encounter Columns
+        - encounter_start_time
+        - encounter_end_time
+        - encounter_lat
+        - encounter_lon
+        - encounter_processed_flag
+        - encounter_shipped_flag
+    """
     pass
     # Need encounter processed and shipped flag
     #db.modify_table(const.CONFIG_TABLE, (
     #    # rename column and change it's type
     #)
+
 
 
 # ========================
