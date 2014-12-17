@@ -595,7 +595,43 @@ IMAGE_ROWID = 'image_rowid'
 def get_image_aids(ibs, gid_list):
     """
     Returns:
-        list_ (list): a list of aids for each image by gid """
+        list_ (list): a list of aids for each image by gid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: aids_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_aids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_annot_gids(ibs.get_valid_aids())
+        >>> gid_list = gid_list + gid_list[::5]
+        >>> # execute function
+        >>> aids_list = get_image_aids(ibs, gid_list)
+        >>> # verify results
+        >>> result = str(aids_list)
+        >>> print(result)
+        [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [1], [6], [11]]
+
+
+    Ignore:
+        print('len(gid_list) = %r' % (len(gid_list),))
+        print('len(input_list) = %r' % (len(input_list),))
+        print('len(pair_list) = %r' % (len(pair_list),))
+        print('len(aidscol) = %r' % (len(aidscol),))
+        print('len(gidscol) = %r' % (len(gidscol),))
+        print('len(unique_gids) = %r' % (len(unique_gids),))
+    """
+
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
@@ -616,9 +652,10 @@ def get_image_aids(ibs, gid_list):
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
         #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]
-        aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
+        with ut.EmbedOnException():
+            aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        USE_NUMPY_IMPL = False  # len(gid_list) > 10
+        USE_NUMPY_IMPL = True  # len(gid_list) > 10
         #USE_NUMPY_IMPL = False
         if USE_NUMPY_IMPL:
             # This seems to be 30x faster for bigger inputs

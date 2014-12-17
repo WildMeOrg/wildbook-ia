@@ -425,7 +425,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     #USE_NUMPY_IMPL = len(nid_list_) > 10
-    USE_GROUPING_HACK = True
+    USE_GROUPING_HACK = False
     if USE_GROUPING_HACK:
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
         opstr = '''
@@ -444,7 +444,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]
         aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        USE_NUMPY_IMPL = False
+        USE_NUMPY_IMPL = True
         #USE_NUMPY_IMPL = False
         if USE_NUMPY_IMPL:
             # This seems to be 30x faster for bigger inputs

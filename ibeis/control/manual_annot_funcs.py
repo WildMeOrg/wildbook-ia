@@ -475,8 +475,8 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
     #thumbsize = 256
     thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize)
     #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list)
-    chipsize_list = ibs.get_annot_chipsizes(aid_list)
+    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
+    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])
         for (thumb_path, chip_path, chipsize) in
