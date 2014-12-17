@@ -391,6 +391,12 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         grouped_aids_ = vt.apply_grouping(aids, groupx)
         grouped_aids = [arr.tolist() for arr in grouped_aids_]
 
+    SELECT
+       name_rowid, COUNT(annot_rowid) AS number, GROUP_CONCAT(annot_rowid) AS aid_list
+    FROM annotations
+    WHERE name_rowid in (SELECT name_rowid FROM name)
+     GROUP BY name_rowid
+    ORDER BY name_rowid ASC
 
 
     import vtool as vt
