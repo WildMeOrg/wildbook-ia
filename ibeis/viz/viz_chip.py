@@ -44,8 +44,11 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
     # Get chip
     chip = vh.get_chips(ibs, aid, in_image, **kwargs)
     # Create chip title
-    chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
-    chip_title_text = chip_text + title_suffix
+    chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]  
+    if kwargs.get('enable_chip_title_prefix',True):
+        chip_title_text = chip_text + title_suffix
+    else:
+        chip_title_text = title_suffix
     # Draw chip
     fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
