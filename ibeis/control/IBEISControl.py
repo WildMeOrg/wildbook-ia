@@ -286,10 +286,9 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.2.1'
-
-        # TODO: add this functionality to SQLController
-        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        ibs.db_version_expected = '1.3.0'
+        ## TODO: add this functionality to SQLController
+        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1', 'testdb0']
         ##testing_newschmea = False
         ##ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
         #if testing_newschmea:
@@ -301,7 +300,7 @@ class IBEISController(object):
         #    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
         #    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
         #    # Set testing schema version
-        #    ibs.db_version_expected = '1.2.1'
+        #    ibs.db_version_expected = '1.3.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -675,7 +674,8 @@ class IBEISController(object):
         """ Clusters images into encounters """
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+        #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+        gid_list = ibs.get_ungrouped_gids()
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)

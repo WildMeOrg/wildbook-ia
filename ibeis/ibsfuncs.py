@@ -1251,6 +1251,31 @@ def update_all_image_special_encounter(ibs):
 
 
 @__injectable
+def get_special_eids(ibs):
+    get_enctext_eid = ibs.get_encounter_eids_from_text
+    special_enctext_list = [
+        const.UNGROUPED_IMAGES_ENCTEXT,
+        const.ALL_IMAGE_ENCTEXT,
+        const.UNREVIEWED_IMAGE_ENCTEXT,
+        const.REVIEWED_IMAGE_ENCTEXT,
+        const.EXEMPLAR_ENCTEXT,
+    ]
+    special_eids = [get_enctext_eid(enctext, ensure=False)
+                    for enctext in special_enctext_list]
+    return special_eids
+
+
+@__injectable
+def get_ungrouped_gids(ibs):
+    special_eids = set(get_special_eids(ibs))
+    gid_list = ibs.get_valid_gids()
+    eids_list = ibs.get_image_eids(gid_list)
+    has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
+    ungrouped_gids = ut.filter_items(gid_list, has_eids)
+    return ungrouped_gids
+
+
+@__injectable
 @ut.time_func
 #@profile
 def update_ungrouped_special_encounter(ibs):
@@ -1273,28 +1298,9 @@ def update_ungrouped_special_encounter(ibs):
         >>> print(result)
     """
     # FIXME SLOW
-    def get_special_eids(ibs):
-        get_enctext_eid = ibs.get_encounter_eids_from_text
-        special_enctext_list = [
-            const.UNGROUPED_IMAGES_ENCTEXT,
-            const.ALL_IMAGE_ENCTEXT,
-            const.UNREVIEWED_IMAGE_ENCTEXT,
-            const.REVIEWED_IMAGE_ENCTEXT,
-            const.EXEMPLAR_ENCTEXT,
-        ]
-        special_eids = [get_enctext_eid(enctext, ensure=False)
-                        for enctext in special_enctext_list]
-        return special_eids
-
-    special_eids = set(get_special_eids(ibs))
     ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
     ibs.unrelate_encounter_from_images(ungrouped_eid)
-    #ibs.delete_encounters(eid)
-    gid_list = ibs.get_valid_gids()
-    eids_list = ibs.get_image_eids(gid_list)
-    has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
-    ungrouped_gids = ut.filter_items(gid_list, has_eids)
-    #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
+    ungrouped_gids = ibs.get_ungrouped_gids()
     ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
 
 

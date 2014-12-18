@@ -61,6 +61,7 @@ TBLNAME_LIST = [
     #const.FEATURE_TABLE,
     #const.FEATURE_WEIGHT_TABLE,
     #const.RESIDUAL_TABLE
+    #const.ENCOUNTER_TABLE
 ]
 
 multicolumns_dict = ut.odict([
@@ -105,8 +106,12 @@ class SHORTNAMES(object):
     RVEC       = 'residual'  # 'rvec'
     VOCABTRAIN = 'vocabtrain'
     DETECT     = 'detect'
+    ENCOUNTER  = 'encounter'
+    IMAGE      = 'image'
 
 depends_map = {
+    SHORTNAMES.IMAGE     : None,
+    SHORTNAMES.ENCOUNTER : None,
     SHORTNAMES.ANNOT: None,
     SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
     SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
@@ -123,6 +128,8 @@ tablename2_tbl = {
     const.FEATURE_TABLE        : SHORTNAMES.FEAT,
     const.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
     const.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
+    const.ENCOUNTER_TABLE      : SHORTNAMES.ENCOUNTER,
+    const.IMAGE_TABLE          : SHORTNAMES.IMAGE,
 }
 
 
@@ -445,6 +452,12 @@ def replace_constant_varname(func_code, varname, valstr=None):
 def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
                           flagdefault=True, flagskw={}):
     """ Builds lists of requested functions"""
+    print('BUILD_TEMPLATED_FUNCS')
+    print(' * autogen_modname=%r' % (autogen_modname,))
+    print(' * tblname_list=%r' % (tblname_list,))
+    print(' * autogen_key=%r' % (autogen_key,))
+    print(' * flagdefault=%r' % (flagdefault,))
+    print(' * flagskw=%r' % (flagskw,))
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
     # HACKED IN CONSTANTS
@@ -454,6 +467,7 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
     ]
     # --- AUTOGENERATE FUNCTION TEXT ---
     for tablename in tblname_list:
+        print('building %r table' % (tablename,))
         tableinfo = get_tableinfo(tablename, ibs)
         tup = build_controller_table_funcs(tablename, tableinfo,
                                            autogen_modname,
@@ -812,6 +826,7 @@ def get_autogen_text(
     CommandLine:
         python ibeis/control/template_generator.py
     """
+    print('GET_AUTGEN_TEXT')
     # Filepath info
     modpath_info = get_autogen_modpaths(parent_module, autogen_key)
     autogen_fpath, autogen_rel_fpath, autogen_modname = modpath_info
@@ -845,6 +860,7 @@ def main(ibs, verbose=None):
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
+    print('TEMPLAT_GENERATOR MAIN')
     # Parse command line args
     onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'))
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
@@ -862,6 +878,7 @@ def main(ibs, verbose=None):
             raise AssertionError('unknown autogen_key=%r' % (autogen_key,))
 
     tblname_list = ut.get_argval(('--autogen-tables', '--tbls'), type_=list, default=default_tblname_list)
+    print(tblname_list)
     # Parse dictionary flag list
     template_flags = ut.get_argval(('--Tcfg', '--template-config'), type_=list, default=[])
 
@@ -913,9 +930,17 @@ if __name__ == '__main__':
     CommandLine:
         python ibeis/control/template_generator.py
         python ibeis/control/template_generator.py --dump-autogen-controller
+
+        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
+        chmod +x Tgen.sh
+
+        Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
+        Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+
+        sh Tgen.sh --tbls encounters --Tcfg with_getters:True with_setters=True strip_docstr:False
     """
     if 'ibs' not in vars():
         import ibeis
-        ibs = ibeis.opendb('testdb1')
+        ibs = ibeis.opendb('emptydatabase', allow_newdir=True)
     main(ibs)
     #exec(ut.execstr_dict(locals_))

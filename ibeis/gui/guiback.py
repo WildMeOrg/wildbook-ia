@@ -17,7 +17,7 @@ from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
-from ibeis import constants
+from ibeis import constants as const
 from ibeis.control import IBEISControl
 # Utool
 #import utool
@@ -479,12 +479,19 @@ class MainWindowBackend(QtCore.QObject):
             back.front.enc_tabwgt._close_tab_with_eid(eid)
         back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
 
-    @blocking_slot(int)
+    @blocking_slot(list)
+    def remove_from_encounter(back, gid_list):
+        eid = back.get_selected_eid()
+        back.ibs.delete_image_eids(gid_list, [eid] * len(gid_list))
+        back.ibs.update_special_encounters()
+        back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
+
+    @blocking_slot(list)
     def send_to_new_encounter(back, gid_list, mode='move'):
-        assert len(gid_list) > 1, "Cannot create a new encounter with no images"
+        assert len(gid_list) > 0, "Cannot create a new encounter with no images"
         print('\n\n[back] send_to_new_encounter')
         ibs = back.ibs
-        enctext = 'NEW ENCOUNTER'
+        enctext = const.NEW_ENCOUNTER_ENCTEXT
         enctext_list = [enctext] * len(gid_list)
         ibs.set_image_enctext(gid_list, enctext_list)
         eid = back.get_selected_eid()
@@ -594,17 +601,17 @@ class MainWindowBackend(QtCore.QObject):
         # Get the query annotation ids to search
         qaid_list = [aid]
         # Get the database annotation ids to be searched
-        if query_mode == constants.VS_EXEMPLARS_KEY:
+        if query_mode == const.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(aid=%r)' % (aid,))
             daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif query_mode == constants.INTRA_ENC_KEY:
+        elif query_mode == const.INTRA_ENC_KEY:
             print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
             daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (query_mode))
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == constants.INTRA_ENC_KEY:
+        if back.query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
@@ -627,17 +634,17 @@ class MainWindowBackend(QtCore.QObject):
         # Get the query annotation ids to search
         qaid_list = back.ibs.get_valid_aids(eid=eid)
         # Get the database annotation ids to be searched
-        if back.query_mode == constants.VS_EXEMPLARS_KEY:
+        if back.query_mode == const.VS_EXEMPLARS_KEY:
             print('query_exemplars')
             daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif back.query_mode == constants.INTRA_ENC_KEY:
+        elif back.query_mode == const.INTRA_ENC_KEY:
             print('query_encounter')
             daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (back.query_mode))
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == constants.INTRA_ENC_KEY:
+        if back.query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
@@ -664,10 +671,10 @@ class MainWindowBackend(QtCore.QObject):
     @slot_(int)
     def incremental_query_slot(back, eid):
         print('\n\n[back] incremental_query slot: eid=%r, mode=%r' % (eid, back.query_mode))
-        if back.query_mode == constants.VS_EXEMPLARS_KEY:
+        if back.query_mode == const.VS_EXEMPLARS_KEY:
             print('query_exemplars')
             daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif back.query_mode == constants.INTRA_ENC_KEY:
+        elif back.query_mode == const.INTRA_ENC_KEY:
             print('query_encounter')
             daid_list = back.ibs.get_encounter_aids(eid)
         else:
@@ -720,7 +727,7 @@ class MainWindowBackend(QtCore.QObject):
     def compute_encounters(back, refresh=True):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
-        back.ibs.delete_all_encounters()
+        #back.ibs.delete_all_encounters()
         back.ibs.compute_encounters()
         back.ibs.update_special_encounters()
         print('[back] about to finish computing encounters')

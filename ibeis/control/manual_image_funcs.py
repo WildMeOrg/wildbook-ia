@@ -16,6 +16,16 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_image]')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
+ENCOUNTER_END_TIME_POSIX   = 'encounter_end_time_posix'
+ENCOUNTER_GPS_LAT          = 'encounter_gps_lat'
+ENCOUNTER_GPS_LON          = 'encounter_gps_lon'
+ENCOUNTER_NOTE             = 'encounter_note'
+ENCOUNTER_PROCESSED_FLAG   = 'encounter_processed_flag'
+ENCOUNTER_ROWID            = 'encounter_rowid'
+ENCOUNTER_SHIPPED_FLAG     = 'encounter_shipped_flag'
+ENCOUNTER_START_TIME_POSIX = 'encounter_start_time_posix'
+
+
 @register_ibs_method
 @ider
 def _get_all_gids(ibs):
@@ -757,8 +767,12 @@ def unrelate_image_from_encounter(ibs, gid_list):
 @register_ibs_method
 @deleter
 def delete_image_eids(ibs, gid_list, eid_list):
+    """
+    Seems to unrelate specific image encounter pairs
+
+    FIXME: function name is very bad
+    """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
-    """ Sets the encoutertext of each image """
     if ut.VERBOSE:
         print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))
     egrid_list = ut.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
@@ -963,6 +977,367 @@ def delete_encounters(ibs, eid_list):
     #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
     #ibs.db.delete(const.EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
     ibs.unrelate_encounter_from_images(eid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_end_time_posixs(ibs, encounter_rowid_list):
+    """ encounter_end_time_posix_list <- encounter.encounter_end_time_posix[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_end_time_posix" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_end_time_posix_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_end_time_posix
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posixs(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_END_TIME_POSIX,)
+    encounter_end_time_posix_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_end_time_posix_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_gps_lats(ibs, encounter_rowid_list):
+    """ encounter_gps_lat_list <- encounter.encounter_gps_lat[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_gps_lat" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_gps_lat_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_gps_lat
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_gps_lat_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_GPS_LAT,)
+    encounter_gps_lat_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_gps_lat_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_gps_lons(ibs, encounter_rowid_list):
+    """ encounter_gps_lon_list <- encounter.encounter_gps_lon[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_gps_lon" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_gps_lon_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_gps_lon
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_gps_lon_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_GPS_LON,)
+    encounter_gps_lon_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_gps_lon_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_notes(ibs, encounter_rowid_list):
+    """ encounter_note_list <- encounter.encounter_note[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_note" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_note_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_note
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_note_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_NOTE,)
+    encounter_note_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_note_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_processed_flags(ibs, encounter_rowid_list):
+    """ encounter_processed_flag_list <- encounter.encounter_processed_flag[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_processed_flag" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_processed_flag_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_processed_flag
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_processed_flag_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_PROCESSED_FLAG,)
+    encounter_processed_flag_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_processed_flag_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_shipped_flags(ibs, encounter_rowid_list):
+    """ encounter_shipped_flag_list <- encounter.encounter_shipped_flag[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_shipped_flag" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_shipped_flag_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_shipped_flag
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_shipped_flag_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SHIPPED_FLAG,)
+    encounter_shipped_flag_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_shipped_flag_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
+    """ encounter_start_time_posix_list <- encounter.encounter_start_time_posix[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_start_time_posix" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_start_time_posix_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_start_time_posix
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posixs(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_START_TIME_POSIX,)
+    encounter_start_time_posix_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_start_time_posix_list
+
+
+@register_ibs_method
+def set_encounter_end_time_posixs(ibs, encounter_rowid_list, encounter_end_time_posix_list):
+    """ encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_end_time_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_end_time_posix
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_END_TIME_POSIX,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_end_time_posix_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
+    """ encounter_gps_lat_list -> encounter.encounter_gps_lat[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_gps_lat_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_gps_lat
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_GPS_LAT,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames, encounter_gps_lat_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
+    """ encounter_gps_lon_list -> encounter.encounter_gps_lon[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_gps_lon_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_gps_lon
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_GPS_LON,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames, encounter_gps_lon_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
+    """ encounter_note_list -> encounter.encounter_note[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_note_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_note
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_NOTE,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames, encounter_note_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed_flag_list):
+    """ encounter_processed_flag_list -> encounter.encounter_processed_flag[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_processed_flag_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_processed_flag
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_PROCESSED_FLAG,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_processed_flag_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_flag_list):
+    """ encounter_shipped_flag_list -> encounter.encounter_shipped_flag[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_shipped_flag_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_shipped_flag
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SHIPPED_FLAG,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_shipped_flag_list, id_iter)
+
+
+@register_ibs_method
+def set_encounter_start_time_posixs(ibs, encounter_rowid_list, encounter_start_time_posix_list):
+    """ encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_start_time_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_start_time_posix
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_START_TIME_POSIX,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_start_time_posix_list, id_iter)
 
 
 # GETTERS::EG_RELATION_TABLE

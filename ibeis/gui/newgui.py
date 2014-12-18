@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 from os.path import isdir
+from ibeis import constants as const
 import functools  # NOQA
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -604,24 +605,37 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ]
             if len(id_list) > 1:
                 merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
+                enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
                 options += [
-                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                    ('merge %d encounters into %s' %  (len(id_list), (enctext))
+                     , lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                 ]
             guitool.popup_menu(tblview, pos, options)
         elif model.name == IMAGE_TABLE:
-            if len(id_list) == 1:
-                gid = id_list[0]
-                guitool.popup_menu(tblview, pos, [
-                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
-                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
-                ])
-            else:
-                print(id_list)
-                guitool.popup_menu(tblview, pos, [
+            # CONTEXT OPTIONS FOR IMAGE TABLE ITEMS
+            image_context_options = []
+            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+                image_context_options += [
                     ('move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
                     ('copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                ]
+            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+                image_context_options += [
+                    ('remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
+                ]
+            if len(id_list) > 1:
+                image_context_options += [
                     ('delete images', lambda: ibswgt.back.delete_image(id_list)),
-                ])
+                ]
+            if len(id_list) == 1:
+                gid = id_list[0]
+                image_context_options += [
+                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
+                ]
+            if len(image_context_options) > 0:
+                guitool.popup_menu(tblview, pos, image_context_options)
         elif model.name == ANNOTATION_TABLE:
             if len(id_list) == 1:
                 eid = model.eid
