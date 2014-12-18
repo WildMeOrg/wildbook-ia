@@ -100,8 +100,8 @@ TABLE_COLNAMES = {
         'eid',
         'enctext',
         'nImgs',
-        'encounter_shipped_flag',
         'encounter_processed_flag',
+        'encounter_shipped_flag',
     ],
 
     NAMES_TREE      : [
@@ -209,8 +209,8 @@ COL_DEF = dict([
     ('ext',         (str,      'EXT')),
     ('thumb',       ('PIXMAP', 'Thumb')),
     ('gps',         (str,      'GPS')),
-    ('encounter_shipped_flag',         (bool,      'Shipped')),
     ('encounter_processed_flag',       (bool,      'Processed')),
+    ('encounter_shipped_flag',         (bool,      'Commited')),
 ])
 
 #----

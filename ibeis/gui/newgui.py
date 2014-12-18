@@ -315,8 +315,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ('Select Species',  'none'),
         ] + list(zip(constants.SPECIES_NICE, constants.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
-                                      ibswgt.back.change_detection_species,)
-                                      #default=ibswgt.back.get_selected_species())
+                                      ibswgt.back.change_detection_species)
 
         ibswgt.reviewed_button = _NEWBUT('Step 5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
@@ -520,7 +519,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 eid = eid_list[argx]
                 ibswgt.select_encounter_tab(eid)
                 #ibswgt._change_enc(eid)
-            ibswgt.species_combo.setDefault(ibswgt.back.get_selected_species())
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -541,6 +539,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #else:
             #    enctext = ibswgt.ibs.get_encounter_enctext(eid)
             ibswgt.back.select_eid(eid)
+            ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species)
             #text_list = [
             #    'Identify Mode: Within-Encounter (%s vs. %s)' % (enctext, enctext),
             #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, constants.EXEMPLAR_ENCTEXT)]
@@ -575,6 +574,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     # SLOTS
     #------------
 
+    def get_table_tab_index(ibswgt, tblname):
+        view = ibswgt.views[tblname]
+        index = ibswgt._tab_table_wgt.indexOf(view)
+        return index
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """
@@ -585,8 +589,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             return
         tblname = str(tblname)
         tblnice = gh.TABLE_NICE[tblname]
-        view = ibswgt.views[tblname]
-        index = ibswgt._tab_table_wgt.indexOf(view)
+        index = ibswgt.get_table_tab_index(tblname)
         text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
