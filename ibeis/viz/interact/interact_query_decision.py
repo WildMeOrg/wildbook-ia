@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import ibeis
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
@@ -38,14 +39,14 @@ def test_QueryVerificationInteraction():
     qres = ibs.query_chips(qaids, daids)[0]
     comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:3]
     suggest_aid = comp_aids[1]
-    QVI = QueryVerificationInteraction(ibs, qres, comp_aids, suggest_aid)
-    QVI.fig.show()
+    qvi = QueryVerificationInteraction(ibs, qres, comp_aids, suggest_aid)
+    qvi.fig.show()
     exec(df2.present())
 
 
 class QueryVerificationInteraction(AbstractInteraction):
     def __init__(self, ibs, qres, comp_aids, suggest_aid, update_callback=None,
-                 backend_callback=None, **kwargs):
+                 backend_callback=None, decision_callback=None, **kwargs):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
@@ -58,8 +59,11 @@ class QueryVerificationInteraction(AbstractInteraction):
             update_callback = lambda: None
         if backend_callback is None:
             backend_callback = lambda: None
+        if decision_callback is None:
+            decision_callback = lambda aids: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
+        self.decision_callback = decision_callback
         self.checkbox_states = {}
         self.qres_callback = kwargs.get('qres_callback', None)
         self.infer_data()
@@ -217,7 +221,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                                                      h=3 * utool.PHI_B ** 4,
                                                      xpad=.02, startx=0, stopx=1)
 
-        self.append_button('None of these', callback=partial(self.select, None), rect=hl_slot(0))
+        self.append_button('None of these', callback=partial(self.select_none), rect=hl_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hl_slot(1))
         figtitle_fmt = '''
         Query Decision Interface
@@ -225,7 +229,33 @@ class QueryVerificationInteraction(AbstractInteraction):
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
 
+    def select_none(self, event=None):
+        for aid in self.comp_aids:
+            self.checkbox_states[aid] = False
+        self.confirm()
+
     def confirm(self, event=None):
+        """
+
+        CommandLine:
+            python -m ibeis.viz.interact.interact_query_decision --test-confirm
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.interact.interact_query_decision import *  # NOQA
+            >>> import utool as ut
+            >>> # build test data
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> self = ibs
+            >>> self.ibs = ibs
+            >>> selected_aids = ut.get_list_column(ibs.get_name_aids(ibs.get_valid_nids()), 0)
+            >>> comfirm_res = 'jeff'
+            >>> # execute function
+            >>> result = self.confirm(event)
+            >>> # verify results
+            >>> print(result)
+        """
         print(' Confirming selected animals.')
         selected_aids = [aid for aid in self.comp_aids if self.checkbox_states[aid]]
         if len(selected_aids) > 1:
@@ -234,16 +264,28 @@ class QueryVerificationInteraction(AbstractInteraction):
                 'animal. This will merge ALL aforementioned animals into the'
                 'selected name. Please ensure that this is your intention, and'
                 'select desired name for the merge.')
-            options = [str(self.ibs.get_annot_names(aid)) for aid in selected_aids]
-
+            selected_names = self.ibs.get_annot_names(selected_aids)
+            options = selected_names
             comfirm_res = guitool.user_option(None, msg=msg,
                                               title='Confirmation',
                                               options=options)
-            print(comfirm_res)
+            if comfirm_res is None:
+                self.update_callback()
+                self.backend_callback()
+                self.show_page()
+                return
+            else:
+                merge_name  = comfirm_res
+                is_merge_name = [name == merge_name for name in selected_names]
+                sorted_aids = ut.sortedby(selected_aids, is_merge_name)[::-1]
+        else:
+            sorted_aids = selected_aids
 
         self.update_callback()
         self.backend_callback()
-        self.show_page()
+        self.decision_callback(sorted_aids)
+        #self.show_page()
+        self.close()
 
 
 if __name__ == '__main__':
