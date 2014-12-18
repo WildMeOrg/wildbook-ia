@@ -54,12 +54,13 @@ def ibeis_compute_encounters(ibs, gid_list):
     # Flatten gids list by enounter
     flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
-    enctext_list = ['Encounter ' + str(eid) for eid in flat_eids]
+    # Moved to ibeis.control.IBEISControl.compute_encounters so that it does not overwrite into existing encounters
+    #enctext_list = ['Encounter ' + str(eid) for eid in flat_eids]
     # enctext_list = ['E' + str(eid) + enc_cfgstr for eid in flat_eids]
     #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in zip(enc_labels, enc_datetimes)]
     #enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
     print('Found %d clusters.' % len(labels))
-    return enctext_list, flat_gids
+    return flat_eids, flat_gids
 
 
 def _compute_encounter_unixtime(ibs, enc_gids):
