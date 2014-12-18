@@ -19,6 +19,7 @@ from ibeis import viz
 from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
+from multiprocessing import cpu_count
 # Utool
 #import utool
 import utool as ut
@@ -555,12 +556,14 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
         species = ibs.cfg.detect_cfg.species
-        print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
-        ibs.detect_random_forest(gid_list, species, quick=quick)
-        print('[back] about to finish detection')
-        if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-        print('[back] finished detection')
+        conf_msg = "Are you sure you want to run detection on %s? There are %d images, so it will take at least %0.2f seconds" % (species, len(gid_list), len(gid_list) * 40/cpu_count() ) # 40 seconds per image / num cores
+        if back.are_you_sure(use_msg=conf_msg):
+            print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
+            ibs.detect_random_forest(gid_list, species, quick=quick)
+            print('[back] about to finish detection')
+            if refresh:
+                back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+            print('[back] finished detection')
 
     @blocking_slot()
     def run_detection_coarse(back, refresh=True):
@@ -1030,9 +1033,9 @@ class MainWindowBackend(QtCore.QObject):
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
 
-    def are_you_sure(back):
+    def are_you_sure(back, use_msg=None):
         """ Prompt user for conformation before changing something """
-        ans = back.user_option(msg='Are you sure?', title='Confirmation',
+        ans = back.user_option(msg='Are you sure?' if use_msg is None else use_msg, title='Confirmation',
                                options=['No', 'Yes'], use_cache=False)
         return ans == 'Yes'
 
