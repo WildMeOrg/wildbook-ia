@@ -120,13 +120,13 @@ class QueryVerificationInteraction(AbstractInteraction):
                 else:
                     self.plot_chip(int(c_aid), nRows, nCols, nCols + count + 1)
             else:
-                df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1))
+                df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title="NO RESULT")
 
         #Plot the Query Chip last
         self.plot_chip(int(self.query_aid), nRows, 1, 1, title_suffix="QUERIED CHIP")
 
         self.show_hud()
-        # df2.adjust_subplots_safe(top=0.85, hspace=0.03)
+        df2.adjust_subplots_safe(top=0.88, hspace=0.12)
         self.draw()
         self.show()
         if bring_to_front:
@@ -136,6 +136,11 @@ class QueryVerificationInteraction(AbstractInteraction):
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
+        if aid in self.comp_aids:
+            score = self.qres.get_aid_scores([aid])[0]
+            title_suf = kwargs.get('title_suffix', "") + "%0.2f" % score
+        else:
+            title_suf = kwargs.get('title_suffix', "")
         #nid = ibs.get_annot_name_rowids(aid)
         viz_chip_kw = {
             'fnum': self.fnum,
@@ -143,12 +148,12 @@ class QueryVerificationInteraction(AbstractInteraction):
             'nokpts': True,
             'show_name': True,
             'show_gname': False,
-            'show_aidstr': True,
+            'show_aidstr': False,
             'show_exemplar': False,
             'show_num_gt': False,
             'show_gname': False,
             'enable_chip_title_prefix': False,
-            'title_suffix': kwargs.get('title_suffix', ""),
+            'title_suffix': title_suf,
             # 'text_color': kwargs.get('color'),
         }
 
@@ -211,8 +216,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         else:
             self.progress_string = ""
         figtitle_fmt = '''
-        Query Decision Interface
-        {progress_string}
+        Query Decision Interface {progress_string}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
@@ -252,9 +256,9 @@ class QueryVerificationInteraction(AbstractInteraction):
             print('[interact_query_decision] Confirming merge')
             msg = (
                 'You have selected more than one animal as a match to the query'
-                'animal. This will merge ALL aforementioned animals into the'
-                'selected name. Please ensure that this is your intention, and'
-                'select desired name for the merge.')
+                ' animal. This will merge ALL aforementioned animals into the'
+                ' selected name. Please ensure that this is your intention, and'
+                ' select desired name for the merge.')
             selected_names = self.ibs.get_annot_names(selected_aids)
             options = selected_names
             comfirm_res = guitool.user_option(None, msg=msg,
