@@ -1060,18 +1060,19 @@ class DisplayConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class OtherConfig(ConfigBase):
-    def __init__(othercfg, **kwargs):
-        super(OtherConfig, othercfg).__init__(name='othercfg')
-        #othercfg.thumb_size     = 128
-        othercfg.thumb_size     = 221
-        othercfg.ranks_lt       = 2
-        othercfg.auto_localize  = True
+    def __init__(other_cfg, **kwargs):
+        super(OtherConfig, other_cfg).__init__(name='other_cfg')
+        #other_cfg.thumb_size     = 128
+        other_cfg.thumb_size     = 221
+        other_cfg.ranks_lt       = 2
+        other_cfg.auto_localize  = True
         # maximum number of exemplars per name
-        othercfg.max_exemplars  = 6
-        othercfg.exemplar_distinctivness_thresh  = .95
-        othercfg.detect_add_after = 1
-        othercfg.detect_use_chunks = True
-        othercfg.update(**kwargs)
+        other_cfg.max_exemplars  = 6
+        other_cfg.exemplar_distinctivness_thresh  = .95
+        other_cfg.detect_add_after = 1
+        other_cfg.detect_use_chunks = True
+        other_cfg.use_more_special_encounters = False
+        other_cfg.update(**kwargs)
 
     #def get_cfgstr_list(nn_cfg):
     #    raise NotImplementedError('abstract')
