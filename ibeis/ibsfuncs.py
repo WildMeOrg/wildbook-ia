@@ -1337,10 +1337,10 @@ def update_ungrouped_special_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    WITH_SPECIAL_ENCOUNTERS = ut.get_argflag(('--with-special-encounters', '--special-enc'))
-    if WITH_SPECIAL_ENCOUNTERS:
+    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.use_more_special_encounters
+    if USE_MORE_SPECIAL_ENCOUNTERS:
+        #ibs.update_reviewed_unreviewed_image_special_encounter()
         ibs.update_exemplar_special_encounter()
-        ibs.update_reviewed_unreviewed_image_special_encounter()
         ibs.update_all_image_special_encounter()
     ibs.update_ungrouped_special_encounter()
 
