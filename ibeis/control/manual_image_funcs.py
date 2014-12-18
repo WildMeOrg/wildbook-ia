@@ -1211,6 +1211,7 @@ def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
+@setter
 def set_encounter_end_time_posixs(ibs, encounter_rowid_list, encounter_end_time_posix_list):
     """ encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
 
@@ -1230,6 +1231,7 @@ def set_encounter_end_time_posixs(ibs, encounter_rowid_list, encounter_end_time_
 
 
 @register_ibs_method
+@setter
 def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
     """ encounter_gps_lat_list -> encounter.encounter_gps_lat[encounter_rowid_list]
 
@@ -1248,6 +1250,7 @@ def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
 
 
 @register_ibs_method
+@setter
 def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
     """ encounter_gps_lon_list -> encounter.encounter_gps_lon[encounter_rowid_list]
 
@@ -1266,6 +1269,7 @@ def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
 
 
 @register_ibs_method
+@setter
 def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
     """ encounter_note_list -> encounter.encounter_note[encounter_rowid_list]
 
@@ -1284,6 +1288,7 @@ def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
 
 
 @register_ibs_method
+@setter
 def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed_flag_list):
     """ encounter_processed_flag_list -> encounter.encounter_processed_flag[encounter_rowid_list]
 
@@ -1298,11 +1303,12 @@ def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_PROCESSED_FLAG,)
-    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
-               encounter_processed_flag_list, id_iter)
+    val_iter = ((processed_flag,) for processed_flag in encounter_processed_flag_list)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames, val_iter, id_iter)
 
 
 @register_ibs_method
+@setter
 def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_flag_list):
     """ encounter_shipped_flag_list -> encounter.encounter_shipped_flag[encounter_rowid_list]
 
@@ -1317,11 +1323,13 @@ def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_fla
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_SHIPPED_FLAG,)
+    val_iter = ((shipped_flag,) for shipped_flag in encounter_shipped_flag_list)
     ibs.db.set(const.ENCOUNTER_TABLE, colnames,
-               encounter_shipped_flag_list, id_iter)
+               val_iter, id_iter)
 
 
 @register_ibs_method
+@setter
 def set_encounter_start_time_posixs(ibs, encounter_rowid_list, encounter_start_time_posix_list):
     """ encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
 
