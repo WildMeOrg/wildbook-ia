@@ -1286,7 +1286,7 @@ def get_ungrouped_gids(ibs):
         >>> result = get_ungrouped_gids(ibs)
         >>> print(result)
     """
-    special_eids = set(get_special_eids(ibs))
+    special_eids = set(ibs.get_special_eids())
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
     has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]

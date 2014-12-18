@@ -782,18 +782,37 @@ def unrelate_images_and_encounters(ibs, gid_list, eid_list):
         python -m ibeis.control.manual_image_funcs --test-unrelate_images_and_encounters
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> gid_list = '?'
-        >>> eid_list = '?'
+        >>> # Reset and compute encounters
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
+        >>> eid_list = ibs.get_valid_eids()
+        >>> gids_list = ibs.get_encounter_gids(eid_list)
+        >>> assert len(eid_list) == 2
+        >>> assert len(gids_list) == 2
+        >>> assert len(gids_list[0]) == 7
+        >>> assert len(gids_list[1]) == 6
+        >>> # Add encounter 2 gids to encounter 1 so an image belongs to multiple encounters
+        >>> enc2_gids = gids_list[1][0:1]
+        >>> enc1_eids = eid_list[0:1]
+        >>> ibs.add_image_relationship(enc2_gids, enc1_eids)
+        >>> # Now delete the image from the encounter 2
+        >>> enc2_eids = eid_list[1:2]
         >>> # execute function
-        >>> gids_list = unrelate_images_and_encounters(ibs, gid_list, eid_list)
+        >>> ibs.unrelate_images_and_encounters(enc2_gids, enc2_eids)
         >>> # verify results
-        >>> result = str(gids_list)
+        >>> ibs.print_egpairs_table()
+        >>> eid_list_ = ibs.get_valid_eids()
+        >>> gids_list_ = ibs.get_encounter_gids(eid_list_)
+        >>> result = str(gids_list_)
         >>> print(result)
+        >>> # enc2_gids should now only be in encounter1
+        >>> assert enc2_gids[0] in gids_list_[0]
+        >>> assert enc2_gids[0] not in gids_list_[1]
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:
@@ -992,15 +1011,15 @@ def get_encounter_note(ibs, eid_list):
 @register_ibs_method
 @deleter
 def delete_encounters(ibs, eid_list):
-    """ Removes encounters (images are not effected) """
-    if ut.VERBOSE:
-        print('[ibs] deleting %d encounters' % len(eid_list))
-    ibs.db.delete_rowids(const.ENCOUNTER_TABLE, eid_list)
+    """ Removes encounters and thier relationships (images are not effected) """
     # Optimization hack, less SQL calls
     #egrid_list = ut.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
     #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
     #ibs.db.delete(const.EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
-    ibs.unrelate_encounter_from_images(eid_list)
+    if ut.VERBOSE:
+        print('[ibs] deleting %d encounters' % len(eid_list))
+    ibs.delete_egr_encounter_relations(eid_list)
+    ibs.db.delete_rowids(const.ENCOUNTER_TABLE, eid_list)
 
 
 @register_ibs_method
