@@ -541,6 +541,9 @@ class MainWindowBackend(QtCore.QObject):
         ibs.cfg.detect_cfg.species = value
         ibs.cfg.save()
 
+    def get_selected_species(back):
+        return back.ibs.cfg.detect_cfg.species
+
     @blocking_slot()
     def change_query_mode(back, index, value):
         print('[back] change_query_mode(%r, %r)' % (index, value))
@@ -591,6 +594,33 @@ class MainWindowBackend(QtCore.QObject):
         if refresh:
             back.front.update_tables()
 
+    def get_selected_daids(back, eid=None, query_mode=None):
+        if query_mode == const.VS_EXEMPLARS_KEY:
+            print('[back] query_exemplars')
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        elif query_mode == const.INTRA_ENC_KEY:
+            print('[back] query_encounter (eid=%r)' % eid)
+            daid_list = back.ibs.get_encounter_aids(eid)
+        else:
+            print('Unknown query mode: %r' % (query_mode))
+        species = back.get_selected_species()
+        spec_id = back.ibs.get_species_rowids_from_text(species)
+        spec_id_list = back.ibs.get_annot_species_rowids(daid_list)
+        is_valid_species = [i == spec_id for i in spec_id_list]
+        daid_list_ = ut.filter_items(daid_list,is_valid_species)
+        msg_var = ut.codeblock(
+            '''
+            You are about to enter identification for %d annotations of
+            species %s (out of %d annotations in the encounter). Continue?
+            '''
+            )
+        cont = back.are_you_sure(use_msg=msg_var %
+                (len(daid_list_),species,len(daid_list)))
+        if not cont:
+            raise StopIteration
+        return daid_list_
+
+
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
         """ Action -> Query"""
@@ -603,15 +633,8 @@ class MainWindowBackend(QtCore.QObject):
             query_mode = back.query_mode
         # Get the query annotation ids to search
         qaid_list = [aid]
+        daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
         # Get the database annotation ids to be searched
-        if query_mode == const.VS_EXEMPLARS_KEY:
-            print('[back] query_exemplars(aid=%r)' % (aid,))
-            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif query_mode == const.INTRA_ENC_KEY:
-            print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
-            daid_list = back.ibs.get_encounter_aids(eid)
-        else:
-            print('Unknown query mode: %r' % (query_mode))
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if back.query_mode == const.INTRA_ENC_KEY:
@@ -637,14 +660,7 @@ class MainWindowBackend(QtCore.QObject):
         # Get the query annotation ids to search
         qaid_list = back.ibs.get_valid_aids(eid=eid)
         # Get the database annotation ids to be searched
-        if back.query_mode == const.VS_EXEMPLARS_KEY:
-            print('query_exemplars')
-            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif back.query_mode == const.INTRA_ENC_KEY:
-            print('query_encounter')
-            daid_list = back.ibs.get_encounter_aids(eid)
-        else:
-            print('Unknown query mode: %r' % (back.query_mode))
+        daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if back.query_mode == const.INTRA_ENC_KEY:
@@ -667,19 +683,11 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
-        if back.query_mode == const.VS_EXEMPLARS_KEY:
-            print('query_exemplars')
-            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        elif back.query_mode == const.INTRA_ENC_KEY:
-            raise NotImplementedError("Currently we are not using this mode in the GUI")
-            print('query_encounter')
-            daid_list = back.ibs.get_encounter_aids(eid)
-        else:
-            print('Unknown query mode: %r' % (back.query_mode))
+        daid_list = back.get_selected_daids(eid=eid, query_mode=back.query_mode)
         from ibeis.model.hots import interactive_automated_matcher as iautomatch
         qaid_list = back.ibs.get_encounter_aids(eid)
-        gen = iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)
-        list(gen)
+        #TODO fix names tree thingie
+        iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):
