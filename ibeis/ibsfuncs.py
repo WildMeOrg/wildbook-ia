@@ -1281,11 +1281,17 @@ def get_ungrouped_gids(ibs):
         >>> ibs.compute_encounters()
         >>> ibs.update_special_encounters()
         >>> # Now we want to remove some images from a non-special encounter
+        >>> nonspecial_eid = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()][0]
+        >>> print("Nonspecial EID %d" % nonspecial_eid)
+        >>> images_to_remove = ibs.get_encounter_gids([nonspecial_eid])[0][0:1]
+        >>> print("Removing %r" % images_to_remove)
+        >>> ibs.unrelate_images_and_encounters(images_to_remove,[nonspecial_eid] * len(images_to_remove))
+        >>> ibs.update_special_encounters()
         >>> print(ibs.get_valid_eids())
-        >>> result = get_ungrouped_gids(ibs)
-        >>> print(result)
+        >>> print(ibs.get_ungrouped_gids())
+        >>> print(ibs.get_special_eids())
     """
-    special_eids = set(ibs.get_special_eids())
+    special_eids = set(get_special_eids(ibs))
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
     has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
