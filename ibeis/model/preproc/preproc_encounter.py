@@ -29,7 +29,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     print('Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
     print('enc_cfgstr = %r' % enc_cfgstr)
     if len(gid_list) == 0:
-        print('WARNING: No unixtime data to compute encounters with')
+        print('WARNING: len(gid_list) == 0. No images to compute encounters with')
         return [], []
     elif len(gid_list) == 1:
         print('WARNING: custering 1 image into its own encounter')

@@ -139,8 +139,8 @@ def assert_qres(qres):
         assrtlsteq(nMatch_list, lenmap(fm_list), 'fm failed')
         assrtlsteq(nMatch_list, lenmap(fs_list), 'fs failed')
         assrtlsteq(nMatch_list, lenmap(fk_list), 'fr failed')
-        assrtlsteq(nMatch_list, lenmap(fsv_list), 'fk failed')
-        assrtlsteq(nMatch_list, lenmap(fsv_list), 'fsv failed')
+        if fsv_list is not None:
+            assrtlsteq(nMatch_list, lenmap(fsv_list), 'fk failed')
         if qres.aid2_prob is not None:
             assert len(qres.aid2_prob) == len(qres.aid2_score)
     except AssertionError as ex:
@@ -641,13 +641,13 @@ class QueryResult(__OBJECT_BASE__):
 
     # ----------------------------------------
 
-    def make_smaller_title(qres, remove_daids=True, remove_chip=True,
+    def make_smaller_title(qres, remove_dsuuids=True, remove_chip=True,
                            remove_feat=True):
-        return qres.make_title(remove_daids=remove_daids,
+        return qres.make_title(remove_dsuuids=remove_dsuuids,
                                remove_chip=remove_chip,
                                remove_feat=remove_feat)
 
-    def make_title(qres, pack=False, remove_daids=False, remove_chip=False,
+    def make_title(qres, pack=False, remove_dsuuids=False, remove_chip=False,
                    remove_feat=False, textwidth=80):
         cfgstr = qres.cfgstr
 
@@ -661,8 +661,8 @@ class QueryResult(__OBJECT_BASE__):
             new_string = parse_result['prefix'][1:] + parse_result['suffix'][:-1]
             return new_string, parse_result
 
-        if remove_daids:
-            cfgstr, _ = parse_remove('_DAIDS(({daid_shape}){daid_hash})', cfgstr)
+        if remove_dsuuids:
+            cfgstr, _ = parse_remove('_DSUUIDS(({daid_shape}){daid_hash})', cfgstr)
         if remove_chip:
             cfgstr, _ = parse_remove('_CHIP({chip_cfgstr})', cfgstr)
         if remove_feat:
@@ -684,6 +684,7 @@ class QueryResult(__OBJECT_BASE__):
 
     #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, *args, **kwargs):
+        print('[qres] show_top')
         from ibeis.viz import viz_qres
         fig = viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
         if kwargs.get('update', False):
@@ -691,17 +692,23 @@ class QueryResult(__OBJECT_BASE__):
         return fig
 
     def show_analysis(qres, ibs, *args, **kwargs):
+        print('[qres] show_analysis')
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
 
     def ishow_top(qres, ibs, *args, **kwargs):
+        print('[qres] ishow_top')
         from ibeis.viz.interact import interact_qres
+        # use make_title=True instead
+        #if 'figtitle' not in kwargs:
+        #    kwargs['figtitle'] = qres.make_smaller_title()
         fig = interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
         if kwargs.get('update', False):
             fig.show()
         return fig
 
     def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
+        print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui
         import guitool
         guitool.ensure_qapp()

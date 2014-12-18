@@ -428,11 +428,13 @@ def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
+def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None):
     """
     just constructs the path. does not compute it. that is done by
     api_thumb_delegate
     """
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -443,7 +445,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
+def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None):
     """ get chip thumb info
 
     Args:
@@ -473,10 +475,12 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
     # HACK TO MAKE CHIPS COMPUTE
     #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
     #thumbsize = 256
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize)
     #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list)
-    chipsize_list = ibs.get_annot_chipsizes(aid_list)
+    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
+    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])
         for (thumb_path, chip_path, chipsize) in

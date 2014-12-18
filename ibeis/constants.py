@@ -104,7 +104,10 @@ LBLANNOT_TABLE       = 'lblannot'
 LBLIMAGE_TABLE       = 'lblimage'
 LBLTYPE_TABLE        = 'keys'
 METADATA_TABLE       = 'metadata'
-NAME_TABLE           = 'name'
+# Ugly move from name to names, need better way of versioning old table names
+NAME_TABLE_v121      = 'name'
+NAME_TABLE_v130      = 'names'
+NAME_TABLE           = NAME_TABLE_v130
 SPECIES_TABLE        = 'species'
 RESIDUAL_TABLE       = 'residuals'
 VERSIONS_TABLE       = 'versions'
@@ -121,10 +124,12 @@ NAME_BLUE_RGBA01      = NAME_BLUE_RGBA255 / 255.0
 NAME_RED_RGBA01       = NAME_RED_RGBA255 / 255.0
 NEW_YELLOW_RGBA01     = NEW_YELLOW_RGBA255 / 255.0
 
-EXEMPLAR_ENCTEXT = 'Exemplars'
-ALL_IMAGE_ENCTEXT = 'All Images'
+EXEMPLAR_ENCTEXT         = 'Exemplars'
+ALL_IMAGE_ENCTEXT        = 'All Images'
 UNREVIEWED_IMAGE_ENCTEXT = 'Unreviewed Images'
-REVIEWED_IMAGE_ENCTEXT = 'Reviewed Images'
+REVIEWED_IMAGE_ENCTEXT   = 'Reviewed Images'
+UNGROUPED_IMAGES_ENCTEXT = 'Ungrouped Images'
+NEW_ENCOUNTER_ENCTEXT = 'NEW ENCOUNTER'
 
 #IMAGE_THUMB_SUFFIX = '_thumb.png'
 #CHIP_THUMB_SUFFIX  = '_chip_thumb.png'

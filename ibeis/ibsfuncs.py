@@ -8,7 +8,6 @@ from six.moves import zip, range, map
 from os.path import split, join, exists, commonprefix
 import vtool.image as gtool
 import numpy as np
-
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from vtool import linalg, geometry, image
 import utool as ut
@@ -560,6 +559,11 @@ def check_exif_data(ibs, gid_list):
     print(ut.dict_str(key2_freq))
 
     end_()
+
+
+@__injectable
+def delete_thumbnails(ibs):
+    ut.remove_files_in_dir(ibs.get_thumbdir())
 
 
 @__injectable
@@ -1172,28 +1176,39 @@ def merge_databases(ibs_target, ibs_source_list):
                           ' into ' + ibs_target.get_dbname())
 
 
-@__injectable
-@ut.time_func
+#def delete_non_exemplars(ibs):
+#    """ deletes images without exemplars """
+#    gid_list = ibs.get_valid_gids
+#    aids_list = ibs.get_image_aids(gid_list)
+#    flags_list = unflat_map(ibs.get_annot_exemplar_flags, aids_list)
+#    delete_gid_flag_list = [not any(flags) for flags in flags_list]
+#    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
+#    ibs.delete_images(delete_gid_list)
+#    delete_invalid_eids(ibs)
+#    delete_invalid_nids(ibs)
+
+
+#@__injectable
+#@ut.time_func
 #@profile
-def delete_non_exemplars(ibs):
-    gid_list = ibs.get_valid_gids
-    aids_list = ibs.get_image_aids(gid_list)
-    flags_list = unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    delete_gid_flag_list = [not any(flags) for flags in flags_list]
-    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
-    ibs.delete_images(delete_gid_list)
-    delete_invalid_eids(ibs)
-    delete_invalid_nids(ibs)
+#def update_reviewed_image_encounter(ibs):
+#    # FIXME SLOW
+#    #ibs.delete_encounters(eid)
+#    ibs.delete_egr_encounter_relations(eid)
+#    #gid_list = ibs.get_valid_gids(reviewed=True)
+#    gid_list = _get_reviewed_gids(ibs)  # hack
+#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
 @__injectable
 @ut.time_func
 #@profile
-def update_exemplar_encounter(ibs):
+def update_exemplar_special_encounter(ibs):
     # FIXME SLOW
     exemplar_eid = ibs.get_encounter_eids_from_text(const.EXEMPLAR_ENCTEXT)
     #ibs.delete_encounters(exemplar_eid)
-    ibs.unrelate_encounter_from_images(exemplar_eid)
+    ibs.delete_egr_encounter_relations(exemplar_eid)
     #aid_list = ibs.get_valid_aids(is_exemplar=True)
     #gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
     gid_list = list(set(_get_exemplar_gids(ibs)))
@@ -1204,13 +1219,17 @@ def update_exemplar_encounter(ibs):
 @__injectable
 @ut.time_func
 #@profile
-def update_reviewed_unreviewed_image_encounter(ibs):
+def update_reviewed_unreviewed_image_special_encounter(ibs):
+    """
+    Creates encounter of images that have not been reviewed
+    and that have been reviewed
+    """
     # FIXME SLOW
     unreviewed_eid = ibs.get_encounter_eids_from_text(const.UNREVIEWED_IMAGE_ENCTEXT)
     reviewed_eid = ibs.get_encounter_eids_from_text(const.REVIEWED_IMAGE_ENCTEXT)
     #ibs.delete_encounters(eid)
-    ibs.unrelate_encounter_from_images(unreviewed_eid)
-    ibs.unrelate_encounter_from_images(reviewed_eid)
+    ibs.delete_egr_encounter_relations(unreviewed_eid)
+    ibs.delete_egr_encounter_relations(reviewed_eid)
     #gid_list = ibs.get_valid_gids(reviewed=False)
     #ibs.set_image_enctext(gid_list, [const.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
     unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
@@ -1219,29 +1238,94 @@ def update_reviewed_unreviewed_image_encounter(ibs):
     ibs.set_image_eids(reviewed_gids, [reviewed_eid] * len(reviewed_gids))
 
 
-#@__injectable
-#@ut.time_func
+@__injectable
+@ut.time_func
 #@profile
-#def update_reviewed_image_encounter(ibs):
-#    # FIXME SLOW
-#    #ibs.delete_encounters(eid)
-#    ibs.unrelate_encounter_from_images(eid)
-#    #gid_list = ibs.get_valid_gids(reviewed=True)
-#    gid_list = _get_reviewed_gids(ibs)  # hack
-#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
-#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
+def update_all_image_special_encounter(ibs):
+    # FIXME SLOW
+    allimg_eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
+    #ibs.delete_encounters(allimg_eid)
+    gid_list = ibs.get_valid_gids()
+    #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
+    ibs.set_image_eids(gid_list, [allimg_eid] * len(gid_list))
+
+
+@__injectable
+def get_special_eids(ibs):
+    get_enctext_eid = ibs.get_encounter_eids_from_text
+    special_enctext_list = [
+        const.UNGROUPED_IMAGES_ENCTEXT,
+        const.ALL_IMAGE_ENCTEXT,
+        const.UNREVIEWED_IMAGE_ENCTEXT,
+        const.REVIEWED_IMAGE_ENCTEXT,
+        const.EXEMPLAR_ENCTEXT,
+    ]
+    special_eids_ = [get_enctext_eid(enctext, ensure=False)
+                     for enctext in special_enctext_list]
+    special_eids = [i for i in special_eids_ if i is not None]
+    return special_eids
+
+
+@__injectable
+def get_ungrouped_gids(ibs):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_ungrouped_gids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.compute_encounters()
+        >>> ibs.update_special_encounters()
+        >>> # Now we want to remove some images from a non-special encounter
+        >>> nonspecial_eid = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()][0]
+        >>> print("Nonspecial EID %d" % nonspecial_eid)
+        >>> images_to_remove = ibs.get_encounter_gids([nonspecial_eid])[0][0:1]
+        >>> print("Removing %r" % images_to_remove)
+        >>> ibs.unrelate_images_and_encounters(images_to_remove,[nonspecial_eid] * len(images_to_remove))
+        >>> ibs.update_special_encounters()
+        >>> print(ibs.get_valid_eids())
+        >>> print(ibs.get_ungrouped_gids())
+        >>> print(ibs.get_special_eids())
+    """
+    special_eids = set(get_special_eids(ibs))
+    gid_list = ibs.get_valid_gids()
+    eids_list = ibs.get_image_eids(gid_list)
+    has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
+    ungrouped_gids = ut.filter_items(gid_list, has_eids)
+    return ungrouped_gids
 
 
 @__injectable
 @ut.time_func
 #@profile
-def update_all_image_encounter(ibs):
+def update_ungrouped_special_encounter(ibs):
+    """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-update_ungrouped_special_encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb9')
+        >>> # execute function
+        >>> result = update_ungrouped_special_encounter(ibs)
+        >>> # verify results
+        >>> print(result)
+    """
     # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
-    #ibs.delete_encounters(eid)
-    gid_list = ibs.get_valid_gids()
-    #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
-    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
+    ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+    ibs.delete_egr_encounter_relations(ungrouped_eid)
+    ungrouped_gids = ibs.get_ungrouped_gids()
+    ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
 
 
 @__injectable
@@ -1249,9 +1333,12 @@ def update_all_image_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    ibs.update_exemplar_encounter()
-    ibs.update_reviewed_unreviewed_image_encounter()
-    ibs.update_all_image_encounter()
+    WITH_SPECIAL_ENCOUNTERS = ut.get_argflag(('--with-special-encounters', '--special-enc'))
+    if WITH_SPECIAL_ENCOUNTERS:
+        ibs.update_exemplar_special_encounter()
+        ibs.update_reviewed_unreviewed_image_special_encounter()
+        ibs.update_all_image_special_encounter()
+    ibs.update_ungrouped_special_encounter()
 
 
 def _get_unreviewed_gids(ibs):

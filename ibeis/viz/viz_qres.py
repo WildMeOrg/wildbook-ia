@@ -104,19 +104,28 @@ def show_qres(ibs, qres, **kwargs):
     Display Query Result Logic
 
     Defaults to: query chip, groundtruth matches, and top matches
-<<<<<<< HEAD
     python -c "import utool, ibeis; print(utool.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
+    qres.ishow calls down into this
 
     Args:
         ibs (IBEISController):  ibeis controller object
         qres (QueryResult):  object of feature correspondences and scores
-    
+
+    Kwargs:
+
+        in_image (bool) show result  in image view if True else chip view
+
+        annot_mode (int):
+            if annot_mode == 0, then draw lines and ellipse
+            elif annot_mode == 1, then dont draw lines or ellipse
+            elif annot_mode == 2, then draw only lines
+
     Returns:
         ?: fig
-    
+
     CommandLine:
         python -m ibeis.viz.viz_qres --test-show_qres
-    
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
@@ -129,18 +138,6 @@ def show_qres(ibs, qres, **kwargs):
         >>> # verify results
         >>> fig.show()
 
-=======
-    qres.ishow calls down into this
-
-    Kwargs:
-
-        in_image (bool) show result  in image view if True else chip view
-
-        annot_mode (int):
-            if annot_mode == 0, then draw lines and ellipse
-            elif annot_mode == 1, then dont draw lines or ellipse
-            elif annot_mode == 2, then draw only lines
->>>>>>> 416025526ff287851988040477e64dd33b774a3c
     """
     annot_mode = kwargs.get('annot_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
@@ -203,7 +200,7 @@ def show_qres(ibs, qres, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG_SHOW_QRES = True
+    DEBUG_SHOW_QRES = False
 
     if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(qres.qaid)
@@ -311,12 +308,13 @@ def show_qres(ibs, qres, **kwargs):
         # Plot Query
         if show_query:
             _show_query_fn(0, (nRows, nGTCols))
-        # Plot Ground Truth
+        # Plot Ground Truth (if given)
         _plot_matches_aids(gt_aids, nQuerySubplts, (nRows, nGTCols))
+        # Plot Results
         _plot_matches_aids(top_aids, shift_topN, (nRows, nTopNCols))
         #figtitle += ' q%s name=%s' % (ibsfuncs.aidstr(qres.qaid), ibs.aid2_name(qres.qaid))
         figtitle += aug
-        df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
+    df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
 
     # Result Interaction
     df2.adjust_subplots_safe()

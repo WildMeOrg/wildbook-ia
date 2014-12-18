@@ -1,5 +1,9 @@
 """
 Module Licence and docstring
+
+TODO: ideally the ibeis.constants module would not be used here
+and each function would use its own constant variables that are suffixed
+with the last version number that they existed in
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -13,6 +17,10 @@ except:
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")
 import utool
 profile = utool.profile
+
+
+NAME_TABLE_v121     = const.NAME_TABLE_v121
+NAME_TABLE_v130     = const.NAME_TABLE_v130
 
 
 # =======================
@@ -197,12 +205,233 @@ def post_1_0_0(db, ibs=None):
 
 def post_1_2_0(db, ibs=None):
     print('applying post_1_2_0')
+
+    def schema_1_2_0_postprocess_fixuuids(ibs):
+        """
+        schema_1_2_0_postprocess_fixuuids
+
+        Args:
+            ibs (IBEISController):
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+            >>> import ibeis
+            >>> import sys
+            #>>> sys.argv.append('--force-fresh')
+            #>>> ibs = ibeis.opendb('PZ_MTEST')
+            #>>> ibs = ibeis.opendb('testdb1')
+            >>> ibs = ibeis.opendb('GZ_ALL')
+            >>> # should be auto applied
+            >>> ibs.print_annotation_table(verbosity=1)
+            >>> result = schema_1_2_0_postprocess_fixuuids(ibs)
+            >>> ibs.print_annotation_table(verbosity=1)
+        """
+        import utool as ut
+
+        aid_list = ibs.get_valid_aids()
+        #ibs.get_annot_name_rowids(aid_list)
+        #ANNOT_PARENT_ROWID      = 'annot_parent_rowid'
+        #ANNOT_ROWID             = 'annot_rowid'
+        ANNOTATION_TABLE        = 'annotations'
+        ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
+        ANNOT_VISUAL_UUID       = 'annot_visual_uuid'
+        NAME_ROWID              = 'name_rowid'
+        SPECIES_ROWID           = 'species_rowid'
+        AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
+
+        def set_annot_semantic_uuids(ibs, aid_list, annot_semantic_uuid_list):
+            id_iter = aid_list
+            colnames = (ANNOT_SEMANTIC_UUID,)
+            ibs.db.set(ANNOTATION_TABLE, colnames,
+                       annot_semantic_uuid_list, id_iter)
+
+        def set_annot_visual_uuids(ibs, aid_list, annot_visual_uuid_list):
+            id_iter = aid_list
+            colnames = (ANNOT_VISUAL_UUID,)
+            ibs.db.set(ANNOTATION_TABLE, colnames,
+                       annot_visual_uuid_list, id_iter)
+
+        def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
+            id_iter = aid_list
+            colnames = (SPECIES_ROWID,)
+            ibs.db.set(
+                ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
+
+        def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
+            id_iter = aid_list
+            colnames = (NAME_ROWID,)
+            ibs.db.set(ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
+
+        def get_alr_lblannot_rowids(alrid_list):
+            lblannot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('lblannot_rowid',), alrid_list)
+            return lblannot_rowids_list
+
+        def get_annot_alrids_oftype(aid_list, lbltype_rowid):
+            """
+            Get all the relationship ids belonging to the input annotations where the
+            relationship ids are filtered to be only of a specific lbltype/category/type
+            """
+            alrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), aid_list, id_colname='annot_rowid', unpack_scalars=False)
+            # Get lblannot_rowid of each relationship
+            lblannot_rowids_list = ibs.unflat_map(get_alr_lblannot_rowids, alrids_list)
+            # Get the type of each lblannot
+            lbltype_rowids_list = ibs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
+            # only want the nids of individuals, not species, for example
+            valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
+            alrids_list = [ut.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
+            alrids_list = [
+                alrid_list[0:1]
+                if len(alrid_list) > 1 else
+                alrid_list
+                for alrid_list in alrids_list
+            ]
+            assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
+                ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
+                 ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
+            return alrids_list
+
+        def get_annot_speciesid_from_lblannot_relation(aid_list, distinguish_unknowns=True):
+            """ function for getting speciesid the old way """
+            species_lbltype_rowid = ibs.db.get('keys', ('lbltype_rowid',), ('SPECIES_KEY',), id_colname='lbltype_text')[0]
+            alrids_list = get_annot_alrids_oftype(aid_list, species_lbltype_rowid)
+            lblannot_rowids_list = ibs.unflat_map(get_alr_lblannot_rowids, alrids_list)
+            speciesid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+                              lblannot_rowids in lblannot_rowids_list]
+            return speciesid_list
+
+        def get_annot_name_rowids_from_lblannot_relation(aid_list):
+            """ function for getting nids the old way """
+            individual_lbltype_rowid = ibs.db.get('keys', ('lbltype_rowid',), ('INDIVIDUAL_KEY',), id_colname='lbltype_text')[0]
+            alrids_list = get_annot_alrids_oftype(aid_list, individual_lbltype_rowid)
+            lblannot_rowids_list = ibs.unflat_map(get_alr_lblannot_rowids, alrids_list)
+            # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
+            # TODO: get index of highest confidencename
+            nid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+                         lblannot_rowids in lblannot_rowids_list]
+            return nid_list
+
+        nid_list1 = ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False)
+        speciesid_list1 = ibs.get_annot_species_rowids(aid_list)
+
+        # Get old values from lblannot table
+        nid_list = get_annot_name_rowids_from_lblannot_relation(aid_list)
+        speciesid_list = get_annot_speciesid_from_lblannot_relation(aid_list)
+
+        assert len(nid_list1) == len(nid_list), 'cannot update to 1_2_0 name length error'
+        assert len(speciesid_list1) == len(speciesid_list), 'cannot update to 1_2_0 species length error'
+
+        if (ut.list_all_eq_to(nid_list, 0) and ut.list_all_eq_to(speciesid_list, 0)):
+            print('... returning No information in lblannot table to transfer')
+            return
+
+        # Make sure information has not gotten out of sync
+        try:
+            assert all([(nid1 == nid or nid1 == 0) for nid1, nid in zip(nid_list1, nid_list)])
+            assert all([(sid1 == sid or sid1 == 0) for sid1, sid in zip(speciesid_list1, speciesid_list)])
+        except AssertionError as ex:
+            ut.printex(ex, 'Cannot update database to 1_2_0 information out of sync')
+            raise
+
+        # Move values into the annotation table as a native column
+        set_annot_name_rowids(ibs, aid_list, nid_list)
+        set_annot_species_rowids(ibs, aid_list, speciesid_list)
+        # Update visual uuids
+        # Moved this to post_process 1.21
+        #ibs.update_annot_visual_uuids(aid_list)
+        #ibs.update_annot_semantic_uuids(aid_list)
+
+    #ibs.print_annotation_table(verbosity=1)
     if ibs is not None:
         ibs._init_rowid_constants()
-        from ibeis.model.preproc import preproc_annot
-        preproc_annot.schema_1_2_0_postprocess_fixuuids(ibs)
+        schema_1_2_0_postprocess_fixuuids(ibs)
     else:
-        print('warning: ibs is None, so cannot apply name / species column fixes to existing database')
+        print('warning: ibs is None, so cannot apply name/species column fixes to existing database')
+
+
+def post_1_2_1(db, ibs=None):
+    if ibs is not None:
+        print('applying post_1_2_1')
+        import utool as ut
+        from ibeis.model.preproc import preproc_annot
+        if ibs is not None:
+            ibs._init_rowid_constants()
+            #db = ibs.db
+        UNKNOWN_ROWID = 0
+        UNKNOWN             = '____'
+        UNKNOWN_NAME_ROWID  = 0
+        ANNOTATION_TABLE    = 'annotations'
+        SPECIES_TABLE       = 'species'
+        LBLANNOT_TABLE      = 'lblannot'
+        SPECIES_ROWID       = 'species_rowid'
+        NAME_ROWID          = 'name_rowid'
+        NAME_TEXT           = 'name_text'
+        ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
+        ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
+        lblannot_colnames   = ('lblannot_uuid', 'lblannot_value', 'lblannot_note',)
+        name_colnames       = ('name_uuid', 'name_text', 'name_note',)
+        species_colspeciess = ('species_uuid', 'species_text', 'species_note',)
+        # Get old name and species rowids from annotaiton tables
+        aid_list = db.get_all_rowids(ANNOTATION_TABLE)
+        name_rowids1    = db.get(ANNOTATION_TABLE, (NAME_ROWID,), aid_list)
+        species_rowids1 = db.get(ANNOTATION_TABLE, (SPECIES_ROWID,), aid_list)
+        # Look at the unique non-unknown ones
+        unique_name_rowids1    = sorted(list(   set(name_rowids1) - set([UNKNOWN_ROWID])))
+        unique_species_rowids1 = sorted(list(set(species_rowids1) - set([UNKNOWN_ROWID])))
+        # Get params out of label annotation tables
+        name_params_list    = db.get(LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1)
+        species_params_list = db.get(LBLANNOT_TABLE, lblannot_colnames, unique_species_rowids1)
+        # Move params into name and species tables
+        unique_name_rowids2    = db._add(NAME_TABLE_v121,    name_colnames,       name_params_list)
+        unique_species_rowids2 = db._add(SPECIES_TABLE, species_colspeciess, species_params_list)
+        # Build mapping from old table to new table
+        name_rowid_mapping = dict(zip(unique_name_rowids1, unique_name_rowids2))
+        speices_rowid_mapping = dict(zip(unique_species_rowids1, unique_species_rowids2))
+        name_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
+        speices_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
+        # Apply mapping
+        name_rowids2   = ut.dict_take_list(name_rowid_mapping, name_rowids1)
+        species_rowid2 = ut.dict_take_list(speices_rowid_mapping, species_rowids1)
+        # Put new rowids back into annotation table
+        db.set(ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
+        db.set(ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
+        #ut.embed()
+        # HACK TODO use actual SQL to fix and move to 1.2.0
+        def get_annot_names_v121(aid_list):
+            name_rowid_list = ibs.get_annot_name_rowids(aid_list)
+            name_text_list = ibs.db.get(NAME_TABLE_v121, (NAME_TEXT,), name_rowid_list)
+            name_text_list = [UNKNOWN
+                              if rowid == UNKNOWN_NAME_ROWID or name_text is None
+                              else name_text
+                              for name_text, rowid in zip(name_text_list, name_rowid_list)]
+            return name_text_list
+        def get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup):
+            visual_infotup = _visual_infotup
+            image_uuid_list, verts_list, theta_list = visual_infotup
+            # It is visual info augmented with name and species
+            view_list       = ibs.get_annot_viewpoints(aid_list)
+            name_list       = get_annot_names_v121(aid_list)
+            species_list    = ibs.get_annot_species(aid_list)
+            semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
+                                name_list, species_list)
+            return semantic_infotup
+        def get_annot_visual_uuid_info_v121(aid_list):
+            image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+            verts_list      = ibs.get_annot_verts(aid_list)
+            theta_list      = ibs.get_annot_thetas(aid_list)
+            visual_infotup = (image_uuid_list, verts_list, theta_list)
+            return visual_infotup
+        def update_annot_semantic_uuids_v121(aid_list, _visual_infotup=None):
+            semantic_infotup = ibs.get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup)
+            annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+            ibs.db.set(ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+        def update_annot_visual_uuids_v121(aid_list):
+            visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+            annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+            ibs.db.set(ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+            # If visual uuids are changes semantic ones are also changed
+            update_annot_semantic_uuids_v121(aid_list, visual_infotup)
+        ibs.update_annot_visual_uuids(aid_list)
 
 
 # =======================
@@ -356,7 +585,7 @@ def update_1_2_0(db, ibs=None):
 def update_1_2_1(db, ibs=None):
     # Names and species are taken away from lblannot table and upgraded
     # to their own thing
-    db.add_table(const.NAME_TABLE, (
+    db.add_table(NAME_TABLE_v121, (
         ('name_rowid',               'INTEGER PRIMARY KEY'),
         ('name_uuid',                'UUID NOT NULL'),
         ('name_text',                'TEXT NOT NULL'),
@@ -379,48 +608,53 @@ def update_1_2_1(db, ibs=None):
         ''')
 
 
-def post_1_2_1(db, ibs=None):
-    import utool as ut
-    print('applying post_1_2_1')
-    if ibs is not None:
-        ibs._init_rowid_constants()
-        #db = ibs.db
-    UNKNOWN_ROWID = 0
-    SPECIES_ROWID       = 'species_rowid'
-    NAME_ROWID          = 'name_rowid'
-    lblannot_colnames     =  ('lblannot_uuid', 'lblannot_value', 'lblannot_note',)
-    name_colnames         =  ('name_uuid', 'name_text', 'name_note',)
-    species_colspeciess   =  ('species_uuid', 'species_text', 'species_note',)
-    # Get old name and species rowids from annotaiton tables
-    aid_list = db.get_all_rowids(const.ANNOTATION_TABLE)
-    name_rowids1    = db.get(const.ANNOTATION_TABLE, (NAME_ROWID,), aid_list)
-    species_rowids1 = db.get(const.ANNOTATION_TABLE, (SPECIES_ROWID,), aid_list)
-    # Look at the unique non-unknown ones
-    unique_name_rowids1    = sorted(list(set(name_rowids1) - set([UNKNOWN_ROWID])))
-    unique_species_rowids1 = sorted(list(set(species_rowids1) - set([UNKNOWN_ROWID])))
-    # Get params out of label annotation tables
-    name_params_list    = db.get(const.LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1)
-    species_params_list = db.get(const.LBLANNOT_TABLE, lblannot_colnames, unique_species_rowids1)
-    # Move params into name and species tables
-    unique_name_rowids2 = db._add(const.NAME_TABLE, name_colnames, name_params_list)
-    unique_species_rowids2 = db._add(const.SPECIES_TABLE, species_colspeciess, species_params_list)
-    # Build mapping from old table to new table
-    name_rowid_mapping = dict(zip(unique_name_rowids1, unique_name_rowids2))
-    speices_rowid_mapping = dict(zip(unique_species_rowids1, unique_species_rowids2))
-    name_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
-    speices_rowid_mapping[UNKNOWN_ROWID] = UNKNOWN_ROWID
-    # Apply mapping
-    name_rowids2   = ut.dict_take_list(name_rowid_mapping, name_rowids1)
-    species_rowid2 = ut.dict_take_list(speices_rowid_mapping, species_rowids1)
-    # Put new rowids back into annotation table
-    db.set(const.ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
-    db.set(const.ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
-    #ut.embed()
-    # HACK TODO use actual SQL to fix and move to 1.2.0
-    ibs.update_annot_visual_uuids(aid_list)
-    ibs.update_annot_semantic_uuids(aid_list)
+def update_1_3_0(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (None, 'image_timedelta_posix', 'INTEGER DEFAULT 0', None),
+    ))
 
+    db.modify_table(NAME_TABLE_v121, (
+        (None, 'name_temp_flag',  'INTEGER DEFAULT 0', None),
+        (None, 'name_alias_text', 'TEXT',              None),
+    ), tablename_new=NAME_TABLE_v130)
 
+    db.drop_table(NAME_TABLE_v121)
+
+    db.modify_table(const.ENCOUNTER_TABLE, (
+        (None, 'encounter_start_time_posix', 'INTEGER',           None),
+        (None, 'encounter_end_time_posix',   'INTEGER',           None),
+        (None, 'encounter_gps_lat',          'INTEGER',           None),
+        (None, 'encounter_gps_lon',          'INTEGER',           None),
+        (None, 'encounter_processed_flag',   'INTEGER DEFAULT 0', None),
+        (None, 'encounter_shipped_flag',     'INTEGER DEFAULT 0', None),
+    ))
+
+    """
+    * New Image Columns
+        - image_posix_timedelta
+
+    * New Name Columns
+        - name_temp_flag
+        - name_alias_text
+
+        - name_uuid
+        - name_visual_uuid
+        - name_member_annot_rowids_evalstr
+        - name_member_num_annot_rowids
+
+    * New Encounter Columns
+        - encounter_start_posix_time
+        - encounter_end_time_posix
+        - encounter_gps_lat
+        - encounter_gps_lon
+        - encounter_processed_flag
+        - encounter_shipped_flag
+    """
+    pass
+    # Need encounter processed and shipped flag
+    #db.modify_table(const.CONFIG_TABLE, (
+    #    # rename column and change it's type
+    #)
 
 
 # ========================
@@ -441,6 +675,7 @@ VALID_VERSIONS = utool.odict([
     ('1.1.1',    (None,                 update_1_1_1,       None                )),
     ('1.2.0',    (None,                 update_1_2_0,       post_1_2_0          )),
     ('1.2.1',    (None,                 update_1_2_1,       post_1_2_1          )),
+    ('1.3.0',    (None,                 update_1_3_0,       None                )),
 ])
 
 
@@ -455,6 +690,7 @@ def test_dbschema():
         python -m ibeis.control.DB_SCHEMA -n=-1
         python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
         python -m ibeis.control.DB_SCHEMA --test-test_dbschema --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema
 
     Example:
         >>> # ENABLE_DOCTEST

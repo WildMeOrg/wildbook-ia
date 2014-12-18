@@ -1605,18 +1605,14 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 6) Convert chipmatch -> qres')
     external_qaids   = qreq_.get_external_qaids()
-    external_qauuids = qreq_.get_external_quuids()
     # Matchable daids
-    daids  = qreq_.get_external_daids()
-    cfgstr = qreq_.get_cfgstr()
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
     filtkey_list = qreq_.qparams.active_filter_list
     if qreq_.qparams.sver_weighting:
         filtkey_list = filtkey_list[:] + ['homog_error_weight']
 
-    qres_list = [hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-                 for qaid, qauuid in zip(external_qaids, external_qauuids)]
+    qres_list = qreq_.make_empty_query_results()
 
     for qaid, qres in zip(external_qaids, qres_list):
         # For each query's chipmatch

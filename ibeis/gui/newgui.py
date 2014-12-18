@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
+from os.path import isdir
+from ibeis import constants as const
 import functools  # NOQA
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -298,10 +300,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         back = ibswgt.back
         #_SEP = lambda: None
 
-        ibswgt.query_button = _NEWBUT('Run Identification',
-                                      ibswgt.back.compute_queries,
-                                      bgcolor=(150, 150, 255),
-                                      fgcolor=(0, 0, 0))
+        #ibswgt.query_button = _NEWBUT('Run Identification',
+        #                              ibswgt.back.compute_queries,
+        #                              bgcolor=(150, 150, 255),
+        #                              fgcolor=(0, 0, 0))
+
+        ibswgt.inc_query_button = _NEWBUT('Step 4) Identify',  # QUERY',
+                                          ibswgt.back.incremental_query,
+                                          bgcolor=(255, 150, 0),
+                                          fgcolor=(0, 0, 0))
 
         detection_combo_box_options = [
             # Text              # Value
@@ -310,19 +317,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 
-        ibswgt.species_button = _NEWBUT('Update Encounter Species',
-                                        ibswgt.back.encounter_set_species,
-                                        bgcolor=(150, 255, 150))
-
-        ibswgt.reviewed_button = _NEWBUT('Set Encounter as Reviewed',
+        ibswgt.reviewed_button = _NEWBUT('Step 5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
                                          bgcolor=(0, 232, 211))
 
-        ibswgt.import_button = _NEWBUT('Step 1) Import Images\n(via files)',
+        ibswgt.import_button = _NEWBUT('Step 1) Import',  # Import Images\n(via files)',
                                        back.import_images_from_file,
                                        bgcolor=(235, 200, 200),)
 
-        ibswgt.encounter_button = _NEWBUT('Step 2) Group Images into Encounters',
+        ibswgt.encounter_button = _NEWBUT('Step 2) Group',  # Images into Encounters',
                                           ibswgt.back.compute_encounters,
                                           bgcolor=(255, 255, 150))
 
@@ -330,13 +333,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                        ibswgt.back.run_detection_coarse,
                                        bgcolor=(150, 255, 150))
 
+        #ibswgt.species_button = _NEWBUT('Update Encounter Species',
+        #                                ibswgt.back.encounter_set_species,
+        #                                bgcolor=(100, 255, 150))
+
         detection_combo_box_options = [
             # Text              # Value
-            ('Step 4) Intra Encounter', constants.INTRA_ENC_KEY),
+            #('Step 4) Intra Encounter', constants.INTRA_ENC_KEY),
             ('Step 5) Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
         ]
-        ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
-                                      ibswgt.back.change_query_mode)
+        #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
+        #                              ibswgt.back.change_query_mode)
 
         ibswgt.button_list = [
             [
@@ -352,22 +359,32 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 ibswgt.encounter_button,
 
-                ibswgt.species_combo,
 
                 ibswgt.detect_button,
+
+                ibswgt.inc_query_button,
+
+                #ibswgt.species_button,
+
+                ibswgt.reviewed_button,
 
             ],
             [
                 #_NEWBUT('Review Detections',
                 #        ibswgt.back.review_detections,
                 #        bgcolor=(170, 250, 170)),
-                ibswgt.species_button,
 
-                ibswgt.reviewed_button,
+                #ibswgt.querydb_combo,
 
-                ibswgt.querydb_combo,
+                #ibswgt.query_button,
 
-                ibswgt.query_button,
+                guitool.newLabel(None, 'Species Selector:'),
+
+                ibswgt.species_combo,
+
+                guitool.newLabel(None, ''),
+                guitool.newLabel(None, ''),
+
 
                 #_NEWBUT('Identify\n(vs exemplar database)',
                 #        ibswgt.back.compute_queries_vs_exemplar,
@@ -430,6 +447,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
+        print('[newgui] update_tables(%r)' % (tblnames,))
         hack_selections = []
         #print('[new_gui.UPDATE_TABLES]')
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
@@ -493,6 +511,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
 
+            DEFAULT_LARGEST_ENCOUNTER = True
+            if DEFAULT_LARGEST_ENCOUNTER:
+                eid_list = ibs.get_valid_eids()
+                numImg_list = ibs.get_encounter_num_gids(eid_list)
+                argx = ut.list_argsort(numImg_list)[-1]
+                eid = eid_list[argx]
+                ibswgt.select_encounter_tab(eid)
+                #ibswgt._change_enc(eid)
+
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
         if parent_ is not None:
@@ -501,7 +528,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
-        print('_change_enc(%r)' % eid)
+        print('[newgui] _change_enc(%r)' % eid)
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
             #ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call
@@ -525,8 +552,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.query_
             #ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
             #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
-        except Exception:
-            pass
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
@@ -574,28 +601,41 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if model.name == ENCOUNTER_TABLE:
             options = [
                 ('delete encounter(s)', lambda: ibswgt.back.delete_encounter(id_list)),
-                ('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
+                #('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
             ]
             if len(id_list) > 1:
                 merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
+                enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
                 options += [
-                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                    ('merge %d encounters into %s' %  (len(id_list), (enctext))
+                     , lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                 ]
             guitool.popup_menu(tblview, pos, options)
         elif model.name == IMAGE_TABLE:
-            if len(id_list) == 1:
-                gid = id_list[0]
-                guitool.popup_menu(tblview, pos, [
-                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
-                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
-                ])
-            else:
-                print(id_list)
-                guitool.popup_menu(tblview, pos, [
+            # CONTEXT OPTIONS FOR IMAGE TABLE ITEMS
+            image_context_options = []
+            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+                image_context_options += [
                     ('move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
                     ('copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                ]
+            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+                image_context_options += [
+                    ('remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
+                ]
+            if len(id_list) > 1:
+                image_context_options += [
                     ('delete images', lambda: ibswgt.back.delete_image(id_list)),
-                ])
+                ]
+            if len(id_list) == 1:
+                gid = id_list[0]
+                image_context_options += [
+                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
+                ]
+            if len(image_context_options) > 0:
+                guitool.popup_menu(tblview, pos, image_context_options)
         elif model.name == ANNOTATION_TABLE:
             if len(id_list) == 1:
                 eid = model.eid
@@ -642,6 +682,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     aid = id_
                     ibswgt.back.select_aid(aid, eid, show=False)
 
+    def select_encounter_tab(ibswgt, eid):
+        if True:
+            prefix = ut.get_caller_name(range(1, 8))
+        else:
+            prefix = ''
+        print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
+        enctext = ibswgt.ibs.get_encounter_enctext(eid)
+        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
+        #ibswgt.back.select_eid(eid)
+
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
         #printDBG('on_doubleclick')
@@ -649,9 +699,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:
             eid = id_
-            enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
-            ibswgt.back.select_eid(eid)
+            ibswgt.select_encounter_tab(eid)
         else:
             eid = model.eid
             if (model.name == IMAGE_TABLE) or (model.name == IMAGE_GRID):
@@ -722,7 +770,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):
-        from os.path import isdir
+        """ image drag and drop event """
         print('[drop_event] url_list=%r' % (url_list,))
         gpath_list = filter(utool.matches_image, url_list)
         dir_list   = filter(isdir, url_list)
