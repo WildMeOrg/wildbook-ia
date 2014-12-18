@@ -263,6 +263,11 @@ def setup_help_menu(mainwin, back):
         text='Delete Thumbnails',
         shortcut='',
         slot_fn=back.delete_thumbnails)
+    mainwin.menuHelp.newAction(
+        name='actionCleanDatabase',
+        text='Clean Database',
+        shortcut='',
+        slot_fn=back.clean_database)
 
 
 def setup_developer_menu(mainwin, back):

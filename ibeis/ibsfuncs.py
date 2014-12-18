@@ -442,6 +442,10 @@ def vacuum_and_clean_databases(ibs):
     ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
     ibs.db.vacuum()
 
+@__injectable
+def clean_database(ibs):
+    #TODO: Call more stuff, maybe rename to 'apply duct tape'
+    ibs.fix_unknown_exemplars()
 
 def check_name_consistency(ibs, nid_list):
     #aids_list = ibs.get_name_aids(nid_list)
@@ -2047,7 +2051,16 @@ def view_model_dir(ibs):
     #grabmodels.redownload_models(modeldir=modeldir)
 
 
-#def get_
+@__injectable
+def fix_unknown_exemplars(ibs):
+    """
+    Description:
+        Goes through all of the annotations, and sets their exemplar flag to 0 if it is associated with an unknown annotation
+    """
+    aid_list = ibs.get_valid_aids()
+    nid_list = ibs.get_annot_nids(aid_list,distinguish_unknowns=False)
+    new_annots = [annot if nid != const.UNKNOWN_NAME_ROWID else 0 for nid, annot in zip(nid_list, ibs.get_annot_exemplar_flags(aid_list))]
+    ibs.set_annot_exemplar_flags(aid_list, new_annots)
 
 
 if __name__ == '__main__':
