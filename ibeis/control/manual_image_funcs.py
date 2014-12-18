@@ -770,6 +770,30 @@ def unrelate_images_and_encounters(ibs, gid_list, eid_list):
     """
     Seems to unrelate specific image encounter pairs
 
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+        eid_list (list):
+
+    Returns:
+        list: gids_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-unrelate_images_and_encounters
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = '?'
+        >>> eid_list = '?'
+        >>> # execute function
+        >>> gids_list = unrelate_images_and_encounters(ibs, gid_list, eid_list)
+        >>> # verify results
+        >>> result = str(gids_list)
+        >>> print(result)
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:
