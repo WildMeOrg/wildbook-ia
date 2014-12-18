@@ -221,13 +221,18 @@ class QueryVerificationInteraction(AbstractInteraction):
                                                      h=3 * utool.PHI_B ** 4,
                                                      xpad=.02, startx=0, stopx=1)
 
-        self.append_button('None of these', callback=partial(self.select, None), rect=hl_slot(0))
+        self.append_button('None of these', callback=partial(self.select_none), rect=hl_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hl_slot(1))
         figtitle_fmt = '''
         Query Decision Interface
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
+
+    def select_none(self, event=None):
+        for aid in self.comp_aids:
+            self.checkbox_states[aid] = False
+        self.confirm()
 
     def confirm(self, event=None):
         """

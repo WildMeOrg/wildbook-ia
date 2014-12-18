@@ -671,12 +671,45 @@ class IBEISController(object):
 
     @ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
-        """ Clusters images into encounters """
+        """
+        Description:
+            Clusters images into encounters
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-compute_encounters
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs.compute_encounters()
+            >>> ibs.update_special_encounters()
+            >>> # Now we want to remove some images from a non-special encounter
+            >>> nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]
+            >>> images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]
+            >>> ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))
+            >>> ibs.update_special_encounters()
+            >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+            >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
+            >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
+            >>> print("PRE COMPUTE: Encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> ibs.compute_encounters()
+            >>> print("COMPUTE: New encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> ibs.update_special_encounters()
+            >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+
+        """
+
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         gid_list = ibs.get_ungrouped_gids()
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
         print('[ibs] Finished computing and adding encounters.')

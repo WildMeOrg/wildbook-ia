@@ -1281,23 +1281,17 @@ def get_ungrouped_gids(ibs):
         >>> ibs.compute_encounters()
         >>> ibs.update_special_encounters()
         >>> # Now we want to remove some images from a non-special encounter
-        >>> nonspecial_eid = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()][0]
-        >>> print("Nonspecial EID %d" % nonspecial_eid)
-        >>> images_to_remove = ibs.get_encounter_gids([nonspecial_eid])[0][0:1]
+        >>> nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]
+        >>> print("Nonspecial EIDs %r" % nonspecial_eids)
+        >>> images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]
         >>> print("Removing %r" % images_to_remove)
-        >>> ibs.unrelate_images_and_encounters(images_to_remove,[nonspecial_eid] * len(images_to_remove))
+        >>> ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))
         >>> ibs.update_special_encounters()
         >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
         >>> print("Ungrouped gids %r" % ibs.get_ungrouped_gids())
         >>> print("Ungrouped eid %d contains %r" % (ungr_eid, ibs.get_encounter_gids([ungr_eid])))
         >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
         >>> assert(sorted(images_to_remove) == sorted(ungr_gids))
-        >>> #TODO Move this part of the test elsewhere
-        >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
-        >>> ibs.compute_encounters()
-        >>> print("COMPUTE: New encounters are %r" % ibs.get_valid_eids())
-        >>> ibs.update_special_encounters()
-        >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
     """
     special_eids = set(get_special_eids(ibs))
     gid_list = ibs.get_valid_gids()
