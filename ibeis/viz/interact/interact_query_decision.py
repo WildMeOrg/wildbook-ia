@@ -195,8 +195,9 @@ class QueryVerificationInteraction(AbstractInteraction):
 
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
-        im.ishow_matches(self.ibs, self.qres, aid,
+        closeme = im.ishow_matches(self.ibs, self.qres, aid,
                          figtitle='Examine a specific image against the query')
+        closeme.close()
 
         self.update_callback()
         self.backend_callback()
