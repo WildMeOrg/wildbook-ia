@@ -168,7 +168,7 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         if aid in self.comp_aids:
             callback = partial(self.select, aid)
-            self.append_button('Select This Image', callback=callback, **butkw)
+            self.append_button('Select This Animal', callback=callback, **butkw)
             #Hack to toggle colors
             if aid in self.checkbox_states:
                 #If we are selecting it, then make it green, otherwise change it back to grey
@@ -255,10 +255,9 @@ class QueryVerificationInteraction(AbstractInteraction):
         if len(selected_aids) > 1:
             print('[interact_query_decision] Confirming merge')
             msg = (
-                'You have selected more than one animal as a match to the query'
-                ' animal. This will merge ALL aforementioned animals into the'
-                ' selected name. Please ensure that this is your intention, and'
-                ' select desired name for the merge.')
+                'You have selected more than one animal as a match to the query animal.'
+                ' By doing this you are telling IBEIS that these are ALL the SAME ANIMAL.'
+                '\n\nIf this is not what you want, click Cancel.  If it is what you want, choose one of the names below as the name to keep.')
             selected_names = self.ibs.get_annot_names(selected_aids)
             options = selected_names
             comfirm_res = guitool.user_option(None, msg=msg,
