@@ -559,7 +559,12 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
         species = ibs.cfg.detect_cfg.species
-        conf_msg = "Are you sure you want to run detection on %s? There are %d images, so it will take at least %0.2f seconds" % (species, len(gid_list), len(gid_list) * 40/cpu_count() ) # 40 seconds per image / num cores
+        conf_msg_fmststr = ut.codeblock(
+            '''Are you sure you want to run detection on %s?
+            There are %d images, so it will take at least %0.2f seconds
+            ''')
+        approx_seconds = len(gid_list) * 40 / cpu_count()   # 40 seconds per image / num cores
+        conf_msg = conf_msg_fmststr % (species, len(gid_list), approx_seconds)
         if back.are_you_sure(use_msg=conf_msg):
             print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
             ibs.detect_random_forest(gid_list, species, quick=quick)
@@ -607,19 +612,18 @@ class MainWindowBackend(QtCore.QObject):
         spec_id = back.ibs.get_species_rowids_from_text(species)
         spec_id_list = back.ibs.get_annot_species_rowids(daid_list)
         is_valid_species = [i == spec_id for i in spec_id_list]
-        daid_list_ = ut.filter_items(daid_list,is_valid_species)
+        daid_list_ = ut.filter_items(daid_list, is_valid_species)
         msg_var = ut.codeblock(
             '''
             You are about to enter identification for %d annotations of
             species %s (out of %d annotations in the encounter). Continue?
-            '''
-            )
-        cont = back.are_you_sure(use_msg=msg_var %
-                (len(daid_list_),species,len(daid_list)))
+            ''')
+        lookup = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
+        species_bold_nice = '\'' + lookup.get(species, species).upper() + '\''
+        cont = back.are_you_sure(use_msg=msg_var % (len(daid_list_), species_bold_nice, len(daid_list)))
         if not cont:
             raise StopIteration
         return daid_list_
-
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
@@ -648,7 +652,7 @@ class MainWindowBackend(QtCore.QObject):
             back.show_qres(qres)
 
     @blocking_slot()
-    def compute_queries(back, refresh=True, **kwargs):
+    def compute_queries(back, refresh=True, query_mode=None, **kwargs):
         """ Batch -> Precompute Queries"""
         eid = back._eidfromkw(kwargs)
         print('------')

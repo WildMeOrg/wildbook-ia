@@ -1339,7 +1339,7 @@ def update_ungrouped_special_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr("use_more_special_encounters",False)
+    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr('use_more_special_encounters', False)
     if USE_MORE_SPECIAL_ENCOUNTERS:
         #ibs.update_reviewed_unreviewed_image_special_encounter()
         ibs.update_exemplar_special_encounter()

@@ -650,6 +650,10 @@ def update_1_3_0(db, ibs=None):
         - encounter_processed_flag
         - encounter_shipped_flag
     """
+    # TODO: changed shipped to commited
+    # encounter_detected_flag
+    # encounter_identified_flag???
+
     pass
     # Need encounter processed and shipped flag
     #db.modify_table(const.CONFIG_TABLE, (
