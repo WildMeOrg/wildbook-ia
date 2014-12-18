@@ -31,6 +31,7 @@ class IncQueryHarness(INC_LOOP_BASE):
 
     def request_nonblocking_inc_query(self, ibs, qaid_list, daid_list):
         self.ibs = ibs
+        self.nTotal = len(qaid_list)
 
         def emit_name_decision(sorted_aids):
             """
@@ -48,17 +49,21 @@ class IncQueryHarness(INC_LOOP_BASE):
             """
             self.next_query_signal.emit()
 
-        callbacks = {
+        incinfo = {
             'next_query_callback': emit_next_query,
             'name_decision_callback': emit_name_decision,
+            'count': 0,
+            'nTotal': self.nTotal,
+            'fnum': 512,
             #'next_query_callback': self.next_query_signal.emit,
             #'name_decision_callback': self.name_decision_signal.emit,
             #'try_decision_callback': self.try_decision_signal.emit
         }
         self.inc_query_gen = automatch.generate_incremental_queries(
-            ibs, qaid_list, daid_list, callbacks=callbacks)
+            ibs, qaid_list, daid_list, incinfo=incinfo)
         # Call the first query
-        callbacks['next_query_callback']()
+        incinfo['next_query_callback']()
+
 
     @guitool.slot_()
     def next_query_slot(self):
@@ -71,46 +76,47 @@ class IncQueryHarness(INC_LOOP_BASE):
             dry = self.dry
             interactive = self.interactive
             item = six.next(self.inc_query_gen)
-            (ibs, qres, qreq_, choicetup, metatup, callbacks, threshold) = item
+            (ibs, qres, qreq_, choicetup, metatup, incinfo, threshold) = item
+            incinfo['count'] += 1
             self.choicetup = choicetup
             self.qres      = qres
             self.qreq_     = qreq_
             self.metatup   = metatup
-            self.callbacks = callbacks
+            self.incinfo = incinfo
             self.threshold = threshold
             automatch.try_automatic_decision(ibs, qres, qreq_, choicetup,
                                              threshold, interactive=interactive,
                                              metatup=metatup, dry=dry,
-                                             callbacks=callbacks)
+                                             incinfo=incinfo)
+            
         except StopIteration:
+            #TODO: close this figure
+            # incinfo['fnum'] 
             print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
             pass
 
     @guitool.slot_(list)
     def name_decision_slot(self, sorted_aids):
         print('[QT] name_decision_slot')
-        try:
-            ibs = self.ibs
-            choicetup   = self.choicetup
-            qres        = self.qres
-            qreq_       = self.qreq_
-            metatup     = self.metatup
-            callbacks   = self.callbacks
-            threshold   = self.threshold
-            interactive = self.interactive
-            dry         = self.dry
-            if sorted_aids is None or len(sorted_aids) == 0:
-                name = None
-            else:
-                name = ibs.get_annot_names(sorted_aids[0])
-            automatch.make_name_decision(name, choicetup, ibs, qres, qreq_,
-                                         threshold, interactive=interactive,
-                                         metatup=metatup, dry=dry,
-                                         callbacks=callbacks)
-        except StopIteration:
-            print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
-            pass
-
+    
+        ibs = self.ibs
+        choicetup   = self.choicetup
+        qres        = self.qres
+        qreq_       = self.qreq_
+        metatup     = self.metatup
+        incinfo     = self.incinfo
+        threshold   = self.threshold
+        interactive = self.interactive
+        dry         = self.dry
+        if sorted_aids is None or len(sorted_aids) == 0:
+            name = None
+        else:
+            name = ibs.get_annot_names(sorted_aids[0])
+        automatch.make_name_decision(name, choicetup, ibs, qres, qreq_,
+                                     threshold, interactive=interactive,
+                                     metatup=metatup, dry=dry,
+                                     incinfo=incinfo)
+        
 
 def incremental_test_qt(ibs, num_initial=0):
     """

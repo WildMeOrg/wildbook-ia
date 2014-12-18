@@ -228,14 +228,14 @@ def incremental_test(ibs_gt, num_initial=0):
         aids_chunk2 = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
         qaid_chunk = aids_chunk2
         for item in execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup):
-            (ibs, qres, qreq_, choicetup, metatup, callbacks, threshold) = item
+            (ibs, qres, qreq_, choicetup, metatup, incinfo, threshold) = item
             try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive,
-                                   metatup, callbacks=callbacks)
+                                   metatup, incinfo=incinfo)
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
 
-def generate_incremental_queries(ibs, qaid_list, daid_list, callbacks=None):
+def generate_incremental_queries(ibs, qaid_list, daid_list, incinfo=None):
     r""" generates incremental queries that completely new to the system
 
     Args:
@@ -273,14 +273,14 @@ def generate_incremental_queries(ibs, qaid_list, daid_list, callbacks=None):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
         for item in execute_teststep(ibs, qaid_chunk, threshold, interactive,
-                                     metatup, callbacks=callbacks):
+                                     metatup, incinfo=incinfo):
             yield item
 
 
 # ---- QUERY ----
 
 def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
-                     callbacks=None):
+                     incinfo=None):
     """ Add an unseen annotation and run a query
 
     Args:
@@ -321,10 +321,10 @@ def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
         daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
     qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
 
-    #try_decision_callback = callbacks.get('try_decision_callback', None)
+    #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
         choicetup = get_qres_choices(ibs, qres)
-        yield [ibs, qres, qreq_, choicetup, metatup, callbacks, threshold]
+        yield [ibs, qres, qreq_, choicetup, metatup, incinfo, threshold]
 
 
 # ---- PRE DECISION ---
@@ -376,7 +376,7 @@ def get_qres_choices(ibs, qres):
 
 
 def try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive=False,
-                            metatup=None, dry=False, callbacks=None):
+                            metatup=None, dry=False, incinfo=None):
     r""" Either makes automatic decision or asks user for feedback.
 
     CommandLine:
@@ -433,40 +433,40 @@ def try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive=F
     # WE MAY NEED TO DO CALLBACKS HERE
     try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
                                 ibs, qres, qreq_, threshold, interactive=interactive,
-                                metatup=metatup, dry=dry, callbacks=callbacks)
+                                metatup=metatup, dry=dry, incinfo=incinfo)
 
 
 def try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
                                 ibs, qres, qreq_, threshold, interactive=False,
-                                metatup=None, dry=False, callbacks=None):
+                                metatup=None, dry=False, incinfo=None):
     name_confidence_thresh = ut.get_sys_maxfloat()
     if interactive and name_confidence < name_confidence_thresh:
         get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
-                               name_confidence, choicetup, callbacks=callbacks)
+                               name_confidence, choicetup, incinfo=incinfo)
     else:
         # May need to execute callback whereas whatever the interaction was
         # would issue it otherwise
         # Noncallback version
         make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
                            interactive=interactive, metatup=metatup, dry=dry,
-                           callbacks=callbacks)
+                           incinfo=incinfo)
         #if name is not None:
 
 
 def make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
                        interactive=True, metatup=None,
-                       dry=False, callbacks=None):
+                       dry=False, incinfo=None):
     if not dry:
         qaid = qres.get_qaid()
         execute_name_decision(ibs, qaid, name)
     try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
                                     interactive=interactive, metatup=metatup,
-                                    dry=dry, callbacks=callbacks)
+                                    dry=dry, incinfo=incinfo)
 
 
 def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
                                     interactive=False, metatup=None, dry=False,
-                                    callbacks=None):
+                                    incinfo=None):
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
     #update_normalizer(ibs, qreq_, choicetup, name)
@@ -481,9 +481,9 @@ def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
     if exemplar_decision:
         if not dry:
             ibs.set_annot_exemplar_flags((qaid,), [1])
-    if callbacks is not None:
+    if incinfo is not None:
         # This query runh as eneded
-        callbacks['next_query_callback']()
+        incinfo['next_query_callback']()
 
 
 # ---- ALGORITHM / USER INPUT -----
@@ -622,7 +622,7 @@ def get_system_exemplar_suggestion(ibs, qaid):
 
 
 def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
-                           name_confidence, choicetup, callbacks=None):
+                           name_confidence, choicetup, incinfo=None):
     r""" hooks into to some method of getting user input for names
 
     TODO: really good interface
@@ -649,9 +649,9 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
         comp_aids     = comp_aids_all[0:min(3, len(comp_aids_all))]
         suggestx      = ut.listfind(ibs.get_annot_names(comp_aids), name)
         suggest_aid   = None if suggestx is None else comp_aids[suggestx]
-        name_decision_callback = callbacks['name_decision_callback']
+        name_decision_callback = incinfo['name_decision_callback']
         qvi = interact_query_decision.QueryVerificationInteraction(
-            ibs, qres, comp_aids, suggest_aid, decision_callback=name_decision_callback)
+            ibs, qres, comp_aids, suggest_aid, decision_callback=name_decision_callback, progress_current=incinfo['count'], progress_total=incinfo['nTotal'], fnum=512)
         qvi.fig.show()
     if mplshowtop:
         fnum = 513
@@ -697,7 +697,7 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
 
 
 def get_user_exemplar_decision(autoexemplar_msg, exemplar_decision,
-                               exemplar_condience, callbacks=None):
+                               exemplar_condience, incinfo=None):
     r""" hooks into to some method of getting user input for exemplars
 
     TODO: really good interface
