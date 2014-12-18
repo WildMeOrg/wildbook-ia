@@ -457,10 +457,10 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
     # ---------------------------------------------
     # WE MAY NEED TO DO CALLBACKS HERE
     try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
-                                ibs, qres, qreq_, threshold, interactive=False,
-                                metatup=None, dry=False)
+                                ibs, qres, qreq_, threshold, interactive=interactive,
+                                metatup=metatup, dry=dry)
     try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
-                                    interactive=False, metatup=None, dry=False)
+                                    interactive=interactive, metatup=metatup, dry=dry)
 
 
 def try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
