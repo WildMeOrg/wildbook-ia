@@ -780,6 +780,7 @@ def unrelate_images_and_encounters(ibs, gid_list, eid_list):
 
     CommandLine:
         python -m ibeis.control.manual_image_funcs --test-unrelate_images_and_encounters
+        python -c "import utool; print(utool.auto_docstr('ibeis.control.manual_image_funcs', 'delete_egr_image_relations'))"
 
     Example:
         >>> # ENABLE_DOCTEST
