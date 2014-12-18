@@ -869,6 +869,12 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         ibsfuncs.export_to_xml(ibs)
 
+    @blocking_slot()
+    def clean_database(back):
+        """ Help -> Clean Database"""
+        print('[back] Cleaning database')
+        back.ibs.clean_database()
+
     #--------------------------------------------------------------------------
     # File Slots
     #--------------------------------------------------------------------------
@@ -1046,3 +1052,4 @@ class MainWindowBackend(QtCore.QObject):
         else:
             eid = kwargs['eid']
         return eid
+
