@@ -1260,13 +1260,32 @@ def get_special_eids(ibs):
         const.REVIEWED_IMAGE_ENCTEXT,
         const.EXEMPLAR_ENCTEXT,
     ]
-    special_eids = [get_enctext_eid(enctext, ensure=False)
+    special_eids_ = [get_enctext_eid(enctext, ensure=False)
                     for enctext in special_enctext_list]
+    special_eids = [i for i in special_eids_ if i is not None]
     return special_eids
 
 
 @__injectable
 def get_ungrouped_gids(ibs):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_ungrouped_gids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.compute_encounters()
+        >>> ibs.update_special_encounters()
+        >>> # Now we want to remove some images from a non-special encounter
+        # TODO this
+        >>> print(ibs.get_valid_eids())
+        >>> result = get_ungrouped_gids(ibs)
+        >>> print(result)
+    """
     special_eids = set(get_special_eids(ibs))
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
