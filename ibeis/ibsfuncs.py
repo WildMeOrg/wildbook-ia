@@ -1287,9 +1287,17 @@ def get_ungrouped_gids(ibs):
         >>> print("Removing %r" % images_to_remove)
         >>> ibs.unrelate_images_and_encounters(images_to_remove,[nonspecial_eid] * len(images_to_remove))
         >>> ibs.update_special_encounters()
-        >>> print(ibs.get_valid_eids())
-        >>> print(ibs.get_ungrouped_gids())
-        >>> print(ibs.get_special_eids())
+        >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+        >>> print("Ungrouped gids %r" % ibs.get_ungrouped_gids())
+        >>> print("Ungrouped eid %d contains %r" % (ungr_eid, ibs.get_encounter_gids([ungr_eid])))
+        >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
+        >>> assert(sorted(images_to_remove) == sorted(ungr_gids))
+        >>> #TODO Move this part of the test elsewhere
+        >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
+        >>> ibs.compute_encounters()
+        >>> print("COMPUTE: New encounters are %r" % ibs.get_valid_eids())
+        >>> ibs.update_special_encounters()
+        >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
     """
     special_eids = set(get_special_eids(ibs))
     gid_list = ibs.get_valid_gids()
@@ -1333,7 +1341,7 @@ def update_ungrouped_special_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.use_more_special_encounters
+    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr("use_more_special_encounters",False)
     if USE_MORE_SPECIAL_ENCOUNTERS:
         #ibs.update_reviewed_unreviewed_image_special_encounter()
         ibs.update_exemplar_special_encounter()
