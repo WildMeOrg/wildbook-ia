@@ -701,14 +701,18 @@ class IBEISController(object):
             >>> ibs.update_special_encounters()
             >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
             >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
-
+            >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
         """
 
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         gid_list = ibs.get_ungrouped_gids()
-        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        eid_offset = max(ibs.get_valid_eids())
+        flat_eids_offset = [eid + eid_offset for eid in flat_eids] # This way we can make sure that manually separated encounters
+        # remain untouched, and ensure that new encounters are created
+        enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
         print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
