@@ -933,9 +933,10 @@ def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
     get_encounter_eids_from_text_from_text
     """
     if ensure:
-        ibs.add_encounters(enctext_list)
-    # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    eid_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_rowid',), enctext_list, id_colname='encounter_text')
+        eid_list = ibs.add_encounters(enctext_list)
+    else:
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        eid_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_rowid',), enctext_list, id_colname='encounter_text')
     return eid_list
 
 

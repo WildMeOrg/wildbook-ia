@@ -8,7 +8,6 @@ from six.moves import zip, range, map
 from os.path import split, join, exists, commonprefix
 import vtool.image as gtool
 import numpy as np
-
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from vtool import linalg, geometry, image
 import utool as ut
@@ -1244,11 +1243,11 @@ def update_reviewed_unreviewed_image_special_encounter(ibs):
 #@profile
 def update_all_image_special_encounter(ibs):
     # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
-    #ibs.delete_encounters(eid)
+    allimg_eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
+    #ibs.delete_encounters(allimg_eid)
     gid_list = ibs.get_valid_gids()
     #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
-    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
+    ibs.set_image_eids(gid_list, [allimg_eid] * len(gid_list))
 
 
 @__injectable
@@ -1267,19 +1266,33 @@ def update_ungrouped_special_encounter(ibs):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb('testdb9')
         >>> # execute function
         >>> result = update_ungrouped_special_encounter(ibs)
         >>> # verify results
         >>> print(result)
     """
     # FIXME SLOW
+    def get_special_eids(ibs):
+        get_enctext_eid = ibs.get_encounter_eids_from_text
+        special_enctext_list = [
+            const.UNGROUPED_IMAGES_ENCTEXT,
+            const.ALL_IMAGE_ENCTEXT,
+            const.UNREVIEWED_IMAGE_ENCTEXT,
+            const.REVIEWED_IMAGE_ENCTEXT,
+            const.EXEMPLAR_ENCTEXT,
+        ]
+        special_eids = [get_enctext_eid(enctext, ensure=False)
+                        for enctext in special_enctext_list]
+        return special_eids
+
+    special_eids = set(get_special_eids(ibs))
     ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
     ibs.unrelate_encounter_from_images(ungrouped_eid)
     #ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
-    has_eids = [len(eids) == 0 for eids in eids_list]
+    has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
     ungrouped_gids = ut.filter_items(gid_list, has_eids)
     #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
     ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
@@ -1290,11 +1303,12 @@ def update_ungrouped_special_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    ibs.update_exemplar_special_encounter()
-    #ibs.update_reviewed_unreviewed_image_special_encounter()
-    #ibs.update_all_image_special_encounter()
+    WITH_SPECIAL_ENCOUNTERS = ut.get_argflag(('--with-special-encounters', '--special-enc'))
+    if WITH_SPECIAL_ENCOUNTERS:
+        ibs.update_exemplar_special_encounter()
+        ibs.update_reviewed_unreviewed_image_special_encounter()
+        ibs.update_all_image_special_encounter()
     ibs.update_ungrouped_special_encounter()
-    pass
 
 
 def _get_unreviewed_gids(ibs):

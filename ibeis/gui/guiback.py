@@ -442,6 +442,7 @@ class MainWindowBackend(QtCore.QObject):
         if not back.are_you_sure():
             return
         back.ibs.delete_encounters(eid_list)
+        back.ibs.update_special_encounters()
         back.front.update_tables()
 
     @blocking_slot(int)
@@ -720,8 +721,8 @@ class MainWindowBackend(QtCore.QObject):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
         back.ibs.delete_all_encounters()
-        back.ibs.update_special_encounters()
         back.ibs.compute_encounters()
+        back.ibs.update_special_encounters()
         print('[back] about to finish computing encounters')
         back.front.enc_tabwgt._close_all_tabs()
         if refresh:
