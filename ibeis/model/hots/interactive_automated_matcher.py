@@ -137,8 +137,12 @@ def incremental_test_qt(ibs, num_initial=0):
     """
     qaid_list = ibs.get_valid_aids()
     daid_list = ibs.get_valid_aids()
+    iexec_incremental_queries(ibs, qaid_list, daid_list)
+
+def iexec_incremental_queries(ibs, qaid_list, daid_list):
     self = IncQueryHarness()
     self = self.request_nonblocking_inc_query(ibs, qaid_list, daid_list)
+
 
 
 if __name__ == '__main__':

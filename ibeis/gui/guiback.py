@@ -86,7 +86,7 @@ class MainWindowBackend(QtCore.QObject):
     """
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
-    incQuerySignal = signal_(int)
+    #incQuerySignal = signal_(int)
 
     #------------------------
     # Constructor
@@ -103,7 +103,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_gids = []
         back.sel_qres = []
         back.active_enc = 0
-        back.query_mode = 'intra_encounter'
+        back.query_mode = const.VS_EXEMPLARS_KEY
         back.encounter_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
@@ -114,7 +114,7 @@ class MainWindowBackend(QtCore.QObject):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
-        back.incQuerySignal.connect(back.incremental_query_slot)
+        #back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
     #    back.cleanup()
@@ -667,24 +667,18 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
-        print('emiting incquery signal')
-        back.incQuerySignal.emit(eid)
-        print('signal incquery emmited')
-
-    @slot_(int)
-    def incremental_query_slot(back, eid):
-        print('\n\n[back] incremental_query slot: eid=%r, mode=%r' % (eid, back.query_mode))
         if back.query_mode == const.VS_EXEMPLARS_KEY:
             print('query_exemplars')
             daid_list = back.ibs.get_valid_aids(is_exemplar=True)
         elif back.query_mode == const.INTRA_ENC_KEY:
+            raise NotImplementedError("Currently we are not using this mode in the GUI")
             print('query_encounter')
             daid_list = back.ibs.get_encounter_aids(eid)
         else:
             print('Unknown query mode: %r' % (back.query_mode))
-        from ibeis.model.hots import automated_matcher
+        from ibeis.model.hots import interactive_automated_matcher as iautomatch
         qaid_list = back.ibs.get_encounter_aids(eid)
-        gen = automated_matcher.generate_incremental_queries(back.ibs, qaid_list, daid_list)
+        gen = iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)
         list(gen)
 
     #@blocking_slot()
