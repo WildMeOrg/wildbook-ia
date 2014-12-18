@@ -39,13 +39,13 @@ def test_QueryVerificationInteraction():
     qres = ibs.query_chips(qaids, daids)[0]
     comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:3]
     suggest_aid = comp_aids[1]
-    qvi = QueryVerificationInteraction(ibs, qres, comp_aids, suggest_aid)
+    qvi = QueryVerificationInteraction(ibs, qres, comp_aids, suggest_aid, progress_current=42, progress_total=1337)
     qvi.fig.show()
     exec(df2.present())
 
 
 class QueryVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, qres, comp_aids, suggest_aid, update_callback=None,
+    def __init__(self, ibs, qres, comp_aids, suggest_aid, progress_current=None, progress_total=None, update_callback=None,
                  backend_callback=None, decision_callback=None, **kwargs):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
@@ -55,6 +55,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         assert(len(comp_aids) <= 3)
         self.comp_aids = comp_aids
         self.suggest_aid = suggest_aid
+        self.progress_current = progress_current
+        self.progress_total = progress_total
         if update_callback is None:
             update_callback = lambda: None
         if backend_callback is None:
@@ -101,28 +103,6 @@ class QueryVerificationInteraction(AbstractInteraction):
         ih.disconnect_callback(self.fig, 'button_press_event')
         # ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
 
-    # def figure_clicked(self, event=None):
-    #     print_('[inter] clicked name')
-    #     ax = event.inaxes
-    #     if ih.clicked_inside_axis(event):
-    #         viztype = vh.get_ibsdat(ax, 'viztype')
-    #         print_(' viztype=%r' % viztype)
-    #         if viztype == 'chip':
-    #             aid = vh.get_ibsdat(ax, 'aid')
-    #             print('... aid=%r' % aid)
-    #             if event.button == 3:   # right-click
-    #                 import guitool
-    #                 ibs = self.ibs
-    #                 is_exemplar = ibs.get_annot_exemplar_flags(aid)
-    #                 def context_func():
-    #                     ibs.set_annot_exemplar_flags(aid, not is_exemplar)
-    #                     self.show_page()
-    #                 guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
-    #                     ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
-    #                 ])
-    #                 #ibs.print_annotation_table()
-    #             print(utool.dict_str(event.__dict__))
-
     def show_page(self, bring_to_front=False):
         """ Plots all subaxes on a page """
         print('[querydec] show_page()')
@@ -143,7 +123,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                 df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1))
 
         #Plot the Query Chip last
-        self.plot_chip(int(self.query_aid), nRows, 1, 1, title_suffix="QUERY RESULT")
+        self.plot_chip(int(self.query_aid), nRows, 1, 1, title_suffix="QUERIED CHIP")
 
         self.show_hud()
         # df2.adjust_subplots_safe(top=0.85, hspace=0.03)
@@ -200,7 +180,10 @@ class QueryVerificationInteraction(AbstractInteraction):
         print(' selected aid %r as best choice' % aid)
         state = self.checkbox_states[aid]
         self.checkbox_states[aid] = not state
-
+        # if self.checkbox_states[aid]:
+        #     df2.draw_border(ax, color=(0, 1, 0), lw=4)
+        # else:
+        #     df2.draw_border(ax, color=(.7, .7, .7), lw=4)
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -223,8 +206,13 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         self.append_button('None of these', callback=partial(self.select_none), rect=hl_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hl_slot(1))
+        if self.progress_current is not None and self.progress_total is not None:
+            self.progress_string = str(self.progress_current) + "/" + str(self.progress_total)
+        else:
+            self.progress_string = ""
         figtitle_fmt = '''
         Query Decision Interface
+        {progress_string}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
@@ -293,7 +281,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.decision_callback(sorted_aids)
         print('[interact_query_decision] sent callback')
         #self.show_page()
-        self.close()
+        # self.close()
         print('[interact_query_decision] Finished confirm')
 
 

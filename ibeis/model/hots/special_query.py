@@ -236,6 +236,11 @@ def query_vsone_verified(ibs, qaids, daids):
     # request for a vsone reranked query
     qaid2_qres = qaid2_qres_vsone
     qreq_ = qreq_vsmany_
+    all_failed_qres = all([qres is None for qres in six.itervalues(qaid2_qres)])
+    any_failed_qres = any([qres is None for qres in six.itervalues(qaid2_qres)])
+    if any_failed_qres:
+        assert all_failed_qres, "Needs to finish implemetation"
+        return empty_query(ibs, qaids)
     return qaid2_qres, qreq_
 
 
