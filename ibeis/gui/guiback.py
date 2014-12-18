@@ -404,6 +404,14 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot()
+    def unset_names(back, aid_list):
+        print('[back] unset_names')
+        if not back.are_you_sure():
+            return
+        back.ibs.set_annot_names(aid_list, [const.UNKNOWN] * len(aid_list))
+        back.front.update_tables()
+
+    @blocking_slot()
     def toggle_thumbnails(back):
         ibswgt = back.front
         tabwgt = ibswgt._tab_table_wgt

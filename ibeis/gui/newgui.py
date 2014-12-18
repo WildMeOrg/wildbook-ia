@@ -645,12 +645,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Select annotation (default)', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                     ('View and select image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
+                    ('Unset annotation name', lambda: ibswgt.back.unset_names([aid])),
                     ('----', lambda: None),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
             else:
                 guitool.popup_menu(tblview, pos, [
-                    ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Unset all annotation names', lambda: ibswgt.back.unset_names(id_list)),
                 ])
 
     @slot_(QtCore.QModelIndex)
