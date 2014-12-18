@@ -284,13 +284,26 @@ class WaitForInputQtLoop(INC_LOOP_BASE):
         self.ibs = ibs
 
         def emit_name_decision(sorted_aids):
-            print(sorted_aids)
-            print(';)')
+            """
+            Weird we need to put emits inside this closure scope otherwise
+            fe get a segfault. Thanks PyQt
+            """
+            #print(sorted_aids)
+            #print(';)')
             self.name_decision_signal.emit(sorted_aids)
+
+        def emit_next_query():
+            """
+            Weird we need to put emits inside this closure scope otherwise
+            fe get a segfault. Thanks PyQt
+            """
+            self.next_query_signal.emit()
+
         callbacks = {
-            'next_query_callback': self.next_query_signal.emit,
-            #'name_decision_callback': self.name_decision_signal.emit,
+            'next_query_callback': emit_next_query,
             'name_decision_callback': emit_name_decision,
+            #'next_query_callback': self.next_query_signal.emit,
+            #'name_decision_callback': self.name_decision_signal.emit,
             #'try_decision_callback': self.try_decision_signal.emit
         }
         self.inc_query_gen = generate_incremental_queries(ibs, qaid_list,
@@ -590,6 +603,8 @@ def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
         if not dry:
             ibs.set_annot_exemplar_flags((qaid,), [1])
 
+    callbacks['next_query_callback']()
+
 
 # ---- ALGORITHM / USER INPUT -----
 
@@ -783,6 +798,8 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
         if user_chosen_name is None:
             raise AssertionError('User Canceled Query')
         user_chosen_name = user_chosen_name.replace(newname_prefix, '')
+        # TODO: Make the old interface use the correct sorted_aids format
+        #name_decision_callback(user_chosen_name)
     if qtinspect:
         print('Showing qt inspect window')
         qres_wgt = qres.qt_inspect_gui(ibs, name_scoring=True)
