@@ -100,6 +100,8 @@ TABLE_COLNAMES = {
         'eid',
         'enctext',
         'nImgs',
+        'encounter_shipped_flag',
+        'encounter_processed_flag',
     ],
 
     NAMES_TREE      : [
@@ -135,7 +137,7 @@ TABLE_EDITSET = {
     ANNOTATION_TABLE : set(['name', 'species', 'viewpoint', 'annotnotes', 'exemplar']),
     NAME_TABLE       : set(['name', 'namenotes']),
     QRES_TABLE       : set(['name']),
-    ENCOUNTER_TABLE  : set([]),
+    ENCOUNTER_TABLE  : set(['encounter_shipped_flag', 'encounter_processed_flag']),
     IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
     NAMES_TREE       : set(['exemplar', 'name', 'namenotes']),
@@ -207,6 +209,8 @@ COL_DEF = dict([
     ('ext',         (str,      'EXT')),
     ('thumb',       ('PIXMAP', 'Thumb')),
     ('gps',         (str,      'GPS')),
+    ('encounter_shipped_flag',         (bool,      'Shipped')),
+    ('encounter_processed_flag',       (bool,      'Processed')),
 ])
 
 #----
@@ -326,9 +330,13 @@ def make_ibeis_headers_dict(ibs):
         'eid'        : lambda eids: eids,
         'nImgs'      : ibs.get_encounter_num_gids,
         'enctext'    : ibs.get_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.get_encounter_shipped_flags,
+        'encounter_processed_flag'    : ibs.get_encounter_processed_flags,
     }
     setters[ENCOUNTER_TABLE] = {
         'enctext'    : ibs.set_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
+        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
     }
 
     iders[IMAGE_GRID]   = [ibs.get_valid_gids]
