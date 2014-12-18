@@ -239,12 +239,19 @@ class WaitForInputQtLoop(guitool.__PYQT__.QtCore.QObject):
     def __init__(self):
         self.inc_query_gen = None
         self.next_query_signal = guitool.signal_()
+        self.name_decision_signal = guitool.signal_(list)
         self.next_query_signal.connect(self.next_query_slot)
+        self.ibs = None
+        self.dry = False
+        self.interactive = True
 
     def request_nonblocking_inc_query(self, ibs, qaid_list, daid_list):
+        self.ibs = ibs
         next_query_callback = self.next_query_signal.emit
         callbacks = {
-            'next_query_callback': next_query_callback
+            'next_query_callback': self.next_query_callback,
+            'name_decision_callback': self.name_decision_callback,
+            'name_decision_callback': self.name_decision_callback,
         }
         self.inc_query_gen = generate_incremental_queries(ibs, qaid_list,
                                                           daid_list,
@@ -252,10 +259,28 @@ class WaitForInputQtLoop(guitool.__PYQT__.QtCore.QObject):
         next_query_callback()
         #pass
 
+    @guitool.slot_(list)
+    def name_decision_callback(self, sorted_aids):
+        try:
+            if sorted_aids is None or len(sorted_aids) == 0:
+                pass
+            sorted_aids[0]
+            make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
+                               interactive=True, metatup=None,
+                               dry=False, callbacks=None)
+        except StopIteration:
+            print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
+            pass
+
     @guitool.slot_()
     def next_query_slot(self):
         try:
-            six.next(self.inc_query_gen)
+            dry = self.dry
+            interactive = self.interactive
+            item = six.next(self.inc_query_gen)
+            (ibs, qres, qreq_, metatup, callbacks, threshold) = item
+            try_automatic_decision(ibs, qres, qreq_, threshold, interactive=interactive,
+                                   metatup=metatup, dry=dry, callbacks=callbacks)
         except StopIteration:
             print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
             pass
@@ -298,8 +323,9 @@ def generate_incremental_queries(ibs, qaid_list, daid_list, callbacks=None):
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        yield execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup,
-                               callbacks=callbacks)
+        for item in execute_teststep(ibs, qaid_chunk, threshold, interactive,
+                                     metatup, callbacks=callbacks):
+            yield item
 
 
 # ---- QUERY ----
@@ -345,9 +371,14 @@ def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
         daid_list = ibs.get_valid_aids(eid=eid)
         daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
     qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
-    assert  len(qaid2_qres) == 1, 'must be len 1 lest we write more callbacks'
+
+    try_decision_callback = callbacks.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
-        try_automatic_decision(ibs, qres, qreq_, threshold, interactive, metatup)
+        if try_decision_callback is None:
+            try_automatic_decision(ibs, qres, qreq_, threshold, interactive,
+                                   metatup, callbacks=callbacks)
+        else:
+            yield (ibs, qres, qreq_, metatup, callbacks, threshold)
 
 
 # ---- PRE DECISION ---
@@ -399,7 +430,7 @@ def get_qres_choices(ibs, qres):
 
 
 def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
-                            metatup=None, dry=False):
+                            metatup=None, dry=False, callbacks=None):
     r""" Either makes automatic decision or asks user for feedback.
 
     CommandLine:
@@ -456,30 +487,39 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
     # WE MAY NEED TO DO CALLBACKS HERE
     try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
                                 ibs, qres, qreq_, threshold, interactive=interactive,
-                                metatup=metatup, dry=dry)
-    try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
-                                    interactive=interactive, metatup=metatup, dry=dry)
+                                metatup=metatup, dry=dry, callbacks=callbacks)
 
 
 def try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
                                 ibs, qres, qreq_, threshold, interactive=False,
-                                metatup=None, dry=False):
+                                metatup=None, dry=False, callbacks=None):
     name_confidence_thresh = ut.get_sys_maxfloat()
     if interactive and name_confidence < name_confidence_thresh:
-        name = get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence, choicetup)
+        get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
+                               name_confidence, choicetup, callbacks=callbacks)
     else:
         # May need to execute callback whereas whatever the interaction was
         # would issue it otherwise
         pass
+        make_name_decision()
         #if name is not None:
+
+
+def make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
+                       interactive=True, metatup=None,
+                       dry=False, callbacks=None):
     if not dry:
         qaid = qres.get_qaid()
         execute_name_decision(ibs, qaid, name)
+    try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
+                                    interactive=interactive, metatup=metatup,
+                                    dry=dry, callbacks=callbacks)
     pass
 
 
 def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
-                                    interactive=False, metatup=None, dry=False):
+                                    interactive=False, metatup=None, dry=False,
+                                    callbacks=None):
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
     #update_normalizer(ibs, qreq_, choicetup, name)
@@ -631,7 +671,8 @@ def get_system_exemplar_suggestion(ibs, qaid):
     return autoexmplr_msg, exemplar_decision, exemplar_confidence
 
 
-def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence, choicetup):
+def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
+                           name_confidence, choicetup, callbacks=None):
     r""" hooks into to some method of getting user input for names
 
     TODO: really good interface
@@ -647,11 +688,23 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence
         print('WARNING: qres is None')
     import plottool as pt
 
-    mplshowtop = True and qres is not None
+    new_mplshow = True and qres is not None
+    mplshowtop = False and qres is not None
     qtinspect = False and qres is not None
+
+    if new_mplshow:
+        from ibeis.viz.interact import interact_query_decision
+        print('Showing matplotlib window')
+        comp_aids_all = ut.get_list_column(choicetup.sorted_aids, 0)
+        comp_aids     = comp_aids_all[0:min(3, len(comp_aids_all))]
+        suggestx      = ut.listfind(ibs.get_annot_names(comp_aids), name)
+        suggest_aid   = None if suggestx is None else comp_aids[suggestx]
+        name_decision_callback = callbacks['name_decision_callback']
+        qvi = interact_query_decision.QueryVerificationInteraction(
+            ibs, qres, comp_aids, suggest_aid, decision_callback=name_decision_callback)
+        qvi.fig.show()
     if mplshowtop:
         fnum = 513
-        print('Showing matplotlib window')
         pt.figure(fnum=fnum, pnum=(2, 3, 1), doclf=True, docla=True)
         fig = qres.ishow_top(ibs, name_scoring=True, fnum=fnum, in_image=False,
                              annot_mode=0, sidebyside=False, show_query=True)
@@ -659,6 +712,21 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence
         #fig.canvas.raise_()
         #from plottool import fig_presenter
         #fig_presenter.bring_to_front(fig)
+        newname = ibs.make_next_name()
+        newname_prefix = 'New Name:\n'
+        if name is None:
+            name = newname_prefix + newname
+
+        aid_list = ut.get_list_column(choicetup.sorted_aids, 0)
+        name_options = ibs.get_annot_names(aid_list) + [newname_prefix + newname]
+        import guitool
+        msg = 'Decide on query name. System suggests; ' + str(name)
+        title = 'name decision'
+        options = name_options[::-1]
+        user_chosen_name = guitool.user_option(None, msg, title, options)  # NOQA
+        if user_chosen_name is None:
+            raise AssertionError('User Canceled Query')
+        user_chosen_name = user_chosen_name.replace(newname_prefix, '')
     if qtinspect:
         print('Showing qt inspect window')
         qres_wgt = qres.qt_inspect_gui(ibs, name_scoring=True)
@@ -670,25 +738,10 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence
         else:
             qreq_.normalizer.visualize(update=False, fnum=2)
 
-    newname = ibs.make_next_name()
-    newname_prefix = 'New Name:\n'
-    if name is None:
-        name = newname_prefix + newname
-
-    aid_list = ut.get_list_column(choicetup.sorted_aids, 0)
-    name_options = ibs.get_annot_names(aid_list) + [newname_prefix + newname]
-    import guitool
-    msg = 'Decide on query name. System suggests; ' + str(name)
-    title = 'name decision'
-    options = name_options[::-1]
-    user_chosen_name = guitool.user_option(None, msg, title, options)  # NOQA
-    if user_chosen_name is None:
-        raise AssertionError('User Canceled Query')
-    user_chosen_name = user_chosen_name.replace(newname_prefix, '')
     # Prompt the user (this could be swaped out with a qt or web interface)
-    if qtinspect:
-        qres_wgt.close()
-    return user_chosen_name
+    #if qtinspect:
+    #    qres_wgt.close()
+    #return user_chosen_name
 
 
 def get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience):
