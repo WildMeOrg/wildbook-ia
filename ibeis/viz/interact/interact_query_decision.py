@@ -256,9 +256,12 @@ class QueryVerificationInteraction(AbstractInteraction):
             >>> # verify results
             >>> print(result)
         """
-        print(' Confirming selected animals.')
-        selected_aids = [aid for aid in self.comp_aids if self.checkbox_states[aid]]
+        print('[interact_query_decision] Confirming selected animals.')
+
+        selected_aids = [aid for aid in self.comp_aids
+                         if aid is not None and self.checkbox_states[aid]]
         if len(selected_aids) > 1:
+            print('[interact_query_decision] Confirming merge')
             msg = (
                 'You have selected more than one animal as a match to the query'
                 'animal. This will merge ALL aforementioned animals into the'
@@ -279,13 +282,19 @@ class QueryVerificationInteraction(AbstractInteraction):
                 is_merge_name = [name == merge_name for name in selected_names]
                 sorted_aids = ut.sortedby(selected_aids, is_merge_name)[::-1]
         else:
+            print('[interact_query_decision] Confirming single match')
             sorted_aids = selected_aids
 
+        print('[interact_query_decision] Calling update callbacks')
         self.update_callback()
         self.backend_callback()
+        print('[interact_query_decision] Calling decision callback')
+        print('[interact_query_decision] self.decision_callback = %r' % (self.decision_callback,))
         self.decision_callback(sorted_aids)
+        print('[interact_query_decision] sent callback')
         #self.show_page()
         self.close()
+        print('[interact_query_decision] Finished confirm')
 
 
 if __name__ == '__main__':

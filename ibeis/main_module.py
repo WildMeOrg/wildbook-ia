@@ -152,10 +152,10 @@ def _guitool_loop(main_locals, ipy=False):
     if back is not None:
         loop_freq = params.args.loop_freq
         guitool.qtapp_loop(qwin=back.mainwin, ipy=ipy or params.args.cmd, frequency=loop_freq)
-        if ipy: # If we're in IPython, the qtapp loop won't block, so we need to refresh
+        if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:
-        if not utool.QUIET and utool.VERBOSE:
+        if not utool.QUIET:
             print('WARNING: back was not expected to be None')
 
 
