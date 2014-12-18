@@ -140,8 +140,6 @@ LONG TERM TASKS:
             - LONG TERM: it would be cool if they were visualized by using
               networkx or some gephi like program and clustered by match score.
 
-
-
 """
 from __future__ import absolute_import, division, print_function
 import six
