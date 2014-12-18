@@ -752,25 +752,24 @@ def delete_image_thumbs(ibs, gid_list, quiet=False):
 
 @register_ibs_method
 @deleter
-def unrelate_encounter_from_images(ibs, eid_list):
+def delete_egr_encounter_relations(ibs, eid_list):
     """ Removes relationship between input encounters and all images """
     ibs.db.delete(const.EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 
 
 @register_ibs_method
 @deleter
-def unrelate_image_from_encounter(ibs, gid_list):
+def delete_egr_image_relations(ibs, gid_list):
     """ Removes relationship between input images and all encounters """
     ibs.db.delete(const.EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
 
 @register_ibs_method
 @deleter
-def delete_image_eids(ibs, gid_list, eid_list):
+def unrelate_images_and_encounters(ibs, gid_list, eid_list):
     """
     Seems to unrelate specific image encounter pairs
 
-    FIXME: function name is very bad
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:
@@ -837,11 +836,12 @@ def get_encounter_gids(ibs, eid_list):
 
 @register_ibs_method
 def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
-    # WEIRD FUNCTION FIXME
-    assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
     """
     Returns:
-        list_ (list):  a list of encounter-image-relationship rowids for each encouterid """
+        list_ (list):  a list of encounter-image-relationship rowids for each encouterid
+    """
+    # WEIRD FUNCTION FIXME
+    assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
     if eid_list is not None and gid_list is None:
         # TODO: Group type
         params_iter = ((eid,) for eid in eid_list)

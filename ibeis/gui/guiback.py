@@ -482,7 +482,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(list)
     def remove_from_encounter(back, gid_list):
         eid = back.get_selected_eid()
-        back.ibs.delete_image_eids(gid_list, [eid] * len(gid_list))
+        back.ibs.unrelate_images_and_encounters(gid_list, [eid] * len(gid_list))
         back.ibs.update_special_encounters()
         back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
 
@@ -497,7 +497,7 @@ class MainWindowBackend(QtCore.QObject):
         eid = back.get_selected_eid()
         eid_list = [eid] * len(gid_list)
         if mode == 'move':
-            ibs.delete_image_eids(gid_list, eid_list)
+            ibs.unrelate_images_and_encounters(gid_list, eid_list)
         elif mode == 'copy':
             pass
         else:

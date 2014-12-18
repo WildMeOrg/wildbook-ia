@@ -182,7 +182,7 @@ def incremental_test(ibs_gt, num_initial=0):
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:0 --interact-after 444440 --noqcache
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:1 --interact-after 444440 --noqcache
 
-
+        python -m ibeis.model.hots.automated_matcher --test-incremental_test:2
         python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
 
     Example:
@@ -200,6 +200,15 @@ def incremental_test(ibs_gt, num_initial=0):
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
+        >>> incremental_test(ibs_gt, num_initial)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs_gt = ibeis.opendb('testdb1')
+        >>> #num_initial = 0
+        >>> num_initial = 0
         >>> incremental_test(ibs_gt, num_initial)
     """
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
@@ -225,7 +234,36 @@ def incremental_test(ibs_gt, num_initial=0):
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
 
-def generate_incremental_queries(ibs, qaid_list, daid_list):
+import guitool
+
+
+class WaitForInputQtLoop(guitool.__PYQT__.QtCore.QObject):
+    def __init__(self):
+        self.inc_query_gen = None
+        self.next_query_signal = guitool.signal_()
+        self.next_query_signal.connect(self.next_query_slot)
+
+    def request_nonblocking_inc_query(self, ibs, qaid_list, daid_list):
+        next_query_callback = self.next_query_signal.emit
+        callbacks = {
+            'next_query_callback': next_query_callback
+        }
+        self.inc_query_gen = generate_incremental_queries(ibs, qaid_list,
+                                                          daid_list,
+                                                          callbacks=callbacks)
+        next_query_callback()
+        #pass
+
+    @guitool.slot_()
+    def next_query_slot(self):
+        try:
+            six.next(self.inc_query_gen)
+        except StopIteration:
+            print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
+            pass
+
+
+def generate_incremental_queries(ibs, qaid_list, daid_list, callbacks=None):
     r""" generates incremental queries that completely new to the system
 
     Args:
@@ -262,12 +300,14 @@ def generate_incremental_queries(ibs, qaid_list, daid_list):
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        yield execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup)
+        yield execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup,
+                               callbacks=callbacks)
 
 
 # ---- QUERY ----
 
-def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None):
+def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
+                     callbacks=None):
     """ Add an unseen annotation and run a query
 
     Args:
@@ -307,6 +347,7 @@ def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None):
         daid_list = ibs.get_valid_aids(eid=eid)
         daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
     qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
+    assert  len(qaid2_qres) == 1, 'must be len 1 lest we write more callbacks'
     for qaid, qres in six.iteritems(qaid2_qres):
         try_automatic_decision(ibs, qres, qreq_, threshold, interactive, metatup)
 
@@ -394,10 +435,8 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
 
     qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
-    qaid = qres.qaid
+    qaid = qres.get_qaid()
     #ut.embed()
-    name_confidence_thresh = ut.get_sys_maxfloat()
-    exemplar_confidence_thresh = ut.get_sys_maxfloat()
     # print query result info
     #if qres is not None;
     #    inspectstr = qres.get_inspect_str(ibs=ibs, name_scoring=True)
@@ -416,16 +455,44 @@ def try_automatic_decision(ibs, qres, qreq_, threshold, interactive=False,
             ibs, autoname_msg, qaid, choicetup, metatup)
         #ut.embed()
     # ---------------------------------------------
+    # WE MAY NEED TO DO CALLBACKS HERE
+    try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
+                                ibs, qres, qreq_, threshold, interactive=False,
+                                metatup=None, dry=False)
+    try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
+                                    interactive=False, metatup=None, dry=False)
+
+
+def try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
+                                ibs, qres, qreq_, threshold, interactive=False,
+                                metatup=None, dry=False):
+    name_confidence_thresh = ut.get_sys_maxfloat()
     if interactive and name_confidence < name_confidence_thresh:
         name = get_user_name_decision(ibs, qres, qreq_, autoname_msg, name, name_confidence, choicetup)
+    else:
+        # May need to execute callback whereas whatever the interaction was
+        # would issue it otherwise
+        pass
         #if name is not None:
     if not dry:
+        qaid = qres.get_qaid()
         execute_name_decision(ibs, qaid, name)
+    pass
+
+
+def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
+                                    interactive=False, metatup=None, dry=False):
+    qaid = qres.get_qaid()
+    exemplar_confidence_thresh = ut.get_sys_maxfloat()
     #update_normalizer(ibs, qreq_, choicetup, name)
     autoexemplar_msg, exemplar_decision, exemplar_condience = get_system_exemplar_suggestion(ibs, qaid)
     print(autoexemplar_msg)
     if interactive and exemplar_condience < exemplar_confidence_thresh:
         exemplar_decision = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)
+    else:
+        # May need to execute callback whereas whatever the interaction was
+        # would issue it otherwise
+        pass
     if exemplar_decision:
         if not dry:
             ibs.set_annot_exemplar_flags((qaid,), [1])

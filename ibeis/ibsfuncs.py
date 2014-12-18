@@ -1194,7 +1194,7 @@ def merge_databases(ibs_target, ibs_source_list):
 #def update_reviewed_image_encounter(ibs):
 #    # FIXME SLOW
 #    #ibs.delete_encounters(eid)
-#    ibs.unrelate_encounter_from_images(eid)
+#    ibs.delete_egr_encounter_relations(eid)
 #    #gid_list = ibs.get_valid_gids(reviewed=True)
 #    gid_list = _get_reviewed_gids(ibs)  # hack
 #    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
@@ -1208,7 +1208,7 @@ def update_exemplar_special_encounter(ibs):
     # FIXME SLOW
     exemplar_eid = ibs.get_encounter_eids_from_text(const.EXEMPLAR_ENCTEXT)
     #ibs.delete_encounters(exemplar_eid)
-    ibs.unrelate_encounter_from_images(exemplar_eid)
+    ibs.delete_egr_encounter_relations(exemplar_eid)
     #aid_list = ibs.get_valid_aids(is_exemplar=True)
     #gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
     gid_list = list(set(_get_exemplar_gids(ibs)))
@@ -1228,8 +1228,8 @@ def update_reviewed_unreviewed_image_special_encounter(ibs):
     unreviewed_eid = ibs.get_encounter_eids_from_text(const.UNREVIEWED_IMAGE_ENCTEXT)
     reviewed_eid = ibs.get_encounter_eids_from_text(const.REVIEWED_IMAGE_ENCTEXT)
     #ibs.delete_encounters(eid)
-    ibs.unrelate_encounter_from_images(unreviewed_eid)
-    ibs.unrelate_encounter_from_images(reviewed_eid)
+    ibs.delete_egr_encounter_relations(unreviewed_eid)
+    ibs.delete_egr_encounter_relations(reviewed_eid)
     #gid_list = ibs.get_valid_gids(reviewed=False)
     #ibs.set_image_enctext(gid_list, [const.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
     unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
@@ -1261,7 +1261,7 @@ def get_special_eids(ibs):
         const.EXEMPLAR_ENCTEXT,
     ]
     special_eids_ = [get_enctext_eid(enctext, ensure=False)
-                    for enctext in special_enctext_list]
+                     for enctext in special_enctext_list]
     special_eids = [i for i in special_eids_ if i is not None]
     return special_eids
 
@@ -1318,7 +1318,7 @@ def update_ungrouped_special_encounter(ibs):
     """
     # FIXME SLOW
     ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
-    ibs.unrelate_encounter_from_images(ungrouped_eid)
+    ibs.delete_egr_encounter_relations(ungrouped_eid)
     ungrouped_gids = ibs.get_ungrouped_gids()
     ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
 
