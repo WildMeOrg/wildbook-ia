@@ -1,5 +1,13 @@
 """
 developer convenience functions for ibs
+
+TODO: need to split up into sub modules:
+    consistency_checks
+    feasibility_fixes
+    move the export stuff to dbio
+
+    then there are also convineience functions that need to be ordered at least
+    within this file
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -389,6 +397,8 @@ def check_annot_consistency(ibs, aid_list=None):
 
 def fix_remove_visual_dupliate_annotations(ibs):
     r"""
+    Add to clean database?
+
     removes visually duplicate annotations
 
     Args:
@@ -423,6 +433,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
 
 @__injectable
 def vacuum_and_clean_databases(ibs):
+    # Add to duct tape?
     ibs.vdd()
     print(ibs.db.get_table_names())
     # Removes all lblannots and lblannot relations as we are not using them
@@ -442,10 +453,14 @@ def vacuum_and_clean_databases(ibs):
     ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
     ibs.db.vacuum()
 
+
 @__injectable
 def clean_database(ibs):
     #TODO: Call more stuff, maybe rename to 'apply duct tape'
     ibs.fix_unknown_exemplars()
+    ibs.fix_invalid_name_texts()
+    ibs.fix_invalid_nids()
+
 
 def check_name_consistency(ibs, nid_list):
     #aids_list = ibs.get_name_aids(nid_list)
@@ -459,6 +474,7 @@ def check_name_consistency(ibs, nid_list):
 
 @__injectable
 def check_annot_size(ibs):
+    print('Checking annot sizes')
     aid_list = ibs.get_valid_aids()
     uuid_list = ibs.get_annot_uuids(aid_list)
     desc_list = ibs.get_annot_vecs(aid_list)
@@ -477,6 +493,7 @@ def check_consistency(ibs, embed=False):
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
     nid_list = ibs.get_valid_nids()
+    check_annot_size(ibs)
     check_image_consistency(ibs, gid_list)
     check_annot_consistency(ibs, aid_list)
     check_name_consistency(ibs, nid_list)
@@ -2052,14 +2069,107 @@ def view_model_dir(ibs):
 
 
 @__injectable
+def fix_invalid_nids(ibs):
+    r"""
+    Make sure that all rowids are greater than 0
+
+    We can only handle there being a name with rowid 0 if it is UNKNOWN. In this
+    case we safely delete it, but anything more complicated needs to be handled
+    anually
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-fix_invalid_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = fix_invalid_names(ibs)
+        >>> # verify results
+        >>> print(result)
+    """
+    # Get actual rowids from sql database (no postprocessing)
+    nid_list = ibs._get_all_known_name_rowids()
+    # Get actual names from sql database (no postprocessing)
+    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
+    is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
+    if any(is_invalid_nid_list):
+        invalid_nids = ut.filter_items(nid_list, is_invalid_nid_list)
+        invalid_texts = ut.filter_items(name_text_list, is_invalid_nid_list)
+        if (len(invalid_nids) == 0 and
+              invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
+              invalid_texts[0] == const.UNKNOWN):
+            ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
+        else:
+            errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
+            errmsg += ut.list_str(list(zip(invalid_nids, invalid_texts)))
+            raise AssertionError(errmsg)
+
+
+@__injectable
+def fix_invalid_name_texts(ibs):
+    r"""
+    Ensure  that no name text is empty or '____'
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-fix_invalid_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = fix_invalid_name_texts(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    ibs.set_name_texts(nid_list[3], '____')
+    ibs.set_name_texts(nid_list[2], '')
+    """
+    print('checking for invalid name texts')
+    # Get actual rowids from sql database (no postprocessing)
+    nid_list = ibs._get_all_known_name_rowids()
+    # Get actual names from sql database (no postprocessing)
+    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
+    invalid_name_set = {'', const.UNKNOWN}
+    is_invalid_name_text_list = [name_text in invalid_name_set
+                                 for name_text in name_text_list]
+    if any(is_invalid_name_text_list):
+        invalid_nids = ut.filter_items(nid_list, is_invalid_name_text_list)
+        invalid_texts = ut.filter_items(name_text_list, is_invalid_name_text_list)
+        for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
+            conflict_set = invalid_name_set.union(set(ibs.get_name_texts(nid_list, apply_fix=False)))
+            base_str = 'fixedname%d' + invalid_text
+            new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
+            print('Fixing name %r -> %r' % (invalid_text, new_text))
+            ibs.set_name_texts((invalid_nid,), (new_text,))
+        print('Fixed %d name texts' % (len(invalid_nids)))
+    else:
+        print('all names seem valid')
+
+
+@__injectable
 def fix_unknown_exemplars(ibs):
     """
-    Description:
-        Goes through all of the annotations, and sets their exemplar flag to 0 if it is associated with an unknown annotation
+    Goes through all of the annotations, and sets their exemplar flag to 0 if it
+    is associated with an unknown annotation
     """
     aid_list = ibs.get_valid_aids()
-    nid_list = ibs.get_annot_nids(aid_list,distinguish_unknowns=False)
-    new_annots = [annot if nid != const.UNKNOWN_NAME_ROWID else 0 for nid, annot in zip(nid_list, ibs.get_annot_exemplar_flags(aid_list))]
+    nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+    new_annots = [annot if nid != const.UNKNOWN_NAME_ROWID else 0
+                  for nid, annot in
+                  zip(nid_list, ibs.get_annot_exemplar_flags(aid_list))]
     ibs.set_annot_exemplar_flags(aid_list, new_annots)
 
 
