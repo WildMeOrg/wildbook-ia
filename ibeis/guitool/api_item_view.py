@@ -112,15 +112,41 @@ def hide_cols(view):
 
 
 @register_view_method
-def select_row_from_id(view, _id):
+def select_row_from_id(view, _id, level=0):
     """
     _id is from the iders function (i.e. an ibeis rowid)
     selects the row in that view if it exists
-    """
-    model = view.model()
-    row = model.get_row_from_id(_id)
-    if row is not None:
+
+
+    Ignore:
+        from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
+                                          NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+        ibsgwt = back.front
+
+        view   = ibsgwt.views[IMAGE_TABLE]
+        model  = ibsgwt.models[IMAGE_TABLE]
+        row = model.get_row_from_id(3)
         view.selectRow(row)
+
+
+        view   = ibsgwt.views[NAMES_TREE]
+        model  = ibsgwt.models[NAMES_TREE]
+
+    References:
+        http://stackoverflow.com/questions/4967660/selecting-a-row-in-qtreeview-programatically
+        http://stackoverflow.com/questions/17912812/how-do-i-select-a-row-in-a-qtreeview-programatically
+        http://qt-project.org/doc/qt-4.8/qabstractitemview.html#setSelection
+    """
+    if isinstance(view, QtGui.QTreeView):
+        # TODO find a way to get tree views to select by _id
+        # TODO: use level as well
+        return None
+    else:
+        model = view.model()
+        row = model.get_row_from_id(_id)
+        if row is not None:
+            view.selectRow(row)
+            return row
 
 #---------------
 # Qt Overrides

@@ -523,6 +523,9 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_row_id(model, qtindex=QtCore.QModelIndex()):
+        """
+        returns the id (specified by iders i.e. an ibeis rowid) from qtindex
+        """
         if qtindex.isValid():
             node = qtindex.internalPointer()
             if utool.USE_ASSERT:
