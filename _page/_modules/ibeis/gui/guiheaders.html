@@ -100,13 +100,17 @@
         <span class="c">#&#39;nAids&#39;,</span>
         <span class="s">&#39;img_gname&#39;</span><span class="p">,</span>
         <span class="c">#&#39;ext&#39;,</span>
-        <span class="s">&#39;reviewed&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;reviewed&#39;,  # detection reviewed flag is not fullyused</span>
         <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
         <span class="s">&#39;gps&#39;</span><span class="p">,</span>
         <span class="s">&#39;gdconf&#39;</span><span class="p">,</span>
         <span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>
     <span class="p">],</span>
 
+    <span class="c"># debug with</span>
+    <span class="c"># --noannottbl</span>
+    <span class="c"># --nonametree</span>
+    <span class="c"># even just aid seems to be very slow</span>
     <span class="n">ANNOTATION_TABLE</span>       <span class="p">:</span> <span class="p">[</span>
         <span class="c">#&#39;annotation_uuid&#39;,</span>
         <span class="s">&#39;aid&#39;</span><span class="p">,</span>
@@ -146,18 +150,20 @@
         <span class="s">&#39;eid&#39;</span><span class="p">,</span>
         <span class="s">&#39;enctext&#39;</span><span class="p">,</span>
         <span class="s">&#39;nImgs&#39;</span><span class="p">,</span>
+        <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>
+        <span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>
     <span class="p">],</span>
 
     <span class="n">NAMES_TREE</span>      <span class="p">:</span> <span class="p">[</span>
         <span class="s">&#39;name&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nid&#39;</span><span class="p">,</span>
         <span class="s">&#39;nAids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nExAids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;exemplar&#39;</span><span class="p">,</span>
-        <span class="s">&#39;aid&#39;</span><span class="p">,</span>
         <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+        <span class="s">&#39;nid&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;nExAids&#39;,</span>
+        <span class="c">#&#39;exemplar&#39;,</span>
+        <span class="c">#&#39;aid&#39;,</span>
         <span class="s">&#39;annot_gname&#39;</span><span class="p">,</span>
-        <span class="s">&#39;namenotes&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;namenotes&#39;,</span>
     <span class="p">],</span>
 
     <span class="n">IMAGE_GRID</span>     <span class="p">:</span> <span class="p">[</span>
@@ -181,7 +187,7 @@
     <span class="n">ANNOTATION_TABLE</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;species&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;annotnotes&#39;</span><span class="p">,</span> <span class="s">&#39;exemplar&#39;</span><span class="p">]),</span>
     <span class="n">NAME_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">]),</span>
     <span class="n">QRES_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">]),</span>
-    <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+    <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">]),</span>
     <span class="n">IMAGE_GRID</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
     <span class="n">THUMB_TABLE</span>      <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
     <span class="n">NAMES_TREE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;exemplar&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">]),</span>
@@ -253,6 +259,8 @@
     <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;EXT&#39;</span><span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;thumb&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="s">&#39;PIXMAP&#39;</span><span class="p">,</span> <span class="s">&#39;Thumb&#39;</span><span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;gps&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;GPS&#39;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Processed&#39;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Commited&#39;</span><span class="p">)),</span>
 <span class="p">])</span>
 
 <span class="c">#----</span>
@@ -372,9 +380,13 @@
         <span class="s">&#39;eid&#39;</span>        <span class="p">:</span> <span class="k">lambda</span> <span class="n">eids</span><span class="p">:</span> <span class="n">eids</span><span class="p">,</span>
         <span class="s">&#39;nImgs&#39;</span>      <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">,</span>
         <span class="s">&#39;enctext&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">,</span>
+        <span class="s">&#39;encounter_shipped_flag&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_shipped_flags</span><span class="p">,</span>
+        <span class="s">&#39;encounter_processed_flag&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_processed_flags</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">setters</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;enctext&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_enctext</span><span class="p">,</span>
+        <span class="s">&#39;encounter_shipped_flag&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_shipped_flags</span><span class="p">,</span>
+        <span class="s">&#39;encounter_processed_flag&#39;</span>  <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_processed_flags</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">iders</span><span class="p">[</span><span class="n">IMAGE_GRID</span><span class="p">]</span>   <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">]</span>
@@ -436,6 +448,7 @@
             <span class="s">&#39;col_level_list&#39;</span><span class="p">:</span> <span class="n">collevels</span><span class="p">,</span>
             <span class="s">&#39;col_hidden_list&#39;</span> <span class="p">:</span> <span class="n">hiddencols</span><span class="p">,</span>
             <span class="s">&#39;num_duplicates&#39;</span>  <span class="p">:</span> <span class="n">numstripes</span><span class="p">,</span>
+            <span class="s">&#39;get_thumb_size&#39;</span>  <span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">header</span>
 

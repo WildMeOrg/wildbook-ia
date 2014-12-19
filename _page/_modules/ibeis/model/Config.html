@@ -173,6 +173,10 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NNConfig</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;single&#39;</span><span class="p">,</span> <span class="s">&#39;multi&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;multi&#39;</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;single&#39;</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;last&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span>  <span class="o">=</span> <span class="mi">1024</span>  <span class="c"># 512#128</span>
@@ -180,12 +184,14 @@
 
 <div class="viewcode-block" id="NNConfig.make_feasible"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">):</span>
         <span class="c"># normalizer rule depends on Knorm</span>
+        <span class="k">assert</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="ow">in</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span> <span class="o">=</span> <span class="s">&#39;last&#39;</span>
 </div>
 <div class="viewcode-block" id="NNConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">nn_cfgstr</span>  <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_NN(&#39;</span><span class="p">,</span>
-                      <span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span><span class="p">),</span>
+                      <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span><span class="p">,</span>
+                      <span class="s">&#39;,K&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span><span class="p">),</span>
                       <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span><span class="p">),</span>
                       <span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span><span class="p">,</span>
                       <span class="s">&#39;,cks&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span><span class="p">),</span>
@@ -237,7 +243,7 @@
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&#39;bboxdist&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;recip&#39;</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;filt_cfg.Krecip &gt; 0&#39;</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;bursty&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;ratio&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;ratio&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;lnbnn&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="s">&#39;dupvote&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;lograt&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
@@ -251,7 +257,7 @@
 
 <div class="viewcode-block" id="FilterConfig.make_feasible"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.FilterConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">):</span>
         <span class="c"># Ensure the list of on filters is valid given the weight and thresh</span>
-        <span class="k">if</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">bboxdist_thresh</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">filt_cfg</span><span class="o">.</span><span class="n">bboxdist_thresh</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">bboxdist_thresh</span> <span class="o">=</span> <span class="bp">None</span>
@@ -369,8 +375,8 @@
         <span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c">#agg_cfg.score_method = &#39;csum&#39;</span>
         <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
-        <span class="c">#agg_cfg.score_normalization = False</span>
-        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c">#agg_cfg.score_normalization = True</span>
         <span class="n">alt_methods</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;topk&#39;</span><span class="p">:</span> <span class="s">&#39;topk&#39;</span><span class="p">,</span>
             <span class="s">&#39;borda&#39;</span><span class="p">:</span> <span class="s">&#39;borda&#39;</span><span class="p">,</span>
@@ -411,7 +417,7 @@
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="FlannConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.FlannConfig">[docs]</a><span class="k">class</span> <span class="nc">FlannConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; FlannConfig</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    this flann is only for neareset neighbors in vsone/many</span>
 <span class="sd">    TODO: this might not need to be here</span>
@@ -421,14 +427,16 @@
         <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s">&#39;kdtree&#39;</span>
         <span class="c">#flann_cfg.algorithm = &#39;linear&#39;</span>
         <span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">flann_cores</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># doesnt change config, just speed</span>
         <span class="c">#flann_cfg.trees = 16</span>
         <span class="n">flann_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FlannConfig.get_dict_args"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.FlannConfig.get_dict_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict_args</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s">&#39;algorithm&#39;</span> <span class="p">:</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
-            <span class="s">&#39;trees&#39;</span> <span class="p">:</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span><span class="p">,</span>
-        <span class="p">}</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">algorithm</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
+            <span class="n">trees</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span><span class="p">,</span>
+            <span class="n">cores</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">flann_cores</span><span class="p">,</span>
+        <span class="p">)</span>
 </div>
 <div class="viewcode-block" id="FlannConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.FlannConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">flann_cfgstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_FLANN(&#39;</span><span class="p">]</span>
@@ -445,7 +453,6 @@
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="SMKConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.SMKConfig">[docs]</a><span class="k">class</span> <span class="nc">SMKConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SMKConfig</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -498,7 +505,7 @@
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="VocabTrainConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.VocabTrainConfig">[docs]</a><span class="k">class</span> <span class="nc">VocabTrainConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; VocabTrainConfig</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -515,7 +522,7 @@
         <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">nWords</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">8E3</span><span class="p">)</span>  <span class="c">#</span>
         <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">vocab_init_method</span> <span class="o">=</span> <span class="s">&#39;akmeans++&#39;</span>
         <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">vocab_nIters</span> <span class="o">=</span> <span class="mi">128</span>
-        <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">vocab_flann_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># TODO: easy flann params cfgstr</span>
+        <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">vocab_flann_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cores</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c"># TODO: easy flann params cfgstr</span>
         <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VocabTrainConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.VocabTrainConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">vocabtrain_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -540,7 +547,7 @@
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="VocabAssignConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.VocabAssignConfig">[docs]</a><span class="k">class</span> <span class="nc">VocabAssignConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; VocabAssignConfig</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -617,64 +624,76 @@
         <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="QueryConfig.update_query_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.update_query_cfg">[docs]</a>    <span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryConfig.update_query_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.update_query_cfg">[docs]</a>    <span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">):</span>
         <span class="c"># Each config paramater should be unique</span>
         <span class="c"># So updating them all should not cause conflicts</span>
         <span class="c"># FIXME: Should be able to infer all the children that need updates</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c">#</span>
+        <span class="c"># apply codename before updating subconfigs</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">apply_codename</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;codename&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        <span class="c"># update subconfigs</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="c"># Ensure feasibility of the configuration</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">raise</span>
 </div>
-<div class="viewcode-block" id="QueryConfig.make_feasible"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryConfig.apply_codename"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.apply_codename">[docs]</a>    <span class="k">def</span> <span class="nf">apply_codename</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        removes invalid parameter settings over all cfgs (move to QueryConfig)</span>
+<span class="sd">        codenames denote mass changes to configurations</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">codename</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span>
+        <span class="k">if</span> <span class="n">codename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">codename</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span>
+
         <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span>
         <span class="n">nn_cfg</span>   <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span>
-        <span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
-        <span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
-        <span class="n">smk_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span>
-        <span class="n">vocabassign_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span>
         <span class="n">agg_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span>
         <span class="n">sv_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span>
-        <span class="c"># TODO:</span>
-        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;csum&#39;</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;csum&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">codename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_csum&#39;</span><span class="p">):</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
             <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
-        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;nsum&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;nsum&#39;</span><span class="p">):</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
             <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
             <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
-            <span class="k">if</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;nsum_unnorm&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;nsum_unnorm&#39;</span><span class="p">):</span>
                 <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsmany&#39;</span><span class="p">):</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;vsmany&#39;</span>
         <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsone&#39;</span><span class="p">):</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
-            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="mf">1.6</span>
+            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">lnbnn_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="c">#filt_cfg.ratio_thresh = 1.6</span>
+            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">625</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
-            <span class="k">if</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;vsone_unnorm&#39;</span><span class="p">:</span>
+            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsone_unnorm&#39;</span><span class="p">):</span>
                 <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;asmk&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsone_norm&#39;</span><span class="p">):</span>
+                <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;asmk&#39;</span><span class="p">):</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;asmk&#39;</span>
-        <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;smk&#39;</span><span class="p">):</span>
             <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;smk&#39;</span>
         <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
             <span class="k">pass</span>
@@ -684,11 +703,32 @@
         <span class="c">#    query_cfg.fg_weight = 1.0</span>
         <span class="c">#if query_cfg.species_code == &#39;zebra_grevys&#39;:</span>
         <span class="c">#    query_cfg.fg_weight = 1.0</span>
-            <span class="c"># TODO:</span>
+</div>
+<div class="viewcode-block" id="QueryConfig.make_feasible"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible_</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;failed ot make feasible&#39;</span><span class="p">)</span>
+            <span class="k">raise</span>
+</div>
+<div class="viewcode-block" id="QueryConfig.make_feasible_"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.make_feasible_">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible_</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        removes invalid parameter settings over all cfgs (move to QueryConfig)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span>
+        <span class="n">nn_cfg</span>   <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span>
+        <span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
+        <span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
+        <span class="n">smk_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span>
+        <span class="n">vocabassign_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span>
+        <span class="n">agg_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span>
+        <span class="n">sv_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span>
 
         <span class="k">assert</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">==</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="p">,</span> <span class="s">&#39;cannot be different yet.&#39;</span>
 
-        <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="ow">and</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span>
 
         <span class="k">if</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;asmk&#39;</span><span class="p">:</span>
@@ -1071,14 +1111,19 @@
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="OtherConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.OtherConfig">[docs]</a><span class="k">class</span> <span class="nc">OtherConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">othercfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OtherConfig</span><span class="p">,</span> <span class="n">othercfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;othercfg&#39;</span><span class="p">)</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">thumb_size</span>     <span class="o">=</span> <span class="mi">64</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">ranks_lt</span>       <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">auto_localize</span>  <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">detect_add_after</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">detect_use_chunks</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">othercfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">other_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OtherConfig</span><span class="p">,</span> <span class="n">other_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;other_cfg&#39;</span><span class="p">)</span>
+        <span class="c">#other_cfg.thumb_size     = 128</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span>     <span class="o">=</span> <span class="mi">221</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span>       <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">auto_localize</span>  <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># maximum number of exemplars per name</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">max_exemplars</span>  <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplar_distinctivness_thresh</span>  <span class="o">=</span> <span class="o">.</span><span class="mi">95</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_add_after</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_use_chunks</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_more_special_encounters</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#def get_cfgstr_list(nn_cfg):</span>
     <span class="c">#    raise NotImplementedError(&#39;abstract&#39;)</span>
@@ -1103,6 +1148,7 @@
 
 </div>
 <div class="viewcode-block" id="default_vsone_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.default_vsone_cfg">[docs]</a><span class="k">def</span> <span class="nf">default_vsone_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c"># DEPRICATE</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;pipeline_root&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">dict_update_newkeys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">{</span>
         <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
@@ -1110,7 +1156,7 @@
         <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-        <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+        <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">6666</span>  <span class="c"># 1.5,</span>
     <span class="p">})</span>
     <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">QueryConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">query_cfg</span>

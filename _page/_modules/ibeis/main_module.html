@@ -66,8 +66,12 @@
 </div>
 <span class="k">def</span> <span class="nf">_on_ctrl_c</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibeis.main_module] Caught ctrl+c&#39;</span><span class="p">)</span>
-    <span class="n">_close_parallel</span><span class="p">()</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_close_parallel</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Something very bad happened&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="c">#-----------------------</span>
 <span class="c"># private init functions</span>
@@ -92,44 +96,6 @@
 <span class="k">def</span> <span class="nf">_init_matplotlib</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">__MPL_INIT__</span>
     <span class="n">__MPL_INIT__</span><span class="o">.</span><span class="n">init_matplotlib</span><span class="p">()</span>
-    <span class="c">#try:</span>
-    <span class="c">#    from guitool import __PYQT__  # NOQA</span>
-    <span class="c">#except ImportError:</span>
-    <span class="c">#    print(&#39;[!main] WARNING guitool does not have __PYQT__&#39;)</span>
-    <span class="c">#    pass</span>
-    <span class="c">#import matplotlib as mpl</span>
-    <span class="c">#import utool</span>
-    <span class="c">#backend = mpl.get_backend()</span>
-    <span class="c">#if not sys.platform.startswith(&#39;win32&#39;) and not sys.platform.startswith(&#39;darwin&#39;) and os.environ.get(&#39;DISPLAY&#39;, None) is None:</span>
-    <span class="c">#    # Write to files if we cannot display</span>
-    <span class="c">#    TARGET_BACKEND = &#39;PDF&#39;</span>
-    <span class="c">#else:</span>
-    <span class="c">#    TARGET_BACKEND = &#39;Qt4Agg&#39;</span>
-    <span class="c">#if utool.in_main_process():</span>
-    <span class="c">#    if not utool.QUIET and utool.VERBOSE:</span>
-    <span class="c">#        print(&#39;--- INIT MPL---&#39;)</span>
-    <span class="c">#        print(&#39;[main] current backend is: %r&#39; % backend)</span>
-    <span class="c">#        print(&#39;[main] mpl.use(%r)&#39; % TARGET_BACKEND)</span>
-    <span class="c">#    if backend != TARGET_BACKEND:</span>
-    <span class="c">#        mpl.use(TARGET_BACKEND, warn=True, force=True)</span>
-    <span class="c">#        backend = mpl.get_backend()</span>
-    <span class="c">#        if not utool.QUIET and utool.VERBOSE:</span>
-    <span class="c">#            print(&#39;[main] current backend is: %r&#39; % backend)</span>
-    <span class="c">#    if utool.get_argflag(&#39;--notoolbar&#39;):</span>
-    <span class="c">#        toolbar = &#39;None&#39;</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        toolbar = &#39;toolbar2&#39;</span>
-    <span class="c">#    mpl.rcParams[&#39;toolbar&#39;] = toolbar</span>
-    <span class="c">#    mpl.rc(&#39;text&#39;, usetex=False)</span>
-    <span class="c">#    mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find(&#39;keymap&#39;) == 0]</span>
-    <span class="c">#    for key in mpl_keypress_shortcuts:</span>
-    <span class="c">#        mpl.rcParams[key] = &#39;&#39;</span>
-    <span class="c">#    #mpl.rcParams[&#39;text&#39;].usetex = False</span>
-    <span class="c">#    #for key in mpl_keypress_shortcuts:</span>
-    <span class="c">#        #print(&#39;%s = %s&#39; % (key, mpl.rcParams[key]))</span>
-    <span class="c">#    # Disable mpl shortcuts</span>
-    <span class="c">#        #mpl.rcParams[&#39;toolbar&#39;] = &#39;None&#39;</span>
-    <span class="c">#        #mpl.rcParams[&#39;interactive&#39;] = True</span>
 
 
 <span class="c">#@profile</span>
@@ -162,7 +128,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printWARN</span><span class="p">(</span><span class="s">&#39;[main!] WARNING args.dbdir is None&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">new_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">request_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">webapp</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">app</span>
             <span class="n">app</span><span class="o">.</span><span class="n">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
@@ -191,19 +157,24 @@
 
 
 <span class="k">def</span> <span class="nf">_close_parallel</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_parallel</span>
-    <span class="n">util_parallel</span><span class="o">.</span><span class="n">close_pool</span><span class="p">(</span><span class="n">terminate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_parallel</span>
+        <span class="n">util_parallel</span><span class="o">.</span><span class="n">close_pool</span><span class="p">(</span><span class="n">terminate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;error closing parallel&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_init_numpy</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-    <span class="n">floating_error_options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ignore&#39;</span><span class="p">,</span> <span class="s">&#39;warn&#39;</span><span class="p">,</span> <span class="s">&#39;raise&#39;</span><span class="p">,</span> <span class="s">&#39;call&#39;</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">]</span>
-    <span class="n">on_float_err</span> <span class="o">=</span> <span class="n">floating_error_options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">error_options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ignore&#39;</span><span class="p">,</span> <span class="s">&#39;warn&#39;</span><span class="p">,</span> <span class="s">&#39;raise&#39;</span><span class="p">,</span> <span class="s">&#39;call&#39;</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">]</span>
+    <span class="n">on_err</span> <span class="o">=</span> <span class="n">error_options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c">#np.seterr(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;)</span>
     <span class="n">numpy_err</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;divide&#39;</span><span class="p">:</span>  <span class="n">on_float_err</span><span class="p">,</span>
-        <span class="s">&#39;over&#39;</span><span class="p">:</span>    <span class="n">on_float_err</span><span class="p">,</span>
-        <span class="s">&#39;under&#39;</span><span class="p">:</span>   <span class="n">on_float_err</span><span class="p">,</span>
-        <span class="s">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">on_float_err</span><span class="p">,</span>
+        <span class="s">&#39;divide&#39;</span><span class="p">:</span>  <span class="n">on_err</span><span class="p">,</span>
+        <span class="s">&#39;over&#39;</span><span class="p">:</span>    <span class="n">on_err</span><span class="p">,</span>
+        <span class="s">&#39;under&#39;</span><span class="p">:</span>   <span class="n">on_err</span><span class="p">,</span>
+        <span class="s">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">on_err</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">numpy_print</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;precision&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
@@ -231,9 +202,10 @@
     <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">loop_freq</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">loop_freq</span>
         <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">ipy</span><span class="o">=</span><span class="n">ipy</span> <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="n">loop_freq</span><span class="p">)</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ipy</span><span class="p">:</span>  <span class="c"># If we&#39;re in IPython, the qtapp loop won&#39;t block, so we need to refresh</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: back was not expected to be None&#39;</span><span class="p">)</span>
 
 
@@ -245,7 +217,17 @@
 <span class="sd">    Program entry point</span>
 <span class="sd">    Inits the system environment, an IBEISControl, and a GUI if requested</span>
 
-<span class="sd">    If gui is False a gui instance will not be created</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gui (bool): (default=True) If gui is False a gui instance will not be created</span>
+<span class="sd">        dbdir (None): full directory of a database to load</span>
+<span class="sd">        db (None): name of database to load relative to the workdir</span>
+<span class="sd">        allow_newdir (bool): (default=False) if False an error is raised if a</span>
+<span class="sd">            a new database is created</span>
+<span class="sd">        defaultdb (str): codename of database to load if db and dbdir is None. a value</span>
+<span class="sd">            of &#39;cache&#39; will open the last database opened with the GUI.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: main_locals</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_commands</span>
     <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
@@ -288,8 +270,35 @@
 </div>
 <div class="viewcode-block" id="opendb"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb">[docs]</a><span class="k">def</span> <span class="nf">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
            <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; main without the preload (except for option to delete database before</span>
-<span class="sd">    opening) &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    main without the preload (except for option to delete database before opening)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        db (str):  database name in your workdir used only if dbdir is None</span>
+<span class="sd">        dbdir (None): full database path</span>
+<span class="sd">        defaultdb (str): dbdir search stratagy when db is None and dbdir is None</span>
+<span class="sd">        allow_newdir (bool): (default=True) if True errors when opening a nonexisting database</span>
+<span class="sd">        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the entire</span>
+<span class="sd">        verbose (bool): verbosity flag</span>
+<span class="sd">        use_cache (bool): if True will try to return a previously loaded controller</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        IBEISController: ibs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.main_module import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; db = None</span>
+<span class="sd">        &gt;&gt;&gt; dbdir = None</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;cache&#39;</span>
+<span class="sd">        &gt;&gt;&gt; allow_newdir = False</span>
+<span class="sd">        &gt;&gt;&gt; delete_ibsdir = False</span>
+<span class="sd">        &gt;&gt;&gt; verbose = False</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = True</span>
+<span class="sd">        &gt;&gt;&gt; ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir, verbose, use_cache)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -390,6 +399,16 @@
 
 <span class="c">#if __name__ == &#39;__main__&#39;:</span>
 <span class="c">#    multiprocessing.freeze_support()</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.main_module</span>
+<span class="sd">        python -m ibeis.main_module --allexamples</span>
+<span class="sd">        python -m ibeis.main_module --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

@@ -268,6 +268,11 @@ def setup_help_menu(mainwin, back):
         text='Clean Database',
         shortcut='',
         slot_fn=back.clean_database)
+    mainwin.menuHelp.newAction(
+        name='actionConsistencyCheck',
+        text='Run Consistency Checks',
+        shortcut='',
+        slot_fn=back.run_consistency_checks)
 
 
 def setup_developer_menu(mainwin, back):

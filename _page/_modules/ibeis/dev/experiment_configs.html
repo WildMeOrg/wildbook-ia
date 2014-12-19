@@ -80,6 +80,7 @@
     <span class="s">&#39;use_chip_extent&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
     <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
     <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
 
     <span class="s">&#39;fg_weight&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
@@ -105,6 +106,8 @@
     <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
     <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
     <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
 <span class="p">})</span>
 
 <span class="n">vsone</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
@@ -114,7 +117,10 @@
     <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
     <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
     <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.6</span><span class="p">],</span>
+    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="o">.</span><span class="mi">625</span><span class="p">],</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
+    <span class="s">&#39;dupvote_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
 <span class="p">})</span>
 
 <span class="n">pzmastertest</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
@@ -523,7 +529,7 @@
     <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
     <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
     <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
+    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="o">.</span><span class="mi">6666</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
     <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
     <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
     <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
@@ -540,7 +546,7 @@
     <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>        <span class="mi">0</span><span class="p">,</span>
     <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
     <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="mf">1.5</span><span class="p">,</span>
+    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="o">.</span><span class="mi">666</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="n">vsmany_scoremethod</span> <span class="o">=</span> <span class="p">{</span>
@@ -588,7 +594,8 @@
     <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="o">.</span><span class="mo">01</span><span class="p">],</span>  <span class="c"># [.002],</span>
     <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
     <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
+    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
+    <span class="s">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
     <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
 <span class="p">}</span>

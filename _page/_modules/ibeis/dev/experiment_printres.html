@@ -453,6 +453,11 @@
     <span class="n">sel_cols</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;remember to inspect with --sel-rows (-r) and --sel-cols (-c) &#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;other options:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --vf - view figure dir&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --va - view all&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --vh - view hard&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --ve - view easy&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">sel_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -513,8 +518,8 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
         <span class="c"># Force program to use cache here</span>
         <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daids</span><span class="p">,</span>
-                                <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="n">qaid</span><span class="p">]</span>
+                                 <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">qres</span>
 
     <span class="c">#DELETE              = False</span>

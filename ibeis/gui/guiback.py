@@ -896,6 +896,10 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] Cleaning database')
         back.ibs.clean_database()
 
+    @blocking_slot()
+    def run_consistency_checks(back):
+        back.ibs.check_consistency()
+
     #--------------------------------------------------------------------------
     # File Slots
     #--------------------------------------------------------------------------
@@ -1073,4 +1077,3 @@ class MainWindowBackend(QtCore.QObject):
         else:
             eid = kwargs['eid']
         return eid
-
