@@ -112,6 +112,7 @@
     <span class="c">#const.FEATURE_TABLE,</span>
     <span class="c">#const.FEATURE_WEIGHT_TABLE,</span>
     <span class="c">#const.RESIDUAL_TABLE</span>
+    <span class="c">#const.ENCOUNTER_TABLE</span>
 <span class="p">]</span>
 
 <span class="n">multicolumns_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
@@ -156,8 +157,12 @@
     <span class="n">RVEC</span>       <span class="o">=</span> <span class="s">&#39;residual&#39;</span>  <span class="c"># &#39;rvec&#39;</span>
     <span class="n">VOCABTRAIN</span> <span class="o">=</span> <span class="s">&#39;vocabtrain&#39;</span>
     <span class="n">DETECT</span>     <span class="o">=</span> <span class="s">&#39;detect&#39;</span>
+    <span class="n">ENCOUNTER</span>  <span class="o">=</span> <span class="s">&#39;encounter&#39;</span>
+    <span class="n">IMAGE</span>      <span class="o">=</span> <span class="s">&#39;image&#39;</span>
 </div>
 <span class="n">depends_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">IMAGE</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">ENCOUNTER</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">ANNOT</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">CHIP</span><span class="p">:</span>       <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">ANNOT</span><span class="p">,</span>
     <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">PROBCHIP</span><span class="p">:</span>   <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">CHIP</span><span class="p">,</span>
@@ -174,6 +179,8 @@
     <span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span>        <span class="p">:</span> <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">FEAT</span><span class="p">,</span>
     <span class="n">const</span><span class="o">.</span><span class="n">FEATURE_WEIGHT_TABLE</span> <span class="p">:</span> <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">FEATWEIGHT</span><span class="p">,</span>
     <span class="n">const</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span>       <span class="p">:</span> <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">RVEC</span><span class="p">,</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span>      <span class="p">:</span> <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">ENCOUNTER</span><span class="p">,</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span>          <span class="p">:</span> <span class="n">SHORTNAMES</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -496,6 +503,12 @@
 <div class="viewcode-block" id="build_templated_funcs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.template_generator.build_templated_funcs">[docs]</a><span class="k">def</span> <span class="nf">build_templated_funcs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">autogen_modname</span><span class="p">,</span> <span class="n">tblname_list</span><span class="p">,</span> <span class="n">autogen_key</span><span class="p">,</span>
                           <span class="n">flagdefault</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">flagskw</span><span class="o">=</span><span class="p">{}):</span>
     <span class="sd">&quot;&quot;&quot; Builds lists of requested functions&quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;BUILD_TEMPLATED_FUNCS&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * autogen_modname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">autogen_modname</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * tblname_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * autogen_key=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">autogen_key</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * flagdefault=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flagdefault</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * flagskw=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flagskw</span><span class="p">,))</span>
     <span class="c">#child = &#39;featweight&#39;</span>
     <span class="n">tblname2_functype2_func_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
     <span class="c"># HACKED IN CONSTANTS</span>
@@ -505,6 +518,7 @@
     <span class="p">]</span>
     <span class="c"># --- AUTOGENERATE FUNCTION TEXT ---</span>
     <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tblname_list</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;building </span><span class="si">%r</span><span class="s"> table&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
         <span class="n">tableinfo</span> <span class="o">=</span> <span class="n">get_tableinfo</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
         <span class="n">tup</span> <span class="o">=</span> <span class="n">build_controller_table_funcs</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">tableinfo</span><span class="p">,</span>
                                            <span class="n">autogen_modname</span><span class="p">,</span>
@@ -863,6 +877,7 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python ibeis/control/template_generator.py</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;GET_AUTGEN_TEXT&#39;</span><span class="p">)</span>
     <span class="c"># Filepath info</span>
     <span class="n">modpath_info</span> <span class="o">=</span> <span class="n">get_autogen_modpaths</span><span class="p">(</span><span class="n">parent_module</span><span class="p">,</span> <span class="n">autogen_key</span><span class="p">)</span>
     <span class="n">autogen_fpath</span><span class="p">,</span> <span class="n">autogen_rel_fpath</span><span class="p">,</span> <span class="n">autogen_modname</span> <span class="o">=</span> <span class="n">modpath_info</span>
@@ -896,6 +911,7 @@
 <span class="sd">        python dev.py --db testdb1 --cmd</span>
 <span class="sd">        %run dev.py --db testdb1 --cmd</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;TEMPLAT_GENERATOR MAIN&#39;</span><span class="p">)</span>
     <span class="c"># Parse command line args</span>
     <span class="n">onlyfuncname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--onlyfuncname&#39;</span><span class="p">,</span> <span class="s">&#39;--onlyfn&#39;</span><span class="p">))</span>
     <span class="n">dowrite</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;-w&#39;</span><span class="p">,</span> <span class="s">&#39;--write&#39;</span><span class="p">,</span> <span class="s">&#39;--dump-autogen-controller&#39;</span><span class="p">))</span>
@@ -913,6 +929,7 @@
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown autogen_key=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">autogen_key</span><span class="p">,))</span>
 
     <span class="n">tblname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--autogen-tables&#39;</span><span class="p">,</span> <span class="s">&#39;--tbls&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_tblname_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tblname_list</span><span class="p">)</span>
     <span class="c"># Parse dictionary flag list</span>
     <span class="n">template_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--Tcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--template-config&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
 
@@ -964,10 +981,18 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python ibeis/control/template_generator.py</span>
 <span class="sd">        python ibeis/control/template_generator.py --dump-autogen-controller</span>
+
+<span class="sd">        python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;ibeis.control.template_generator&#39;)&quot;</span>
+<span class="sd">        chmod +x Tgen.sh</span>
+
+<span class="sd">        Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True</span>
+<span class="sd">        Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False</span>
+
+<span class="sd">        sh Tgen.sh --tbls encounters --Tcfg with_getters:True with_setters=True strip_docstr:False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s">&#39;ibs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
         <span class="kn">import</span> <span class="nn">ibeis</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;emptydatabase&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">main</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="c">#exec(ut.execstr_dict(locals_))</span>
 </pre></div>

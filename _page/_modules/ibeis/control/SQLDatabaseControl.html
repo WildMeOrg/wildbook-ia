@@ -65,12 +65,12 @@
 
 
 <div class="viewcode-block" id="default_decorator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.default_decorator">[docs]</a><span class="k">def</span> <span class="nf">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="c">#return func</span>
-    <span class="k">return</span> <span class="n">profile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func</span>
+    <span class="c">#return profile(func)</span>
     <span class="c">#return utool.indent_func(&#39;[sql.&#39; + func.__name__ + &#39;]&#39;)(func)</span>
 </div>
 <span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span>
-<span class="c">#VERYVERBOSE = utool.VERYVERBOSE</span>
+<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
 <span class="n">VERYSQL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-sql&#39;</span><span class="p">)</span>
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
 <span class="n">AUTODUMP</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
@@ -229,7 +229,7 @@
     <span class="k">def</span> <span class="nf">_copy_to_memory</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cStringIO</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Copying database into RAM&#39;</span><span class="p">)</span>
         <span class="n">tempfile</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">iterdump</span><span class="p">():</span>
@@ -257,7 +257,7 @@
 <div class="viewcode-block" id="SQLDatabaseController.optimize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] running sql pragma optimizions&#39;</span><span class="p">)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 0;&#39;)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 1024;&#39;)</span>
@@ -302,6 +302,16 @@
         <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tblname&#39;</span><span class="p">:</span> <span class="n">tblname</span><span class="p">,</span> <span class="p">}</span>
         <span class="n">operation_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
 <span class="s">        SELECT rowid</span>
+<span class="s">        FROM {tblname}</span>
+<span class="s">        ORDER BY rowid ASC</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">_executeone_operation_fmt</span><span class="p">(</span><span class="n">operation_fmt</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SQLDatabaseController.get_all_col_rows"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_all_col_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_col_rows</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; returns a list of all rowids from a table in ascending order &quot;&quot;&quot;</span>
+        <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;colname&#39;</span><span class="p">:</span> <span class="n">colname</span><span class="p">,</span> <span class="s">&#39;tblname&#39;</span><span class="p">:</span> <span class="n">tblname</span><span class="p">,</span> <span class="p">}</span>
+        <span class="n">operation_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT {colname}</span>
 <span class="s">        FROM {tblname}</span>
 <span class="s">        ORDER BY rowid ASC</span>
 <span class="s">        &#39;&#39;&#39;</span>
@@ -496,7 +506,7 @@
         <span class="n">val_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">val_iter</span><span class="p">)</span>  <span class="c"># eager evaluation</span>
         <span class="n">id_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">id_iter</span><span class="p">)</span>  <span class="c"># eager evaluation</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span> <span class="ow">and</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span> <span class="ow">and</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] SETTER: &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">())</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] * tblname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] * val_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val_list</span><span class="p">,))</span>
@@ -816,14 +826,17 @@
                 <span class="n">src_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="n">dst_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colname_dict</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
 
-        <span class="n">data_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">src_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data_list_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">src_list</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_list_</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c"># Run functions across all data for specified callums</span>
         <span class="n">data_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="nb">tuple</span><span class="p">([</span>
                 <span class="n">colmap_dict</span><span class="p">[</span><span class="n">src_</span><span class="p">](</span><span class="n">d</span><span class="p">)</span> <span class="k">if</span> <span class="n">src_</span> <span class="ow">in</span> <span class="n">colmap_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">d</span>
                 <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">src_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">src_list</span><span class="p">)</span>
             <span class="p">])</span>
-            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_list</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_list_</span>
         <span class="p">]</span>
         <span class="c"># Add the data to the database</span>
         <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -897,7 +910,8 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.rename_table"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.rename_table">[docs]</a>    <span class="k">def</span> <span class="nf">rename_table</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename_old</span><span class="p">,</span> <span class="n">tablename_new</span><span class="p">):</span>
-        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[sql] schema renaming tablename=</span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename_old</span><span class="p">,</span> <span class="n">tablename_new</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] schema renaming tablename=</span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename_old</span><span class="p">,</span> <span class="n">tablename_new</span><span class="p">))</span>
         <span class="c"># Technically insecure call, but all entries are statically inputted by</span>
         <span class="c"># the database&#39;s owner, who could delete or alter the entire database</span>
         <span class="c"># anyway.</span>
@@ -1116,7 +1130,7 @@
         <span class="c"># File Header</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# AUTOGENERATED ON &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">))</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;from __future__ import absolute_import, division, print_function&#39;</span><span class="p">)</span>
-        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;from ibeis import constants&#39;</span><span class="p">)</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;from ibeis import constants as const&#39;</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# =======================&#39;</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# Schema Version Current&#39;</span><span class="p">)</span>
@@ -1134,6 +1148,7 @@
                 <span class="n">first</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="c"># Hack to find the name of the constant variable</span>
             <span class="n">constant_name</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="k">for</span> <span class="n">variable</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">tablename</span><span class="p">:</span>
@@ -1141,7 +1156,7 @@
                     <span class="k">break</span>
             <span class="c"># assert constant_name is not None, &quot;Table name does not exists in constants&quot;</span>
             <span class="k">if</span> <span class="n">constant_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">db.add_table(constants.</span><span class="si">%s</span><span class="s">, (&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">constant_name</span><span class="p">,</span> <span class="p">))</span>
+                <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">db.add_table(const.</span><span class="si">%s</span><span class="s">, (&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">constant_name</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">db.add_table(</span><span class="si">%r</span><span class="s">, (&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">column_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_columns</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>

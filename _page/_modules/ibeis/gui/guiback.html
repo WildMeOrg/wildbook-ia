@@ -50,6 +50,7 @@
   <h1>Source code for ibeis.gui.guiback</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
@@ -66,20 +67,22 @@
 <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guiheaders</span> <span class="k">as</span> <span class="n">gh</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">interact</span>
-<span class="c"># Utool</span>
-<span class="kn">import</span> <span class="nn">utool</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">cpu_count</span>
+<span class="c"># Utool</span>
+<span class="c">#import utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[back]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
 
 
 <div class="viewcode-block" id="default_decorator"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.default_decorator">[docs]</a><span class="k">def</span> <span class="nf">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">func</span>
-    <span class="c">#return utool.indent_func(&#39;[back.&#39; + func.__name__ + &#39;]&#39;)(func)</span>
+    <span class="c">#return ut.indent_func(&#39;[back.&#39; + func.__name__ + &#39;]&#39;)(func)</span>
 
 </div>
 <div class="viewcode-block" id="backblock"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.backblock">[docs]</a><span class="k">def</span> <span class="nf">backblock</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -98,7 +101,7 @@
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="n">_wasBlocked_</span><span class="p">)</span>  <span class="c"># unblock regardless</span>
         <span class="k">return</span> <span class="n">result</span>
-    <span class="n">bacblock_wrapper</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">bacblock_wrapper</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">bacblock_wrapper</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">bacblock_wrapper</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">bacblock_wrapper</span>
 
 </div>
@@ -113,13 +116,13 @@
         <span class="nd">@backblock</span>
         <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrapped_bslot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="c">#printDBG(&#39;[back*] &#39; + utool.func_str(func))</span>
-            <span class="c">#printDBG(&#39;[back*] &#39; + utool.func_str(func, args, kwargs))</span>
+            <span class="c">#printDBG(&#39;[back*] &#39; + ut.func_str(func))</span>
+            <span class="c">#printDBG(&#39;[back*] &#39; + ut.func_str(func, args, kwargs))</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">result</span>
         <span class="c">#printDBG(&#39;blocking slot: %r, types=%r&#39; % (wrapped_bslot.__name__, types_))</span>
-        <span class="n">wrapped_bslot</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrapped_bslot</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+        <span class="n">wrapped_bslot</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrapped_bslot</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrapped_bslot</span>
     <span class="k">return</span> <span class="n">wrap_bslot</span>
 
@@ -133,6 +136,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Backend Signals</span>
     <span class="n">updateWindowTitleSignal</span> <span class="o">=</span> <span class="n">signal_</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="c">#incQuerySignal = signal_(int)</span>
 
     <span class="c">#------------------------</span>
     <span class="c"># Constructor</span>
@@ -149,8 +153,8 @@
         <span class="n">back</span><span class="o">.</span><span class="n">sel_gids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">back</span><span class="o">.</span><span class="n">sel_qres</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">back</span><span class="o">.</span><span class="n">active_enc</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">=</span> <span class="s">&#39;intra_encounter&#39;</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">encounter_query_results</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">encounter_query_results</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="c"># Create GUIFrontend object</span>
         <span class="n">back</span><span class="o">.</span><span class="n">mainwin</span> <span class="o">=</span> <span class="n">newgui</span><span class="o">.</span><span class="n">IBEISMainWindow</span><span class="p">(</span><span class="n">back</span><span class="o">=</span><span class="n">back</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
@@ -160,6 +164,7 @@
         <span class="n">fig_presenter</span><span class="o">.</span><span class="n">register_qt4_win</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">)</span>
         <span class="c"># register self with the ibeis controller</span>
         <span class="n">back</span><span class="o">.</span><span class="n">register_self</span><span class="p">()</span>
+        <span class="c">#back.incQuerySignal.connect(back.incremental_query_slot)</span>
 
     <span class="c">#def __del__(back):</span>
     <span class="c">#    back.cleanup()</span>
@@ -168,12 +173,12 @@
         <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">remove_observer</span><span class="p">(</span><span class="n">back</span><span class="p">)</span>
 
-    <span class="c">#@utool.indent_func</span></div>
+    <span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.notify"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify">[docs]</a>    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function. &quot;&quot;&quot;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
 
-    <span class="c">#@utool.indent_func</span></div>
+    <span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.notify_controller_killed"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.notify_controller_killed">[docs]</a>    <span class="k">def</span> <span class="nf">notify_controller_killed</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Observer&#39;s notify function that the ibeis controller has been killed. &quot;&quot;&quot;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
@@ -216,7 +221,7 @@
         <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="MainWindowBackend.show_qres"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.show_qres">[docs]</a>    <span class="k">def</span> <span class="nf">show_qres</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annote_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annote_mode&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;top_aids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
         <span class="n">interact</span><span class="o">.</span><span class="n">ishow_qres</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c"># HACK</span>
@@ -242,24 +247,24 @@
     <span class="c"># State Management Functions (ewww... state)</span>
     <span class="c">#----------------------</span>
 
-    <span class="c">#@utool.indent_func</span></div>
+    <span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.update_window_title"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.update_window_title">[docs]</a>    <span class="k">def</span> <span class="nf">update_window_title</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="c">#@utool.indent_func</span></div>
+    <span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.refresh_state"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.refresh_state">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_state</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Blanket refresh function. Try not to call this &quot;&quot;&quot;</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
 
-    <span class="c">#@utool.indent_func</span></div>
+    <span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="MainWindowBackend.connect_ibeis_control"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.connect_ibeis_control">[docs]</a>    <span class="k">def</span> <span class="nf">connect_ibeis_control</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] connect_ibeis()&#39;</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="c"># register self with the ibeis controller</span>
         <span class="n">back</span><span class="o">.</span><span class="n">register_self</span><span class="p">()</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">_set_selection</span><span class="p">(</span><span class="n">sel_gids</span><span class="o">=</span><span class="p">[],</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">sel_nids</span><span class="o">=</span><span class="p">[],</span>
                             <span class="n">sel_eids</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">])</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.default_config"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
@@ -269,7 +274,7 @@
         <span class="n">back</span><span class="o">.</span><span class="n">edit_prefs_wgt</span><span class="o">.</span><span class="n">refresh_layout</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">edit_prefs_wgt</span><span class="o">.</span><span class="n">pref_model</span><span class="o">.</span><span class="n">rootPref</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </div>
-    <span class="nd">@utool.indent_func</span>
+    <span class="nd">@ut.indent_func</span>
 <div class="viewcode-block" id="MainWindowBackend.get_selected_gid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_gid">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_gid</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; selected image id &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">sel_gids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -280,7 +285,7 @@
         <span class="n">gid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">sel_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">gid</span>
 </div>
-    <span class="nd">@utool.indent_func</span>
+    <span class="nd">@ut.indent_func</span>
 <div class="viewcode-block" id="MainWindowBackend.get_selected_aid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_aid">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_aid</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; selected annotation id &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">sel_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -288,7 +293,7 @@
         <span class="n">aid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">sel_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">aid</span>
 </div>
-    <span class="nd">@utool.indent_func</span>
+    <span class="nd">@ut.indent_func</span>
 <div class="viewcode-block" id="MainWindowBackend.get_selected_eid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_eid">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_eid</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; selected encounter id &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">sel_eids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -296,7 +301,7 @@
         <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">sel_eids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">eid</span>
 </div>
-    <span class="nd">@utool.indent_func</span>
+    <span class="nd">@ut.indent_func</span>
 <div class="viewcode-block" id="MainWindowBackend.get_selected_qres"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_qres">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_qres</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; selected query result &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">sel_qres</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -326,14 +331,18 @@
         <span class="k">if</span> <span class="n">sel_qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">sel_sel_qres</span> <span class="o">=</span> <span class="n">sel_qres</span>
 
-    <span class="nd">@backblock</span>
+    <span class="c">#@backblock</span>
 <div class="viewcode-block" id="MainWindowBackend.select_eid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.select_eid">[docs]</a>    <span class="k">def</span> <span class="nf">select_eid</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Table Click -&gt; Result Table &quot;&quot;&quot;</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">cast_from_qt</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;[back] select encounter eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">))</span>
         <span class="n">back</span><span class="o">.</span><span class="n">_set_selection</span><span class="p">(</span><span class="n">sel_eids</span><span class="o">=</span><span class="p">(</span><span class="n">eid</span><span class="p">,),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] select encounter eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">))</span>
-</div>
-    <span class="nd">@backblock</span>
+
+    <span class="c">#@backblock</span></div>
 <div class="viewcode-block" id="MainWindowBackend.select_gid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.select_gid">[docs]</a>    <span class="k">def</span> <span class="nf">select_gid</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Table Click -&gt; Image Table &quot;&quot;&quot;</span>
         <span class="c"># Select the first ANNOTATION in the image if unspecified</span>
@@ -347,13 +356,13 @@
         <span class="n">back</span><span class="o">.</span><span class="n">_set_selection</span><span class="p">(</span><span class="n">sel_gids</span><span class="o">=</span><span class="p">(</span><span class="n">gid</span><span class="p">,),</span> <span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">,</span> <span class="n">sel_eids</span><span class="o">=</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">)</span>
-</div>
-    <span class="nd">@backblock</span>
+
+    <span class="c">#@backblock</span></div>
 <div class="viewcode-block" id="MainWindowBackend.select_gid_from_aid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid">[docs]</a>    <span class="k">def</span> <span class="nf">select_gid_from_aid</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="n">gid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
-</div>
-    <span class="nd">@backblock</span>
+
+    <span class="c">#@backblock</span></div>
 <div class="viewcode-block" id="MainWindowBackend.select_aid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.select_aid">[docs]</a>    <span class="k">def</span> <span class="nf">select_aid</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_annotation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Table Click -&gt; Chip Table &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] select aid=</span><span class="si">%r</span><span class="s">, eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">))</span>
@@ -445,6 +454,14 @@
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.unset_names"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.unset_names">[docs]</a>    <span class="k">def</span> <span class="nf">unset_names</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] unset_names&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
+</div>
+    <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.toggle_thumbnails"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.toggle_thumbnails">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_thumbnails</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="n">ibswgt</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">front</span>
         <span class="n">tabwgt</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">_tab_table_wgt</span>
@@ -484,6 +501,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_encounters</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -512,7 +530,7 @@
             <span class="n">destination_eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="n">destination_index</span><span class="p">]</span>
         <span class="n">deprecated_eids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
         <span class="n">deprecated_eids</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">destination_index</span><span class="p">)</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">]</span> <span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">]</span> <span class="p">)</span>
         <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">destination_eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_encounters</span><span class="p">(</span><span class="n">deprecated_eids</span><span class="p">)</span>
@@ -520,18 +538,25 @@
             <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_close_tab_with_eid</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
-    <span class="nd">@blocking_slot</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="nd">@blocking_slot</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+<div class="viewcode-block" id="MainWindowBackend.remove_from_encounter"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.remove_from_encounter">[docs]</a>    <span class="k">def</span> <span class="nf">remove_from_encounter</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+        <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_encounters</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+    <span class="nd">@blocking_slot</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 <div class="viewcode-block" id="MainWindowBackend.send_to_new_encounter"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter">[docs]</a>    <span class="k">def</span> <span class="nf">send_to_new_encounter</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;move&#39;</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;Cannot create a new encounter with no images&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Cannot create a new encounter with no images&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[back] send_to_new_encounter&#39;</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="n">enctext</span> <span class="o">=</span> <span class="s">&#39;NEW ENCOUNTER&#39;</span>
+        <span class="n">enctext</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">NEW_ENCOUNTER_ENCTEXT</span>
         <span class="n">enctext_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">enctext</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_enctext</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">)</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
         <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;move&#39;</span><span class="p">:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_encounters</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;copy&#39;</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
@@ -574,6 +599,9 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">value</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </div>
+<div class="viewcode-block" id="MainWindowBackend.get_selected_species"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_species">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_species</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span>
+</div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.change_query_mode"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.change_query_mode">[docs]</a>    <span class="k">def</span> <span class="nf">change_query_mode</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] change_query_mode(</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
@@ -589,12 +617,19 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_empty_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] _run_detection(quick=</span><span class="si">%r</span><span class="s">, species=</span><span class="si">%r</span><span class="s">, eid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">quick</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">eid</span><span class="p">))</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">detect_random_forest</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="n">quick</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] about to finish detection&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">])</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] finished detection&#39;</span><span class="p">)</span>
+        <span class="n">conf_msg_fmststr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;Are you sure you want to run detection on %s?</span>
+<span class="sd">            There are %d images, so it will take at least %0.2f seconds</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">approx_seconds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">*</span> <span class="mi">40</span> <span class="o">/</span> <span class="n">cpu_count</span><span class="p">()</span>   <span class="c"># 40 seconds per image / num cores</span>
+        <span class="n">conf_msg</span> <span class="o">=</span> <span class="n">conf_msg_fmststr</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">approx_seconds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">use_msg</span><span class="o">=</span><span class="n">conf_msg</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] _run_detection(quick=</span><span class="si">%r</span><span class="s">, species=</span><span class="si">%r</span><span class="s">, eid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">quick</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">eid</span><span class="p">))</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">detect_random_forest</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">quick</span><span class="o">=</span><span class="n">quick</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] about to finish detection&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
+                <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">])</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] finished detection&#39;</span><span class="p">)</span>
 
     <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.run_detection_coarse"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.run_detection_coarse">[docs]</a>    <span class="k">def</span> <span class="nf">run_detection_coarse</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -622,6 +657,32 @@
         <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
 </div>
+<div class="viewcode-block" id="MainWindowBackend.get_selected_daids"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.get_selected_daids">[docs]</a>    <span class="k">def</span> <span class="nf">get_selected_daids</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">query_mode</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] query_exemplars&#39;</span><span class="p">)</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">query_mode</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] query_encounter (eid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">eid</span><span class="p">)</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown query mode: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_mode</span><span class="p">))</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_species</span><span class="p">()</span>
+        <span class="n">spec_id</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">spec_id_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">is_valid_species</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">==</span> <span class="n">spec_id</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">spec_id_list</span><span class="p">]</span>
+        <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">is_valid_species</span><span class="p">)</span>
+        <span class="n">msg_var</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            You are about to enter identification for %d annotations of</span>
+<span class="sd">            species %s (out of %d annotations in the encounter). Continue?</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_NICE</span><span class="p">))</span>
+        <span class="n">species_bold_nice</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">lookup</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span>
+        <span class="n">cont</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">use_msg</span><span class="o">=</span><span class="n">msg_var</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daid_list_</span><span class="p">),</span> <span class="n">species_bold_nice</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cont</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+        <span class="k">return</span> <span class="n">daid_list_</span>
+</div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.query"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Action -&gt; Query&quot;&quot;&quot;</span>
@@ -630,19 +691,18 @@
         <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">_eidfromkw</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;------&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[back] query: eid=</span><span class="si">%r</span><span class="s">, mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="n">query_mode</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">query_mode</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span>
-
-        <span class="k">if</span> <span class="n">query_mode</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] query_exemplars(aid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_exemplars</span><span class="p">([</span><span class="n">aid</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">query_mode</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] query_encounter(aid=</span><span class="si">%r</span><span class="s">, eid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">))</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_encounter</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">eid</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown query mode: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_mode</span><span class="p">))</span>
-
+        <span class="c"># Get the query annotation ids to search</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_daids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">query_mode</span><span class="p">)</span>
+        <span class="c"># Get the database annotation ids to be searched</span>
+        <span class="c"># Execute Query</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">:</span>
+            <span class="c"># HACK IN ENCOUNTER INFO</span>
+            <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
+                <span class="n">qres</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
         <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
         <span class="n">back</span><span class="o">.</span><span class="n">_set_selection</span><span class="p">(</span><span class="n">sel_qres</span><span class="o">=</span><span class="p">[</span><span class="n">qres</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
@@ -650,32 +710,46 @@
             <span class="n">back</span><span class="o">.</span><span class="n">show_qres</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
-<div class="viewcode-block" id="MainWindowBackend.compute_queries"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.compute_queries">[docs]</a>    <span class="k">def</span> <span class="nf">compute_queries</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="MainWindowBackend.compute_queries"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.compute_queries">[docs]</a>    <span class="k">def</span> <span class="nf">compute_queries</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Batch -&gt; Precompute Queries&quot;&quot;&quot;</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">_eidfromkw</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;------&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="se">\n\n</span><span class="s">back] compute_queries: eid=</span><span class="si">%r</span><span class="s">, mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[back] compute_queries: eid=</span><span class="si">%r</span><span class="s">, mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] invalid eid&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">back</span><span class="o">.</span><span class="n">compute_feats</span><span class="p">(</span><span class="n">refresh</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;query_exemplars&#39;</span><span class="p">)</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_exemplars</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;query_encounter&#39;</span><span class="p">)</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_encounter</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown query mode: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">))</span>
-
+        <span class="c"># Get the query annotation ids to search</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
+        <span class="c"># Get the database annotation ids to be searched</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_daids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">query_mode</span><span class="p">)</span>
+        <span class="c"># Execute Query</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">:</span>
+            <span class="c"># HACK IN ENCOUNTER INFO</span>
+            <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
+                <span class="n">qres</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
         <span class="n">back</span><span class="o">.</span><span class="n">encounter_query_results</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] About to finish compute_queries: eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
         <span class="n">back</span><span class="o">.</span><span class="n">review_queries</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] FINISHED compute_queries: eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
+
+    <span class="c">#@blocking_slot()</span></div>
+    <span class="nd">@slot_</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.incremental_query"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.incremental_query">[docs]</a>    <span class="k">def</span> <span class="nf">incremental_query</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">_eidfromkw</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[back] incremental_query: eid=</span><span class="si">%r</span><span class="s">, mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] invalid eid&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_daids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">query_mode</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">interactive_automated_matcher</span> <span class="k">as</span> <span class="n">iautomatch</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="c">#TODO fix names tree thingie</span>
+        <span class="n">iautomatch</span><span class="o">.</span><span class="n">iexec_incremental_queries</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
 
     <span class="c">#@blocking_slot()</span>
     <span class="c">#def compute_queries_vs_exemplar(back, **kwargs):</span>
@@ -720,9 +794,9 @@
 <div class="viewcode-block" id="MainWindowBackend.compute_encounters"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.compute_encounters">[docs]</a>    <span class="k">def</span> <span class="nf">compute_encounters</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Batch -&gt; Compute Encounters &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] compute_encounters&#39;</span><span class="p">)</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">()</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
+        <span class="c">#back.ibs.delete_all_encounters()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] about to finish computing encounters&#39;</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_close_all_tabs</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
@@ -777,13 +851,13 @@
 <div class="viewcode-block" id="MainWindowBackend.view_database_dir"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.view_database_dir">[docs]</a>    <span class="k">def</span> <span class="nf">view_database_dir</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Help -&gt; View Directory Slots&quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] view_database_dir&#39;</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
         <span class="k">pass</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.view_app_files_dir"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.view_app_files_dir">[docs]</a>    <span class="k">def</span> <span class="nf">view_app_files_dir</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] view_model_dir&#39;</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">))</span>
         <span class="k">pass</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
@@ -805,11 +879,21 @@
         <span class="k">pass</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.delete_thumbnails"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.delete_thumbnails">[docs]</a>    <span class="k">def</span> <span class="nf">delete_thumbnails</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Help -&gt; Delete Thumbnails &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] delete_thumbnails&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] finished delete_thumbnails&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+</div>
+    <span class="nd">@slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="MainWindowBackend.delete_global_prefs"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.delete_global_prefs">[docs]</a>    <span class="k">def</span> <span class="nf">delete_global_prefs</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] delete_global_prefs&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;global_cache&#39;</span><span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;global_cache&#39;</span><span class="p">))</span>
         <span class="k">pass</span>
 </div>
     <span class="nd">@slot_</span><span class="p">()</span>
@@ -817,7 +901,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] delete_queryresults_dir&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span><span class="p">)</span>
         <span class="k">pass</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>
@@ -848,12 +932,22 @@
         <span class="sd">&quot;&quot;&quot; Help -&gt; Developer Mode&quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] dev_dumpdb&#39;</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump_tables_to_csv</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="MainWindowBackend.dev_export_annotations"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.dev_export_annotations">[docs]</a>    <span class="k">def</span> <span class="nf">dev_export_annotations</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+</div>
+    <span class="nd">@blocking_slot</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.clean_database"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.clean_database">[docs]</a>    <span class="k">def</span> <span class="nf">clean_database</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Help -&gt; Clean Database&quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] Cleaning database&#39;</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">clean_database</span><span class="p">()</span>
+</div>
+    <span class="nd">@blocking_slot</span><span class="p">()</span>
+<div class="viewcode-block" id="MainWindowBackend.run_consistency_checks"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.run_consistency_checks">[docs]</a>    <span class="k">def</span> <span class="nf">run_consistency_checks</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">check_consistency</span><span class="p">()</span>
 
     <span class="c">#--------------------------------------------------------------------------</span>
     <span class="c"># File Slots</span>
@@ -887,7 +981,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Directory </span><span class="si">%r</span><span class="s"> does not exist.&#39;</span> <span class="o">%</span> <span class="n">putdir</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">new_dbdir</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;New DB </span><span class="si">%r</span><span class="s"> already exists.&#39;</span> <span class="o">%</span> <span class="n">new_dbdir</span><span class="p">)</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">new_dbdir</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">new_dbdir</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] new_database(new_dbdir=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">new_dbdir</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">new_dbdir</span><span class="p">)</span>
 </div>
@@ -900,12 +994,12 @@
             <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">return</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] open_database(dbdir=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;    [opendb]&#39;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;    [opendb]&#39;</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
                 <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;caught Exception while opening database&#39;</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;caught Exception while opening database&#39;</span><span class="p">)</span>
                 <span class="k">raise</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
@@ -965,7 +1059,7 @@
         <span class="c">#printDBG(&#39;[back] dir=%r&#39; % dir_)</span>
         <span class="k">if</span> <span class="n">dir_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span>
-        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span> <span class="n">fullpath</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span> <span class="n">fullpath</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">size_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Can someone implement the size filter?&#39;</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
@@ -1013,9 +1107,9 @@
 <div class="viewcode-block" id="MainWindowBackend.user_option"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.user_option">[docs]</a>    <span class="k">def</span> <span class="nf">user_option</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">guitool</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="MainWindowBackend.are_you_sure"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.are_you_sure">[docs]</a>    <span class="k">def</span> <span class="nf">are_you_sure</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+<div class="viewcode-block" id="MainWindowBackend.are_you_sure"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.are_you_sure">[docs]</a>    <span class="k">def</span> <span class="nf">are_you_sure</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">use_msg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Prompt user for conformation before changing something &quot;&quot;&quot;</span>
-        <span class="n">ans</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s">&#39;Are you sure?&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Confirmation&#39;</span><span class="p">,</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s">&#39;Are you sure?&#39;</span> <span class="k">if</span> <span class="n">use_msg</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">use_msg</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Confirmation&#39;</span><span class="p">,</span>
                                <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;No&#39;</span><span class="p">,</span> <span class="s">&#39;Yes&#39;</span><span class="p">],</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ans</span> <span class="o">==</span> <span class="s">&#39;Yes&#39;</span>
 </div>

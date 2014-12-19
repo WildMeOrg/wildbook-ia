@@ -58,7 +58,7 @@
 
 <div class="viewcode-block" id="TEST_DELETE_ENC"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_delete_enc.TEST_DELETE_ENC">[docs]</a><span class="k">def</span> <span class="nf">TEST_DELETE_ENC</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">update_all_image_encounter</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;All Image encounter not created&quot;</span>
     <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

@@ -81,7 +81,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computing </span><span class="si">%r</span><span class="s"> encounters on </span><span class="si">%r</span><span class="s"> images.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster_algo</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;enc_cfgstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">enc_cfgstr</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: No unixtime data to compute encounters with&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: len(gid_list) == 0. No images to compute encounters with&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: custering 1 image into its own encounter&#39;</span><span class="p">)</span>
@@ -106,12 +106,13 @@
     <span class="c"># Flatten gids list by enounter</span>
     <span class="n">flat_eids</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten_membership_mapping</span><span class="p">(</span><span class="n">enc_labels</span><span class="p">,</span> <span class="n">enc_gids</span><span class="p">)</span>
     <span class="c"># Create enctext for each image</span>
-    <span class="n">enctext_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Encounter &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">flat_eids</span><span class="p">]</span>
+    <span class="c"># Moved to ibeis.control.IBEISControl.compute_encounters so that it does not overwrite into existing encounters</span>
+    <span class="c">#enctext_list = [&#39;Encounter &#39; + str(eid) for eid in flat_eids]</span>
     <span class="c"># enctext_list = [&#39;E&#39; + str(eid) + enc_cfgstr for eid in flat_eids]</span>
     <span class="c">#enctext_list = [dt + &#39;_E&#39; + str(num) + enc_cfgstr for num, dt in zip(enc_labels, enc_datetimes)]</span>
     <span class="c">#enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Found </span><span class="si">%d</span><span class="s"> clusters.&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">enctext_list</span><span class="p">,</span> <span class="n">flat_gids</span>
+    <span class="k">return</span> <span class="n">flat_eids</span><span class="p">,</span> <span class="n">flat_gids</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_compute_encounter_unixtime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">enc_gids</span><span class="p">):</span>

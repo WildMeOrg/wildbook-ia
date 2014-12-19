@@ -153,32 +153,6 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.preproc.preproc_annot.schema_1_2_0_postprocess_fixuuids">
-<tt class="descclassname">ibeis.model.preproc.preproc_annot.</tt><tt class="descname">schema_1_2_0_postprocess_fixuuids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_annot.html#schema_1_2_0_postprocess_fixuuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_annot.schema_1_2_0_postprocess_fixuuids" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="go">#&gt;&gt;&gt; sys.argv.append(&#39;--force-fresh&#39;)</span>
-<span class="go">#&gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
-<span class="go">#&gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;GZ_ALL&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># should be auto applied</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotation_table</span><span class="p">(</span><span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">schema_1_2_0_postprocess_fixuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotation_table</span><span class="p">(</span><span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.model.preproc.preproc_annot.test_annotation_uuid">
 <tt class="descclassname">ibeis.model.preproc.preproc_annot.</tt><tt class="descname">test_annotation_uuid</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_annot.html#test_annotation_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_annot.test_annotation_uuid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Consistency test</p>
@@ -206,7 +180,7 @@ normalizations.</p>
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_chip.add_annot_chips_params_gen">
 <tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">add_annot_chips_params_gen</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>qreq_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#add_annot_chips_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.add_annot_chips_params_gen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(add_annot_chips_params_gen)</p>
+<dd><p>Wrapped function wrp_indent(add_annot_chips_params_gen)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;, &#8216;<a href="#id1"><span class="problematic" id="id2">qreq_</span></a>&#8216;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr = Computes parameters for SQLController</p>
 <blockquote>
@@ -330,7 +304,7 @@ aid_list (list):
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_chip.delete_chips">
 <tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">delete_chips</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#delete_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.delete_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(delete_chips)</p>
+<dd><p>Wrapped function wrp_indent(delete_chips)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;cid_list&#8217;, &#8216;verbose&#8217;], varargs=None, keywords=None, defaults=(False,))</p>
 <p>orig_docstr =</p>
 <blockquote>
@@ -366,7 +340,9 @@ verbose (bool):</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: fpath_list</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">fpath_list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -650,7 +626,7 @@ on the earth (specified in decimal degrees)
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters">
 <tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">ibeis_compute_encounters</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#ibeis_compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(ibeis_compute_encounters)</p>
+<dd><p>Wrapped function wrp_indent(ibeis_compute_encounters)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <dl class="docutils">
 <dt>orig_docstr =</dt>
@@ -851,6 +827,10 @@ Must take in one argument to be used by multiprocessing.map_async</p>
 </tr>
 </tbody>
 </table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.preproc.preproc_featweight &#8211;test-gen_featweight_worker</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_featweight</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -867,9 +847,12 @@ Must take in one argument to be used by multiprocessing.map_async</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">probchip</span> <span class="o">=</span> <span class="n">probchip_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span> <span class="o">=</span> <span class="n">gen_featweight_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">(3, &#39;[ 0.098  0.155  0.422]&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_03_test</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;weights[0:3] = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">weights_03_test</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_03_target</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">0.098</span><span class="p">,</span> <span class="mf">0.155</span><span class="p">,</span>  <span class="mf">0.422</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_thresh</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">0.003</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">,</span>  <span class="mf">0.002</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_almost_eq</span><span class="p">(</span><span class="n">weights_03_test</span><span class="p">,</span> <span class="n">weights_03_target</span><span class="p">,</span> <span class="n">weights_thresh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">aid</span> <span class="o">==</span> <span class="mi">3</span>
 </pre></div>
 </div>
 </dd></dl>

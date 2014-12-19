@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.special_query &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.special_query</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">filter</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[special_query]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="choose_vsmany_K"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.choose_vsmany_K">[docs]</a><span class="k">def</span> <span class="nf">choose_vsmany_K</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">intersect_ordered</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># if self is in query bump k</span>
+        <span class="n">K</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">K</span>
+
+</div>
+<div class="viewcode-block" id="build_vsone_shortlist"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.build_vsone_shortlist">[docs]</a><span class="k">def</span> <span class="nf">build_vsone_shortlist</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres_vsmany</span><span class="p">):</span>
+    <span class="n">vsone_query_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nNameShortlistVsone</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres_vsmany</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres_vsmany</span><span class="p">):</span>
+        <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscores</span> <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">get_sorted_nids_and_scores</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">nNameShortlistVsone</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">),</span> <span class="n">nNameShortlistVsone</span><span class="p">)</span>
+        <span class="n">top_nids</span> <span class="o">=</span> <span class="n">sorted_nids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nNameShortlistVsone</span><span class="p">]</span>
+        <span class="c"># get top annotations beloning to the database query</span>
+        <span class="c"># TODO: allow annots not in daids to be included</span>
+        <span class="n">top_unflataids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">top_nids</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">flat_top_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">top_unflataids</span><span class="p">)</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">intersect_ordered</span><span class="p">(</span><span class="n">flat_top_aids</span><span class="p">,</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">vsone_query_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">qaid</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;built </span><span class="si">%d</span><span class="s"> pairs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vsone_query_pairs</span><span class="p">),))</span>
+    <span class="k">return</span> <span class="n">vsone_query_pairs</span>
+
+</div>
+<div class="viewcode-block" id="query_vsone_pairs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.query_vsone_pairs">[docs]</a><span class="k">def</span> <span class="nf">query_vsone_pairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">vsone_query_pairs</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">):</span>
+    <span class="n">qaid2_qres_vsone</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">top_aids</span> <span class="ow">in</span> <span class="n">vsone_query_pairs</span><span class="p">:</span>
+        <span class="n">vsone_cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone_norm&#39;</span><span class="p">)</span>
+        <span class="n">qaid2_qres_vsone_</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">top_aids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">vsone_cfgdict</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
+        <span class="n">qaid2_qres_vsone</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_vsone_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres_vsone</span>
+
+</div>
+<div class="viewcode-block" id="get_new_qres_filter_scores"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.get_new_qres_filter_scores">[docs]</a><span class="k">def</span> <span class="nf">get_new_qres_filter_scores</span><span class="p">(</span><span class="n">qres_vsone</span><span class="p">,</span> <span class="n">qres_vsmany</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    applies scores of type ``filtkey`` from qaid2_qres_vsmany to qaid2_qres_vsone</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">newfsv_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">newscore_aids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">top_aids</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">daid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fm</span> <span class="ow">or</span>
+             <span class="n">daid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">):</span>
+            <span class="c"># no matches to work with</span>
+            <span class="k">continue</span>
+        <span class="n">fm_vsone</span>      <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+        <span class="n">fm_vsmany</span>     <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+
+        <span class="n">scorex_vsone</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">qres_vsone</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+        <span class="n">scorex_vsmany</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">qres_vsmany</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scorex_vsone</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">new_filtkey_list</span> <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">[:]</span>
+            <span class="c">#new_scores_vsone = np.full(shape, np.nan)</span>
+            <span class="n">new_scores_vsone</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">fsv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">],</span> <span class="n">new_scores_vsone</span><span class="p">))</span>
+            <span class="n">new_filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtkey</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_filtkey_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fsv</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="s">&#39;filter length is not consistent&#39;</span>
+            <span class="n">new_fsv_vsone</span> <span class="o">=</span> <span class="n">fsv</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;scorex_vsone should be None&#39;</span>
+            <span class="n">new_fsv_vsone</span>  <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">scorex_vsone</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">scores_vsmany</span> <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">scorex_vsmany</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c"># find intersecting matches</span>
+        <span class="c"># (should we just take the scores from the pre-spatial verification</span>
+        <span class="c">#  part of the pipeline?)</span>
+        <span class="n">common</span><span class="p">,</span> <span class="n">fmx_vsone</span><span class="p">,</span> <span class="n">fmx_vsmany</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">intersect2d_numpy</span><span class="p">(</span><span class="n">fm_vsone</span><span class="p">,</span> <span class="n">fm_vsmany</span><span class="p">,</span> <span class="n">return_indicies</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">mutual_scores</span> <span class="o">=</span> <span class="n">scores_vsmany</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fmx_vsmany</span><span class="p">)</span>
+        <span class="n">new_fsv_vsone</span><span class="p">[</span><span class="n">fmx_vsone</span><span class="p">]</span> <span class="o">=</span> <span class="n">mutual_scores</span>
+
+        <span class="n">newfsv_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_fsv_vsone</span><span class="p">)</span>
+        <span class="n">newscore_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span>
+
+</div>
+<div class="viewcode-block" id="apply_new_qres_filter_scores"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.apply_new_qres_filter_scores">[docs]</a><span class="k">def</span> <span class="nf">apply_new_qres_filter_scores</span><span class="p">(</span><span class="n">qres_vsone</span><span class="p">,</span> <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">qres_vsone</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span>
+    <span class="n">qres_vsone</span><span class="o">.</span><span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtkey</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">new_fsv_vsone</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newscore_aids</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">):</span>
+        <span class="n">scorex_vsone</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">qres_vsone</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scorex_vsone</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># TODO: add spatial verification as a filter score</span>
+            <span class="c"># augment the vsone scores</span>
+            <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_fsv_vsone</span>
+            <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_prob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_prob</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="empty_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.empty_query">[docs]</a><span class="k">def</span> <span class="nf">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        qaids (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (qaid2_qres, qreq_)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --test-empty_query</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; (qaid2_qres, qreq_) = empty_query(ibs, qaids)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str((qaid2_qres, qreq_))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[1]</span>
+<span class="sd">        &gt;&gt;&gt; qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="n">qres_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">make_empty_query_results</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">:</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qres_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+
+
+<span class="c">#@ut.indent_func</span></div>
+<div class="viewcode-block" id="query_vsone_verified"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.query_vsone_verified">[docs]</a><span class="k">def</span> <span class="nf">query_vsone_verified</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A hacked in vsone-reranked pipeline</span>
+<span class="sd">    Actually just two calls to the pipeline</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        qaids (list):</span>
+<span class="sd">        daids (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: qaid2_qres, qreq_</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --test-query_vsone_verified</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; valid_aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; qaids = valid_aids[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; daids = valid_aids[1:]</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaid]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        qres = qaid2_qres_vsmany[qaid]</span>
+
+<span class="sd">        qres = qaid2_qres[qaid]</span>
+<span class="sd">        ibs.delete_qres_cache()</span>
+<span class="sd">        qres.show_top(ibs, update=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="n">use_cache</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c">#use_cache = False</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;issuing vsmany part&#39;</span><span class="p">)</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c">#&#39;pipeline_root&#39;: &#39;vsmany&#39;,</span>
+        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="n">choose_vsmany_K</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">),</span>
+        <span class="s">&#39;index_method&#39;</span><span class="p">:</span> <span class="s">&#39;multi&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">qaid2_qres_vsmany</span><span class="p">,</span> <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+        <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished vsmany part&#39;</span><span class="p">)</span>
+    <span class="n">isnsum</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span>
+    <span class="k">assert</span> <span class="n">isnsum</span>
+    <span class="k">assert</span> <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">!=</span> <span class="s">&#39;vsone&#39;</span>
+    <span class="c">#qreq_vsmany_.qparams.prescore_method</span>
+
+    <span class="c"># build vs one list</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[query_vsone_verified] building vsone pairs&#39;</span><span class="p">)</span>
+    <span class="n">vsone_query_pairs</span> <span class="o">=</span> <span class="n">build_vsone_shortlist</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres_vsmany</span><span class="p">)</span>
+
+    <span class="c"># vs-one reranking</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;running vsone queries&#39;</span><span class="p">)</span>
+    <span class="n">qaid2_qres_vsone</span> <span class="o">=</span> <span class="n">query_vsone_pairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">vsone_query_pairs</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">)</span>
+
+    <span class="c"># Apply vsmany distinctiveness scores to vsone</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">top_aids</span> <span class="ow">in</span> <span class="n">vsone_query_pairs</span><span class="p">:</span>
+        <span class="n">filtkey</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
+        <span class="n">qres_vsone</span> <span class="o">=</span> <span class="n">qaid2_qres_vsone</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">qres_vsmany</span> <span class="o">=</span> <span class="n">qaid2_qres_vsmany</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="c">#with ut.EmbedOnException():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: top_aids is len 0&#39;</span><span class="p">)</span>
+            <span class="n">qaid</span> <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">qaid</span>
+            <span class="k">continue</span>
+        <span class="n">qres_vsone</span><span class="o">.</span><span class="n">assert_self</span><span class="p">()</span>
+        <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">assert_self</span><span class="p">()</span>
+        <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span> <span class="o">=</span> <span class="n">get_new_qres_filter_scores</span><span class="p">(</span>
+            <span class="n">qres_vsone</span><span class="p">,</span> <span class="n">qres_vsmany</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+        <span class="n">apply_new_qres_filter_scores</span><span class="p">(</span>
+            <span class="n">qres_vsone</span><span class="p">,</span> <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished vsone queries&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaids</span><span class="p">:</span>
+            <span class="n">qres_vsone</span> <span class="o">=</span> <span class="n">qaid2_qres_vsone</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+            <span class="n">qres_vsmany</span> <span class="o">=</span> <span class="n">qaid2_qres_vsmany</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">qres_vsmany</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">vsmanyinspectstr</span> <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;VSMANY-INITIAL-RESULT qaid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,),</span> <span class="n">vsmanyinspectstr</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">qres_vsone</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">vsoneinspectstr</span> <span class="o">=</span> <span class="n">qres_vsone</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;VSONE-VERIFIED-RESULT qaid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,),</span> <span class="n">vsoneinspectstr</span><span class="p">))</span>
+
+    <span class="c"># FIXME: returns the last qreq_. There should be a notion of a query</span>
+    <span class="c"># request for a vsone reranked query</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres_vsone</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span>
+    <span class="n">all_failed_qres</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span><span class="n">qres</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">)])</span>
+    <span class="n">any_failed_qres</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">qres</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">any_failed_qres</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">all_failed_qres</span><span class="p">,</span> <span class="s">&quot;Needs to finish implemetation&quot;</span>
+        <span class="k">return</span> <span class="n">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+
+</div>
+<div class="viewcode-block" id="test_vsone_verified"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.special_query.test_vsone_verified">[docs]</a><span class="k">def</span> <span class="nf">test_vsone_verified</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    hack in vsone-reranking</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #reload_all()</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_vsone_verified(ibs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="c">#qaids = ibs.get_easy_annot_rowids()</span>
+    <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">(</span><span class="n">filter_empty</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">grouped_aids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
+    <span class="n">grouped_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">grouped_aids_</span><span class="p">))</span>
+    <span class="n">items_list</span> <span class="o">=</span> <span class="n">grouped_aids</span>
+
+    <span class="n">sample_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">sample_lists</span><span class="p">(</span><span class="n">items_list</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_vsone_verified</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">sample_aids</span><span class="p">,</span> <span class="n">sample_aids</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">))):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">close_all_figures</span><span class="p">()</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="c">#return qaid2_qres</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.special_query</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
