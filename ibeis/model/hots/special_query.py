@@ -18,12 +18,41 @@ def choose_vsmany_K(ibs, qaids, daids):
 
 
 def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
+    """
+    looks that the top N names in a vsmany query to apply vsone reranking
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaid2_qres_vsmany (dict):  dict of query result objects
+
+    Returns:
+        ?: vsone_query_pairs
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-build_vsone_shortlist
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids)
+        >>> # execute function
+        >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
+        >>> # verify results
+        >>> result = str(vsone_query_pairs)
+        >>> print(result)
+        [(1, [2, 3, 5, 6])]
+    """
     vsone_query_pairs = []
     nNameShortlistVsone = 3
     for qaid, qres_vsmany in six.iteritems(qaid2_qres_vsmany):
         sorted_nids, sorted_nscores = qres_vsmany.get_sorted_nids_and_scores(ibs=ibs)
-        nNameShortlistVsone = min(len(sorted_nids), nNameShortlistVsone)
-        top_nids = sorted_nids[0:nNameShortlistVsone]
+        top_nids = ut.listclip(sorted_nids, nNameShortlistVsone)
         # get top annotations beloning to the database query
         # TODO: allow annots not in daids to be included
         top_unflataids = ibs.get_name_aids(top_nids, enable_unknown_fix=True)
@@ -45,9 +74,118 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
     return qaid2_qres_vsone
 
 
+def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (?):
+        daids (?):
+        use_cache (bool):
+
+    Returns:
+        tuple: (newfsv_list, newscore_aids)
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-query_vsmany_initial
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> use_cache = False
+        >>> # execute function
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
+        >>> qres = qaid2_qres_vsmany[qaids[0]]
+        >>> # verify results
+        >>> result = str(qres)
+        >>> print(result)
+    """
+    vsmany_cfgdict = {
+        #'pipeline_root': 'vsmany',
+        'K': choose_vsmany_K(ibs, qaids, daids),
+        'index_method': 'multi',
+        'return_expanded_nns': True
+    }
+    qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
+        qaids, daids, cfgdict=vsmany_cfgdict, return_request=True, use_cache=use_cache)
+    isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
+    assert isnsum
+    assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
+    return qaid2_qres_vsmany, qreq_vsmany_
+
+
+def get_new_qres_filter_scores2(qres_vsone, qres_vsmany, top_aids, filtkey):
+    """
+    gets the distinctivenss score
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> # build test data
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
+        >>> filtkey = 'distinctivness'
+        >>> use_cache = False
+        >>> # execute function
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
+        >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
+        >>> qaid2_qres_vsone = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qres_vsone = qaid2_qres_vsone[qaid]
+        >>> qres_vsmany = qaid2_qres_vsmany[qaid]
+        >>> top_aids = vsone_query_pairs[0][1]
+        >>> # verify results
+        >>> result = str((qaid2_qres, qreq_))
+        >>> print(result)
+    """
+    newfsv_list = []
+    newscore_aids = []
+
+    for daid in top_aids:
+        if (daid not in qres_vsone.aid2_fm or
+             daid not in qres_vsmany.aid2_fm):
+            # no matches to work with
+            continue
+        scorex_vsone  = ut.listfind(qres_vsone.filtkey_list, filtkey)
+        if scorex_vsone is None:
+            shape = (qres_vsone.aid2_fsv[daid].shape[0], 1)
+            new_filtkey_list = qres_vsone.filtkey_list[:]
+            new_scores_vsone = np.full(shape, np.nan)
+            #new_scores_vsone = np.ones(shape)
+            new_fsv_vsone = np.hstack((qres_vsone.aid2_fsv[daid], new_scores_vsone))
+            new_filtkey_list.append(filtkey)
+            assert len(new_filtkey_list) == len(new_fsv_vsone.T), 'filter length is not consistent'
+            new_scores = new_fsv_vsone.T[-1].T
+        fm_vsone  = qres_vsone.aid2_fm[daid]
+        qfx_vsone = fm_vsone.T[0]
+        qres_vsmany.qfx2_dist
+        distinctiveness_scores = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
+        new_scores[:] = distinctiveness_scores
+        newfsv_list.append(new_fsv_vsone)
+        newscore_aids.append(daid)
+
+
 def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
     """
     applies scores of type ``filtkey`` from qaid2_qres_vsmany to qaid2_qres_vsone
+
+    Args:
+        qres_vsone (QueryResult):  object of feature correspondences and scores
+        qres_vsmany (QueryResult):  object of feature correspondences and scores
+        top_aids (?):
+        filtkey (?):
+
+    Returns:
+        tuple: (qaid2_qres, qreq_)
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-get_new_qres_filter_scores
     """
     newfsv_list = []
     newscore_aids = []
@@ -66,13 +204,13 @@ def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
             new_filtkey_list = qres_vsone.filtkey_list[:]
             #new_scores_vsone = np.full(shape, np.nan)
             new_scores_vsone = np.ones(shape)
-            fsv = np.hstack((qres_vsone.aid2_fsv[daid], new_scores_vsone))
+            new_fsv_vsone = np.hstack((qres_vsone.aid2_fsv[daid], new_scores_vsone))
             new_filtkey_list.append(filtkey)
-            assert len(new_filtkey_list) == len(fsv.T), 'filter length is not consistent'
-            new_fsv_vsone = fsv.T[-1].T
+            assert len(new_filtkey_list) == len(new_fsv_vsone.T), 'filter length is not consistent'
+            new_score_vsone = new_fsv_vsone.T[-1].T
         else:
             assert False, 'scorex_vsone should be None'
-            new_fsv_vsone  = qres_vsone.aid2_fsv[daid].T[scorex_vsone].T
+            new_score_vsone = qres_vsone.aid2_fsv[daid].T[scorex_vsone].T
         scores_vsmany = qres_vsmany.aid2_fsv[daid].T[scorex_vsmany].T
 
         # find intersecting matches
@@ -80,9 +218,9 @@ def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
         #  part of the pipeline?)
         common, fmx_vsone, fmx_vsmany = vt.intersect2d_numpy(fm_vsone, fm_vsmany, return_indicies=True)
         mutual_scores = scores_vsmany.take(fmx_vsmany)
-        new_fsv_vsone[fmx_vsone] = mutual_scores
+        new_score_vsone[fmx_vsone] = mutual_scores
 
-        newfsv_list.append(new_fsv_vsone)
+        newfsv_list.append(new_score_vsone)
         newscore_aids.append(daid)
     return newfsv_list, newscore_aids
 
@@ -181,18 +319,11 @@ def query_vsone_verified(ibs, qaids, daids):
         return empty_query(ibs, qaids)
     use_cache = True
     #use_cache = False
+
+    # vs-many initial scoring
     print('issuing vsmany part')
-    cfgdict = {
-        #'pipeline_root': 'vsmany',
-        'K': choose_vsmany_K(ibs, qaids, daids),
-        'index_method': 'multi',
-    }
-    qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
-        qaids, daids, cfgdict=cfgdict, return_request=True, use_cache=use_cache)
+    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache=use_cache)
     print('finished vsmany part')
-    isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
-    assert isnsum
-    assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
     #qreq_vsmany_.qparams.prescore_method
 
     # build vs one list
