@@ -70,7 +70,7 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="ishow_qres"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.ishow_qres">[docs]</a><span class="k">def</span> <span class="nf">ishow_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Displays query chip, groundtruth matches, and top 5 matches</span>
+<span class="sd">    Displays query chip, groundtruth matches, and top matches</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">kwargs_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;qres&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
@@ -95,7 +95,7 @@
     <span class="k">def</span> <span class="nf">_top_matches_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="c"># Toggle if the click is not in any axis</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;clicked none&#39;</span><span class="p">)</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annote_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annote_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span>
 

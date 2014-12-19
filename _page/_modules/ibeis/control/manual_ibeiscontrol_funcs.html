@@ -59,14 +59,41 @@
 
 
 <span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">):</span>
+<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    daid_list = ibs.get_valid_aids()</span>
-<span class="sd">    qaid_list = daid_list[0:1]</span>
-<span class="sd">    cfgdict = {}</span>
+<span class="sd">    alias for ibeis.model.hots.query_request.new_ibeis_query_request</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid_list (list):</span>
+<span class="sd">        daid_list (list):</span>
+<span class="sd">        cfgdict (None):</span>
+<span class="sd">        verbose (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        QueryRequest: qreq_ -  hyper-parameters</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs --test-new_query_request</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = daid_list[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = {}</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = new_query_request(ibs, qaid_list, daid_list, cfgdict, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_.set_external_qaid_mask(qaid_list[1:2])</span>
+<span class="sd">        &gt;&gt;&gt; print(qreq_.get_external_qaids())</span>
+<span class="sd">        &gt;&gt;&gt; result = str(qreq_.get_query_hashid())</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        _QSUUIDS((1)nztoqb6&amp;7apjltd1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_</span>
 
 </div>
@@ -90,7 +117,7 @@
             <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
 
-    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_uuid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="s">&#39;_TAIDS&#39;</span><span class="p">)</span>
+    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;T&#39;</span><span class="p">)</span>
     <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">vocab_cfgstr_</span> <span class="o">+</span> <span class="n">tannot_hashid</span> <span class="o">+</span> <span class="n">feat_cfgstr_</span>
     <span class="k">return</span> <span class="n">vocab_cfgstr</span>
 

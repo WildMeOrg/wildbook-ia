@@ -672,8 +672,8 @@ class IBEISController(object):
     @ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
         """
-        Description:
-            Clusters images into encounters
+        Clusters images into encounters
+
         CommandLine:
             python -m ibeis.control.IBEISControl --test-compute_encounters
 
@@ -703,14 +703,13 @@ class IBEISController(object):
             >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
             >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
         """
-
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         gid_list = ibs.get_ungrouped_gids()
         flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         eid_offset = max(ibs.get_valid_eids())
-        flat_eids_offset = [eid + eid_offset for eid in flat_eids] # This way we can make sure that manually separated encounters
+        flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
         # remain untouched, and ensure that new encounters are created
         enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
         print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))

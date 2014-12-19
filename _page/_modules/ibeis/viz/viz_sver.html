@@ -74,11 +74,18 @@
 
 <span class="k">def</span> <span class="nf">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; If spatial-verfication dbginfo is not in we need to compute it &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
-    <span class="n">qcomp</span> <span class="o">=</span> <span class="n">query_helpers</span><span class="o">.</span><span class="n">get_query_components</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
-    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">qcomp</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_svtups</span>         <span class="o">=</span> <span class="n">qcomp</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">with_metadata</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to search&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to query&#39;</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
+    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_svtups</span>         <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
     <span class="n">chipmatch_FILT</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_FILT</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
     <span class="n">aid2_svtup</span>     <span class="o">=</span> <span class="n">qaid2_svtups</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span>

@@ -50,20 +50,25 @@
             
   <h1>Source code for ibeis.viz.viz_matches</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># UTool</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="c"># Drawtool</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
 <span class="kn">import</span> <span class="nn">plottool.plot_helpers</span> <span class="kn">as</span> <span class="nn">ph</span>
-<span class="c"># IBEIS</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_matches]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <span class="nd">@utool.indent_func</span>
 <div class="viewcode-block" id="show_matches"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches">[docs]</a><span class="k">def</span> <span class="nf">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; shows single annotated match result. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    shows single annotated match result.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qres (QueryResult):  object of feature correspondences and scores</span>
+<span class="sd">        aid2 (int): result annotation id</span>
+<span class="sd">        sel_fm (list): selected features match indicies</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">in_image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="n">aid1</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span>
@@ -112,6 +117,14 @@
                      <span class="n">xywh2</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                      <span class="n">xywh1</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                      <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function</span>
+<span class="sd">    Draws annotation on top of a matching chip plot</span>
+
+<span class="sd">    does not draw feature matches. that is done in plottool.draw_func2.show_chipmatch2</span>
+<span class="sd">    this handles things like the labels and borders based on</span>
+<span class="sd">    groundtruth score</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO Use this function when you clean show_matches</span>
     <span class="n">in_image</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">show_query</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
@@ -132,8 +145,11 @@
     <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid2&#39;</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
         <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-        <span class="n">lbl1</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name1</span><span class="p">)</span>  <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span> <span class="s">&#39;q&#39;</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
-        <span class="n">lbl2</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name2</span><span class="p">)</span>  <span class="o">+</span> <span class="s">&#39; : &#39;</span> <span class="o">+</span>  <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c">#lbl1 = repr(name1)  + &#39; : &#39; + &#39;q&#39; + vh.get_aidstrs(aid1)</span>
+        <span class="c">#lbl2 = repr(name2)  + &#39; : &#39; +  vh.get_aidstrs(aid2)</span>
+        <span class="n">lbl1</span> <span class="o">=</span> <span class="s">&#39; : &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">name1</span><span class="p">),</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">nid1</span><span class="p">),</span> <span class="s">&#39;q&#39;</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid1</span><span class="p">)])</span>
+        <span class="n">lbl2</span> <span class="o">=</span> <span class="s">&#39; : &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">name2</span><span class="p">),</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">nid2</span><span class="p">),</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid2</span><span class="p">)])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">lbl1</span><span class="p">,</span> <span class="n">lbl2</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">vh</span><span class="o">.</span><span class="n">NO_LBL_OVERRIDE</span><span class="p">:</span>

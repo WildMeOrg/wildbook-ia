@@ -574,7 +574,7 @@ def get_name_num_exemplar_annotations(ibs, nid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_name_texts(ibs, name_rowid_list):
+def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     """
     Returns:
         list_ (list): text names
@@ -600,10 +600,11 @@ def get_name_texts(ibs, name_rowid_list):
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
-    name_text_list = [const.UNKNOWN
-                      if rowid == ibs.UNKNOWN_NAME_ROWID or name_text is None
-                      else name_text
-                      for name_text, rowid in zip(name_text_list, name_rowid_list)]
+    if apply_fix:
+        name_text_list = [const.UNKNOWN
+                          if rowid == ibs.UNKNOWN_NAME_ROWID or name_text is None
+                          else name_text
+                          for name_text, rowid in zip(name_text_list, name_rowid_list)]
     return name_text_list
 
 
