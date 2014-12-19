@@ -308,6 +308,21 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Global Preferences&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_global_prefs</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteThumbnails&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Thumbnails&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCleanDatabase&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Clean Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">clean_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionConsistencyCheck&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Consistency Checks&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_consistency_checks</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="setup_developer_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_developer_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_developer_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>

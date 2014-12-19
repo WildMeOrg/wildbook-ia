@@ -51,6 +51,8 @@
 <span class="c">#!/usr/bin/env python2.7</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">functools</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
@@ -348,10 +350,15 @@
         <span class="n">back</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span>
         <span class="c">#_SEP = lambda: None</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">query_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Run Identification&#39;</span><span class="p">,</span>
-                                      <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
-                                      <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
-                                      <span class="n">fgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="c">#ibswgt.query_button = _NEWBUT(&#39;Run Identification&#39;,</span>
+        <span class="c">#                              ibswgt.back.compute_queries,</span>
+        <span class="c">#                              bgcolor=(150, 150, 255),</span>
+        <span class="c">#                              fgcolor=(0, 0, 0))</span>
+
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">inc_query_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 4) Identify&#39;</span><span class="p">,</span>  <span class="c"># QUERY&#39;,</span>
+                                          <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span><span class="p">,</span>
+                                          <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                                          <span class="n">fgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
         <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c"># Text              # Value</span>
@@ -360,19 +367,15 @@
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span> <span class="o">=</span> <span class="n">_COMBO</span><span class="p">(</span><span class="n">detection_combo_box_options</span><span class="p">,</span>
                                       <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">change_detection_species</span><span class="p">)</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Update Encounter Species&#39;</span><span class="p">,</span>
-                                        <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">encounter_set_species</span><span class="p">,</span>
-                                        <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
-
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Set Encounter as Reviewed&#39;</span><span class="p">,</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 5) Complete&#39;</span><span class="p">,</span>
                                          <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">encounter_reviewed_all_images</span><span class="p">,</span>
                                          <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">211</span><span class="p">))</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">import_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 1) Import Images</span><span class="se">\n</span><span class="s">(via files)&#39;</span><span class="p">,</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">import_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 1) Import&#39;</span><span class="p">,</span>  <span class="c"># Import Images\n(via files)&#39;,</span>
                                        <span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file</span><span class="p">,</span>
                                        <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">235</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">),)</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">encounter_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 2) Group Images into Encounters&#39;</span><span class="p">,</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">encounter_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span><span class="s">&#39;Step 2) Group&#39;</span><span class="p">,</span>  <span class="c"># Images into Encounters&#39;,</span>
                                           <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">,</span>
                                           <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
 
@@ -380,13 +383,17 @@
                                        <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_coarse</span><span class="p">,</span>
                                        <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
 
+        <span class="c">#ibswgt.species_button = _NEWBUT(&#39;Update Encounter Species&#39;,</span>
+        <span class="c">#                                ibswgt.back.encounter_set_species,</span>
+        <span class="c">#                                bgcolor=(100, 255, 150))</span>
+
         <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c"># Text              # Value</span>
-            <span class="p">(</span><span class="s">&#39;Step 4) Intra Encounter&#39;</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">),</span>
+            <span class="c">#(&#39;Step 4) Intra Encounter&#39;, constants.INTRA_ENC_KEY),</span>
             <span class="p">(</span><span class="s">&#39;Step 5) Vs Exemplars&#39;</span><span class="p">,</span>    <span class="n">constants</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">),</span>
         <span class="p">]</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">querydb_combo</span> <span class="o">=</span> <span class="n">_COMBO</span><span class="p">(</span><span class="n">detection_combo_box_options</span><span class="p">,</span>
-                                      <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">change_query_mode</span><span class="p">)</span>
+        <span class="c">#ibswgt.querydb_combo = _COMBO(detection_combo_box_options,</span>
+        <span class="c">#                              ibswgt.back.change_query_mode)</span>
 
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">button_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">[</span>
@@ -402,22 +409,32 @@
 
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">encounter_button</span><span class="p">,</span>
 
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="p">,</span>
 
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">detect_button</span><span class="p">,</span>
+
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">inc_query_button</span><span class="p">,</span>
+
+                <span class="c">#ibswgt.species_button,</span>
+
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span><span class="p">,</span>
 
             <span class="p">],</span>
             <span class="p">[</span>
                 <span class="c">#_NEWBUT(&#39;Review Detections&#39;,</span>
                 <span class="c">#        ibswgt.back.review_detections,</span>
                 <span class="c">#        bgcolor=(170, 250, 170)),</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_button</span><span class="p">,</span>
 
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span><span class="p">,</span>
+                <span class="c">#ibswgt.querydb_combo,</span>
 
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">querydb_combo</span><span class="p">,</span>
+                <span class="c">#ibswgt.query_button,</span>
 
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">query_button</span><span class="p">,</span>
+                <span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;Species Selector:&#39;</span><span class="p">),</span>
+
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="p">,</span>
+
+                <span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+                <span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+
 
                 <span class="c">#_NEWBUT(&#39;Identify\n(vs exemplar database)&#39;,</span>
                 <span class="c">#        ibswgt.back.compute_queries_vs_exemplar,</span>
@@ -480,6 +497,7 @@
 </div>
 <div class="viewcode-block" id="IBEISGuiWidget.update_tables"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.update_tables">[docs]</a>    <span class="k">def</span> <span class="nf">update_tables</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">tblnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; forces changing models &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] update_tables(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblnames</span><span class="p">,))</span>
         <span class="n">hack_selections</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c">#print(&#39;[new_gui.UPDATE_TABLES]&#39;)</span>
         <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">changing_models_gen</span><span class="p">(</span><span class="n">tblnames</span><span class="o">=</span><span class="n">tblnames</span><span class="p">):</span>
@@ -542,6 +560,15 @@
                     <span class="n">view</span><span class="o">.</span><span class="n">hide_cols</span><span class="p">()</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">_tab_table_wgt</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="n">block_wgt_flag</span><span class="p">)</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">DEFAULT_LARGEST_ENCOUNTER</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">DEFAULT_LARGEST_ENCOUNTER</span><span class="p">:</span>
+                <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+                <span class="n">numImg_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+                <span class="n">argx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">numImg_list</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+                <span class="c">#ibswgt._change_enc(eid)</span>
 </div>
 <div class="viewcode-block" id="IBEISGuiWidget.setWindowTitle"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.setWindowTitle">[docs]</a>    <span class="k">def</span> <span class="nf">setWindowTitle</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
         <span class="n">parent_</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
@@ -551,7 +578,7 @@
             <span class="n">IBEIS_WIDGET_BASE</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;_change_enc(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">eid</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] _change_enc(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">eid</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">changing_models_gen</span><span class="p">(</span><span class="n">tblnames</span><span class="o">=</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="p">):</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
             <span class="c">#ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call</span>
@@ -575,8 +602,8 @@
             <span class="c">#ibswgt.query_</span>
             <span class="c">#ibswgt.button_list[1][0].setText(&#39;Identify (intra-encounter)\nQUERY(%r vs. %r)&#39; % (enctext, enctext))</span>
             <span class="c">#ibswgt.button_list[1][1].setText(&#39;Identify (vs exemplar database)\nQUERY(%r vs. %r)&#39; % (enctext, constants.EXEMPLAR_ENCTEXT))</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_update_enc_tab_name</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">):</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_update_enc_tab_name</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
@@ -597,6 +624,11 @@
     <span class="c"># SLOTS</span>
     <span class="c">#------------</span>
 
+<div class="viewcode-block" id="IBEISGuiWidget.get_table_tab_index"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.get_table_tab_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_table_tab_index</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">tblname</span><span class="p">):</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">_tab_table_wgt</span><span class="o">.</span><span class="n">indexOf</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">index</span>
+</div>
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
 <div class="viewcode-block" id="IBEISGuiWidget.on_rows_updated"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.on_rows_updated">[docs]</a>    <span class="k">def</span> <span class="nf">on_rows_updated</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">nRows</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -607,8 +639,7 @@
             <span class="k">return</span>
         <span class="n">tblname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tblname</span><span class="p">)</span>
         <span class="n">tblnice</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">TABLE_NICE</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
-        <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">_tab_table_wgt</span><span class="o">.</span><span class="n">indexOf</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">get_table_tab_index</span><span class="p">(</span><span class="n">tblname</span><span class="p">)</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">tblnice</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nRows</span><span class="p">)</span>
         <span class="c">#printDBG(&#39;Rows updated in index=%r, text=%r&#39; % (index, text))</span>
         <span class="c"># CHANGE TAB NAME TO SHOW NUMBER OF ROWS</span>
@@ -624,28 +655,41 @@
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
             <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s">&#39;delete encounter(s)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
-                <span class="p">(</span><span class="s">&#39;export encounter(s)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">export_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                <span class="c">#(&#39;export encounter(s)&#39;, lambda: ibswgt.back.export_encounters(id_list)),</span>
             <span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">merge_destination_id</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>  <span class="c"># This is for the benefit of merge encounters</span>
+                <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">merge_destination_id</span><span class="p">)</span>
                 <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;merge encounters&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;merge </span><span class="si">%d</span><span class="s"> encounters into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">))</span>
+                     <span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
                 <span class="p">]</span>
             <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_TABLE</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">gid</span> <span class="o">=</span> <span class="n">id_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;view hough image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;delete image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
-                <span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span>
-                <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="p">[</span>
+            <span class="c"># CONTEXT OPTIONS FOR IMAGE TABLE ITEMS</span>
+            <span class="n">image_context_options</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">current_enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">current_enctext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">NEW_ENCOUNTER_ENCTEXT</span><span class="p">:</span>
+                <span class="n">image_context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;move to new encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;move&#39;</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;copy to new encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;copy&#39;</span><span class="p">)),</span>
+                <span class="p">]</span>
+            <span class="k">if</span> <span class="n">current_enctext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">:</span>
+                <span class="n">image_context_options</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s">&#39;remove from encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">remove_from_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">image_context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;delete images&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
-                <span class="p">])</span>
+                <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gid</span> <span class="o">=</span> <span class="n">id_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">image_context_options</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s">&#39;view hough image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;delete image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+                <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_context_options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">image_context_options</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ANNOTATION_TABLE</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
@@ -654,12 +698,14 @@
                     <span class="p">(</span><span class="s">&#39;Select annotation (default)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View and select image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View probability chip&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_probability_chip</span><span class="p">(</span><span class="n">aid</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Unset annotation name&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">unset_names</span><span class="p">([</span><span class="n">aid</span><span class="p">])),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
                     <span class="p">(</span><span class="s">&#39;Delete annotation&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                 <span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;delete annotations&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete annotations&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Unset all annotation names&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">unset_names</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                 <span class="p">])</span>
 </div>
     <span class="nd">@slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
@@ -692,6 +738,16 @@
                     <span class="n">aid</span> <span class="o">=</span> <span class="n">id_</span>
                     <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </div>
+<div class="viewcode-block" id="IBEISGuiWidget.select_encounter_tab"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.select_encounter_tab">[docs]</a>    <span class="k">def</span> <span class="nf">select_encounter_tab</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;[newgui] select_encounter_tab eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
+        <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_add_enc_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
+        <span class="c">#ibswgt.back.select_eid(eid)</span>
+</div>
     <span class="nd">@slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
 <div class="viewcode-block" id="IBEISGuiWidget.on_doubleclick"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.on_doubleclick">[docs]</a>    <span class="k">def</span> <span class="nf">on_doubleclick</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
         <span class="c">#printDBG(&#39;on_doubleclick&#39;)</span>
@@ -699,9 +755,7 @@
         <span class="n">id_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
             <span class="n">eid</span> <span class="o">=</span> <span class="n">id_</span>
-            <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_add_enc_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_eid</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_TABLE</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_GRID</span><span class="p">):</span>
@@ -772,7 +826,7 @@
 
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 <div class="viewcode-block" id="IBEISGuiWidget.imagesDropped"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.imagesDropped">[docs]</a>    <span class="k">def</span> <span class="nf">imagesDropped</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">url_list</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
+        <span class="sd">&quot;&quot;&quot; image drag and drop event &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[drop_event] url_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_list</span><span class="p">,))</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">matches_image</span><span class="p">,</span> <span class="n">url_list</span><span class="p">)</span>
         <span class="n">dir_list</span>   <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="n">isdir</span><span class="p">,</span> <span class="n">url_list</span><span class="p">)</span>

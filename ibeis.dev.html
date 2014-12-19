@@ -77,19 +77,33 @@
 <dd><p>Returns dictionary of digestable database information
 Infostr is a string summary of all the stats. Prints infostr in addition to
 returning locals</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dev.dbinfo &#8211;test-get_dbinfo</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">dbinfo</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_Mothers&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">]</span>
-<span class="go">66w+mdzw!n%3+i6h</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">&amp;z3uturz&amp;%s2p03!</span>
 </pre></div>
 </div>
 <p>#&gt;&gt;&gt; print(ut.hashstr(repr(output)))</p>
@@ -444,7 +458,7 @@ Cols store different configurations (algorithm parameters)</p>
 <dl class="function">
 <dt id="ibeis.dev.main_helpers.get_test_daids">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_daids</tt><big>(</big><em>ibs</em>, <em>qaid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(get_test_daids)</p>
+<dd><p>Wrapped function wrp_indent(get_test_daids)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qaid_list&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
 <p>orig_docstr =  Gets database annot_rowids based on command line arguments</p>
 <blockquote>
@@ -458,7 +472,7 @@ Cols store different configurations (algorithm parameters)</p>
 <dl class="function">
 <dt id="ibeis.dev.main_helpers.get_test_qaids">
 <tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_qaids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(get_test_qaids)</p>
+<dd><p>Wrapped function wrp_indent(get_test_qaids)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =  Gets test annot_rowids based on command line arguments</p>
 </dd></dl>

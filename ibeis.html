@@ -154,10 +154,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.interactive_automated_matcher">ibeis.model.hots.interactive_automated_matcher module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.name_scoring">ibeis.model.hots.name_scoring module</a></li>
@@ -168,6 +171,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.score_normalization">ibeis.model.hots.score_normalization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.special_query">ibeis.model.hots.special_query module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
@@ -259,6 +263,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_name">ibeis.viz.interact.interact_name module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres">ibeis.viz.interact.interact_qres module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres2">ibeis.viz.interact.interact_qres2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_query_decision">ibeis.viz.interact.interact_query_decision module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_sver">ibeis.viz.interact.interact_sver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact">Module contents</a></li>
 </ul>
@@ -561,10 +566,16 @@ want to use is imported / exists.</p>
 </div>
 <div class="section" id="module-ibeis.ibsfuncs">
 <span id="ibeis-ibsfuncs-module"></span><h2>ibeis.ibsfuncs module<a class="headerlink" href="#module-ibeis.ibsfuncs" title="Permalink to this headline">¶</a></h2>
-<p>python -c &#8220;import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))&#8221;
-python -m doctest -v ibeis/model/hots/hots_nn_index.py
-python -m doctest ibeis/model/hots/hots_nn_index.py</p>
-<p>rob gp &#8220;ibsfuncs..*(ibs, &#8220;</p>
+<p>developer convenience functions for ibs</p>
+<dl class="docutils">
+<dt>TODO: need to split up into sub modules:</dt>
+<dd><p class="first">consistency_checks
+feasibility_fixes
+move the export stuff to dbio</p>
+<p class="last">then there are also convineience functions that need to be ordered at least
+within this file</p>
+</dd>
+</dl>
 <dl class="function">
 <dt id="ibeis.ibsfuncs.aidstr">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">aidstr</tt><big>(</big><em>aid</em>, <em>ibs=None</em>, <em>notes=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#aidstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.aidstr" title="Permalink to this definition">¶</a></dt>
@@ -584,10 +595,7 @@ python -m doctest ibeis/model/hots/hots_nn_index.py</p>
 <dl class="function">
 <dt id="ibeis.ibsfuncs.assert_lblannot_rowids_are_type">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_lblannot_rowids_are_type</tt><big>(</big><em>ibs</em>, <em>lblannot_rowid_list</em>, <em>valid_lbltype_rowid</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_lblannot_rowids_are_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_lblannot_rowids_are_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(assert_lblannot_rowids_are_type)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;lblannot_rowid_list&#8217;, &#8216;valid_lbltype_rowid&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.assert_singleton_relationship">
@@ -613,8 +621,28 @@ the standard unknown name</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.check_annot_consistency">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_annot_consistency</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_annot_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_annot_consistency" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_annot_consistency</tt><big>(</big><em>ibs</em>, <em>aid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_annot_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_annot_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-check_annot_consistency</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">check_annot_consistency</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.check_annot_size">
@@ -633,18 +661,26 @@ the standard unknown name</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.check_image_consistency">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_image_consistency</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_image_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_image_consistency" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_image_consistency</tt><big>(</big><em>ibs</em>, <em>gid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_image_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_image_consistency" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.check_image_uuid_consistency">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_image_uuid_consistency</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_image_uuid_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_image_uuid_consistency" title="Permalink to this definition">¶</a></dt>
-<dd><p>VERY SLOW</p>
+<dd><p>Checks to make sure image uuids are computed detemenistically
+by recomputing all guuids and checking that they are equal to
+what is already there.</p>
+<p>VERY SLOW</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.check_name_consistency">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_name_consistency</tt><big>(</big><em>ibs</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_name_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_name_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.clean_database">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">clean_database</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#clean_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.clean_database" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -735,16 +771,13 @@ Can specify to delete encoutners and chips as well.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.ibsfuncs.delete_non_exemplars">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_non_exemplars</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_non_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_non_exemplars" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_time(delete_non_exemplars)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr =</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.ibsfuncs.delete_qres_cache">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_qres_cache</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_qres_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_qres_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_thumbnails">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_thumbnails</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_thumbnails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_thumbnails" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -789,6 +822,99 @@ If not it fixes them</p>
 <dt id="ibeis.ibsfuncs.fix_exif_data">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_exif_data</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_exif_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_exif_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.fix_invalid_name_texts">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_invalid_name_texts</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_invalid_name_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_invalid_name_texts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure  that no name text is empty or &#8216;____&#8217;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-fix_invalid_names</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">fix_invalid_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>ibs.set_name_texts(nid_list[3], &#8216;____&#8217;)
+ibs.set_name_texts(nid_list[2], &#8216;&#8217;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.fix_invalid_nids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_invalid_nids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_invalid_nids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_invalid_nids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure that all rowids are greater than 0</p>
+<p>We can only handle there being a name with rowid 0 if it is UNKNOWN. In this
+case we safely delete it, but anything more complicated needs to be handled
+anually</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-fix_invalid_names</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">fix_invalid_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.fix_remove_visual_dupliate_annotations">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_remove_visual_dupliate_annotations</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_remove_visual_dupliate_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_remove_visual_dupliate_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add to clean database?</p>
+<p>removes visually duplicate annotations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;GZ_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fix_remove_visual_dupliate_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.fix_unknown_exemplars">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_unknown_exemplars</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_unknown_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_unknown_exemplars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Goes through all of the annotations, and sets their exemplar flag to 0 if it
+is associated with an unknown annotation</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.get_aids_with_groundtruth">
@@ -842,13 +968,17 @@ If not it fixes them</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.get_annot_groundtruth_sample">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_groundtruth_sample</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>per_name=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_groundtruth_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_groundtruth_sample" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_groundtruth_sample</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>per_name=1</em>, <em>isexemplar=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_groundtruth_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_groundtruth_sample" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 </tbody>
 </table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-get_annot_groundtruth_sample &#8211;verbose-class</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -895,6 +1025,11 @@ If not it fixes them</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_rowid_sample">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_rowid_sample</tt><big>(</big><em>ibs</em>, <em>per_name=1</em>, <em>min_ngt=1</em>, <em>seed=0</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_rowid_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_rowid_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.ibsfuncs.get_annot_vecs_cache">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_vecs_cache</tt><big>(</big><em>ibs</em>, <em>aids</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_vecs_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_vecs_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>When you have a list with duplicates and you dont want to copy data
@@ -919,7 +1054,6 @@ creates a reference to each data object indexed by a dict</p>
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_database_species_count</tt><big>(</big><em>ibs</em>, <em>aid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_database_species_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_database_species_count" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#print(ut.dict_str(ibeis.opendb(&#39;PZ_Master0&#39;).get_database_species_count()))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species_count</span><span class="p">()</span>
@@ -987,6 +1121,11 @@ creates a reference to each data object indexed by a dict</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.ibsfuncs.get_special_eids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_special_eids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_special_eids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_special_eids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.ibsfuncs.get_species_dbs">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_species_dbs</tt><big>(</big><em>species_prefix</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_species_dbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_species_dbs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -995,6 +1134,37 @@ creates a reference to each data object indexed by a dict</p>
 <dt id="ibeis.ibsfuncs.get_title">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_title</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_title" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_ungrouped_gids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_ungrouped_gids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_ungrouped_gids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_ungrouped_gids" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-get_ungrouped_gids</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Now we want to remove some images from a non-special encounter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nonspecial_eids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_special_eids</span><span class="p">()]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Nonspecial EIDs </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">nonspecial_eids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images_to_remove</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">nonspecial_eids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Removing </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">images_to_remove</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_encounters</span><span class="p">(</span><span class="n">images_to_remove</span><span class="p">,</span><span class="n">nonspecial_eids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">images_to_remove</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ungr_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_eids_from_text</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Ungrouped gids </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ungrouped_gids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Ungrouped eid </span><span class="si">%d</span><span class="s"> contains </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ungr_eid</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">([</span><span class="n">ungr_eid</span><span class="p">])))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ungr_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">([</span><span class="n">ungr_eid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">images_to_remove</span><span class="p">)</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ungr_gids</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.get_upsize_data">
@@ -1047,25 +1217,30 @@ to try it as a query against.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid</span><span class="p">,</span> <span class="n">true_aids</span><span class="p">,</span> <span class="n">false_aids_samples</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">qaid_trues_list</span><span class="p">,</span> <span class="n">qaid_false_samples_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">upsizetup</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">b9lvi3nz&amp;ld9u8rg</span>
+<span class="go">objl8qnhyics@0cr</span>
 </pre></div>
 </div>
+<p>b9lvi3nz&amp;ld9u8rg</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.group_annots_by_known_names">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">group_annots_by_known_names</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>checks=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#group_annots_by_known_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.group_annots_by_known_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>#&gt;&gt;&gt; import ibeis</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-group_annots_by_known_names</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncst</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span> 
-<span class="go">[main]...</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">known_aids_list</span><span class="p">,</span> <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">group_annots_by_known_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">known_aids_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">known_aids_list</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[[2, 3], [5, 6], [7], [8], [10], [12], [13]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">)</span>
 <span class="go">[11, 9, 4, 1]</span>
 </pre></div>
 </div>
@@ -1085,8 +1260,6 @@ to try it as a query against.</p>
 <dt id="ibeis.ibsfuncs.is_nid_unknown">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">is_nid_unknown</tt><big>(</big><em>ibs</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#is_nid_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.is_nid_unknown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function _wrp_preserve(is_nid_unknown)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;nid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr = Wrapped function _wrp_preserve(is_nid_unknown)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;nid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -1125,7 +1298,30 @@ This is OLD. use export_subset instead</p>
 <dl class="function">
 <dt id="ibeis.ibsfuncs.postinject_func">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">postinject_func</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#postinject_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.postinject_func" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-postinject_func</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># indirectly test postinject_func</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thetas_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annot_thetas</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">thetas_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[[0.0, 0.0], [0.0, 0.0], [0.0], [0.0], [0.0], [0.0], [0.0]]</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.precompute_all_annot_dependants">
@@ -1213,6 +1409,18 @@ This is OLD. use export_subset instead</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.ibsfuncs.print_name_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_name_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_name_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_name_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_species_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_species_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_species_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_species_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.ibsfuncs.print_stats">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_stats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1225,7 +1433,14 @@ This is OLD. use export_subset instead</p>
 <dl class="function">
 <dt id="ibeis.ibsfuncs.prune_exemplars">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">prune_exemplars</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#prune_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.prune_exemplars" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Prunes exemplars from names with too many exemplars.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.rebase_images">
@@ -1294,6 +1509,38 @@ python -c &#8220;import utool, ibeis.model; utool.view_directory(ibeis.model.det
 In essence this is equivilent to map(method, unflat_rowids).
 The utility of this function is that it only calls method once.
 This is more efficient for calls that can take a list of inputs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>method</strong> (<em>method</em>) &#8211; ibeis controller method</li>
+<li><strong>unflat_rowids</strong> (<em>list</em>) &#8211; list of rowid lists</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of values: unflat_vals</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-unflat_map</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">unflat_map</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">unflat_rowids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[[1, 1], [2, 2], [3], [4], [5], [6], [7]]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1303,6 +1550,38 @@ This is more efficient for calls that can take a list of inputs</p>
 In essence this is equivilent to map(method, unflat_rowids).
 The utility of this function is that it only calls method once.
 This is more efficient for calls that can take a list of inputs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>method</strong> (<em>method</em>) &#8211; ibeis controller method</li>
+<li><strong>unflat_rowids</strong> (<em>list</em>) &#8211; list of rowid lists</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of values: unflat_vals</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-unflat_map</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">unflat_map</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">unflat_rowids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[[1, 1], [2, 2], [3], [4], [5], [6], [7]]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1312,27 +1591,31 @@ This is more efficient for calls that can take a list of inputs</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.ibsfuncs.update_all_image_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_all_image_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_all_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_all_image_encounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_time(update_all_image_encounter)</p>
+<dt id="ibeis.ibsfuncs.update_all_image_special_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_all_image_special_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_all_image_special_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_all_image_special_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function wrp_time(update_all_image_special_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.ibsfuncs.update_exemplar_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_exemplar_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_exemplar_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_exemplar_encounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_time(update_exemplar_encounter)</p>
+<dt id="ibeis.ibsfuncs.update_exemplar_special_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_exemplar_special_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_exemplar_special_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_exemplar_special_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function wrp_time(update_exemplar_special_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
 <p>orig_docstr =</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_reviewed_unreviewed_image_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_reviewed_unreviewed_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_time(update_reviewed_unreviewed_image_encounter)</p>
+<dt id="ibeis.ibsfuncs.update_reviewed_unreviewed_image_special_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_reviewed_unreviewed_image_special_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_reviewed_unreviewed_image_special_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_reviewed_unreviewed_image_special_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function wrp_time(update_reviewed_unreviewed_image_special_encounter)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr =</p>
+<dl class="docutils">
+<dt>orig_docstr =</dt>
+<dd>Creates encounter of images that have not been reviewed
+and that have been reviewed</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1344,11 +1627,46 @@ This is more efficient for calls that can take a list of inputs</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.ibsfuncs.update_ungrouped_special_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_ungrouped_special_encounter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_ungrouped_special_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_ungrouped_special_encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapped function wrp_time(update_ungrouped_special_encounter)</p>
+<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;], varargs=None, keywords=None, defaults=None)</p>
+<dl class="docutils">
+<dt>orig_docstr =</dt>
+<dd><dl class="first last docutils">
+<dt>Args:</dt>
+<dd>ibs (IBEISController):  ibeis controller object</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.ibsfuncs &#8211;test-update_ungrouped_special_encounter</dd>
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb9&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">update_ungrouped_special_encounter</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.ibsfuncs.use_images_as_annotations">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">use_images_as_annotations</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>name_list=None</em>, <em>nid_list=None</em>, <em>notes_list=None</em>, <em>adjust_percent=0.0</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#use_images_as_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.use_images_as_annotations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds an annotation the size of the entire image to each image.
 adjust_percent - shrinks the ANNOTATION by percentage on each side</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.vacuum_and_clean_databases">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">vacuum_and_clean_databases</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#vacuum_and_clean_databases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.vacuum_and_clean_databases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.vd">
@@ -1378,7 +1696,29 @@ adjust_percent - shrinks the ANNOTATION by percentage on each side</p>
 <tt class="descclassname">ibeis.main_module.</tt><tt class="descname">main</tt><big>(</big><em>gui=True</em>, <em>dbdir=None</em>, <em>defaultdb='cache'</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Program entry point
 Inits the system environment, an IBEISControl, and a GUI if requested</p>
-<p>If gui is False a gui instance will not be created</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gui</strong> (<em>bool</em>) &#8211; (default=True) If gui is False a gui instance will not be created</li>
+<li><strong>dbdir</strong> (<em>None</em>) &#8211; full directory of a database to load</li>
+<li><strong>db</strong> (<em>None</em>) &#8211; name of database to load relative to the workdir</li>
+<li><strong>allow_newdir</strong> (<em>bool</em>) &#8211; (default=False) if False an error is raised if a
+a new database is created</li>
+<li><strong>defaultdb</strong> (<em>str</em>) &#8211; codename of database to load if db and dbdir is None. a value
+of &#8216;cache&#8217; will open the last database opened with the GUI.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">main_locals</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -1409,8 +1749,45 @@ function in.</p>
 <dl class="function">
 <dt id="ibeis.main_module.opendb">
 <tt class="descclassname">ibeis.main_module.</tt><tt class="descname">opendb</tt><big>(</big><em>db=None</em>, <em>dbdir=None</em>, <em>defaultdb='cache'</em>, <em>allow_newdir=False</em>, <em>delete_ibsdir=False</em>, <em>verbose=False</em>, <em>use_cache=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#opendb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.opendb" title="Permalink to this definition">¶</a></dt>
-<dd><p>main without the preload (except for option to delete database before
-opening)</p>
+<dd><p>main without the preload (except for option to delete database before opening)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db</strong> (<em>str</em>) &#8211; database name in your workdir used only if dbdir is None</li>
+<li><strong>dbdir</strong> (<em>None</em>) &#8211; full database path</li>
+<li><strong>defaultdb</strong> (<em>str</em>) &#8211; dbdir search stratagy when db is None and dbdir is None</li>
+<li><strong>allow_newdir</strong> (<em>bool</em>) &#8211; (default=True) if True errors when opening a nonexisting database</li>
+<li><strong>delete_ibsdir</strong> (<em>bool</em>) &#8211; BE CAREFUL! (default=False) if True deletes the entire</li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag</li>
+<li><strong>use_cache</strong> (<em>bool</em>) &#8211; if True will try to return a previously loaded controller</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ibs</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">IBEISController</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span> <span class="o">=</span> <span class="s">&#39;cache&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_newdir</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">delete_ibsdir</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">

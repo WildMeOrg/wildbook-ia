@@ -60,8 +60,8 @@
 
 
 <div class="viewcode-block" id="get_query_components"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_helpers.get_query_components">[docs]</a><span class="k">def</span> <span class="nf">get_query_components</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pipeline</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">with_metadata</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
@@ -71,14 +71,14 @@
     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
     <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">qaid2_nns</span>            <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_nnfilt0</span>        <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnfilt0&#39;</span><span class="p">]</span>
-    <span class="n">filt2_weights</span>        <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;filt2_weights&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_nnfilt</span>         <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnfilt&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_nnvalid0</span>       <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnvalid0&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_filtweights</span>    <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_filtweights&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_nnfilts</span>        <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnfilts&#39;</span><span class="p">]</span>
     <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
     <span class="n">qaid2_chipmatch_SVER</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_SVER&#39;</span><span class="p">]</span>
     <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
     <span class="c">#---</span>
-    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_chipmatch_SVER</span><span class="p">)</span>
     <span class="c">#####################</span>
     <span class="c"># Testing components</span>
     <span class="c">#####################</span>
@@ -88,9 +88,9 @@
         <span class="n">qfx2_fx</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
         <span class="n">qfx2_gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c"># NOQA</span>
         <span class="n">qfx2_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c"># NOQA</span>
-        <span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">qaid2_nnfilt</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-        <span class="n">qaid2_nnfilt_ORIG</span>    <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">identity_filter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="n">qaid2_chipmatch_ORIG</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt_ORIG</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qfx2_scores</span><span class="p">,</span> <span class="n">qfx2_valids</span> <span class="o">=</span> <span class="n">qaid2_nnfilts</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">qaid2_nnfilt_ORIG</span>    <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">identity_filter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">)</span>
+        <span class="n">qaid2_chipmatch_ORIG</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt_ORIG</span><span class="p">)</span>
         <span class="n">qaid2_qres_ORIG</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_ORIG</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_qres_FILT</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_qres_SVER</span> <span class="o">=</span> <span class="n">qaid2_qres</span>

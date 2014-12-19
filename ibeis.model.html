@@ -86,10 +86,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.interactive_automated_matcher">ibeis.model.hots.interactive_automated_matcher module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.name_scoring">ibeis.model.hots.name_scoring module</a></li>
@@ -100,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.score_normalization">ibeis.model.hots.score_normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.special_query">ibeis.model.hots.special_query module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
@@ -345,7 +349,6 @@
 <dt id="ibeis.model.Config.FlannConfig">
 <em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">FlannConfig</tt><big>(</big><em>flann_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
-<p>FlannConfig</p>
 <p>this flann is only for neareset neighbors in vsone/many
 TODO: this might not need to be here</p>
 <dl class="method">
@@ -404,7 +407,7 @@ TODO: this might not need to be here</p>
 
 <dl class="class">
 <dt id="ibeis.model.Config.OtherConfig">
-<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">OtherConfig</tt><big>(</big><em>othercfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#OtherConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.OtherConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">OtherConfig</tt><big>(</big><em>other_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#OtherConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.OtherConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
 <dl class="method">
 <dt id="ibeis.model.Config.OtherConfig.get_cfgstr">
@@ -433,6 +436,12 @@ TODO: this might not need to be here</p>
 </pre></div>
 </div>
 <dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.apply_codename">
+<tt class="descname">apply_codename</tt><big>(</big><em>query_cfg</em>, <em>codename=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.apply_codename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.apply_codename" title="Permalink to this definition">¶</a></dt>
+<dd><p>codenames denote mass changes to configurations</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="ibeis.model.Config.QueryConfig.deepcopy">
 <tt class="descname">deepcopy</tt><big>(</big><em>query_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.deepcopy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -450,12 +459,17 @@ TODO: this might not need to be here</p>
 <dl class="method">
 <dt id="ibeis.model.Config.QueryConfig.make_feasible">
 <tt class="descname">make_feasible</tt><big>(</big><em>query_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.make_feasible_">
+<tt class="descname">make_feasible_</tt><big>(</big><em>query_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.make_feasible_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.make_feasible_" title="Permalink to this definition">¶</a></dt>
 <dd><p>removes invalid parameter settings over all cfgs (move to QueryConfig)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.Config.QueryConfig.update_query_cfg">
-<tt class="descname">update_query_cfg</tt><big>(</big><em>query_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.update_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.update_query_cfg" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">update_query_cfg</tt><big>(</big><em>query_cfg</em>, <em>**cfgdict</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.update_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.update_query_cfg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -464,7 +478,6 @@ TODO: this might not need to be here</p>
 <dt id="ibeis.model.Config.SMKConfig">
 <em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">SMKConfig</tt><big>(</big><em>smk_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
-<p>SMKConfig</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -522,7 +535,6 @@ TODO: this might not need to be here</p>
 <dt id="ibeis.model.Config.VocabAssignConfig">
 <em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">VocabAssignConfig</tt><big>(</big><em>vocabassign_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
-<p>VocabAssignConfig</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -552,7 +564,6 @@ TODO: this might not need to be here</p>
 <dt id="ibeis.model.Config.VocabTrainConfig">
 <em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">VocabTrainConfig</tt><big>(</big><em>vocabtrain_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabTrainConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
-<p>VocabTrainConfig</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>

@@ -70,10 +70,12 @@
 <span class="kn">import</span> <span class="nn">ibeis</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span><span class="n">default_decorator</span><span class="p">,</span> <span class="p">)</span>
 <span class="c"># Import modules which define injectable functions</span>
 <span class="c"># Older manual ibeiscontrol functions</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
 <span class="c">#from ibeis.control import controller_inject</span>
 
 
@@ -106,12 +108,41 @@
 <span class="n">__IBEIS_CONTROLLER_CACHE__</span> <span class="o">=</span> <span class="p">{}</span>
 
 
-<div class="viewcode-block" id="new_IBEISController"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.new_IBEISController">[docs]</a><span class="k">def</span> <span class="nf">new_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="request_IBEISController"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.request_IBEISController">[docs]</a><span class="k">def</span> <span class="nf">request_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Alternative to directory instantiating a new controller object. Might</span>
+<span class="sd">    return a memory cached object</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dbdir     (str):</span>
+<span class="sd">        ensure    (bool):</span>
+<span class="sd">        wbaddr    (None):</span>
+<span class="sd">        verbose   (bool):</span>
+<span class="sd">        use_cache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        IBEISController: ibs</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-request_IBEISController</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dbdir = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; wbaddr = None</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = False</span>
+<span class="sd">        &gt;&gt;&gt; ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose, use_cache)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: change name from new to request</span>
     <span class="k">global</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span>
     <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">and</span> <span class="n">dbdir</span> <span class="ow">in</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[new_IBEISController] returning cached controller&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[request_IBEISController] returning cached controller&#39;</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">[</span><span class="n">dbdir</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -169,7 +200,7 @@
         <span class="c"># observer_weakref_list keeps track of the guibacks connected to this controller</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c"># not completely working decorator cache</span>
-        <span class="c">#ibs.table_cache = init_tablecache()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_initialize_self</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_dirs</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
         <span class="c"># _init_wb will do nothing if no wildbook address is specified</span>
@@ -185,6 +216,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] _initialize_self()&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">accessor_decors</span><span class="o">.</span><span class="n">init_tablecache</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">INJECTED_MODULES</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span>
@@ -283,14 +315,21 @@
     <span class="k">def</span> <span class="nf">_init_sql</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load or create sql database &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">duct_tape</span>  <span class="c"># NOQA</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldb</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbcore</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbcache</span><span class="p">()</span>
         <span class="c"># ibs.db.dump_schema()</span>
         <span class="c"># ibs.db.dump()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
 
-    <span class="nd">@ut.indent_func</span>
-    <span class="k">def</span> <span class="nf">_init_sqldb</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c">#@ut.indent_func</span>
+    <span class="k">def</span> <span class="nf">_init_sqldbcore</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
         <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
         <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
@@ -298,10 +337,11 @@
         <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
         <span class="c"># IBEIS SQL State Database</span>
         <span class="c">#ibs.db_version_expected = &#39;1.1.1&#39;</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.2.0&#39;</span>
-
-        <span class="c"># TODO: add this functionality to SQLController</span>
-        <span class="c">#testing_newschmea = ut.is_developer() and ibs.get_dbname() in [&#39;PZ_MTEST&#39;, &#39;testdb1&#39;]</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.3.0&#39;</span>
+        <span class="c">## TODO: add this functionality to SQLController</span>
+        <span class="c">#testing_newschmea = ut.is_developer() and ibs.get_dbname() in [&#39;PZ_MTEST&#39;, &#39;testdb1&#39;, &#39;testdb0&#39;]</span>
+        <span class="c">##testing_newschmea = False</span>
+        <span class="c">##ut.is_developer() and ibs.get_dbname() in [&#39;PZ_MTEST&#39;, &#39;testdb1&#39;]</span>
         <span class="c">#if testing_newschmea:</span>
         <span class="c">#    # Set to true until the schema module is good then continue tests with this set to false</span>
         <span class="c">#    testing_force_fresh = True or ut.get_argflag(&#39;--force-fresh&#39;)</span>
@@ -310,7 +350,8 @@
         <span class="c">#    sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)</span>
         <span class="c">#    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)</span>
         <span class="c">#    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)</span>
-        <span class="c">#    ibs.db_version_expected = &#39;1.2.0&#39;</span>
+        <span class="c">#    # Set testing schema version</span>
+        <span class="c">#    ibs.db_version_expected = &#39;1.3.0&#39;</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
                                               <span class="n">text_factory</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">,</span>
                                               <span class="n">inmemory</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -323,7 +364,7 @@
             <span class="n">autogenerate</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_autogen_schema</span>
         <span class="p">)</span>
 
-    <span class="nd">@ut.indent_func</span>
+    <span class="c">#@ut.indent_func</span>
     <span class="k">def</span> <span class="nf">_init_sqldbcache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Need to reinit this sometimes if cache is ever deleted &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
@@ -681,11 +722,48 @@
 </div>
     <span class="nd">@ut.indent_func</span><span class="p">(</span><span class="s">&#39;[ibs.compute_encounters]&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="IBEISController.compute_encounters"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.compute_encounters">[docs]</a>    <span class="k">def</span> <span class="nf">compute_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Clusters images into encounters &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clusters images into encounters</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-compute_encounters</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; # Now we want to remove some images from a non-special encounter</span>
+<span class="sd">            &gt;&gt;&gt; nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]</span>
+<span class="sd">            &gt;&gt;&gt; images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]</span>
+<span class="sd">            &gt;&gt;&gt; ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)</span>
+<span class="sd">            &gt;&gt;&gt; ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]</span>
+<span class="sd">            &gt;&gt;&gt; #Now let&#39;s make sure that when we recompute encounters, our non-special eid remains the same</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;PRE COMPUTE: Encounters are %r&quot; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;Containing: %r&quot; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;COMPUTE: New encounters are %r&quot; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;Containing: %r&quot; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;UPDATE SPECIAL: New encounters are %r&quot; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&quot;Containing: %r&quot; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_encounter</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Computing and adding encounters.&#39;</span><span class="p">)</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">require_unixtime</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="n">enctext_list</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">preproc_encounter</span><span class="o">.</span><span class="n">ibeis_compute_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="c">#gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ungrouped_gids</span><span class="p">()</span>
+        <span class="n">flat_eids</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">preproc_encounter</span><span class="o">.</span><span class="n">ibeis_compute_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">eid_offset</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+        <span class="n">flat_eids_offset</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span> <span class="o">+</span> <span class="n">eid_offset</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">flat_eids</span><span class="p">]</span>  <span class="c"># This way we can make sure that manually separated encounters</span>
+        <span class="c"># remain untouched, and ensure that new encounters are created</span>
+        <span class="n">enctext_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Encounter &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">flat_eids_offset</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;enctext_list: </span><span class="si">%r</span><span class="s">; flat_gids: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">enctext_list</span><span class="p">,</span> <span class="n">flat_gids</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Finished computing, about to add encounter.&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_enctext</span><span class="p">(</span><span class="n">flat_gids</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Finished computing and adding encounters.&#39;</span><span class="p">)</span>
@@ -710,28 +788,72 @@
             <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">daid_list</span>
 </div>
-<div class="viewcode-block" id="IBEISController.query_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_chips">[docs]</a>    <span class="k">def</span> <span class="nf">query_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISController.query_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_chips">[docs]</a>    <span class="k">def</span> <span class="nf">query_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span>
+                    <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            qaid_list (list):</span>
+<span class="sd">            daid_list (list):</span>
+<span class="sd">            cfgdict (None):</span>
+<span class="sd">            use_cache (None):</span>
+<span class="sd">            use_bigcache (None):</span>
+<span class="sd">            qreq_ (QueryRequest):  hyper-parameters</span>
+<span class="sd">            return_request (bool):</span>
+<span class="sd">            verbose (bool):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (qres_list, qreq_)</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-query_chips</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">            &gt;&gt;&gt; qres = ibs.query_chips(qaids)[0]</span>
+<span class="sd">            &gt;&gt;&gt; assert qres.qaid == qaids[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
-            <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
-                <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_bigcache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="n">return_request</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+            <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_bigcache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">return_request</span><span class="o">=</span><span class="n">return_request</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+                <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">res</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">res</span>
+
             <span class="n">qres_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">qres_list</span><span class="p">,</span> <span class="n">qreq_</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
-                <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_bigcache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="n">return_request</span><span class="p">)</span>
-            <span class="n">qres_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">qres_list</span>
 </div>
-    <span class="k">def</span> <span class="nf">_query_chips4</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                      <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                      <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_query_chips4</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                      <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        main entrypoint to submitting a query request</span>
+
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; #from ibeis.all_imports import *  # NOQA</span>
@@ -747,22 +869,36 @@
 <span class="sd">        #&gt;&gt;&gt; qreq = ibs.qreq</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no database chips&#39;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no query chips&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no database chips&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no query chips&#39;</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Impossible query request&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">,</span> <span class="s">&#39;daid_list&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+        <span class="c"># Actually run query</span>
         <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
             <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span> <span class="o">==</span> <span class="n">qaid_list</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span> <span class="o">==</span> <span class="n">daid_list</span><span class="p">)</span>
 
+        <span class="n">res</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span>  <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">,</span>
+            <span class="n">return_request</span><span class="o">=</span><span class="n">return_request</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
-            <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span>  <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">,</span>
-                <span class="n">return_request</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+            <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">res</span>
             <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">,</span> <span class="n">return_request</span><span class="p">,</span>
-                <span class="n">cfgdict</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">res</span>
             <span class="k">return</span> <span class="n">qaid2_qres</span>
 
     <span class="c">#_query_chips = _query_chips3</span>
@@ -773,6 +909,7 @@
         <span class="sd">&quot;&quot;&quot; _query_chips wrapper &quot;&quot;&quot;</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>  <span class="c"># encounter database chips</span>
         <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c"># HACK IN ENCOUNTER INFO</span>
         <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
             <span class="n">qres</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
         <span class="k">return</span> <span class="n">qaid2_qres</span>
@@ -782,8 +919,7 @@
         <span class="sd">&quot;&quot;&quot; Queries vs the exemplars &quot;&quot;&quot;</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no exemplars&#39;</span>
-        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">qaid2_qres</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="IBEISController.query_all"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_all">[docs]</a>    <span class="k">def</span> <span class="nf">query_all</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>

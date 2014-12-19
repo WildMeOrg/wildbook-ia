@@ -11,10 +11,26 @@ Subpackages
 Submodules
 ----------
 
+ibeis.model.hots.automated_helpers module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.automated_matcher module
 -----------------------------------------
 
 .. automodule:: ibeis.model.hots.automated_matcher
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automated_oracle module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_oracle
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,6 +55,14 @@ ibeis.model.hots.hstypes module
 -------------------------------
 
 .. automodule:: ibeis.model.hots.hstypes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.interactive_automated_matcher module
+-----------------------------------------------------
+
+.. automodule:: ibeis.model.hots.interactive_automated_matcher
     :members:
     :undoc-members:
     :show-inheritance:
@@ -119,6 +143,14 @@ ibeis.model.hots.score_normalization module
 -------------------------------------------
 
 .. automodule:: ibeis.model.hots.score_normalization
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.special_query module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.special_query
     :members:
     :undoc-members:
     :show-inheritance:

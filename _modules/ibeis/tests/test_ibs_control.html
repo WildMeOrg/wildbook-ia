@@ -95,6 +95,7 @@
     <span class="n">nid_notes_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_notes</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] nid_notes_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid_notes_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] nid_notes_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid_notes_list2</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">nid_notes_list</span><span class="p">,</span> <span class="n">nid_notes_list2</span><span class="p">,</span> <span class="s">&#39;nid notes lists do not match&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">nid_notes_list</span> <span class="o">==</span> <span class="n">nid_notes_list2</span><span class="p">,</span> <span class="s">&#39;nid notes lists do not match&#39;</span>
 
     <span class="sd">&quot;&quot;&quot; set_image_notes / get_image_notes &quot;&quot;&quot;</span>
@@ -224,25 +225,27 @@
     <span class="k">assert</span> <span class="n">orig_species</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;species were not reset&#39;</span>
 
     <span class="sd">&quot;&quot;&quot; set alr confidence / get alr confidence &quot;&quot;&quot;</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
-    <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">alrids_list</span><span class="p">,</span> <span class="s">&#39;alrids_list is empty&#39;</span>
-    <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span>
-    <span class="n">orig_confidences</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
-    <span class="n">new_confidences</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)))</span>
-    <span class="c">#ibs.print_alr_table()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">new_confidences</span><span class="p">)</span>
-    <span class="c">#ibs.print_alr_table()</span>
-    <span class="n">new_confidences2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">new_confidences</span> <span class="o">==</span> <span class="n">new_confidences2</span><span class="p">,</span> <span class="s">&#39;new_confidences == new_confidences2 failed&#39;</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">orig_confidences</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">orig_confidences</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">),</span> <span class="s">&#39;alr confidences were not reset&#39;</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c"># NOT USING ALR TABLE CURRENTLY</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">alrids_list</span><span class="p">,</span> <span class="s">&#39;alrids_list is empty&#39;</span>
+        <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span>
+        <span class="n">orig_confidences</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+        <span class="n">new_confidences</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)))</span>
+        <span class="c">#ibs.print_alr_table()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">new_confidences</span><span class="p">)</span>
+        <span class="c">#ibs.print_alr_table()</span>
+        <span class="n">new_confidences2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">new_confidences</span> <span class="o">==</span> <span class="n">new_confidences2</span><span class="p">,</span> <span class="s">&#39;new_confidences == new_confidences2 failed&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">orig_confidences</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">orig_confidences</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">),</span> <span class="s">&#39;alr confidences were not reset&#39;</span>
 
     <span class="sd">&quot;&quot;&quot; test metadata  &quot;&quot;&quot;</span>
     <span class="c">#ibs.print_tables()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">print_lblannot_table</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">print_alr_table</span><span class="p">()</span>
+    <span class="c">#ibs.print_lblannot_table()</span>
+    <span class="c">#ibs.print_alr_table()</span>
 
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
@@ -255,8 +258,8 @@
     <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_IBS_CONTROL</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
-    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c">#exec(execstr)</span>
 </pre></div>
 
           </div>

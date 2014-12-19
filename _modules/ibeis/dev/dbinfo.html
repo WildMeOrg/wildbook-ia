@@ -93,23 +93,39 @@
 
 </div>
 <div class="viewcode-block" id="get_dbinfo"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.get_dbinfo">[docs]</a><span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_imgsize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_bytes</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns dictionary of digestable database information</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Returns dictionary of digestable database information</span>
 <span class="sd">    Infostr is a string summary of all the stats. Prints infostr in addition to</span>
 <span class="sd">    returning locals</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        verbose (bool):</span>
+<span class="sd">        with_imgsize (bool):</span>
+<span class="sd">        with_bytes (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --test-get_dbinfo</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev.dbinfo import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev import dbinfo</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
 <span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;PZ_Mothers&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; output = dbinfo.get_dbinfo(ibs, verbose=False)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(output))</span>
-<span class="sd">        &gt;&gt;&gt; result = output[&#39;info_str&#39;]</span>
-<span class="sd">        66w+mdzw!n%3+i6h</span>
+<span class="sd">        &gt;&gt;&gt; print(output[&#39;info_str&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hashstr(output[&#39;info_str&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &amp;z3uturz&amp;%s2p03!</span>
 
 <span class="sd">    #&gt;&gt;&gt; print(ut.hashstr(repr(output)))</span>
 
@@ -464,7 +480,20 @@
     <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">return</span> <span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span></div>
+    <span class="k">return</span> <span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.dbinfo</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --allexamples</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

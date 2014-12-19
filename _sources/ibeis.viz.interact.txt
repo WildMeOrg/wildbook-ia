@@ -68,6 +68,14 @@ ibeis.viz.interact.interact_qres2 module
     :undoc-members:
     :show-inheritance:
 
+ibeis.viz.interact.interact_query_decision module
+-------------------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_query_decision
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.viz.interact.interact_sver module
 ---------------------------------------
 
