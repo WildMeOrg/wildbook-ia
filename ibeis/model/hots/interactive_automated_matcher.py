@@ -16,6 +16,9 @@ INC_LOOP_BASE = guitool.__PYQT__.QtCore.QObject
 
 
 class IncQueryHarness(INC_LOOP_BASE):
+    """
+    Provides incremental query with a way
+    """
     next_query_signal = guitool.signal_()
     name_decision_signal = guitool.signal_(list)
 
@@ -64,7 +67,6 @@ class IncQueryHarness(INC_LOOP_BASE):
         # Call the first query
         incinfo['next_query_callback']()
 
-
     @guitool.slot_()
     def next_query_slot(self):
         """
@@ -88,17 +90,17 @@ class IncQueryHarness(INC_LOOP_BASE):
                                              threshold, interactive=interactive,
                                              metatup=metatup, dry=dry,
                                              incinfo=incinfo)
-            
+
         except StopIteration:
             #TODO: close this figure
-            # incinfo['fnum'] 
+            # incinfo['fnum']
             print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
             pass
 
     @guitool.slot_(list)
     def name_decision_slot(self, sorted_aids):
         print('[QT] name_decision_slot')
-    
+
         ibs = self.ibs
         choicetup   = self.choicetup
         qres        = self.qres
@@ -116,7 +118,7 @@ class IncQueryHarness(INC_LOOP_BASE):
                                      threshold, interactive=interactive,
                                      metatup=metatup, dry=dry,
                                      incinfo=incinfo)
-        
+
 
 def incremental_test_qt(ibs, num_initial=0):
     """
@@ -139,10 +141,10 @@ def incremental_test_qt(ibs, num_initial=0):
     daid_list = ibs.get_valid_aids()
     iexec_incremental_queries(ibs, qaid_list, daid_list)
 
+
 def iexec_incremental_queries(ibs, qaid_list, daid_list):
     self = IncQueryHarness()
     self = self.request_nonblocking_inc_query(ibs, qaid_list, daid_list)
-
 
 
 if __name__ == '__main__':

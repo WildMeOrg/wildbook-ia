@@ -227,7 +227,7 @@ def incremental_test(ibs_gt, num_initial=0):
         # ensure new annot is added (most likely it will have been preadded)
         aids_chunk2 = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
         qaid_chunk = aids_chunk2
-        for item in execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup):
+        for item in execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup):
             (ibs, qres, qreq_, choicetup, metatup, incinfo, threshold) = item
             try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive,
                                    metatup, incinfo=incinfo)
@@ -272,14 +272,14 @@ def generate_incremental_queries(ibs, qaid_list, daid_list, incinfo=None):
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        for item in execute_teststep(ibs, qaid_chunk, threshold, interactive,
-                                     metatup, incinfo=incinfo):
+        for item in execute_next_query_step(ibs, qaid_chunk, threshold, interactive,
+                                            metatup, incinfo=incinfo):
             yield item
 
 
 # ---- QUERY ----
 
-def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
+def execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup=None,
                      incinfo=None):
     """ Add an unseen annotation and run a query
 
@@ -292,7 +292,7 @@ def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
         metatup (None):
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-execute_teststep
+        python -m ibeis.model.hots.automated_matcher --test-execute_next_query_step
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -305,7 +305,7 @@ def execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup=None,
         >>> interactive = '?'
         >>> metatup = None
         >>> # execute function
-        >>> result = execute_teststep(ibs, qaid_chunk, threshold, interactive, metatup)
+        >>> result = execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup)
         >>> # verify results
         >>> print(result)
     """
@@ -650,8 +650,13 @@ def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
         suggestx      = ut.listfind(ibs.get_annot_names(comp_aids), name)
         suggest_aid   = None if suggestx is None else comp_aids[suggestx]
         name_decision_callback = incinfo['name_decision_callback']
-        qvi = interact_query_decision.QueryVerificationInteraction(
-            ibs, qres, comp_aids, suggest_aid, decision_callback=name_decision_callback, progress_current=incinfo['count'], progress_total=incinfo['nTotal'], fnum=512)
+        qvi = interact_query_decision.QueryVerificationInteraction(ibs, qres,
+                                                                   comp_aids,
+                                                                   suggest_aid,
+                                                                   decision_callback=name_decision_callback,
+                                                                   progress_current=incinfo['count'],
+                                                                   progress_total=incinfo['nTotal'],
+                                                                   fnum=incinfo['fnum'])
         qvi.fig.show()
     if mplshowtop:
         fnum = 513

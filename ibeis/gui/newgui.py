@@ -32,6 +32,15 @@ IBEIS_WIDGET_BASE = QtGui.QWidget
 #WITH_GUILOG = not utool.get_argflag('--noguilog')
 WITH_GUILOG = utool.get_argflag('--guilog')
 
+"""
+from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
+                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+ibsgwt = back.front
+view   = ibsgwt.views[IMAGE_TABLE]
+model  = ibsgwt.models[IMAGE_TABLE]
+row = model.get_row_from_id(3)
+view.selectRow(row)
+"""
 
 #############################
 ###### Tab Widgets #######
@@ -601,11 +610,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
+        """
+        Context menus on right click of a table
+        """
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
         id_list = sorted(list(set([model._get_row_id(_qtindex) for _qtindex in
                                    tblview.selectedIndexes()])))
+        # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             options = [
                 ('delete encounter(s)', lambda: ibswgt.back.delete_encounter(id_list)),
@@ -619,6 +632,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                      , lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                 ]
             guitool.popup_menu(tblview, pos, options)
+        # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
             # CONTEXT OPTIONS FOR IMAGE TABLE ITEMS
             image_context_options = []
@@ -644,13 +658,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
             if len(image_context_options) > 0:
                 guitool.popup_menu(tblview, pos, image_context_options)
+        # ---- ANNOTATION CONTEXT ----
         elif model.name == ANNOTATION_TABLE:
             if len(id_list) == 1:
                 eid = model.eid
                 aid = id_list[0]
+
+                def goto_annot_image(aid):
+                    ibswgt.set_table_tab(IMAGE_TABLE)
+                    imgtbl = ibswgt.views[IMAGE_TABLE]
+                    gid = ibswgt.back.ibs.get_annot_gids(aid)
+                    imgtbl.select_row_from_id(gid)
+
                 guitool.popup_menu(tblview, pos, [
                     ('Select annotation (default)', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('View and select image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('Goto image', lambda: goto_annot_image(aid)),
                     ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
                     ('Unset annotation name', lambda: ibswgt.back.unset_names([aid])),
                     ('----', lambda: None),
