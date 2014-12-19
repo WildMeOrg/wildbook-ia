@@ -45,7 +45,8 @@ def test_QueryVerificationInteraction():
 
 
 class QueryVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, qres, comp_aids, suggest_aid, progress_current=None, progress_total=None, update_callback=None,
+    def __init__(self, ibs, qres, comp_aids, suggest_aid, progress_current=None,
+                 progress_total=None, update_callback=None,
                  backend_callback=None, decision_callback=None, **kwargs):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
@@ -195,9 +196,9 @@ class QueryVerificationInteraction(AbstractInteraction):
 
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
-        closeme = im.ishow_matches(self.ibs, self.qres, aid,
+        im.ishow_matches(self.ibs, self.qres, aid,
                          figtitle='Examine a specific image against the query')
-        
+
         # this is only relevant to matplotlib.__version__ < 1.4.2
         #raise Exception(
         #    'BLACK MAGIC: error intentionally included as a workaround that seems'

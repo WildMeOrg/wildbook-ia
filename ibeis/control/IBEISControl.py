@@ -724,13 +724,13 @@ class IBEISController(object):
     #-----------------------
 
     @default_decorator
-    def get_recognition_database_aids(ibs):
+    def get_recognition_database_aids(ibs, mode='vsexemplar', species=None):
         """
         DEPRECATE or refactor
 
         Returns:
-            daid_list (list): testing recognition database annotations """
-        # TODO: Depricate, use exemplars instead
+            daid_list (list): testing recognition database annotations
+        """
         if 'daid_list' in ibs.temporary_state:
             daid_list = ibs.temporary_state['daid_list']
         else:

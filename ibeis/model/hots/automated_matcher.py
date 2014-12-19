@@ -150,6 +150,8 @@ import sys
 from ibeis.model.hots import automated_oracle as ao
 from ibeis.model.hots import automated_helpers as ah
 from ibeis.model.hots import special_query
+from ibeis.model.hots import system_suggestor
+from ibeis.model.hots import user_dialogs
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
@@ -163,7 +165,7 @@ ChoiceTuple = namedtuple('ChoiceTuple', ('sorted_nids', 'sorted_nscore',
 # ---- ENTRY POINT ----
 
 
-def incremental_test(ibs_gt, num_initial=0):
+def test_incremental_queries(ibs_gt, num_initial=0):
     """ Adds and queries new annotations one at a time with oracle guidance
 
     Args:
@@ -175,13 +177,13 @@ def incremental_test(ibs_gt, num_initial=0):
         python dev.py --db PZ_MTEST --allgt --cmd
         python dev.py --db PZ_MTEST --allgt -t inc
         python dev.py --db PZ_MTEST --allgt -t inc
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0 --interact-after 444440 --noqcache
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1 --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:0
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:1
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:0 --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:1 --interact-after 444440 --noqcache
 
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:2
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:2
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -190,7 +192,7 @@ def incremental_test(ibs_gt, num_initial=0):
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> #num_initial = 0
         >>> num_initial = 90
-        >>> incremental_test(ibs_gt, num_initial)
+        >>> test_incremental_queries(ibs_gt, num_initial)
 
     Example2:
         >>> # DISABLE_DOCTEST
@@ -198,7 +200,7 @@ def incremental_test(ibs_gt, num_initial=0):
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
-        >>> incremental_test(ibs_gt, num_initial)
+        >>> test_incremental_queries(ibs_gt, num_initial)
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -207,41 +209,59 @@ def incremental_test(ibs_gt, num_initial=0):
         >>> ibs_gt = ibeis.opendb('testdb1')
         >>> #num_initial = 0
         >>> num_initial = 0
-        >>> incremental_test(ibs_gt, num_initial)
+        >>> test_incremental_queries(ibs_gt, num_initial)
     """
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
     #interact_after = 100
     #interact_after = None
     interact_after = ut.get_argval(('--interactive-after', '--interact-after',), type_=int, default=0)
-    threshold = ut.get_sys_maxfloat()  # 1.99
     # Execute each query as a test
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
     metatup = (ibs_gt, aid1_to_aid2)
     print('begin interactive iter')
+    incinfo = {
+        'metatup': metatup,
+        'interactive': False,
+        'dry': False,
+        #'name_confidence_thresh':
+    }
+    VSEXEMPLAR = True
+    if VSEXEMPLAR:
+        daid_list = ibs.get_valid_aids(is_exemplar=True)
+    #else:
+    #    # Hacky half-written code to get daids from an encounter that have
+    #    # been given a temporary name already.
+    #    eids_list = ibs.get_image_eids(ibs.get_annot_gids(qaid_chunk))
+    #    eid = eids_list[0][0]
+    #    daid_list = ibs.get_valid_aids(eid=eid)
+    #    daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
+
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        interactive = (interact_after is not None and count > interact_after)
+        incinfo['interactive'] = (interact_after is not None and count > interact_after)
         # ensure new annot is added (most likely it will have been preadded)
         aids_chunk2 = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
         qaid_chunk = aids_chunk2
-        for item in execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup):
-            (ibs, qres, qreq_, choicetup, metatup, incinfo, threshold) = item
-            try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive,
-                                   metatup, incinfo=incinfo)
+        for item in generate_subquery_steps(ibs, qaid_chunk, daid_list, incinfo=incinfo):
+            (ibs, qres, qreq_, choicetup, incinfo) = item
+            run_until_name_decision_signal(ibs, qres, qreq_, choicetup, incinfo=incinfo)
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
 
-def generate_incremental_queries(ibs, qaid_list, daid_list, incinfo=None):
-    r""" generates incremental queries that completely new to the system
+def generate_incremental_queries(ibs, qaid_list, incinfo=None):
+    r"""
+
+    qt entry point
+
+    generates incremental queries that completely new to the system
 
     Args:
         ibs (IBEISController):  ibeis controller object
         qaid_list (list):
-        daid_list (list):
 
     CommandLine:
         python -m ibeis.model.hots.automated_matcher --test-generate_incremental_queries
@@ -252,47 +272,43 @@ def generate_incremental_queries(ibs, qaid_list, daid_list, incinfo=None):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_list = '?'
-        >>> daid_list = '?'
-        >>> # execute function
         >>> result = generate_incremental_queries(ibs, qaid_list, daid_list)
         >>> # verify results
         >>> print(result)
     """
     # Execute each query as a test
     chunksize = 1
+
+    # FIXME, Dont take in daid list here. Its impossible
+    # Need to update daids for every query with new exemplars
+
+    #assert daid_list is None, 'fixme take in daid_list'
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     qaid_chunk_iter = ut.progress_chunks(qaid_list, chunksize, lbl='TEST QUERY')
 
     # FULL INCREMENT
     #aids_chunk1_iter = ut.ichunks(aid_list1, 1)
-    interactive = True
     ibs = ibs
-    metatup = None
-    threshold = ut.get_sys_maxfloat()  # 1.99
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        for item in execute_next_query_step(ibs, qaid_chunk, threshold, interactive,
-                                            metatup, incinfo=incinfo):
+        for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
             yield item
 
 
 # ---- QUERY ----
 
-def execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup=None,
-                            incinfo=None):
+def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """ Add an unseen annotation and run a query
 
     Args:
         ibs (IBEISController):  ibeis controller object
         qaid_chunk (?):
         count (?):
-        threshold (?):
-        interactive (?):
         metatup (None):
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-execute_next_query_step
+        python -m ibeis.model.hots.automated_matcher --test-generate_subquery_steps
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -301,35 +317,23 @@ def execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup=Non
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_chunk = [1]
-        >>> threshold = '?'
-        >>> interactive = '?'
-        >>> metatup = None
-        >>> # execute function
-        >>> result = execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup)
+        >>> result = generate_subquery_steps(ibs, qaid_chunk)
         >>> # verify results
         >>> print(result)
     """
-    VSEXEMPLAR = True
-    if VSEXEMPLAR:
-        daid_list = ibs.get_valid_aids(is_exemplar=True)
-    else:
-        # Hacky half-written code to get daids from an encounter that have
-        # been given a temporary name already.
-        eids_list = ibs.get_image_eids(ibs.get_annot_gids(qaid_chunk))
-        eid = eids_list[0][0]
-        daid_list = ibs.get_valid_aids(eid=eid)
-        daid_list = ut.filterfalse_items(daid_list, ibs.is_aid_unknown(daid_list))
-    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
+    # Execute actual queries
+    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk)
 
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
-        choicetup = get_qres_choices(ibs, qres)
-        yield [ibs, qres, qreq_, choicetup, metatup, incinfo, threshold]
+        choicetup = get_qres_name_choices(ibs, qres)
+        item = [ibs, qres, qreq_, choicetup, incinfo]
+        yield item
 
 
 # ---- PRE DECISION ---
 
-def get_qres_choices(ibs, qres):
+def get_qres_name_choices(ibs, qres):
     r""" returns all possible decision a user could make
 
     TODO: Return the possiblity of a merge.
@@ -345,7 +349,7 @@ def get_qres_choices(ibs, qres):
         ChoiceTuple: choicetup
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-get_qres_choices
+        python -m ibeis.model.hots.automated_matcher --test-get_qres_name_choices
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -354,8 +358,7 @@ def get_qres_choices(ibs, qres):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
-        >>> # execute function
-        >>> choicetup = get_qres_choices(ibs, qres)
+        >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> print(choicetup)
     """
     if qres is None:
@@ -375,14 +378,13 @@ def get_qres_choices(ibs, qres):
 # ---- DECISION ---
 
 
-def try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive=False,
-                            metatup=None, dry=False, incinfo=None):
+def run_until_name_decision_signal(ibs, qres, qreq_, choicetup, incinfo=None):
     r""" Either makes automatic decision or asks user for feedback.
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
-        python -m ibeis.model.hots.automated_matcher --test-try_automatic_decision
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:0
+        python -m ibeis.model.hots.automated_matcher --test-test_incremental_queries:1
+        python -m ibeis.model.hots.automated_matcher --test-run_until_name_decision_signal
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -391,23 +393,13 @@ def try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive=F
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_chunk = ibs.get_valid_aids()[0:1]
-        >>> # execute function
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
         >>> dry = True
         >>> qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, exemplar_aids)
         >>> qaid = qaid_chunk[0]
         >>> qres = qaid2_qres[qaid]
         >>> # verify results
-        >>> metatup = None
-        >>> threshold = -1
-        >>> interactive = False
-        >>> metatup = None
-        >>> dry = False
-        >>> # execute function
-        >>> result = try_automatic_decision(ibs, qres, qreq_, threshold,
-        ...                                 choicetup, interactive, metatup, dry)
-        >>> # verify results
-        >>> print(result)
+        >>> run_until_name_decision_signal(ibs, qres, qreq_, choicetup, incinfo)
 
     qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
@@ -420,331 +412,71 @@ def try_automatic_decision(ibs, qres, qreq_, choicetup, threshold, interactive=F
     #else:
     #    print('WARNING: qres is None')
     # Get system suggested name
-    autoname_msg, name, name_confidence = get_system_name_suggestion(ibs, choicetup)
+    autoname_msg, name, name_confidence = system_suggestor.get_system_name_suggestion(ibs, choicetup)
     # ---------------------------------------------
     # Get oracle suggestion if we have the metadata
     # override the system suggestion
     print(autoname_msg)
-    if metatup is not None:
+    if incinfo.get('metatup', None) is not None:
+        metatup = incinfo['metatup']
         autoname_msg, name, name_confidence = ao.get_oracle_name_suggestion(
             ibs, autoname_msg, qaid, choicetup, metatup)
         #ut.embed()
     # ---------------------------------------------
-    # WE MAY NEED TO DO CALLBACKS HERE
-    try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
-                                ibs, qres, qreq_, threshold, interactive=interactive,
-                                metatup=metatup, dry=dry, incinfo=incinfo)
-
-
-def try_automatic_name_decision(autoname_msg, name, name_confidence, choicetup,
-                                ibs, qres, qreq_, threshold, interactive=False,
-                                metatup=None, dry=False, incinfo=None):
-    name_confidence_thresh = ut.get_sys_maxfloat()
-    if interactive and name_confidence < name_confidence_thresh:
-        get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
-                               name_confidence, choicetup, incinfo=incinfo)
+    # Either make the name signal callback if confident or ask
+    # user input
+    name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
+    if incinfo.get('interactive', False) and name_confidence < name_confidence_thresh:
+        user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
+                                                 name_confidence, choicetup,
+                                                 incinfo=incinfo)
     else:
         # May need to execute callback whereas whatever the interaction was
-        # would issue it otherwise
-        # Noncallback version
-        make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
-                           interactive=interactive, metatup=metatup, dry=dry,
-                           incinfo=incinfo)
+        # would issue it otherwise Noncallback version
+        if name_confidence < name_confidence_thresh:
+            assert False, 'TODO: make no decision, but continue looping'
+        else:
+            exec_name_decision_and_continue(name, choicetup, ibs, qres, qreq_, incinfo=incinfo)
         #if name is not None:
 
 
-def make_name_decision(name, choicetup, ibs, qres, qreq_, threshold,
-                       interactive=True, metatup=None,
-                       dry=False, incinfo=None):
-    if not dry:
+def exec_name_decision_and_continue(name, choicetup, ibs, qres, qreq_,
+                                    incinfo=None):
+    if not incinfo.get('dry', False):
         qaid = qres.get_qaid()
         execute_name_decision(ibs, qaid, name)
-    try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
-                                    interactive=interactive, metatup=metatup,
-                                    dry=dry, incinfo=incinfo)
+        #update_normalizer(ibs, qreq_, choicetup, name)
+    run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
 
-def try_automatic_exemplar_decision(choicetup, ibs, qres, qreq_, threshold,
-                                    interactive=False, metatup=None, dry=False,
-                                    incinfo=None):
+def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
-    #update_normalizer(ibs, qreq_, choicetup, name)
-    autoexemplar_msg, exemplar_decision, exemplar_condience = get_system_exemplar_suggestion(ibs, qaid)
+    exmplr_suggestion = system_suggestor.get_system_exemplar_suggestion(ibs, qaid)
+    (autoexemplar_msg, exemplar_decision, exemplar_condience) = exmplr_suggestion
     print(autoexemplar_msg)
-    if False and interactive and exemplar_condience < exemplar_confidence_thresh:
-        exemplar_decision = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)
+    need_user_input = (False and
+                       incinfo.get('interactive', False) and
+                       exemplar_condience < exemplar_confidence_thresh)
+    if need_user_input:
+        user_dialogs.wait_for_user_exemplar_decision(
+            autoexemplar_msg, exemplar_decision, exemplar_condience)
     else:
         # May need to execute callback whereas whatever the interaction was
         # would issue it otherwise
-        pass
+        exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_, incinfo=incinfo)
+
+
+def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
+                                        incinfo=None):
+    qaid = qres.get_qaid()
     if exemplar_decision:
-        if not dry:
+        if not incinfo.get('dry', False):
             ibs.set_annot_exemplar_flags((qaid,), [1])
     if incinfo is not None:
-        # This query runh as eneded
+        # This query run as eneded
         incinfo['next_query_callback']()
 
-
-# ---- ALGORITHM / USER INPUT -----
-
-def get_system_name_suggestion(ibs, choicetup):
-    """ hotspotter returns an name suggestion
-    Args:
-        ibs      (IBEISController):
-        qaid      (int):  query annotation id
-        qres      (QueryResult):  object of feature correspondences and scores
-        metatup   (None):
-
-    Returns:
-        tuple: (autoname_msg, autoname_func)
-
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:0
-        python -m ibeis.model.hots.automated_matcher --test-incremental_test:1
-        python -m ibeis.model.hots.automated_matcher --test-get_system_name_suggestion
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(),
-        ...            return_request=True)
-        >>> qres = qaid2_qres[1]
-        >>> choicetup = get_qres_choices(ibs, qres)
-        >>> # execute function
-        >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup)
-        >>> # verify results
-        >>> result = str((autoname_msg, name, name_confidence))
-        >>> print(result)
-
-    """
-    threshold = ut.get_sys_maxfloat()
-    (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
-
-    autoname_msg_list = []
-    if len(sorted_nids) == 0:
-        autoname_msg_list.append('Unable to find any matches')
-        nid, score, rank = None, None, None
-    else:
-        candidate_indexes = np.where(sorted_nscore > threshold)[0]
-        if len(candidate_indexes) == 0:
-            rank = None
-            autoname_msg_list.append('No candidates above threshold')
-        else:
-            sortx = sorted_nscore[candidate_indexes].argsort()[::-1]
-            rank = sortx[0]
-            multiple_candidates = len(candidate_indexes) > 1
-            if multiple_candidates:
-                autoname_msg_list.append('Multiple candidates above threshold')
-            else:
-                autoname_msg_list.append('Single candidate above threshold')
-
-    # Get system suggested nid and message
-    if rank is not None:
-        score = sorted_nscore[rank]
-        nid = sorted_nids[rank]
-        rawscore = sorted_rawscore[rank][0]
-        autoname_msg_list.append('suggesting nid=%r, score=%.2f, rank=%r, rawscore=%.2f' % (nid, score, rank, rawscore))
-    else:
-        nid, score, rawscore = None, None, None
-        autoname_msg_list.append('suggesting new name')
-    autoname_msg = '\n'.join(autoname_msg_list)
-
-    name = ibs.get_name_texts(nid) if nid is not None else None
-    name_confidence = 0
-    return autoname_msg, name, name_confidence
-
-
-def get_system_exemplar_suggestion(ibs, qaid):
-    """ hotspotter returns an exemplar suggestion
-
-    TODO:
-        do a vsone query between all of the exemplars to see if this one is good
-        enough to be added.
-
-    TODO:
-        build a complete graph of exemplar scores and only add if this one is
-        lower than any other edge
-
-    SeeAlso:
-        ibsfuncs.prune_exemplars
-    """
-    print('Deciding if adding qaid=%r as an exemplar' % (qaid,))
-    # Need a good criteria here
-    max_exemplars = ibs.cfg.other_cfg.max_exemplars
-    other_exemplars = ibs.get_annot_groundtruth(qaid, is_exemplar=True)
-    num_other_exemplars = len(other_exemplars)
-    #
-    is_non_exemplar = not ibs.get_annot_exemplar_flags(qaid)
-    can_add_more = num_other_exemplars < max_exemplars
-    print('num_other_exemplars = %r' % num_other_exemplars)
-    print('max_exemplars = %r' % max_exemplars)
-    print('is_non_exemplar = %r' % is_non_exemplar)
-
-    exemplar_confidence = 0
-
-    if num_other_exemplars == 0:
-        autoexmplr_msg = 'First exemplar of this name.'
-        exemplar_decision = True
-        exemplar_confidence = 1.0
-        return autoexmplr_msg, exemplar_decision, exemplar_confidence
-    elif is_non_exemplar and can_add_more:
-        print('Testing exemplar disinctiveness')
-        with ut.Indenter('[exemplar_test]'):
-            exemplar_distinctivness_thresh = ibs.cfg.other_cfg.exemplar_distinctivness_thresh
-            # Logic to choose query based on exemplar score distance
-            qaid_list = [qaid]
-            daid_list = other_exemplars
-            cfgdict = dict(codename='vsone_norm_csum')
-            qres = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
-            if qres is None:
-                is_distinctive = True
-            else:
-                #ut.embed()
-                aid_arr, score_arr = qres.get_aids_and_scores()
-                is_distinctive = np.all(aid_arr < exemplar_distinctivness_thresh)
-    else:
-        is_distinctive = True
-        print('Not testing exemplar disinctiveness')
-
-    do_exemplar_add = (can_add_more and is_distinctive and is_non_exemplar)
-    if do_exemplar_add:
-        autoexmplr_msg = ('marking as qaid=%r exemplar' % (qaid,))
-        exemplar_decision = True
-    else:
-        exemplar_decision = False
-        autoexmplr_msg = 'annotation is not marked as exemplar'
-
-    return autoexmplr_msg, exemplar_decision, exemplar_confidence
-
-
-def get_user_name_decision(ibs, qres, qreq_, autoname_msg, name,
-                           name_confidence, choicetup, incinfo=None):
-    r""" hooks into to some method of getting user input for names
-
-    TODO: really good interface
-
-    Prompts the user for input
-
-    Args:
-        ibs (IBEISController):
-        qres (QueryResult):  object of feature correspondences and scores
-        autoname_func (function):
-    """
-    if qres is None:
-        print('WARNING: qres is None')
-    import plottool as pt
-
-    new_mplshow = True and qres is not None
-    mplshowtop = False and qres is not None
-    qtinspect = False and qres is not None
-
-    if new_mplshow:
-        from ibeis.viz.interact import interact_query_decision
-        print('Showing matplotlib window')
-        comp_aids_all = ut.get_list_column(choicetup.sorted_aids, 0)
-        comp_aids     = comp_aids_all[0:min(3, len(comp_aids_all))]
-        suggestx      = ut.listfind(ibs.get_annot_names(comp_aids), name)
-        suggest_aid   = None if suggestx is None else comp_aids[suggestx]
-        name_decision_callback = incinfo['name_decision_callback']
-        qvi = interact_query_decision.QueryVerificationInteraction(ibs, qres,
-                                                                   comp_aids,
-                                                                   suggest_aid,
-                                                                   decision_callback=name_decision_callback,
-                                                                   progress_current=incinfo['count'],
-                                                                   progress_total=incinfo['nTotal'],
-                                                                   fnum=incinfo['fnum'])
-        qvi.fig.show()
-    if mplshowtop:
-        fnum = 513
-        pt.figure(fnum=fnum, pnum=(2, 3, 1), doclf=True, docla=True)
-        fig = qres.ishow_top(ibs, name_scoring=True, fnum=fnum, in_image=False,
-                             annot_mode=0, sidebyside=False, show_query=True)
-        fig.show()
-        #fig.canvas.raise_()
-        #from plottool import fig_presenter
-        #fig_presenter.bring_to_front(fig)
-        newname = ibs.make_next_name()
-        newname_prefix = 'New Name:\n'
-        if name is None:
-            name = newname_prefix + newname
-
-        aid_list = ut.get_list_column(choicetup.sorted_aids, 0)
-        name_options = ibs.get_annot_names(aid_list) + [newname_prefix + newname]
-        import guitool
-        msg = 'Decide on query name. System suggests; ' + str(name)
-        title = 'name decision'
-        options = name_options[::-1]
-        user_chosen_name = guitool.user_option(None, msg, title, options)  # NOQA
-        if user_chosen_name is None:
-            raise AssertionError('User Canceled Query')
-        user_chosen_name = user_chosen_name.replace(newname_prefix, '')
-        # TODO: Make the old interface use the correct sorted_aids format
-        #name_decision_callback(user_chosen_name)
-    if qtinspect:
-        print('Showing qt inspect window')
-        qres_wgt = qres.qt_inspect_gui(ibs, name_scoring=True)
-        qres_wgt.show()
-        qres_wgt.raise_()
-    if qreq_ is not None:
-        if qreq_.normalizer is None:
-            print('normalizer is None!!')
-        else:
-            qreq_.normalizer.visualize(update=False, fnum=2)
-
-    # Prompt the user (this could be swaped out with a qt or web interface)
-    #if qtinspect:
-    #    qres_wgt.close()
-    #return user_chosen_name
-
-
-def get_user_exemplar_decision(autoexemplar_msg, exemplar_decision,
-                               exemplar_condience, incinfo=None):
-    r""" hooks into to some method of getting user input for exemplars
-
-    TODO: really good interface
-
-    Args:
-        autoexemplar_msg (?):
-        exemplar_decision (?):
-        exemplar_condience (?):
-
-    Returns:
-        ?: True
-
-    CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-get_user_exemplar_decision
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> # build test data
-        >>> autoexemplar_msg = '?'
-        >>> exemplar_decision = '?'
-        >>> exemplar_condience = '?'
-        >>> # execute function
-        >>> True = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)
-        >>> # verify results
-        >>> result = str(True)
-        >>> print(result)
-    """
-    import guitool
-    options = ['No', 'Yes']
-    msg = 'Decide if exemplar. System suggests; ' + options[exemplar_decision]
-    title = 'exemplar decision'
-    responce = guitool.user_option(None, msg, title, options)  # NOQA
-    if responce is None:
-        raise AssertionError('User Canceled Query')
-    if responce == 'Yes':
-        return True
-    elif responce == 'No':
-        return False
-    else:
-        return None
 
 # ---- POST DECISION ---
 
@@ -768,7 +500,6 @@ def execute_name_decision(ibs, qaid, name):
         >>> ibs = '?'
         >>> qaid = '?'
         >>> name = '?'
-        >>> # execute function
         >>> result = execute_name_decision(ibs, qaid, name)
         >>> # verify results
         >>> print(result)
@@ -810,7 +541,6 @@ def update_normalizer(ibs, qreq_, choicetup, name):
         >>> qreq_ = '?'
         >>> choicetup = '?'
         >>> name = '?'
-        >>> # execute function
         >>> (tp_rawscore, tn_rawscore) = update_normalizer(ibs, qreq_, choicetup, name)
         >>> # verify results
         >>> result = str((tp_rawscore, tn_rawscore))

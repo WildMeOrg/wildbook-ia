@@ -25,7 +25,6 @@ from multiprocessing import cpu_count
 import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[back]', DEBUG=False)
-from ibeis.gui.guiheaders import NAMES_TREE # ADD AS NEEDED
 
 VERBOSE = ut.VERBOSE
 
@@ -608,19 +607,17 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
 
     def get_selected_daids(back, eid=None, query_mode=None):
+        species = back.get_selected_species()
         if query_mode == const.VS_EXEMPLARS_KEY:
-            print('[back] query_exemplars')
-            daid_list = back.ibs.get_valid_aids(is_exemplar=True)
+            print('[back] query_exemplars(species=%r) ' % (species))
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True, species=species)
+            all_daid_list = back.ibs.get_valid_aids(is_exemplar=True, species=None)
         elif query_mode == const.INTRA_ENC_KEY:
-            print('[back] query_encounter (eid=%r)' % eid)
-            daid_list = back.ibs.get_encounter_aids(eid)
+            print('[back] query_encounter (eid=%r, species=%r)' % (eid, species))
+            daid_list = back.ibs.get_valid_aids(eid=eid, species=species)
+            all_daid_list = back.ibs.get_valid_aids(eid=eid, species=None)
         else:
             print('Unknown query mode: %r' % (query_mode))
-        species = back.get_selected_species()
-        spec_id = back.ibs.get_species_rowids_from_text(species)
-        spec_id_list = back.ibs.get_annot_species_rowids(daid_list)
-        is_valid_species = [i == spec_id for i in spec_id_list]
-        daid_list_ = ut.filter_items(daid_list, is_valid_species)
         msg_var = ut.codeblock(
             '''
             You are about to enter identification for %d annotations of
@@ -628,10 +625,10 @@ class MainWindowBackend(QtCore.QObject):
             ''')
         lookup = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
         species_bold_nice = '\'' + lookup.get(species, species).upper() + '\''
-        cont = back.are_you_sure(use_msg=msg_var % (len(daid_list_), species_bold_nice, len(daid_list)))
+        cont = back.are_you_sure(use_msg=msg_var % (len(daid_list), species_bold_nice, len(all_daid_list)))
         if not cont:
             raise StopIteration
-        return daid_list_
+        return daid_list
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
@@ -689,6 +686,8 @@ class MainWindowBackend(QtCore.QObject):
     #@blocking_slot()
     @slot_()
     def incremental_query(back, refresh=True, **kwargs):
+        from ibeis.model.hots import interactive_automated_matcher as iautomatch
+        from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
         eid = back._eidfromkw(kwargs)
         print('------')
         print('\n\n[back] incremental_query: eid=%r, mode=%r' % (eid, back.query_mode))
@@ -696,8 +695,7 @@ class MainWindowBackend(QtCore.QObject):
             print('[back] invalid eid')
             return
         daid_list = back.get_selected_daids(eid=eid, query_mode=back.query_mode)
-        from ibeis.model.hots import interactive_automated_matcher as iautomatch
-        qaid_list = back.ibs.get_encounter_aids(eid)
+        qaid_list = back.ibs.get_valid_aids(eid=eid)
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
         iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)

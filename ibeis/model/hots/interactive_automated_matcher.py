@@ -21,13 +21,12 @@ class IncQueryHarness(INC_LOOP_BASE):
     """
     next_query_signal = guitool.signal_()
     name_decision_signal = guitool.signal_(list)
+    exemplar_decision_signal = guitool.signal_(list)
 
     def __init__(self):
         INC_LOOP_BASE.__init__(self)
         self.inc_query_gen = None
         self.ibs = None
-        self.dry = False
-        self.interactive = True
         # connect signals to slots
         self.next_query_signal.connect(self.next_query_slot)
         self.name_decision_signal.connect(self.name_decision_slot)
@@ -55,6 +54,9 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo = {
             'next_query_callback': emit_next_query,
             'name_decision_callback': emit_name_decision,
+            'metatup': None,
+            'dry': False,
+            'interactive': True,
             'count': 0,
             'nTotal': self.nTotal,
             'fnum': 512,
@@ -75,21 +77,16 @@ class IncQueryHarness(INC_LOOP_BASE):
         the automatic interactions
         """
         try:
-            dry = self.dry
-            interactive = self.interactive
             item = six.next(self.inc_query_gen)
-            (ibs, qres, qreq_, choicetup, metatup, incinfo, threshold) = item
+            (ibs, qres, qreq_, choicetup, incinfo) = item
             incinfo['count'] += 1
             self.choicetup = choicetup
             self.qres      = qres
             self.qreq_     = qreq_
-            self.metatup   = metatup
             self.incinfo = incinfo
-            self.threshold = threshold
-            automatch.try_automatic_decision(ibs, qres, qreq_, choicetup,
-                                             threshold, interactive=interactive,
-                                             metatup=metatup, dry=dry,
-                                             incinfo=incinfo)
+            automatch.run_until_name_decision_signal(ibs, qres, qreq_,
+                                                     choicetup,
+                                                     incinfo=incinfo)
 
         except StopIteration:
             #TODO: close this figure
@@ -99,25 +96,25 @@ class IncQueryHarness(INC_LOOP_BASE):
 
     @guitool.slot_(list)
     def name_decision_slot(self, sorted_aids):
+        """
+        the name decision signal was emited
+        """
         print('[QT] name_decision_slot')
-
         ibs = self.ibs
         choicetup   = self.choicetup
         qres        = self.qres
         qreq_       = self.qreq_
-        metatup     = self.metatup
         incinfo     = self.incinfo
-        threshold   = self.threshold
-        interactive = self.interactive
-        dry         = self.dry
         if sorted_aids is None or len(sorted_aids) == 0:
             name = None
         else:
             name = ibs.get_annot_names(sorted_aids[0])
-        automatch.make_name_decision(name, choicetup, ibs, qres, qreq_,
-                                     threshold, interactive=interactive,
-                                     metatup=metatup, dry=dry,
-                                     incinfo=incinfo)
+        automatch.exec_name_decision_and_continue(name, choicetup, ibs, qres,
+                                                  qreq_, incinfo=incinfo)
+
+    @guitool.slot_(int)
+    def exemplar_decision_signal(self, aid):
+        pass
 
 
 def incremental_test_qt(ibs, num_initial=0):
