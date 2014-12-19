@@ -1,3 +1,6 @@
+"""
+provides common methods for api_tree_view and api_table_view
+"""
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui
 from guitool.__PYQT__.QtCore import Qt
@@ -107,6 +110,17 @@ def hide_cols(view):
     for col, hidden in enumerate(duplicated_hidden_list):
         view.setColumnHidden(col, hidden)
 
+
+@register_view_method
+def select_row_from_id(view, _id):
+    """
+    _id is from the iders function (i.e. an ibeis rowid)
+    selects the row in that view if it exists
+    """
+    model = view.model()
+    row = model.get_row_from_id(_id)
+    if row is not None:
+        view.selectRow(row)
 
 #---------------
 # Qt Overrides

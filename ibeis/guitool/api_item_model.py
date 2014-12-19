@@ -466,6 +466,19 @@ class APIItemModel(API_MODEL_BASE):
             level_ider = model.iders[level]
             return level_ider(parent_ids)
 
+    def get_row_from_id(model, _id):
+        r"""
+        returns the row if an _id from the iders list
+
+        Args:
+            _id (?):
+
+        Returns:
+            int: row
+        """
+        row = model.root_node.find_row_from_id(_id)
+        return row
+
     #----------------------------------
     # --- API Convineince Functions ---
     #----------------------------------

@@ -113,6 +113,15 @@ class TreeNode(TREE_NODE_BASE):
         """ <CYTH returns="long"> """
         return self.level
 
+    def find_row_from_id(self, _id):
+        """
+        given an id (like an ibeis rowid) find the row of this item
+        """
+        children = self.get_children()
+        id_list = [child.get_id() for child in children]
+        row = ut.listfind(id_list, _id)
+        return row
+
     def lazy_checks(self):
         # If the child is a generator, then the TreeNode hasn't been created yet
         # so create it
