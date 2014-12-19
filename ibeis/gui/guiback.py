@@ -25,7 +25,7 @@ from multiprocessing import cpu_count
 import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[back]', DEBUG=False)
-
+from ibeis.gui.guiheaders import NAMES_TREE # ADD AS NEEDED
 
 VERBOSE = ut.VERBOSE
 
@@ -699,6 +699,7 @@ class MainWindowBackend(QtCore.QObject):
         from ibeis.model.hots import interactive_automated_matcher as iautomatch
         qaid_list = back.ibs.get_encounter_aids(eid)
         #TODO fix names tree thingie
+        back.front.set_table_tab(NAMES_TREE)
         iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)
 
     #@blocking_slot()

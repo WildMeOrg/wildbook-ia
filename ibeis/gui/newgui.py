@@ -579,6 +579,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt._tab_table_wgt.indexOf(view)
         return index
 
+    def set_table_tab(ibswgt, tblname):
+        index = ibswgt.get_table_tab_index(tblname)
+        ibswgt._tab_table_wgt.setCurrentIndex(index)
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """
