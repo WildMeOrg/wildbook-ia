@@ -119,7 +119,7 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
     return qaid2_qres_vsmany, qreq_vsmany_
 
 
-def get_new_qres_filter_scores2(qres_vsone, qres_vsmany, top_aids, filtkey):
+def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
     """
     gets the distinctivenss score
 

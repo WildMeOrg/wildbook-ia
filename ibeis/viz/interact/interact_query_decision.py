@@ -199,9 +199,10 @@ class QueryVerificationInteraction(AbstractInteraction):
                          figtitle='Examine a specific image against the query')
         closeme.close()
 
-        assert False, (
-            'BLACK MAGIC: error intentionally included as a workaround that seems'
-            'to fix a gui hang on certain computers.')
+        # this is only relevant to matplotlib.__version__ < 1.4.2
+        #raise Exception(
+        #    'BLACK MAGIC: error intentionally included as a workaround that seems'
+        #    'to fix a gui hang on certain computers.')
 
         #self.update_callback()
         #self.backend_callback()
