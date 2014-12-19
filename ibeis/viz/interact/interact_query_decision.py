@@ -197,16 +197,11 @@ class QueryVerificationInteraction(AbstractInteraction):
         print(' examining aid %r against the query result' % aid)
         closeme = im.ishow_matches(self.ibs, self.qres, aid,
                          figtitle='Examine a specific image against the query')
-        closeme.close()
-
+        
         # this is only relevant to matplotlib.__version__ < 1.4.2
         #raise Exception(
         #    'BLACK MAGIC: error intentionally included as a workaround that seems'
         #    'to fix a gui hang on certain computers.')
-
-        #self.update_callback()
-        #self.backend_callback()
-        #self.show_page()
 
     def show_hud(self):
         """ Creates heads up display """
