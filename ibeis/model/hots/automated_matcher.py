@@ -280,7 +280,7 @@ def generate_incremental_queries(ibs, qaid_list, daid_list, incinfo=None):
 # ---- QUERY ----
 
 def execute_next_query_step(ibs, qaid_chunk, threshold, interactive, metatup=None,
-                     incinfo=None):
+                            incinfo=None):
     """ Add an unseen annotation and run a query
 
     Args:

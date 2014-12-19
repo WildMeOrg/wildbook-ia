@@ -283,6 +283,26 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     qaid2_qres_ = chipmatch_to_resdict(qreq_, qaid2_chipmatch_SVER_,
                                        verbose=verbose)
 
+    if qreq_.qparams.return_expanded_nns:
+        assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
+        # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
+        # BREAKS PIPELINE CACHING ASSUMPTIONS
+        # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
+        # CAUSES TOO MUCH DATA TO BE SAVED
+        for qaid in qreq_.get_external_qaids():
+            (qfx2_idx, qfx2_dist) = qaid2_nns_[qaid]
+            qres = qaid2_qres_[qaid]
+            qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
+            qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_idx)
+
+            qres.qfx2_daid = qfx2_daid
+            qres.qfx2_dfx = qfx2_dfx
+            qres.qfx2_dist = qfx2_dist
+            print('\n'.join(['qres.qfx2_daid = ' + ut.get_object_size_str(qres.qfx2_daid),
+                             'qres.qfx2_dfx = ' + ut.get_object_size_str(qres.qfx2_dfx),
+                             'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist), ]))
+            #ut.embed()
+
     if VERB_PIPELINE:
         print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
 

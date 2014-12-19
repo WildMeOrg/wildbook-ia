@@ -670,10 +670,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     gid = ibswgt.back.ibs.get_annot_gids(aid)
                     imgtbl.select_row_from_id(gid)
 
+                def goto_annot_name(aid):
+                    ibswgt.set_table_tab(NAMES_TREE)
+                    nametree = ibswgt.views[NAMES_TREE]
+                    nid = ibswgt.back.ibs.get_annot_nids(aid)
+                    nametree.select_row_from_id(nid)
+
                 guitool.popup_menu(tblview, pos, [
-                    ('Select annotation (default)', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                     ('Goto image', lambda: goto_annot_image(aid)),
+                    #('Goto name', lambda: goto_annot_name(aid)),
+                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
                     ('Unset annotation name', lambda: ibswgt.back.unset_names([aid])),
                     ('----', lambda: None),
@@ -684,6 +691,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
                     ('Unset all annotation names', lambda: ibswgt.back.unset_names(id_list)),
                 ])
+        # ---- ANNOTATION CONTEXT ----
+        elif model.name == NAMES_TREE:
+            print(id_list)
+            pass
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
