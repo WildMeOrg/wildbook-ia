@@ -199,9 +199,13 @@ class QueryVerificationInteraction(AbstractInteraction):
                          figtitle='Examine a specific image against the query')
         closeme.close()
 
-        self.update_callback()
-        self.backend_callback()
-        self.show_page()
+        assert False, (
+            'BLACK MAGIC: error intentionally included as a workaround that seems'
+            'to fix a gui hang on certain computers.')
+
+        #self.update_callback()
+        #self.backend_callback()
+        #self.show_page()
 
     def show_hud(self):
         """ Creates heads up display """
