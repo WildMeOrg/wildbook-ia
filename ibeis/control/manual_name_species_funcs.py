@@ -25,6 +25,7 @@ SPECIES_ROWID       = 'species_rowid'
 
 NAME_UUID = 'name_uuid'
 NAME_TEXT = 'name_text'
+NAME_ALIAS_TEXT = 'name_alias_text'
 NAME_NOTE = 'name_note'
 SPECIES_UUID = 'species_uuid'
 SPECIES_TEXT = 'species_text'
@@ -231,6 +232,7 @@ def get_invalid_nids(ibs):
     """
     Returns:
         list: nid_list - all names without any animals (does not include unknown names)
+        an nid is not invalid if it has a valid alias
 
     CommandLine:
         python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids
@@ -240,15 +242,19 @@ def get_invalid_nids(ibs):
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aids_list = get_invalid_nids(ibs)
-        >>> result = str(aids_list)
+        >>> nids_list = get_invalid_nids(ibs)
+        >>> result = str(nids_list)
         >>> print(result)
+        []
     """
     _nid_list = ibs._get_all_known_name_rowids()
     nRois_list = ibs.get_name_num_annotations(_nid_list)
+    # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
     nid_list = list(ut.ifilter_items(_nid_list, isempty_list))
-    #[nid for nid, nRois in zip(_nid_list, nRois_list) if nRois <= 0]
+    # Filter names with aliases (TODO: use transitivity to determine validity)
+    hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
+    nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
     return nid_list
 
 
@@ -570,6 +576,51 @@ def get_name_num_exemplar_annotations(ibs, nid_list):
         list_ (list):  the number of annotations, which are exemplars for each name
     """
     return list(map(len, ibs.get_name_exemplar_aids(nid_list)))
+
+
+@register_ibs_method
+@getter_1to1
+def get_name_alias_texts(ibs, name_rowid_list):
+    """
+    Returns:
+        list_ (list): name_alias_text_list
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_alias_texts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> name_rowid_list = ibs.get_valid_nids()
+        >>> # execute function
+        >>> name_alias_text_list = get_name_alias_texts(ibs, name_rowid_list)
+        >>> # verify results
+        >>> result = str(name_alias_text_list)
+        >>> print(result)
+        [None, None, None, None, None, None, None]
+    """
+    name_alias_text_list = ibs.db.get(const.NAME_TABLE, (NAME_ALIAS_TEXT,), name_rowid_list)
+    return name_alias_text_list
+
+
+@register_ibs_method
+@setter
+def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
+    """
+    Returns:
+        list_ (list): name_alias_text_list
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+    """
+    val_list = ((value,) for value in name_alias_text_list)
+    ibs.db.set(const.NAME_TABLE, (NAME_ALIAS_TEXT,), val_list, name_rowid_list)
 
 
 @register_ibs_method

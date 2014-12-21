@@ -304,15 +304,23 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 
 @__injectable
-def assert_valid_aids(ibs, aid_list):
+def assert_valid_aids(ibs, aid_list, verbose=False):
     if ut.NO_ASSERTS:
         return
     valid_aids = set(ibs.get_valid_aids())
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
     isinvalid_list = [aid not in valid_aids for aid in aid_list]
-    assert not any(isinvalid_list), 'invalid aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
-    isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]
-    assert not any(isinvalid_list), 'invalidly typed aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
+    try:
+        assert not any(isinvalid_list), 'invalid aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
+        isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]
+        assert not any(isinvalid_list), 'invalidly typed aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
+    except AssertionError as ex:
+        print('dbname = %r' % (ibs.get_dbname()))
+        ut.printex(ex)
+        ut.embed()
+        raise
+    if verbose:
+        print('passed assert_valid_aids')
 
 
 def assert_images_exist(ibs, gid_list):
@@ -2171,6 +2179,41 @@ def fix_unknown_exemplars(ibs):
                   for nid, annot in
                   zip(nid_list, ibs.get_annot_exemplar_flags(aid_list))]
     ibs.set_annot_exemplar_flags(aid_list, new_annots)
+
+
+@__injectable
+def merge_names(ibs, merge_name, other_names):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        merge_name (str):
+        other_names (list):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-merge_names
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> merge_name = 'zebra'
+        >>> other_names = ['occl', 'jeff']
+        >>> # execute function
+        >>> result = merge_names(ibs, merge_name, other_names)
+        >>> # verify results
+        >>> print(result)
+    """
+    print('[ibsfuncs] merging other_names=%r into merge_name=%r' %
+            (other_names, merge_name))
+    other_nid_list = ibs.get_name_rowids_from_text(other_names)
+    ibs.set_name_alias_texts(other_nid_list, [merge_name] * len(other_nid_list))
+    other_aids_list = ibs.get_name_aids(other_nid_list)
+    other_aids = ut.flatten(other_aids_list)
+    print('[ibsfuncs] ... %r annotations are being merged into merge_name=%r' %
+            (len(other_aids), merge_name))
+    ibs.set_annot_names(other_aids, [merge_name] * len(other_aids))
 
 
 if __name__ == '__main__':

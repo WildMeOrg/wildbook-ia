@@ -38,35 +38,41 @@ def test_QueryVerificationInteraction():
     daids = valid_aids[1:]
     qres = ibs.query_chips(qaids, daids)[0]
     comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:3]
-    suggest_aid = comp_aids[1]
-    qvi = QueryVerificationInteraction(ibs, qres, comp_aids, suggest_aid, progress_current=42, progress_total=1337)
+    suggest_aids = comp_aids[0:1]
+    qvi = QueryVerificationInteraction(
+        ibs, qres, comp_aids, suggest_aids, progress_current=42, progress_total=1337)
     qvi.fig.show()
     exec(df2.present())
 
 
 class QueryVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, qres, comp_aids, suggest_aid, progress_current=None,
+    def __init__(self, ibs, qres, comp_aids, suggest_aids, progress_current=None,
                  progress_total=None, update_callback=None,
-                 backend_callback=None, decision_callback=None, **kwargs):
+                 backend_callback=None, name_decision_callback=None, **kwargs):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
+        print('[matchver] comp_aids=%r' % (comp_aids,))
+        print('[matchver] suggest_aids=%r' % (suggest_aids,))
         self.ibs = ibs
         self.qres = qres
         self.query_aid = self.qres.get_qaid()
+        ibs.assert_valid_aids(comp_aids, verbose=True)
+        ibs.assert_valid_aids(suggest_aids, verbose=True)
+        ibs.assert_valid_aids((self.query_aid,), verbose=True)
         assert(len(comp_aids) <= 3)
         self.comp_aids = comp_aids
-        self.suggest_aid = suggest_aid
+        self.suggest_aids = suggest_aids
         self.progress_current = progress_current
         self.progress_total = progress_total
         if update_callback is None:
             update_callback = lambda: None
         if backend_callback is None:
             backend_callback = lambda: None
-        if decision_callback is None:
-            decision_callback = lambda aids: None
+        if name_decision_callback is None:
+            name_decision_callback = lambda aids: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
-        self.decision_callback = decision_callback
+        self.name_decision_callback = name_decision_callback
         self.checkbox_states = {}
         self.qres_callback = kwargs.get('qres_callback', None)
         self.infer_data()
@@ -116,7 +122,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         #Plot the Comparisions
         for count, c_aid in enumerate(self.comp_aids):
             if c_aid is not None:
-                if self.suggest_aid == c_aid:
+                if c_aid in self.suggest_aids:
                     self.plot_chip(int(c_aid), nRows, nCols, nCols + count + 1, title_suffix="SUGGESTED BY IBEIS")
                 else:
                     self.plot_chip(int(c_aid), nRows, nCols, nCols + count + 1)
@@ -124,7 +130,8 @@ class QueryVerificationInteraction(AbstractInteraction):
                 df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title="NO RESULT")
 
         #Plot the Query Chip last
-        self.plot_chip(int(self.query_aid), nRows, 1, 1, title_suffix="QUERIED CHIP")
+        with ut.EmbedOnException():
+            self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix="QUERIED CHIP")
 
         self.show_hud()
         df2.adjust_subplots_safe(top=0.88, hspace=0.12)
@@ -139,7 +146,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         if aid in self.comp_aids:
             score = self.qres.get_aid_scores([aid])[0]
-            title_suf = kwargs.get('title_suffix', "") + "%0.2f" % score
+            title_suf = kwargs.get('title_suffix', "") + " %0.2f" % score
         else:
             title_suf = kwargs.get('title_suffix', "")
         #nid = ibs.get_annot_name_rowids(aid)
@@ -246,48 +253,54 @@ class QueryVerificationInteraction(AbstractInteraction):
             >>> selected_aids = ut.get_list_column(ibs.get_name_aids(ibs.get_valid_nids()), 0)
             >>> comfirm_res = 'jeff'
             >>> # execute function
-            >>> result = self.confirm(event)
+            >>> #result = self.confirm(event)
             >>> # verify results
-            >>> print(result)
+            >>> #print(result)
         """
         print('[interact_query_decision] Confirming selected animals.')
 
         selected_aids = [aid for aid in self.comp_aids
                          if aid is not None and self.checkbox_states[aid]]
-        if len(selected_aids) > 1:
+        if len(selected_aids) == 0:
+            print('[interact_query_decision] Confirming no match.')
+        elif len(selected_aids) == 1:
+            print('[interact_query_decision] Confirming single match')
+            chosen_aids = selected_aids
+        else:
             print('[interact_query_decision] Confirming merge')
-            msg = (
-                'You have selected more than one animal as a match to the query animal.'
-                ' By doing this you are telling IBEIS that these are ALL the SAME ANIMAL.'
-                '\n\nIf this is not what you want, click Cancel.  If it is what you want, choose one of the names below as the name to keep.')
+            msg = ut.textblock(
+                '''
+                You have selected more than one animal as a match to the query
+                animal.  By doing this you are telling IBEIS that these are ALL
+                the SAME ANIMAL.  \n\n\nIf this is not what you want, click
+                Cancel.  If it is what you want, choose one of the names below
+                as the name to keep.
+                ''')
             selected_names = self.ibs.get_annot_names(selected_aids)
             options = selected_names
-            comfirm_res = guitool.user_option(None, msg=msg,
-                                              title='Confirmation',
-                                              options=options)
-            if comfirm_res is None:
+            parent = None
+            title = 'Confirm Merge'
+            merge_name = guitool.user_option(parent, msg=msg, title=title,
+                                             options=options)
+            if merge_name is None:
+                print('[interact_query_decision] cancelled merge')
                 self.update_callback()
                 self.backend_callback()
                 self.show_page()
                 return
             else:
-                merge_name  = comfirm_res
-                is_merge_name = [name == merge_name for name in selected_names]
-                sorted_aids = ut.sortedby(selected_aids, is_merge_name)[::-1]
-        else:
-            print('[interact_query_decision] Confirming single match')
-            sorted_aids = selected_aids
+                print('[interact_query_decision] confirmed merge')
+                is_merge_name = [merge_name == name_ for name_ in selected_names]
+                chosen_aids = ut.sortedby(selected_aids, is_merge_name)[::-1]
 
         print('[interact_query_decision] Calling update callbacks')
         self.update_callback()
         self.backend_callback()
         print('[interact_query_decision] Calling decision callback')
-        print('[interact_query_decision] self.decision_callback = %r' % (self.decision_callback,))
-        self.decision_callback(sorted_aids)
+        print('[interact_query_decision] self.name_decision_callback = %r' % (self.name_decision_callback,))
+        chosen_names = self.ibs.get_annot_names(chosen_aids)
+        self.name_decision_callback(chosen_names)
         print('[interact_query_decision] sent callback')
-        #self.show_page()
-        # self.close()
-        print('[interact_query_decision] Finished confirm')
 
 
 if __name__ == '__main__':

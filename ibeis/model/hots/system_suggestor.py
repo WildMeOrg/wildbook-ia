@@ -1,7 +1,58 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
+from collections import namedtuple
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[suggest]')
+
+
+# ---- GLOBALS ----
+
+ChoiceTuple = namedtuple('ChoiceTuple', ('sorted_nids', 'sorted_nscore',
+                                         'sorted_rawscore', 'sorted_aids',
+                                         'sorted_ascores'))
+
+
+def get_qres_name_choices(ibs, qres):
+    r"""
+    returns all possible decision a user could make
+
+    TODO: Return the possiblity of a merge.
+    TODO: Ensure that the total probability of each possible choice sums to 1.
+    This will define a probability density function that we can take advantage
+    of
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qres (QueryResult):  object of feature correspondences and scores
+
+    Returns:
+        ChoiceTuple: choicetup
+
+    CommandLine:
+        python -m ibeis.model.hots.automated_matcher --test-get_qres_name_choices
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> choicetup = get_qres_name_choices(ibs, qres)
+        >>> print(choicetup)
+    """
+    if qres is None:
+        nscoretup = list(map(np.array, ([], [], [], [])))
+        (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup
+    else:
+        nscoretup = qres.get_nscoretup(ibs)
+
+    (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup
+    sorted_rawscore = [qres.get_aid_scores(aids, rawscore=True) for aids in sorted_aids]
+
+    choicetup = ChoiceTuple(sorted_nids, sorted_nscore, sorted_rawscore,
+                            sorted_aids, sorted_ascores)
+    return choicetup
 
 
 def get_system_name_suggestion(ibs, choicetup):

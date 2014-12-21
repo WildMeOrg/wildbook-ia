@@ -610,25 +610,53 @@ class MainWindowBackend(QtCore.QObject):
         species = back.get_selected_species()
         if query_mode == const.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(species=%r) ' % (species))
-            daid_list = back.ibs.get_valid_aids(is_exemplar=True, species=species)
-            all_daid_list = back.ibs.get_valid_aids(is_exemplar=True, species=None)
+            daid_list = back.ibs.get_recognition_database_aids(is_exemplar=True, species=species)
         elif query_mode == const.INTRA_ENC_KEY:
             print('[back] query_encounter (eid=%r, species=%r)' % (eid, species))
-            daid_list = back.ibs.get_valid_aids(eid=eid, species=species)
-            all_daid_list = back.ibs.get_valid_aids(eid=eid, species=None)
+            daid_list = back.ibs.get_recognition_database_aids(eid=eid, species=species)
         else:
             print('Unknown query mode: %r' % (query_mode))
-        msg_var = ut.codeblock(
-            '''
-            You are about to enter identification for %d annotations of
-            species %s (out of %d annotations in the encounter). Continue?
-            ''')
-        lookup = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
-        species_bold_nice = '\'' + lookup.get(species, species).upper() + '\''
-        cont = back.are_you_sure(use_msg=msg_var % (len(daid_list), species_bold_nice, len(all_daid_list)))
-        if not cont:
-            raise StopIteration
         return daid_list
+
+    def confirm_query_dialog(back, daid_list=None, qaid_list=None):
+        species_dict = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
+
+        def pluralize(wordtext, list_):
+            return wordtext + 's' if len(list_) > 1 else wordtext
+
+        def get_unique_species_phrase(aid_list):
+            def boldspecies(species):
+                species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
+                return species_bold_nice
+            species_list = list(set(back.ibs.get_annot_species_text(daid_list)))
+            species_nice_list = list(map(boldspecies, species_list))
+            species_phrase = ut.cond_phrase(species_nice_list, 'and')
+            return species_phrase
+
+        if daid_list is not None:
+            species_phrase = get_unique_species_phrase(daid_list)
+            num_daids = len(daid_list)
+            msg_fmtstr = ut.codeblock(
+                '''
+                You are about to enter identification searching {num_daids}
+                {annotation_s} of species {species_phrase}. Continue?
+                ''')
+            annotation_s = pluralize('annotation', daid_list)
+        if qaid_list is not None:
+            species_phrase = get_unique_species_phrase(daid_list)
+            num_daids = len(daid_list)
+            msg_fmtstr = ut.codeblock(
+                '''
+                You are about to query {num_daids} unknown {annotation_s} of
+                species {species_phrase} for identification. Continue?
+                ''')
+            annotation_s = pluralize('annotation', qaid_list)
+        msg_str = msg_fmtstr.format(
+            num_daids=num_daids,
+            annotation_s=annotation_s,
+            species_phrase=species_phrase)
+        if not back.are_you_sure(use_msg=msg_str):
+            raise StopIteration
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
@@ -643,6 +671,7 @@ class MainWindowBackend(QtCore.QObject):
         # Get the query annotation ids to search
         qaid_list = [aid]
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+        back.confirm_query_dialog(daid_list)
         # Get the database annotation ids to be searched
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
@@ -670,6 +699,7 @@ class MainWindowBackend(QtCore.QObject):
         qaid_list = back.ibs.get_valid_aids(eid=eid)
         # Get the database annotation ids to be searched
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+        back.confirm_query_dialog(daid_list)
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if back.query_mode == const.INTRA_ENC_KEY:
@@ -694,11 +724,12 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
-        daid_list = back.get_selected_daids(eid=eid, query_mode=back.query_mode)
-        qaid_list = back.ibs.get_valid_aids(eid=eid)
+        species = back.get_selected_species()
+        qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
+        back.confirm_query_dialog(qaid_list=qaid_list)
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
-        iautomatch.iexec_incremental_queries(back.ibs, qaid_list, daid_list)
+        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):

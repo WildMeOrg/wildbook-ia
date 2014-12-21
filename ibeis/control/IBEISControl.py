@@ -724,7 +724,7 @@ class IBEISController(object):
     #-----------------------
 
     @default_decorator
-    def get_recognition_database_aids(ibs, mode='vsexemplar', species=None):
+    def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
         """
         DEPRECATE or refactor
 
@@ -734,8 +734,13 @@ class IBEISController(object):
         if 'daid_list' in ibs.temporary_state:
             daid_list = ibs.temporary_state['daid_list']
         else:
-            daid_list = ibs.get_valid_aids()
+            daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
         return daid_list
+
+    @default_decorator
+    def get_recognition_query_aids(ibs, is_known, species=None):
+        qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
+        return qaid_list
 
     def query_chips(ibs, qaid_list,
                     daid_list=None,

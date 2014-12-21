@@ -39,13 +39,13 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
     """
     # python -c "import utool; utool.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')
     printDBG('[viz] show_chip()')
-    vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
+    ibs.assert_valid_aids((aid,))
     #utool.embed()
     # Get chip
     chip = vh.get_chips(ibs, aid, in_image, **kwargs)
     # Create chip title
-    chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]  
-    if kwargs.get('enable_chip_title_prefix',True):
+    chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
+    if kwargs.get('enable_chip_title_prefix', True):
         chip_title_text = chip_text + title_suffix
     else:
         chip_title_text = title_suffix
