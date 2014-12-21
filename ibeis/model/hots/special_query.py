@@ -121,12 +121,14 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
 
 def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
     """
-    gets the distinctivenss score
+    gets the distinctivenss score from vsmany and applies it to vsone
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> # build test data
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
         >>> valid_aids = ibs.get_valid_aids()
         >>> qaids = valid_aids[0:1]
         >>> daids = valid_aids[1:]
@@ -141,8 +143,7 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         >>> qres_vsmany = qaid2_qres_vsmany[qaid]
         >>> top_aids = vsone_query_pairs[0][1]
         >>> # verify results
-        >>> result = str((qaid2_qres, qreq_))
-        >>> print(result)
+        >>> newfsv_list, newscore_aids = get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey)
     """
     newfsv_list = []
     newscore_aids = []
@@ -164,16 +165,18 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
             new_scores = new_fsv_vsone.T[-1].T
         fm_vsone  = qres_vsone.aid2_fm[daid]
         qfx_vsone = fm_vsone.T[0]
-        qres_vsmany.qfx2_dist
+        # Get the distinctiveness score from the neighborhood
+        # around each query point in the vsmany query result
         distinctiveness_scores = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        new_scores[:] = distinctiveness_scores
+        new_scores[:] = distinctiveness_scores / 100000.0
         newfsv_list.append(new_fsv_vsone)
         newscore_aids.append(daid)
+    return newfsv_list, newscore_aids
 
 
 def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
     """
-    applies scores of type ``filtkey`` from qaid2_qres_vsmany to qaid2_qres_vsone
+    applies verified scores of type ``filtkey`` from qaid2_qres_vsmany to qaid2_qres_vsone
 
     Args:
         qres_vsone (QueryResult):  object of feature correspondences and scores
@@ -226,6 +229,51 @@ def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
 
 
 def apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey):
+    r"""
+    applies the new filter scores vectors to a query result and updates other
+    scores
+
+    Args:
+        qres_vsone (QueryResult):  object of feature correspondences and scores
+        newfsv_list (list):
+        newscore_aids (?):
+        filtkey (?):
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-apply_new_qres_filter_scores
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> # build test data
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
+        >>> filtkey = 'distinctivness'
+        >>> use_cache = False
+        >>> # execute function
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
+        >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
+        >>> qaid2_qres_vsone = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qres_vsone = qaid2_qres_vsone[qaid]
+        >>> qres_vsmany = qaid2_qres_vsmany[qaid]
+        >>> top_aids = vsone_query_pairs[0][1]
+        >>> # verify results
+        >>> newfsv_list, newscore_aids = get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey)
+        >>> apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey)
+        >>> # verify results
+        >>> print(result)
+
+    Ignore:
+        qres_vsone.show_top(ibs, name_scoring=True)
+        print(qres_vsone.get_inspect_str(ibs=ibs, name_scoring=True))
+
+        print(qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True))
+
+    """
     assert ut.listfind(qres_vsone.filtkey_list, filtkey) is None
     qres_vsone.filtkey_list.append(filtkey)
     for new_fsv_vsone, daid in zip(newscore_aids, newscore_aids):
@@ -233,9 +281,12 @@ def apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey
         if scorex_vsone is None:
             # TODO: add spatial verification as a filter score
             # augment the vsone scores
-            qres_vsone.aid2_fsv[daid] = new_fsv_vsone
-            qres_vsone.aid2_fs[daid] = qres_vsone.aid2_fsv[daid].prod(axis=1)
-            qres_vsone.aid2_score[daid] = qres_vsone.aid2_fs[daid].sum()
+            new_fs_vsone = new_fsv_vsone.prod(axis=1)
+            new_score_vsone = new_fs_vsone.sum()
+            qres_vsone.aid2_fsv[daid]   = new_fsv_vsone
+            qres_vsone.aid2_fs[daid]    = new_fs_vsone
+            qres_vsone.aid2_score[daid] = new_score_vsone
+            # FIXME: this is not how to compute new probability
             if qres_vsone.aid2_prob is not None:
                 qres_vsone.aid2_prob[daid] = qres_vsone.aid2_score[daid]
 
@@ -336,7 +387,6 @@ def query_vsone_verified(ibs, qaids, daids):
 
     # Apply vsmany distinctiveness scores to vsone
     for qaid, top_aids in vsone_query_pairs:
-        filtkey = 'lnbnn'
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsmany = qaid2_qres_vsmany[qaid]
         #with ut.EmbedOnException():
@@ -346,8 +396,12 @@ def query_vsone_verified(ibs, qaids, daids):
             continue
         qres_vsone.assert_self()
         qres_vsmany.assert_self()
-        newfsv_list, newscore_aids = get_new_qres_filter_scores(
+        filtkey = 'distinctiveness'
+        newfsv_list, newscore_aids = get_new_qres_distinctiveness(
             qres_vsone, qres_vsmany, top_aids, filtkey)
+        #filtkey = 'lnbnn'
+        #newfsv_list, newscore_aids = get_new_qres_filter_scores(
+        #    qres_vsone, qres_vsmany, top_aids, filtkey)
         apply_new_qres_filter_scores(
             qres_vsone, newfsv_list, newscore_aids, filtkey)
 
