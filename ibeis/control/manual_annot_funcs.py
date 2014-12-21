@@ -1311,7 +1311,8 @@ def get_num_annotations(ibs, **kwargs):
 @register_ibs_method
 @ider
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
-                   viewpoint='no-filter', is_exemplar=None, species=None):
+                   viewpoint='no-filter', is_exemplar=None, species=None,
+                   is_known=None):
     """
     Note: The viewpoint value cannot be None as a default because None is used as a
           filtering value
@@ -1336,21 +1337,27 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         if is_exemplar is True:
             # corresponding unoptimized hack for is_exemplar
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list = ut.filter_items(aid_list, flag_list)
+            aid_list  = ut.filter_items(aid_list, flag_list)
     # -- valid aid filtering --
     if include_only_gid_list is not None:
-        gid_list = ibs.get_annot_gids(aid_list)
+        gid_list     = ibs.get_annot_gids(aid_list)
         is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
-        aid_list = ut.filter_items(aid_list, is_valid_gid)
+        aid_list     = ut.filter_items(aid_list, is_valid_gid)
     if viewpoint != 'no-filter':
-        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        viewpoint_list     = ibs.get_annot_viewpoints(aid_list)
         is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
-        aid_list = ut.filter_items(aid_list, is_valid_viewpoint)
+        aid_list           = ut.filter_items(aid_list, is_valid_viewpoint)
     if species is not None:
-        species_rowid = ibs.get_species_rowids_from_text(species)
+        species_rowid      = ibs.get_species_rowids_from_text(species)
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-        is_valid_species = [sid == species_rowid for sid in species_rowid_list]
-        aid_list = ut.filter_items(aid_list, is_valid_species)
+        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_species)
+    if is_known is not None:
+        is_known_list = ibs.is_aid_unknown(aid_list)
+        if is_known is True:
+            aid_list = ut.filter_items(aid_list, is_known_list)
+        elif is_known is False:
+            aid_list = ut.filterfalse_items(aid_list, is_known_list)
     return aid_list
 
 
