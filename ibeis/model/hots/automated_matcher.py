@@ -17,9 +17,9 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     """
     Adds and queries new annotations one at a time with oracle guidance
 
-    python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
 
     CommandLine:
+        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
         Tinc.sh --test-test_interactive_incremental_queries:0
         Tinc.sh --test-test_interactive_incremental_queries:1
         Tinc.sh --test-test_interactive_incremental_queries:2
@@ -41,7 +41,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        incinfo['interactive'] = (interact_after is not None and count > interact_after)
+        incinfo['interactive'] = (interact_after is not None and count >= interact_after)
         # ensure new annot is added (most likely it will have been preadded)
         qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
         for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
@@ -172,12 +172,13 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     interactive = incinfo.get('interactive', False)
     if name_confidence < name_confidence_thresh:
         print('... confidence is too low. need user input')
-        if not interactive:
+        if interactive:
             print('... asking user for input')
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
         else:
+            run_until_finish(incinfo=incinfo)
             print('... cannot ask user for input. doing nothing')
     else:
         print('... confidence is above threshold. Making decision')

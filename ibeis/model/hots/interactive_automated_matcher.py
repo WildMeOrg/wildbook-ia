@@ -69,13 +69,18 @@ def test_interactive_incremental_queries(ibs_gt, num_initial=0):
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:1
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:2
 
+        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
+        Tinc.sh --test-test_interactive_incremental_queries:0
+        Tinc.sh --test-test_interactive_incremental_queries:1
+        Tinc.sh --test-test_interactive_incremental_queries:2
+
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> #num_initial = 0
-        >>> num_initial = 90
+        >>> num_initial = 0
         >>> test_interactive_incremental_queries(ibs_gt, num_initial)
 
     Example1:
@@ -96,9 +101,11 @@ def test_interactive_incremental_queries(ibs_gt, num_initial=0):
         >>> test_interactive_incremental_queries(ibs_gt, num_initial)
 
     """
+    guitool.ensure_qtapp()
     num_initial
     self = IncQueryHarness()
     self = self.test_incremental_query(ibs_gt, num_initial)
+    guitool.qtapp_loop()
 
 
 class IncQueryHarness(INC_LOOP_BASE):
@@ -150,6 +157,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         """
         # Add information to an empty database from a groundtruth database
         ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
+        self.ibs = ibs
         incinfo = self.incinfo
         incinfo['nTotal'] = len(aid_list1)
         # Create test query generator

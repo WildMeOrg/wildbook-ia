@@ -263,6 +263,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                          if aid is not None and self.checkbox_states[aid]]
         if len(selected_aids) == 0:
             print('[interact_query_decision] Confirming no match.')
+            chosen_aids = []
         elif len(selected_aids) == 1:
             print('[interact_query_decision] Confirming single match')
             chosen_aids = selected_aids
@@ -300,7 +301,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         print('[interact_query_decision] self.name_decision_callback = %r' % (self.name_decision_callback,))
         chosen_names = self.ibs.get_annot_names(chosen_aids)
         self.name_decision_callback(chosen_names)
-        print('[interact_query_decision] sent callback')
+        print('[interact_query_decision] sent name_decision_callback(chosen_names=%r)' % (chosen_names,))
 
 
 if __name__ == '__main__':
