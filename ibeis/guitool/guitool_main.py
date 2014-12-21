@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-import atexit
+#import atexit
 import sys
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__.QtCore import pyqtRemoveInputHook
