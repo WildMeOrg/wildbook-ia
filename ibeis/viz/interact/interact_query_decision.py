@@ -27,7 +27,7 @@ def test_QueryVerificationInteraction():
         python -m ibeis.viz.interact.interact_query_decision --test-test_QueryVerificationInteraction
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_query_decision import *  # NOQA
         >>> # build test data
         >>> # execute function

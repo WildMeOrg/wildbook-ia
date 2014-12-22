@@ -1307,6 +1307,7 @@ def get_ungrouped_gids(ibs):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_all_encounters()
         >>> ibs.compute_encounters()
         >>> ibs.update_special_encounters()
         >>> # Now we want to remove some images from a non-special encounter
@@ -2092,7 +2093,7 @@ def fix_invalid_nids(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-fix_invalid_names
+        python -m ibeis.ibsfuncs --test-fix_invalid_nids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2101,7 +2102,7 @@ def fix_invalid_nids(ibs):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> # execute function
-        >>> result = fix_invalid_names(ibs)
+        >>> result = fix_invalid_nids(ibs)
         >>> # verify results
         >>> print(result)
     """

@@ -131,7 +131,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         python -m ibeis.model.hots.automated_matcher --test-run_until_name_decision_signal
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> import ibeis
         >>> # build test data

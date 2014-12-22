@@ -708,7 +708,8 @@ class IBEISController(object):
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         gid_list = ibs.get_ungrouped_gids()
         flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
-        eid_offset = max(ibs.get_valid_eids())
+        valid_eids = ibs.get_valid_eids()
+        eid_offset = 0 if len(valid_eids) == 0 else max(valid_eids)
         flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
         # remain untouched, and ensure that new encounters are created
         enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]

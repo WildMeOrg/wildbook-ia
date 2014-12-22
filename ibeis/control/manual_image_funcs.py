@@ -38,12 +38,20 @@ def _get_all_gids(ibs):
 
 @register_ibs_method
 @ider
-def _get_all_eids(ibs):
+def _get_all_encounter_rowids(ibs):
     """
     Returns:
-        list_ (list):  all unfiltered eids (encounter rowids) """
+        list_ (list):  all unfiltered eids (encounter rowids)
+    """
     all_eids = ibs.db.get_all_rowids(const.ENCOUNTER_TABLE)
     return all_eids
+
+
+@register_ibs_method
+@ider
+def _get_all_eids(ibs):
+    """ alias """
+    return _get_all_encounter_rowids(ibs)
 
 
 @register_ibs_method
@@ -1043,7 +1051,7 @@ def get_encounter_end_time_posixs(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posixs(encounter_rowid_list)
@@ -1076,7 +1084,7 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)
@@ -1109,7 +1117,7 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)
@@ -1142,7 +1150,7 @@ def get_encounter_notes(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)
@@ -1175,7 +1183,7 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)
@@ -1208,7 +1216,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)
@@ -1241,7 +1249,7 @@ def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_default_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posixs(encounter_rowid_list)
@@ -1406,6 +1414,13 @@ def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
     where_clause = 'image_rowid=? AND encounter_rowid=?'
     egrid_list = ibs.db.get_where(const.EG_RELATION_TABLE, colnames, params_iter, where_clause)
     return egrid_list
+
+
+def get_autogen_testdata():
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    qreq_ = None
+    return ibs, qreq_
 
 
 if __name__ == '__main__':
