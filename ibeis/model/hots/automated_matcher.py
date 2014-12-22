@@ -149,8 +149,8 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     """
     print('--- Identifying Query Animal Name ---')
     qaid = qres.get_qaid()
-    #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
-    name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
+    name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
+    #name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
     # Get system suggested name
     system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
@@ -176,7 +176,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         if interactive:
             print('... asking user for input')
             if qreq_.normalizer is not None:
-                qreq_.normalizer.visualize()
+                qreq_.normalizer.visualize(fnum=511)
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
@@ -199,8 +199,8 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
         qaid = qres.get_qaid()
         #assert ibs.is_aid_unknown(qaid), 'animal is already known'
         if chosen_names is None or len(chosen_names) == 0:
-            print('identifiying qaid=%r as a new animal')
             newname = ibs.make_next_name()
+            print('identifiying qaid=%r as a new animal. newname=%r' % (qaid, newname))
             ibs.set_annot_names((qaid,), (newname,))
         elif len(chosen_names) == 1:
             print('identifiying qaid=%r as name=%r' % (qaid, chosen_names,))
@@ -214,6 +214,8 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
             ibs.set_annot_names((qaid,), (merge_name,))
         # TODO update normalizer
         #update_normalizer(ibs, qreq_, choicetup, name)
+        if 'update_callback' in incinfo:
+            incinfo['update_callback']()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
 

@@ -73,6 +73,8 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         # convert name choices into data for gui
         comp_aids, suggest_aids = convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup)
         # Update names tree callback
+        backend_callback = incinfo.get('backend_callback', None)
+        update_callback = incinfo.get('update_callback', None)
         name_decision_callback = incinfo['name_decision_callback']
         progress_current       = incinfo['count']
         progress_total         = incinfo['nTotal']
@@ -80,6 +82,8 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         qvi = interact_query_decision.QueryVerificationInteraction(
             ibs, qres, comp_aids, suggest_aids,
             name_decision_callback=name_decision_callback,
+            update_callback=update_callback,
+            backend_callback=backend_callback,
             progress_current=progress_current, progress_total=progress_total,
             fnum=fnum)
         qvi.fig.show()

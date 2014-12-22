@@ -1621,7 +1621,10 @@ def make_next_name(ibs, num=None):
     num_names = ibs.get_num_names()
     userid = ut.get_user_name()
     timestamp = ut.get_timestamp('tag')
-    name_prefix = timestamp + '_TMP_' + userid + '_'
+    #timestamp_suffix = '_TMP_'
+    timestamp_suffix = '_'
+    timestamp_prefix = ''
+    name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
     if num is None:
         next_name = name_prefix + '%04d' % num_names
         return next_name

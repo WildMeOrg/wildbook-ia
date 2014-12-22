@@ -47,8 +47,9 @@ def exec_interactive_incremental_queries(ibs, qaid_list):
     self = self.begin_incremental_query(ibs, qaid_list)
 
 
-def test_interactive_incremental_queries(ibs_gt, num_initial=0):
+def test_inc_query(ibs_gt, num_initial=0):
     """
+    test_interactive_incremental_queries
 
     Args:
         ibs       (list) : IBEISController object
@@ -62,49 +63,52 @@ def test_interactive_incremental_queries(ibs_gt, num_initial=0):
 
 
     CommandLine:
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:0  --interact-after 444440 --noqcache
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:1  --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0  --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:1  --interact-after 444440 --noqcache
 
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:0
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:1
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_interactive_incremental_queries:2
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:1
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:2
 
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
-        Tinc.sh --test-test_interactive_incremental_queries:0
-        Tinc.sh --test-test_interactive_incremental_queries:1
-        Tinc.sh --test-test_interactive_incremental_queries:2
+        Tinc.sh --test-test_inc_query:0
+        Tinc.sh --test-test_inc_query:1
+        Tinc.sh --test-test_inc_query:2
+
+        Tinc.sh --test-test_inc_query:0 --ninit 10
 
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
-        >>> #num_initial = 0
-        >>> num_initial = 0
-        >>> test_interactive_incremental_queries(ibs_gt, num_initial)
+        >>> test_inc_query(ibs_gt)
 
     Example1:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('testdb1')
-        >>> #num_initial = 0
-        >>> num_initial = 0
-        >>> test_interactive_incremental_queries(ibs_gt, num_initial)
+        >>> test_inc_query(ibs_gt)
 
     Example2:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
-        >>> num_initial = 100
-        >>> test_interactive_incremental_queries(ibs_gt, num_initial)
+        >>> test_inc_query(ibs_gt)
 
     """
     guitool.ensure_qtapp()
     num_initial
     self = IncQueryHarness()
-    self = self.test_incremental_query(ibs_gt, num_initial)
+    num_initial = ut.get_argval(('--num-initial', '--ninit'), int, 0)
+    # Add information to an empty database from a groundtruth database
+    ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
+    from ibeis import main_module
+    back = main_module._init_gui()
+    back.connect_ibeis_control(ibs)
+    self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2, back=back)
     guitool.qtapp_loop()
 
 
@@ -151,14 +155,18 @@ class IncQueryHarness(INC_LOOP_BASE):
             #'try_decision_callback': self.try_decision_signal.emit
         }
 
-    def test_incremental_query(self, ibs_gt, num_initial=0):
+    def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2, back=None):
         """
         Adds and queries new annotations one at a time with oracle guidance
         """
-        # Add information to an empty database from a groundtruth database
-        ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
-        self.ibs = ibs
         incinfo = self.incinfo
+        if back is not None:
+            import functools
+            from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
+            back.front.set_table_tab(NAMES_TREE)
+            update_callback = functools.partial(back.front.update_tables, tblnames=[NAMES_TREE])
+            incinfo['update_callback'] = update_callback
+        self.ibs = ibs
         incinfo['nTotal'] = len(aid_list1)
         # Create test query generator
         self.inc_query_gen = automatch.test_generate_incremental_queries(
@@ -196,6 +204,8 @@ class IncQueryHarness(INC_LOOP_BASE):
             self.incinfo = incinfo
             incinfo['count'] += 1
             automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+            import plottool as pt
+            pt.present()
 
         except StopIteration:
             #TODO: close this figure

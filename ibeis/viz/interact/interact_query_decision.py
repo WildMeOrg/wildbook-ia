@@ -18,6 +18,9 @@ from plottool.abstract_interaction import AbstractInteraction
 # query interaction
 #==========================
 
+NUM_TOP = 3
+
+
 def test_QueryVerificationInteraction():
     """
     CommandLine:
@@ -37,7 +40,7 @@ def test_QueryVerificationInteraction():
     qaids = valid_aids[0:1]
     daids = valid_aids[1:]
     qres = ibs.query_chips(qaids, daids)[0]
-    comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:3]
+    comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:NUM_TOP]
     suggest_aids = comp_aids[0:1]
     qvi = QueryVerificationInteraction(
         ibs, qres, comp_aids, suggest_aids, progress_current=42, progress_total=1337)
@@ -59,7 +62,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         ibs.assert_valid_aids(comp_aids, verbose=True)
         ibs.assert_valid_aids(suggest_aids, verbose=True)
         ibs.assert_valid_aids((self.query_aid,), verbose=True)
-        assert(len(comp_aids) <= 3)
+        assert(len(comp_aids) <= NUM_TOP)
         self.comp_aids = comp_aids
         self.suggest_aids = suggest_aids
         self.progress_current = progress_current
@@ -91,9 +94,9 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         # qres = ibs.query_chips(query_aid,)
 
-        #HACK: make sure that comp_aids is of length 3
-        if len(self.comp_aids) != 3:
-            self.comp_aids += [None for i in range(3 - len(self.comp_aids))]
+        #HACK: make sure that comp_aids is of length NUM_TOP
+        if len(self.comp_aids) != NUM_TOP:
+            self.comp_aids += [None for i in range(NUM_TOP - len(self.comp_aids))]
 
         #column for each comparasion + the none button
         #row for the query, row for the comparasions
@@ -122,16 +125,17 @@ class QueryVerificationInteraction(AbstractInteraction):
         #Plot the Comparisions
         for count, c_aid in enumerate(self.comp_aids):
             if c_aid is not None:
+                px = nCols + count + 1
                 if c_aid in self.suggest_aids:
-                    self.plot_chip(int(c_aid), nRows, nCols, nCols + count + 1, title_suffix="SUGGESTED BY IBEIS")
+                    self.plot_chip(c_aid, nRows, nCols, px, title_suffix='SUGGESTED BY IBEIS')
                 else:
-                    self.plot_chip(int(c_aid), nRows, nCols, nCols + count + 1)
+                    self.plot_chip(c_aid, nRows, nCols, px)
             else:
-                df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title="NO RESULT")
+                df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title='NO RESULT')
 
         #Plot the Query Chip last
         with ut.EmbedOnException():
-            self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix="QUERIED CHIP")
+            self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix='QUERIED CHIP')
 
         self.show_hud()
         df2.adjust_subplots_safe(top=0.88, hspace=0.12)
@@ -146,9 +150,12 @@ class QueryVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         if aid in self.comp_aids:
             score = self.qres.get_aid_scores([aid])[0]
-            title_suf = kwargs.get('title_suffix', "") + " %0.2f" % score
+            rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
+            title_suf = kwargs.get('title_suffix', '')
+            title_suf += '\n score=%0.2f' % score
+            title_suf += '\n rawscore=%0.2f' % rawscore
         else:
-            title_suf = kwargs.get('title_suffix', "")
+            title_suf = kwargs.get('title_suffix', '')
         #nid = ibs.get_annot_name_rowids(aid)
         viz_chip_kw = {
             'fnum': self.fnum,
@@ -218,12 +225,16 @@ class QueryVerificationInteraction(AbstractInteraction):
                                                      h=3 * utool.PHI_B ** 4,
                                                      xpad=.02, startx=0, stopx=1)
 
-        self.append_button('None of these', callback=partial(self.select_none), rect=hl_slot(0))
+        select_none_text = 'None of these'
+        if len(self.suggest_aids) == 0:
+            select_none_text += '\n(SUGGESTED BY IBEIS)'
+
+        self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hl_slot(1))
         if self.progress_current is not None and self.progress_total is not None:
-            self.progress_string = str(self.progress_current) + "/" + str(self.progress_total)
+            self.progress_string = str(self.progress_current) + '/' + str(self.progress_total)
         else:
-            self.progress_string = ""
+            self.progress_string = ''
         figtitle_fmt = '''
         Query Decision Interface {progress_string}
         '''

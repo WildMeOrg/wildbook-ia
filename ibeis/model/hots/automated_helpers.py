@@ -30,6 +30,8 @@ Have:
     * keep distinctiveness weights from vsmany for vsone weighting
       basically involves keeping weights from different filters and not
       aggregating match weights until the end.
+    * Put test query mode into the main application and work on the interface for it.
+    * add matches to multiple animals (merge)
 
 
 TODO:
@@ -38,10 +40,8 @@ TODO:
     * score normalization update. on add the new support data, reapply bayes
      rule, and save to the current cache for a given algorithm configuration.
     * test case where there is a 360 view that is linkable from the tests case
-    * Put test query mode into the main application and work on the interface for it.
     * spawn background process to reindex chunks of data
     * ~~Remember name_confidence of decisions for manual review~~ Defer
-    * add matches to multiple animals (merge)
 
 Tasks:
 

@@ -112,7 +112,7 @@ TABLE_COLNAMES = {
         #'nExAids',
         #'exemplar',
         #'aid',
-        'annot_gname',
+        #'annot_gname',
         #'namenotes',
     ],
 
