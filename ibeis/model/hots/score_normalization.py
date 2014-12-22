@@ -303,7 +303,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
 
 
 def delete_all_learned_normalizers():
-    """
+    r"""
     DELETES ALL CACHED NORMALIZERS IN ALL DATABASES
 
     CommandLine:
@@ -328,7 +328,7 @@ def delete_all_learned_normalizers():
 
 
 def train_baseline_for_all_dbs():
-    """
+    r"""
     Runs unnormalized queries to compute normalized queries
 
     CommandLine:
@@ -354,7 +354,7 @@ def train_baseline_for_all_dbs():
 
 
 def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
-    """
+    r"""
     Runs unnormalized queries to compute normalized queries
 
     Args:
@@ -436,7 +436,7 @@ def try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
 
 
 def request_ibeis_normalizer(qreq_, verbose=True):
-    """
+    r"""
     FIXME: do what is in the docstr
 
     Tries to load the best possible normalizer for this query request.
@@ -865,7 +865,7 @@ def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
 
 
 def test():
-    """
+    r"""
     >>> from ibeis.model.hots.score_normalization import *  # NOQA
     """
     #from ibeis.model.hots import query_request
