@@ -11,14 +11,14 @@ import matplotlib as mpl
 from plottool.custom_figure import get_fig
 from plottool import screeninfo
 
-from guitool.__PYQT__ import QtGui
-from guitool.__PYQT__.QtCore import Qt
 #from .custom_constants import golden_wh
 
 
 SLEEP_TIME = .05
 __QT4_WINDOW_LIST__ = []
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[fig_presenter]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+                                                       '[fig_presenter]',
+                                                       DEBUG=True)
 
 
 def unregister_qt4_win(win):
@@ -138,6 +138,7 @@ def all_figures_tile(max_rows=None,
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
+    from guitool.__PYQT__ import QtGui
     print('[plottool] all_figures_tile()')
     if no_tile:
         return
@@ -156,8 +157,8 @@ def all_figures_tile(max_rows=None,
                                                          row_first, monitor_num,
                                                          adaptive=True)
 
+    QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
-        QMainWin = get_main_win_base()
         isqt4_mpl = isinstance(win, QMainWin)
         isqt4_back = isinstance(win, QtGui.QMainWindow)
         isqt4_widget = isinstance(win, QtGui.QWidget)
@@ -198,6 +199,7 @@ def close_figure(fig):
 
 
 def bring_to_front(fig):
+    from guitool.__PYQT__.QtCore import Qt
     #what is difference between show and show normal?
     qtwin = fig.canvas.manager.window
     qtwin.raise_()

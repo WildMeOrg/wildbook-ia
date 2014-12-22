@@ -45,14 +45,14 @@ import cv2
 import vtool.patch as ptool
 import vtool.image as gtool
 # Drawtool
-from . import mpl_keypoint as mpl_kp
-from .custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from .custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from .fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from . import color_funcs as color_fns  # NOQA
-from . import custom_constants  # NOQA
-from . import custom_figure
-from . import fig_presenter
+from plottool import mpl_keypoint as mpl_kp
+from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+from plottool import color_funcs as color_fns  # NOQA
+from plottool import custom_constants  # NOQA
+from plottool import custom_figure
+from plottool import fig_presenter
 
 close_figure = fig_presenter.close_figure
 figure = custom_figure.figure
@@ -217,7 +217,8 @@ def plot(*args, **kwargs):
 
 
 def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
-          unitbox=False, flipx=False, flipy=False, title=None, *args, **kwargs):
+          unitbox=False, flipx=False, flipy=False, title=None,
+          equal_aspect=True, *args, **kwargs):
     do_plot = True
     ax = gca()
     if len(x_data) != len(y_data):
@@ -233,18 +234,22 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
     if do_plot:
         ax.plot(x_data, y_data, marker, *args, **kwargs)
 
-        min_ = min(x_data.min(), y_data.min())
-        max_ = max(x_data.max(), y_data.max())
-        # Equal aspect ratio
-        if unitbox is True:
-            # Just plot a little bit outside  the box
-            ax.set_xlim(-.01, 1.01)
-            ax.set_ylim(-.01, 1.01)
-            ax.grid(True)
+        if equal_aspect:
+            min_ = min(x_data.min(), y_data.min())
+            max_ = max(x_data.max(), y_data.max())
+            # Equal aspect ratio
+            if unitbox is True:
+                # Just plot a little bit outside  the box
+                ax.set_xlim(-.01, 1.01)
+                ax.set_ylim(-.01, 1.01)
+                ax.grid(True)
+            else:
+                ax.set_xlim(min_, max_)
+                ax.set_ylim(min_, max_)
+                #aspect_opptions = ['auto', 'equal', num]
+                ax.set_aspect('equal')
         else:
-            ax.set_xlim(min_, max_)
-            ax.set_ylim(min_, max_)
-        ax.set_aspect('equal')
+            ax.set_aspect('auto')
         if flipx:
             ax.invert_xaxis()
         if flipy:

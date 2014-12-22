@@ -7,7 +7,7 @@ import numpy as np
 import guitool
 from guitool.__PYQT__ import QtGui
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[screeninfo]', DEBUG=False)
+    __name__, '[screeninfo]', DEBUG=True)
 
 
 DEFAULT_MAX_ROWS = 3
@@ -35,6 +35,7 @@ GNOME3_SIZES = {
 
 
 def ensure_app_is_running():
+    print('[screeninfo] Ensuring that qtapp is running')
     app, is_root = guitool.init_qtapp()
 
 
