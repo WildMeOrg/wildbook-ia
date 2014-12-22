@@ -285,7 +285,9 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     # Create an empty database to test in
     #aid_list1 = ibs_gt.get_aids_with_groundtruth()
     aid_list1 = ibs_gt.get_valid_aids()
-    reset = True
+
+    # If reset is true the test database is started completely from scratch
+    reset = False
     #reset = True
 
     aid1_to_aid2 = {}  # annotation mapping

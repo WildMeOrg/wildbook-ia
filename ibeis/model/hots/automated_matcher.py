@@ -33,7 +33,9 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     # Execute each query as a test
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
-    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
+    # Query aids in a random order
+    shuffled_aids_list1 = ut.deterministic_shuffle(aid_list1[:])
+    aids_chunk1_iter = ut.progress_chunks(shuffled_aids_list1, chunksize, lbl='TEST QUERY')
     metatup = (ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup

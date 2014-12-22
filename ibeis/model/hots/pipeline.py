@@ -71,8 +71,6 @@ NOT_QUIET = ut.NOT_QUIET and not ut.get_argflag('--quiet-query')
 DEBUG_PIPELINE = ut.get_argflag(('--debug-pipeline', '--debug-pipe'))
 VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipeline', '--verb-pipe')))
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
-# TODO: move up one level
-SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 
 
 NN_LBL      = 'Assign NN:       '
@@ -81,75 +79,32 @@ BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
 
-def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
-    """
-    helper
-
-    Generate vsone quries one at a time, but create shallow qreqs in chunks.
-    """
-    #qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)
-    #                     for qx, qaid in enumerate(qaid_list))
-    # normalizers are the same for all vsone queries but indexers are not
-    qreq_.lazy_preload(verbose=verbose)
-    qreq_shallow_iter = ((qreq_.shallowcopy(qx=qx), qaid)
-                         for qx, qaid in enumerate(qaid_list))
-    qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
-    for qreq_chunk in qreq_chunk_iter:
-        for __qreq, qaid in qreq_chunk:
-            print('Generating vsone for qaid=%d' % (qaid,))
-            qres = request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
-            yield (qaid, qres)
+#def pipeline_dense_step(qreq_, verbose=VERB_PIPELINE):
+#    qaid2_nns_ = nearest_neighbors(qreq_, verbose=verbose)
+#    # Remove Impossible Votes
+#    qaid2_nnvalid0_ = baseline_neighbor_filter(qreq_, qaid2_nns_,
+#                                               verbose=verbose)
+#    # Nearest neighbors weighting / scoring (qaid2_filtweights)
+#    qaid2_filtweights_ = weight_neighbors(qreq_, qaid2_nns_, qaid2_nnvalid0_,
+#                                          verbose=verbose)
+#    # Thresholding and combine weights into a score
+#    qaid2_nnfilts_, qaid2_nnfiltagg_ = filter_neighbors(qreq_, qaid2_nns_,
+#                                                        qaid2_nnvalid0_,
+#                                                        qaid2_filtweights_,
+#                                                        verbose=verbose)
 
 
-def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
-    qaid_list = qreq_.get_external_qaids()
-    qaid2_qres = {}
-    chunksize = 4
-    qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
-                                    verbose=verbose)
-    qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
-                            backspace=False, lbl='vsone query: ',
-                            use_rate=True)
-    qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
+#def pipeline_dense_step_chunks(qreq_, verbose=VERB_PIPELINE):
+#    internal_qaids = qreq_.get_external_qaids()
+#    #internal_daids = qreq_.get_internal_daids()
+#    chunksize = 1 if qreq_.qparams.vsone else len(internal_qaids)
+#    qreq_orig = qreq_
+#    qreq_ = qreq_orig.shallowcopy()
 
-    for qres_chunk in qres_chunk_iter:
-        qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
-        # Save chunk of vsone queries
-        if save_cache:
-            print('[mc4] saving vsone chunk')
-            save_resdict(qreq_, qaid2_qres_, verbose=verbose)
-        # Add current chunk to results
-        qaid2_qres.update(qaid2_qres_)
-    return qaid2_qres
-
-
-def pipeline_dense_step(qreq_, verbose=VERB_PIPELINE):
-    qaid2_nns_ = nearest_neighbors(qreq_, verbose=verbose)
-    # Remove Impossible Votes
-    qaid2_nnvalid0_ = baseline_neighbor_filter(qreq_, qaid2_nns_,
-                                               verbose=verbose)
-    # Nearest neighbors weighting / scoring (qaid2_filtweights)
-    qaid2_filtweights_ = weight_neighbors(qreq_, qaid2_nns_, qaid2_nnvalid0_,
-                                          verbose=verbose)
-    # Thresholding and combine weights into a score
-    qaid2_nnfilts_, qaid2_nnfiltagg_ = filter_neighbors(qreq_, qaid2_nns_,
-                                                        qaid2_nnvalid0_,
-                                                        qaid2_filtweights_,
-                                                        verbose=verbose)
-
-
-def pipeline_dense_step_chunks(qreq_, verbose=VERB_PIPELINE):
-    internal_qaids = qreq_.get_external_qaids()
-    #internal_daids = qreq_.get_internal_daids()
-    chunksize = 1 if qreq_.qparams.vsone else len(internal_qaids)
-    qreq_orig = qreq_
-    qreq_ = qreq_orig.shallowcopy()
-
-    for qaids_chunk in ut.ichunks(internal_qaids, chunksize):
-        qreq_.set_internal_unmasked_qaids(qaids_chunk)
-        qreq_.get_internal_qaids()
-
-        qreq_.set
+#    for qaids_chunk in ut.ichunks(internal_qaids, chunksize):
+#        qreq_.set_internal_unmasked_qaids(qaids_chunk)
+#        qreq_.get_internal_qaids()
+#        qreq_.set
 
 
 # Query Level 0
