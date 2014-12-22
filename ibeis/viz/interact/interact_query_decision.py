@@ -10,8 +10,8 @@ from functools import partial
 import guitool
 from ibeis.viz import viz_chip
 from plottool.abstract_interaction import AbstractInteraction
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[interact_name]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+#                                                       '[interact_query_decision]', DEBUG=False)
 
 
 #==========================

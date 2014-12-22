@@ -121,11 +121,11 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         qres_wgt = qres.qt_inspect_gui(ibs, name_scoring=True)
         qres_wgt.show()
         qres_wgt.raise_()
-    if qreq_ is not None:
-        if qreq_.normalizer is None:
-            print('normalizer is None!!')
-        else:
-            qreq_.normalizer.visualize(update=False, fnum=2)
+    #if qreq_ is not None:
+    #    if qreq_.normalizer is None:
+    #        print('normalizer is None!!')
+    #    else:
+    #        qreq_.normalizer.visualize(update=False, fnum=2)
 
     # Prompt the user (this could be swaped out with a qt or web interface)
     #if qtinspect:

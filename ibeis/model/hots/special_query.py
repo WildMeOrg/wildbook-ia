@@ -7,11 +7,37 @@ from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 
-def choose_vsmany_K(ibs, qaids, daids):
-    """ method for choosing K in the initial vsmany queries """
-    K = ibs.cfg.query_cfg.nn_cfg.K
-    if len(daids) < 20:
-        K = 1
+def choose_vsmany_K(num_names, qaids, daids):
+    """
+    method for choosing K in the initial vsmany queries
+
+    Ignore:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> num_names = np.arange(0, 1000)
+        >>> num_names_slope = .1
+        >>> K_min / num_names_slope
+        >>> K_max / num_names_slope
+        >>> K_list = np.floor(num_names_slope * num_names)
+        >>> K_list[K_list > 10] = 10
+        >>> K_list[K_list < 1] = 1
+        >>> pt.plot2(num_names, K_list, x_label='num_names', y_label='K', equal_aspect=False, marker='-')
+        >>> pt.update()
+    """
+    #K = ibs.cfg.query_cfg.nn_cfg.K
+    # TODO: paramaterize in config
+    num_names_slope = .1  # increase K every fifty names
+    K_max = 10
+    K_min = 1
+    num_names_lower = K_min / num_names_slope
+    num_names_upper = K_max / num_names_slope
+    if num_names < num_names_lower:
+        K = K_min
+    elif num_names < num_names_upper:
+        K = num_names_slope * num_names
+    else:
+        K  = K_max
+
     if len(ut.intersect_ordered(qaids, daids)) > 0:
         # if self is in query bump k
         K += 1
@@ -124,9 +150,10 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
         >>> result = str(qres)
         >>> print(result)
     """
+    num_names = len(set(ibs.get_annot_nids(daids)))
     vsmany_cfgdict = {
         #'pipeline_root': 'vsmany',
-        'K': choose_vsmany_K(ibs, qaids, daids),
+        'K': choose_vsmany_K(num_names, qaids, daids),
         'index_method': 'multi',
         'return_expanded_nns': True
     }

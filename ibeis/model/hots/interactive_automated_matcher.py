@@ -10,7 +10,9 @@ import utool as ut
 import guitool
 from ibeis.model.hots import automated_matcher as automatch
 from ibeis.model.hots import automated_helpers as ah
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[qtinc]')
+# Can't inject print into this module  otherwise bad things happen
+# with qt signals and slots
+#print, print_, printDBG, rrr, profile = ut.inject(__name__, '[qtinc]')
 
 
 INC_LOOP_BASE = guitool.__PYQT__.QtCore.QObject
@@ -71,11 +73,11 @@ def test_inc_query(ibs_gt, num_initial=0):
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:2
 
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
-        Tinc.sh --test-test_inc_query:0
-        Tinc.sh --test-test_inc_query:1
-        Tinc.sh --test-test_inc_query:2
+        sh Tinc.sh --test-test_inc_query:0
+        sh Tinc.sh --test-test_inc_query:1
+        sh Tinc.sh --test-test_inc_query:2
 
-        Tinc.sh --test-test_inc_query:0 --ninit 10
+        sh Tinc.sh --test-test_inc_query:0 --ninit 10
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -99,13 +101,14 @@ def test_inc_query(ibs_gt, num_initial=0):
         >>> test_inc_query(ibs_gt)
 
     """
+    from ibeis import main_module
+    main_module._preload()
     guitool.ensure_qtapp()
     num_initial
     self = IncQueryHarness()
     num_initial = ut.get_argval(('--num-initial', '--ninit'), int, 0)
     # Add information to an empty database from a groundtruth database
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
-    from ibeis import main_module
     back = main_module._init_gui()
     back.connect_ibeis_control(ibs)
     self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2, back=back)
@@ -204,8 +207,8 @@ class IncQueryHarness(INC_LOOP_BASE):
             self.incinfo = incinfo
             incinfo['count'] += 1
             automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
-            import plottool as pt
-            pt.present()
+            #import plottool as pt
+            #pt.present()
 
         except StopIteration:
             #TODO: close this figure

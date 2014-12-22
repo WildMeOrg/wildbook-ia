@@ -176,7 +176,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         if interactive:
             print('... asking user for input')
             if qreq_.normalizer is not None:
-                qreq_.normalizer.visualize(fnum=511)
+                qreq_.normalizer.visualize(fnum=511, verbose=False)
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)

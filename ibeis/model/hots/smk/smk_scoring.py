@@ -44,7 +44,7 @@ def sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_t
         >>> from ibeis.model.hots.smk import smk_scoring
         >>> from ibeis.model.hots.smk import smk_debug
         >>> #idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh, wx2_flags = smk_debug.testdata_sccw_sum(db='testdb1')
-        >>> tup = smk_debug.testdata_sccw_sum(db='PZ_Mothers', nWords=128000)
+        >>> tup = smk_debug.testdata_sccw_sum(db='PZ_MTEST', nWords=128000)
         >>> idf_list, rvecs_list, flags_list, maws_list, smk_alpha, smk_thresh = tup
         >>> sccw = smk_scoring.sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_thresh)
         >>> print(sccw)
