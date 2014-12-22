@@ -664,6 +664,34 @@ def normalize_rows(arr1):  # , out=None):
     return arr1_normed
 
 
+def normalize_vecs2d_inplace(vecs):
+    """
+    Args:
+        vecs (ndarray): row vectors to normalize in place
+
+    CommandLine:
+        python -m vtool.linalg --test-normalize_vecs2d_inplace
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> import numpy as np
+        >>> vecs1 = np.random.rand(1, 10)
+        >>> normalize_vecs2d_inplace(vecs1)
+        >>> res1 = str(vecs1)
+        >>> #vecs2 = np.random.rand(10)
+        >>> #normalize_vecs2d_inplace(vecs2)
+        >>> #res2 = str(vecs2)
+    """
+    # Normalize residuals
+    # this can easily be sped up by cyth
+    assert len(vecs.shape) == 2
+    norm_ = npl.norm(vecs, axis=1)
+    norm_.shape = (norm_.size, 1)
+    np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
+    return vecs
+
+
 @profile
 def axiswise_operation2(arr1, arr2, op, axis=0):
     """

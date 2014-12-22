@@ -14,13 +14,51 @@ import numpy as np
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
-    >>> from vtool.nearest_neighbors import *  # NOQA
-    >>> np.random.seed(1)
-    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
-    >>> qpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
-    >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-    >>> print(utool.hashstr(repr((qx2_dx, qx2_dist))))
-    8zdwd&q0mu+ez4gp
+
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-ann_flann_once
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> np.random.seed(1)
+        >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+        >>> qpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+        >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
+        >>> result = utool.hashstr(repr((qx2_dx, qx2_dist)))
+        >>> print(result)
+        8zdwd&q0mu+ez4gp
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> # Test upper bounds on sift descriptors
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> import vtool as vt
+        >>> import numpy as np
+        >>> np.random.seed(1)
+        >>> # get points on unit sphere
+        >>> dpts = vt.normalize_rows(np.random.rand(5, 128))
+        >>> qpts = vt.normalize_rows(np.random.rand(10, 128))
+        >>> qmag = np.sqrt(np.power(qpts, 2).sum(1))
+        >>> dmag = np.sqrt(np.power(dpts, 2).sum(1))
+        >>> assert np.all(np.allclose(qmag, 1)), 'not on unit sphere'
+        >>> assert np.all(np.allclose(dmag, 1)), 'not on unit sphere'
+        >>> # cast to uint8
+        >>> uint8_max = 512  # hack
+        >>> uint8_min = 0  # hack
+        >>> qpts8 = np.clip(np.round(qpts * uint8_max), uint8_min, uint8_max).astype(np.uint8)
+        >>> dpts8 = np.clip(np.round(dpts * uint8_max), uint8_min, uint8_max).astype(np.uint8)
+        >>> qmag8 = np.sqrt(np.power(qpts8.astype(np.float32), 2).sum(1))
+        >>> dmag8 = np.sqrt(np.power(dpts8.astype(np.float32), 2).sum(1))
+        >>> # test
+        >>> qx2_dx, qx2_dist = ann_flann_once(dpts8, qpts8, 2)
+        >>> # Get actual distance by hand
+        >>> hand_dist = np.sum((qpts8 - dpts8[qx2_dx.T[0]]) ** 2, 0)
+        >>> # Seems like flann returns squared distance. makes sense
+        >>> result = utool.hashstr(repr((qx2_dx, qx2_dist)))
+        >>> print(result)
+        8zdwd&q0mu+ez4gp
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
@@ -44,14 +82,21 @@ def get_flann_params_cfgstr(flann_params):
 
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
     """
-    >>> from vtool.nearest_neighbors import *  # NOQA
-    >>> np.random.seed(1)
-    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
-    >>> cache_dir = '.'
-    >>> cfgstr = '_FEAT(alg=heshes)'
-    >>> flann_params = get_kdtree_flann_params()
-    >>> print(get_flann_cfgstr(dpts, flann_params, cfgstr))
-    _FEAT(alg=heshes)_FLANN(4kdtree)_DPTS((10,128)b+oqb%cnuo&oxk7h)
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-get_flann_cfgstr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> np.random.seed(1)
+        >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+        >>> cache_dir = '.'
+        >>> cfgstr = '_FEAT(alg=heshes)'
+        >>> flann_params = get_kdtree_flann_params()
+        >>> result = get_flann_cfgstr(dpts, flann_params, cfgstr)
+        >>> print(result)
+        _FEAT(alg=heshes)_FLANN(4kdtree)_DPTS((10,128)b+oqb%cnuo&oxk7h)
     """
     flann_cfgstr = cfgstr
     if use_params_hash:
