@@ -269,7 +269,7 @@ def make_ibeis_headers_dict(ibs):
     getters[ANNOTATION_TABLE] = {
         'aid'                 : lambda aids: aids,
         'name'                : ibs.get_annot_names,
-        'species'             : ibs.get_annot_species,
+        'species'             : ibs.get_annot_species_texts,
         'viewpoint'           : ibs.get_annot_viewpoints,
         'annot_gname'         : ibs.get_annot_image_names,
         'nGt'                 : ibs.get_annot_num_groundtruth,

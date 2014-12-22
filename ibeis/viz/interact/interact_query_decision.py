@@ -4,12 +4,14 @@ import utool as ut
 import ibeis
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
-from ibeis.viz.interact import interact_matches as im
+from ibeis.viz.interact import interact_matches  # NOQA
 # from ibeis.gui import guiback
 from functools import partial
 import guitool
 from ibeis.viz import viz_chip
+from ibeis.viz import viz_matches
 from plottool.abstract_interaction import AbstractInteraction
+ut.noinject(__name__, '[interact_query_decision]')
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #                                                       '[interact_query_decision]', DEBUG=False)
 
@@ -210,9 +212,11 @@ class QueryVerificationInteraction(AbstractInteraction):
 
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
-        im.ishow_matches(self.ibs, self.qres, aid,
-                         figtitle='Examine a specific image against the query')
-
+        figtitle = 'Examine a specific image against the query'
+        #interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+        fig = df2.figure(fnum=510, pnum=(1, 1, 1), doclf=True, docla=True)
+        viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+        fig.show()
         # this is only relevant to matplotlib.__version__ < 1.4.2
         #raise Exception(
         #    'BLACK MAGIC: error intentionally included as a workaround that seems'

@@ -104,9 +104,6 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     return qaid2_dupvote_weight
 
 
-PSEUDO_UINT8_MAX_SQRD = 512.0 ** 2
-
-
 def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
     """ a dot product is a componentwise multiplication of
     two vector and then a sum. Do that for arbitary vectors.
@@ -116,7 +113,7 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
     """
     arr1 = qfx2_qvec.astype(np.float32)
     arr2 = qfx2_dvec.astype(np.float32)
-    cosangle = np.multiply(arr1, arr2).sum(axis=-1).T / PSEUDO_UINT8_MAX_SQRD
+    cosangle = np.multiply(arr1, arr2).sum(axis=-1).T / hstypes.PSEUDO_UINT8_MAX_SQRD
     return cosangle
 
 
@@ -477,7 +474,7 @@ def lnbnn_fn(vdist, ndist):
         >>> print(lnbnn_fn(vdist3, ndist))
         >>> print(lnbnn_fn(vdist4, ndist))
     """
-    return (ndist - vdist) / 1000.0
+    return (ndist - vdist)
 
 
 @_register_nn_normalized_weight_func

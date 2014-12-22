@@ -68,7 +68,7 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
         featweight_species = qreq_.qparams.featweight_species
     if featweight_species == 'uselabel':
         # Use the labeled species for the detector
-        species_list = ibs.get_annot_species(aid_list)
+        species_list = ibs.get_annot_species_texts(aid_list)
     else:
         species_list = [featweight_species]
     aid_list = np.array(aid_list)

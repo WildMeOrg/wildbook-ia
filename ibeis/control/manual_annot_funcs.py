@@ -930,6 +930,13 @@ def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
 @register_ibs_method
 @getter_1to1
 def get_annot_names(ibs, aid_list):
+    """ alias """
+    return ibs.get_annot_name_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_name_texts(ibs, aid_list):
     """
     Args:
         aid_list (list):
@@ -944,7 +951,7 @@ def get_annot_names(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = get_annot_names(ibs, aid_list)
+        >>> result = get_annot_name_texts(ibs, aid_list)
         >>> print(result)
         ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
     """
@@ -1083,6 +1090,13 @@ def get_annot_probchip_fpaths(ibs, aid_list):
 @register_ibs_method
 @getter_1to1
 def get_annot_species(ibs, aid_list):
+    """ alias"""
+    return ibs.get_annot_species_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_species_texts(ibs, aid_list):
     """
 
     Args:
@@ -1094,7 +1108,7 @@ def get_annot_species(ibs, aid_list):
         identifying the species
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_species
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1102,7 +1116,7 @@ def get_annot_species(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1::3]
-        >>> result = get_annot_species(ibs, aid_list)
+        >>> result = get_annot_species_texts(ibs, aid_list)
         >>> print(result)
         [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
 
@@ -1112,7 +1126,7 @@ def get_annot_species(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species_list = get_annot_species(ibs, aid_list)
+        >>> species_list = get_annot_species_texts(ibs, aid_list)
         >>> result = set(species_list)
         >>> print(result)
         set([u'zebra_plains'])
@@ -1631,7 +1645,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     # It is visual info augmented with name and species
     view_list       = ibs.get_annot_viewpoints(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
-    species_list    = ibs.get_annot_species(aid_list)
+    species_list    = ibs.get_annot_species_texts(aid_list)
     semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
                         name_list, species_list)
     return semantic_infotup

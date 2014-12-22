@@ -58,8 +58,8 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
         >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     from plottool import df2
-        ...     exec(df2.present())
+        ...     from plottool as pt
+        ...     exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
     #print(utool.func_str(show_sv, kwargs=locals()))

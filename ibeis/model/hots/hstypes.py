@@ -42,6 +42,12 @@ VEC_TYPE = np.uint8
 VEC_IINFO = np.iinfo(VEC_TYPE)
 VEC_MAX = VEC_IINFO.max
 VEC_MIN = VEC_IINFO.min
+# Psuedo max values come from SIFT descriptors implementation
+VEC_PSEUDO_MAX = 512
+# unit sphere points can only be twice the maximum descriptor magnitude away
+# from each other
+VEC_PSEUDO_MAX_DISTANCE = 1024
+PSEUDO_UINT8_MAX_SQRD = 512.0 ** 2
 
 
 RVEC_TYPE = np.int8
@@ -56,12 +62,14 @@ if RVEC_TYPE == np.int8:
     # because values will hardly ever be close to the true max.
     RVEC_PSEUDO_MAX = RVEC_MAX * 2
     RVEC_PSEUDO_MAX_SQRD = float(RVEC_PSEUDO_MAX ** 2)
-else:
+elif RVEC_TYPE == np.float16:
     RVEC_INFO = np.finfo(RVEC_TYPE)
     RVEC_MAX = 1.0
     RVEC_MIN = -1.0
     RVEC_PSEUDO_MAX = RVEC_MAX
     RVEC_PSEUDO_MAX_SQRD = float(RVEC_PSEUDO_MAX ** 2)
+else:
+    raise AssertionError('impossible RVEC_TYPE')
 
 
 # Feature Match datatype

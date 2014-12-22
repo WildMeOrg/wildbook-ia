@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
 from collections import namedtuple
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[suggest]')
+#print, print_, printDBG, rrr, profile = ut.inject(__name__, '[suggest]')
 
 
 # ---- GLOBALS ----

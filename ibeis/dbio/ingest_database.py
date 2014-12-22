@@ -214,7 +214,7 @@ def ingest_testdb1(dbname):
         ibs.set_annot_exemplar_flags(unflagged_aids, exemplar_flags)
         # Set some test species labels
         from ibeis.constants import Species
-        species_text_list = ibs.get_annot_species(aid_list)
+        species_text_list = ibs.get_annot_species_texts(aid_list)
         for ix in range(0, 6):
             species_text_list[ix] = Species.ZEB_PLAIN
         # These are actually plains zebras.

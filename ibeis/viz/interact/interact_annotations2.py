@@ -20,7 +20,7 @@ class ANNOTATION_Interaction2(object):
         self.aid_list = ibs.get_image_aids(self.gid)
         bbox_list     = ibs.get_annot_bboxes(self.aid_list)
         theta_list    = ibs.get_annot_thetas(self.aid_list)
-        species_list  = ibs.get_annot_species(self.aid_list)
+        species_list  = ibs.get_annot_species_texts(self.aid_list)
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
@@ -101,7 +101,7 @@ class ANNOTATION_Interaction2(object):
             self.aid_list = ibs.get_image_aids(self.gid)
             bbox_list = ibs.get_annot_bboxes(self.aid_list)
             theta_list = ibs.get_annot_thetas(self.aid_list)
-            species_list = ibs.get_annot_species(self.aid_list)
+            species_list = ibs.get_annot_species_texts(self.aid_list)
             self.interact_ANNOTATIONS.update_image_and_callbacks(
                 img,
                 bbox_list=bbox_list,

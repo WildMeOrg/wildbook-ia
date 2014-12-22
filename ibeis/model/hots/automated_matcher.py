@@ -1,13 +1,13 @@
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
-import sys
 from ibeis.model.hots import automated_oracle as ao
 from ibeis.model.hots import automated_helpers as ah
 from ibeis.model.hots import special_query
 from ibeis.model.hots import system_suggestor
 from ibeis.model.hots import user_dialogs
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
+ut.noinject(__name__, '[inc]')
+#print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
 # ---- ENTRY POINT ----
@@ -20,9 +20,9 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
 
     CommandLine:
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
-        Tinc.sh --test-test_interactive_incremental_queries:0
-        Tinc.sh --test-test_interactive_incremental_queries:1
-        Tinc.sh --test-test_interactive_incremental_queries:2
+        sh Tinc.sh --test-test_interactive_incremental_queries:0
+        sh Tinc.sh --test-test_interactive_incremental_queries:1
+        sh Tinc.sh --test-test_interactive_incremental_queries:2
 
     """
     print('begin test interactive iter')
@@ -39,7 +39,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     incinfo['metatup'] = metatup
 
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
-        sys.stdout.write('\n')
+        #sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
         incinfo['interactive'] = (interact_after is not None and count >= interact_after)
         # ensure new annot is added (most likely it will have been preadded)
@@ -67,9 +67,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> result = generate_incremental_queries(ibs, qaid_list)
-        >>> # verify results
-        >>> print(result)
+        >>> generate_incremental_queries(ibs, qaid_list)
     """
     # Execute each query as a test
     chunksize = 1
@@ -78,7 +76,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
 
     ibs = ibs
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
-        sys.stdout.write('\n')
+        #sys.stdout.write('\n')
         print('\n==== EXECUTING QUERY %d ====' % (count,))
         for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
             yield item
@@ -103,11 +101,9 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_chunk = [1]
-        >>> result = generate_subquery_steps(ibs, qaid_chunk)
-        >>> # verify results
-        >>> print(result)
+        >>> generate_subquery_steps(ibs, qaid_chunk)
     """
-    species_text_set = set(ibs.get_annot_species(qaid_chunk))
+    species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
     assert len(species_text_set) == 1, 'query chunk has more than one species'
     species_text = list(species_text_set)[0]
     daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
@@ -138,19 +134,19 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_chunk = ibs.get_valid_aids()[0:1]
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
-        >>> dry = True
-        >>> qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, exemplar_aids)
-        >>> qaid = qaid_chunk[0]
-        >>> qres = qaid2_qres[qaid]
+        >>> incinfo = {}
+        >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
+        >>> item = six.next(gen)
+        >>> ibs, qres, qreq_, incinfo = item
         >>> # verify results
-        >>> run_until_name_decision_signal(ibs, qres, qreq_, choicetup, incinfo)
+        >>> run_until_name_decision_signal(ibs, qres, qreq_, incinfo)
 
     qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
-    print('--- Identifying Query Animal Name ---')
+    print('--- Identifying Query Animal ---')
     qaid = qres.get_qaid()
-    name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
-    #name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
+    #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
+    name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
     # Get system suggested name
     system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
@@ -214,6 +210,7 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
             ibs.set_annot_names((qaid,), (merge_name,))
         # TODO update normalizer
         #update_normalizer(ibs, qreq_, choicetup, name)
+        # Do update callback so the name updates in the main GUI
         if 'update_callback' in incinfo:
             incinfo['update_callback']()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
@@ -250,13 +247,17 @@ def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
 def run_until_finish(incinfo=None):
     if incinfo is not None:
         # This query run as eneded
-        incinfo['next_query_callback']()
+        next_query_attr = 'next_query_callback'
+        if next_query_attr in incinfo:
+            incinfo[next_query_attr]()
+        else:
+            print('Warning: no next_query_attr')
 
 
 # ---- POST DECISION ---
 
 
-def update_normalizer(ibs, qreq_, choicetup, chosen_names):
+def update_normalizer(ibs, qres, qreq_, chosen_names):
     r"""
     adds new support data to the current normalizer
 
@@ -276,25 +277,35 @@ def update_normalizer(ibs, qreq_, choicetup, chosen_names):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis  # NOQA
+        >>> import ibeis
         >>> # build test data
-        >>> ibs = '?'
-        >>> qreq_ = '?'
-        >>> choicetup = '?'
-        >>> name = '?'
-        >>> (tp_rawscore, tn_rawscore) = update_normalizer(ibs, qreq_, choicetup, name)
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaid_chunk = ibs.get_valid_aids()[0:1]
+        >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
+        >>> incinfo = {}
+        >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
+        >>> item = six.next(gen)
+        >>> ibs, qres, qreq_, incinfo = item
+        >>> # verify results
+        >>> chosen_names = ['easy']
+        >>> update_normalizer(ibs, qres, qreq_, chosen_names)
         >>> # verify results
         >>> result = str((tp_rawscore, tn_rawscore))
         >>> print(result)
     """
+    # Fixme: duplicate call to get_qres_name_choices
     if len(chosen_names) != 1:
         print('not updating normalization. only updates using simple matches')
         return
+    choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     # Get new True Negative support data for score normalization
     name = chosen_names[0]
     rank = ut.listfind(ibs.get_name_texts(sorted_nids), name)
+    if rank is None:
+        return
     tp_rawscore = sorted_rawscore[rank]
     valid_falseranks = set(range(len(sorted_rawscore))) - set([rank])
     if len(valid_falseranks) > 0:
@@ -302,9 +313,9 @@ def update_normalizer(ibs, qreq_, choicetup, chosen_names):
         tn_rawscore = sorted_rawscore[tn_rank][0]
     else:
         tn_rawscore = None
-    return tp_rawscore, tn_rawscore
-
-    if tp_rawscore is not None and tn_rawscore is not None:
+    #return tp_rawscore, tn_rawscore
+    canupdate = tp_rawscore is not None and tn_rawscore is not None
+    if canupdate:
         # TODO: UPDATE SCORE NORMALIZER HERE
         print('new normalization example: tp_rawscore={}, tn_rawscore={}'.format(tp_rawscore, tn_rawscore))
     else:
@@ -323,5 +334,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut
+    #import utool as ut
     ut.doctest_funcs()

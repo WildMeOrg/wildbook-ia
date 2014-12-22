@@ -203,7 +203,7 @@ def ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     ibs2.set_annot_exemplar_flags(aid_list2, [False] * len(aid_list2))
 
     # this test is for plains
-    #assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
+    #assert  ut.list_all_eq_to(ibs2.get_annot_species_texts(aid_list2), 'zebra_plains')
     ibs2.delete_invalid_nids()
 
 
@@ -419,7 +419,7 @@ def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     verts_chunk1  = ibs_gt.get_annot_verts(aids_chunk1)
     thetas_chunk1 = ibs_gt.get_annot_thetas(aids_chunk1)
     # Non-name semantic info
-    species_chunk1 = ibs_gt.get_annot_species(aids_chunk1)
+    species_chunk1 = ibs_gt.get_annot_species_texts(aids_chunk1)
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
     ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
     # Add this new unseen test case to the database

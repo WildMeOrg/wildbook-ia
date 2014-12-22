@@ -148,7 +148,7 @@ def export_to_xml(ibs, offset=2829, enforce_viewpoint=True):
                 ymax = int(max(y_points) * decrease)
                 #TODO: Change species_name to getter in IBEISControl once implemented
                 #species_name = 'grevys_zebra'
-                species_name = ibs.get_annot_species(aid)
+                species_name = ibs.get_annot_species_texts(aid)
                 viewpoint = ibs.get_annot_viewpoints(aid)
                 info = {}
                 if viewpoint != -1 and viewpoint is not None:
@@ -873,7 +873,7 @@ def get_database_species(ibs, aid_list=None):
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
     unique_species = list(set(species_list))
     return unique_species
 
@@ -890,7 +890,7 @@ def get_database_species_count(ibs, aid_list=None):
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
     species_count_dict = ut.item_hist(species_list)
     return species_count_dict
 

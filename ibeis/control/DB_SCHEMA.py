@@ -411,7 +411,7 @@ def post_1_2_1(db, ibs=None):
             # It is visual info augmented with name and species
             view_list       = ibs.get_annot_viewpoints(aid_list)
             name_list       = get_annot_names_v121(aid_list)
-            species_list    = ibs.get_annot_species(aid_list)
+            species_list    = ibs.get_annot_species_texts(aid_list)
             semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
                                 name_list, species_list)
             return semantic_infotup

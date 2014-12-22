@@ -12,6 +12,7 @@ from ibeis.model.hots import automated_matcher as automatch
 from ibeis.model.hots import automated_helpers as ah
 # Can't inject print into this module  otherwise bad things happen
 # with qt signals and slots
+ut.noinject(__name__, '[qtinc]')
 #print, print_, printDBG, rrr, profile = ut.inject(__name__, '[qtinc]')
 
 
@@ -78,6 +79,7 @@ def test_inc_query(ibs_gt, num_initial=0):
         sh Tinc.sh --test-test_inc_query:2
 
         sh Tinc.sh --test-test_inc_query:0 --ninit 10
+        sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -221,7 +223,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         """
         the name decision signal was emited
         """
-        print('[QT] name_decision_slot')
+        #print('[QT] name_decision_slot')
         ibs = self.ibs
         qres        = self.qres
         qreq_       = self.qreq_

@@ -214,8 +214,10 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         qfx_vsone = fm_vsone.T[0]
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
-        distinctiveness_scores = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        new_scores[:] = distinctiveness_scores / 100000.0
+        norm_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
+        p = 1.0  # expondent to augment distinctivness scores.  # TODO: paramaterize
+        distinctiveness_scores = norm_dist ** p
+        new_scores[:] = distinctiveness_scores  #
         newfsv_list.append(new_fsv_vsone)
         newscore_aids.append(daid)
     return newfsv_list, newscore_aids

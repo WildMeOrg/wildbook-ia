@@ -4,6 +4,7 @@ import numpy as np
 import utool as ut
 from os.path import join
 import vtool.nearest_neighbors as nntool
+from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
@@ -241,6 +242,10 @@ class NeighborIndex(object):
         nnindexer.flann    = flann     # Approximate search structure
         nnindexer.cfgstr   = cfgstr    # configuration id
         nnindexer.cores    = cores
+        if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
+            nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
+        else:
+            assert False, 'NNindexer should get uint8s right now unless the algorithm has changed'
 
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
@@ -259,6 +264,7 @@ class NeighborIndex(object):
 
             qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
+                        distance is normalized squared euclidean distance.
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -269,6 +275,7 @@ class NeighborIndex(object):
             >>> checks = 1028
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
+            >>> assert np.all(qfx2_dist < 1.0), 'distance should be less than 1'
             >>> print(result)
             (1257, 2) (1257, 2)
 
@@ -290,6 +297,9 @@ class NeighborIndex(object):
         else:
             (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
                 qfx2_vec, K, checks=checks, cores=nnindexer.cores)
+            # Ensure that distance returned are between 0 and 1
+            qfx2_dist = qfx2_dist / (nnindexer.max_distance ** 2)
+            #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance
         return (qfx2_idx, qfx2_dist)
 
     def empty_neighbors(nnindexer, K):

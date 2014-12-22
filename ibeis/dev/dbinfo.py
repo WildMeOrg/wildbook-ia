@@ -110,7 +110,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     """
     #
     unknown_aids = ut.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
-    species_list = ibs.get_annot_species(valid_aids)
+    species_list = ibs.get_annot_species_texts(valid_aids)
     species2_aids = ut.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
 
