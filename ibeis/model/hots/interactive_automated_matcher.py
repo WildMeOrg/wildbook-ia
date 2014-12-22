@@ -7,6 +7,7 @@ import utool as ut
 #from ibeis.model.hots import automated_oracle as ao
 #from ibeis.model.hots import automated_helpers as ah
 #from ibeis.model.hots import special_query
+from guitool.__PYQT__ import QtCore
 import guitool
 from ibeis.model.hots import automated_matcher as automatch
 from ibeis.model.hots import automated_helpers as ah
@@ -119,7 +120,8 @@ def test_inc_query(ibs_gt, num_initial=0):
 
 class IncQueryHarness(INC_LOOP_BASE):
     """
-    Provides incremental query with a way
+    Provides incremental query with a way to work around hitting the recusion
+    limit. FIXME: currently it doesnt do this.
 
     TODO: maybe abstract this into a interuptable loop harness
     """
@@ -173,11 +175,24 @@ class IncQueryHarness(INC_LOOP_BASE):
             incinfo['update_callback'] = update_callback
         self.ibs = ibs
         incinfo['nTotal'] = len(aid_list1)
+        #incinfo['nTotal'] = len(aid_list1)
         # Create test query generator
-        self.inc_query_gen = automatch.test_generate_incremental_queries(
-            ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
+        #self.inc_query_gen =
+        del self.incinfo['next_query_callback']
+        self.inc_query_gen = automatch.test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
+        # When in interactive mode it seems like the stack never gets out of hand
+        # but if the oracle is allowed to make decisions and emit signals like
+        # the user then we get into a maximum recursion limit.
+        for item  in self.inc_query_gen:
+            (ibs, qres, qreq_, incinfo) = item
+            # update incinfo
+            self.qres      = qres
+            self.qreq_     = qreq_
+            self.incinfo = incinfo
+            incinfo['count'] += 1
+            automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
         # Call the first query
-        incinfo['next_query_callback']()
+        #incinfo['next_query_callback']()
 
     def begin_incremental_query(self, ibs, qaid_list):
         """
@@ -192,7 +207,8 @@ class IncQueryHarness(INC_LOOP_BASE):
         # Call the first query
         incinfo['next_query_callback']()
 
-    @guitool.slot_()
+    #@guitool.slot_()
+    @QtCore.pyqtSlot()
     def next_query_slot(self):
         """
         callback used when all interactions are completed.
@@ -218,7 +234,8 @@ class IncQueryHarness(INC_LOOP_BASE):
             print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
             pass
 
-    @guitool.slot_(list)
+    #@guitool.slot_(list)
+    @QtCore.pyqtSlot(list)
     def name_decision_slot(self, chosen_names):
         """
         the name decision signal was emited
@@ -231,7 +248,8 @@ class IncQueryHarness(INC_LOOP_BASE):
         automatch.exec_name_decision_and_continue(
             chosen_names, ibs, qres, qreq_, incinfo=incinfo)
 
-    @guitool.slot_(bool)
+    #@guitool.slot_(bool)
+    @QtCore.pyqtSlot(bool)
     def exemplar_decision_slot(self, exemplar_decision):
         incinfo = self.incinfo
         ibs = self.ibs
