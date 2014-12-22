@@ -93,8 +93,12 @@ def get_system_name_suggestion(ibs, choicetup):
     autoname_msg_list = []
     if len(sorted_nids) == 0:
         autoname_msg_list.append('Unable to find any matches')
+        # if we can't find any matches then we must be sure it is a
+        # new name. A false negative here can only be fixed with a merge
+        name_confidence = 1.0
         nid, score, rank = None, None, None
     else:
+        name_confidence = 0
         candidate_indexes = np.where(sorted_nscore > threshold)[0]
         if len(candidate_indexes) == 0:
             rank = None
@@ -120,7 +124,6 @@ def get_system_name_suggestion(ibs, choicetup):
     autoname_msg = '\n'.join(autoname_msg_list)
 
     name = ibs.get_name_texts(nid) if nid is not None else None
-    name_confidence = 0
     return autoname_msg, name, name_confidence
 
 

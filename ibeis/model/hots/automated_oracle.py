@@ -65,10 +65,13 @@ def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup, system_name_sugge
 
     if len(chosen_names) == 0:
         oracle_msg_list.append('Oracle suggests a new name')
+        # be confident if suggesting a new name
+        name_confidence = 1.0
     else:
+        #name_confidence = 1.0  # The oracle is confident in its decision
+        name_confidence = 0.99  # The oracle is confident in its decision
         oracle_msg_list.append(
             'Oracle suggests chosen_names=%r' % (chosen_names,))
     autoname_msg = '\n'.join(oracle_msg_list)
-    name_confidence = 1.0  # The oracle is confident in its decision
     oracle_name_suggest_tup = autoname_msg, chosen_names, name_confidence
     return oracle_name_suggest_tup

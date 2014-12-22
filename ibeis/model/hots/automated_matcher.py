@@ -149,7 +149,8 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     """
     print('--- Identifying Query Animal Name ---')
     qaid = qres.get_qaid()
-    name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
+    #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
+    name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
     # Get system suggested name
     system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
@@ -174,6 +175,8 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         print('... confidence is too low. need user input')
         if interactive:
             print('... asking user for input')
+            if qreq_.normalizer is not None:
+                qreq_.normalizer.visualize()
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)

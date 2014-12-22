@@ -8,6 +8,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 
 def choose_vsmany_K(ibs, qaids, daids):
+    """ method for choosing K in the initial vsmany queries """
     K = ibs.cfg.query_cfg.nn_cfg.K
     if len(daids) < 20:
         K = 1
@@ -64,14 +65,32 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
 
 
 def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
+    """ does vsone queries to rerank the top few vsmany querys """
+    vsone_cfgdict = dict(codename='vsone_norm')
+    #------------------------
+    # METHOD 1:
     qaid2_qres_vsone = {}
     for qaid, top_aids in vsone_query_pairs:
-        vsone_cfgdict = dict(codename='vsone_norm')
-        qaid2_qres_vsone_, qreq_ = ibs._query_chips4(
+        # Perform a query request for each
+        qaid2_qres_vsone_, __qreq_vsone_ = ibs._query_chips4(
             [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,
             use_cache=use_cache)
         qaid2_qres_vsone.update(qaid2_qres_vsone_)
-    return qaid2_qres_vsone
+    #------------------------
+    # METHOD 2:
+    # doesn't work because daids are not the same for each run
+    #qaid2_qres_vsone_, vsone_qreq_ = ibs._query_chips4(
+    #    [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,
+    #    use_cache=use_cache)
+    #------------------------
+    # Create pseudo query request because there is no good way to
+    # represent the vsone reranking as a single query request and
+    # we need one for the score normalizer
+    pseudo_qaids = ut.get_list_column(vsone_query_pairs, 0)
+    pseudo_daids = ut.unique_ordered(ut.flatten(ut.get_list_column(vsone_query_pairs, 1)))
+    pseudo_qreq_vsone_ = ibs.new_query_request(pseudo_qaids, pseudo_daids, cfgdict=vsone_cfgdict)
+    qreq_vsone_ = pseudo_qreq_vsone_
+    return qaid2_qres_vsone, qreq_vsone_
 
 
 def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
@@ -138,7 +157,8 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         >>> # execute function
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-        >>> qaid2_qres_vsone = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qreq_vsone_.load_score_normalizer()
         >>> qres_vsone = qaid2_qres_vsone[qaid]
         >>> qres_vsmany = qaid2_qres_vsmany[qaid]
         >>> top_aids = vsone_query_pairs[0][1]
@@ -228,7 +248,7 @@ def get_new_qres_filter_scores(qres_vsone, qres_vsmany, top_aids, filtkey):
     return newfsv_list, newscore_aids
 
 
-def apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey):
+def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey):
     r"""
     applies the new filter scores vectors to a query result and updates other
     scores
@@ -257,7 +277,8 @@ def apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey
         >>> # execute function
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-        >>> qaid2_qres_vsone = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qreq_vsone_.load_score_normalizer()
         >>> qres_vsone = qaid2_qres_vsone[qaid]
         >>> qres_vsmany = qaid2_qres_vsmany[qaid]
         >>> top_aids = vsone_query_pairs[0][1]
@@ -287,8 +308,17 @@ def apply_new_qres_filter_scores(qres_vsone, newfsv_list, newscore_aids, filtkey
             qres_vsone.aid2_fs[daid]    = new_fs_vsone
             qres_vsone.aid2_score[daid] = new_score_vsone
             # FIXME: this is not how to compute new probability
-            if qres_vsone.aid2_prob is not None:
-                qres_vsone.aid2_prob[daid] = qres_vsone.aid2_score[daid]
+            #if qres_vsone.aid2_prob is not None:
+            #    qres_vsone.aid2_prob[daid] = qres_vsone.aid2_score[daid]
+    # This is how to compute new probability
+    if qreq_vsone_.qparams.score_normalization:
+        normalizer = qreq_vsone_.normalizer
+        daid2_score = qres_vsone.aid2_score
+        score_list = list(six.itervalues(daid2_score))
+        daid_list  = list(six.iterkeys(daid2_score))
+        prob_list = normalizer.normalize_score_list(score_list)
+        daid2_prob = dict(zip(daid_list, prob_list))
+        qres_vsone.aid2_prob = daid2_prob
 
 
 def empty_query(ibs, qaids):
@@ -330,6 +360,8 @@ def empty_query(ibs, qaids):
 #@ut.indent_func
 def query_vsone_verified(ibs, qaids, daids):
     """
+    main special query
+
     A hacked in vsone-reranked pipeline
     Actually just two calls to the pipeline
 
@@ -383,7 +415,8 @@ def query_vsone_verified(ibs, qaids, daids):
 
     # vs-one reranking
     print('running vsone queries')
-    qaid2_qres_vsone = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+    qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+    qreq_vsone_.load_score_normalizer()
 
     # Apply vsmany distinctiveness scores to vsone
     for qaid, top_aids in vsone_query_pairs:
@@ -403,7 +436,7 @@ def query_vsone_verified(ibs, qaids, daids):
         #newfsv_list, newscore_aids = get_new_qres_filter_scores(
         #    qres_vsone, qres_vsmany, top_aids, filtkey)
         apply_new_qres_filter_scores(
-            qres_vsone, newfsv_list, newscore_aids, filtkey)
+            qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
 
     print('finished vsone queries')
     if ut.VERBOSE:
@@ -420,7 +453,7 @@ def query_vsone_verified(ibs, qaids, daids):
     # FIXME: returns the last qreq_. There should be a notion of a query
     # request for a vsone reranked query
     qaid2_qres = qaid2_qres_vsone
-    qreq_ = qreq_vsmany_
+    qreq_ = qreq_vsone_
     all_failed_qres = all([qres is None for qres in six.itervalues(qaid2_qres)])
     any_failed_qres = any([qres is None for qres in six.itervalues(qaid2_qres)])
     if any_failed_qres:
