@@ -1235,7 +1235,7 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
     #test_bbox = verts_to_bbox(verts_list)
     mc = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
-    plt.show()
+    #
     # Make mask from selection
     #mask = mc.get_mask(img.shape)
     # User must close previous figure
@@ -1245,7 +1245,6 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
     #plt.imshow(masked_img)
     #plt.title('Region outside of mask is darkened')
     #print('show2')
-    #plt.show()
 
 
 if __name__ == '__main__':

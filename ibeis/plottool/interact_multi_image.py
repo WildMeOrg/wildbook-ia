@@ -217,7 +217,6 @@ class MultiImageInteraction(object):
             # on accept:
             # viz_image2.show_image callback
             # """
-            #plt.show()
             df2.update()
             print('Clicked: ax: num=%r' % index)
 

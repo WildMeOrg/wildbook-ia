@@ -936,8 +936,6 @@ def test_integral_label_colormap():
     colorbar.set_ticks(ticks)  # tick locations
     colorbar.set_ticklabels(ticklabels)  # tick labels
 
-    plt.show()
-
 
 def colorbar(scalars, colors, custom=False, lbl=None):
     """ adds a color bar next to the axes

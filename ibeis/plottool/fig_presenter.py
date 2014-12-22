@@ -6,7 +6,7 @@ import time
 import warnings
 # maptlotlib
 import matplotlib as mpl
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 # Science
 from plottool.custom_figure import get_fig
 from plottool import screeninfo
@@ -213,7 +213,7 @@ def bring_to_front(fig):
 def show():
     all_figures_show()
     all_figures_bring_to_front()
-    plt.show()
+    #plt.show()
 
 
 def reset():
@@ -258,6 +258,7 @@ def present(*args, **kwargs):
             print('[df2] ... plt.show()')
         import matplotlib.pyplot as plt
         if '--noshow' not in sys.argv:
+            print('WARNING USING plt.show')
             plt.show()
     ''')
     return execstr
