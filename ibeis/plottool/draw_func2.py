@@ -7,8 +7,7 @@
 # draw_<funcname> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
 import utool as ut
-ut.noinject(__name__, '[df2]')
-
+ut.noinject(__name__, '[df2-init]')
 from six.moves import range, zip, map
 import six
 #import os
@@ -46,22 +45,76 @@ import vtool.patch as ptool
 import vtool.image as gtool
 # Drawtool
 from plottool import mpl_keypoint as mpl_kp
-from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 from plottool import color_funcs as color_fns  # NOQA
 from plottool import custom_constants  # NOQA
 from plottool import custom_figure
 from plottool import fig_presenter
 
-close_figure = fig_presenter.close_figure
-figure = custom_figure.figure
+DEBUG = False
+# Try not injecting into plotting things
+ut.noinject(__name__, '[df2]')
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=DEBUG)
+
+
+def printDBG(*args):
+    pass
+
+
+# Bring over moved functions that still have dependants elsewhere
 
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
-DEBUG = False
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=DEBUG)
+DARKEN = .3 if ut.get_argflag('--darken') else None
+
+
+all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
+all_figures_tile           = fig_presenter.all_figures_tile
+close_all_figures          = fig_presenter.close_all_figures
+close_figure               = fig_presenter.close_figure
+iup                        = fig_presenter.iup
+iupdate                    = fig_presenter.iupdate
+present                    = fig_presenter.present
+reset                      = fig_presenter.reset
+update                     = fig_presenter.update
+
+
+ORANGE       = custom_constants.ORANGE
+RED          = custom_constants.RED
+GREEN        = custom_constants.GREEN
+BLUE         = custom_constants.BLUE
+YELLOW       = custom_constants.YELLOW
+BLACK        = custom_constants.BLACK
+WHITE        = custom_constants.WHITE
+GRAY         = custom_constants.GRAY
+DEEP_PINK    = custom_constants.DEEP_PINK
+PINK         = custom_constants.PINK
+FALSE_RED    = custom_constants.FALSE_RED
+TRUE_GREEN   = custom_constants.TRUE_GREEN
+TRUE_BLUE    = custom_constants.TRUE_BLUE
+DARK_GREEN   = custom_constants.DARK_GREEN
+DARK_BLUE    = custom_constants.DARK_BLUE
+DARK_RED     = custom_constants.DARK_RED
+DARK_ORANGE  = custom_constants.DARK_ORANGE
+DARK_YELLOW  = custom_constants.DARK_YELLOW
+PURPLE       = custom_constants.PURPLE
+LIGHT_BLUE   = custom_constants.LIGHT_BLUE
+UNKNOWN_PURP = custom_constants.UNKNOWN_PURP
+
+figure       = custom_figure.figure
+gca          = custom_figure.gca
+gcf          = custom_figure.gcf
+get_fig      = custom_figure.get_fig
+save_figure  = custom_figure.save_figure
+set_figtitle = custom_figure.set_figtitle
+set_title    = custom_figure.set_title
+set_xlabel   = custom_figure.set_xlabel
+set_xticks   = custom_figure.set_xticks
+set_ylabel   = custom_figure.set_ylabel
+set_yticks   = custom_figure.set_yticks
 
 #================
 # GLOBALS
@@ -92,12 +145,15 @@ def kwargs_fnum(kwargs):
     return fnum
 
 
+BASE_FNUM = 9001
+
+
 def next_fnum(new_base=None):
-    global base_fnum
+    global BASE_FNUM
     if new_base is not None:
-        base_fnum = new_base
-    base_fnum += 1
-    return base_fnum
+        BASE_FNUM = new_base
+    BASE_FNUM += 1
+    return BASE_FNUM
 
 
 def execstr_global():
@@ -258,8 +314,8 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         # No data, draw big red x
         draw_boxedX()
 
-    ax.set_xlabel(x_label, fontproperties=FONTS.xlabel)
-    ax.set_ylabel(y_label, fontproperties=FONTS.xlabel)
+    ax.set_xlabel(x_label, fontproperties=custom_constants.FONTS.xlabel)
+    ax.set_ylabel(y_label, fontproperties=custom_constants.FONTS.xlabel)
     if title is None:
         title = x_label + ' vs ' + y_label
     set_title(title_pref + ' ' + title, ax=None)
@@ -363,7 +419,7 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
     if ax is None:
         ax = gca()
     if 'fontproperties' in kwargs:
-        kwargs['fontproperties'] = FONTS.relative
+        kwargs['fontproperties'] = custom_constants.FONTS.relative
     if roffset is not None:
         xroff, yroff = roffset
         xy, width, height = get_axis_xy_width_height(ax)
@@ -633,12 +689,13 @@ LEGEND_LOCATION = {
 
 def legend(loc='upper right'):
     ax = gca()
-    ax.legend(prop=FONTS.legend, loc=loc)
+    ax.legend(prop=custom_constants.FONTS.legend, loc=loc)
 
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):
     freq, _ = plot_hist(data, nbins=nbins)
-    plot_pdf(data, draw_support=draw_support, scale_to=freq.max(), label=label)
+    from plottool import plots
+    plots.plot_pdf(data, draw_support=draw_support, scale_to=freq.max(), label=label)
 
 
 def plot_hist(data, bins=None, nbins=10, weights=None):
@@ -857,89 +914,6 @@ def show_all_colormaps():
         pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m), origin="lower")
         pylab.title(m, rotation=90, fontsize=10)
     #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
-
-
-def test_integral_label_colormap():
-    """
-    UNFINISHED
-
-    Above 0 use a inverted hot scale and less than that use special colors
-
-    References:
-        http://stackoverflow.com/questions/18704353/correcting-matplotlib-colorbar-ticks
-        http://stackoverflow.com/questions/15908371/matplotlib-colorbars-and-its-text-labels
-        http://stackoverflow.com/questions/14777066/matplotlib-discrete-colorbar
-
-    Example:
-        >>> from plottool.draw_func2 import *  # NOQA
-    """
-
-    def label_domain(unique_scalars):
-        diff = np.diff(unique_scalars)
-        # Find the holes in unique_scalars
-        missing_vals = []
-        for diffx in np.where(diff > 1)[0]:
-            missing_vals.extend([(unique_scalars[diffx] + x + 1) for x in range(diff[diffx] - 1)])
-
-        # Find the indicies of those holes
-        missing_ixs = np.array(missing_vals) - min_
-        assert all([val not in unique_scalars for val in missing_vals])
-
-        domain = np.array([x for ix, x in enumerate(rawdomain) if ix not in missing_ixs])
-        domain -= min_
-        return domain
-
-    from plottool import df2
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import matplotlib as mpl
-    import utool
-
-    fig, ax = plt.subplots()
-    np.random.seed(0)
-    data = (np.random.random((10, 10)) * 13).astype(np.int32) - 2
-    data[data == 0] = 12
-
-    unique_scalars = np.array(sorted(np.unique(data)))
-    max_ = unique_scalars.max()
-    min_ = unique_scalars.min()
-    range_ = max_ - min_
-    bounds = np.linspace(min_, max_ + 1, range_ + 2)
-
-    base_colormap = df2.reverse_colormap(plt.get_cmap('hot'))
-    # Get a few more colors than we actually need so we don't hit the bottom of
-    # the cmap
-    colors_ix = np.concatenate((np.linspace(0, 1., range_ + 2), (0., 0., 0., 0.)))
-    colors_rgba = base_colormap(colors_ix)
-    val2_special_rgba = {
-        -1: df2.UNKNOWN_PURP,
-        -2: df2.LIGHT_BLUE,
-    }
-    def get_new_color(ix, val):
-        if val in val2_special_rgba:
-            return val2_special_rgba[val]
-        else:
-            return colors_rgba[ix - len(val2_special_rgba) + 1]
-    special_colors = [get_new_color(ix, val) for ix, val in enumerate(bounds)]
-
-    cmap = mpl.colors.ListedColormap(special_colors)
-
-    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-
-    ax.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
-
-    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    sm.set_clim(-.5, range_ + 0.5)
-    colorbar = plt.colorbar(sm)
-
-    missing_ixs = utool.find_nonconsec_indicies(unique_scalars, bounds)
-    sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
-
-    ticks = sel_bounds + .5
-    ticklabels = sel_bounds
-    colorbar.set_ticks(ticks)  # tick locations
-    colorbar.set_ticklabels(ticklabels)  # tick labels
 
 
 def colorbar(scalars, colors, custom=False, lbl=None):

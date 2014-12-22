@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, print_function
-from plottool import draw_func2 as df2
+from plottool import custom_figure
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[interact_helpers]',
-                                                       DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+#                                                       '[interact_helpers]',
+#                                                       DEBUG=False)
+utool.noinject(__name__, '[interact_helpers]')
+
 #==========================
 # HELPERS
 #==========================
@@ -38,10 +40,10 @@ def clicked_outside_axis(event):
 
 
 def begin_interaction(type_, fnum):
-    printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str(type_).upper()))
+    #printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str(type_).upper()))
     #printDBG('[inter] starting %s interaction' % type_)
-    fig = df2.figure(fnum=fnum, docla=True, doclf=True)
-    ax = df2.gca()
+    fig = custom_figure.figure(fnum=fnum, docla=True, doclf=True)
+    ax = custom_figure.gca()
     disconnect_callback(fig, 'button_press_event', axes=[ax])
     return fig
 
@@ -67,7 +69,7 @@ def connect_callback(fig, callback_type, callback_fn):
     """
     wrapper around fig.canvas.mpl_connect
     """
-    printDBG('[ih] register %r callback' % callback_type)
+    #printDBG('[ih] register %r callback' % callback_type)
     if callback_fn is None:
         return
     # Store the callback in the figure diction so it doesnt lose scope

@@ -6,8 +6,8 @@ import utool
 import numpy as np
 import guitool
 from guitool.__PYQT__ import QtGui
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[screeninfo]', DEBUG=True)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[screeninfo]', DEBUG=True)
+utool.noinject(__name__, '[screeninfo]')
 
 
 DEFAULT_MAX_ROWS = 3
@@ -35,7 +35,7 @@ GNOME3_SIZES = {
 
 
 def ensure_app_is_running():
-    print('[screeninfo] Ensuring that qtapp is running')
+    #print('[screeninfo] Ensuring that qtapp is running')
     app, is_root = guitool.init_qtapp()
 
 
@@ -123,14 +123,14 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 
     (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
-    printDBG('startx = %r' % startx)
-    printDBG('starty = %r' % starty)
-    printDBG('avail_width = %r' % avail_width)
-    printDBG('avail_height = %r' % avail_height)
-    printDBG('win_width = %r' % win_width)
-    printDBG('win_height = %r' % win_height)
-    printDBG('nRows = %r' % nRows)
-    printDBG('nCols = %r' % nCols)
+    #printDBG('startx = %r' % startx)
+    #printDBG('starty = %r' % starty)
+    #printDBG('avail_width = %r' % avail_width)
+    #printDBG('avail_height = %r' % avail_height)
+    #printDBG('win_width = %r' % win_width)
+    #printDBG('win_height = %r' % win_height)
+    #printDBG('nRows = %r' % nRows)
+    #printDBG('nCols = %r' % nCols)
 
     def get_position_ix(ix):
         if row_first:

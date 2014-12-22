@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 import utool
-import sys
 import numpy as np
 import matplotlib as mpl
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[custom_constants]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[custom_constants]', DEBUG=False)
+utool.noinject(__name__, '[custom_constants]')
 # GENERAL FONTS
 
 SMALLEST = 6
@@ -70,8 +70,6 @@ PHI_numer = 1 + np.sqrt(5)
 PHI_denom = 2.0
 PHI = PHI_numer / PHI_denom
 
-DARKEN = .3 if '--darken' in sys.argv else None
-
 
 def golden_wh2(sz):
     return (PHI * sz, sz)
@@ -98,5 +96,3 @@ FIGSIZE = FIGSIZE_MED
 # Quality drawings
 #FIGSIZE = FIGSIZE_SQUARE
 #DPI = 120
-
-base_fnum = 9001

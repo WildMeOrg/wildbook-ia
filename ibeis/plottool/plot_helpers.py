@@ -2,46 +2,47 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import plottool.draw_func2 as df2
 from plottool import custom_figure
-import utool
-import vtool.keypoint as ktool
+from plottool import fig_presenter
+from plottool import custom_constants
 from os.path import join
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[plot_helpers]', DEBUG=False)
+import utool as ut
+ut.noinject(__name__, '[plot_helpers]')
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[plot_helpers]', DEBUG=False)
 
 
-SIFT_OR_VECFIELD = utool.get_argval('--vecfield', type_=bool)
+SIFT_OR_VECFIELD = ut.get_argval('--vecfield', type_=bool)
 
 
 def draw():
     df2.adjust_subplots_safe()
-    df2.draw()
+    fig_presenter.draw()
 
 
 def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2):
     """ Dumps figure to disk based on the figurename """
     if quality is True:
-        custom_figure.FIGSIZE = df2.golden_wh2(14)
-        custom_figure.DPI = 120
-        #custom_figure.FIGSIZE = df2.golden_wh2(12)
-        #custom_figure.DPI = 120
-        custom_figure.FONTS.figtitle = df2.FONTS.small
+        custom_constants.FIGSIZE = custom_constants.golden_wh2(14)
+        custom_constants.DPI = 120
+        #custom_constants.FIGSIZE = custom_constants.golden_wh2(12)
+        #custom_constants.DPI = 120
+        custom_constants.FONTS.figtitle = custom_constants.FONTS.small
     elif quality is False:
-        #custom_figure.FIGSIZE = df2.golden_wh2(8)
-        #custom_figure.FIGSIZE = df2.golden_wh2(14)
-        #custom_figure.DPI = 100
-        custom_figure.FIGSIZE = df2.golden_wh2(8)
-        custom_figure.DPI = 90
-        custom_figure.FONTS.figtitle = df2.FONTS.smaller
-    #print('[viz] Dumping Image')
+        #custom_constants.FIGSIZE = custom_constants.golden_wh2(8)
+        #custom_constants.FIGSIZE = custom_constants.golden_wh2(14)
+        #custom_constants.DPI = 100
+        custom_constants.FIGSIZE = custom_constants.golden_wh2(8)
+        custom_constants.DPI = 90
+        custom_constants.FONTS.figtitle = custom_constants.FONTS.smaller
     fpath = dumpdir
     if subdir is not None:
         fpath = join(fpath, subdir)
-        utool.ensurepath(fpath)
-    fpath_clean = df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
+        ut.ensurepath(fpath)
+    fpath_clean = custom_figure.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
     try:
-        df2.reset()
+        fig_presenter.reset()
     except Exception as ex:
-        if utool.VERBOSE:
-            utool.prinex(ex)
+        if ut.VERBOSE:
+            ut.prinex(ex)
         pass
     return fpath_clean
 
@@ -91,6 +92,7 @@ def get_bbox_centers(bbox_list):
 #==========================#
 
 def kp_info(kp):
+    import vtool.keypoint as ktool
     kpts = np.array([kp])
     xy_str    = ktool.get_xy_strs(kpts)[0]
     shape_str = ktool.get_shape_strs(kpts)[0]

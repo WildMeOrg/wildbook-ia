@@ -5,7 +5,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
 from plottool.custom_constants import FIGSIZE, DPI, FONTS
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[customfig]')
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[customfig]')
+utool.noinject(__name__, '[customfig]')
 
 
 def customize_figure(fig, docla):
@@ -32,7 +33,7 @@ def clf():
 
 
 def get_fig(fnum=None):
-    printDBG('[df2] get_fig(fnum=%r)' % fnum)
+    #printDBG('[df2] get_fig(fnum=%r)' % fnum)
     fig_kwargs = dict(figsize=FIGSIZE, dpi=DPI)
     if fnum is None:
         try:
@@ -92,7 +93,7 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
         # </HACK TO CLEAR AXES>
     # Get the subplot
     if docla or len(axes_list) == 0:
-        printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
+        #printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
@@ -102,7 +103,7 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
         else:
             ax = gca()
     else:
-        printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
+        #printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
             ax = plt.subplot(*pnum)  # fig.add_subplot fails here
             #ax = fig.add_subplot(*pnum)

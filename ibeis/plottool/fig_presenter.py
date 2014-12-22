@@ -1,24 +1,25 @@
 from __future__ import absolute_import, division, print_function
-import utool
 import sys
 import textwrap
 import time
 import warnings
+import utool as ut
 # maptlotlib
 import matplotlib as mpl
 #import matplotlib.pyplot as plt
 # Science
 from plottool.custom_figure import get_fig
 from plottool import screeninfo
+from guitool.__PYQT__ import QtGui
+from guitool.__PYQT__.QtCore import Qt
 
 #from .custom_constants import golden_wh
 
 
 SLEEP_TIME = .05
 __QT4_WINDOW_LIST__ = []
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[fig_presenter]',
-                                                       DEBUG=True)
+ut.noinject(__name__, '[fig_presenter]')
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[fig_presenter]', DEBUG=True)
 
 
 def unregister_qt4_win(win):
@@ -56,7 +57,6 @@ def get_geometry(fnum):
 
 #def get_screen_info():
 #    # TODO Move dependency to guitool
-#    from guitool.__PYQT__ import QtGui
 #    desktop = QtGui.QDesktopWidget()
 #    mask = desktop.mask()  # NOQA
 #    layout_direction = desktop.layoutDirection()  # NOQA
@@ -108,10 +108,10 @@ def get_main_win_base():
         QMainWin = mpl.backends.backend_qt4.MainWindow
     except Exception as ex:
         try:
-            utool.printex(ex, 'warning', '[df2]')
+            ut.printex(ex, 'warning', '[fig_presenter]')
             QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
         except Exception as ex1:
-            utool.printex(ex1, 'warning', '[df2]')
+            ut.printex(ex1, 'warning', '[fig_presenter]')
             QMainWin = object
     return QMainWin
 
@@ -124,8 +124,8 @@ def get_all_windows():
         all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
         return all_wins
     except AttributeError as ex:
-        utool.printex(ex, 'probably using a windowless backend',
-                      iswarning=True)
+        ut.printex(ex, 'probably using a windowless backend',
+                   iswarning=True)
         return []
 
 
@@ -138,14 +138,13 @@ def all_figures_tile(max_rows=None,
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    from guitool.__PYQT__ import QtGui
-    print('[plottool] all_figures_tile()')
+    #print('[plottool] all_figures_tile()')
     if no_tile:
         return
 
     current_backend = mpl.get_backend()
     if not current_backend.startswith('Qt'):
-        print('current_backend=%r is not a Qt backend. cannot tile.' % current_backend)
+        #print('current_backend=%r is not a Qt backend. cannot tile.' % current_backend)
         return
 
     all_wins = get_all_windows()
@@ -163,14 +162,14 @@ def all_figures_tile(max_rows=None,
         isqt4_back = isinstance(win, QtGui.QMainWindow)
         isqt4_widget = isinstance(win, QtGui.QWidget)
         (x, y, w, h) = valid_positions[ix]
-        printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
+        #printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
         if not isqt4_mpl and not isqt4_back and not isqt4_widget:
             raise NotImplementedError('%r-th Backend %r is not a Qt Window' %
                                       (ix, win))
         try:
             win.setGeometry(x, y, w, h)
         except Exception as ex:
-            print(ex)
+            ut.printex(ex)
 
 
 def all_figures_bring_to_front():
@@ -179,7 +178,7 @@ def all_figures_bring_to_front():
         for fig in iter(all_figures):
             bring_to_front(fig)
     except Exception as ex:
-        print(ex)
+        ut.printex(ex)
 
 
 def close_all_figures():
@@ -199,11 +198,10 @@ def close_figure(fig):
 
 
 def bring_to_front(fig):
-    from guitool.__PYQT__.QtCore import Qt
     #what is difference between show and show normal?
     qtwin = fig.canvas.manager.window
     qtwin.raise_()
-    #if not utool.WIN32:
+    #if not ut.WIN32:
     # NOT sure on the correct order of these
     # can cause the figure geometry to be unset
     qtwin.activateWindow()
@@ -232,7 +230,7 @@ def update():
 
 
 def iupdate():
-    if utool.inIPython():
+    if ut.inIPython():
         update()
 
 iup = iupdate
@@ -245,19 +243,19 @@ def present(*args, **kwargs):
     basically calls show if not embeded.
     """
     if '--noshow' not in sys.argv:
-        #print('[df2] Presenting figures...')
+        #print('[fig_presenter] Presenting figures...')
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             all_figures_tile(*args, **kwargs)
             all_figures_show()
             all_figures_bring_to_front()
         # Return an exec string
-    execstr = utool.ipython_execstr()
+    execstr = ut.ipython_execstr()
     execstr += textwrap.dedent('''
     if not embedded:
         if '--quiet' not in sys.argv:
-            print('[df2] Presenting in normal shell.')
-            print('[df2] ... plt.show()')
+            print('[fig_presenter] Presenting in normal shell.')
+            print('[fig_presenter] ... plt.show()')
         import matplotlib.pyplot as plt
         if '--noshow' not in sys.argv:
             print('WARNING USING plt.show')

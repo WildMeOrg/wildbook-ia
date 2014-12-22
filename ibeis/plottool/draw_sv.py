@@ -2,9 +2,11 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 import plottool.draw_func2 as df2
+from plottool import custom_constants
 from vtool import image as gtool
 from vtool import keypoint as ktool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sv]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sv]', DEBUG=False)
+utool.noinject(__name__, '[viz_sv]')
 
 
 @utool.indent_func
@@ -61,14 +63,14 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     def _draw_chip(px, title, chip, inliers, kpts1_m, kpts2_m):
         df2.imshow(chip, title=title, fnum=fnum, pnum=pnum2_(px))
         if kpts1_m is not None:
-            _draw_kpts(kpts1_m, color=df2.DARK_BLUE, **out_kwargs)
-            draw_inlier_kpts(kpts1_m, inliers, df2.BLUE)
+            _draw_kpts(kpts1_m, color=custom_constants.DARK_BLUE, **out_kwargs)
+            draw_inlier_kpts(kpts1_m, inliers, custom_constants.BLUE)
         if kpts2_m is not None:
-            _draw_kpts(kpts2_m, color=df2.DARK_RED, **out_kwargs)
-            draw_inlier_kpts(kpts2_m, inliers, df2.RED)
+            _draw_kpts(kpts2_m, color=custom_constants.DARK_RED, **out_kwargs)
+            draw_inlier_kpts(kpts2_m, inliers, custom_constants.RED)
         if kpts2_m is not None and kpts1_m is not None and show_lines:
             __fm = np.vstack((inliers, inliers)).T
-            df2.draw_lines2(kpts1_m, kpts2_m, __fm, color_list=[df2.ORANGE], lw=2, line_alpha=1)
+            df2.draw_lines2(kpts1_m, kpts2_m, __fm, color_list=[custom_constants.ORANGE], lw=2, line_alpha=1)
         return px + 1
     #
     # Begin the drawing

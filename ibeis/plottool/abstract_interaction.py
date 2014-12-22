@@ -1,11 +1,13 @@
 from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
 import six
-import utool
+import utool as ut
 import plottool.draw_func2 as df2
+from plottool import fig_presenter
 import matplotlib as mpl
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[abstract_iteract]')
+ut.noinject(__name__, '[abstract_iteract]')
+
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[abstract_iteract]')
 
 
 class AbstractInteraction(object):
@@ -14,7 +16,7 @@ class AbstractInteraction(object):
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
         self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
-        self.scope           = []  # for keeping those widgets alive!
+        self.scope = []  # for keeping those widgets alive!
 
     def clean_scope(self):
         """ Removes any widgets saved in the interaction scope """
@@ -44,7 +46,7 @@ class AbstractInteraction(object):
     # def show_page(self, *args):
 
     def bring_to_front(self):
-        df2.bring_to_front(self.fig)
+        fig_presenter.bring_to_front(self.fig)
 
     def draw(self):
         self.fig.canvas.draw()
@@ -53,8 +55,8 @@ class AbstractInteraction(object):
         self.fig.show()
 
     def update(self):
-        df2.update()
+        fig_presenter.update()
 
     def close(self):
         assert isinstance(self.fig, mpl.figure.Figure)
-        df2.close_figure(self.fig)
+        fig_presenter.close_figure(self.fig)

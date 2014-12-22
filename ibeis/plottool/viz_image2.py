@@ -2,15 +2,17 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 import utool
 import plottool.draw_func2 as df2
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
+from plottool import custom_constants
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
+utool.noinject(__name__, '[viz_img2]')
 
 
 def draw_chip_overlay(ax, bbox, theta, text, is_sel):
     """ Draw an annotation around a chip in the image """
     lbl_alpha  = .75 if is_sel else .6
     bbox_alpha = .95 if is_sel else .6
-    lbl_color  = df2.BLACK * lbl_alpha
-    bbox_color = (df2.ORANGE if is_sel else df2.DARK_ORANGE) * bbox_alpha
+    lbl_color  = custom_constants.BLACK * lbl_alpha
+    bbox_color = (custom_constants.ORANGE if is_sel else custom_constants.DARK_ORANGE) * bbox_alpha
     df2.draw_bbox(bbox, text, bbox_color, lbl_color, theta=theta, ax=ax)
 
 

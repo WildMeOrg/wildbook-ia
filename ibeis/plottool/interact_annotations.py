@@ -45,6 +45,7 @@ import re
 
 from plottool import draw_func2 as df2
 from six.moves import zip
+utool.noinject(__name__, '[interact_annotations]')
 
 
 DEFAULT_SPECIES_TAG = '____'

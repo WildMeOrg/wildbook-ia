@@ -3,8 +3,8 @@ import utool
 import plottool.draw_func2 as df2
 import numpy as np
 from plottool import plot_helpers as ph
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_chip]',
-                                                       DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
+utool.noinject(__name__, '[viz_keypoints]')
 
 
 def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):

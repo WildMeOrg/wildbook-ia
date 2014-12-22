@@ -3,7 +3,8 @@ from six.moves import range
 import colorsys
 import numpy as np  # NOQA
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
+utool.noinject(__name__, '[colorfuncs]')
 
 
 def assert_base01(channels):
