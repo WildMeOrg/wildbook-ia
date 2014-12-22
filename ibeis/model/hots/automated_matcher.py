@@ -309,6 +309,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     if len(chosen_names) != 1:
         print('not updating normalization. only updates using simple matches')
         return
+    qaid = qres.get_qaid()
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     # Get new True Negative support data for score normalization
@@ -316,6 +317,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     rank = ut.listfind(ibs.get_name_texts(sorted_nids), name)
     if rank is None:
         return
+    nid = sorted_nids[rank]
     tp_rawscore = sorted_rawscore[rank]
     valid_falseranks = set(range(len(sorted_rawscore))) - set([rank])
     if len(valid_falseranks) > 0:
@@ -328,6 +330,14 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     if canupdate:
         # TODO: UPDATE SCORE NORMALIZER HERE
         print('new normalization example: tp_rawscore={}, tn_rawscore={}'.format(tp_rawscore, tn_rawscore))
+        tp_labels = [(qaid, nid)]
+        tn_labels = [(qaid, nid)]
+        tp_scores = [tp_rawscore]
+        tn_scores = [tn_rawscore]
+        qreq_.normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
+        qreq_.normalizer.retrain()
+        # TODO: figure out where to save and load the normalizer from
+        qreq_.normalizer.save(ibs.get_local_species_scorenorm_cachedir())
     else:
         print('cannot update score normalization')
 

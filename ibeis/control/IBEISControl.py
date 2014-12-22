@@ -487,33 +487,7 @@ class IBEISController(object):
         from ibeis.dev import sysres
         return sysres.get_ibeis_resource_dir()
 
-    def get_scorenorm_cachedir(ibs, ensure=True):
-        """
-
-        Args:
-            species_text (str):
-            ensure       (bool):
-
-        Returns:
-            str: species_cachedir
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> scorenorm_cachedir = ibs.get_scorenorm_cachedir()
-            >>> resourcedir = ibs.get_ibeis_resource_dir()
-            >>> result = ut.relpath_unix(scorenorm_cachedir, resourcedir)
-            >>> print(result)
-            score_normalizers
-        """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'score_normalizers')
-        if ensure:
-            ut.ensurepath(scorenorm_cachedir)
-        return scorenorm_cachedir
-
-    def get_species_scorenorm_cachedir(ibs, species_text, ensure=True):
+    def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
 
         Args:
@@ -524,7 +498,7 @@ class IBEISController(object):
             str: species_cachedir
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_species_scorenorm_cachedir
+            python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -533,17 +507,27 @@ class IBEISController(object):
             >>> ibs = ibeis.opendb('testdb1')
             >>> species_text = ibeis.const.Species.ZEB_GREVY
             >>> ensure = True
-            >>> species_cachedir = ibs.get_species_scorenorm_cachedir(species_text, ensure)
-            >>> species_cachedir = ibs.get_species_scorenorm_cachedir(ibeis.const.Species.ZEB_GREVY, ensure)
+            >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
             >>> resourcedir = ibs.get_ibeis_resource_dir()
             >>> result = ut.relpath_unix(species_cachedir, resourcedir)
             >>> print(result)
-            score_normalizers/zebra_grevys
+            scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = ibs.get_scorenorm_cachedir()
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'scorenorm')
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
+            ut.ensurepath(scorenorm_cachedir)
+            ut.ensuredir(species_cachedir)
+        return species_cachedir
+
+    def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
+        """
+        """
+        scorenorm_cachedir = join(ibs.get_cachedir(), 'scorenorm')
+        species_cachedir = join(scorenorm_cachedir, species_text)
+        if ensure:
+            ut.ensuredir(scorenorm_cachedir)
             ut.ensuredir(species_cachedir)
         return species_cachedir
 

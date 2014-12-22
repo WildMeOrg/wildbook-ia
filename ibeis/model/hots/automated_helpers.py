@@ -361,6 +361,10 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
 
 
 def check_results(ibs_gt, ibs2, aid1_to_aid2):
+    """
+    reports how well the incremental query ran when the oracle was calling the
+    shots.
+    """
     import six
     #aid_list1 = ibs_gt.get_valid_aids()
     aid_list1 = ibs_gt.get_aids_with_groundtruth()
