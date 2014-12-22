@@ -58,7 +58,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
         >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     from plottool as pt
+        ...     import plottool as pt
         ...     exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')

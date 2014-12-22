@@ -2,12 +2,35 @@
 # TODO: Restructure
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import utool
+import utool as ut
 from six.moves import zip, range, map
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[query_helpers]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[query_helpers]')
 
 
 def get_query_components(ibs, qaids):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.model.hots.query_helpers --test-get_query_components
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.query_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaids = ibs.get_valid_aids()
+        >>> # execute function
+        >>> result = get_query_components(ibs, qaids)
+        >>> # verify results
+        >>> print(result)
+    """
     from ibeis.model.hots import pipeline
     from ibeis.model.hots import query_request
     daids = ibs.get_valid_aids()
@@ -30,13 +53,13 @@ def get_query_components(ibs, qaids):
     #####################
     # Testing components
     #####################
-    with utool.Indenter('[components]'):
+    with ut.Indenter('[components]'):
         qfx2_idx, qfx2_dist = qaid2_nns[qaid]
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_idx)
         qfx2_fx  = qreq_.indexer.get_nn_featxs(qfx2_idx)
         qfx2_gid = ibs.get_annot_gids(qfx2_aid)  # NOQA
         qfx2_nid = ibs.get_annot_name_rowids(qfx2_aid)  # NOQA
-        qfx2_scores, qfx2_valids = qaid2_nnfilts[qaid]
+        filtkey_list, qfx2_scores, qfx2_valids = qaid2_nnfilts[qaid]
         qaid2_nnfilt_ORIG    = pipeline.identity_filter(qreq_, qaid2_nns)
         qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qreq_, qaid2_nns, qaid2_nnfilt_ORIG)
         qaid2_qres_ORIG = pipeline.chipmatch_to_resdict(qaid2_chipmatch_ORIG, qreq_)

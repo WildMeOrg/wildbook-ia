@@ -481,7 +481,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
 
 def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
                                   use_cache=True, **learnkw):
-    """
+    r"""
     Builds a normalizer trained on query results for a database
 
     Args:
