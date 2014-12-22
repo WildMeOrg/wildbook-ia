@@ -193,7 +193,6 @@ class ScoreNormalizer(ut.Cachable):
             >>> normalizer = load_precomputed_normalizer(index, with_global=False)
             >>> normalizer.visualize()
             >>> six.exec_(pt.present(), globals(), locals())
-            >>> #pt.plt.show()
 
         """
         import plottool as pt
