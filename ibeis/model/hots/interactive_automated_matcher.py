@@ -78,6 +78,7 @@ def test_inc_query(ibs_gt, num_initial=0):
         sh Tinc.sh --test-test_inc_query:0
         sh Tinc.sh --test-test_inc_query:1
         sh Tinc.sh --test-test_inc_query:2
+        sh Tinc.sh --test-test_inc_query:3
 
         sh Tinc.sh --test-test_inc_query:0 --ninit 10
         sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful
@@ -101,6 +102,13 @@ def test_inc_query(ibs_gt, num_initial=0):
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
+        >>> test_inc_query(ibs_gt)
+
+    Example3:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> ibs_gt = ibeis.opendb('PZ_Master0')
         >>> test_inc_query(ibs_gt)
 
     """
@@ -183,14 +191,15 @@ class IncQueryHarness(INC_LOOP_BASE):
         # When in interactive mode it seems like the stack never gets out of hand
         # but if the oracle is allowed to make decisions and emit signals like
         # the user then we get into a maximum recursion limit.
-        for item  in self.inc_query_gen:
-            (ibs, qres, qreq_, incinfo) = item
-            # update incinfo
-            self.qres      = qres
-            self.qreq_     = qreq_
-            self.incinfo = incinfo
-            incinfo['count'] += 1
-            automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+        with ut.Timer('test_incremental_query'):
+            for item  in self.inc_query_gen:
+                (ibs, qres, qreq_, incinfo) = item
+                # update incinfo
+                self.qres      = qres
+                self.qreq_     = qreq_
+                self.incinfo = incinfo
+                incinfo['count'] += 1
+                automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
         # Call the first query
         #incinfo['next_query_callback']()
 

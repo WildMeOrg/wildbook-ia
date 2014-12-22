@@ -499,7 +499,12 @@ def delete_configs(ibs, config_rowid_list):
 
 @register_ibs_method
 def _init_config(ibs):
-    """ Loads the database's algorithm configuration """
+    """
+    Loads the database's algorithm configuration
+
+    TODO: per-species config
+        * make
+    """
     from ibeis.model import Config
     # Always a fresh object
     ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))

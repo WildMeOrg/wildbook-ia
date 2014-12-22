@@ -863,30 +863,49 @@ def get_match_text(ibs, aid1, aid2):
 
 @__injectable
 def get_database_species(ibs, aid_list=None):
-    """
-    Example:
+    r"""
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_database_species
+
+    Example1:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
-        >>> #ibs = ibeis.opendb('GZ_ALL')
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ibs.get_database_species()
-        {'____', u'bear_polar', u'zebra_grevys', u'zebra_plains'}
+        >>> result = ibs.get_database_species()
+        >>> print(result)
+        ['____', u'bear_polar', u'zebra_grevys', u'zebra_plains']
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> result = ibs.get_database_species()
+        >>> print(result)
+        [u'zebra_plains']
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
-    unique_species = list(set(species_list))
+    unique_species = sorted(list(set(species_list)))
     return unique_species
 
 
 @__injectable
 def get_database_species_count(ibs, aid_list=None):
     """
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_database_species_count
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ibs.get_database_species_count()
-        {'____': 3, u'bear_polar': 2, u'zebra_grevys': 2, u'zebra_plains': 6}
+        >>> result = ibs.get_database_species_count()
+        >>> print(result)
+        {u'zebra_plains': 6, '____': 3, u'zebra_grevys': 2, u'bear_polar': 2}
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -998,9 +1017,6 @@ def unflat_multimap(method_list, unflat_rowids, **kwargs):
     unflat_vals_list = [_unflatten(flat_vals, reverse_list)
                         for flat_vals in flat_vals_list]
     return unflat_vals_list
-
-# TODO: Depricate the lookup names
-unflat_lookup = unflat_map
 
 
 def _make_unflat_getter_func(flat_getter):

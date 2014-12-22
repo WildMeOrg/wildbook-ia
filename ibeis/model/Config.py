@@ -122,7 +122,7 @@ class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
-        nn_cfg.min_reindex_thresh = 200
+        nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'

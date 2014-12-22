@@ -41,7 +41,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         #sys.stdout.write('\n')
         print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        print('generator_stack_depth = %r' % ut.get_current_stack_depth())
+        #print('generator_stack_depth = %r' % ut.get_current_stack_depth())
         #if ut.get_current_stack_depth() > 53:
         #    ut.embed()
         incinfo['interactive'] = (interact_after is not None and count >= interact_after)
@@ -81,7 +81,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         #sys.stdout.write('\n')
         print('\n==== EXECUTING QUERY %d ====' % (count,))
-        print('generator_stack_depth = %r' % ut.get_current_stack_depth())
+        #print('generator_stack_depth = %r' % ut.get_current_stack_depth())
         for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
             yield item
 
@@ -148,7 +148,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
     print('--- Identifying Query Animal ---')
-    print('id_stack_depth = %r' % ut.get_current_stack_depth())
+    #print('id_stack_depth = %r' % ut.get_current_stack_depth())
     qaid = qres.get_qaid()
     #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
     name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)

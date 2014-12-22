@@ -99,7 +99,7 @@ def TEST_ENCOUNTERS(ibs):
         utool.printex(ex, 'failed test_encounter')
         raise
 
-    gids_list2 = list(map(list, ibsfuncs.unflat_lookup(ibs.get_annot_gids, aids_list)))
+    gids_list2 = list(map(list, ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)))
     assert gids_list2 == list(map(list, gids_list))
 
     return locals()
