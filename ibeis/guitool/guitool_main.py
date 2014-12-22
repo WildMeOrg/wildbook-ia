@@ -108,7 +108,7 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
                 print('QException: %r' % ex)
                 raise
     else:
-        if not QUIET and VERBOSE:
+        if not QUIET:
             print('[guitool.qtapp_loop()] not execing')
 
 
