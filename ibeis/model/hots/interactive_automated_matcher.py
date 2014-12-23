@@ -73,6 +73,10 @@ def test_inc_query(ibs_gt, num_initial=0):
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:1
         python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:2
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:3
+
+        profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:3
+        profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:0
 
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
         sh Tinc.sh --test-test_inc_query:0
@@ -82,6 +86,11 @@ def test_inc_query(ibs_gt, num_initial=0):
 
         sh Tinc.sh --test-test_inc_query:0 --ninit 10
         sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful
+
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0 --ia 10
+
+        # Runs into a merge case
+        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0 --ia 30
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -185,7 +194,8 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo['nTotal'] = len(aid_list1)
         #incinfo['nTotal'] = len(aid_list1)
         # Create test query generator
-        #self.inc_query_gen =
+        interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
+        next_query_callback = self.incinfo['next_query_callback']  # NOQA
         del self.incinfo['next_query_callback']
         self.inc_query_gen = automatch.test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
         # When in interactive mode it seems like the stack never gets out of hand
@@ -199,9 +209,19 @@ class IncQueryHarness(INC_LOOP_BASE):
                 self.qreq_     = qreq_
                 self.incinfo = incinfo
                 incinfo['count'] += 1
+                #ut.embed()
+                if interactive_after is not None and incinfo['count'] > interactive_after:
+                    # stop the automated queries and start interaction
+                    break
                 automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
-        # Call the first query
-        #incinfo['next_query_callback']()
+
+        # INTERACTIVE PART
+        # (this does nothing if inc_query_gen is exhausted)
+        # need to fix the incinfo dictionary
+        incinfo['next_query_callback'] = next_query_callback
+        incinfo['metatup'] = None
+        incinfo['interactive'] = True
+        incinfo['next_query_callback']()
 
     def begin_incremental_query(self, ibs, qaid_list):
         """

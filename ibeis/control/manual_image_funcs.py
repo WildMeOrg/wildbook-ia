@@ -613,7 +613,7 @@ IMAGE_ROWID = 'image_rowid'
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
-@profile
+#@profile
 def get_image_aids(ibs, gid_list):
     """
     Returns:
@@ -697,7 +697,7 @@ def get_image_aids(ibs, gid_list):
 
 @register_ibs_method
 @getter_1to1
-@profile
+#@profile
 def get_image_num_annotations(ibs, gid_list):
     """
     Returns:

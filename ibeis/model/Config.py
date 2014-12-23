@@ -122,7 +122,8 @@ class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
-        nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
+        nn_cfg.min_reindex_thresh = 50  # 200  # number of annots before a new multi-indexer is built
+        nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'
@@ -380,12 +381,13 @@ class FlannConfig(ConfigBase):
         #flann_cfg.trees = 16
         flann_cfg.update(**kwargs)
 
-    def get_dict_args(flann_cfg):
-        return dict(
+    def get_flann_params(flann_cfg):
+        flann_params = dict(
             algorithm=flann_cfg.algorithm,
             trees=flann_cfg.trees,
             cores=flann_cfg.flann_cores,
         )
+        return flann_params
 
     def get_cfgstr_list(flann_cfg, **kwargs):
         flann_cfgstrs = ['_FLANN(']
@@ -867,7 +869,7 @@ class FeatureConfig(ConfigBase):
                 doc = None
             yield (type_, name, default, doc)
 
-    def get_dict_args(feat_cfg):
+    def get_hesaff_params(feat_cfg):
         dict_args = {
             name: feat_cfg[name]
             for type_, name, default, doc in feat_cfg._iterparams()

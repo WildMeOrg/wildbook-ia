@@ -23,15 +23,12 @@ GOALS:
        o - Spceies sensitivity
 
 
-    5) Add exemplars that are distinct from exiting (matches below threshold)
-
-    (no rebuilding kd-tree for each image)
-
-
+    * Add ability for user to relearn normalizer from labeled database.
 
 """
 from __future__ import absolute_import, division, print_function
 import utool
+from os.path import join
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -73,14 +70,15 @@ class ScoreNormalizer(ut.Cachable):
         ...                              tp_support, tn_support, tp_labels,
         ...                              tn_labels)
     """
-    prefix = 'normalizer_'
+    prefix2 = '_normalizer_'
 
     def __init__(normalizer, cfgstr=None, score_domain=None,
                  p_tp_given_score=None, tp_support=None, tn_support=None,
                  tp_labels=None, tn_labels=None, clip_score=None,
-                 timestamp=None):
+                 timestamp=None, prefix=''):
         super(ScoreNormalizer, normalizer).__init__()
         normalizer.cfgstr = cfgstr
+        normalizer.prefix1 = prefix
         normalizer.score_domain = score_domain
         normalizer.p_tp_given_score = p_tp_given_score
         normalizer.tp_support = tp_support
@@ -93,7 +91,7 @@ class ScoreNormalizer(ut.Cachable):
         #                      tn_support, tp_labels, tn_labels)
 
     def get_prefix(normalizer):
-        return 'normalizer_'
+        return normalizer.prefix1 + ScoreNormalizer.prefix2
 
     def get_cfgstr(normalizer):
         assert normalizer.cfgstr is not None
@@ -226,9 +224,9 @@ class ScoreNormalizer(ut.Cachable):
         learntup = learn_score_normalization(tp_support, tn_support,
                                              return_all=False, **learnkw)
         (score_domain, p_tp_given_score, clip_score) = learntup
-        # Make a new custom cfg
-        cfgstr = ut.hashstr((tp_support, tn_support))
-        normalizer.cfgstr = cfgstr
+        # DONT Make a new custom cfg
+        #cfgstr = ut.hashstr((tp_support, tn_support))
+        #normalizer.cfgstr = cfgstr
         normalizer.score_domain = score_domain
         normalizer.p_tp_given_score = p_tp_given_score
         normalizer.clip_score = clip_score
@@ -284,11 +282,12 @@ class ScoreNormalizer(ut.Cachable):
 def parse_available_normalizers(*args, **kwargs):
     import parse
     normalizers_fpaths = list_available_score_normalizers(*args, **kwargs)
-    parsestr = '{cachedir}/' + ScoreNormalizer.prefix + '{cfgstr}' + ScoreNormalizer.ext
+    parsestr = '{cachedir}/{prefix1}' + ScoreNormalizer.prefix2 + '{cfgstr}' + ScoreNormalizer.ext
     result_list = [parse.parse(parsestr, path) for path in normalizers_fpaths]
     cfgstr_list = [result['cfgstr'] for result in result_list]
+    prefix1_list = [result['prefix1'] for result in result_list]
     cachedir_list = [result['cachedir'] for result in result_list]
-    return cfgstr_list, cachedir_list
+    return cfgstr_list, cachedir_list, prefix1_list
 
 
 def load_precomputed_normalizer(index, *args, **kwargs):
@@ -303,13 +302,14 @@ def load_precomputed_normalizer(index, *args, **kwargs):
         >>> import plottool as pt
         >>> six.exec_(pt.present(), globals(), locals())
     """
-    cfgstr_list, cachedir_list = parse_available_normalizers(*args, **kwargs)
+    cfgstr_list, cachedir_list, prefix1_list = parse_available_normalizers(*args, **kwargs)
     if index is None or index == 'None':
         print('Avaliable indexes:')
         print(ut.indentjoin(map(str, enumerate(cfgstr_list))))
         index = int(input('what index?'))
     cfgstr = cfgstr_list[index]
     cachedir = cachedir_list[index]
+    #prefix1 = prefix1_list[index]
     normalizer = ScoreNormalizer(cfgstr=cfgstr)
     normalizer.load(cachedir)
     return normalizer
@@ -462,8 +462,6 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         baseline_cfgstr = 'baseline_' + species_text
         cachedir = ibs.get_global_species_scorenorm_cachedir(species_text)
         normalizer.save(cachedir, cfgstr=baseline_cfgstr)
-        #print(fpath)
-        #learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr)
     print('\n' + utool.msgblock(tag, 'Finished Training'))
     return normalizer
 
@@ -479,13 +477,15 @@ def try_download_baseline_ibeis_normalizer(ibs, qreq_):
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
     query_cfgstr = qreq_.qparams.query_cfgstr
     cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
-    cfgstr = 'baseline_' + query_cfgstr + '_' + species_text
-    baseline_url = baseline_url_dict.get(cfgstr, None)
+    key = species_text + query_cfgstr
+    baseline_url = baseline_url_dict.get(key, None)
     if baseline_url is not None:
         try:
             cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
-            normalizer = ScoreNormalizer('custom_' + query_cfgstr)
-            normalizer.load(cachedir)
+            baseline_cachedir = join(cachedir, 'baseline')
+            ut.ensuredir(baseline_cachedir)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
+            normalizer.load(baseline_cachedir)
         except Exception:
             normalizer = None
     else:
@@ -497,14 +497,18 @@ def try_download_baseline_ibeis_normalizer(ibs, qreq_):
             normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
         else:
             # return empty score normalizer
-            normalizer = ScoreNormalizer()
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
             print('returning empty normalizer')
             #raise NotImplementedError('return the nodata noramlizer with 1/2 default')
     return normalizer
 
 # IBEIS FUNCTIONS
+NORMALIZER_CACHE = {}
+#NEIGHBOR_CACHE_VUUIDS = {}
+MAX_NORMALIZER_CACHE_SIZE = 8
 
 
+@profile
 def request_ibeis_normalizer(qreq_, verbose=True):
     r"""
     FIXME: do what is in the docstr
@@ -513,7 +517,8 @@ def request_ibeis_normalizer(qreq_, verbose=True):
     request. This ensures that all of the support data fed to the normalizer is
     consistent.
 
-    First try to load a custom normalizer from the local directory
+    First try to lod the normalizer from the in-memory cache.
+    If that fails try to load a custom normalizer from the local directory
     If that fails try to load a custom normalizer from the global directory
     If that fails try to (download and) load the baseline normalizer from the global directory
     If that fails return empty score normalizer.
@@ -538,21 +543,32 @@ def request_ibeis_normalizer(qreq_, verbose=True):
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> cfgdict = dict(codename='nsum_unnorm')
+        >>> cfgdict = dict(codename='vsone_unnorm')
         >>> #cfgdict = dict(codename='vsone_unnorm')
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> normalizer = request_ibeis_normalizer(qreq_)
         >>> normalizer.add_support([100], [10], [1], [2])
     """
+    global NORMALIZER_CACHE
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    query_cfgstr = qreq_.qparams.query_cfgstr
+    query_cfgstr = qreq_.get_query_cfgstr()
+
+    cfgstr = species_text + query_cfgstr
+
+    if cfgstr in NORMALIZER_CACHE:
+        # use memory cache
+        normalizer = NORMALIZER_CACHE[cfgstr]
+        if verbose:
+            print('[scorenorm] returning memorycache normalizer')
+        return normalizer
+
     def try_custom_local():
         try:
             cachedir = qreq_.ibs.get_local_species_scorenorm_cachedir(species_text)
-            normalizer = ScoreNormalizer('custom_' + query_cfgstr)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
             normalizer.load(cachedir)
             if verbose:
-                print('returning local custom normalizer')
+                print('[scorenorm] returning local custom normalizer')
             return normalizer
         except Exception:
             return None
@@ -560,10 +576,10 @@ def request_ibeis_normalizer(qreq_, verbose=True):
     def try_custom_global():
         try:
             cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
-            normalizer = ScoreNormalizer('custom_' + query_cfgstr)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
             normalizer.load(cachedir)
             if verbose:
-                print('returning global custom normalizer')
+                print('[scorenorm] returning global custom normalizer')
             return normalizer
         except Exception:
             return None
@@ -574,9 +590,11 @@ def request_ibeis_normalizer(qreq_, verbose=True):
     if normalizer is None:
         normalizer = try_download_baseline_ibeis_normalizer(qreq_.ibs, qreq_)
     if verbose:
-            print('returning baseline normalizer')
+            print('[scorenorm] returning baseline normalizer')
 
     assert normalizer is not None, 'something failed'
+    # Save to memory cache
+    NORMALIZER_CACHE[cfgstr] = normalizer
 
     return normalizer
 
@@ -617,28 +635,32 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     # Collect training data
     #cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    data_hashid = qreq_.get_data_hashid()
-    query_hashid = qreq_.get_query_hashid()
+    #data_hashid = qreq_.get_data_hashid()
+    #query_hashid = qreq_.get_query_hashid()
     query_cfgstr = qreq_.get_query_cfgstr()
-    cfgstr = ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr
+    prefix = species_text
+    cfgstr = query_cfgstr
+    #ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr
+    cachedir = ibs.get_local_species_scorenorm_cachedir(species_text)
     try:
         if use_cache is False:
             raise Exception('forced normalizer cache miss')
         normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load(ibs.cachedir)
+        normalizer.load(cachedir)
         print('returning cached normalizer')
     except Exception as ex:
         ut.printex(ex, iswarning=True)
         qaid_list = qreq_.get_external_qaids()
-        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw)
-        normalizer.save(ibs.cachedir)
+        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list,
+                                                  cfgstr, prefix, **learnkw)
+        normalizer.save(cachedir)
     return normalizer
 
 
 # LEARNING FUNCTIONS
 
 
-def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
+def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **learnkw):
     """
     Takes the result of queries and trains a score normalizer
 
@@ -665,7 +687,8 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
     timestamp = ut.get_printable_timestamp()
     normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,
                                  tp_support, tn_support, tp_support_labels,
-                                 tn_support_labels, clip_score, timestamp)
+                                 tn_support_labels, clip_score, timestamp,
+                                 prefix)
     return normalizer
 
 

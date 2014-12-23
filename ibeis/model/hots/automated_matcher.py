@@ -28,30 +28,33 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     print('begin test interactive iter')
     #interact_after = 100
     #interact_after = None
-    interact_after = ut.get_argval(('--interactive-after', '--interact-after',),
-                                   type_=int, default=0)
+    #interact_after = ut.get_argval(('--interactive-after', '--interact-after',),
+    #                               type_=int, default=0)
     # Execute each query as a test
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     # Query aids in a random order
-    shuffled_aids_list1 = ut.deterministic_shuffle(aid_list1[:])
-    aids_chunk1_iter = ut.progress_chunks(shuffled_aids_list1, chunksize, lbl='TEST QUERY')
+    #shuffled_aids_list1 = ut.deterministic_shuffle(aid_list1[:])
+    #aids_chunk1_iter = ut.progress_chunks(shuffled_aids_list1, chunksize, lbl='TEST QUERY')
+    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
     metatup = (ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup
+    incinfo['interactive'] = False
 
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
-        #sys.stdout.write('\n')
-        print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
-        #print('generator_stack_depth = %r' % ut.get_current_stack_depth())
-        #if ut.get_current_stack_depth() > 53:
-        #    ut.embed()
-        incinfo['interactive'] = (interact_after is not None and count >= interact_after)
-        # ensure new annot is added (most likely it will have been preadded)
-        qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
-        for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
-            (ibs, qres, qreq_, incinfo) = item
-            yield item
+        with ut.Timer('teststep'):
+            #sys.stdout.write('\n')
+            print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
+            print('generator_stack_depth = %r' % ut.get_current_stack_depth())
+            #if ut.get_current_stack_depth() > 53:
+            #    ut.embed()
+            #incinfo['interactive'] = (interact_after is not None and count >= interact_after)
+            # ensure new annot is added (most likely it will have been preadded)
+            qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
+            for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
+                (ibs, qres, qreq_, incinfo) = item
+                yield item
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
@@ -83,7 +86,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
     for count, qaid_chunk in enumerate(qaid_chunk_iter):
         #sys.stdout.write('\n')
         print('\n==== EXECUTING QUERY %d ====' % (count,))
-        #print('generator_stack_depth = %r' % ut.get_current_stack_depth())
+        print('generator_stack_depth = %r' % ut.get_current_stack_depth())
         for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
             yield item
 
@@ -150,36 +153,37 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
     print('--- Identifying Query Animal ---')
-    #print('id_stack_depth = %r' % ut.get_current_stack_depth())
-    qaid = qres.get_qaid()
     #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
     name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
+    interactive = incinfo.get('interactive', False)
+    metatup = incinfo.get('metatup', None)
+    #print('id_stack_depth = %r' % ut.get_current_stack_depth())
+    qaid = qres.get_qaid()
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
-    # Get system suggested name
-    system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
     # ---------------------------------------------
     # Get oracle suggestion if we have the metadata
     # override the system suggestion
-    if incinfo.get('metatup', None) is not None:
-        metatup = incinfo['metatup']
+    if metatup is not None:
         oracle_name_suggest_tup = ao.get_oracle_name_suggestion(
-            ibs, qaid, choicetup, metatup, system_name_suggest_tup)
+            ibs, qaid, choicetup, metatup)
         name_suggest_tup = oracle_name_suggest_tup
     else:
+        # Get system suggested name
+        system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
         name_suggest_tup = system_name_suggest_tup
     # ---------------------------------------------
     # Have the system ask the user if it is not confident in its decision
     autoname_msg, chosen_names, name_confidence = name_suggest_tup
     print('autoname_msg=')
     print(autoname_msg)
-    print('... checking confidence in name decision')
-    interactive = incinfo.get('interactive', False)
+    print('... checking confidence=%r in name decision.' % (name_confidence,))
     if name_confidence < name_confidence_thresh:
         print('... confidence is too low. need user input')
         if interactive:
             print('... asking user for input')
             if qreq_.normalizer is not None:
                 qreq_.normalizer.visualize(fnum=511, verbose=False)
+            ut.embed()
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
@@ -201,7 +205,6 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     """
     print('--- Updating Exemplars ---')
     if not incinfo.get('dry', False):
-        pass
         qaid = qres.get_qaid()
         #assert ibs.is_aid_unknown(qaid), 'animal is already known'
         if chosen_names is None or len(chosen_names) == 0:
@@ -219,10 +222,13 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
             ibs.merge_names(merge_name, other_names)
             ibs.set_annot_names((qaid,), (merge_name,))
         # TODO update normalizer
-        #update_normalizer(ibs, qreq_, choicetup, name)
+        update_normalizer(ibs, qres, qreq_, chosen_names)
         # Do update callback so the name updates in the main GUI
-        if 'update_callback' in incinfo:
-            incinfo['update_callback']()
+        interactive = incinfo.get('interactive', False)
+        update_callback = incinfo.get('update_callback', None)
+        if interactive and update_callback is not None:
+            # Update callback repopulates the names tree
+            update_callback()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
 
@@ -307,7 +313,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     """
     # Fixme: duplicate call to get_qres_name_choices
     if len(chosen_names) != 1:
-        print('not updating normalization. only updates using simple matches')
+        print('NOT UPDATING normalization. only updates using simple matches')
         return
     qaid = qres.get_qaid()
     choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
@@ -329,6 +335,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     canupdate = tp_rawscore is not None and tn_rawscore is not None
     if canupdate:
         # TODO: UPDATE SCORE NORMALIZER HERE
+        print('UPDATING! NORMALIZER')
         print('new normalization example: tp_rawscore={}, tn_rawscore={}'.format(tp_rawscore, tn_rawscore))
         tp_labels = [(qaid, nid)]
         tn_labels = [(qaid, nid)]
@@ -336,10 +343,11 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
         tn_scores = [tn_rawscore]
         qreq_.normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
         qreq_.normalizer.retrain()
+        species_text = '_'.join(qreq_.get_unique_species())  # HACK
         # TODO: figure out where to save and load the normalizer from
-        qreq_.normalizer.save(ibs.get_local_species_scorenorm_cachedir())
+        qreq_.normalizer.save(ibs.get_local_species_scorenorm_cachedir(species_text))
     else:
-        print('cannot update score normalization')
+        print('NOUPDATE! cannot update score normalization')
 
 
 # --- TESTING ---

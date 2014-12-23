@@ -21,7 +21,8 @@ def show_qres_top(ibs, qres, **kwargs):
     Wrapper around show_qres.
     """
     N = kwargs.get('N', DEFAULT_NTOP)
-    top_aids = qres.get_top_aids(num=N)
+    name_scoring = kwargs.get('name_scoring', False)
+    top_aids = qres.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)
     aidstr = ibsfuncs.aidstr(qres.qaid)
     figtitle = kwargs.get('figtitle', '')
     if len(figtitle) > 0:

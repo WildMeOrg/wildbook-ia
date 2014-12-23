@@ -124,7 +124,12 @@ def get_system_name_suggestion(ibs, choicetup):
     autoname_msg = '\n'.join(autoname_msg_list)
 
     name = ibs.get_name_texts(nid) if nid is not None else None
-    return autoname_msg, name, name_confidence
+    if name is None:
+        chosen_names = []
+    else:
+        chosen_names = [name]
+    system_name_suggest_tup = (autoname_msg, chosen_names, name_confidence,)
+    return system_name_suggest_tup
 
 
 def get_system_exemplar_suggestion(ibs, qaid):

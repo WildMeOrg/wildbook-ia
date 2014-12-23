@@ -258,11 +258,9 @@ def get_invalid_nids(ibs):
     return nid_list
 
 
-#@profile
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
-@profile
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -475,7 +473,6 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     return aids_list
 
 
-#@profile
 @register_ibs_method
 @getter_1toM
 def get_name_exemplar_aids(ibs, nid_list):

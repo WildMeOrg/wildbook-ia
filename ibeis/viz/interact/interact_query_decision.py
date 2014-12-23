@@ -137,7 +137,8 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         #Plot the Query Chip last
         with ut.EmbedOnException():
-            self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix='QUERIED CHIP')
+            query_title = 'Identify This Animal'
+            self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix=query_title)
 
         self.show_hud()
         df2.adjust_subplots_safe(top=0.88, hspace=0.12)
@@ -240,7 +241,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         else:
             self.progress_string = ''
         figtitle_fmt = '''
-        Query Decision Interface {progress_string}
+        Animal Identification {progress_string}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)

@@ -373,11 +373,9 @@ class IBEISController(object):
         PATH_NAMES = const.PATH_NAMES
         REL_PATHS = const.REL_PATHS
 
-        if ensure and not ut.QUIET:
+        if not ut.QUIET:
             print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
-            if not ut.QUIET:
-                print(dbdir)
             workdir, dbname = split(dbdir)
         ibs.workdir  = ut.truepath(workdir)
         ibs.dbname = dbname

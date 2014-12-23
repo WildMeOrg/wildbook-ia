@@ -24,7 +24,7 @@ def default_decorator(input_):
         func_ = input_
         #return ut.indent_func(profile(func_))
         return profile(func_)
-        return func_
+        #return func_
     else:
         #@decorator.decorator
         def closure_default(func):

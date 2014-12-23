@@ -77,7 +77,7 @@ def new_ibeis_windex(ibs, daid_list):
     indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr
     try:
         # Grab the keypoints names and image ids before query time
-        flann_params = ibs.cfg.query_cfg.flann_cfg.get_dict_args()
+        flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
         # Get annotation descriptors that will be searched
         vecs_list = ibs.get_annot_vecs(daid_list)
         flann_cachedir = ibs.get_flann_cachedir()

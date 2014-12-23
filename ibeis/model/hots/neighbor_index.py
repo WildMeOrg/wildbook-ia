@@ -13,7 +13,7 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
 # cache for heavyweight nn structures.
 # ensures that only one is in memory
 NEIGHBOR_CACHE = {}
-NEIGHBOR_CACHE_VUUIDS = {}
+#NEIGHBOR_CACHE_VUUIDS = {}
 MAX_NEIGHBOR_CACHE_SIZE = 8
 
 
@@ -242,6 +242,7 @@ class NeighborIndex(object):
         nnindexer.flann    = flann     # Approximate search structure
         nnindexer.cfgstr   = cfgstr    # configuration id
         nnindexer.cores    = cores
+        nnindexer.num_indexed = len(nnindexer.idx2_vec)
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
         else:
@@ -292,9 +293,22 @@ class NeighborIndex(object):
             (0, 2) (0, 2)
 
         """
-        if len(qfx2_vec) == 0:
-            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(K)
+        if K == 0:
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
+        if K > nnindexer.num_indexed or K == 0:
+            # If we want more points than there are in the database
+            # FLANN will raise an exception. This corner case
+            # will hopefully only be hit if using the multi-indexer
+            # so try this workaround which should seemlessly integrate
+            # when the multi-indexer stacks the subindxer results.
+            # There is a very strong possibility that this will cause errors
+            # If this corner case is used in non-multi-indexer code
+            K = nnindexer.num_indexed
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
+        elif len(qfx2_vec) == 0:
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(0, K)
         else:
+            # perform nearest neighbors
             (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
                 qfx2_vec, K, checks=checks, cores=nnindexer.cores)
             # Ensure that distance returned are between 0 and 1
@@ -302,7 +316,7 @@ class NeighborIndex(object):
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance
         return (qfx2_idx, qfx2_dist)
 
-    def empty_neighbors(nnindexer, K):
+    def empty_neighbors(nnindexer, nQfx, K):
         qfx2_idx  = np.empty((0, K), dtype=np.int32)
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)

@@ -55,12 +55,12 @@ def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
     return chosen_names
 
 
-def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup, system_name_suggest_tup):
-    system_autoname_msg = system_name_suggest_tup[0]
+def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup):
+    #system_autoname_msg = system_name_suggest_tup[0]
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     oracle_msg_list = []
-    oracle_msg_list.append('The overrided system responce was:\n%s'
-                           % (ut.indent(system_autoname_msg, '  ~~'),))
+    #oracle_msg_list.append('The overrided system responce was:\n%s'
+    #                       % (ut.indent(system_autoname_msg, '  ~~'),))
     chosen_names = get_oracle_name_decision(metatup, ibs, qaid, choicetup)
 
     if len(chosen_names) == 0:

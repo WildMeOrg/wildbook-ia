@@ -10,6 +10,7 @@ from ibeis.model.hots import hots_query_result
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
 
 
+@profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             verbose=ut.NOT_QUIET):
     """
@@ -70,7 +71,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
     # <HACK>
-    unique_species = apply_species_with_detector_hack(ibs, cfgdict)
+    unique_species = apply_species_with_detector_hack(ibs, cfgdict, qaid_list,
+                                                      daid_list)
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
     qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs)
@@ -80,12 +82,15 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     return qreq_
 
 
-def apply_species_with_detector_hack(ibs, cfgdict):
+@profile
+def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
     """
     HACK turns of featweights if they cannot be applied
     """
     from ibeis import constants as const
-    unique_species = ibs.get_database_species()
+    # Only apply the hack with repsect to the queried annotations
+    aid_list = np.hstack((qaids, daids)).tolist()
+    unique_species = ibs.get_database_species(aid_list)
     # turn off featureweights when not absolutely sure they are ok to us,)
     species_with_detectors = (
         const.Species.ZEB_GREVY,
@@ -459,22 +464,23 @@ class QueryRequest(object):
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)
 
+    @profile
     def lazy_load(qreq_, verbose=True):
         """
         Performs preloading of all data needed for a batch of queries
         """
         print('[qreq] lazy loading')
-        with ut.Indenter('[qreq.lazy_load]'):
-            qreq_.hasloaded = True
-            #qreq_.ibs = ibs  # HACK
-            qreq_.lazy_preload(verbose=verbose)
-            if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-                qreq_.load_indexer(verbose=verbose)
-                # FIXME: not sure if this is even used
-                #qreq_.load_query_vectors()
-                #qreq_.load_query_keypoints()
-            #if qreq_.qparams.pipeline_root in ['smk']:
-            #    # TODO load vocabulary indexer
+        #with ut.Indenter('[qreq.lazy_load]'):
+        qreq_.hasloaded = True
+        #qreq_.ibs = ibs  # HACK
+        qreq_.lazy_preload(verbose=verbose)
+        if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+            qreq_.load_indexer(verbose=verbose)
+            # FIXME: not sure if this is even used
+            #qreq_.load_query_vectors()
+            #qreq_.load_query_keypoints()
+        #if qreq_.qparams.pipeline_root in ['smk']:
+        #    # TODO load vocabulary indexer
 
     # load query data structures
 
@@ -653,7 +659,7 @@ class QueryParams(object):
                 val[1] = float(val[1])
         qparams.active_filter_list = active_filter_list
         qparams.filt2_stw          = filt2_stw
-        qparams.flann_params       = cfg.flann_cfg.get_dict_args()
+        qparams.flann_params       = cfg.flann_cfg.get_flann_params()
         qparams.pipeline_root      = pipeline_root
         qparams.vsmany             = pipeline_root == 'vsmany'
         qparams.vsone              = pipeline_root == 'vsone'
