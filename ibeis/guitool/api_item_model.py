@@ -228,14 +228,14 @@ class APIItemModel(API_MODEL_BASE):
                              ('cyth' if _atn.CYTHONIZED else 'pyth',
                               model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
-        #print('-----')
-        #def lazy_update_rows():
-        #    with utool.Timer('lazy updater: %r' % (model.name,)):
-        #        printDBG('[model] calling lazy updater: %r' % (model.name,))
-        # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
-        with utool.Timer('[%s] _update_rows2: %r' %
-                         ('cyth' if _atn.CYTHONIZED else 'pyth',
-                          model.name,), newline=False):
+            #print('-----')
+            #def lazy_update_rows():
+            #    with utool.Timer('lazy updater: %r' % (model.name,)):
+            #        printDBG('[model] calling lazy updater: %r' % (model.name,))
+            # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
+            #with utool.Timer('[%s] _update_rows2: %r' %
+            #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
+            #                  model.name,), newline=False):
             if VERBOSE:
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
