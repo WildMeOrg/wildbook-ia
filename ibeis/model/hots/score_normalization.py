@@ -888,7 +888,8 @@ def test_score_normalization():
         (tn_support, tp_support),
         ('true negative scores', 'true positive scores'),
         score_colors=(false_color, true_color),
-        logscale=True,
+        #logscale=True,
+        logscale=False,
         figtitle='sorted nscores',
         fnum=fnum)
 
@@ -948,7 +949,8 @@ def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
         (tn_support, tp_support),
         ('trueneg scores', 'truepos scores'),
         score_colors=(false_color, true_color),
-        logscale=True,
+        #logscale=True,
+        logscale=False,
         figtitle='sorted nscores',
         fnum=fnum,
         pnum=pnum)

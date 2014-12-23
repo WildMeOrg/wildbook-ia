@@ -467,6 +467,14 @@ def query_vsone_verified(ibs, qaids, daids):
     print('finished vsmany part')
     #qreq_vsmany_.qparams.prescore_method
 
+    # HACK TO JUST USE VSMANY
+    # this can ensure that the baseline system is not out of wack
+    USE_VSMANY_HACK = False
+    if USE_VSMANY_HACK:
+        qaid2_qres = qaid2_qres_vsmany
+        qreq_ = qreq_vsmany_
+        return qaid2_qres, qreq_
+
     # build vs one list
     print('[query_vsone_verified] building vsone pairs')
     vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)

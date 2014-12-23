@@ -1635,7 +1635,7 @@ def make_enctext_list(eid_list, enc_cfgstr):
 def make_next_name(ibs, num=None):
     """ Creates a number of names which are not in the database, but does not
     add them """
-    num_names = ibs.get_num_names()
+    base_index = len(ibs._get_all_known_name_rowids()) + 1  # ibs.get_num_names()
     userid = ut.get_user_name()
     timestamp = ut.get_timestamp('tag')
     #timestamp_suffix = '_TMP_'
@@ -1643,10 +1643,10 @@ def make_next_name(ibs, num=None):
     timestamp_prefix = ''
     name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
     if num is None:
-        next_name = name_prefix + '%04d' % num_names
+        next_name = name_prefix + '%04d' % base_index
         return next_name
     else:
-        next_names = [name_prefix + '%04d' % (num_names + x) for x in range(num)]
+        next_names = [name_prefix + '%04d' % (base_index + x) for x in range(num)]
         return next_names
 
 
@@ -2224,6 +2224,7 @@ def merge_names(ibs, merge_name, other_names):
         >>> result = merge_names(ibs, merge_name, other_names)
         >>> # verify results
         >>> print(result)
+        >>> ibs.print_names_table()
     """
     print('[ibsfuncs] merging other_names=%r into merge_name=%r' %
             (other_names, merge_name))

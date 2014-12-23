@@ -616,6 +616,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     CommandLine:
         python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
     """
+    #ibsfuncs.assert_valid_names(name_alias_text_list)
     val_list = ((value,) for value in name_alias_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_ALIAS_TEXT,), val_list, name_rowid_list)
 
@@ -894,7 +895,7 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 def set_name_texts(ibs, name_rowid_list, name_text_list):
     """
     Changes the name text. Does not affect the animals of this name.
-    Effectively an alias.
+    Effectively just changes the TEXT UUID
 
     CommandLine:
         python -m ibeis.control.manual_name_species_funcs --test-set_name_texts

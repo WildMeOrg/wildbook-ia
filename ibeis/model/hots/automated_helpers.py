@@ -193,9 +193,10 @@ def ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     # Make sure that there are not any names in this database
     nid_list2 = ibs2.get_annot_name_rowids(aid_list2, distinguish_unknowns=False)
+    print('Removing names from the incremental test database')
     if not ut.list_all_eq_to(nid_list2, 0):
-        print('Removing names from database')
         ibs2.set_annot_name_rowids(aid_list2, [ibs2.UNKNOWN_NAME_ROWID] * len(aid_list2))
+    ibs2.delete_names(ibs2._get_all_known_name_rowids())
 
     #exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)
     #if not ut.list_all_eq_to(exemplarflag_list2, 0):

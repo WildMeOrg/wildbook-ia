@@ -1461,7 +1461,10 @@ def set_annot_names(ibs, aid_list, name_list):
         >>> print(result)
     """
     #ibs.get_nids_from_text
-    name_rowid_list = ibs.get_name_rowids_from_text(name_list)
+    assert len(aid_list) == len(name_list)
+    assert not isinstance(name_list, six.string_types)
+    #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
+    name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list)
     ibs.update_annot_semantic_uuids(aid_list)
 

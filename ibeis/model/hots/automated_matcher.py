@@ -34,9 +34,12 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     # Query aids in a random order
-    #shuffled_aids_list1 = ut.deterministic_shuffle(aid_list1[:])
-    #aids_chunk1_iter = ut.progress_chunks(shuffled_aids_list1, chunksize, lbl='TEST QUERY')
-    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
+    SHUFFLE_AIDS = True
+    if SHUFFLE_AIDS:
+        aids_list1_ = ut.deterministic_shuffle(aid_list1[:])
+    else:
+        aids_list1_ = aid_list1
+    aids_chunk1_iter = ut.progress_chunks(aids_list1_, chunksize, lbl='TEST QUERY')
     metatup = (ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup
@@ -47,8 +50,6 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
             #sys.stdout.write('\n')
             print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
             print('generator_stack_depth = %r' % ut.get_current_stack_depth())
-            #if ut.get_current_stack_depth() > 53:
-            #    ut.embed()
             #incinfo['interactive'] = (interact_after is not None and count >= interact_after)
             # ensure new annot is added (most likely it will have been preadded)
             qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
@@ -183,7 +184,8 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
             print('... asking user for input')
             if qreq_.normalizer is not None:
                 qreq_.normalizer.visualize(fnum=511, verbose=False)
-            ut.embed()
+            #sh Tinc.sh --test-test_inc_query:0 --ia 0
+            #ut.embed()
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
@@ -221,8 +223,9 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
                     (qaid, merge_name, other_names))
             ibs.merge_names(merge_name, other_names)
             ibs.set_annot_names((qaid,), (merge_name,))
-        # TODO update normalizer
-        update_normalizer(ibs, qres, qreq_, chosen_names)
+        # TODO make sure update normalizer works
+        if qreq_.normalizer is not None:
+            update_normalizer(ibs, qres, qreq_, chosen_names)
         # Do update callback so the name updates in the main GUI
         interactive = incinfo.get('interactive', False)
         update_callback = incinfo.get('update_callback', None)
