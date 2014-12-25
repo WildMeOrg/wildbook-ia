@@ -168,7 +168,7 @@ def get_system_exemplar_suggestion(ibs, qaid):
     elif is_non_exemplar and can_add_more:
         print('Testing exemplar disinctiveness')
         with ut.Indenter('[exemplar_test]'):
-            exemplar_distinctivness_thresh = ibs.cfg.other_cfg.exemplar_distinctivness_thresh
+            exemplar_distinctiveness_thresh = ibs.cfg.other_cfg.exemplar_distinctiveness_thresh
             # Logic to choose query based on exemplar score distance
             qaid_list = [qaid]
             daid_list = other_exemplars
@@ -179,7 +179,7 @@ def get_system_exemplar_suggestion(ibs, qaid):
             else:
                 #ut.embed()
                 aid_arr, score_arr = qres.get_aids_and_scores()
-                is_distinctive = np.all(aid_arr < exemplar_distinctivness_thresh)
+                is_distinctive = np.all(aid_arr < exemplar_distinctiveness_thresh)
     else:
         is_distinctive = True
         print('Not testing exemplar disinctiveness')

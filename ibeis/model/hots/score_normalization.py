@@ -6,7 +6,7 @@ GOALS:
        * distinctiveness from different location
 
     2) 1-vs-1
-       * uses distinctivness and foreground when available
+       * uses distinctiveness and foreground when available
        * start with ratio test and ransac
 
     3) First N decision are interactive until we learn a good threshold

@@ -147,7 +147,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> # one-vs-one:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> import utool as ut
         >>> from ibeis.model.hots import pipeline
         >>> # pipeline.rrr()
@@ -722,7 +722,7 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
         >>> # execute function
         >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights)
-        >>> assert nnfilts[0] == ['ratio']
+        >>> assert nnfilts[0] == [hstypes.FiltKeys.RATIO]
         >>> ratio_scores = nnfilts[2][0]
         >>> assert np.all(ratio_scores <= 1.0)
         >>> assert np.all(ratio_scores >= 0.0)
@@ -768,7 +768,7 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
     ]
 
     # Build feature scores as feature weights scaled by values in FiltCfg
-    invert_score_filter_set = {'ratio'}
+    invert_score_filter_set = {hstypes.FiltKeys.RATIO}
     qfx2_score_list = [
         None if weight == 0 else (
             np.multiply(qfx2_weights, weight)
@@ -885,7 +885,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         >>> ibs, qreq_ = get_pipeline_testdata('testdb1', cfgdict=cfgdict)
         >>> locals_ = testrun_pipeline_upto(qreq_, 'build_chipmatches')
         >>> args = [locals_[key] for key in [
-        >>>    'qaid2_nns', 'qaid2_nnvalid0', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
+        ...    'qaid2_nns', 'qaid2_nnvalid0', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
         >>> (qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnfiltagg) = args
         >>> # execute function
         >>> qaid2_chipmatch = pipeline.build_chipmatches(qreq_, *args, verbose=verbose)
@@ -1394,7 +1394,7 @@ def get_prescore_shortlist(qreq_, qaid, chipmatch):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
-        >>> import utool
+        >>> import utool  # NOQA
         >>> cfgdict = dict()
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
@@ -1427,8 +1427,6 @@ def prescore_nsum(qreq_, daid2_prescore, nShortlist):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
-        >>> import numpy as np
-        >>> import utool
         >>> cfgdict = dict(codename='nsum_unnorm', index_method='single')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification', verbose=True)
@@ -1482,7 +1480,6 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots import pipeline
-        >>> import utool
         >>> cfgdict = dict()
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
@@ -1654,9 +1651,8 @@ def score_chipmatch(qreq_, qaid, chipmatch, score_method):
     Example:
         >>> # DISABLE_ENABLE
         >>> # PRESCORE
-        >>> from ibeis.model.hots.pipeline import *
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
-        >>> import utool as ut
         >>> cfgdict = dict(codename='nsum')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
@@ -1668,9 +1664,8 @@ def score_chipmatch(qreq_, qaid, chipmatch, score_method):
 
     Example2:
         >>> # POSTSCORE
-        >>> from ibeis.model.hots.pipeline import *
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> from ibeis.model.hots import pipeline
-        >>> import utool as ut
         >>> cfgdict = dict(codename='nsum')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
@@ -1789,7 +1784,7 @@ def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
     """
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> from ibeis.model.hots import pipeline
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict)

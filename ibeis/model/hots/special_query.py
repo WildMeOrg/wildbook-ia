@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 import numpy as np
+from ibeis.model.hots import hstypes
 from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
@@ -148,7 +149,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
         >>> qaids = valid_aids[0:1]
         >>> daids = valid_aids[1:]
         >>> qaid = qaids[0]
-        >>> filtkey = 'distinctivness'
+        >>> filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         >>> use_cache = False
         >>> # execute function
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
@@ -195,7 +196,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
 @profile
 def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
     """
-    gets the distinctivenss score from vsmany and applies it to vsone
+    gets the distinctiveness score from vsmany and applies it to vsone
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -204,7 +205,7 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         >>> qaids = valid_aids[0:1]
         >>> daids = valid_aids[1:]
         >>> qaid = qaids[0]
-        >>> filtkey = 'distinctivness'
+        >>> filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         >>> use_cache = False
         >>> # execute function
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
@@ -240,7 +241,7 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
         norm_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        p = 1.0  # expondent to augment distinctivness scores.  # TODO: paramaterize
+        p = 1.0  # expondent to augment distinctiveness scores.  # TODO: paramaterize
         distinctiveness_scores = norm_dist ** p
         new_scores[:] = distinctiveness_scores  #
         newfsv_list.append(new_fsv_vsone)
@@ -270,7 +271,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         >>> qaids = valid_aids[0:1]
         >>> daids = valid_aids[1:]
         >>> qaid = qaids[0]
-        >>> filtkey = 'distinctivness'
+        >>> filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         >>> use_cache = False
         >>> # execute function
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
@@ -299,7 +300,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
     qres_vsone.cfgstr = qreq_vsone_.get_cfgstr()
     # Find positions of weight filters and score filters
     # so we can apply a weighted average
-    #numer_filters  = ['lnbnn', 'ratio']
+    #numer_filters  = [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.RATIO]
     def index_partition(item_list, part1_items):
         """
         returns two lists. The first are the indecies of items in item_list that
@@ -307,14 +308,21 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         in part1_items. items in part1_items that are not in item_list are
         ignored
         """
-        part1_indexes = np.array([item_list.index(item)
-                                  for item in part1_items
-                                  if item in item_list])
+        part1_indexes_ = [
+            item_list.index(item)
+            for item in part1_items
+            if item in item_list
+        ]
+        part1_indexes = np.array(part1_indexes_)
         part2_indexes = np.setdiff1d(np.arange(len(item_list)), part1_indexes)
+        part1_indexes = part1_indexes.astype(np.int32)
+        part2_indexes = part2_indexes.astype(np.int32)
         return part1_indexes, part2_indexes
 
-    weight_filters = ['fg', 'distinctivness']
-    weight_filtxs, nonweight_filtxs = index_partition(qres_vsone.filtkey_list, weight_filters)
+    weight_filters = [hstypes.FiltKeys.FG, hstypes.FiltKeys.DISTINCTIVENESS]
+    item_list = qres_vsone.filtkey_list
+    part1_items = weight_filters
+    weight_filtxs, nonweight_filtxs = index_partition(item_list, part1_items)
 
     def weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs):
         r"""
@@ -498,7 +506,7 @@ def query_vsone_verified(ibs, qaids, daids):
             continue
         qres_vsone.assert_self()
         qres_vsmany.assert_self()
-        filtkey = 'distinctiveness'
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         newfsv_list, newscore_aids = get_new_qres_distinctiveness(
             qres_vsone, qres_vsmany, top_aids, filtkey)
         apply_new_qres_filter_scores(

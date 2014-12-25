@@ -57,7 +57,7 @@ if RVEC_TYPE == np.int8:
     RVEC_INFO = np.iinfo(RVEC_TYPE)
     RVEC_MAX = 128
     RVEC_MIN = -128
-    # Psuedo max values is used for a quantization tricks where you pack more data
+    # Psuedo max values is used for a quantization trick where you pack more data
     # into a smaller space than would normally be allowed. We are able to do this
     # because values will hardly ever be close to the true max.
     RVEC_PSEUDO_MAX = RVEC_MAX * 2
@@ -78,3 +78,10 @@ FM_DTYPE  = INTEGER_TYPE
 FS_DTYPE  = FLOAT_TYPE
 # Feature Rank datatype
 FK_DTYPE  = np.int16
+
+
+class FiltKeys(object):
+    DISTINCTIVENESS = 'distinctiveness'
+    FG = 'fg'
+    RATIO = 'ratio'
+    LNBNN = 'lnbnn'
