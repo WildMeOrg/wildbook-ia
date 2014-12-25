@@ -102,12 +102,16 @@ def test_inc_query(ibs_gt, num_initial=0):
     interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
     # Add information to an empty database from a groundtruth database
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
-    back = main_module._init_gui()
-    back.connect_ibeis_control(ibs)
+    if interactive_after is not None:
+        back = main_module._init_gui()
+        back.connect_ibeis_control(ibs)
+    else:
+        back = None
     self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                        interactive_after=interactive_after,
                                        back=back)
-    guitool.qtapp_loop()
+    if interactive_after is not None:
+        guitool.qtapp_loop()
 
 
 def incremental_test_qt(ibs, num_initial=0):

@@ -153,6 +153,7 @@ def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     just tests uuids
 
     if anything goes wrong this should fix it:
+        aid_list1 = ibs_gt.get_valid_aids()
         ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
         ibsfuncs.fix_remove_visual_dupliate_annotations(ibs_gt)
@@ -269,7 +270,7 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> num_initial = 0
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
@@ -277,7 +278,7 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
@@ -288,7 +289,7 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     aid_list1 = ibs_gt.get_valid_aids()
 
     # If reset is true the test database is started completely from scratch
-    reset = False
+    reset = ut.get_argflag('--reset')
     #reset = True
 
     aid1_to_aid2 = {}  # annotation mapping

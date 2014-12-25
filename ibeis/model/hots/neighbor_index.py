@@ -118,7 +118,6 @@ def request_background_nnindexer(qreq_, daid_list):
     CURRENT_THREAD = threadobj
 
 
-
 def background_flann_func(idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
                           visual_uuid_list, min_reindex_thresh):
     """ FIXME: Duplicate code """
