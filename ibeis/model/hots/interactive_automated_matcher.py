@@ -20,39 +20,9 @@ ut.noinject(__name__, '[qtinc]')
 INC_LOOP_BASE = guitool.__PYQT__.QtCore.QObject
 
 
-def incremental_test_qt(ibs, num_initial=0):
-    """
-    CommandLine:
-        python -m ibeis.model.hots.interactive_automated_matcher --test-incremental_test_qt
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> from ibeis.model.hots.interactive_automated_matcher import *  # NOQA
-        >>> main_locals = ibeis.main(db='testdb1')
-        >>> ibs = main_locals['ibs']
-        >>> back = main_locals['back']
-        >>> #num_initial = 0
-        >>> num_initial = 0
-        >>> incremental_test_qt(ibs, num_initial)
-        >>> pt.present()
-        >>> execstr = ibeis.main_loop(main_locals)
-        >>> print(execstr)
-    """
-    import ibeis.constants as const
-    species = const.Species.ZEB_PLAIN
-    qaid_list = ibs.get_valid_aids(species=species)
-    #daid_list = ibs.get_valid_aids()
-    exec_interactive_incremental_queries(ibs, qaid_list)
-
-
-def exec_interactive_incremental_queries(ibs, qaid_list):
-    self = IncQueryHarness()
-    self = self.begin_incremental_query(ibs, qaid_list)
-
-
 def test_inc_query(ibs_gt, num_initial=0):
     """
+    entry point for interactive query tests
     test_interactive_incremental_queries
 
     Args:
@@ -78,7 +48,9 @@ def test_inc_query(ibs_gt, num_initial=0):
         profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:3
         profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:0
 
+        # Writes out test script
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
+
         sh Tinc.sh --test-test_inc_query:0
         sh Tinc.sh --test-test_inc_query:1
         sh Tinc.sh --test-test_inc_query:2
@@ -127,12 +99,46 @@ def test_inc_query(ibs_gt, num_initial=0):
     num_initial
     self = IncQueryHarness()
     num_initial = ut.get_argval(('--num-initial', '--ninit'), int, 0)
+    interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
     # Add information to an empty database from a groundtruth database
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
     back = main_module._init_gui()
     back.connect_ibeis_control(ibs)
-    self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2, back=back)
+    self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2,
+                                       interactive_after=interactive_after,
+                                       back=back)
     guitool.qtapp_loop()
+
+
+def incremental_test_qt(ibs, num_initial=0):
+    """
+    CommandLine:
+        python -m ibeis.model.hots.interactive_automated_matcher --test-incremental_test_qt
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.interactive_automated_matcher import *  # NOQA
+        >>> main_locals = ibeis.main(db='testdb1')
+        >>> ibs = main_locals['ibs']
+        >>> back = main_locals['back']
+        >>> #num_initial = 0
+        >>> num_initial = 0
+        >>> incremental_test_qt(ibs, num_initial)
+        >>> pt.present()
+        >>> execstr = ibeis.main_loop(main_locals)
+        >>> print(execstr)
+    """
+    import ibeis.constants as const
+    species = const.Species.ZEB_PLAIN
+    qaid_list = ibs.get_valid_aids(species=species)
+    #daid_list = ibs.get_valid_aids()
+    exec_interactive_incremental_queries(ibs, qaid_list)
+
+
+def exec_interactive_incremental_queries(ibs, qaid_list):
+    self = IncQueryHarness()
+    self = self.begin_incremental_query(ibs, qaid_list)
 
 
 class IncQueryHarness(INC_LOOP_BASE):
@@ -179,7 +185,8 @@ class IncQueryHarness(INC_LOOP_BASE):
             #'try_decision_callback': self.try_decision_signal.emit
         }
 
-    def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2, back=None):
+    def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2,
+                               interactive_after=None, back=None):
         """
         Adds and queries new annotations one at a time with oracle guidance
         """
@@ -194,10 +201,10 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo['nTotal'] = len(aid_list1)
         #incinfo['nTotal'] = len(aid_list1)
         # Create test query generator
-        interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
         next_query_callback = self.incinfo['next_query_callback']  # NOQA
         del self.incinfo['next_query_callback']
-        self.inc_query_gen = automatch.test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
+        self.inc_query_gen = automatch.test_generate_incremental_queries(
+            ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
         # When in interactive mode it seems like the stack never gets out of hand
         # but if the oracle is allowed to make decisions and emit signals like
         # the user then we get into a maximum recursion limit.

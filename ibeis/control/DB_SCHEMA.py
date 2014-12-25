@@ -217,7 +217,7 @@ def post_1_2_0(db, ibs=None):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
             >>> import ibeis
-            >>> import sys
+            >>> #import sys
             #>>> sys.argv.append('--force-fresh')
             #>>> ibs = ibeis.opendb('PZ_MTEST')
             #>>> ibs = ibeis.opendb('testdb1')
@@ -397,14 +397,17 @@ def post_1_2_1(db, ibs=None):
         db.set(ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
         #ut.embed()
         # HACK TODO use actual SQL to fix and move to 1.2.0
+
         def get_annot_names_v121(aid_list):
             name_rowid_list = ibs.get_annot_name_rowids(aid_list)
             name_text_list = ibs.db.get(NAME_TABLE_v121, (NAME_TEXT,), name_rowid_list)
-            name_text_list = [UNKNOWN
-                              if rowid == UNKNOWN_NAME_ROWID or name_text is None
-                              else name_text
-                              for name_text, rowid in zip(name_text_list, name_rowid_list)]
+            name_text_list = [
+                UNKNOWN
+                if rowid == UNKNOWN_NAME_ROWID or name_text is None
+                else name_text
+                for name_text, rowid in zip(name_text_list, name_rowid_list)]
             return name_text_list
+
         def get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup):
             visual_infotup = _visual_infotup
             image_uuid_list, verts_list, theta_list = visual_infotup
@@ -415,23 +418,26 @@ def post_1_2_1(db, ibs=None):
             semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
                                 name_list, species_list)
             return semantic_infotup
+
         def get_annot_visual_uuid_info_v121(aid_list):
             image_uuid_list = ibs.get_annot_image_uuids(aid_list)
             verts_list      = ibs.get_annot_verts(aid_list)
             theta_list      = ibs.get_annot_thetas(aid_list)
             visual_infotup = (image_uuid_list, verts_list, theta_list)
             return visual_infotup
+
         def update_annot_semantic_uuids_v121(aid_list, _visual_infotup=None):
-            semantic_infotup = ibs.get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup)
+            semantic_infotup = get_annot_semantic_uuid_info_v121(aid_list, _visual_infotup)
             annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
             ibs.db.set(ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+
         def update_annot_visual_uuids_v121(aid_list):
-            visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+            visual_infotup = get_annot_visual_uuid_info_v121(aid_list)
             annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
             ibs.db.set(ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
             # If visual uuids are changes semantic ones are also changed
             update_annot_semantic_uuids_v121(aid_list, visual_infotup)
-        ibs.update_annot_visual_uuids(aid_list)
+        update_annot_visual_uuids_v121(aid_list)
 
 
 # =======================

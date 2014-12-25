@@ -126,8 +126,13 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
         num_subindexers = len(covered_aids_list)
+        # If the number of bins gets too big do a reindex
+        # in the background
         if num_subindexers > qreq_.qparams.max_subindexers:
-            aids_list = [sorted(ut.flatten(covered_aids_list))]
+            #  TODO: Dont start background request if one already exists
+            neighbor_index.request_background_nnindexer(qreq_, daid_list)
+            #aids_list = [sorted(ut.flatten(covered_aids_list))]
+            aids_list = covered_aids_list
         else:
             aids_list = covered_aids_list
         if len(uncovered_aids) > 0:
@@ -159,37 +164,6 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     #mxer.unknown_index = unknown_index
     mxer = MultiNeighborIndex(nn_indexer_list)
     return mxer
-
-
-def subindexer_time_experiment():
-    """
-    builds plot of number of annotations vs indexer build time.
-    """
-    import ibeis
-    import utool as ut
-    import pyflann
-    import numpy as np
-    import plottool as pt
-    ibs = ibeis.opendb(db='PZ_Master0')
-    daid_list = ibs.get_valid_aids()
-    count_list = []
-    time_list = []
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
-    for count in ut.ProgressIter(range(1, 301)):
-        daids_ = daid_list[:]
-        np.random.shuffle(daids_)
-        daids = daids_[0:count]
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann = pyflann.FLANN()
-            flann.build_index(vecs, **flann_params)
-        count_list.append(count)
-        time_list.append(t.ellapsed)
-    count_arr = np.array(count_list)
-    time_arr = np.array(time_list)
-    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
-             x_label='num_annotations', y_label='FLANN build time')
-    pt.update()
 
 
 def test_mindexer():
@@ -281,7 +255,6 @@ class MultiNeighborIndex(object):
         Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
             >>> qfx2_vec = np.empty((0, 128), dtype=mxer.get_dtype())

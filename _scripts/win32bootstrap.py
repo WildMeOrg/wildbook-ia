@@ -4,6 +4,7 @@ Please only download files as needed.
 """
 from __future__ import division, print_function
 import parse
+import os
 import utool
 import utool as ut
 from six.moves import filterfalse
@@ -60,14 +61,15 @@ def get_uninstalled_project_names():
         uninstalled_set = pkg_set.difference(installed_set)
         uninstalled_list = list(uninstalled_set)
     except Exception as ex:
+        print(ex)
         uninstalled_list = KNOWN_PKG_LIST
     return uninstalled_list
 
 
 def build_uninstall_script():
-    import utool as ut
+    #import utool as ut
     from os.path import join
-    import parse
+    #import parse
     pydir = 'C:/Python27'
     uninstall_list = ut.glob(pydir, 'Remove*.exe')
     cmd_list = []
@@ -252,7 +254,10 @@ def main():
         print('specify --all to download all packages')
         print('or specify --dl pkgname to download that package')
     pkg_list.extend(ut.get_argval('--dl', list, []))
-    bootstrap_sysreq(pkg_list)
+    pkg_exe_list = bootstrap_sysreq(pkg_list)
+    if ut.get_argflag('--run'):
+        for pkg_exe in pkg_exe_list:
+            ut.cmd(pkg_exe)
 
 
 def bootstrap_sysreq(pkg_list='all'):
@@ -272,6 +277,7 @@ def bootstrap_sysreq(pkg_list='all'):
     print('TODO: Figure out how to run these installers without the GUI')
     print(text)
     print(pkg_list)
+    return pkg_exe_list
 
 
 def download_win_packages(href_list):

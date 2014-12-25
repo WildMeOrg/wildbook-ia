@@ -802,7 +802,6 @@ class FeatureConfig(ConfigBase):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
         >>> from ibeis.model import Config  # NOQA
         >>> from ibeis.model.Config import *  # NOQA
         >>> feat_cfg = Config.FeatureConfig()

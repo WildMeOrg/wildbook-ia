@@ -13,26 +13,15 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
 # cache for heavyweight nn structures.
 # ensures that only one is in memory
 NEIGHBOR_CACHE = {}
-#NEIGHBOR_CACHE_VUUIDS = {}
 MAX_NEIGHBOR_CACHE_SIZE = 8
+CURRENT_THREAD = None
 
 
 def get_nnindexer_uuid_map_fpath(ibs):
     flann_cachedir = ibs.get_flann_cachedir()
-    uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
+    uuid_map_fname = 'uuid_map.shelf'
+    uuid_map_fpath = join(flann_cachedir, uuid_map_fname)
     return uuid_map_fpath
-
-
-#import atexit
-#@atexit.register
-#def __cleanup():
-#    """ prevents flann errors (not for cleaning up individual objects) """
-#    global NEIGHBOR_CACHE
-#    try:
-#        NEIGHBOR_CACHE.clear()
-#        del NEIGHBOR_CACHE
-#    except NameError:
-#        pass
 
 
 @profile
@@ -87,6 +76,60 @@ def clear_uuid_cache(ibs):
         uuid_map.clear()
 
 
+def request_background_nnindexer(qreq_, daid_list):
+    """ FIXME: Duplicate code """
+    global CURRENT_THREAD
+    if CURRENT_THREAD is None or not CURRENT_THREAD.isAlive():
+        # Make sure this function doesn't run if it is already running
+        return False
+    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
+    flann_cfgstr = qreq_.qparams.flann_cfgstr
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
+    # HACK: feature weights should probably have their own config
+    #fw_cfgstr = 'weighted=%r' % (qreq_.qparams.fg_weight != 0)
+    #indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, feat_cfgstr, fw_cfgstr))
+    indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, featweight_cfgstr))
+    flann_cachedir = qreq_.ibs.get_flann_cachedir()
+    # Save inverted cache uuid mappings for
+    min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+    # Grab the keypoints names and image ids before query time?
+    flann_params =  qreq_.qparams.flann_params
+    # Get annot descriptors to index
+    vecs_list = qreq_.ibs.get_annot_vecs(daid_list)
+    fgws_list = get_fgweights_hack(qreq_, daid_list)
+    preptup = prepare_index_data(daid_list, vecs_list, fgws_list, verbose=True)
+    (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
+    use_cache = True
+    use_params_hash = False
+    # Dont hash rowids when given enough info in indexer_cfgstr
+    flannkw = dict(cache_dir=flann_cachedir, cfgstr=indexer_cfgstr,
+                   flann_params=flann_params, use_cache=use_cache,
+                   use_params_hash=use_params_hash)
+    #cores = flann_params.get('cores', 0)
+    # Build/Load the flann index
+    #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
+    visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
+
+    threadobj = ut.spawn_background_process(
+        background_flann_func, idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
+        visual_uuid_list, min_reindex_thresh)
+    CURRENT_THREAD = threadobj
+
+
+
+def background_flann_func(idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
+                          visual_uuid_list, min_reindex_thresh):
+    """ FIXME: Duplicate code """
+    nntool.flann_cache(idx2_vec, **flannkw)
+    if len(visual_uuid_list) > min_reindex_thresh:
+        # let the multi-indexer know about any big caches we've made
+        # multi-indexer
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            uuid_map[daids_hashid] = visual_uuid_list
+
+
 @profile
 def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                                      use_cache=True):
@@ -98,13 +141,10 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 
     """
     global NEIGHBOR_CACHE
-    # TODO: SYSTEM use visual uuids
-    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
-
-    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
+    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     flann_cfgstr = qreq_.qparams.flann_cfgstr
     featweight_cfgstr = qreq_.qparams.featweight_cfgstr
-
+    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
     # HACK: feature weights should probably have their own config
     #fw_cfgstr = 'weighted=%r' % (qreq_.qparams.fg_weight != 0)
     #indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, feat_cfgstr, fw_cfgstr))
@@ -115,15 +155,6 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         nnindexer = NEIGHBOR_CACHE[indexer_cfgstr]
     else:
         flann_cachedir = qreq_.ibs.get_flann_cachedir()
-        # Save inverted cache uuid mappings for
-        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-        if len(daid_list) > min_reindex_thresh:
-            # let the multi-indexer know about any big caches we've made
-            # multi-indexer
-            uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-                uuid_map[daids_hashid] = visual_uuid_list
         # Grab the keypoints names and image ids before query time?
         flann_params =  qreq_.qparams.flann_params
         # Get annot descriptors to index
@@ -137,6 +168,15 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             ut.printex(ex, True, msg_='cannot build inverted index',
                             key_list=['ibs.get_infostr()'])
             raise
+        # Save inverted cache uuid mappings for
+        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+        if len(daid_list) > min_reindex_thresh:
+            # let the multi-indexer know about any big caches we've made
+            # multi-indexer
+            uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
+            with ut.shelf_open(uuid_map_fpath) as uuid_map:
+                visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
+                uuid_map[daids_hashid] = visual_uuid_list
         if len(NEIGHBOR_CACHE) > MAX_NEIGHBOR_CACHE_SIZE:
             NEIGHBOR_CACHE.clear()
         NEIGHBOR_CACHE[indexer_cfgstr] = nnindexer
@@ -544,6 +584,109 @@ def test_incremental_add(ibs):
 
     #for uuids in uuid_set
     #    if
+
+
+def subindexer_time_experiment():
+    """
+    builds plot of number of annotations vs indexer build time.
+
+    TODO: time experiment
+    """
+    import ibeis
+    import utool as ut
+    import pyflann
+    import numpy as np
+    import plottool as pt
+    ibs = ibeis.opendb(db='PZ_Master0')
+    daid_list = ibs.get_valid_aids()
+    count_list = []
+    time_list = []
+    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+    for count in ut.ProgressIter(range(1, 301)):
+        daids_ = daid_list[:]
+        np.random.shuffle(daids_)
+        daids = daids_[0:count]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann = pyflann.FLANN()
+            flann.build_index(vecs, **flann_params)
+        count_list.append(count)
+        time_list.append(t.ellapsed)
+    count_arr = np.array(count_list)
+    time_arr = np.array(time_list)
+    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
+             x_label='num_annotations', y_label='FLANN build time')
+    pt.update()
+
+
+def subindexer_add_time_experiment():
+    """
+    builds plot of number of annotations vs indexer build time.
+
+    TODO: time experiment
+
+    CommandLine:
+        python -m ibeis.model.hots.multi_index --test-subindexer_add_time_experiment
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> result = subindexer_add_time_experiment()
+        >>> # verify results
+        >>> print(result)
+    """
+    import ibeis
+    import utool as ut
+    import pyflann
+    import numpy as np
+    import plottool as pt
+    #ibs = ibeis.opendb(db='PZ_Master0')
+    ibs = ibeis.opendb(db='PZ_MTEST')
+    daid_list = ibs.get_valid_aids()
+    # Rebuild Part Part
+    count_list = []
+    time_list = []
+    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+    max_num = min(301, len(daid_list))
+    daids_ = daid_list[:]
+    np.random.shuffle(daids_)
+    for count in ut.ProgressIter(range(1, max_num)):
+        daids_ = daid_list[:]
+        np.random.shuffle(daids_)
+        daids = daids_[0:count]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann = pyflann.FLANN()
+            flann.build_index(vecs, **flann_params)
+        count_list.append(count)
+        time_list.append(t.ellapsed)
+    count_arr = np.array(count_list)
+    time_arr = np.array(time_list)
+    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
+             x_label='num_annotations', y_label='FLANN build time')
+    # Add Part
+    count_list2 = []
+    time_list2 = []
+    daids = daids_[0:count]
+    vecs = np.vstack(ibs.get_annot_vecs(daids))
+    flann = pyflann.FLANN()
+    flann.build_index(vecs, **flann_params)
+    for count in ut.ProgressIter(range(2, max_num)):
+        daids_ = daid_list[:]
+        np.random.shuffle(daids_)
+        daids = daids_[count:count + 1]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann.add_points(vecs)
+        count_list2.append(count)
+        time_list2.append(t.ellapsed)
+    count_arr2 = np.array(count_list2)
+    time_arr2 = np.array(time_list2)
+    pt.plot2(count_arr2, time_arr2, marker='-', equal_aspect=False,
+             x_label='num_annotations', y_label='FLANN add time')
+    pt.update()
 
 
 if __name__ == '__main__':
