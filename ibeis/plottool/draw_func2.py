@@ -276,7 +276,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
           unitbox=False, flipx=False, flipy=False, title=None,
           equal_aspect=True, *args, **kwargs):
     do_plot = True
-    ax = gca()
+    # ensure length
     if len(x_data) != len(y_data):
         warnstr = '[df2] ! Warning:  len(x_data) != len(y_data). Cannot plot2'
         warnings.warn(warnstr)
@@ -287,6 +287,12 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         warnings.warn(warnstr)
         draw_text(warnstr)
         do_plot = False
+    # ensure in ndarray
+    if isinstance(x_data, list):
+        x_data = np.array(x_data)
+    if isinstance(y_data, list):
+        y_data = np.array(y_data)
+    ax = gca()
     if do_plot:
         ax.plot(x_data, y_data, marker, *args, **kwargs)
 

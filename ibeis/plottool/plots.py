@@ -44,7 +44,6 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):
     Example:
         >>> from plottool import *  # NOQA
         >>> import plottool as pt
-        >>> from plottool import df2
         >>> x_data = [1, 1, 2, 3, 3, 3, 4, 4, 5]
         >>> y_data = [1, 2, 1, 2, 1, 4, 4, 5, 1]
         >>> pt.plots.plot_stems(x_data, y_data)
