@@ -344,6 +344,9 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         weight_fs    = new_fsv_vsone.T.take(weight_filtxs, axis=0).T.prod(axis=1)
         nonweight_fs = new_fsv_vsone.T.take(nonweight_filtxs, axis=0).T.prod(axis=1)
         weight_fs_norm01 = weight_fs / weight_fs.sum()
+        #weight_fs_norm01[np.isnan(weight_fs_norm01)] = 0.0
+        # If weights are nan, fill them with zeros
+        weight_fs_norm01 = np.nan_to_num(weight_fs_norm01)
         new_fs_vsone = np.multiply(nonweight_fs, weight_fs_norm01)
         return new_fs_vsone
 
@@ -509,8 +512,9 @@ def query_vsone_verified(ibs, qaids, daids):
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         newfsv_list, newscore_aids = get_new_qres_distinctiveness(
             qres_vsone, qres_vsmany, top_aids, filtkey)
-        apply_new_qres_filter_scores(
-            qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
+        with ut.EmbedOnException():
+            apply_new_qres_filter_scores(
+                qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
 
     print('finished vsone queries')
     if ut.VERBOSE:
