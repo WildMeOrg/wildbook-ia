@@ -86,7 +86,7 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
     qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
         qaids, daids, cfgdict=vsmany_cfgdict, return_request=True, use_cache=use_cache)
     isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
-    assert isnsum
+    assert isnsum, 'not nsum'
     assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
     return qaid2_qres_vsmany, qreq_vsmany_
 
@@ -121,15 +121,19 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
     """
     vsone_query_pairs = []
     nNameShortlistVsone = 3
+    nAnnotPerName = 2
     for qaid, qres_vsmany in six.iteritems(qaid2_qres_vsmany):
-        sorted_nids, sorted_nscores = qres_vsmany.get_sorted_nids_and_scores(ibs=ibs)
-        top_nids = ut.listclip(sorted_nids, nNameShortlistVsone)
+        nscoretup = qres_vsmany.get_nscoretup(ibs)
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+        #top_nid_list = ut.listclip(sorted_nids, nNameShortlistVsone)
+        top_aids_list = ut.listclip(sorted_aids, nNameShortlistVsone)
+        top_aid_list = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
         # get top annotations beloning to the database query
         # TODO: allow annots not in daids to be included
-        top_unflataids = ibs.get_name_aids(top_nids, enable_unknown_fix=True)
-        flat_top_aids = ut.flatten(top_unflataids)
-        top_aids = ut.intersect_ordered(flat_top_aids, qres_vsmany.daids)
-        vsone_query_pairs.append((qaid, top_aids))
+        #top_unflataids = ibs.get_name_aids(top_nid_list, enable_unknown_fix=True)
+        #flat_top_aids = ut.flatten(top_unflataids)
+        #top_aid_list = ut.intersect_ordered(flat_top_aids, qres_vsmany.daids)
+        vsone_query_pairs.append((qaid, top_aid_list))
     print('built %d pairs' % (len(vsone_query_pairs),))
     return vsone_query_pairs
 

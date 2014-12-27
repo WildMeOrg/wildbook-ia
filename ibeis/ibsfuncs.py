@@ -51,7 +51,7 @@ def postinject_func(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aids_list = ibs.get_name_aids(ibs.get_valid_nids())
         >>> # indirectly test postinject_func
@@ -283,7 +283,8 @@ def assert_valid_species(ibs, species_list, iswarning=True):
             species in const.VALID_SPECIES  # or species == const.UNKNOWN
             for species in species_list
         ]
-        assert all(isvalid_list), 'invalid species added: %r' % (ut.filterfalse_items(species_list, isvalid_list),)
+        assert all(isvalid_list), 'invalid species found in %r: %r' % (
+            ut.get_caller_name(range(1, 3)), ut.filterfalse_items(species_list, isvalid_list),)
     except AssertionError as ex:
         ut.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -376,7 +377,7 @@ def check_annot_consistency(ibs, aid_list=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = check_annot_consistency(ibs, aid_list)
@@ -415,7 +416,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('GZ_ALL')
         >>> fix_remove_visual_dupliate_annotations(ibs)
     """
@@ -734,7 +735,7 @@ def get_annot_is_hard(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0::2]
         >>> is_hard_list = get_annot_is_hard(ibs, aid_list)
@@ -870,7 +871,7 @@ def get_database_species(ibs, aid_list=None):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = ibs.get_database_species()
         >>> print(result)
@@ -878,7 +879,7 @@ def get_database_species(ibs, aid_list=None):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> result = ibs.get_database_species()
         >>> print(result)
@@ -900,7 +901,7 @@ def get_database_species_count(ibs, aid_list=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = ibs.get_database_species_count()
@@ -987,7 +988,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> method = ibs.get_annot_name_rowids
         >>> unflat_rowids = ibs.get_name_aids(ibs.get_valid_nids())
@@ -1320,7 +1321,7 @@ def get_ungrouped_gids(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_all_encounters()
@@ -1361,7 +1362,7 @@ def update_ungrouped_special_encounter(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb9')
         >>> # execute function
@@ -1508,7 +1509,7 @@ def print_annotation_table(ibs, verbosity=1):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> verbosity = 1
         >>> print_annotation_table(ibs, verbosity)
@@ -1766,7 +1767,7 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
 @__injectable
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     r"""
-    #>>> import ibeis
+    #>>> import ibeis  # NOQA
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-group_annots_by_known_names
@@ -1828,7 +1829,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None
@@ -1915,7 +1916,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::4]
         >>> per_name = 1
@@ -1976,7 +1977,7 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
         >>> per_name = 1
@@ -2077,7 +2078,7 @@ def redownload_detection_models(ibs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = redownload_detection_models(ibs)
         >>> print(result)
@@ -2114,7 +2115,7 @@ def fix_invalid_nids(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> # execute function
@@ -2154,7 +2155,7 @@ def fix_invalid_name_texts(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> # execute function
@@ -2215,7 +2216,7 @@ def merge_names(ibs, merge_name, other_names):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> merge_name = 'zebra'

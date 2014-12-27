@@ -32,15 +32,15 @@ Have:
       aggregating match weights until the end.
     * Put test query mode into the main application and work on the interface for it.
     * add matches to multiple animals (merge)
+    * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
+    * score normalization update. on add the new support data, reapply bayes
+     rule, and save to the current cache for a given algorithm configuration.
+    * spawn background process to reindex chunks of data
 
 
 TODO:
-    * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
     * Improve vsone scoring.
-    * score normalization update. on add the new support data, reapply bayes
-     rule, and save to the current cache for a given algorithm configuration.
     * test case where there is a 360 view that is linkable from the tests case
-    * spawn background process to reindex chunks of data
     * ~~Remember name_confidence of decisions for manual review~~ Defer
 
 Tasks:

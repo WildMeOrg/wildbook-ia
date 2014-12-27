@@ -2,7 +2,11 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import vtool as vt
 import utool as ut
+from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[nscoring]', DEBUG=False)
+
+NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
+                                           'sorted_aids', 'sorted_scores'))
 
 
 def get_one_score_per_name(ibs, aid_list, score_list):
@@ -52,7 +56,7 @@ def get_one_score_per_name(ibs, aid_list, score_list):
     sorted_sortx  = [scores.argsort()[::-1] for scores in _sorted_scores]
     sorted_scores = [scores.take(sortx) for scores, sortx in zip(_sorted_scores, sorted_sortx)]
     sorted_aids   = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
-    nscoretup     = (sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
+    nscoretup     = NameScoreTup(sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
     return nscoretup
 
 

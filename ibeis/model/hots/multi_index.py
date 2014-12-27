@@ -131,6 +131,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         if num_subindexers > qreq_.qparams.max_subindexers:
             #  TODO: Dont start background request if one already exists
             neighbor_index.request_background_nnindexer(qreq_, daid_list)
+            #ut.embed()
             #aids_list = [sorted(ut.flatten(covered_aids_list))]
             aids_list = covered_aids_list
         else:

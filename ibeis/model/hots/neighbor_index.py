@@ -79,9 +79,10 @@ def clear_uuid_cache(ibs):
 def request_background_nnindexer(qreq_, daid_list):
     """ FIXME: Duplicate code """
     global CURRENT_THREAD
-    if CURRENT_THREAD is None or not CURRENT_THREAD.isAlive():
+    if CURRENT_THREAD is not None and not CURRENT_THREAD.is_alive():
         # Make sure this function doesn't run if it is already running
         return False
+    print('Requesting background reindex')
     daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     flann_cfgstr = qreq_.qparams.flann_cfgstr
     featweight_cfgstr = qreq_.qparams.featweight_cfgstr
@@ -103,6 +104,7 @@ def request_background_nnindexer(qreq_, daid_list):
     use_cache = True
     use_params_hash = False
     # Dont hash rowids when given enough info in indexer_cfgstr
+    flann_params['cores'] = 2  # Only ues a few cores in the background
     flannkw = dict(cache_dir=flann_cachedir, cfgstr=indexer_cfgstr,
                    flann_params=flann_params, use_cache=use_cache,
                    use_params_hash=use_params_hash)
@@ -121,12 +123,14 @@ def request_background_nnindexer(qreq_, daid_list):
 def background_flann_func(idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
                           visual_uuid_list, min_reindex_thresh):
     """ FIXME: Duplicate code """
+    print('Starting Background FLANN')
     nntool.flann_cache(idx2_vec, **flannkw)
     if len(visual_uuid_list) > min_reindex_thresh:
         # let the multi-indexer know about any big caches we've made
         # multi-indexer
         with ut.shelf_open(uuid_map_fpath) as uuid_map:
             uuid_map[daids_hashid] = visual_uuid_list
+    print('Finished Background FLANN')
 
 
 @profile

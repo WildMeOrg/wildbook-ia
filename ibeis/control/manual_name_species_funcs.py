@@ -112,13 +112,29 @@ def add_names(ibs, name_text_list, note_list=None):
 
 @register_ibs_method
 def sanatize_species_texts(ibs, species_text_list):
+    """ changes unknown species to the unknown value """
     ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=True)
-    species_text_list_ = [None
-                          if species_text is None or species_text == const.UNKNOWN
-                          else species_text.lower()
+    def _sanatize_species_text(species_text):
+        if species_text is None:
+            return None
+        elif species_text in const.VALID_SPECIES:
+            return species_text
+        else:
+            return const.UNKNOWN
+    species_text_list_ = [_sanatize_species_text(species_text)
                           for species_text in species_text_list]
-    species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None
-                          for species_text in species_text_list_]
+    # old but same logic
+    #species_text_list_ = [None if species_text is None else
+    #                      species_text if species_text in const.VALID_SPECIES else
+    #                      const.UNKNOWN
+    #                      for species_text in species_text_list]
+    # oldest different logic
+    #species_text_list_ = [None
+    #                      if species_text is None or species_text == const.UNKNOWN
+    #                      else species_text.lower()
+    #                      for species_text in species_text_list]
+    #species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None
+    #                      for species_text in species_text_list_]
     return species_text_list_
 
 
@@ -725,7 +741,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = [
         ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
@@ -796,7 +812,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_text_list = [u'Fred', 'easy', u'Sue', '____', u'zebra_grevys', 'TYPO', 'jeff']
         >>> ensure = False

@@ -205,8 +205,7 @@ class ScoreNormalizer(ut.Cachable):
         #        (tp_scores, tn_scores, tp_labels, tn_labels)))
         # Assert that lengths are the same
         assert ut.list_allsame(map(
-            len, (tp_scores, tn_scores, tp_labels, tn_labels))), (
-                'unequal lengths')
+            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
         if normalizer.tp_support is None:
             normalizer.tp_support = np.array([])
             normalizer.tn_support = np.array([])
@@ -296,7 +295,6 @@ def load_precomputed_normalizer(index, *args, **kwargs):
 
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> import ibeis
         >>> normalizer = load_precomputed_normalizer(None)
         >>> normalizer.visualize()
         >>> import plottool as pt
@@ -323,7 +321,6 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> import ibeis
         >>> local_normalizers_fpaths = list_available_score_normalizers(with_global=False)
         >>> global_normalizers_fpaths = list_available_score_normalizers(with_local=False)
         >>> # quote them
@@ -337,7 +334,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     """
     from ibeis.dev import sysres
     from ibeis import constants
-    from os.path import join
+    #from os.path import join
     pattern = ScoreNormalizer.prefix + '*' + ScoreNormalizer.ext
     ibeis_resdir = sysres.get_ibeis_resource_dir()
     workdir = sysres.get_workdir()
@@ -425,7 +422,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> from ibeis.all_imports import *
+        >>> from ibeis.all_imports import *  # NOQA
         >>> import plottool as pt
         >>> import ibeis
         >>> from ibeis.model.hots import score_normalization
