@@ -83,11 +83,13 @@ def remove_pyqt_input_hook():
     pyqtRemoveInputHook()
 
 
-def qtapp_loop(qwin=None, ipy=False, **kwargs):
+def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, **kwargs):
     global QAPP
     #if not QUIET and VERBOSE:
-    print('[guitool] starting qt app loop: qwin=%r' % (qwin,))
-    if qwin is not None:
+    if not QUIET:
+        print('[guitool.qtapp_loop()] ENTERING')
+    print('[guitool.qtapp_loop()] starting qt app loop: qwin=%r' % (qwin,))
+    if enable_activate_qwin and (qwin is not None):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(**kwargs)
     if IS_ROOT_WINDOW:
@@ -110,6 +112,8 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
     else:
         if not QUIET:
             print('[guitool.qtapp_loop()] not execing')
+    if not QUIET:
+        print('[guitool.qtapp_loop()] EXITING')
 
 
 def ping_python_interpreter(frequency=420):  # 4200):
