@@ -614,6 +614,27 @@ def get_image_aids(ibs, gid_list):
 
 
 @register_ibs_method
+@getter_1toM
+#@cache_getter(const.IMAGE_TABLE)
+def get_image_aids_of_species(ibs, gid_list, species=None):
+    """
+    Returns:
+        list_ (list): a list of aids for each image by gid filtered by species """
+    def _filter(aid_list):
+        species_list = ibs.get_annot_species(aid_list)
+        isvalid_list = [ species_ == species for species_ in species_list ]
+        aid_list = ut.filter_items(aid_list, isvalid_list)
+    # Get and filter aids_list
+    aids_list = ibs.get_iamge_aids(gid_list)
+    if species is None:
+        # We do this so that the species flag behaves nicely with the getter_1toM
+        print('[get_image_aids_of_species] WARNING! Use get_image_aids() instead.')
+        return aids_list
+    aids_list = [ _filter(aid_list) for aid_list in aids_list]
+    return aids_list
+
+
+@register_ibs_method
 @getter_1to1
 def get_image_num_annotations(ibs, gid_list):
     """
