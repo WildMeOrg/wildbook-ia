@@ -274,7 +274,7 @@ def plot(*args, **kwargs):
 
 def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
           unitbox=False, flipx=False, flipy=False, title=None,
-          equal_aspect=True, *args, **kwargs):
+          equal_aspect=True, label='', *args, **kwargs):
     do_plot = True
     # ensure length
     if len(x_data) != len(y_data):
@@ -294,7 +294,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         y_data = np.array(y_data)
     ax = gca()
     if do_plot:
-        ax.plot(x_data, y_data, marker, *args, **kwargs)
+        ax.plot(x_data, y_data, marker, label=label, *args, **kwargs)
 
         if equal_aspect:
             min_ = min(x_data.min(), y_data.min())
