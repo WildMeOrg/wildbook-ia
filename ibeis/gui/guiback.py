@@ -725,6 +725,8 @@ class MainWindowBackend(QtCore.QObject):
             print('[back] invalid eid')
             return
         species = back.get_selected_species()
+        # daid list is computed inside the incremental query so there is
+        # no need to specify it here
         qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
         back.confirm_query_dialog(qaid_list=qaid_list)
         #TODO fix names tree thingie

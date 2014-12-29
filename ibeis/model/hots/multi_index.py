@@ -9,48 +9,6 @@ from ibeis.model.hots import neighbor_index
 
 
 @profile
-def group_daids_by_cached_nnindexer(ibs, aid_list, min_reindex_thresh):
-    r"""
-    Args:
-        ibs       (IBEISController):
-        daid_list (list):
-
-    CommandLine:
-        python -m ibeis.model.hots.multi_index --test-group_daids_by_cached_nnindexer
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.multi_index import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> group_daids_by_cached_nnindexer = 200
-        >>> aid_list = ibs.get_valid_aids()
-        >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, aid_list)
-        >>> result = uncovered_aids, covered_aids_list
-        >>> print(result)
-    """
-    # read which annotations have prebuilt caches
-    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(ibs)
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
-        for key in list(six.iterkeys(candidate_uuids)):
-            # remove any sets less than the threshold
-            if len(candidate_uuids[key]) < min_reindex_thresh:
-                del candidate_uuids[key]
-    # find a maximum independent set cover of the requested annotations
-    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
-    tup = ut.greedy_max_inden_setcover(candidate_uuids, annot_vuuid_list)
-    uncovered_vuuids, covered_vuuids_list = tup[0:2]
-    # return the grouped covered items (so they can be loaded) and
-    # the remaining uuids which need to have an index computed.
-    uncovered_aids_ = ibs.get_annot_aids_from_visual_uuid(uncovered_vuuids)  # NOQA
-    covered_aids_list_ = ibsfuncs.unflat_map(ibs.get_annot_aids_from_visual_uuid, covered_vuuids_list)
-    uncovered_aids = sorted(uncovered_aids_)
-    covered_aids_list = list(map(sorted, covered_aids_list_))
-    return uncovered_aids, covered_aids_list
-
-
-@profile
 def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
                                      verbose=True):
     """
@@ -124,7 +82,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-        uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
+        uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
         num_subindexers = len(covered_aids_list)
         # If the number of bins gets too big do a reindex
         # in the background

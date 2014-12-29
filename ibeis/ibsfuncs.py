@@ -597,6 +597,13 @@ def delete_thumbnails(ibs):
 
 
 @__injectable
+def delete_flann_cachedir(ibs):
+    print('[ibs] delete_flann_cachedir')
+    flann_cachedir = ibs.get_flann_cachedir()
+    ut.remove_files_in_dir(flann_cachedir)
+
+
+@__injectable
 def delete_all_recomputable_data(ibs):
     """
     Delete all cached data including chips and encounters
