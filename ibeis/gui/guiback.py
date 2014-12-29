@@ -628,7 +628,7 @@ class MainWindowBackend(QtCore.QObject):
             def boldspecies(species):
                 species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
                 return species_bold_nice
-            species_list = list(set(back.ibs.get_annot_species_texts(daid_list)))
+            species_list = list(set(back.ibs.get_annot_species_texts(aid_list)))
             species_nice_list = list(map(boldspecies, species_list))
             species_phrase = ut.cond_phrase(species_nice_list, 'and')
             return species_phrase
@@ -643,8 +643,8 @@ class MainWindowBackend(QtCore.QObject):
                 ''')
             annotation_s = pluralize('annotation', daid_list)
         if qaid_list is not None:
-            species_phrase = get_unique_species_phrase(daid_list)
-            num_daids = len(daid_list)
+            species_phrase = get_unique_species_phrase(qaid_list)
+            num_daids = len(qaid_list)
             msg_fmtstr = ut.codeblock(
                 '''
                 You are about to query {num_daids} unknown {annotation_s} of
