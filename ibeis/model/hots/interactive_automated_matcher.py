@@ -1,12 +1,29 @@
-from __future__ import absolute_import, division, print_function
-import six
-from six.moves import builtins  # NOQA
-import utool as ut
+"""
+TODO:
+    * spatially constrained matching
+    * benchmarks for reconstruction
+      vs addition.
+        - accuracy
+           compares percent of correct
+           error = (qfx2_idx_reindex != qfx2_idx_append).sum()
+        - time
+           compares time of
+              - addition
+              - reindex
+              - multindex search
+              - regular search
+           error = (qfx2_idx_reindex != qfx2_idx_append).sum()
+
 #import numpy as np
 #import sys
 #from ibeis.model.hots import automated_oracle as ao
 #from ibeis.model.hots import automated_helpers as ah
-#from ibeis.model.hots import special_query
+#from ibeis.model.hots import special_query   *
+"""
+from __future__ import absolute_import, division, print_function
+import six
+from six.moves import builtins  # NOQA
+import utool as ut
 from guitool.__PYQT__ import QtCore
 import guitool
 from ibeis.model.hots import automated_matcher as automatch
@@ -68,14 +85,14 @@ def test_inc_query(ibs_gt, num_initial=0):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs_gt = ibeis.opendb('PZ_MTEST')
+        >>> ibs_gt = ibeis.opendb('testdb1')
         >>> test_inc_query(ibs_gt)
 
     Example1:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> ibs_gt = ibeis.opendb('testdb1')
+        >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> test_inc_query(ibs_gt)
 
     Example2:

@@ -3,6 +3,7 @@ import six
 import numpy as np
 import utool as ut
 from os.path import join
+from six.moves import range
 import vtool.nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
@@ -621,75 +622,127 @@ def subindexer_time_experiment():
              x_label='num_annotations', y_label='FLANN build time')
     pt.update()
 
+# ------------
+# NEW
+import pyflann
 
-def subindexer_add_time_experiment():
+
+def subindexer_add_time_experiment(update=False):
     """
     builds plot of number of annotations vs indexer build time.
 
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.model.hots.multi_index --test-subindexer_add_time_experiment
+        python -m ibeis.model.hots.neighbor_index --test-subindexer_add_time_experiment
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> #ibs = ibeis.opendb('PZ_MTEST')
         >>> result = subindexer_add_time_experiment()
         >>> # verify results
         >>> print(result)
+        >>> from matplotlib import pyplot as plt
+        >>> plt.show()
+        #>>> ibeis.main_loop({'ibs': ibs, 'back': None})
+
     """
     import ibeis
     import utool as ut
-    import pyflann
     import numpy as np
     import plottool as pt
-    #ibs = ibeis.opendb(db='PZ_Master0')
-    ibs = ibeis.opendb(db='PZ_MTEST')
-    daid_list = ibs.get_valid_aids()
-    # Rebuild Part Part
-    count_list = []
-    time_list = []
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
-    max_num = min(301, len(daid_list))
-    daids_ = daid_list[:]
-    np.random.shuffle(daids_)
-    for count in ut.ProgressIter(range(1, max_num)):
-        daids_ = daid_list[:]
-        np.random.shuffle(daids_)
-        daids = daids_[0:count]
+
+    def make_flann_index(vecs, flann_params):
+        flann = pyflann.FLANN()
+        flann.build_index(vecs, **flann_params)
+        return flann
+
+    def get_reindex_time(ibs, daids, flann_params):
         vecs = np.vstack(ibs.get_annot_vecs(daids))
         with ut.Timer(verbose=False) as t:
-            flann = pyflann.FLANN()
-            flann.build_index(vecs, **flann_params)
-        count_list.append(count)
-        time_list.append(t.ellapsed)
-    count_arr = np.array(count_list)
-    time_arr = np.array(time_list)
-    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
-             x_label='num_annotations', y_label='FLANN build time')
-    # Add Part
-    count_list2 = []
-    time_list2 = []
-    daids = daids_[0:count]
-    vecs = np.vstack(ibs.get_annot_vecs(daids))
-    flann = pyflann.FLANN()
-    flann.build_index(vecs, **flann_params)
-    for count in ut.ProgressIter(range(2, max_num)):
-        daids_ = daid_list[:]
-        np.random.shuffle(daids_)
-        daids = daids_[count:count + 1]
+            flann = make_flann_index(vecs, flann_params)  # NOQA
+        return t.ellapsed
+
+    def get_addition_time(ibs, daids, flann, flann_params):
         vecs = np.vstack(ibs.get_annot_vecs(daids))
         with ut.Timer(verbose=False) as t:
             flann.add_points(vecs)
+        return t.ellapsed
+
+    # Input
+    #ibs = ibeis.opendb(db='PZ_Master0')
+    #ibs = ibeis.opendb(db='PZ_MTEST')
+    ibs = ibeis.opendb(db='GZ_ALL')
+    #max_ceiling = 32
+    initial = 1
+    stride = 8
+    max_ceiling = 301
+    all_daids = ibs.get_valid_aids()
+    max_num = min(max_ceiling, len(all_daids))
+    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+
+    # Output
+    count_list,  time_list  = [], []
+    count_list2, time_list2 = [], []
+
+    # Setup
+    all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
+
+    def reindex_step(count, count_list, time_list):
+        daids    = all_randomize_daids_[0:count]
+        ellapsed = get_reindex_time(ibs, daids, flann_params)
+        count_list.append(count)
+        time_list.append(ellapsed)
+
+    def addition_step(count, flann, count_list2, time_list2):
+        daids = all_randomize_daids_[count:count + 1]
+        ellapsed = get_addition_time(ibs, daids, flann, flann_params)
         count_list2.append(count)
-        time_list2.append(t.ellapsed)
-    count_arr2 = np.array(count_list2)
-    time_arr2 = np.array(time_list2)
-    pt.plot2(count_arr2, time_arr2, marker='-', equal_aspect=False,
-             x_label='num_annotations', y_label='FLANN add time')
-    pt.update()
+        time_list2.append(ellapsed)
+
+    def make_initial_index(initial):
+        daids = all_randomize_daids_[0:initial + 1]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        flann = make_flann_index(vecs, flann_params)
+        return flann
+
+    # Reindex Part
+    reindex_lbl = 'Reindexing'
+    reindex_iter = ut.ProgressIter(range(1, max_num, stride), lbl=reindex_lbl)
+    for count in reindex_iter:
+        reindex_step(count, count_list, time_list)
+
+    # Add Part
+    flann = make_initial_index(initial)
+    addition_lbl = 'Addition'
+    addition_iter = ut.ProgressIter(range(initial + 1, max_num, stride), lbl=addition_lbl)
+    for count in addition_iter:
+        addition_step(count, flann, count_list2, time_list2)
+
+    print('---')
+    print('Reindex took time_list %.2s seconds' % sum(time_list))
+    print('Addition took time_list  %.2s seconds' % sum(time_list2))
+    print('---')
+    print('Reindex stats ' + ut.get_stats_str(time_list, precision=2))
+    print('Addition stats ' + ut.get_stats_str(time_list2, precision=2))
+
+    print('Plotting')
+
+    #with pt.FigureContext:
+
+    next_fnum = iter(range(0, 2)).next  # python3 PY3
+    pt.figure(fnum=next_fnum())
+    pt.plot2(count_list, time_list, marker='-o', equal_aspect=False,
+             x_label='num_annotations', y_label=reindex_lbl + ' Time')
+
+    pt.figure(fnum=next_fnum())
+    pt.plot2(count_list2, time_list2, marker='-o', equal_aspect=False,
+             x_label='num_annotations', y_label=addition_lbl + ' Time')
+    #pt.legend()
+    #if update:
+    #    pt.update()
 
 
 if __name__ == '__main__':
