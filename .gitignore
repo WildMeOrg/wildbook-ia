@@ -1,6 +1,8 @@
 # idk why this exists. probably jon's vimrc
 '
 
+*.swp
+*~
 *.py[cod]
 
 # C extensions

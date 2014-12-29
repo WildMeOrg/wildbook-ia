@@ -58,23 +58,32 @@
 
 
 <div class="viewcode-block" id="get_one_score_per_name"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.get_one_score_per_name">[docs]</a><span class="k">def</span> <span class="nf">get_one_score_per_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
-    <span class="c"># TODO : rectify with code in pipeline</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts annotation scores to name scores</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring --test-get_one_score_per_name</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.hots_query_result import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *   # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev import results_all</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()</span>
 <span class="sd">        &gt;&gt;&gt; qaid_list = daid_list[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict()</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; #qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict, use_cache=False, return_request=True)</span>
 <span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaid_list[0]]</span>
 <span class="sd">        &gt;&gt;&gt; aid_list, score_list = qres.get_aids_and_scores()</span>
 <span class="sd">        &gt;&gt;&gt; nscoretup = get_one_score_per_name(ibs, aid_list, score_list)</span>
 <span class="sd">        &gt;&gt;&gt; (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup</span>
+<span class="sd">        &gt;&gt;&gt; result = str(sorted_nids[0:3])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [1 5 4]</span>
+
+<span class="sd">    [2 6 5]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
     <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -93,10 +102,23 @@
     <span class="n">_sorted_scores</span> <span class="o">=</span> <span class="n">grouped_scores</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">group_sortx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="c"># Secondary sort of aids</span>
     <span class="n">sorted_sortx</span>  <span class="o">=</span> <span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">_sorted_scores</span><span class="p">]</span>
-    <span class="n">sorted_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">sortx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_sorted_aids</span><span class="p">,</span> <span class="n">sorted_sortx</span><span class="p">)]</span>
+    <span class="n">sorted_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">scores</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="k">for</span> <span class="n">scores</span><span class="p">,</span> <span class="n">sortx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_sorted_scores</span><span class="p">,</span> <span class="n">sorted_sortx</span><span class="p">)]</span>
     <span class="n">sorted_aids</span>   <span class="o">=</span> <span class="p">[</span><span class="n">aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">sortx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_sorted_aids</span><span class="p">,</span> <span class="n">sorted_sortx</span><span class="p">)]</span>
     <span class="n">nscoretup</span>     <span class="o">=</span> <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscore</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">nscoretup</span></div>
+    <span class="k">return</span> <span class="n">nscoretup</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

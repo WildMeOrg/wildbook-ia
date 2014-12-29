@@ -70,7 +70,7 @@ def turk(filename=''):
             aid_list = app.ibeis.get_image_aids(gid)
             annot_bbox_list = app.ibeis.get_annot_bboxes(aid_list)
             annot_thetas_list = app.ibeis.get_annot_thetas(aid_list)
-            species_list = app.ibeis.get_annot_species(aid_list)
+            species_list = app.ibeis.get_annot_species_texts(aid_list)
             # Get annotation bounding boxes
             annotation_list = []
             for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):

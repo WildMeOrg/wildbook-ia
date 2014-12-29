@@ -224,7 +224,10 @@
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span> <span class="k">as</span> <span class="n">hspipe</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_helpers</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hots_query_result</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">voting_rules2</span> <span class="k">as</span> <span class="n">vr2</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
@@ -273,13 +276,17 @@
     <span class="nb">set</span><span class="p">(</span><span class="n">sys_module_strs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_module_strs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="reload_all"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.reload_all">[docs]</a><span class="k">def</span> <span class="nf">reload_all</span><span class="p">():</span>
+    <span class="c"># reload self</span>
     <span class="n">rrr</span><span class="p">()</span>
-    <span class="n">guiback</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
-    <span class="n">ibeis</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="c"># This should reload modules roughtly in the order they were imported</span>
+    <span class="c"># reload utool first so class functions will be reregistered</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="n">guiback</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
     <span class="n">vtool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
     <span class="n">guitool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
     <span class="n">plottool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="c"># reload ibeis last</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="class_reload"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.class_reload">[docs]</a><span class="k">def</span> <span class="nf">class_reload</span><span class="p">():</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">change_class</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>

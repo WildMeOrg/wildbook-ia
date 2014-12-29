@@ -125,6 +125,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">nsum_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">score_chipmatch_true_nsum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="c"># for now apply a hack to return aid scores</span>
+    <span class="c"># TODO: rectify this code with code in name scoring</span>
+    <span class="c"># TODO: should be another version of nsum where each feature gets a single vote</span>
     <span class="n">aid2_csum</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">score_chipmatch_csum</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)))</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">aid2_nscore</span> <span class="o">=</span> <span class="p">{}</span>

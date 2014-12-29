@@ -50,7 +50,7 @@ TABLE_COLNAMES = {
         #'nAids',
         'img_gname',
         #'ext',
-        'reviewed',
+        #'reviewed',  # detection reviewed flag is not fullyused
         'datetime',
         'gps',
         'gdconf',
@@ -100,6 +100,8 @@ TABLE_COLNAMES = {
         'eid',
         'enctext',
         'nImgs',
+        'encounter_processed_flag',
+        'encounter_shipped_flag',
     ],
 
     NAMES_TREE      : [
@@ -107,11 +109,11 @@ TABLE_COLNAMES = {
         'nAids',
         'thumb',
         'nid',
-        'nExAids',
-        'exemplar',
-        'aid',
-        'annot_gname',
-        'namenotes',
+        #'nExAids',
+        #'exemplar',
+        #'aid',
+        #'annot_gname',
+        #'namenotes',
     ],
 
     IMAGE_GRID     : [
@@ -135,7 +137,7 @@ TABLE_EDITSET = {
     ANNOTATION_TABLE : set(['name', 'species', 'viewpoint', 'annotnotes', 'exemplar']),
     NAME_TABLE       : set(['name', 'namenotes']),
     QRES_TABLE       : set(['name']),
-    ENCOUNTER_TABLE  : set([]),
+    ENCOUNTER_TABLE  : set(['encounter_shipped_flag', 'encounter_processed_flag']),
     IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
     NAMES_TREE       : set(['exemplar', 'name', 'namenotes']),
@@ -207,6 +209,8 @@ COL_DEF = dict([
     ('ext',         (str,      'EXT')),
     ('thumb',       ('PIXMAP', 'Thumb')),
     ('gps',         (str,      'GPS')),
+    ('encounter_processed_flag',       (bool,      'Processed')),
+    ('encounter_shipped_flag',         (bool,      'Commited')),
 ])
 
 #----
@@ -265,7 +269,7 @@ def make_ibeis_headers_dict(ibs):
     getters[ANNOTATION_TABLE] = {
         'aid'                 : lambda aids: aids,
         'name'                : ibs.get_annot_names,
-        'species'             : ibs.get_annot_species,
+        'species'             : ibs.get_annot_species_texts,
         'viewpoint'           : ibs.get_annot_viewpoints,
         'annot_gname'         : ibs.get_annot_image_names,
         'nGt'                 : ibs.get_annot_num_groundtruth,
@@ -326,9 +330,13 @@ def make_ibeis_headers_dict(ibs):
         'eid'        : lambda eids: eids,
         'nImgs'      : ibs.get_encounter_num_gids,
         'enctext'    : ibs.get_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.get_encounter_shipped_flags,
+        'encounter_processed_flag'    : ibs.get_encounter_processed_flags,
     }
     setters[ENCOUNTER_TABLE] = {
         'enctext'    : ibs.set_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
+        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
     }
 
     iders[IMAGE_GRID]   = [ibs.get_valid_gids]

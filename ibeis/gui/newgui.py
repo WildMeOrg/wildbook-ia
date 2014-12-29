@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 from os.path import isdir
+from ibeis import constants as const
 import functools  # NOQA
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -31,6 +32,15 @@ IBEIS_WIDGET_BASE = QtGui.QWidget
 #WITH_GUILOG = not utool.get_argflag('--noguilog')
 WITH_GUILOG = utool.get_argflag('--guilog')
 
+"""
+from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
+                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+ibsgwt = back.front
+view   = ibsgwt.views[IMAGE_TABLE]
+model  = ibsgwt.models[IMAGE_TABLE]
+row = model.get_row_from_id(3)
+view.selectRow(row)
+"""
 
 #############################
 ###### Tab Widgets #######
@@ -377,7 +387,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 #ibswgt.query_button,
 
+                guitool.newLabel(None, 'Species Selector:'),
+
                 ibswgt.species_combo,
+
+                guitool.newLabel(None, ''),
+                guitool.newLabel(None, ''),
 
 
                 #_NEWBUT('Identify\n(vs exemplar database)',
@@ -568,6 +583,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     # SLOTS
     #------------
 
+    def get_table_tab_index(ibswgt, tblname):
+        view = ibswgt.views[tblname]
+        index = ibswgt._tab_table_wgt.indexOf(view)
+        return index
+
+    def set_table_tab(ibswgt, tblname):
+        index = ibswgt.get_table_tab_index(tblname)
+        ibswgt._tab_table_wgt.setCurrentIndex(index)
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """
@@ -578,8 +602,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             return
         tblname = str(tblname)
         tblnice = gh.TABLE_NICE[tblname]
-        view = ibswgt.views[tblname]
-        index = ibswgt._tab_table_wgt.indexOf(view)
+        index = ibswgt.get_table_tab_index(tblname)
         text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
@@ -587,51 +610,91 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
+        """
+        Context menus on right click of a table
+        """
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
         id_list = sorted(list(set([model._get_row_id(_qtindex) for _qtindex in
                                    tblview.selectedIndexes()])))
+        # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             options = [
                 ('delete encounter(s)', lambda: ibswgt.back.delete_encounter(id_list)),
-                ('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
+                #('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
             ]
             if len(id_list) > 1:
                 merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
+                enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
                 options += [
-                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                    ('merge %d encounters into %s' %  (len(id_list), (enctext))
+                     , lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                 ]
             guitool.popup_menu(tblview, pos, options)
+        # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
-            if len(id_list) == 1:
-                gid = id_list[0]
-                guitool.popup_menu(tblview, pos, [
-                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
-                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
-                ])
-            else:
-                print(id_list)
-                guitool.popup_menu(tblview, pos, [
+            # CONTEXT OPTIONS FOR IMAGE TABLE ITEMS
+            image_context_options = []
+            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+                image_context_options += [
                     ('move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
                     ('copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                ]
+            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+                image_context_options += [
+                    ('remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
+                ]
+            if len(id_list) > 1:
+                image_context_options += [
                     ('delete images', lambda: ibswgt.back.delete_image(id_list)),
-                ])
+                ]
+            if len(id_list) == 1:
+                gid = id_list[0]
+                image_context_options += [
+                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
+                ]
+            if len(image_context_options) > 0:
+                guitool.popup_menu(tblview, pos, image_context_options)
+        # ---- ANNOTATION CONTEXT ----
         elif model.name == ANNOTATION_TABLE:
             if len(id_list) == 1:
                 eid = model.eid
                 aid = id_list[0]
+
+                def goto_annot_image(aid):
+                    ibswgt.set_table_tab(IMAGE_TABLE)
+                    imgtbl = ibswgt.views[IMAGE_TABLE]
+                    gid = ibswgt.back.ibs.get_annot_gids(aid)
+                    imgtbl.select_row_from_id(gid)
+
+                def goto_annot_name(aid):
+                    ibswgt.set_table_tab(NAMES_TREE)
+                    nametree = ibswgt.views[NAMES_TREE]
+                    nid = ibswgt.back.ibs.get_annot_nids(aid)
+                    nametree.select_row_from_id(nid)
+
                 guitool.popup_menu(tblview, pos, [
-                    ('Select annotation (default)', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('View and select image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    ('Goto image', lambda: goto_annot_image(aid)),
+                    #('Goto name', lambda: goto_annot_name(aid)),
+                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
+                    ('Unset annotation name', lambda: ibswgt.back.unset_names([aid])),
                     ('----', lambda: None),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
             else:
                 guitool.popup_menu(tblview, pos, [
-                    ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Unset all annotation names', lambda: ibswgt.back.unset_names(id_list)),
                 ])
+        # ---- ANNOTATION CONTEXT ----
+        elif model.name == NAMES_TREE:
+            print(id_list)
+            pass
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):

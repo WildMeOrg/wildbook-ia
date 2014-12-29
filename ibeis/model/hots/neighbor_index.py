@@ -3,7 +3,9 @@ import six
 import numpy as np
 import utool as ut
 from os.path import join
+from six.moves import range
 import vtool.nearest_neighbors as nntool
+from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
@@ -12,26 +14,15 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
 # cache for heavyweight nn structures.
 # ensures that only one is in memory
 NEIGHBOR_CACHE = {}
-NEIGHBOR_CACHE_VUUIDS = {}
 MAX_NEIGHBOR_CACHE_SIZE = 8
+CURRENT_THREAD = None
 
 
 def get_nnindexer_uuid_map_fpath(ibs):
     flann_cachedir = ibs.get_flann_cachedir()
-    uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
+    uuid_map_fname = 'uuid_map.shelf'
+    uuid_map_fpath = join(flann_cachedir, uuid_map_fname)
     return uuid_map_fpath
-
-
-#import atexit
-#@atexit.register
-#def __cleanup():
-#    """ prevents flann errors (not for cleaning up individual objects) """
-#    global NEIGHBOR_CACHE
-#    try:
-#        NEIGHBOR_CACHE.clear()
-#        del NEIGHBOR_CACHE
-#    except NameError:
-#        pass
 
 
 @profile
@@ -86,6 +77,63 @@ def clear_uuid_cache(ibs):
         uuid_map.clear()
 
 
+def request_background_nnindexer(qreq_, daid_list):
+    """ FIXME: Duplicate code """
+    global CURRENT_THREAD
+    if CURRENT_THREAD is not None and not CURRENT_THREAD.is_alive():
+        # Make sure this function doesn't run if it is already running
+        return False
+    print('Requesting background reindex')
+    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
+    flann_cfgstr = qreq_.qparams.flann_cfgstr
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
+    # HACK: feature weights should probably have their own config
+    #fw_cfgstr = 'weighted=%r' % (qreq_.qparams.fg_weight != 0)
+    #indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, feat_cfgstr, fw_cfgstr))
+    indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, featweight_cfgstr))
+    flann_cachedir = qreq_.ibs.get_flann_cachedir()
+    # Save inverted cache uuid mappings for
+    min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+    # Grab the keypoints names and image ids before query time?
+    flann_params =  qreq_.qparams.flann_params
+    # Get annot descriptors to index
+    vecs_list = qreq_.ibs.get_annot_vecs(daid_list)
+    fgws_list = get_fgweights_hack(qreq_, daid_list)
+    preptup = prepare_index_data(daid_list, vecs_list, fgws_list, verbose=True)
+    (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
+    use_cache = True
+    use_params_hash = False
+    # Dont hash rowids when given enough info in indexer_cfgstr
+    flann_params['cores'] = 2  # Only ues a few cores in the background
+    flannkw = dict(cache_dir=flann_cachedir, cfgstr=indexer_cfgstr,
+                   flann_params=flann_params, use_cache=use_cache,
+                   use_params_hash=use_params_hash)
+    #cores = flann_params.get('cores', 0)
+    # Build/Load the flann index
+    #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
+    visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
+
+    threadobj = ut.spawn_background_process(
+        background_flann_func, idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
+        visual_uuid_list, min_reindex_thresh)
+    CURRENT_THREAD = threadobj
+
+
+def background_flann_func(idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
+                          visual_uuid_list, min_reindex_thresh):
+    """ FIXME: Duplicate code """
+    print('Starting Background FLANN')
+    nntool.flann_cache(idx2_vec, **flannkw)
+    if len(visual_uuid_list) > min_reindex_thresh:
+        # let the multi-indexer know about any big caches we've made
+        # multi-indexer
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            uuid_map[daids_hashid] = visual_uuid_list
+    print('Finished Background FLANN')
+
+
 @profile
 def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                                      use_cache=True):
@@ -97,13 +145,10 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 
     """
     global NEIGHBOR_CACHE
-    # TODO: SYSTEM use visual uuids
-    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
-
-    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
+    daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     flann_cfgstr = qreq_.qparams.flann_cfgstr
     featweight_cfgstr = qreq_.qparams.featweight_cfgstr
-
+    #feat_cfgstr  = qreq_.qparams.feat_cfgstr
     # HACK: feature weights should probably have their own config
     #fw_cfgstr = 'weighted=%r' % (qreq_.qparams.fg_weight != 0)
     #indexer_cfgstr = ''.join((daids_hashid, flann_cfgstr, feat_cfgstr, fw_cfgstr))
@@ -114,15 +159,6 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         nnindexer = NEIGHBOR_CACHE[indexer_cfgstr]
     else:
         flann_cachedir = qreq_.ibs.get_flann_cachedir()
-        # Save inverted cache uuid mappings for
-        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-        if len(daid_list) > min_reindex_thresh:
-            # let the multi-indexer know about any big caches we've made
-            # multi-indexer
-            uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-                uuid_map[daids_hashid] = visual_uuid_list
         # Grab the keypoints names and image ids before query time?
         flann_params =  qreq_.qparams.flann_params
         # Get annot descriptors to index
@@ -136,6 +172,15 @@ def internal_request_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             ut.printex(ex, True, msg_='cannot build inverted index',
                             key_list=['ibs.get_infostr()'])
             raise
+        # Save inverted cache uuid mappings for
+        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+        if len(daid_list) > min_reindex_thresh:
+            # let the multi-indexer know about any big caches we've made
+            # multi-indexer
+            uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_.ibs)
+            with ut.shelf_open(uuid_map_fpath) as uuid_map:
+                visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
+                uuid_map[daids_hashid] = visual_uuid_list
         if len(NEIGHBOR_CACHE) > MAX_NEIGHBOR_CACHE_SIZE:
             NEIGHBOR_CACHE.clear()
         NEIGHBOR_CACHE[indexer_cfgstr] = nnindexer
@@ -241,6 +286,11 @@ class NeighborIndex(object):
         nnindexer.flann    = flann     # Approximate search structure
         nnindexer.cfgstr   = cfgstr    # configuration id
         nnindexer.cores    = cores
+        nnindexer.num_indexed = len(nnindexer.idx2_vec)
+        if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
+            nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
+        else:
+            assert False, 'NNindexer should get uint8s right now unless the algorithm has changed'
 
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
@@ -259,6 +309,7 @@ class NeighborIndex(object):
 
             qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
+                        distance is normalized squared euclidean distance.
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -269,6 +320,7 @@ class NeighborIndex(object):
             >>> checks = 1028
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
+            >>> assert np.all(qfx2_dist < 1.0), 'distance should be less than 1'
             >>> print(result)
             (1257, 2) (1257, 2)
 
@@ -285,14 +337,30 @@ class NeighborIndex(object):
             (0, 2) (0, 2)
 
         """
-        if len(qfx2_vec) == 0:
-            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(K)
+        if K == 0:
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
+        if K > nnindexer.num_indexed or K == 0:
+            # If we want more points than there are in the database
+            # FLANN will raise an exception. This corner case
+            # will hopefully only be hit if using the multi-indexer
+            # so try this workaround which should seemlessly integrate
+            # when the multi-indexer stacks the subindxer results.
+            # There is a very strong possibility that this will cause errors
+            # If this corner case is used in non-multi-indexer code
+            K = nnindexer.num_indexed
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
+        elif len(qfx2_vec) == 0:
+            (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(0, K)
         else:
+            # perform nearest neighbors
             (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
                 qfx2_vec, K, checks=checks, cores=nnindexer.cores)
+            # Ensure that distance returned are between 0 and 1
+            qfx2_dist = qfx2_dist / (nnindexer.max_distance ** 2)
+            #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance
         return (qfx2_idx, qfx2_dist)
 
-    def empty_neighbors(nnindexer, K):
+    def empty_neighbors(nnindexer, nQfx, K):
         qfx2_idx  = np.empty((0, K), dtype=np.int32)
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)
@@ -520,6 +588,161 @@ def test_incremental_add(ibs):
 
     #for uuids in uuid_set
     #    if
+
+
+def subindexer_time_experiment():
+    """
+    builds plot of number of annotations vs indexer build time.
+
+    TODO: time experiment
+    """
+    import ibeis
+    import utool as ut
+    import pyflann
+    import numpy as np
+    import plottool as pt
+    ibs = ibeis.opendb(db='PZ_Master0')
+    daid_list = ibs.get_valid_aids()
+    count_list = []
+    time_list = []
+    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+    for count in ut.ProgressIter(range(1, 301)):
+        daids_ = daid_list[:]
+        np.random.shuffle(daids_)
+        daids = daids_[0:count]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann = pyflann.FLANN()
+            flann.build_index(vecs, **flann_params)
+        count_list.append(count)
+        time_list.append(t.ellapsed)
+    count_arr = np.array(count_list)
+    time_arr = np.array(time_list)
+    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
+             x_label='num_annotations', y_label='FLANN build time')
+    pt.update()
+
+# ------------
+# NEW
+import pyflann
+
+
+def subindexer_add_time_experiment(update=False):
+    """
+    builds plot of number of annotations vs indexer build time.
+
+    TODO: time experiment
+
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-subindexer_add_time_experiment
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb('PZ_MTEST')
+        >>> result = subindexer_add_time_experiment()
+        >>> # verify results
+        >>> print(result)
+        >>> from matplotlib import pyplot as plt
+        >>> plt.show()
+        #>>> ibeis.main_loop({'ibs': ibs, 'back': None})
+
+    """
+    import ibeis
+    import utool as ut
+    import numpy as np
+    import plottool as pt
+
+    def make_flann_index(vecs, flann_params):
+        flann = pyflann.FLANN()
+        flann.build_index(vecs, **flann_params)
+        return flann
+
+    def get_reindex_time(ibs, daids, flann_params):
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann = make_flann_index(vecs, flann_params)  # NOQA
+        return t.ellapsed
+
+    def get_addition_time(ibs, daids, flann, flann_params):
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann.add_points(vecs)
+        return t.ellapsed
+
+    # Input
+    #ibs = ibeis.opendb(db='PZ_Master0')
+    #ibs = ibeis.opendb(db='PZ_MTEST')
+    ibs = ibeis.opendb(db='GZ_ALL')
+    #max_ceiling = 32
+    initial = 1
+    stride = 8
+    max_ceiling = 301
+    all_daids = ibs.get_valid_aids()
+    max_num = min(max_ceiling, len(all_daids))
+    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+
+    # Output
+    count_list,  time_list  = [], []
+    count_list2, time_list2 = [], []
+
+    # Setup
+    all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
+
+    def reindex_step(count, count_list, time_list):
+        daids    = all_randomize_daids_[0:count]
+        ellapsed = get_reindex_time(ibs, daids, flann_params)
+        count_list.append(count)
+        time_list.append(ellapsed)
+
+    def addition_step(count, flann, count_list2, time_list2):
+        daids = all_randomize_daids_[count:count + 1]
+        ellapsed = get_addition_time(ibs, daids, flann, flann_params)
+        count_list2.append(count)
+        time_list2.append(ellapsed)
+
+    def make_initial_index(initial):
+        daids = all_randomize_daids_[0:initial + 1]
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        flann = make_flann_index(vecs, flann_params)
+        return flann
+
+    # Reindex Part
+    reindex_lbl = 'Reindexing'
+    reindex_iter = ut.ProgressIter(range(1, max_num, stride), lbl=reindex_lbl)
+    for count in reindex_iter:
+        reindex_step(count, count_list, time_list)
+
+    # Add Part
+    flann = make_initial_index(initial)
+    addition_lbl = 'Addition'
+    addition_iter = ut.ProgressIter(range(initial + 1, max_num, stride), lbl=addition_lbl)
+    for count in addition_iter:
+        addition_step(count, flann, count_list2, time_list2)
+
+    print('---')
+    print('Reindex took time_list %.2s seconds' % sum(time_list))
+    print('Addition took time_list  %.2s seconds' % sum(time_list2))
+    print('---')
+    print('Reindex stats ' + ut.get_stats_str(time_list, precision=2))
+    print('Addition stats ' + ut.get_stats_str(time_list2, precision=2))
+
+    print('Plotting')
+
+    #with pt.FigureContext:
+
+    next_fnum = iter(range(0, 2)).next  # python3 PY3
+    pt.figure(fnum=next_fnum())
+    pt.plot2(count_list, time_list, marker='-o', equal_aspect=False,
+             x_label='num_annotations', y_label=reindex_lbl + ' Time')
+
+    pt.figure(fnum=next_fnum())
+    pt.plot2(count_list2, time_list2, marker='-o', equal_aspect=False,
+             x_label='num_annotations', y_label=addition_lbl + ' Time')
+    #pt.legend()
+    #if update:
+    #    pt.update()
 
 
 if __name__ == '__main__':

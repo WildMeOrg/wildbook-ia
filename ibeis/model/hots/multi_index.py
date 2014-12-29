@@ -99,6 +99,18 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+
+    Examples2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_Master0')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> num_feats = np.array(ibs.get_annot_num_feats(valid_aids))
+        >>> daid_list = valid_aids[1:60]
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> index_method = 'multi'
+        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
     """
 
     daid_list = qreq_.get_internal_daids()
@@ -113,7 +125,17 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     elif index_method == 'multi':
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
-        aids_list = covered_aids_list
+        num_subindexers = len(covered_aids_list)
+        # If the number of bins gets too big do a reindex
+        # in the background
+        if num_subindexers > qreq_.qparams.max_subindexers:
+            #  TODO: Dont start background request if one already exists
+            neighbor_index.request_background_nnindexer(qreq_, daid_list)
+            #ut.embed()
+            #aids_list = [sorted(ut.flatten(covered_aids_list))]
+            aids_list = covered_aids_list
+        else:
+            aids_list = covered_aids_list
         if len(uncovered_aids) > 0:
             aids_list.append(uncovered_aids)
         num_bins = len(aids_list)
@@ -234,7 +256,6 @@ class MultiNeighborIndex(object):
         Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> import numpy as np
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
             >>> qfx2_vec = np.empty((0, 128), dtype=mxer.get_dtype())

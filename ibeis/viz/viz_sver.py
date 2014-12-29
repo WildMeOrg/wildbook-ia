@@ -23,11 +23,18 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup):
 
 def _compute_svvars(ibs, aid1):
     """ If spatial-verfication dbginfo is not in we need to compute it """
-    from ibeis.model.hots import query_helpers
+    from ibeis.model.hots import pipeline
+    from ibeis.model.hots import query_request
+    daids = ibs.get_valid_aids()
     qaids = [aid1]
-    qcomp = query_helpers.get_query_components(ibs, qaids)
-    qaid2_chipmatch_FILT = qcomp['qaid2_chipmatch_FILT']
-    qaid2_svtups         = qcomp['qaid2_svtups']
+    cfgdict = dict(with_metadata=True)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
+    assert len(daids) > 0, '!!! nothing to search'
+    assert len(qaids) > 0, '!!! nothing to query'
+    qreq_.lazy_load()
+    pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, None)
+    qaid2_chipmatch_FILT = pipeline_locals_['qaid2_chipmatch_FILT']
+    qaid2_svtups         = qreq_.metadata['qaid2_svtups']
     chipmatch_FILT = qaid2_chipmatch_FILT[aid1]
     aid2_svtup     = qaid2_svtups[aid1]
     return chipmatch_FILT, aid2_svtup
@@ -51,8 +58,8 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
         >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     from plottool import df2
-        ...     exec(df2.present())
+        ...     import plottool as pt
+        ...     exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
     #print(utool.func_str(show_sv, kwargs=locals()))

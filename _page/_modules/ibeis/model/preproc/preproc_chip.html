@@ -412,6 +412,7 @@
     <span class="c">#cfname_fmt = (&#39;aid_%d&#39; + suffix)</span>
     <span class="c">#cfname_fmt = &#39;&#39;.join([&#39;chip_auuid_%s&#39; , suffix])</span>
     <span class="c">#cfname_fmt = &#39;&#39;.join([&#39;chip_aid=%d_auuid=%s&#39; , suffix])</span>
+    <span class="c"># TODO: can use visual_uuids instead</span>
     <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;chip_aid=</span><span class="si">%d</span><span class="s">_bbox=</span><span class="si">%s</span><span class="s">_theta=</span><span class="si">%s</span><span class="s">_gid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="p">,</span> <span class="n">suffix</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">cfname_fmt</span>
 
@@ -424,11 +425,11 @@
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
 <span class="sd">        aid_list (list):</span>
-<span class="sd">        fname_fmt (?):</span>
-<span class="sd">        dpath (?):</span>
+<span class="sd">        fname_fmt (str):</span>
+<span class="sd">        dpath (str):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        ?: fpath_list</span>
+<span class="sd">        list: fpath_list</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *   # NOQA</span>
@@ -450,6 +451,7 @@
     <span class="c">#cfname_iter = (None if auuid is None else cfname_fmt % auuid for auuid in annot_uuid_list)</span>
     <span class="c">#cfname_iter = (None if auuid is None else cfname_fmt % (aid, auuid)</span>
     <span class="c">#               for (aid, auuid) in zip(aid_list, annot_uuid_list))</span>
+    <span class="c"># TODO: can use visual_uuids instead</span>
     <span class="n">annot_bbox_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_gid_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>

@@ -18,11 +18,11 @@ def default_decorator(func):
     #return profile(func)
     #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
-VERBOSE = utool.VERBOSE
-VERYVERBOSE = utool.VERYVERBOSE
-VERYSQL = utool.get_argflag('--verb-sql')
-QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
-AUTODUMP = utool.get_argflag('--auto-dump')
+VERBOSE        = utool.VERBOSE
+VERYVERBOSE    = utool.VERYVERBOSE
+QUIET          = utool.QUIET or utool.get_argflag('--quiet-sql')
+VERBOSE_SQL    = utool.get_argflag('--verb-sql')
+AUTODUMP       = utool.get_argflag('--auto-dump')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
 
 """ If would be really great if we could get a certain set of setters, getters,
@@ -206,7 +206,7 @@ class SQLDatabaseController(object):
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        if VERBOSE and not QUIET:
+        if VERBOSE_SQL:
             print('[sql] running sql pragma optimizions')
         #db.cur.execute('PRAGMA cache_size = 0;')
         #db.cur.execute('PRAGMA cache_size = 1024;')
@@ -347,7 +347,7 @@ class SQLDatabaseController(object):
         # Check to see if this already exists in the database
         rowid_list_ = get_rowid_from_superkey(*superkey_lists)
         isnew_list  = [rowid is None for rowid in rowid_list_]
-        if VERBOSE and not all(isunique_list):
+        if VERBOSE_SQL and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
         needsadd_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
@@ -775,14 +775,17 @@ class SQLDatabaseController(object):
                 src_list.append(name)
                 dst_list.append(colname_dict[name])
 
-        data_list = db.get(tablename, tuple(src_list))
+        if len(src_list) > 0:
+            data_list_ = db.get(tablename, tuple(src_list))
+        else:
+            data_list_ = []
         # Run functions across all data for specified callums
         data_list = [
             tuple([
                 colmap_dict[src_](d) if src_ in colmap_dict.keys() else d
                 for d, src_ in zip(data, src_list)
             ])
-            for data in data_list
+            for data in data_list_
         ]
         # Add the data to the database
         get_rowid_from_superkey = lambda x: [None] * len(x)
@@ -856,7 +859,8 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def rename_table(db, tablename_old, tablename_new):
-        printDBG('[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new))
+        if ut.VERBOSE:
+            print('[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new))
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -921,7 +925,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
-                   verbose=VERYSQL):
+                   verbose=VERBOSE_SQL):
         with SQLExecutionContext(db, operation, nInput=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
@@ -935,7 +939,7 @@ class SQLDatabaseController(object):
     @default_decorator
     #@utool.memprof
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERYSQL, unpack_scalars=True, nInput=None,
+                    verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
                     eager=True):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
@@ -943,17 +947,17 @@ class SQLDatabaseController(object):
             if isinstance(params_iter, (list, tuple)):
                 nInput = len(params_iter)
             else:
-                if VERYSQL:
+                if VERBOSE_SQL:
                     print('[sql!] WARNING: aggressive eval of params_iter because nInput=None')
                 params_iter = list(params_iter)
                 nInput  = len(params_iter)
         else:
-            if VERYSQL:
+            if VERBOSE_SQL:
                 print('[sql] Taking params_iter as iterator')
 
         # Do not compute executemany without params
         if nInput == 0:
-            if VERYSQL:
+            if VERBOSE_SQL:
                 print('[sql!] WARNING: dont use executemany'
                       'with no params use executeone instead.')
             return []
@@ -1009,7 +1013,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True, schema_only=False):
-        if VERYSQL:
+        if VERBOSE_SQL:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()
@@ -1022,7 +1026,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def dump_to_string(db, auto_commit=True, schema_only=False):
         retStr = ''
-        if VERYSQL:
+        if VERBOSE_SQL:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()
@@ -1075,7 +1079,7 @@ class SQLDatabaseController(object):
         # File Header
         line_list.append('# AUTOGENERATED ON ' + utool.timestamp('printable'))
         line_list.append('from __future__ import absolute_import, division, print_function')
-        line_list.append('from ibeis import constants')
+        line_list.append('from ibeis import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')
         line_list.append('# Schema Version Current')
@@ -1093,6 +1097,7 @@ class SQLDatabaseController(object):
                 first = False
             else:
                 line_list.append('%s' % '')
+            # Hack to find the name of the constant variable
             constant_name = None
             for variable, value in constants.__dict__.iteritems():
                 if value == tablename:
@@ -1100,7 +1105,7 @@ class SQLDatabaseController(object):
                     break
             # assert constant_name is not None, "Table name does not exists in constants"
             if constant_name is not None:
-                line_list.append('%sdb.add_table(constants.%s, (' % (tab, constant_name, ))
+                line_list.append('%sdb.add_table(const.%s, (' % (tab, constant_name, ))
             else:
                 line_list.append('%sdb.add_table(%r, (' % (tab, tablename, ))
             column_list = db.get_columns(tablename)

@@ -122,7 +122,9 @@ class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
-        nn_cfg.min_reindex_thresh = 200
+        #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
+        nn_cfg.min_reindex_thresh = 50  # 200  # number of annots before a new multi-indexer is built
+        nn_cfg.max_subindexers = 1  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'
@@ -380,12 +382,13 @@ class FlannConfig(ConfigBase):
         #flann_cfg.trees = 16
         flann_cfg.update(**kwargs)
 
-    def get_dict_args(flann_cfg):
-        return dict(
+    def get_flann_params(flann_cfg):
+        flann_params = dict(
             algorithm=flann_cfg.algorithm,
             trees=flann_cfg.trees,
             cores=flann_cfg.flann_cores,
         )
+        return flann_params
 
     def get_cfgstr_list(flann_cfg, **kwargs):
         flann_cfgstrs = ['_FLANN(']
@@ -564,6 +567,7 @@ class QueryConfig(ConfigBase):
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
+        query_cfg.return_expanded_nns = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         #if utool.is_developer():
@@ -799,7 +803,6 @@ class FeatureConfig(ConfigBase):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import ibeis
         >>> from ibeis.model import Config  # NOQA
         >>> from ibeis.model.Config import *  # NOQA
         >>> feat_cfg = Config.FeatureConfig()
@@ -866,7 +869,7 @@ class FeatureConfig(ConfigBase):
                 doc = None
             yield (type_, name, default, doc)
 
-    def get_dict_args(feat_cfg):
+    def get_hesaff_params(feat_cfg):
         dict_args = {
             name: feat_cfg[name]
             for type_, name, default, doc in feat_cfg._iterparams()
@@ -1060,18 +1063,19 @@ class DisplayConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class OtherConfig(ConfigBase):
-    def __init__(othercfg, **kwargs):
-        super(OtherConfig, othercfg).__init__(name='othercfg')
-        #othercfg.thumb_size     = 128
-        othercfg.thumb_size     = 221
-        othercfg.ranks_lt       = 2
-        othercfg.auto_localize  = True
+    def __init__(other_cfg, **kwargs):
+        super(OtherConfig, other_cfg).__init__(name='other_cfg')
+        #other_cfg.thumb_size     = 128
+        other_cfg.thumb_size     = 221
+        other_cfg.ranks_lt       = 2
+        other_cfg.auto_localize  = True
         # maximum number of exemplars per name
-        othercfg.max_exemplars  = 6
-        othercfg.exemplar_distinctivness_thresh  = .95
-        othercfg.detect_add_after = 1
-        othercfg.detect_use_chunks = True
-        othercfg.update(**kwargs)
+        other_cfg.max_exemplars  = 6
+        other_cfg.exemplar_distinctiveness_thresh  = .95
+        other_cfg.detect_add_after = 1
+        other_cfg.detect_use_chunks = True
+        other_cfg.use_more_special_encounters = False
+        other_cfg.update(**kwargs)
 
     #def get_cfgstr_list(nn_cfg):
     #    raise NotImplementedError('abstract')

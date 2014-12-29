@@ -1,6 +1,14 @@
 #!/usr/bin/env python2.7
 """
 Very useful script to ensure you have all the modules you need
+
+Updater For Linux:
+    sudo pip install matplotlib --upgrade
+    sudo pip install Pillow --upgrade
+    sudo pip install scipy --upgrade
+    sudo pip install numpy --upgrade
+
+    ./super_setup.py --bootstrap --upgrade
 """
 from __future__ import absolute_import, division, print_function
 import sys

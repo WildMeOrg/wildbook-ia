@@ -2,14 +2,37 @@
 # TODO: Restructure
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import utool
+import utool as ut
 from six.moves import zip, range, map
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[query_helpers]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[query_helpers]')
 
 
 def get_query_components(ibs, qaids):
-    from . import pipeline
-    from . import query_request
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.model.hots.query_helpers --test-get_query_components
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.query_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaids = ibs.get_valid_aids()
+        >>> # execute function
+        >>> result = get_query_components(ibs, qaids)
+        >>> # verify results
+        >>> print(result)
+    """
+    from ibeis.model.hots import pipeline
+    from ibeis.model.hots import query_request
     daids = ibs.get_valid_aids()
     cfgdict = dict(with_metadata=True)
     qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
@@ -19,26 +42,26 @@ def get_query_components(ibs, qaids):
     qreq_.lazy_load()
     pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, None)
     qaid2_nns            = pipeline_locals_['qaid2_nns']
-    qaid2_nnfilt0        = pipeline_locals_['qaid2_nnfilt0']
-    filt2_weights        = pipeline_locals_['filt2_weights']
-    qaid2_nnfilt         = pipeline_locals_['qaid2_nnfilt']
+    qaid2_nnvalid0       = pipeline_locals_['qaid2_nnvalid0']
+    qaid2_filtweights    = pipeline_locals_['qaid2_filtweights']
+    qaid2_nnfilts        = pipeline_locals_['qaid2_nnfilts']
     qaid2_chipmatch_FILT = pipeline_locals_['qaid2_chipmatch_FILT']
     qaid2_chipmatch_SVER = pipeline_locals_['qaid2_chipmatch_SVER']
     qaid2_svtups = qreq_.metadata['qaid2_svtups']
     #---
-    qaid2_qres = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER, qreq_)
+    qaid2_qres = pipeline.chipmatch_to_resdict(qreq_, qaid2_chipmatch_SVER)
     #####################
     # Testing components
     #####################
-    with utool.Indenter('[components]'):
+    with ut.Indenter('[components]'):
         qfx2_idx, qfx2_dist = qaid2_nns[qaid]
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_idx)
         qfx2_fx  = qreq_.indexer.get_nn_featxs(qfx2_idx)
         qfx2_gid = ibs.get_annot_gids(qfx2_aid)  # NOQA
         qfx2_nid = ibs.get_annot_name_rowids(qfx2_aid)  # NOQA
-        qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
-        qaid2_nnfilt_ORIG    = pipeline.identity_filter(qaid2_nns, qreq_)
-        qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
+        filtkey_list, qfx2_scores, qfx2_valids = qaid2_nnfilts[qaid]
+        qaid2_nnfilt_ORIG    = pipeline.identity_filter(qreq_, qaid2_nns)
+        qaid2_chipmatch_ORIG = pipeline.build_chipmatches(qreq_, qaid2_nns, qaid2_nnfilt_ORIG)
         qaid2_qres_ORIG = pipeline.chipmatch_to_resdict(qaid2_chipmatch_ORIG, qreq_)
         qaid2_qres_FILT = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT, qreq_)
         qaid2_qres_SVER = qaid2_qres

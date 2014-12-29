@@ -1,3 +1,146 @@
+"""
+Idea:
+    what about the probability of a descriptor match being a score like in SIFT.
+    we can learn that too.
+
+Have:
+    * semantic and visual uuids
+    * Test that accepts unknown annotations one at a time and
+      for each runs query, makes decision about name, and executes decision.
+    * As a placeholder for exemplar decisions  an exemplar is added if
+      number of exemplars per name is less than threshold.
+    * vs-one reranking query mode
+    * test harness but start with larger test set
+    * vs-one score normalizer ~~/ score normalizer for different values of K * / different params~~
+      vs-many score normalization doesnt actually matter. We just need the ranking.
+    * need to add in the multi-indexer code into the pipeline. Need to
+      decide which subindexers to load given a set of daids
+    * need to use set query as an exemplar if its vs-one reranking scores
+      are below a threshold
+    * flip the vsone ratio score so its < .8 rather than > 1.2 or whatever
+    * start from nothing and let the system make the first few decisions correctly
+    * tell me the correct answer in the automated test
+    * turn on multi-indexing. (should just work..., probably bugs though. Just need to throw the switch)
+    * paramater to only add exemplar if post-normlized score is above a threshold
+    * ensure vsone ratio test is happening correctly
+    * normalization gets a cfgstr based on the query
+    * need to allow for scores to be un-invalidatd post spatial verification
+      e.g. when the first match initially is invalidated through
+      spatial verification but the next matches survive.
+    * keep distinctiveness weights from vsmany for vsone weighting
+      basically involves keeping weights from different filters and not
+      aggregating match weights until the end.
+    * Put test query mode into the main application and work on the interface for it.
+    * add matches to multiple animals (merge)
+    * update normalizer (have setup the datastructure to allow for it need to integrate it seemlessly)
+    * score normalization update. on add the new support data, reapply bayes
+     rule, and save to the current cache for a given algorithm configuration.
+    * spawn background process to reindex chunks of data
+
+
+TODO:
+    * Improve vsone scoring.
+    * test case where there is a 360 view that is linkable from the tests case
+    * ~~Remember name_confidence of decisions for manual review~~ Defer
+
+Tasks:
+
+    Algorithm::
+        * Incremental query needs to handle
+            - test mode and live mode
+            - normalizer update
+            - use correct distinctivenes score in vsone
+            - tested application of distinctiveness, foreground, ratio,
+                spatial_verification, vsone verification, and score
+                normalization.
+
+        * Mathematically formal description of the space of choices
+            - getting the proability of each choice will give us a much better
+                confidence measure for our decision. An example of a probability
+                partition might be .2 - merge with rank1.  .2 merge with rank 2, .5
+                merge with rank1 and rank2, .1 others
+
+        * Improved automated exemplar decision mechanism
+
+        * Improved automated name decision mechanism
+
+     SQL::
+         * New Image Columns
+             - image_posix_timedelta
+
+         * New Name Columns
+             - name_temp_flag
+             - name_alias_text
+
+             - name_uuid
+             - name_visual_uuid
+             - name_member_annot_rowids_evalstr
+             - name_member_num_annot_rowids
+
+         * New Encounter Columns
+             - encounter_start_time
+             - encounter_end_time
+             - encounter_lat
+             - encounter_lon
+             - encounter_processed_flag
+             - encounter_shipped_flag
+
+    Decision UIs::
+        * Query versus top N results
+            - ability to draw an undirected edge between the query and any number of
+                results. ie create a match any of the top results
+            - a match to more than one results should by default merge the two names
+                (this involves a name enhancement subtask). trigger a split / merge dialog
+        * Is Exemplar
+            - allows for user to set the exemplars for a given name
+        * Name Progress
+            - Shows the current name matching progress
+        * Split
+            - Allows a user to split off some images from a name into a new name
+              or some other name.
+        * Merge
+            - Allows a user to join two names.
+
+
+    GUI::
+        * NameTree needs to not refresh unless absolutely necessary
+        * Time Sync
+        * Encounter metadata sync from the SMART
+        * Hide shipped encounters
+            - put flag to turn them on
+        * Mark processed encounters
+        * Gui naturally ensures that all annotations in the query belong
+           to the same species
+        * Garbage collection function that removes all non-exemplar
+          information from encounters that have been shipped.
+        * Spawn process that reindexes large chunks of descriptors as the
+          database grows.
+
+
+LONG TERM TASKS:
+
+    Architecture:
+        * Pipeline needs
+            - DEFER: a move from dict based representation to list based
+            - DEFER: spatial verification cyth speedup
+            - DEFER: nearest neighbor (based on visual uuid caching) caching
+
+    Controller:
+         * LONGTERM: AutogenController
+             - register data convertors for verts / other eval columns. Make
+               several convertors standard and we can tag those columns to
+               autogenerate their functions.
+             - be able to mark a column as determined by the aggregate of other
+               columns. Then the data is either generated on the fly, or it is
+               cached and the necessary book-keeping functions are
+               autogenerated.
+
+    Decision UIs::
+        * Is Exemplar
+            - LONG TERM: it would be cool if they were visualized by using
+              networkx or some gephi like program and clustered by match score.
+
+"""
 from __future__ import absolute_import, division, print_function
 import ibeis
 import utool as ut
@@ -5,11 +148,13 @@ from six.moves import input
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inchelp]')
 
 
-def assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
+def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     just tests uuids
 
     if anything goes wrong this should fix it:
+        from ibeis import ibsfuncs
+        aid_list1 = ibs_gt.get_valid_aids()
         ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
         ibsfuncs.fix_remove_visual_dupliate_annotations(ibs_gt)
@@ -44,15 +189,16 @@ def assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     assert len(ibs2_dup_annots) == 0
 
 
-def ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
+def ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     removes previously set names and exemplars
     """
     # Make sure that there are not any names in this database
     nid_list2 = ibs2.get_annot_name_rowids(aid_list2, distinguish_unknowns=False)
+    print('Removing names from the incremental test database')
     if not ut.list_all_eq_to(nid_list2, 0):
-        print('Removing names from database')
         ibs2.set_annot_name_rowids(aid_list2, [ibs2.UNKNOWN_NAME_ROWID] * len(aid_list2))
+    ibs2.delete_names(ibs2._get_all_known_name_rowids())
 
     #exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)
     #if not ut.list_all_eq_to(exemplarflag_list2, 0):
@@ -60,28 +206,20 @@ def ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     ibs2.set_annot_exemplar_flags(aid_list2, [False] * len(aid_list2))
 
     # this test is for plains
-    #assert  ut.list_all_eq_to(ibs2.get_annot_species(aid_list2), 'zebra_plains')
+    #assert  ut.list_all_eq_to(ibs2.get_annot_species_texts(aid_list2), 'zebra_plains')
     ibs2.delete_invalid_nids()
 
 
-def annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2):
+def annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2):
     try:
-        assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
+        assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
     except Exception as ex:
         # update and try again on failure
         ut.printex(ex, ('warning: consistency check failed.'
                         'updating and trying once more'), iswarning=True)
         ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)
-        assert_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
-
-
-def interactive_msgbox_prompt(ibs2, decisiontype):
-    import guitool
-    msg = 'Accept system {decisiontype} decision'.format(decisiontype=decisiontype)
-    title = '{decisiontype} decision'.format(decisiontype=decisiontype)
-    options = ['system name: %r', 'name1', 'NONE']
-    result = guitool.user_option(None, msg, title, options)  # NOQA
+        assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2)
 
 
 def interactive_commandline_prompt(msg, decisiontype):
@@ -133,7 +271,7 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> num_initial = 0
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
@@ -141,15 +279,18 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
-        >>> import ibeis
+        >>> import ibeis  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> num_initial = 100
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
     """
     # Take a known dataase
     # Create an empty database to test in
-    aid_list1 = ibs_gt.get_aids_with_groundtruth()
-    reset = False
+    #aid_list1 = ibs_gt.get_aids_with_groundtruth()
+    aid_list1 = ibs_gt.get_valid_aids()
+
+    # If reset is true the test database is started completely from scratch
+    reset = ut.get_argflag('--reset')
     #reset = True
 
     aid1_to_aid2 = {}  # annotation mapping
@@ -200,11 +341,11 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
 
     #ut.embed()
     # Assert annotation visual uuids are in agreement
-    annot_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
+    annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Remove name exemplars
     if clear_names:
-        ensure_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
+        ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Preprocess features and such
     ibs2.ensure_annotation_data(aid_list2, featweights=True)
@@ -223,6 +364,10 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
 
 
 def check_results(ibs_gt, ibs2, aid1_to_aid2):
+    """
+    reports how well the incremental query ran when the oracle was calling the
+    shots.
+    """
     import six
     #aid_list1 = ibs_gt.get_valid_aids()
     aid_list1 = ibs_gt.get_aids_with_groundtruth()
@@ -284,7 +429,7 @@ def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     verts_chunk1  = ibs_gt.get_annot_verts(aids_chunk1)
     thetas_chunk1 = ibs_gt.get_annot_thetas(aids_chunk1)
     # Non-name semantic info
-    species_chunk1 = ibs_gt.get_annot_species(aids_chunk1)
+    species_chunk1 = ibs_gt.get_annot_species_texts(aids_chunk1)
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
     ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
     # Add this new unseen test case to the database

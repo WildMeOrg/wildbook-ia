@@ -428,11 +428,13 @@ def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
+def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None):
     """
     just constructs the path. does not compute it. that is done by
     api_thumb_delegate
     """
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -443,7 +445,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
+def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None):
     """ get chip thumb info
 
     Args:
@@ -473,10 +475,12 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
     # HACK TO MAKE CHIPS COMPUTE
     #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
     #thumbsize = 256
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize)
     #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list)
-    chipsize_list = ibs.get_annot_chipsizes(aid_list)
+    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
+    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])
         for (thumb_path, chip_path, chipsize) in
@@ -926,6 +930,13 @@ def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
 @register_ibs_method
 @getter_1to1
 def get_annot_names(ibs, aid_list):
+    """ alias """
+    return ibs.get_annot_name_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_name_texts(ibs, aid_list):
     """
     Args:
         aid_list (list):
@@ -940,7 +951,7 @@ def get_annot_names(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = get_annot_names(ibs, aid_list)
+        >>> result = get_annot_name_texts(ibs, aid_list)
         >>> print(result)
         ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
     """
@@ -1079,6 +1090,13 @@ def get_annot_probchip_fpaths(ibs, aid_list):
 @register_ibs_method
 @getter_1to1
 def get_annot_species(ibs, aid_list):
+    """ alias"""
+    return ibs.get_annot_species_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_species_texts(ibs, aid_list):
     """
 
     Args:
@@ -1090,7 +1108,7 @@ def get_annot_species(ibs, aid_list):
         identifying the species
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_species
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1098,7 +1116,7 @@ def get_annot_species(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1::3]
-        >>> result = get_annot_species(ibs, aid_list)
+        >>> result = get_annot_species_texts(ibs, aid_list)
         >>> print(result)
         [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
 
@@ -1108,7 +1126,7 @@ def get_annot_species(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species_list = get_annot_species(ibs, aid_list)
+        >>> species_list = get_annot_species_texts(ibs, aid_list)
         >>> result = set(species_list)
         >>> print(result)
         set([u'zebra_plains'])
@@ -1306,7 +1324,9 @@ def get_num_annotations(ibs, **kwargs):
 
 @register_ibs_method
 @ider
-def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filter', is_exemplar=None):
+def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
+                   viewpoint='no-filter', is_exemplar=None, species=None,
+                   is_known=None):
     """
     Note: The viewpoint value cannot be None as a default because None is used as a
           filtering value
@@ -1314,12 +1334,13 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filt
     Returns:
         list_ (list):  a list of valid ANNOTATION unique ids
     """
-    if eid is None and is_exemplar is not None:
-        # Optimization Hack
-        aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
-        return aid_list
+    # getting encounter aid
     if eid is None:
-        aid_list = ibs._get_all_aids()
+        if is_exemplar is True:
+            # Optimization Hack
+            aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
+        else:
+            aid_list = ibs._get_all_aids()
     else:
         # HACK: Check to see if you want the
         # exemplar "encounter" (image group)
@@ -1327,18 +1348,30 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None, viewpoint='no-filt
         if enctext == const.EXEMPLAR_ENCTEXT:
             is_exemplar = True
         aid_list = ibs.get_encounter_aids(eid)
+        if is_exemplar is True:
+            # corresponding unoptimized hack for is_exemplar
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.filter_items(aid_list, flag_list)
+    # -- valid aid filtering --
     if include_only_gid_list is not None:
-        gid_list = ibs.get_annot_gids(aid_list)
-        isvalid_list = [gid in include_only_gid_list for gid in gid_list]
-        aid_list = ut.filter_items(aid_list, isvalid_list)
-        pass
+        gid_list     = ibs.get_annot_gids(aid_list)
+        is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
+        aid_list     = ut.filter_items(aid_list, is_valid_gid)
     if viewpoint != 'no-filter':
-        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-        isvalid_list = [viewpoint == flag for flag in viewpoint_list]
-        aid_list = ut.filter_items(aid_list, isvalid_list)
-    if is_exemplar:
-        flag_list = ibs.get_annot_exemplar_flags(aid_list)
-        aid_list = ut.filter_items(aid_list, flag_list)
+        viewpoint_list     = ibs.get_annot_viewpoints(aid_list)
+        is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_viewpoint)
+    if species is not None:
+        species_rowid      = ibs.get_species_rowids_from_text(species)
+        species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_species)
+    if is_known is not None:
+        is_known_list = ibs.is_aid_unknown(aid_list)
+        if is_known is True:
+            aid_list = ut.filter_items(aid_list, is_known_list)
+        elif is_known is False:
+            aid_list = ut.filterfalse_items(aid_list, is_known_list)
     return aid_list
 
 
@@ -1428,7 +1461,10 @@ def set_annot_names(ibs, aid_list, name_list):
         >>> print(result)
     """
     #ibs.get_nids_from_text
-    name_rowid_list = ibs.get_name_rowids_from_text(name_list)
+    assert len(aid_list) == len(name_list)
+    assert not isinstance(name_list, six.string_types)
+    #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
+    name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list)
     ibs.update_annot_semantic_uuids(aid_list)
 
@@ -1612,7 +1648,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     # It is visual info augmented with name and species
     view_list       = ibs.get_annot_viewpoints(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
-    species_list    = ibs.get_annot_species(aid_list)
+    species_list    = ibs.get_annot_species_texts(aid_list)
     semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
                         name_list, species_list)
     return semantic_infotup

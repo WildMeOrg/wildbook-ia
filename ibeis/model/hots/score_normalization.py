@@ -6,7 +6,7 @@ GOALS:
        * distinctiveness from different location
 
     2) 1-vs-1
-       * uses distinctivness and foreground when available
+       * uses distinctiveness and foreground when available
        * start with ratio test and ransac
 
     3) First N decision are interactive until we learn a good threshold
@@ -23,15 +23,12 @@ GOALS:
        o - Spceies sensitivity
 
 
-    5) Add exemplars that are distinct from exiting (matches below threshold)
-
-    (no rebuilding kd-tree for each image)
-
-
+    * Add ability for user to relearn normalizer from labeled database.
 
 """
 from __future__ import absolute_import, division, print_function
 import utool
+from os.path import join
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -53,8 +50,8 @@ class ScoreNormalizer(ut.Cachable):
         tp_support       (None):
         tn_support       (None):
         tp_labels        (None):
-        fn_labels        (None):
-        clipscore        (None):
+        tn_labels        (None):
+        clip_score        (None):
 
     CommandLine:
         python -m ibeis.model.hots.score_normalization --test-ScoreNormalizer
@@ -68,32 +65,33 @@ class ScoreNormalizer(ut.Cachable):
         >>> tp_support = None
         >>> tn_support = None
         >>> tp_labels = None
-        >>> fn_labels = None
+        >>> tn_labels = None
         >>> normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,
         ...                              tp_support, tn_support, tp_labels,
-        ...                              fn_labels)
+        ...                              tn_labels)
     """
-    prefix = 'normalizer_'
+    prefix2 = '_normalizer_'
 
     def __init__(normalizer, cfgstr=None, score_domain=None,
                  p_tp_given_score=None, tp_support=None, tn_support=None,
-                 tp_labels=None, fn_labels=None, clipscore=None,
-                 timestamp=None):
+                 tp_labels=None, tn_labels=None, clip_score=None,
+                 timestamp=None, prefix=''):
         super(ScoreNormalizer, normalizer).__init__()
         normalizer.cfgstr = cfgstr
+        normalizer.prefix1 = prefix
         normalizer.score_domain = score_domain
         normalizer.p_tp_given_score = p_tp_given_score
         normalizer.tp_support = tp_support
         normalizer.tn_support = tn_support
         normalizer.tp_labels = tp_labels
-        normalizer.fn_labels = fn_labels
+        normalizer.tn_labels = tn_labels
         normalizer.timestamp = timestamp
-        normalizer.clipscore = clipscore
+        normalizer.clip_score = clip_score
         #normalizer.set_values(score_domain, p_tp_given_score, tp_support,
-        #                      tn_support, tp_labels, fn_labels)
+        #                      tn_support, tp_labels, tn_labels)
 
     def get_prefix(normalizer):
-        return 'normalizer_'
+        return normalizer.prefix1 + ScoreNormalizer.prefix2
 
     def get_cfgstr(normalizer):
         assert normalizer.cfgstr is not None
@@ -124,8 +122,11 @@ class ScoreNormalizer(ut.Cachable):
         #    ut.embed()
         return prob
 
+    def __call__(normalizer, score_list):
+        return normalizer.normalize_score_list(score_list)
+
     def normalize_score_list(normalizer, score_list):
-        if normalizer.score_domain is None:
+        if normalizer.get_num_training_pairs() < 2:
             # HACK
             # return scores from .4 to .6 if we have no idea
             score_arr = np.array(score_list)
@@ -138,8 +139,24 @@ class ScoreNormalizer(ut.Cachable):
         prob_list = [normalizer.normalize_score_(score) for score in score_list]
         return prob_list
 
-    def __call__(normalizer, score_list):
-        return normalizer.normalize_score_list(score_list)
+    def normalizer_score_list2(normalizer, score_list):
+        """
+        linear combination of probability and original score based on num
+        support cases
+        """
+        num_train_pairs = normalizer.get_num_training_pairs()
+        score_list = np.array(score_list)
+        prob_list = normalizer.normalize_score_list(score_list)
+        alpha = min(1.0, num_train_pairs / 200.0)
+        prob_list2 = (alpha * score_list) + ((1 - alpha) * prob_list)
+        return prob_list2
+
+    def get_num_training_pairs(normalizer):
+        if normalizer.score_domain is None:
+            num_train_pairs = 0
+        else:
+            num_train_pairs = len(normalizer.tp_support)
+        return num_train_pairs
 
     def get_infostr(normalizer):
         if normalizer.score_domain is None:
@@ -149,34 +166,69 @@ class ScoreNormalizer(ut.Cachable):
             ut.get_stats_str(normalizer.tn_support, lbl='tn_support', exclude_keys=['nMin', 'nMax']),
             ut.get_stats_str(normalizer.p_tp_given_score, lbl='p_tp_given_score', exclude_keys=['nMin', 'nMax']),
             ut.get_stats_str(normalizer.score_domain, keys=['max', 'min', 'shape'], lbl='score_domain'),
-            'clipscore = %.2f' % normalizer.clipscore,
+            'clip_score = %.2f' % normalizer.clip_score,
             'cfgstr = %r' % normalizer.cfgstr,
             'timestamp = %r' % normalizer.timestamp,
         ]
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def add_support(normalizer, tp_scores, fp_scores, tp_labels, fp_labels):
+    def add_support(normalizer, tp_scores, tn_scores, tp_labels, tn_labels):
+        """
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.score_normalization import *  # NOQA
+            >>> # build test data
+            >>> tp_scores = [100]
+            >>> tn_scores = [10]
+            >>> tp_labels = [110]
+            >>> tn_labels = [10]
+            >>> # empty normalizer
+            >>> normalizer = ScoreNormalizer()
+            >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
+            >>> normalizer.retrain()
+            >>> # verify results
+            >>> normalizer.visualize()
+            >>> #--
+            >>> # build test data
+            >>> tp_scores = np.random.randint(100, size=100)
+            >>> tn_scores = np.random.randint(50, size=100)
+            >>> tp_labels = np.arange(0, 100)
+            >>> tn_labels = np.arange(100, 200)
+            >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
+            >>> normalizer.retrain()
+            >>> normalizer.visualize()
+        """
         # Ensure input in list format
-        (tp_scores, fp_scores, tp_labels, fp_labels) = list(
-            map(ut.ensure_iterable,
-                (tp_scores, fp_scores, tp_labels, fp_labels)))
+        #(tp_scores, tn_scores, tp_labels, tn_labels) = list(
+        #    map(ut.ensure_iterable,
+        #        (tp_scores, tn_scores, tp_labels, tn_labels)))
         # Assert that lengths are the same
         assert ut.list_allsame(map(
-            len, (tp_scores, fp_scores, tp_labels, fp_labels))), (
-                'unequal lengths')
+            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
+        if normalizer.tp_support is None:
+            normalizer.tp_support = np.array([])
+            normalizer.tn_support = np.array([])
+            normalizer.tp_labels = np.array([])
+            normalizer.tn_label = np.array([])
         normalizer.tp_support = np.append(normalizer.tp_support, tp_scores)
-        normalizer.fp_support = np.append(normalizer.fp_support, fp_scores)
+        normalizer.tn_support = np.append(normalizer.tn_support, tn_scores)
         normalizer.tp_labels  = np.append(normalizer.tp_labels, tp_labels)
-        normalizer.fp_label   = np.append(normalizer.fp_label, fp_labels)
+        normalizer.tn_label   = np.append(normalizer.tn_labels, tn_labels)
 
     def retrain(normalizer):
-        tp_support = normalizer.tp_support
-        tn_support = normalizer.tn_support
+        tp_support = np.array(normalizer.tp_support)
+        tn_support = np.array(normalizer.tn_support)
         learnkw = dict()
         learntup = learn_score_normalization(tp_support, tn_support,
                                              return_all=False, **learnkw)
         (score_domain, p_tp_given_score, clip_score) = learntup
+        # DONT Make a new custom cfg
+        #cfgstr = ut.hashstr((tp_support, tn_support))
+        #normalizer.cfgstr = cfgstr
+        normalizer.score_domain = score_domain
+        normalizer.p_tp_given_score = p_tp_given_score
+        normalizer.clip_score = clip_score
 
     def visualize(normalizer, update=True, verbose=True, fnum=None):
         """
@@ -193,7 +245,6 @@ class ScoreNormalizer(ut.Cachable):
             >>> normalizer = load_precomputed_normalizer(index, with_global=False)
             >>> normalizer.visualize()
             >>> six.exec_(pt.present(), globals(), locals())
-            >>> #pt.plt.show()
 
         """
         import plottool as pt
@@ -230,11 +281,12 @@ class ScoreNormalizer(ut.Cachable):
 def parse_available_normalizers(*args, **kwargs):
     import parse
     normalizers_fpaths = list_available_score_normalizers(*args, **kwargs)
-    parsestr = '{cachedir}/' + ScoreNormalizer.prefix + '{cfgstr}' + ScoreNormalizer.ext
+    parsestr = '{cachedir}/{prefix1}' + ScoreNormalizer.prefix2 + '{cfgstr}' + ScoreNormalizer.ext
     result_list = [parse.parse(parsestr, path) for path in normalizers_fpaths]
     cfgstr_list = [result['cfgstr'] for result in result_list]
+    prefix1_list = [result['prefix1'] for result in result_list]
     cachedir_list = [result['cachedir'] for result in result_list]
-    return cfgstr_list, cachedir_list
+    return cfgstr_list, cachedir_list, prefix1_list
 
 
 def load_precomputed_normalizer(index, *args, **kwargs):
@@ -243,19 +295,19 @@ def load_precomputed_normalizer(index, *args, **kwargs):
 
     Example:
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> import ibeis
         >>> normalizer = load_precomputed_normalizer(None)
         >>> normalizer.visualize()
         >>> import plottool as pt
         >>> six.exec_(pt.present(), globals(), locals())
     """
-    cfgstr_list, cachedir_list = parse_available_normalizers(*args, **kwargs)
+    cfgstr_list, cachedir_list, prefix1_list = parse_available_normalizers(*args, **kwargs)
     if index is None or index == 'None':
         print('Avaliable indexes:')
         print(ut.indentjoin(map(str, enumerate(cfgstr_list))))
         index = int(input('what index?'))
     cfgstr = cfgstr_list[index]
     cachedir = cachedir_list[index]
+    #prefix1 = prefix1_list[index]
     normalizer = ScoreNormalizer(cfgstr=cfgstr)
     normalizer.load(cachedir)
     return normalizer
@@ -269,7 +321,6 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> import ibeis
         >>> local_normalizers_fpaths = list_available_score_normalizers(with_global=False)
         >>> global_normalizers_fpaths = list_available_score_normalizers(with_local=False)
         >>> # quote them
@@ -283,7 +334,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     """
     from ibeis.dev import sysres
     from ibeis import constants
-    from os.path import join
+    #from os.path import join
     pattern = ScoreNormalizer.prefix + '*' + ScoreNormalizer.ext
     ibeis_resdir = sysres.get_ibeis_resource_dir()
     workdir = sysres.get_workdir()
@@ -304,7 +355,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
 
 
 def delete_all_learned_normalizers():
-    """
+    r"""
     DELETES ALL CACHED NORMALIZERS IN ALL DATABASES
 
     CommandLine:
@@ -329,7 +380,7 @@ def delete_all_learned_normalizers():
 
 
 def train_baseline_for_all_dbs():
-    """
+    r"""
     Runs unnormalized queries to compute normalized queries
 
     CommandLine:
@@ -355,7 +406,7 @@ def train_baseline_for_all_dbs():
 
 
 def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
-    """
+    r"""
     Runs unnormalized queries to compute normalized queries
 
     Args:
@@ -371,7 +422,7 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> from ibeis.all_imports import *
+        >>> from ibeis.all_imports import *  # NOQA
         >>> import plottool as pt
         >>> import ibeis
         >>> from ibeis.model.hots import score_normalization
@@ -406,15 +457,13 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         # Save as baseline for this species
         species_text = '_'.join(qreq_.get_unique_species())  # HACK
         baseline_cfgstr = 'baseline_' + species_text
-        cachedir = ibs.get_species_scorenorm_cachedir(species_text)
+        cachedir = ibs.get_global_species_scorenorm_cachedir(species_text)
         normalizer.save(cachedir, cfgstr=baseline_cfgstr)
-        #print(fpath)
-        #learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr)
     print('\n' + utool.msgblock(tag, 'Finished Training'))
     return normalizer
 
 
-def try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
+def try_download_baseline_ibeis_normalizer(ibs, qreq_):
     """
     tries to download a baseline normalizer for some species.
     creates an empty normalizer if it cannot
@@ -422,23 +471,56 @@ def try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir):
     baseline_url_dict = {
         # TODO: Populate
     }
-    baseline_url = baseline_url_dict.get(cfgstr, None)
-    if baseline_url is None:
+    species_text = '_'.join(qreq_.get_unique_species())  # HACK
+    query_cfgstr = qreq_.qparams.query_cfgstr
+    cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
+    key = species_text + query_cfgstr
+    baseline_url = baseline_url_dict.get(key, None)
+    if baseline_url is not None:
+        try:
+            cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
+            baseline_cachedir = join(cachedir, 'baseline')
+            ut.ensuredir(baseline_cachedir)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
+            normalizer.load(baseline_cachedir)
+        except Exception:
+            normalizer = None
+    else:
+        normalizer = None
+    if normalizer is None:
         if False and ut.is_developer(['hyrule']):
-            # only do this on hyrule
+            # train new normalizer. only do this on hyrule
             print('Baseline does not exist and cannot be downlaoded. Training baseline')
             normalizer = train_baseline_ibeis_normalizer(qreq_.ibs)
         else:
-            normalizer = ScoreNormalizer()
+            # return empty score normalizer
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
+            print('returning empty normalizer')
             #raise NotImplementedError('return the nodata noramlizer with 1/2 default')
     return normalizer
 
 # IBEIS FUNCTIONS
+NORMALIZER_CACHE = {}
+#NEIGHBOR_CACHE_VUUIDS = {}
+MAX_NORMALIZER_CACHE_SIZE = 8
 
 
+@profile
 def request_ibeis_normalizer(qreq_, verbose=True):
-    """
+    r"""
     FIXME: do what is in the docstr
+
+    Any loaded normalizer must be configured on the query_cfg of the query
+    request. This ensures that all of the support data fed to the normalizer is
+    consistent.
+
+    First try to lod the normalizer from the in-memory cache.
+    If that fails try to load a custom normalizer from the local directory
+    If that fails try to load a custom normalizer from the global directory
+    If that fails try to (download and) load the baseline normalizer from the global directory
+    If that fails return empty score normalizer.
+    As queries are run the normalizer should be udpated and saved under the
+    custom normalizer in the local directory.
 
     Tries to load the best possible normalizer for this query request.
     If none are found then a it tries to load a downloaded baseline. If
@@ -457,32 +539,66 @@ def request_ibeis_normalizer(qreq_, verbose=True):
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5n
-        >>> cfgdict = dict(codename='nsum_unnorm')
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> cfgdict = dict(codename='vsone_unnorm')
         >>> #cfgdict = dict(codename='vsone_unnorm')
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> normalizer = request_ibeis_normalizer(qreq_)
+        >>> normalizer.add_support([100], [10], [1], [2])
     """
+    global NORMALIZER_CACHE
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    cfgstr = 'baseline_' + species_text
-    cachedir = qreq_.ibs.get_species_scorenorm_cachedir(species_text)
-    try:
-        normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load(cachedir)
+    query_cfgstr = qreq_.get_query_cfgstr()
+
+    cfgstr = species_text + query_cfgstr
+
+    if cfgstr in NORMALIZER_CACHE:
+        # use memory cache
+        normalizer = NORMALIZER_CACHE[cfgstr]
         if verbose:
-            print('returning baseline normalizer')
-    except Exception:
+            print('[scorenorm] returning memorycache normalizer')
+        return normalizer
+
+    def try_custom_local():
         try:
-            normalizer = try_download_baseline_ibeis_normalizer(qreq_, cfgstr, cachedir)
-        except Exception as ex:
-            ut.printex(ex)
-            raise
+            cachedir = qreq_.ibs.get_local_species_scorenorm_cachedir(species_text)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
+            normalizer.load(cachedir)
+            if verbose:
+                print('[scorenorm] returning local custom normalizer')
+            return normalizer
+        except Exception:
+            return None
+
+    def try_custom_global():
+        try:
+            cachedir = qreq_.ibs.get_global_species_scorenorm_cachedir(species_text)
+            normalizer = ScoreNormalizer(cfgstr=query_cfgstr, prefix=species_text)
+            normalizer.load(cachedir)
+            if verbose:
+                print('[scorenorm] returning global custom normalizer')
+            return normalizer
+        except Exception:
+            return None
+
+    normalizer = try_custom_local()
+    if normalizer is None:
+        normalizer = try_custom_global()
+    if normalizer is None:
+        normalizer = try_download_baseline_ibeis_normalizer(qreq_.ibs, qreq_)
+    if verbose:
+            print('[scorenorm] returning baseline normalizer')
+
+    assert normalizer is not None, 'something failed'
+    # Save to memory cache
+    NORMALIZER_CACHE[cfgstr] = normalizer
+
     return normalizer
 
 
 def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
                                   use_cache=True, **learnkw):
-    """
+    r"""
     Builds a normalizer trained on query results for a database
 
     Args:
@@ -516,28 +632,32 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     # Collect training data
     #cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    data_hashid = qreq_.get_data_hashid()
-    query_hashid = qreq_.get_query_hashid()
+    #data_hashid = qreq_.get_data_hashid()
+    #query_hashid = qreq_.get_query_hashid()
     query_cfgstr = qreq_.get_query_cfgstr()
-    cfgstr = ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr
+    prefix = species_text
+    cfgstr = query_cfgstr
+    #ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr
+    cachedir = ibs.get_local_species_scorenorm_cachedir(species_text)
     try:
         if use_cache is False:
             raise Exception('forced normalizer cache miss')
         normalizer = ScoreNormalizer(cfgstr)
-        normalizer.load(ibs.cachedir)
+        normalizer.load(cachedir)
         print('returning cached normalizer')
     except Exception as ex:
         ut.printex(ex, iswarning=True)
         qaid_list = qreq_.get_external_qaids()
-        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw)
-        normalizer.save(ibs.cachedir)
+        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list,
+                                                  cfgstr, prefix, **learnkw)
+        normalizer.save(cachedir)
     return normalizer
 
 
 # LEARNING FUNCTIONS
 
 
-def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
+def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **learnkw):
     """
     Takes the result of queries and trains a score normalizer
 
@@ -564,7 +684,8 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, **learnkw):
     timestamp = ut.get_printable_timestamp()
     normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,
                                  tp_support, tn_support, tp_support_labels,
-                                 tn_support_labels, clip_score, timestamp)
+                                 tn_support_labels, clip_score, timestamp,
+                                 prefix)
     return normalizer
 
 
@@ -764,7 +885,8 @@ def test_score_normalization():
         (tn_support, tp_support),
         ('true negative scores', 'true positive scores'),
         score_colors=(false_color, true_color),
-        logscale=True,
+        #logscale=True,
+        logscale=False,
         figtitle='sorted nscores',
         fnum=fnum)
 
@@ -824,7 +946,8 @@ def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
         (tn_support, tp_support),
         ('trueneg scores', 'truepos scores'),
         score_colors=(false_color, true_color),
-        logscale=True,
+        #logscale=True,
+        logscale=False,
         figtitle='sorted nscores',
         fnum=fnum,
         pnum=pnum)
@@ -866,7 +989,7 @@ def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
 
 
 def test():
-    """
+    r"""
     >>> from ibeis.model.hots.score_normalization import *  # NOQA
     """
     #from ibeis.model.hots import query_request

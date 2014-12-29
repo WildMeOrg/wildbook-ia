@@ -60,6 +60,7 @@
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">pyrf</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[randomforest]&#39;</span><span class="p">)</span>
 
 
@@ -400,7 +401,7 @@
         <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">(</span><span class="s">&#39;species=</span><span class="si">%s</span><span class="s"> does not have models trained&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
     <span class="n">detector</span><span class="o">.</span><span class="n">set_detect_params</span><span class="p">(</span><span class="o">**</span><span class="n">detect_config</span><span class="p">)</span>
 
-    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
     <span class="n">use_chunks_</span> <span class="o">=</span> <span class="n">use_chunks</span> <span class="ow">and</span> <span class="n">nImgs</span> <span class="o">&gt;=</span> <span class="n">chunksize</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>

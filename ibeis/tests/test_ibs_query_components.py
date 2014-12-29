@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import six
-import sys
+#import sys
 from collections import OrderedDict
 import multiprocessing
 # Tools
@@ -18,6 +18,19 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 
 def TEST_QUERY_COMP(ibs):
+    r"""
+    CommandLine:
+        python -m ibeis.tests.test_ibs_query_components --test-TEST_QUERY_COMP
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tests.test_ibs_query_components import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> TEST_QUERY_COMP(ibs)
+    """
     print('[TEST_QUERY_COMP]')
     aids = ibs.get_valid_aids()
     index = 0
@@ -63,7 +76,19 @@ def TEST_QUERY_COMP(ibs):
     return locals()
 
 
+#if __name__ == '__main__':
+#    """
+#    CommandLine:
+#        python -m ibeis.tests.test_ibs_query_components
+#        python -m ibeis.tests.test_ibs_query_components --allexamples
+#        python -m ibeis.tests.test_ibs_query_components --allexamples --noface --nosrc
+#    """
+#    multiprocessing.freeze_support()  # for win32
+#    import utool as ut  # NOQA
+#    ut.doctest_funcs()
+
 if __name__ == '__main__':
+    import sys
     multiprocessing.freeze_support()  # For windows
     import ibeis
     main_locals = ibeis.main(defaultdb='testdb1', gui=False)

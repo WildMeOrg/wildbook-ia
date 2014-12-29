@@ -7,6 +7,7 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis import ibsfuncs
 import numpy as np
+import vtool as vt
 from ibeis.control.accessor_decors import (adder, deleter, setter, getter_1to1,
                                            getter_1toM, ider)
 from ibeis.control import accessor_decors  # NOQA
@@ -24,6 +25,7 @@ SPECIES_ROWID       = 'species_rowid'
 
 NAME_UUID = 'name_uuid'
 NAME_TEXT = 'name_text'
+NAME_ALIAS_TEXT = 'name_alias_text'
 NAME_NOTE = 'name_note'
 SPECIES_UUID = 'species_uuid'
 SPECIES_TEXT = 'species_text'
@@ -110,13 +112,29 @@ def add_names(ibs, name_text_list, note_list=None):
 
 @register_ibs_method
 def sanatize_species_texts(ibs, species_text_list):
+    """ changes unknown species to the unknown value """
     ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=True)
-    species_text_list_ = [None
-                          if species_text is None or species_text == const.UNKNOWN
-                          else species_text.lower()
+    def _sanatize_species_text(species_text):
+        if species_text is None:
+            return None
+        elif species_text in const.VALID_SPECIES:
+            return species_text
+        else:
+            return const.UNKNOWN
+    species_text_list_ = [_sanatize_species_text(species_text)
                           for species_text in species_text_list]
-    species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None
-                          for species_text in species_text_list_]
+    # old but same logic
+    #species_text_list_ = [None if species_text is None else
+    #                      species_text if species_text in const.VALID_SPECIES else
+    #                      const.UNKNOWN
+    #                      for species_text in species_text_list]
+    # oldest different logic
+    #species_text_list_ = [None
+    #                      if species_text is None or species_text == const.UNKNOWN
+    #                      else species_text.lower()
+    #                      for species_text in species_text_list]
+    #species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None
+    #                      for species_text in species_text_list_]
     return species_text_list_
 
 
@@ -230,6 +248,7 @@ def get_invalid_nids(ibs):
     """
     Returns:
         list: nid_list - all names without any animals (does not include unknown names)
+        an nid is not invalid if it has a valid alias
 
     CommandLine:
         python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids
@@ -239,19 +258,22 @@ def get_invalid_nids(ibs):
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aids_list = get_invalid_nids(ibs)
-        >>> result = str(aids_list)
+        >>> nids_list = get_invalid_nids(ibs)
+        >>> result = str(nids_list)
         >>> print(result)
+        []
     """
     _nid_list = ibs._get_all_known_name_rowids()
     nRois_list = ibs.get_name_num_annotations(_nid_list)
+    # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
     nid_list = list(ut.ifilter_items(_nid_list, isempty_list))
-    #[nid for nid, nRois in zip(_nid_list, nRois_list) if nRois <= 0]
+    # Filter names with aliases (TODO: use transitivity to determine validity)
+    hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
+    nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
     return nid_list
 
 
-#@profile
 @register_ibs_method
 @getter_1toM
 #@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
@@ -288,11 +310,36 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         #ibs = ibeis.opendb('PZ_MTEST')
         ibs = ibeis.opendb('PZ_Master0')
         #ibs = ibeis.opendb('GZ_ALL')
+
         nid_list = ibs.get_valid_nids()
+        nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
 
         with ut.Timer('sql'):
             #aids_list1 = ibs.get_name_aids(nid_list, enable_unknown_fix=False)
             aids_list1 = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+
+        with ut.Timer('hackquery + group'):
+            opstr = '''
+            SELECT annot_rowid, name_rowid
+            FROM annotations
+            WHERE name_rowid IN
+                (%s)
+                ORDER BY name_rowid ASC, annot_rowid ASC
+            ''' % (', '.join(map(str, nid_list)))
+            pair_list = ibs.db.connection.execute(opstr).fetchall()
+            aids = np.array(ut.get_list_column(pair_list, 0))
+            nids = np.array(ut.get_list_column(pair_list, 1))
+            unique_nids, groupx = vt.group_indicies(nids)
+            grouped_aids_ = vt.apply_grouping(aids, groupx)
+            aids_list5 = [sorted(arr.tolist()) for arr in grouped_aids_]
+
+        for aids1, aids5 in zip(aids_list1, aids_list5):
+            if (aids1) != (aids5):
+                print(aids1)
+                print(aids5)
+                print('-----')
+
+        ut.assert_lists_eq(list(map(tuple, aids_list5)), list(map(tuple, aids_list1)))
 
         with ut.Timer('numpy'):
             # alt method
@@ -325,6 +372,74 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         valid_nids2 = ibs.db.get_all_col_rows('annotations', 'name_rowid')
         assert valid_nids1 == valid_nids2
 
+    ibs.db.fname
+    ibs.db.fpath
+
+    import sqlite3
+
+    con = sqlite3.connect(ibs.db.fpath)
+
+    opstr = '''
+    SELECT annot_rowid, name_rowid
+    FROM annotations
+    WHERE name_rowid IN
+        (SELECT name_rowid FROM name)
+        ORDER BY name_rowid ASC, annot_rowid ASC
+    '''
+
+    annot_rowid_list = con.execute(opstr).fetchall()
+    aid_list = ut.get_list_column(annot_rowid_list, 0)
+    nid_list = ut.get_list_column(annot_rowid_list, 1)
+
+
+    # HACKY HACKY HACK
+
+    with ut.Timer('hackquery + group'):
+        #nid_list = ibs.get_valid_nids()[10:15]
+        nid_list = ibs.get_valid_nids()
+        opstr = '''
+        SELECT annot_rowid, name_rowid
+        FROM annotations
+        WHERE name_rowid IN
+            (%s)
+            ORDER BY name_rowid ASC, annot_rowid ASC
+        ''' % (', '.join(map(str, nid_list)))
+        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        aids = np.array(ut.get_list_column(pair_list, 0))
+        nids = np.array(ut.get_list_column(pair_list, 1))
+        unique_nids, groupx = vt.group_indicies(nids)
+        grouped_aids_ = vt.apply_grouping(aids, groupx)
+        grouped_aids = [arr.tolist() for arr in grouped_aids_]
+
+    SELECT
+       name_rowid, COUNT(annot_rowid) AS number, GROUP_CONCAT(annot_rowid) AS aid_list
+    FROM annotations
+    WHERE name_rowid in (SELECT name_rowid FROM name)
+     GROUP BY name_rowid
+    ORDER BY name_rowid ASC
+
+
+    import vtool as vt
+    vt
+    vt.aid_list[0]
+
+
+    annot_rowid_list = con.execute(opstr).fetchall()
+    opstr = '''
+        SELECT annot_rowid
+        FROM annotations
+        WHERE name_rowid=?
+        '''
+
+    cur = ibs.db.connection.cursor()
+
+    cur = con.execute('BEGIN IMMEDIATE TRANSACTION')
+    cur = ibs.db.connection
+    res = [cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]
+    cur.execute('COMMIT TRANSACTION')
+
+    res = [ibs.db.cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]
+
     """
     # FIXME: THIS FUNCTION IS VERY SLOW
     # ADD A LOCAL CACHE TO FIX THIS SPEED
@@ -336,24 +451,44 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
     #USE_NUMPY_IMPL = len(nid_list_) > 10
     #USE_NUMPY_IMPL = len(nid_list_) > 10
-    USE_NUMPY_IMPL = True
-    #USE_NUMPY_IMPL = False
-    if USE_NUMPY_IMPL:
-        # This seems to be 30x faster for bigger inputs
-        valid_aids = np.array(ibs._get_all_aids())
-        valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
-        #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-        aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
+    USE_GROUPING_HACK = False
+    if USE_GROUPING_HACK:
+        # This code doesn't work because it doesn't respect empty names
+        input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
+        input_str = ', '.join(list(map(str, input_list)))
+        opstr = '''
+        SELECT annot_rowid, name_rowid
+        FROM {ANNOTATION_TABLE}
+        WHERE name_rowid IN
+            ({input_str})
+            ORDER BY name_rowid ASC, annot_rowid ASC
+        '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
+        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        aidscol = np.array(ut.get_list_column(pair_list, 0))
+        nidscol = np.array(ut.get_list_column(pair_list, 1))
+        unique_nids, groupx = vt.group_indicies(nidscol)
+        grouped_aids_ = vt.apply_grouping(aidscol, groupx)
+        #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
+        structured_aids_list = [arr.tolist() for arr in grouped_aids_]
+        aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        # SQL IMPL
-        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+        USE_NUMPY_IMPL = True
+        #USE_NUMPY_IMPL = False
+        if USE_NUMPY_IMPL:
+            # This seems to be 30x faster for bigger inputs
+            valid_aids = np.array(ibs._get_all_aids())
+            valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
+            #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+            aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
+        else:
+            # SQL IMPL
+            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
     if enable_unknown_fix:
         # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
         aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]
     return aids_list
 
 
-#@profile
 @register_ibs_method
 @getter_1toM
 def get_name_exemplar_aids(ibs, nid_list):
@@ -458,7 +593,53 @@ def get_name_num_exemplar_annotations(ibs, nid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_name_texts(ibs, name_rowid_list):
+def get_name_alias_texts(ibs, name_rowid_list):
+    """
+    Returns:
+        list_ (list): name_alias_text_list
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_alias_texts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> name_rowid_list = ibs.get_valid_nids()
+        >>> # execute function
+        >>> name_alias_text_list = get_name_alias_texts(ibs, name_rowid_list)
+        >>> # verify results
+        >>> result = str(name_alias_text_list)
+        >>> print(result)
+        [None, None, None, None, None, None, None]
+    """
+    name_alias_text_list = ibs.db.get(const.NAME_TABLE, (NAME_ALIAS_TEXT,), name_rowid_list)
+    return name_alias_text_list
+
+
+@register_ibs_method
+@setter
+def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
+    """
+    Returns:
+        list_ (list): name_alias_text_list
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+    """
+    #ibsfuncs.assert_valid_names(name_alias_text_list)
+    val_list = ((value,) for value in name_alias_text_list)
+    ibs.db.set(const.NAME_TABLE, (NAME_ALIAS_TEXT,), val_list, name_rowid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     """
     Returns:
         list_ (list): text names
@@ -484,10 +665,11 @@ def get_name_texts(ibs, name_rowid_list):
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
-    name_text_list = [const.UNKNOWN
-                      if rowid == ibs.UNKNOWN_NAME_ROWID or name_text is None
-                      else name_text
-                      for name_text, rowid in zip(name_text_list, name_rowid_list)]
+    if apply_fix:
+        name_text_list = [const.UNKNOWN
+                          if rowid == ibs.UNKNOWN_NAME_ROWID or name_text is None
+                          else name_text
+                          for name_text, rowid in zip(name_text_list, name_rowid_list)]
     return name_text_list
 
 
@@ -559,7 +741,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = [
         ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
@@ -630,7 +812,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_text_list = [u'Fred', 'easy', u'Sue', '____', u'zebra_grevys', 'TYPO', 'jeff']
         >>> ensure = False
@@ -729,7 +911,7 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 def set_name_texts(ibs, name_rowid_list, name_text_list):
     """
     Changes the name text. Does not affect the animals of this name.
-    Effectively an alias.
+    Effectively just changes the TEXT UUID
 
     CommandLine:
         python -m ibeis.control.manual_name_species_funcs --test-set_name_texts

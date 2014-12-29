@@ -160,19 +160,19 @@ def TEST_IBS_CONTROL(ibs):
     """ set annotation species / get annotation species """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    orig_species = ibs.get_annot_species(aid_list)
+    orig_species = ibs.get_annot_species_texts(aid_list)
     print('orig_species = %r' % (orig_species,))
     new_species = [constants.VALID_SPECIES[x % len(constants.VALID_SPECIES)] for x in range(len(aid_list))]
     print('new_species = %r' % (new_species,))
     ibs.set_annot_species(aid_list, new_species)
     try:
-        new_species2 = ibs.get_annot_species(aid_list)
+        new_species2 = ibs.get_annot_species_texts(aid_list)
         assert new_species == new_species2, 'new_species == new_species2 failed!'
     except AssertionError as ex:
         utool.printex(ex, key_list=['new_species', 'new_species2'])
         raise
     ibs.set_annot_species(aid_list, orig_species)
-    assert orig_species == ibs.get_annot_species(aid_list), 'species were not reset'
+    assert orig_species == ibs.get_annot_species_texts(aid_list), 'species were not reset'
 
     """ set alr confidence / get alr confidence """
     if False:

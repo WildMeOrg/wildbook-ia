@@ -321,7 +321,7 @@ if 'os' in ARG_DICT:
     if __OS__.lower() in ['apple', 'darwin', 'mac']:
         MACPORTS = True
         APPLE    = True
-    elif __OS__.lower() in ['debian', 'ubuntu']:
+    elif __OS__.lower() in ['debian', 'ubuntu', 'linuxmint']:
         LINUX         = True
         DEBIAN_FAMILY = True
     elif __OS__.lower() in ['centos']:
@@ -340,7 +340,7 @@ else:
     WIN32 = __OS__.startswith('win32')
     LINUX = __OS__.startswith('linux')
 
-    DEBIAN_FAMILY = (distro == 'Ubuntu' or distro == 'debian')
+    DEBIAN_FAMILY = (distro.lower() in ['ubuntu', 'debian', 'linuxmint'])
     CENTOS = (distro == 'centos')
     ARCH = (distro == 'arch')
     if CENTOS:

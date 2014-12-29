@@ -286,10 +286,9 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.2.1'
-
-        # TODO: add this functionality to SQLController
-        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        ibs.db_version_expected = '1.3.0'
+        ## TODO: add this functionality to SQLController
+        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1', 'testdb0']
         ##testing_newschmea = False
         ##ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
         #if testing_newschmea:
@@ -301,7 +300,7 @@ class IBEISController(object):
         #    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
         #    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
         #    # Set testing schema version
-        #    ibs.db_version_expected = '1.2.1'
+        #    ibs.db_version_expected = '1.3.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -374,11 +373,9 @@ class IBEISController(object):
         PATH_NAMES = const.PATH_NAMES
         REL_PATHS = const.REL_PATHS
 
-        if ensure and not ut.QUIET:
+        if not ut.QUIET:
             print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
-            if not ut.QUIET:
-                print(dbdir)
             workdir, dbname = split(dbdir)
         ibs.workdir  = ut.truepath(workdir)
         ibs.dbname = dbname
@@ -488,33 +485,7 @@ class IBEISController(object):
         from ibeis.dev import sysres
         return sysres.get_ibeis_resource_dir()
 
-    def get_scorenorm_cachedir(ibs, ensure=True):
-        """
-
-        Args:
-            species_text (str):
-            ensure       (bool):
-
-        Returns:
-            str: species_cachedir
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> scorenorm_cachedir = ibs.get_scorenorm_cachedir()
-            >>> resourcedir = ibs.get_ibeis_resource_dir()
-            >>> result = ut.relpath_unix(scorenorm_cachedir, resourcedir)
-            >>> print(result)
-            score_normalizers
-        """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'score_normalizers')
-        if ensure:
-            ut.ensurepath(scorenorm_cachedir)
-        return scorenorm_cachedir
-
-    def get_species_scorenorm_cachedir(ibs, species_text, ensure=True):
+    def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
 
         Args:
@@ -525,7 +496,7 @@ class IBEISController(object):
             str: species_cachedir
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_species_scorenorm_cachedir
+            python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -534,17 +505,27 @@ class IBEISController(object):
             >>> ibs = ibeis.opendb('testdb1')
             >>> species_text = ibeis.const.Species.ZEB_GREVY
             >>> ensure = True
-            >>> species_cachedir = ibs.get_species_scorenorm_cachedir(species_text, ensure)
-            >>> species_cachedir = ibs.get_species_scorenorm_cachedir(ibeis.const.Species.ZEB_GREVY, ensure)
+            >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
             >>> resourcedir = ibs.get_ibeis_resource_dir()
             >>> result = ut.relpath_unix(species_cachedir, resourcedir)
             >>> print(result)
-            score_normalizers/zebra_grevys
+            scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = ibs.get_scorenorm_cachedir()
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'scorenorm')
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
+            ut.ensurepath(scorenorm_cachedir)
+            ut.ensuredir(species_cachedir)
+        return species_cachedir
+
+    def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
+        """
+        """
+        scorenorm_cachedir = join(ibs.get_cachedir(), 'scorenorm')
+        species_cachedir = join(scorenorm_cachedir, species_text)
+        if ensure:
+            ut.ensuredir(scorenorm_cachedir)
             ut.ensuredir(species_cachedir)
         return species_cachedir
 
@@ -672,11 +653,49 @@ class IBEISController(object):
 
     @ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
-        """ Clusters images into encounters """
+        """
+        Clusters images into encounters
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-compute_encounters
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs.compute_encounters()
+            >>> ibs.update_special_encounters()
+            >>> # Now we want to remove some images from a non-special encounter
+            >>> nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]
+            >>> images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]
+            >>> ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))
+            >>> ibs.update_special_encounters()
+            >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+            >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
+            >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
+            >>> print("PRE COMPUTE: Encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> ibs.compute_encounters()
+            >>> print("COMPUTE: New encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> ibs.update_special_encounters()
+            >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
+            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
+        """
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
-        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+        gid_list = ibs.get_ungrouped_gids()
+        flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        valid_eids = ibs.get_valid_eids()
+        eid_offset = 0 if len(valid_eids) == 0 else max(valid_eids)
+        flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
+        # remain untouched, and ensure that new encounters are created
+        enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
+        print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
         print('[ibs] Finished computing and adding encounters.')
@@ -688,18 +707,23 @@ class IBEISController(object):
     #-----------------------
 
     @default_decorator
-    def get_recognition_database_aids(ibs):
+    def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
         """
         DEPRECATE or refactor
 
         Returns:
-            daid_list (list): testing recognition database annotations """
-        # TODO: Depricate, use exemplars instead
+            daid_list (list): testing recognition database annotations
+        """
         if 'daid_list' in ibs.temporary_state:
             daid_list = ibs.temporary_state['daid_list']
         else:
-            daid_list = ibs.get_valid_aids()
+            daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
         return daid_list
+
+    @default_decorator
+    def get_recognition_query_aids(ibs, is_known, species=None):
+        qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
+        return qaid_list
 
     def query_chips(ibs, qaid_list,
                     daid_list=None,

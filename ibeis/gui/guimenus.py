@@ -258,6 +258,21 @@ def setup_help_menu(mainwin, back):
         text='Delete Global Preferences',
         shortcut='',
         slot_fn=back.delete_global_prefs)
+    mainwin.menuHelp.newAction(
+        name='actionDeleteThumbnails',
+        text='Delete Thumbnails',
+        shortcut='',
+        slot_fn=back.delete_thumbnails)
+    mainwin.menuHelp.newAction(
+        name='actionCleanDatabase',
+        text='Clean Database',
+        shortcut='',
+        slot_fn=back.clean_database)
+    mainwin.menuHelp.newAction(
+        name='actionConsistencyCheck',
+        text='Run Consistency Checks',
+        shortcut='',
+        slot_fn=back.run_consistency_checks)
 
 
 def setup_developer_menu(mainwin, back):

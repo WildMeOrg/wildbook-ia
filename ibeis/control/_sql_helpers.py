@@ -170,11 +170,13 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     # SKIP TO CURRENT VERSION IF POSSIBLE
     #+-----------------------------------
     if can_skip:
-        current_schema_exists = schema_spec.UPDATE_CURRENT is not None and schema_spec.VERSION_CURRENT is not None
+        current_schema_exists = (schema_spec.UPDATE_CURRENT is not None and
+                                 schema_spec.VERSION_CURRENT is not None)
         if current_schema_exists:
             # check to see if more than the metadata table exists
             is_newdb = db.get_table_names() == [const.METADATA_TABLE]
-            current_schema_compatible = is_newdb and schema_spec.VERSION_CURRENT <= version_expected
+            current_schema_compatible = (
+                is_newdb and schema_spec.VERSION_CURRENT <= version_expected)
             if current_schema_compatible:
                 # Since this is a new database, we do not have to worry about backinng up the
                 # current database.  The subsequent update functions (if needed) will handle
@@ -192,13 +194,15 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     #+--------------------------------------
     # Check version again for sanity's sake, update if exported current is behind expected
     version = db.get_db_version()
-    printQUIET('[_SQL.%s] Database version: %r | Expected version: %r ' % (ut.get_caller_name(), version, version_expected))
+    printQUIET('[_SQL.%s] Database version: %r | Expected version: %r ' %
+               (ut.get_caller_name(), version, version_expected))
     if version < version_expected:
         printQUIET('[_SQL] Database version behind, updating...')
         update_schema_version(ibs, db, db_versions, version, version_expected,
                               dobackup=dobackup)
         db.set_db_version(version_expected)
-        printQUIET('[_SQL] Database version updated (incrementally) to %r' % (version_expected))
+        printQUIET('[_SQL] Database version updated (incrementally) to %r' %
+                   (version_expected))
     elif version > version_expected:
         msg = (('[_SQL] ERROR: '
                 'Expected database version behind. expected: %r. got: %r') %
@@ -262,7 +266,7 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
                 post(db, ibs=ibs)
     except Exception as ex:
         if dobackup:
-            msg = "The database update failed, rolled back to the original version."
+            msg = 'The database update failed, rolled back to the original version.'
             utool.printex(ex, msg, iswarning=True)
             utool.remove_file(db_fpath)
             utool.copy(db_backup_fpath, db_fpath)
@@ -272,7 +276,9 @@ def update_schema_version(ibs, db, db_versions, version, version_target,
             logging.exception(msg)
             raise
         else:
-            utool.printex(ex, 'The database update failed, and no backup was made. I hope you didnt need that data :P', iswarning=False)
+            utool.printex(ex, (
+                'The database update failed, and no backup was made.'),
+                iswarning=False)
             raise
     if dobackup and clearbackup:
         utool.remove_file(db_backup_fpath)
@@ -287,7 +293,12 @@ class SQLExecutionContext(object):
     """
     Context manager for transactional database calls
 
-    FIXME: has out details
+    FIXME: hash out details. I don't think anybody who programmed this
+    knows what is going on here. So much for fine grained control.
+
+    Referencs:
+        http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
+
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
                  start_transaction=False, verbose=PRINT_SQL):
@@ -312,7 +323,6 @@ class SQLExecutionContext(object):
         context.cur = context.db.connection.cursor()  # HACK in a new cursor
         #context.cur = context.db.cur  # OR USE DB CURSOR??
         if context.start_transaction:
-            # http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
             #context.cur.execute('BEGIN', ())
             context.cur.execute('BEGIN')
         if context.verbose or PRINT_SQL:

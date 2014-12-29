@@ -181,6 +181,7 @@ from ibeis.model.hots import automated_helpers
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import query_helpers
+from ibeis.model.hots import score_normalization
 from ibeis.model.hots.hots_query_result import QueryResult
 # IBEIS MODEL DETECT
 from ibeis.model.detect import randomforest

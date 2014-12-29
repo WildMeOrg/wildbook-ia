@@ -74,6 +74,9 @@
 <span class="sd">    Args:</span>
 <span class="sd">        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_featweight import *  # NOQA</span>
@@ -90,10 +93,12 @@
 <span class="sd">        &gt;&gt;&gt; probchip = probchip_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; tup = (aid, kpts, probchip)</span>
 <span class="sd">        &gt;&gt;&gt; (aid, weights) = gen_featweight_worker(tup)</span>
-<span class="sd">        &gt;&gt;&gt; result = str((aid, np.array_str(weights[0:3], precision=3)))</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        (3, &#39;[ 0.098  0.155  0.422]&#39;)</span>
-
+<span class="sd">        &gt;&gt;&gt; weights_03_test = weights[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;weights[0:3] = %r&#39; % (weights_03_test,))</span>
+<span class="sd">        &gt;&gt;&gt; weights_03_target = [ 0.098, 0.155,  0.422]</span>
+<span class="sd">        &gt;&gt;&gt; weights_thresh = [ 0.003, 0.002,  0.002]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)</span>
+<span class="sd">        &gt;&gt;&gt; assert aid == 3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="k">if</span> <span class="n">probchip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>

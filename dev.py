@@ -662,7 +662,7 @@ def devfunc(ibs, qaid_list):
     #feat_cfg.printme3()
     print('\ncfgstr..')
     print(feat_cfg.get_cfgstr())
-    print(utool.dict_str(feat_cfg.get_dict_args()))
+    print(utool.dict_str(feat_cfg.get_hesaff_params()))
     #allres = results_all.get_allres(ibs, qaid_list)
     from ibeis import viz
     aid = 1
