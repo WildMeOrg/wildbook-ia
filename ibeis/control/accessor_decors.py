@@ -151,6 +151,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
                 kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
             else:
                 kwargs_hash = None
+
             cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
             # Load cached values for each rowid
             vals_list = ut.dict_take_list(cache_, rowid_list, None)

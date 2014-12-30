@@ -53,6 +53,26 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 # and then go in _devcmds_ibeis.py
 
 
+@devcmd('tune', 'autotune')
+def tune_flann(ibs, qaid_list, daid_list=None):
+    all_aids = ibs.get_valid_aids()
+    vecs = np.vstack(ibs.get_annot_vecs(all_aids))
+    print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    tuned_params = vt.tune_flann(vecs,
+                                 target_precision=.90,
+                                 build_weight=0.05,
+                                 memory_weight=0.00,
+                                 sample_fraction=0.5)
+    tuned_params
+
+    tuned_params2 = vt.tune_flann(vecs,
+                                  target_precision=.90,
+                                  build_weight=0.001,
+                                  memory_weight=0.00,
+                                  sample_fraction=0.5)
+    tuned_params2
+
+
 @devcmd('incremental', 'inc')
 def incremental_test(ibs, qaid_list, daid_list=None):
     """

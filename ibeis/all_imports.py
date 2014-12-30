@@ -92,6 +92,7 @@ import utool
 import utool as ut
 import detecttools
 import vtool
+import vtool as vt
 import plottool
 import guitool
 
@@ -261,4 +262,5 @@ def embed(back):
     """ Allows for embedding in an environment with all imports """
     ibs = back.ibs
     front = back.front
+    ibswgt = front
     utool.embed()

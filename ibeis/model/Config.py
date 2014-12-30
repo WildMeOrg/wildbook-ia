@@ -3,6 +3,8 @@ import utool
 import utool as ut
 import six
 import copy
+from os.path import join
+from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[cfg]')
 
@@ -373,14 +375,25 @@ class FlannConfig(ConfigBase):
 
     this flann is only for neareset neighbors in vsone/many
     TODO: this might not need to be here
+
+    References:
+        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf
+        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf
+        http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html
     """
     def __init__(flann_cfg, **kwargs):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
-        flann_cfg.algorithm = 'kdtree'
-        #flann_cfg.algorithm = 'linear'
-        flann_cfg.trees = 4
+        #General Params
+        flann_cfg.algorithm = 'kdtree'  # linear
+        flann_cfg.checks = 724
         flann_cfg.flann_cores = 0  # doesnt change config, just speed
-        #flann_cfg.trees = 16
+        # KDTree params
+        flann_cfg.trees = 8
+        # KMeansTree params
+        flann_cfg.iterations = 11
+        flann_cfg.centers_init = 'random'
+        flann_cfg.cb_index = .4
+        flann_cfg.branching = 64
         flann_cfg.update(**kwargs)
 
     def get_flann_params(flann_cfg):
@@ -388,6 +401,7 @@ class FlannConfig(ConfigBase):
             algorithm=flann_cfg.algorithm,
             trees=flann_cfg.trees,
             cores=flann_cfg.flann_cores,
+            checks=flann_cfg.checks,
         )
         return flann_params
 
@@ -397,8 +411,16 @@ class FlannConfig(ConfigBase):
             flann_cfgstrs += ['%d_kdtrees' % flann_cfg.trees]
         elif flann_cfg.algorithm == 'linear':
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
+        elif flann_cfg.algorithm == 'kdtree':
+            flann_cfgstrs += [
+                '%s_' % flann_cfg.algorithm,
+                'iter=%s_' % flann_cfg.iterations,
+                'cb=%s_' % flann_cfg.cb_index,
+                'branch=%s' % flann_cfg.branching,
+            ]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
+        flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
         flann_cfgstrs += [')']
         return flann_cfgstrs
 
@@ -1002,7 +1024,7 @@ class DetectionConfig(ConfigBase):
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
-        detect_cfg.species     = 'zebra_grevys'
+        detect_cfg.species     = const.Species.ZEB_GREVY
         detect_cfg.detector    = 'rf'
         detect_cfg.scale_list  = '1.33, 1.00, 0.75, 0.56, 0.42, 0.32, 0.24, 0.18, 0.13'
         detect_cfg.detectimg_sqrt_area = 800
@@ -1114,6 +1136,74 @@ def default_vsone_cfg(ibs, **kwargs):
     })
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
+
+
+def set_query_cfg(cfg, query_cfg):
+    """ hack 12-30-2014 """
+    cfg.query_cfg = query_cfg
+    cfg.featweight_cfg = cfg.query_cfg._featweight_cfg
+    cfg.feat_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg
+    cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
+
+
+def update_query_config(cfg, **kwargs):
+    """ hack 12-30-2014 """
+    cfg.query_cfg.update_query_cfg(**kwargs)
+    cfg.featweight_cfg = cfg.query_cfg._featweight_cfg
+    cfg.feat_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg
+    cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
+
+
+def load_named_config(cfgname, dpath, use_config_cache=False):
+    """ hack 12-30-2014 """
+    if cfgname is None:
+        cfgname = 'cfg'
+    fpath = join(dpath, cfgname) + '.cPkl'
+    # Always a fresh object
+    cfg = GenericConfig(cfgname, fpath=fpath)
+    try:
+        # Use pref cache
+        if use_config_cache:
+            raise Exception('force config cache miss')
+        cfg.load()
+        if ut.NOT_QUIET:
+            print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
+    except Exception:
+        # Totally new completely default preferences
+        cfg = _default_config(cfg, cfgname)
+    # Hack in cfgname
+    cfg.z_cfgname = cfgname
+    return cfg
+
+
+def _default_config(cfg, cfgname=None):
+    """ hack 12-30-2014 """
+    if not ut.QUIET:
+        print('[Config] building default config')
+    if cfgname is None:
+        cfgname = cfg.z_cfgname
+    query_cfg = default_query_cfg()
+    set_query_cfg(cfg, query_cfg)
+    cfg.enc_cfg     = EncounterConfig()
+    cfg.detect_cfg  = DetectionConfig()
+    cfg.other_cfg   = OtherConfig()
+    _default_named_config(cfg, cfgname)
+    #if len(species_list) == 1:
+    #    # try to be intelligent about the default speceis
+    #    cfg.detect_cfg.species = species_list[0]
+    return cfg
+
+
+def _default_named_config(cfg, cfgname):
+    """ hack 12-30-2014 """
+    if cfgname == 'cfg':
+        cfg.detect_cfg.species = 'none'
+    if cfgname == const.Species.ZEB_PLAIN:
+        cfg.detect_cfg.species = cfgname
+    if cfgname == const.Species.ZEB_GREVY:
+        cfg.detect_cfg.species = cfgname
+    if cfgname == const.Species.GIRAFFE:
+        cfg.detect_cfg.species = cfgname
 
 
 if __name__ == '__main__':

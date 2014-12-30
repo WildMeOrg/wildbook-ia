@@ -118,6 +118,12 @@ def delete_annot_chips(ibs, aid_list):
     _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
     cid_list = ut.filter_Nones(_cid_list)
     ibs.delete_chips(cid_list)
+    # HACK FIX: if annot chips are None then the image thumbnail
+    # will not be invalidated
+    if len(_cid_list) != len(cid_list):
+        aid_list_ = [aid for aid, _cid in zip(aid_list, _cid_list) if _cid is None]
+        gid_list_ = ibs.get_annot_gids(aid_list_)
+        ibs.delete_image_thumbs(gid_list_)
 
 
 @register_ibs_method

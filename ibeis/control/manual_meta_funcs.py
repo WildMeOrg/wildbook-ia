@@ -1,13 +1,17 @@
+"""
+controller functions for contributors, versions, configs, and other metadata
+"""
 from __future__ import absolute_import, division, print_function
 import uuid
 import six  # NOQA
-from os.path import join
+#from os.path import join
 import functools
 from six.moves import range
 from ibeis import constants as const
 from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, default_decorator, ider)
 import utool as ut
+from ibeis.model import Config
 #from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_meta]')
@@ -503,64 +507,58 @@ def _init_config(ibs):
     Loads the database's algorithm configuration
 
     TODO: per-species config
-        * make
     """
-    from ibeis.model import Config
-    # Always a fresh object
-    ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
-    # TODO: update cfgs between versions
-    try:
-        # Use pref cache
-        if ut.is_developer() or ut.get_argflag(('--nocache-pref',)):
-            raise Exception('')
-        ibs.cfg.load()
-        if ut.NOT_QUIET:
-            print('[ibs] successfully loaded config')
-    except Exception:
-        # Totally new completely default preferences
-        ibs._default_config()
+    species_list = ibs.get_database_species()
+    # try to be intelligent about the default speceis
+    cfgname = species_list[0] if len(species_list) == 1 else 'cfg'
+    ibs._load_named_config(cfgname)
 
 
 @register_ibs_method
-def _default_config(ibs, new=False):
-    """ Resets the databases's algorithm configuration """
-    from ibeis.model import Config
-    if not ut.QUIET:
-        print('[ibs] building default config')
-    if new:
-        # Sometimes a fresh object
-        ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
-    query_cfg = Config.default_query_cfg()
-    ibs.set_query_cfg(query_cfg)
-    ibs.cfg.enc_cfg     = Config.EncounterConfig()
-    ibs.cfg.detect_cfg  = Config.DetectionConfig()
-    ibs.cfg.other_cfg   = Config.OtherConfig()
+def _load_named_config(ibs, cfgname=None):
+    # TODO: update cfgs between versions
+    # Try to load previous config otherwise default
+    use_config_cache = not (ut.is_developer() or ut.get_argflag(('--nocache-pref',)))
+    ibs.cfg = Config.load_named_config(cfgname, ibs.get_dbdir(), use_config_cache)
+    ibs.reset_table_cache()
 
-    species_list = ibs.get_database_species()
-    if len(species_list) == 1:
-        # try to be intelligent about the default speceis
-        ibs.cfg.detect_cfg.species = species_list[0]
+
+@register_ibs_method
+def _default_config(ibs, cfgname=None):
+    """ Resets the databases's algorithm configuration """
+    #species_list = ibs.get_database_species()
+    #if len(species_list) == 1:
+    #    # try to be intelligent about the default speceis
+    #    cfgname = species_list[0]
+    ibs.cfg = Config._default_config(ibs.cfg, cfgname)
+    ibs.reset_table_cache()
+    #query_cfg = Config.default_query_cfg()
+    #ibs.set_query_cfg(query_cfg)
+    #ibs.cfg.enc_cfg     = Config.EncounterConfig()
+    #ibs.cfg.detect_cfg  = Config.DetectionConfig()
+    #ibs.cfg.other_cfg   = Config.OtherConfig()
+
+    #Config._default_config(ibs.cfg, species_list=[])
+    #if len(species_list) == 1:
+    #    # try to be intelligent about the default speceis
+    #    ibs.cfg.detect_cfg.species = species_list[0]
 
 
 @register_ibs_method
 @default_decorator
 def set_query_cfg(ibs, query_cfg):
+    Config.set_query_cfg(ibs.cfg, query_cfg, species_list=ibs.get_database_species())
+    ibs.reset_table_cache()
     #if ibs.qreq is not None:
     #    ibs.qreq.set_cfg(query_cfg)
-    ibs.cfg.query_cfg = query_cfg
-    ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
-    ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
-    ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
 @register_ibs_method
 @default_decorator
 def update_query_cfg(ibs, **kwargs):
     """ Updates query config only. Configs needs a restructure very badly """
-    ibs.cfg.query_cfg.update_query_cfg(**kwargs)
-    ibs.cfg.featweight_cfg = ibs.cfg.query_cfg._featweight_cfg
-    ibs.cfg.feat_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg
-    ibs.cfg.chip_cfg       = ibs.cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
+    Config.update_query_config(ibs.cfg, **kwargs)
+    ibs.reset_table_cache()
 
 
 @register_ibs_method

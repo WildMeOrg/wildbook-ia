@@ -666,6 +666,7 @@ def main():
     #ut.save_testdata(*testdata)
     valid_aids =  ibs.get_valid_aids()
 
+    # HACK
     if ibs.get_dbname().startswith('GZ_'):
         ibs.cfg.detect_cfg.species = 'zebra_grevys'
     else:

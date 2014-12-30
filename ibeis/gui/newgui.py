@@ -473,6 +473,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for selection_model in hack_selections:
             selection_model.clearSelection()
 
+    @profile
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
         print('[newgui] connecting ibs control')
@@ -537,6 +538,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
+    @profile
     def _change_enc(ibswgt, eid):
         print('[newgui] _change_enc(%r)' % eid)
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):

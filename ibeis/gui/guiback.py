@@ -96,6 +96,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] MainWindowBackend.__init__()')
         back.ibs = None
         back.cfg = None
+        back.edit_prefs_wgt = None
         # State variables
         back.sel_aids = []
         back.sel_nids = []
@@ -532,6 +533,10 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def encounter_set_species(back, refresh=True):
+        """
+        HACK: sets the species columns of all annotations in the encounter
+        to be whatever is currently in the detect config
+        """
         print('[back] encounter_set_species')
         ibs = back.ibs
         eid = back.get_selected_eid()
@@ -545,8 +550,17 @@ class MainWindowBackend(QtCore.QObject):
     def change_detection_species(back, index, value):
         print('[back] change_detection_species(%r, %r)' % (index, value))
         ibs = back.ibs
-        ibs.cfg.detect_cfg.species = value
-        ibs.cfg.save()
+        species = value
+        # Load full blown configs for each species
+        if back.edit_prefs_wgt:
+            back.edit_prefs_wgt.close()
+        if species == 'none':
+            cfgname = 'cfg'
+        else:
+            cfgname = species
+        ibs._load_named_config(cfgname)
+        #ibs.cfg.save()
+        #ibs.cfg.detect_cfg.species = value
 
     def get_selected_species(back):
         return back.ibs.cfg.detect_cfg.species

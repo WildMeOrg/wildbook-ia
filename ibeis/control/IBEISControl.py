@@ -123,14 +123,15 @@ class IBEISController(object):
     """
     IBEISController docstring
 
-    chip  - cropped region of interest in an image, maps to one animal
-    cid   - chip unique id
-    gid   - image unique id (could just be the relative file path)
-    name  - name unique id
-    eid   - encounter unique id
-    aid   - region of interest unique id
-    annotation   - region of interest for a chip
-    theta - angle of rotation for a chip
+    NameingConventions:
+        chip  - cropped region of interest in an image, maps to one animal
+        cid   - chip unique id
+        gid   - image unique id (could just be the relative file path)
+        name  - name unique id
+        eid   - encounter unique id
+        aid   - region of interest unique id
+        annot - an annotation i.e. region of interest for a chip
+        theta - angle of rotation for a chip
     """
 
     #
@@ -157,6 +158,9 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
 
+    def reset_table_cache(ibs):
+        ibs.table_cache = accessor_decors.init_tablecache()
+
     def _initialize_self(ibs):
         """
         For utools auto reload
@@ -165,7 +169,7 @@ class IBEISController(object):
         """
         if ut.VERBOSE:
             print('[ibs] _initialize_self()')
-        ibs.table_cache = accessor_decors.init_tablecache()
+        ibs.reset_table_cache()
 
         for module in INJECTED_MODULES:
             ut.inject_instance(
@@ -817,6 +821,9 @@ class IBEISController(object):
                       verbose=pipeline.VERB_PIPELINE):
         """
         main entrypoint to submitting a query request
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-_query_chips4
 
         Example:
             >>> # SLOW_DOCTEST

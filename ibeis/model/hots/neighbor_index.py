@@ -606,7 +606,8 @@ class NeighborIndex(object):
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
         nnindexer.cfgstr   = cfgstr  # configuration id
         nnindexer.flann_params = flann_params
-        nnindexer.cores = flann_params.get('cores', 0)
+        nnindexer.cores  = flann_params.get('cores', 0)
+        nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
 
     @profile
@@ -640,10 +641,9 @@ class NeighborIndex(object):
             >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
             >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list)
             >>> K = 2
-            >>> checks = 1028
-            >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
             >>> nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list)
-            >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
             >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
         nAnnots = nnindexer.num_indexed_annots()
@@ -784,7 +784,7 @@ class NeighborIndex(object):
         return nnindexer.idx2_vec.dtype
 
     #@profile
-    def knn(nnindexer, qfx2_vec, K, checks=1028):
+    def knn(nnindexer, qfx2_vec, K):
         """
         Args:
             qfx2_vec : (N x D) an array of N, D-dimensional query vectors
@@ -805,8 +805,7 @@ class NeighborIndex(object):
             >>> nnindexer, qreq_, ibs = test_nnindexer()
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> K = 2
-            >>> checks = 1028
-            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> assert np.all(qfx2_dist < 1.0), 'distance should be less than 1'
             >>> print(result)
@@ -818,8 +817,7 @@ class NeighborIndex(object):
             >>> nnindexer, qreq_, ibs = test_nnindexer()
             >>> qfx2_vec = np.empty((0, 128), dtype=nnindexer.get_dtype())
             >>> K = 2
-            >>> checks = 1028
-            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> print(result)
             (0, 2) (0, 2)
@@ -842,7 +840,7 @@ class NeighborIndex(object):
         else:
             # perform nearest neighbors
             (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
-                qfx2_vec, K, checks=checks, cores=nnindexer.cores)
+                qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
             # Ensure that distance returned are between 0 and 1
             qfx2_dist = qfx2_dist / (nnindexer.max_distance ** 2)
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance
@@ -886,8 +884,7 @@ class NeighborIndex(object):
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0])
             >>> num_neighbors = 4
-            >>> checks = 1024
-            >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors, checks)
+            >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
             >>> result = qfx2_aid.shape
             >>> print(result)
