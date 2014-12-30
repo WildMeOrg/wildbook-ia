@@ -5,6 +5,7 @@ from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool.__PYQT__.QtCore import Qt
 import functools
 import utool
+import utool as ut  # NOQA
 from guitool import guitool_dialogs
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[guitool_components]')
@@ -206,7 +207,7 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
 
 
 def newComboBox(parent=None, options=None, changed=None, default=None, visible=True,
-                enabled=True, bgcolor=None, fgcolor=None):
+                enabled=True, bgcolor=None, fgcolor=None, bold=False):
     """ wrapper around QtGui.QComboBox
 
         options is a list of tuples, which are a of the following form:
@@ -255,6 +256,10 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         enabled = False
     combo.setVisible(visible)
     combo.setEnabled(enabled)
+    if True or bold:
+        font = combo.font()
+        font.setBold(True)
+        combo.setFont(font)
     return combo
 
 
@@ -310,9 +315,19 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 #    #app_style = QtGui.QApplication.style()
 
 
-def newLabel(parent, text):
+def newLabel(parent, text, align='center', bold=False):
     label = QtGui.QLabel(text, parent=parent)
-    label.setAlignment(Qt.AlignCenter)
+    align_dict = {
+        'center': Qt.AlignCenter,
+        'right': Qt.AlignRight | Qt.AlignVCenter,
+        'justify': Qt.AlignJustify,
+        'justify': Qt.AlignJustify,
+    }
+    label.setAlignment(align_dict[align])
+    if bold:
+        font = label.font()
+        font.setBold(True)
+        label.setFont(font)
     return label
 
 
