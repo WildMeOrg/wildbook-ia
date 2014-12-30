@@ -25,15 +25,17 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> daid_list = ibs.get_valid_aids()
         >>> qaid_list = daid_list[0:1]
         >>> cfgdict = dict()
-        >>> qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
-        >>> #qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict, use_cache=False, return_request=True)
+        >>> #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
+        >>> qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict, use_cache=False, return_request=True)
         >>> qres = qaid2_qres[qaid_list[0]]
+        >>> print(qres.get_inspect_str())
+        >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
         >>> aid_list, score_list = qres.get_aids_and_scores()
         >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
-        >>> result = str(sorted_nids[0:3])
+        >>> result = np.array_repr(sorted_nids[0:3])
         >>> print(result)
-        [1 5 4]
+        array([ 1,  5, 41])
 
     [2 6 5]
     """
