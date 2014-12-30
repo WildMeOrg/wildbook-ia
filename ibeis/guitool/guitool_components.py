@@ -210,12 +210,46 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
                 enabled=True, bgcolor=None, fgcolor=None, bold=False):
     """ wrapper around QtGui.QComboBox
 
-        options is a list of tuples, which are a of the following form:
-        options = [
-            (Visible Text 1, Backend Value 1), # default
-            (Visible Text 2, Backend Value 2),
-            (Visible Text 3, Backend Value 3),
-        ]
+    Args:
+        parent (None):
+        options (list): a list of tuples, which are a of the following form:
+            [
+                (visible text 1, backend value 1),
+                (visible text 2, backend value 2),
+                (visible text 3, backend value 3),
+            ]
+        changed (None):
+        default (str): backend value of default item
+        visible (bool):
+        enabled (bool):
+        bgcolor (None):
+        fgcolor (None):
+        bold (bool):
+
+    Returns:
+        ?: combo
+
+    CommandLine:
+        python -m guitool.guitool_components --test-newComboBox
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> # build test data
+        >>> parent = None
+        >>> options = None
+        >>> changed = None
+        >>> default = None
+        >>> visible = True
+        >>> enabled = True
+        >>> bgcolor = None
+        >>> fgcolor = None
+        >>> bold = False
+        >>> # execute function
+        >>> combo = newComboBox(parent, options, changed, default, visible, enabled, bgcolor, fgcolor, bold)
+        >>> # verify results
+        >>> result = str(combo)
+        >>> print(result)
     """
     class CustomComboBox(QtGui.QComboBox):
         def __init__(combo, parent=None, default=None, options=None, changed=None):
@@ -237,6 +271,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             combo.changed(index, combo.options[index][1])
 
         def setDefault(combo, default=None):
+            """ finds index of backend value and sets the current index """
             if default is not None:
                 for index, (text, value) in enumerate(options):
                     if value == default:
