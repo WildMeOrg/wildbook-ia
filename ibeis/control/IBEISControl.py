@@ -592,7 +592,7 @@ class IBEISController(object):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             addr_ = addr % (hostname, encounter_uuid)
             response = ibs._init_wb(addr_)
-            print(response)
+            print(addr_, response)
             return response is not None
         # Configuration
         hostname = '127.0.0.1'
