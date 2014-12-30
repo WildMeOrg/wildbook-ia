@@ -82,6 +82,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+        # Use greedy set cover to get a list of nnindxers that are already built
         uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh)
         num_subindexers = len(covered_aids_list)
         # If the number of bins gets too big do a reindex

@@ -117,7 +117,8 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         >>> # verify results
         >>> result = str(vsone_query_pairs)
         >>> print(result)
-        [(1, [2, 3, 5, 6, 4])]
+        [(1, [2, 3, 6, 5, 4])]
+
     """
     vsone_query_pairs = []
     nNameShortlistVsone = 3
@@ -127,7 +128,8 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
         #top_nid_list = ut.listclip(sorted_nids, nNameShortlistVsone)
         top_aids_list = ut.listclip(sorted_aids, nNameShortlistVsone)
-        top_aid_list = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
+        top_aids_list_ = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
+        top_aid_list = ut.flatten(top_aids_list_)
         # get top annotations beloning to the database query
         # TODO: allow annots not in daids to be included
         #top_unflataids = ibs.get_name_aids(top_nid_list, enable_unknown_fix=True)
@@ -160,9 +162,10 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
         >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
         >>> qres_vsone = qaid2_qres_vsone[qaid]
-        >>> result = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
+        >>> top_namescore_aids = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
+        >>> result = str(top_namescore_aids)
         >>> print(result)
-        [2, 5]
+        [3, 5]
 
     """
     vsone_cfgdict = dict(codename='vsone_unnorm')
@@ -401,6 +404,7 @@ def empty_query(ibs, qaids):
         tuple: (qaid2_qres, qreq_)
 
     CommandLine:
+        python -m ibeis.model.hots.special_query --test-empty_query --show
         python -m ibeis.model.hots.special_query --test-empty_query
 
     Example:
@@ -408,12 +412,16 @@ def empty_query(ibs, qaids):
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs, valid_aids = testdata_special_query()
         >>> # execute function
-        >>> (qaid2_qres, qreq_) = empty_query(ibs, qaids)
+        >>> (qaid2_qres, qreq_) = empty_query(ibs, valid_aids)
         >>> # verify results
         >>> result = str((qaid2_qres, qreq_))
         >>> print(result)
-        >>> qres = qaid2_qres[1]
-        >>> qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
+        >>> qres = qaid2_qres[valid_aids[0]]
+        >>> if ut.get_argflag('--show'):
+        ...    qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
+        ...    from matplotlib import pyplot as plt
+        ...    plt.show()
+        >>> ut.assert_eq(len(qres.get_top_aids()), 0)
     """
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
