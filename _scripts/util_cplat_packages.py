@@ -25,7 +25,7 @@ def get_pip_installed():
 def _std_pkgwrap(pkg):
     if DEBIAN_FAMILY:
         return 'lib' + pkg + '-dev'
-    if CENTOS:
+    if FEDORA_FAMILY:
         return pkg + '-devel'
 
 # Special cases
@@ -47,7 +47,7 @@ MACPORTS_PKGMAP = {
     #'gfortran':
     #'g++':
     #'libjpg'       : 'parsing',
-    'gcc': 'gcc48',
+    'gcc'           : 'gcc48',
     'libjpeg'       : 'libjpg',
 }
 
@@ -218,7 +218,7 @@ EOL'
 
 PIP_PYPKG_SET = get_pip_installed()
 """
-elif CENTOS:
+elif FEDORA_FAMILY:
     return __check
 """
 #print('\n'.join(sorted(list(PIP_PYPKG_SET))))
@@ -314,7 +314,7 @@ if 'os' in ARG_DICT:
     MACPORTS = False
     APPLE    = False
     DEBIAN_FAMILY   = False
-    CENTOS   = False
+    FEDORA_FAMILY   = False
     ARCH     = False
     WIN32    = False
     LINUX    = False
@@ -326,7 +326,7 @@ if 'os' in ARG_DICT:
         DEBIAN_FAMILY = True
     elif __OS__.lower() in ['centos']:
         LINUX    = True
-        CENTOS   = True
+        FEDORA_FAMILY   = True
     elif __OS__.lower() in ['arch']:
         LINUX    = True
         ARCH     = True
@@ -334,16 +334,32 @@ if 'os' in ARG_DICT:
         WIN32    = True
 else:
     __OS__ = sys.platform
-    (distro, distro_version, distro_tag) = platform.dist()
+    # References: https://docs.python.org/2/library/platform.html#platform.linux_distribution
 
     APPLE = __OS__.startswith('darwin')
     WIN32 = __OS__.startswith('win32')
     LINUX = __OS__.startswith('linux')
 
+    # FIXME: platform.dist is depricated
+    if LINUX:
+        known_dists = ('SuSE', 'debian', 'fedora', 'redhat', 'centos',
+                       'mandrake', 'mandriva', 'rocks', 'slackware',
+                       'yellowdog', 'gentoo', 'UnitedLinux', 'turbolinux',
+                       'Ubuntu')
+        (distro, distro_version, distro_tag) = platform.dist()
+        #(distro, distro_version, distro_tag) = platform.linux_distribution()
+    elif WIN32:
+        (distro, distro_version, distro_tag) = platform.dist()
+        #(release, version, csd, ptype) = platform.win32_ver()
+    elif APPLE:
+        (distro, distro_version, distro_tag) = platform.dist()
+        #release, versioninfo, machine = platform.mac_ver()
+    #platform.dist()
+
     DEBIAN_FAMILY = (distro.lower() in ['ubuntu', 'debian', 'linuxmint'])
-    CENTOS = (distro == 'centos')
+    FEDORA_FAMILY = (distro.lower() in ['centos', 'fedora', 'redhat', 'yellowdog', 'turbolinux'])
     ARCH = (distro == 'arch')
-    if CENTOS:
+    if FEDORA_FAMILY:
         WIN32 = False
         LINUX = True
         APPLE = False
@@ -441,7 +457,7 @@ def __update_apt_get():
     return 'sudo apt-get update && sudo apt-get upgrade -y'
 
 
-# CENTOS YUM COMMANDS
+# FEDORA_FAMILY YUM COMMANDS
 
 def __check_installed_yum(pkg):
     # First try which
@@ -532,7 +548,7 @@ def check_python_installed(pkg, target_version=None):
 
 
 def __install_command_pip(pkg, upgrade=None):
-    if CENTOS:
+    if FEDORA_FAMILY:
         pipcmd = 'pip27'
     if ARCH:
         pipcmd = 'pip2'  # Otherwise it will default to using Python 3
@@ -574,7 +590,7 @@ def __install_command_pip(pkg, upgrade=None):
             ]
         else:
             command = __install_command_apt_get('python-' + pkg)
-    elif CENTOS and pkg in NOPIP_PYPKGS:
+    elif FEDORA_FAMILY and pkg in NOPIP_PYPKGS:
         return ''
     else:
         # IF not then try and install through pip
@@ -591,7 +607,7 @@ def __install_command_pip(pkg, upgrade=None):
 # GENERAL COMMANDS
 
 def apply_preinstall_fixes():
-    if CENTOS:
+    if FEDORA_FAMILY:
         prefixes = []
         prefixes.append(update_and_upgrade())
         return [cmd(command, lbl='_fix_yum_repos: ' + str(count))
@@ -603,7 +619,7 @@ def apply_preinstall_fixes():
 def update_and_upgrade():
     if DEBIAN_FAMILY:
         return cmd(__update_apt_get())
-    if CENTOS:
+    if FEDORA_FAMILY:
         return cmd(__update_yum())
     if MACPORTS:
         return cmd(__update_macports())
@@ -616,7 +632,7 @@ def check_installed(pkg):
         return False
     if DEBIAN_FAMILY:
         return __check_installed_apt_get(pkg)
-    elif CENTOS:
+    elif FEDORA_FAMILY:
         return __check_installed_yum(pkg)
     elif ARCH:
         return __check_installed_pacman(pkg)
@@ -631,7 +647,7 @@ def ensure_package(pkg):
         return ''
     if DEBIAN_FAMILY:
         command = __install_command_apt_get(pkg)
-    elif CENTOS:
+    elif FEDORA_FAMILY:
         command = __install_command_yum(pkg)
     elif ARCH:
         command = __install_command_pacman(pkg)

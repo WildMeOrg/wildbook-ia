@@ -62,15 +62,15 @@ def tune_flann(ibs, qaid_list, daid_list=None):
                                  target_precision=.90,
                                  build_weight=0.05,
                                  memory_weight=0.00,
-                                 sample_fraction=0.5)
+                                 sample_fraction=0.0005)
     tuned_params
 
-    tuned_params2 = vt.tune_flann(vecs,
-                                  target_precision=.90,
-                                  build_weight=0.001,
-                                  memory_weight=0.00,
-                                  sample_fraction=0.5)
-    tuned_params2
+    #tuned_params2 = vt.tune_flann(vecs,
+    #                              target_precision=.90,
+    #                              build_weight=0.001,
+    #                              memory_weight=0.00,
+    #                              sample_fraction=0.5)
+    #tuned_params2
 
 
 @devcmd('incremental', 'inc')

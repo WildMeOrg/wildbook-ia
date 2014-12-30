@@ -80,14 +80,14 @@ def import_module_from_fpath(module_fpath):
 
 try:
     import util_cplat_packages
-    #from util_cplat_packages import make_prereq_script, APPLE, CENTOS, DEBIAN_FAMILY, print_sysinfo
+    #from util_cplat_packages import make_prereq_script, APPLE, FEDORA_FAMILY, DEBIAN_FAMILY, print_sysinfo
 except ImportError as ex:
     module_fpath = os.path.abspath(join(dirname(__file__), 'util_cplat_packages.py'))
     util_cplat_packages = import_module_from_fpath(module_fpath)
 
 make_prereq_script = util_cplat_packages.make_prereq_script
 APPLE = util_cplat_packages.APPLE
-CENTOS = util_cplat_packages.CENTOS
+FEDORA_FAMILY = util_cplat_packages.FEDORA_FAMILY
 DEBIAN_FAMILY = util_cplat_packages.DEBIAN_FAMILY
 print_sysinfo = util_cplat_packages.print_sysinfo
 
@@ -103,7 +103,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'git',
         'gcc',  # need a C compiler for numpy
         'g++',
+        # g++ may need to be removed for apple
         'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
+        # gfortran may need to be removed for apple
         'cmake',
         'ffmpeg',  # need -dev / -devel versions of all these as well / libav
         'libpng',
@@ -144,7 +146,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             'python-opencv',  # Do we really need these~these?
         ])
 
-    if CENTOS:
+    if FEDORA_FAMILY:
         pass
 
     PREREQ_PYPKG_LIST = [
