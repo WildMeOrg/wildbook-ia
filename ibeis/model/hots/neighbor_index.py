@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
 import utool as ut
+import pyflann
 from os.path import join
 from os.path import basename, exists
 from six.moves import range
@@ -386,6 +387,11 @@ def get_nnindexer_uuid_map_fpath(qreq_):
     return uuid_map_fpath
 
 
+def clear_memcache():
+    global NEIGHBOR_CACHE
+    NEIGHBOR_CACHE.clear()
+
+
 @profile
 def clear_uuid_cache(qreq_):
     """
@@ -410,8 +416,10 @@ def clear_uuid_cache(qreq_):
     """
     print('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        uuid_map.clear()
+    ut.delete(uuid_map_fpath)
+    #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #    uuid_map.clear()
+    print('[nnindex] finished uuid cache clear')
 
 
 def print_uuid_cache(qreq_):
@@ -1013,18 +1021,17 @@ def subindexer_time_experiment():
 
 # ------------
 # NEW
-import pyflann
 
 
-def subindexer_add_time_experiment(update=False):
+def flann_add_time_experiment(update=False):
     """
     builds plot of number of annotations vs indexer build time.
 
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-subindexer_add_time_experiment
-        profiler.py -m ibeis.model.hots.neighbor_index --test-subindexer_add_time_experiment
+        python -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
+        profiler.py -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1032,7 +1039,7 @@ def subindexer_add_time_experiment(update=False):
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
         >>> update = True
-        >>> result = subindexer_add_time_experiment(update)
+        >>> result = flann_add_time_experiment(update)
         >>> # verify results
         >>> print(result)
         >>> from matplotlib import pyplot as plt
@@ -1167,7 +1174,6 @@ def augment_nnindexer_experiment(update=True):
         ...     plt.show()
 
     """
-    global NEIGHBOR_CACHE
     import ibeis
     import plottool as pt
     # build test data
@@ -1183,14 +1189,14 @@ def augment_nnindexer_experiment(update=True):
 
     # Clear Caches
     ibs.delete_flann_cachedir()
-    NEIGHBOR_CACHE.clear()
+    clear_memcache()
     clear_uuid_cache(qreq_)
 
     # Setup
     all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
     # ensure all features are computed
-    ibs.get_annot_vecs(all_randomize_daids_)
-    ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
+    #ibs.get_annot_vecs(all_randomize_daids_, ensure=True)
+    #ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
 
     nnindexer_list = []
     addition_lbl = 'Addition'

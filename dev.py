@@ -54,7 +54,6 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
 @devcmd('incremental', 'inc')
-@profile
 def incremental_test(ibs, qaid_list, daid_list=None):
     """
     Adds / queries new images one at a time to a clean test database.
@@ -147,7 +146,6 @@ def viz_allres_annotation_scores(allres):
 
 
 @devcmd('upsize', 'upscale')
-@profile
 def up_dbsize_expt(ibs, qaid_list, daid_list=None):
     """
     Plots the scores/ranks of correct matches while varying the size of the
@@ -425,7 +423,6 @@ def run_devprecmds():
 
 
 #@utool.indent_func('[dev]')
-#@profile
 def run_devcmds(ibs, qaid_list, daid_list):
     """
     This function runs tests passed in with the -t flag
