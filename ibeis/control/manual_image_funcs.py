@@ -75,7 +75,7 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
 
 @register_ibs_method
 @ider
-def get_valid_eids(ibs, min_num_gids=0):
+def get_valid_eids(ibs, min_num_gids=0, processed=False, shipped=False):
     """
     Returns:
         list_ (list):  list of all encounter ids """
@@ -84,6 +84,15 @@ def get_valid_eids(ibs, min_num_gids=0):
         num_gids_list = ibs.get_encounter_num_gids(eid_list)
         flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
         eid_list  = ut.filter_items(eid_list, flag_list)
+    if processed:
+        flag_list = ibs.get_encounter_processed_flags(eid_list)
+        isvalid_list = [ flag == 1 for flag in flag_list]
+        eid_list  = ut.filter_items(eid_list, isvalid_list)
+    if shipped:
+        flag_list = ibs.get_encounter_shipped_flags(eid_list)
+        isvalid_list = [ flag == 1 for flag in flag_list]
+        eid_list  = ut.filter_items(eid_list, isvalid_list)
+
     return eid_list
 
 
@@ -692,6 +701,27 @@ def get_image_aids(ibs, gid_list):
             aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
                                        id_colname=IMAGE_ROWID, unpack_scalars=False)
     #print('aids_list = %r' % (aids_list,))
+    return aids_list
+
+
+@register_ibs_method
+@getter_1toM
+#@cache_getter(const.IMAGE_TABLE)
+def get_image_aids_of_species(ibs, gid_list, species=None):
+    """
+    Returns:
+        list_ (list): a list of aids for each image by gid filtered by species """
+    def _filter(aid_list):
+        species_list = ibs.get_annot_species(aid_list)
+        isvalid_list = [ species_ == species for species_ in species_list ]
+        aid_list = ut.filter_items(aid_list, isvalid_list)
+    # Get and filter aids_list
+    aids_list = ibs.get_iamge_aids(gid_list)
+    if species is None:
+        # We do this so that the species flag behaves nicely with the getter_1toM
+        print('[get_image_aids_of_species] WARNING! Use get_image_aids() instead.')
+        return aids_list
+    aids_list = [ _filter(aid_list) for aid_list in aids_list]
     return aids_list
 
 

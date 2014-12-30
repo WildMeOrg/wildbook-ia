@@ -70,6 +70,8 @@ INSTALL_REQUIRES = [
 INSTALL_OPTIONAL = [
     'tornado',
     'flask',
+    'autopep8',
+    'pyfiglet',
 ]
 
 if six.PY2:
