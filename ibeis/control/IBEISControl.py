@@ -276,7 +276,7 @@ class IBEISController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
+            >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
         """
         from ibeis.control import _sql_helpers
@@ -356,14 +356,14 @@ class IBEISController(object):
             return
         #TODO: Clean this up to use like ut and such
         try:
-            requests.get(wbaddr)
-        except requests.MissingSchema as msa:
-            print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
-            raise msa
-        except requests.ConnectionError as coe:
+            response = requests.get(wbaddr)
+        # except requests.MissingSchema:
+        #     print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
+        #     return None
+        except requests.ConnectionError:
             print('[ibs._init_wb] Could not connect to Wildbook server at %r' % wbaddr)
-            raise coe
-        ibs.wbaddr = wbaddr
+            return None
+        return response
 
     @default_decorator
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
@@ -501,7 +501,7 @@ class IBEISController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
+            >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
             >>> species_text = ibeis.const.Species.ZEB_GREVY
             >>> ensure = True
@@ -563,22 +563,48 @@ class IBEISController(object):
     # --- Configs ---
     #----------------
 
-    @default_decorator
+    # @default_decorator
     def export_to_wildbook(ibs):
-        """ Exports identified chips to wildbook """
-        import ibeis.dbio.export_wb as wb
-        print('[ibs] exporting to wildbook')
-        eid_list = ibs.get_valid_eids()
-        addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
-        #addr = "http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL"
-        ibs._init_wb(addr)
-        wb.export_ibeis_to_wildbook(ibs, eid_list)
-        #raise NotImplementedError()
-        # compute encounters
-        # get encounters by id
-        # get ANNOTATIONs by encounter id
-        # submit requests to wildbook
-        return None
+        """
+            Exports identified chips to wildbook
+
+            Legacy:
+                import ibeis.dbio.export_wb as wb
+                print('[ibs] exporting to wildbook')
+                eid_list = ibs.get_valid_eids()
+                addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
+                #addr = "http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL"
+                ibs._init_wb(addr)
+                wb.export_ibeis_to_wildbook(ibs, eid_list)
+
+                # compute encounters
+                # get encounters by id
+                # get ANNOTATIONs by encounter id
+                # submit requests to wildbook
+                return None
+        """
+        raise NotImplementedError()
+
+    @default_decorator
+    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True):
+        """ Exports specified encounters to wildbook """
+        def _send(eid):
+            encounter_uuid = ibs.get_encounter_uuid(eid)
+            addr_ = addr % (hostname, encounter_uuid)
+            response = ibs._init_wb(addr_)
+            return response is not None
+        # Configuration
+        hostname = '127.0.0.1'
+        addr = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+        print('[ibs] shipping eid_list = %r to wildbook' % (eid_list, ))
+        if eid_list is None:
+            eid_list = ibs.get_valid_eids()
+        status_list = [ _send(eid) for eid in eid_list ]
+        if set_shipped_flag:
+            for eid, status in zip(eid_list, status_list):
+                val = 1 if status else 0
+                ibs.set_encounter_shipped_flags([eid], [val])
+        return status_list
 
     #
     #
@@ -662,7 +688,7 @@ class IBEISController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control import *  # NOQA
-            >>> import ibeis
+            >>> import ibeis  # NOQA
             >>> # build test data
             >>> ibs = ibeis.opendb('testdb1')
             >>> ibs.compute_encounters()
@@ -753,7 +779,7 @@ class IBEISController(object):
         Example:
             >>> # SLOW_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
+            >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
             >>> qaids = ibs.get_valid_aids()[0:1]
             >>> qres = ibs.query_chips(qaids)[0]

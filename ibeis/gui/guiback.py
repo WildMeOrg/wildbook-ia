@@ -785,14 +785,25 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
         print('[back] finished computing encounters')
 
+    @blocking_slot()
     def encounter_reviewed_all_images(back, refresh=True, all_image_bypass=False):
         eid = back.get_selected_eid()
         if eid is not None or all_image_bypass:
+            # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(eid=eid)
             flag_list = [1] * len(gid_list)
             back.ibs.set_image_reviewed(gid_list, flag_list)
+            # Set encounter to be processed
+            back.ibs.set_encounter_processed_flags([eid], [1])
+            back.ibs.wildbook_signal_eid_list([eid])
             if refresh:
                 back.front.f([gh.IMAGE_TABLE])
+
+    def send_unshipped_processed_encounters(back, refresh=True):
+        processed_set = set(back.ibs.get_valid_eids(processed=True))
+        shipped_set = set(back.ibs.get_valid_eids(shipped=True))
+        eid_list = list(processed_set - shipped_set)
+        back.ibs.wildbook_signal_eid_list(eid_list)
 
     #--------------------------------------------------------------------------
     # Option menu slots

@@ -8,7 +8,7 @@ from ibeis.model.detect import grabmodels
 # from vtool import image as gtool
 from detecttools.directory import Directory
 import utool as ut
-import gtool
+import vtool as vt
 import cv2
 import pyrf
 # import multiprocessing
@@ -77,7 +77,7 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwar
 def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
     if downsample:
         gpath_list = ibs.get_image_detectpaths(gid_list)
-        neww_list = [gtool.open_image_size(gpath)[0] for gpath in gpath_list]
+        neww_list = [vt.open_image_size(gpath)[0] for gpath in gpath_list]
         oldw_list = [oldw for (oldw, oldh) in ibs.get_image_sizes(gid_list)]
         downsample_list = [oldw / neww for oldw, neww in zip(oldw_list, neww_list)]
     else:

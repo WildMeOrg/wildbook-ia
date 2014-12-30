@@ -173,6 +173,15 @@ def setup_batch_menu(mainwin, back):
         slot_fn=back.compute_queries)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
+        name='actionShipProcessedEncounters',
+        text='Ship Processed Encounters',
+        tooltip='''This action will ship to WildBook any encounters that have
+                    been marked as processed.  This can also be used to send
+                    processed encounters that failed to ship correctly.''',
+        shortcut='Ctrl+5',
+        slot_fn=back.send_unshipped_processed_encounters)
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
         name='actionEncounterImagesReviewed',
         text='Reviewed All Encounter Images',
         shortcut='',
