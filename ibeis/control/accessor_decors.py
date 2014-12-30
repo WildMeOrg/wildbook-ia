@@ -47,8 +47,8 @@ def default_decorator(input_):
 #        del self._cache[index]
 
 
-API_CACHE = ut.get_argflag('--api-cache')
-#API_CACHE = not ut.get_argflag('--no-api-cache')
+#API_CACHE = ut.get_argflag('--api-cache')
+API_CACHE = not ut.get_argflag('--no-api-cache')
 if ut.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
@@ -147,7 +147,10 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
 
         @profile
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
-            kwargs_hash = ut.get_dict_hashid(kwargs)
+            if cfgkeys is not None:
+                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
+            else:
+                kwargs_hash = None
             cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
             # Load cached values for each rowid
             vals_list = ut.dict_take_list(cache_, rowid_list, None)
