@@ -2,7 +2,9 @@ from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import functools
 from ibeis import constants as const
-from ibeis.control.accessor_decors import (adder, ider, default_decorator, getter_1to1, getter_1toM, deleter)
+from ibeis.control import accessor_decors
+from ibeis.control.accessor_decors import (adder, ider, default_decorator,
+                                           getter_1to1, getter_1toM, deleter)
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_dependant]')
@@ -133,7 +135,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
 
 @register_ibs_method
 @deleter
-#@cache_invalidator(const.FEATURE_TABLE)
+@accessor_decors.cache_invalidator(const.FEATURE_TABLE)
 def delete_features(ibs, fid_list):
     """ deletes images from the database that belong to fids"""
     if ut.VERBOSE:
@@ -260,6 +262,7 @@ def get_feat_config_rowid(ibs):
 
 
 @register_ibs_method
+@accessor_decors.cache_getter(const.FEATURE_TABLE, 'feature_vecs')
 @getter_1toM
 #@cache_getter(const.FEATURE_TABLE, 'feature_keypoints')
 def get_feat_kpts(ibs, fid_list, eager=True, nInput=None):
@@ -272,8 +275,8 @@ def get_feat_kpts(ibs, fid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.cache_getter(const.FEATURE_TABLE, 'feature_vecs')
 @getter_1toM
-#@cache_getter(const.FEATURE_TABLE, 'feature_vecs')
 def get_feat_vecs(ibs, fid_list, eager=True, nInput=None):
     """
     Returns:
@@ -285,7 +288,7 @@ def get_feat_vecs(ibs, fid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @getter_1to1
-#@cache_getter(const.FEATURE_TABLE, 'feature_num_feats')
+@accessor_decors.cache_getter(const.FEATURE_TABLE, 'feature_num_feats')
 def get_num_feats(ibs, fid_list, eager=True, nInput=None):
     """
     Returns:

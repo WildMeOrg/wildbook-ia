@@ -306,15 +306,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.buttonBars = []
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
-        back = ibswgt.back
         #_SEP = lambda: None
+        back = ibswgt.back
 
         #ibswgt.query_button = _NEWBUT('Run Identification',
         #                              ibswgt.back.compute_queries,
         #                              bgcolor=(150, 150, 255),
         #                              fgcolor=(0, 0, 0))
 
-        ibswgt.inc_query_button = _NEWBUT('Step 4) Identify',  # QUERY',
+        ibswgt.inc_query_button = _NEWBUT('4) Identify',  # QUERY',
                                           ibswgt.back.incremental_query,
                                           bgcolor=(255, 150, 0),
                                           fgcolor=(0, 0, 0))
@@ -326,19 +326,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 
-        ibswgt.reviewed_button = _NEWBUT('Step 5) Complete',
+        ibswgt.reviewed_button = _NEWBUT('5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
                                          bgcolor=(0, 232, 211))
 
-        ibswgt.import_button = _NEWBUT('Step 1) Import',  # Import Images\n(via files)',
+        ibswgt.import_button = _NEWBUT('1) Import',  # Import Images\n(via files)',
                                        back.import_images_from_file,
                                        bgcolor=(235, 200, 200),)
 
-        ibswgt.encounter_button = _NEWBUT('Step 2) Group',  # Images into Encounters',
+        ibswgt.encounter_button = _NEWBUT('2) Group',  # Images into Encounters',
                                           ibswgt.back.compute_encounters,
                                           bgcolor=(255, 255, 150))
 
-        ibswgt.detect_button = _NEWBUT('Step 3) Detect',
+        ibswgt.detect_button = _NEWBUT('3) Detect',
                                        ibswgt.back.run_detection_coarse,
                                        bgcolor=(150, 255, 150))
 
@@ -348,8 +348,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         detection_combo_box_options = [
             # Text              # Value
-            #('Step 4) Intra Encounter', constants.INTRA_ENC_KEY),
-            ('Step 5) Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
+            #('4) Intra Encounter', constants.INTRA_ENC_KEY),
+            ('5) Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
         ]
         #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
         #                              ibswgt.back.change_query_mode)
@@ -368,6 +368,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 ibswgt.encounter_button,
 
+                _NEWLBL('Encounter: ', align='right', bold=True),
 
                 ibswgt.detect_button,
 
@@ -387,12 +388,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 #ibswgt.query_button,
 
-                guitool.newLabel(None, 'Species Selector:'),
+                _NEWLBL('Species Selector: ', bold=True, align='right'),
 
                 ibswgt.species_combo,
 
-                guitool.newLabel(None, ''),
-                guitool.newLabel(None, ''),
+                _NEWLBL(''),
+                _NEWLBL(''),
 
 
                 #_NEWBUT('Identify\n(vs exemplar database)',
