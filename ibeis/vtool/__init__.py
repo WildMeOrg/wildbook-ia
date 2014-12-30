@@ -21,6 +21,7 @@ IMPORT_TUPLES = [
     ('trig', None),
     ('math', None),
     ('geometry', None),
+    ('nearest_neighbors', None),
     ('clustering2', None),
 ]
 
@@ -138,6 +139,7 @@ if DOELSE:
     from vtool import trig
     from vtool import math
     from vtool import geometry
+    from vtool import nearest_neighbors
     from vtool import clustering2
     from vtool.image import (CV2_INTERPOLATION_TYPES, CV2_WARP_KWARGS, 
                              EXIF_TAG_DATETIME, EXIF_TAG_GPS, IMREAD_COLOR, 
@@ -170,7 +172,7 @@ if DOELSE:
                             read_exif, read_exif_tags, read_one_exif_tag,) 
     from vtool.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM, 
                                 SCAX_DIM, SCAY_DIM, SHAPE_DIMS, SKEW_DIM, TAU, 
-                                XDIM, YDIM, array, cast_split, diag, 
+                                XDIM, YDIM, cast_split, diag, 
                                 flatten_invV_mats_to_kpts, get_V_mats, 
                                 get_Z_mats, get_diag_extent_sqrd, 
                                 get_grid_kpts, get_homog_xyzs, 
@@ -191,9 +193,13 @@ if DOELSE:
                               and_3lists, and_lists, axiswise_operation2, 
                               colwise_operation, compare_matrix_columns, 
                               compare_matrix_to_rows, cos, det_distance, 
-                              det_ltri, dot_ltri, gauss2d_pdf, hist_isect, 
-                              homogonize, inv_ltri, nearest_point, 
-                              normalize_rows, ori_distance, 
+                              det_ltri, dot_ltri, flag_intersection, 
+                              gauss2d_pdf, get_covered_mask, 
+                              get_uncovered_mask, hist_isect, homogonize, 
+                              intersect2d_indicies, intersect2d_numpy, 
+                              intersect2d_structured_numpy, inv_ltri, 
+                              mult_lists, nearest_point, normalize_rows, 
+                              normalize_vecs2d_inplace, or_lists, ori_distance, 
                               rotation_around_bbox_mat3x3, 
                               rotation_around_mat3x3, rotation_mat2x2, 
                               rotation_mat3x3, rowwise_division, 
@@ -223,6 +229,13 @@ if DOELSE:
                                 draw_verts, homogonize_list, unhomogonize, 
                                 unhomogonize_list, verts_from_bbox, 
                                 verts_list_from_bboxes_list,) 
+    from vtool.nearest_neighbors import (ann_flann_once, assign_to_centroids, 
+                                         flann_augment, flann_cache, 
+                                         get_flann_cfgstr, get_flann_fpath, 
+                                         get_flann_params, 
+                                         get_flann_params_cfgstr, 
+                                         get_kdtree_flann_params, 
+                                         invertable_stack, tune_flann,) 
     from vtool.clustering2 import (CLUSTERS_FNAME, akmeans, akmeans_iterations, 
                                    akmeans_plusplus_init, apply_grouping, 
                                    apply_grouping_iter, apply_grouping_iter2, 
@@ -230,9 +243,10 @@ if DOELSE:
                                    approximate_assignments, 
                                    approximate_distances, assert_centroids, 
                                    cached_akmeans, compute_centroids, 
-                                   double_group, get_akmeans_cfgstr, 
-                                   group_indicies, group_indicies_pandas, 
-                                   groupby, groupby_dict, groupby_gen, 
+                                   double_group, find_duplicate_items, 
+                                   get_akmeans_cfgstr, group_indicies, 
+                                   group_indicies_pandas, groupby, 
+                                   groupby_dict, groupby_gen, 
                                    initialize_centroids, jagged_group, 
                                    plot_centroids, refine_akmeans, 
                                    sparse_multiply_rows, sparse_normalize_rows, 
@@ -289,6 +303,7 @@ if DOELSE:
         getattr(trig, 'rrr', fbrrr)(verbose=verbose)
         getattr(math, 'rrr', fbrrr)(verbose=verbose)
         getattr(geometry, 'rrr', fbrrr)(verbose=verbose)
+        getattr(nearest_neighbors, 'rrr', fbrrr)(verbose=verbose)
         getattr(clustering2, 'rrr', fbrrr)(verbose=verbose)
         rrr(verbose=verbose)
         try:

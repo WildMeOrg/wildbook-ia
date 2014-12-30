@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import pyflann
 import utool
+import utool as ut  # NOQA
 import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
 
@@ -254,25 +255,138 @@ def get_flann_params(type_='kdtree'):
     return flann_params
 
 
-def tune_flann(dpts, **kwargs):
-    flann = pyflann.FLANN()
-    #num_data = len(dpts)
-    flann_atkwargs = dict(algorithm='autotuned',
-                          target_precision=.01,
-                          build_weight=0.01,
-                          memory_weight=0.0,
-                          sample_fraction=0.001)
-    flann_atkwargs.update(kwargs)
-    suffix = repr(flann_atkwargs)
-    badchar_list = ',{}\': '
-    for badchar in badchar_list:
-        suffix = suffix.replace(badchar, '')
-    print(flann_atkwargs)
-    tuned_params = flann.build_index(dpts, **flann_atkwargs)
-    utool.myprint(tuned_params)
-    out_file = 'flann_tuned' + suffix
-    utool.write_to(out_file, repr(tuned_params))
-    flann.delete_index()
+def tune_flann(dpts,
+               target_precision=.90,
+               build_weight=0.50,
+               memory_weight=0.00,
+               sample_fraction=0.01):
+    r"""
+
+    References:
+        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf
+        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf
+        http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html
+
+    Math::
+        cost of an algorithm is:
+
+        LaTeX:
+            \cost = \frac
+                {\search + build_weight * \build }
+                { \minoverparams( \search + build_weight \build)} +
+                memory_weight * \memory
+
+    Args:
+        dpts (ndarray):
+
+        target_precision (float): number between 0 and 1 representing desired
+            accuracy. Higher values are more accurate.
+
+        build_weight (float): importance weight given to minimizing build time
+            relative to search time. This number can range from 0 to infinity.
+            typically because building is a more complex computation you want
+            to keep the number relatively low, (less than 1) otherwise you'll
+            end up getting a linear search (no build time).
+
+        memory_weight (float): Importance of memory relative to total speed.
+            A value less than 1 gives more importance to the time spent and a
+            value greater than 1 gives more importance to the memory usage.
+
+        sample_fraction (float): number between 0 and 1 representing the
+            fraction of the input data to use in the optimization. A higher
+            number uses more data.
+
+    Returns:
+        dict: tuned_params
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-tune_flann
+
+    """
+    with ut.Timer('tuning flann'):
+        print('Autotuning flann with %d %dD vectors' % (dpts.shape[0], dpts.shape[1]))
+        print('a sample of %d vectors will be used' % (int(dpts.shape[0] * sample_fraction)))
+        flann = pyflann.FLANN()
+        #num_data = len(dpts)
+        flann_atkwargs = dict(algorithm='autotuned',
+                              target_precision=target_precision,
+                              build_weight=build_weight,
+                              memory_weight=memory_weight,
+                              sample_fraction=sample_fraction)
+        suffix = repr(flann_atkwargs)
+        badchar_list = ',{}\': '
+        for badchar in badchar_list:
+            suffix = suffix.replace(badchar, '')
+        print('flann_atkwargs:')
+        print(utool.dict_str(flann_atkwargs))
+        print('starting optimization')
+        tuned_params = flann.build_index(dpts, **flann_atkwargs)
+        print('finished optimization')
+
+        # The algorithm is sometimes returned as default which is
+        # very unuseful as the default name is embeded in the pyflann
+        # module where most would not care to look. This finds the default
+        # name for you.
+        for key in ['algorithm', 'centers_init', 'log_level']:
+            val = tuned_params.get(key, None)
+            if val == 'default':
+                dict_ = pyflann.FLANNParameters._translation_[key]
+                other_algs = ut.dict_find_other_sameval_keys(dict_, 'default')
+                assert len(other_algs) == 1, 'more than 1 default for key=%r' % (key,)
+                tuned_params[key] = other_algs[0]
+
+        common_params = [
+            'algorithm',
+            'checks',
+        ]
+        relevant_params_dict = dict(
+            linear=['algorithm'],
+            #---
+            kdtree=[
+                'trees'
+            ],
+            #---
+            kmeans=[
+                'branching',
+                'iterations',
+                'centers_init',
+                'cb_index',
+            ],
+            #---
+            lsh=[
+                'table_number',
+                'key_size',
+                'multi_probe_level',
+            ],
+        )
+        relevant_params_dict['composite'] = relevant_params_dict['kmeans'] + relevant_params_dict['kdtree'] + common_params
+        relevant_params_dict['kmeans'] += common_params
+        relevant_params_dict['kdtree'] += common_params
+        relevant_params_dict['lsh'] += common_params
+
+        #kdtree_single_params = [
+        #    'leaf_max_size',
+        #]
+        #other_params = [
+        #    'build_weight',
+        #    'sorted',
+        #]
+        out_file = 'flann_tuned' + suffix
+        utool.write_to(out_file, ut.dict_str(tuned_params, sorted_=True, newlines=True))
+        flann.delete_index()
+        if tuned_params['algorithm'] in relevant_params_dict:
+            print('relevant_params=')
+            relevant_params = relevant_params_dict[tuned_params['algorithm']]
+            print(ut.dict_str(ut.dict_subset(tuned_params, relevant_params),
+                              sorted_=True, newlines=True))
+            print('irrelevant_params=')
+            print(ut.dict_str(ut.dict_setdiff(tuned_params, relevant_params),
+                              sorted_=True, newlines=True))
+        else:
+            print('unknown tuned algorithm=%r' % (tuned_params['algorithm'],))
+
+        print('all_tuned_params=')
+        print(ut.dict_str(tuned_params, sorted_=True, newlines=True))
     return tuned_params
 
 
