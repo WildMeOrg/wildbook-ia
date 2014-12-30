@@ -797,15 +797,13 @@ class MainWindowBackend(QtCore.QObject):
             back.ibs.set_encounter_processed_flags([eid], [1])
             back.ibs.wildbook_signal_eid_list([eid])
             if refresh:
-                back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
+                back.front.update_tables([gh.IMAGE_TABLE])
 
     def send_unshipped_processed_encounters(back, refresh=True):
         processed_set = set(back.ibs.get_valid_eids(processed=True))
         shipped_set = set(back.ibs.get_valid_eids(shipped=True))
         eid_list = list(processed_set - shipped_set)
         back.ibs.wildbook_signal_eid_list(eid_list)
-        if refresh:
-            back.front.update_tables([gh.ENCOUNTER_TABLE])
 
     #--------------------------------------------------------------------------
     # Option menu slots
