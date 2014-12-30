@@ -82,7 +82,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-        uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(ibs, daid_list, min_reindex_thresh)
+        uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh)
         num_subindexers = len(covered_aids_list)
         # If the number of bins gets too big do a reindex
         # in the background
@@ -109,7 +109,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = neighbor_index.internal_request_ibeis_nnindexer(qreq_, aids)
+            nnindexer = neighbor_index.request_memcached_ibeis_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -382,15 +382,22 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
+            >>> import vtool as vt
             >>> mxer, qreq_, ibs = test_mindexer()
             >>> K, checks = 3, 1028
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qaid = 1
+            >>> qfx2_vec = ibs.get_annot_vecs(qaid)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
             >>> qfx2_aid = mxer.get_nn_aids(qfx2_imx)
+            >>> gt_aids = ibs.get_annot_groundtruth(qaid)
             >>> result = np.array_str(qfx2_aid[0:2])
-            >>> print(result)
-            [[ 8 16  8 55 53  3  3 28 38 34 48 38 34 25 21 21 33 34]
-             [34 45 30 27 18 35 28 52  8  4 60 25 14 25 21 26 15 15]]
+            >>> # Make sure there are lots (like 5%) of correct matches
+            >>> mask_cover = vt.get_covered_mask(qfx2_aid, gt_aids)
+            >>> num_correct   = mask_cover.sum()
+            >>> num_incorrect = (~mask_cover).sum()
+            >>> print('fraction correct = %r' % (num_correct / float(num_incorrect),))
+            >>> ut.assert_inbounds(num_correct, 900, 1100,
+            ...                    'not enough matches to groundtruth')
         """
         #qfx2_aid = -np.ones(qfx2_imx.shape, dtype=np.int32)
         qfx2_aid = np.empty(qfx2_imx.shape, dtype=np.int32)

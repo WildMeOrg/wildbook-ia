@@ -57,7 +57,7 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
 
 
-def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=True, use_cache=True):
+def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE, use_cache=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object

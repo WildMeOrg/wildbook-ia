@@ -85,3 +85,4 @@ class FiltKeys(object):
     FG = 'fg'
     RATIO = 'ratio'
     LNBNN = 'lnbnn'
+    DUPVOTE = 'dupvote'

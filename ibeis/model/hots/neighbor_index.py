@@ -682,6 +682,8 @@ class NeighborIndex(object):
         #nnindexer.idx2_oris   = None
         # Add new points to flann structure
         print('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
+        print('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
+        print('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
         nnindexer.flann.add_points(new_idx2_vec)
         print('DONE ADD POINTS')
 

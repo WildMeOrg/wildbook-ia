@@ -355,10 +355,10 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
         >>> nns = qaid2_nns[qaids[0]]
         >>> (qfx2_idx, qfx2_dist) = nns
         >>> # Assert dictionary corresponds to internal qaids
-        >>> assert list(qaid2_nns.keys()) == qaids.tolist()
+        >>> ut.assert_eq(list(qaid2_nns.keys()), qaids.tolist())
         >>> # Assert nns tuple is valid
-        >>> assert qfx2_idx.shape == qfx2_dist.shape
-        >>> assert qfx2_idx.shape[1] == 5
+        >>> ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)
+        >>> ut.assert_eq(qfx2_idx.shape[1], 5)
         >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)
     """
     # Neareset neighbor configuration
@@ -577,7 +577,7 @@ def weight_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0, verbose=VERB_PIPELINE):
         >>> # execute function
         >>> qaid2_filtweights = pipeline.weight_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0)
         >>> filtkey_list = qaid2_filtweights[1].keys()
-        >>> filtkey_list == ['lnbnn', 'dupvote']
+        >>> filtkey_list == [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.DUPVOTE]
     """
     if verbose:
         print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
@@ -657,10 +657,12 @@ def filter_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_filtweights, verbos
         >>> # Make sure we are getting expected filter scores back.
         >>> nnfilts = six.next(six.itervalues(qaid2_nnfilts))
         >>> (filtkey_list, qfx2_score_list, qfx2_valid_list) = nnfilts
-        >>> ut.assert_lists_eq(filtkey_list, ['lnbnn', 'dupvote'], 'bad filters')
+        >>> expected_filtkeys = [hstypes.FiltKeys.LNBNN,
+        ...                      hstypes.FiltKeys.DUPVOTE, hstypes.FiltKeys.FG]
+        >>> ut.assert_lists_eq(filtkey_list, expected_filtkeys, 'bad filters')
         >>> assert qfx2_score_list[0].shape == qfx2_score_list[1].shape, 'inconsistent shape'
         >>> ut.assert_inbounds(qfx2_score_list[0].shape[0], 1200, 1300)
-        >>> ut.assert_lists_eq(qfx2_valid_list, [None, None], 'all should be valid')
+        >>> ut.assert_lists_eq(qfx2_valid_list, [None] * len(expected_filtkeys), 'all should be valid')
     """
     if verbose:
         print('[hs] Step 3) Filter neighbors: ')
@@ -722,10 +724,10 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
         >>> # execute function
         >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights)
-        >>> assert nnfilts[0] == [hstypes.FiltKeys.RATIO]
+        >>> ut.assert_eq(nnfilts[0], [hstypes.FiltKeys.RATIO, hstypes.FiltKeys.FG])
         >>> ratio_scores = nnfilts[2][0]
-        >>> assert np.all(ratio_scores <= 1.0)
-        >>> assert np.all(ratio_scores >= 0.0)
+        >>> assert np.all(ratio_scores <= 1.0), 'expected ratio scores <= 1.0'
+        >>> assert np.all(ratio_scores >= 0.0), 'exepcted ratio scores >= 0.0'
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -742,7 +744,7 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
         >>> # execute function
         >>> nnfilts, nnfiltagg = pipeline.threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights)
-        >>> ut.assert_lists_eq(nnfilts[0], ['lnbnn', 'dupvote'])
+        >>> ut.assert_lists_eq(nnfilts[0], [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.DUPVOTE, hstypes.FiltKeys.FG])
 
     """
     # Apply the filter weightings to determine feature validity and scores
@@ -864,14 +866,16 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         >>> # verify results
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> daid = qreq_.get_external_daids()[1]
-        >>> print(qaid2_chipmatch.keys())
-        >>> print(qaid)
+        >>> print('daids=%r' % (list(qaid2_chipmatch.keys()),))
+        >>> print('qaid=%r' % qaid)
         >>> fm = qaid2_chipmatch[qaid][0][daid]
         >>> fsv = qaid2_chipmatch[qaid][1][daid]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
-        >>> assert fsv.shape[1] == 1
-        >>> assert fm.shape[1] == 2, 'vsone fm bad shape'
+        >>> filt_list = qaid2_nnfilts[qaid][0]
+        >>> print('filt_list = %r' % (filt_list,))
+        >>> ut.assert_eq(fm.shape[1], 2, 'feat matches have 2 cols (qfx, dfx)')
+        >>> ut.assert_eq(fsv.shape[1], len(filt_list), 'feat score vectors have 1 col per filt')
         >>> ut.assert_inbounds(num_matches, 33, 42, 'vsone nmatches out of bounds')
 
     Example2:
@@ -898,7 +902,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         >>> fsv = daid2_fsv[daid]
         >>> num_matches = len(fm)
         >>> print('vsmany num_matches = %r' % num_matches)
-        >>> assert fm.shape[1] == 2, 'vsmany fm bad shape'
+        >>> ut.assert_eq(fm.shape[1], 2, 'fm needs 2 columns')
         >>> ut.assert_inbounds(num_matches, 550, 572, 'vsmany nmatches out of bounds')
 
     Ignore:
@@ -992,11 +996,11 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
         >>> fm = daid2_fm[daid]
         >>> fsv = daid2_fsv[daid]
         >>> fk = daid2_fk[daid]
-        >>> assert fm.shape[1] == 2
-        >>> assert fm.shape[0] == fk.shape[0]
-        >>> assert len(fk.shape) == 1
-        >>> assert fsv.shape[0] == fm.shape[0]
-        >>> assert fsv.shape[1] == len(qreq_.qparams.active_filter_list)
+        >>> ut.assert_eq(fm.shape[1], 2, 'column for (qfx, dfx)')
+        >>> ut.assert_eq(fm.shape[0], fk.shape[0], 'one rank for every match')
+        >>> ut.assert_eq(len(fk.shape), 1, 'fk (feature rank) is 1D')
+        >>> ut.assert_eq(fsv.shape[0], fm.shape[0], 'need same num rows')
+        >>> ut.assert_eq(fsv.shape[1], len(qreq_.qparams.active_filter_list), 'should have col for every filter')
     """
     K = qreq_.qparams.K
     # Unpack neighbor ids, indicies, filter scores, and flags
@@ -1215,7 +1219,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
         >>> qaid2_nnfilts = locals_['qaid2_nnfilts']
-        >>> dupvotex = ut.listfind(qreq_.qparams.active_filter_list, 'dupvote')
+        >>> dupvotex = ut.listfind(qreq_.qparams.active_filter_list, hstypes.FiltKeys.DUPVOTE)
         >>> assert dupvotex is not None, 'dupvotex=%r' % dupvotex
         >>> qaid2_chipmatchSV = pipeline._spatial_verification(qreq_, qaid2_chipmatch)
         >>> before = [[fsv.T[dupvotex].sum()
@@ -1234,19 +1238,19 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         >>> print('after_sum=%r' % (after_sum))
         >>> diff = after_sum - before_sum
         >>> ut.assert_inbounds(after_sum, 1950, 2015)
-        >>> ut.assert_inbounds(total_reweighted, 10, 15)
+        >>> ut.assert_inbounds(total_reweighted, 10, 20)
         >>> ut.assert_inbounds(diff - total_reweighted, -1E-5, 1E-5)
         >>> total_reweighted2 = hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV)
         >>> print('total_reweighted2=%r' % (total_reweighted))
-        >>> assert total_reweighted2 == 0
+        >>> ut.assert_eq(total_reweighted2, 0, 'should be 0 reweighted')
     """
     #filtlist_list = [nnfilts[0] for nnfilts in six.itervalues(qaid2_nnfilts)]
     #assert ut.list_allsame(filtlist_list), 'different queries with differnt filts'
     #filt_list = filtlist_list[0]
-    dupvotex = ut.listfind(qreq_.qparams.active_filter_list, 'dupvote')
+    dupvotex = ut.listfind(qreq_.qparams.active_filter_list, hstypes.FiltKeys.DUPVOTE)
     if dupvotex is None:
         return
-    dupvote_true = qreq_.qparams.filt2_stw['dupvote'][2]
+    dupvote_true = qreq_.qparams.filt2_stw[hstypes.FiltKeys.DUPVOTE][2]
     num_reweighted_list = []
 
     for qaid, chipmatch in six.iteritems(qaid2_chipmatchSV):
@@ -1435,7 +1439,7 @@ def prescore_nsum(qreq_, daid2_prescore, nShortlist):
         >>> chipmatch = qaid2_chipmatch[qaid]
         >>> nShortlist = qreq_.qparams.nShortlist
         >>> prescore_method = qreq_.qparams.prescore_method
-        >>> assert prescore_method == 'nsum'
+        >>> ut.assert_eq(prescore_method, 'nsum', 'pipeline supposed to be nsum')
         >>> daid2_prescore = pipeline.score_chipmatch(qreq_, qaid, chipmatch, prescore_method)
     """
     daid_list = np.array(daid2_prescore.keys())
@@ -1569,10 +1573,11 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
         >>> qaid2_qres = pipeline.chipmatch_to_resdict(qreq_, qaid2_chipmatch)
         >>> qres = qaid2_qres[1]
-        >>> assert len(qres.filtkey_list) == 4
-        >>> assert len(qres.filtkey_list) == qres.aid2_fsv[2].shape[1]
+        >>> num_filtkeys = len(qres.filtkey_list)
+        >>> ut.assert_eq(num_filtkeys, qres.aid2_fsv[2].shape[1])
+        >>> ut.assert_eq(num_filtkeys, 4)
         >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 115)
-        >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1))
+        >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1)), 'math is broken'
         >>> #assert qres.aid2_fs[2].sum() == qres.aid2_score[2]
 
     """

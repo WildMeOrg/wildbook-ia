@@ -13,8 +13,9 @@ def parse_args():
     global unknown
     if args is not None:
         # Only parse arguments once
-        print('[!params] ALREADY INITIALIZED ARGS')
-        return None
+        if util_arg.VERBOSE:
+            print('[!params] ALREADY INITIALIZED ARGS')
+        return
     program_name = 'IBEIS - Lite'
     description = 'Image Based Ecological Information System'
     parser2 = util_arg.make_argparse2(program_name, description)

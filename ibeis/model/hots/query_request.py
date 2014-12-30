@@ -109,6 +109,10 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
         print('  * valid species = %r' % (species_with_detectors,))
         #cfg._featweight_cfg.featweight_on = 'ERR'
         cfgdict['featweight_on'] = 'ERR'
+    else:
+        #print(ibs.get_annot_species_texts(aid_list))
+        print('HACK FG_WEIGHT NOT APPLIED, unique_species=%r')
+        #, aid_list=%r' % (unique_species, aid_list))
     return unique_species
 
 
