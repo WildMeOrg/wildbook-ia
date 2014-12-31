@@ -55,6 +55,22 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 @devcmd('tune', 'autotune')
 def tune_flann(ibs, qaid_list, daid_list=None):
+    r"""
+    CommandLine:
+        python dev.py -t tune --db PZ_MTEST
+        python dev.py -t tune --db GZ_ALL
+        python dev.py -t tune --db GIR_Tanya
+        python dev.py -t tune --db PZ_Mothers0
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from _devscript import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = func_wrapper()
+        >>> # verify results
+        >>> print(result)
+    """
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
@@ -62,7 +78,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
                                  target_precision=.90,
                                  build_weight=0.05,
                                  memory_weight=0.00,
-                                 sample_fraction=0.0005)
+                                 sample_fraction=1.0)
     tuned_params
 
     #tuned_params2 = vt.tune_flann(vecs,

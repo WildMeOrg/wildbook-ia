@@ -205,7 +205,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
             print('<!!!>')
             print(msg)
             print('[sysres!] Here is a list of valid dbs: ' +
-                  utool.indentjoin(fname_list, '\n  * '))
+                  utool.indentjoin(sorted(fname_list), '\n  * '))
             print('[sysres!] dbdir=%r' % dbdir)
             print('[sysres!] db=%r' % db)
             print('[sysres!] work_dir=%r' % work_dir)
