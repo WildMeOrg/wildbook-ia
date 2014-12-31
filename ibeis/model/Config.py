@@ -1113,14 +1113,6 @@ def __dict_default_func(dict_):
     return set_key
 
 
-def default_query_cfg(**kwargs):
-    if utool.VERYVERBOSE:
-        print('[config] default_query_cfg()')
-    kwargs['pipeline_root'] = 'vsmany'
-    query_cfg = QueryConfig(**kwargs)
-    return query_cfg
-
-
 def default_vsone_cfg(ibs, **kwargs):
     # DEPRICATE
     kwargs['pipeline_root'] = 'vsone'
@@ -1174,13 +1166,19 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
     return cfg
 
 
-def _default_config(cfg, cfgname=None):
+def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
     if not ut.QUIET:
         print('[Config] building default config')
     if cfgname is None:
         cfgname = cfg.z_cfgname
-    query_cfg = default_query_cfg()
+    if utool.VERYVERBOSE:
+        print('[config] default_query_cfg()')
+    if new:
+        fpath = cfg.get_fpath()
+        cfg = GenericConfig(cfgname, fpath=fpath)
+        cfg.z_cfgname = cfgname
+    query_cfg = QueryConfig(pipeline_root='vsmany')
     set_query_cfg(cfg, query_cfg)
     cfg.enc_cfg     = EncounterConfig()
     cfg.detect_cfg  = DetectionConfig()

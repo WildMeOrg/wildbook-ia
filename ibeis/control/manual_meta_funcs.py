@@ -524,30 +524,52 @@ def _load_named_config(ibs, cfgname=None):
 
 
 @register_ibs_method
-def _default_config(ibs, cfgname=None):
-    """ Resets the databases's algorithm configuration """
+def _default_config(ibs, cfgname=None, new=True):
+    """
+    Resets the databases's algorithm configuration
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cfgname (None):
+
+    CommandLine:
+        python -m ibeis.control.manual_meta_funcs --test-_default_config
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> assert not hasattr(ibs.cfg.query_cfg.flann_cfg, 'badparam')
+        >>> ibs.cfg.query_cfg.flann_cfg.badparam = True
+        >>> assert ibs.cfg.query_cfg.flann_cfg.cb_index == .4
+        >>> ibs.cfg.query_cfg.flann_cfg.cb_index = .5
+        >>> assert ibs.cfg.query_cfg.flann_cfg.cb_index == .5
+        >>> assert hasattr(ibs.cfg.query_cfg.flann_cfg, 'badparam')
+        >>> # bad params is not initially removed but when you specify new it is
+        >>> ibs._default_config(new=False)
+        >>> assert ibs.cfg.query_cfg.flann_cfg.cb_index == .4
+        >>> assert hasattr(ibs.cfg.query_cfg.flann_cfg, 'badparam')
+        >>> # bad param should be removed when config is defaulted
+        >>> ibs._default_config(new=True)
+        >>> assert not hasattr(ibs.cfg.query_cfg.flann_cfg, 'badparam')
+
+    cfg = ibs.cfg
+    """
     #species_list = ibs.get_database_species()
     #if len(species_list) == 1:
     #    # try to be intelligent about the default speceis
     #    cfgname = species_list[0]
-    ibs.cfg = Config._default_config(ibs.cfg, cfgname)
+    ibs.cfg = Config._default_config(ibs.cfg, cfgname, new=new)
     ibs.reset_table_cache()
-    #query_cfg = Config.default_query_cfg()
-    #ibs.set_query_cfg(query_cfg)
-    #ibs.cfg.enc_cfg     = Config.EncounterConfig()
-    #ibs.cfg.detect_cfg  = Config.DetectionConfig()
-    #ibs.cfg.other_cfg   = Config.OtherConfig()
-
-    #Config._default_config(ibs.cfg, species_list=[])
-    #if len(species_list) == 1:
-    #    # try to be intelligent about the default speceis
-    #    ibs.cfg.detect_cfg.species = species_list[0]
 
 
 @register_ibs_method
 @default_decorator
 def set_query_cfg(ibs, query_cfg):
-    Config.set_query_cfg(ibs.cfg, query_cfg, species_list=ibs.get_database_species())
+    Config.set_query_cfg(ibs.cfg, query_cfg)
     ibs.reset_table_cache()
     #if ibs.qreq is not None:
     #    ibs.qreq.set_cfg(query_cfg)

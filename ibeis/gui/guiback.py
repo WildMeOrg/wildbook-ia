@@ -223,6 +223,10 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs._default_config()
         back.edit_prefs_wgt.refresh_layout()
         back.edit_prefs_wgt.pref_model.rootPref.save()
+        # due to weirdness of Preferences structs
+        # we have to close the widget otherwise we will
+        # be looking at an outated object
+        back.edit_prefs_wgt.close()
 
     @ut.indent_func
     def get_selected_gid(back):
