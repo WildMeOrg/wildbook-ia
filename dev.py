@@ -60,7 +60,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
         python dev.py -t tune --db PZ_MTEST
         python dev.py -t tune --db GZ_ALL
         python dev.py -t tune --db GIR_Tanya
-        python dev.py -t tune --db PZ_Mothers0
+        python dev.py -t tune --db PZ_Master0
 
     Example:
         >>> # ENABLE_DOCTEST

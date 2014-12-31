@@ -92,13 +92,14 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
     aid_list = np.hstack((qaids, daids)).tolist()
     unique_species = ibs.get_database_species(aid_list)
     # turn off featureweights when not absolutely sure they are ok to us,)
-    species_with_detectors = (
+    SPECIES_WITH_DETECTORS = (
         const.Species.ZEB_GREVY,
         const.Species.ZEB_PLAIN,
+        const.Species.GIRAFFE,
     )
     candetect = (
         len(unique_species) == 1 and
-        unique_species[0] in species_with_detectors
+        unique_species[0] in SPECIES_WITH_DETECTORS
     )
     if not candetect:
         print('HACKING FG_WEIGHT OFF (database species is not supported)')
@@ -106,12 +107,12 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
             print('  * len(unique_species) = %r' % len(unique_species))
         else:
             print('  * unique_species = %r' % (unique_species,))
-        print('  * valid species = %r' % (species_with_detectors,))
+        print('  * valid species = %r' % (SPECIES_WITH_DETECTORS,))
         #cfg._featweight_cfg.featweight_on = 'ERR'
         cfgdict['featweight_on'] = 'ERR'
     else:
         #print(ibs.get_annot_species_texts(aid_list))
-        print('HACK FG_WEIGHT NOT APPLIED, unique_species=%r')
+        print('HACK FG_WEIGHT NOT APPLIED, unique_species=%r' % (unique_species,))
         #, aid_list=%r' % (unique_species, aid_list))
     return unique_species
 

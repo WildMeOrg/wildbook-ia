@@ -182,6 +182,12 @@ SPECIES_TUPS = [
     (Species.UNKNOWN,       'Unknown'),
 ]
 
+SPECIES_WITH_DETECTORS = (
+    Species.ZEB_GREVY,
+    Species.ZEB_PLAIN,
+    Species.GIRAFFE,
+)
+
 VALID_SPECIES = [tup[0] for tup in SPECIES_TUPS]
 SPECIES_NICE = [tup[1] for tup in SPECIES_TUPS]
 

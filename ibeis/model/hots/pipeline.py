@@ -364,7 +364,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Neareset neighbor configuration
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
-    checks = qreq_.qparams.checks
+    #checks = qreq_.qparams.checks
     # Get both match neighbors and normalizing neighbors
     num_neighbors  = K + Knorm
     if verbose:
@@ -377,7 +377,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Mark progress ane execute nearest indexer nearest neighbor code
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, freq=20,
                                 time_thresh=2.0)
-    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
+    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
                  for qfx2_vec in qvec_iter]
     # Verbose statistics reporting
     if verbose:

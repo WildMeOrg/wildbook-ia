@@ -144,6 +144,7 @@ LONG TERM TASKS:
 from __future__ import absolute_import, division, print_function
 import ibeis
 import utool as ut
+import six
 from six.moves import input
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inchelp]')
 
@@ -368,44 +369,65 @@ def check_results(ibs_gt, ibs2, aid1_to_aid2):
     reports how well the incremental query ran when the oracle was calling the
     shots.
     """
-    import six
-    #aid_list1 = ibs_gt.get_valid_aids()
-    aid_list1 = ibs_gt.get_aids_with_groundtruth()
+    print('--------- CHECKING RESULTS ------------')
+    # TODO: dont include initially added aids in the result reporting
+    aid_list1 = ibs_gt.get_valid_aids()
+    #aid_list1 = ibs_gt.get_aids_with_groundtruth()
     aid_list2 = ibs2.get_valid_aids()
 
     nid_list1 = ibs_gt.get_annot_nids(aid_list1)
     nid_list2 = ibs2.get_annot_nids(aid_list2)
 
-    grouped_aids1 = list(six.itervalues(ut.group_items(aid_list1, nid_list1)))
-    grouped_aids2 = list(map(tuple, six.itervalues(ut.group_items(aid_list2, nid_list2))))
+    # Group annotations from test and gt database by their respective names
+    grouped_dict1 = ut.group_items(aid_list1, nid_list1)
+    grouped_dict2 = ut.group_items(aid_list2, nid_list2)
+    grouped_aids1 = list(six.itervalues(grouped_dict1))
+    grouped_aids2 = list(map(tuple, six.itervalues(grouped_dict2)))
+    #group_nids1 = list(six.iterkeys(grouped_dict1))
+    #group_nids2 = list(six.iterkeys(grouped_dict2))
 
-    grouped_aids12 = [tuple(ut.dict_take_list(aid1_to_aid2, aids1)) for aids1 in grouped_aids1]
+    # Transform annotation ids from database1 space to database2 space
+    grouped_aids1_t = [tuple(ut.dict_take_list(aid1_to_aid2, aids1)) for aids1 in grouped_aids1]
 
-    set_grouped_aids2 = set(grouped_aids2)
-    set_grouped_aids12 = set(grouped_aids12)
+    set_grouped_aids1_t = set(grouped_aids1_t)
+    set_grouped_aids2   = set(grouped_aids2)
 
-    # What we got right
-    perfect_groups = set_grouped_aids2.intersection(set_grouped_aids12)
-
-    # What we got wrong
-    missed_groups  = set_grouped_aids2.difference(perfect_groups)
+    # Find names we got right. (correct groupings of annotations)
+    # these are the annotation groups that are intersecting between
+    # the test database and groundtruth database
+    perfect_groups = set_grouped_aids2.intersection(set_grouped_aids1_t)
+    # Find names we got wrong. (incorrect groupings of annotations)
+    # The test database sets that were not perfect
+    nonperfect_groups = set_grouped_aids2.difference(perfect_groups)
     # What we should have got
-    missed_truth_groups = set_grouped_aids12.difference(perfect_groups)
+    # The ground truth database sets that were not fully identified
+    missed_groups = set_grouped_aids1_t.difference(perfect_groups)
 
-    truth_group_sets = list(map(set, missed_truth_groups))
-    missed_groups_set  = list(map(set, missed_groups))
-
-    failed_links = []
-    wrong_links = []
-    for missed_set in missed_groups_set:
-        if any([missed_set.issubset(truth_set) for truth_set in truth_group_sets]):
-            failed_links.append(missed_set)
+    # Mark non perfect groups by their error type
+    false_negative_groups = []  # failed to link enough
+    false_positive_groups = []  # linked too much
+    for nonperfect_group in nonperfect_groups:
+        if ut.is_subset_of_any(nonperfect_group, missed_groups):
+            false_negative_groups.append(nonperfect_group)
         else:
-            wrong_links.append(missed_set)
+            false_positive_groups.append(nonperfect_group)
 
-    print('# Name with failed links = %r' % len(failed_links))
-    print('# Name with wrong links = %r' % len(wrong_links))
-    print('# Name correct names = %r' % len(perfect_groups))
+    # Get some more info on the nonperfect groups
+    # find which groups should have been linked
+    aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
+    false_negative_groups_t = [tuple(ut.dict_take_list(aid2_to_aid1, aids2)) for aids2 in false_negative_groups]
+    false_negative_group_nids_t = ibs_gt.unflat_map(ibs_gt.get_annot_nids, false_negative_groups_t)
+    assert all(map(ut.list_allsame, false_negative_group_nids_t)), 'inconsistent nids'
+    false_negative_group_nid_t = ut.get_list_column(false_negative_group_nids_t, 0)
+    # These are the links that should have been made
+    missed_links = ut.group_items(false_negative_groups, false_negative_group_nid_t)
+    print(ut.dict_str(missed_links))
+
+    print('# Name with failed links (FN) = %r' % len(false_negative_groups))
+    print('... should have reduced to %d names.' % (len(missed_links)))
+    print('# Name with wrong links (FP)  = %r' % len(false_positive_groups))
+    print('# Name correct names (TP)     = %r' % len(perfect_groups))
+    #ut.embed()
 
 
 def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):

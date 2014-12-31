@@ -241,6 +241,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     cfgstr = nnindex_cfgstr
     cachedir     = qreq_.ibs.get_flann_cachedir()
     flann_params = qreq_.qparams.flann_params
+    flann_params['checks'] = qreq_.qparams.checks
     # Get annot descriptors to index
     aid_list = daid_list
     vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
@@ -1284,10 +1285,12 @@ def augment_nnindexer_experiment(update=True):
 def request_background_nnindexer(qreq_, daid_list):
     """ FIXME: Duplicate code """
     global CURRENT_THREAD
+    print('Requesting background reindex')
     if CURRENT_THREAD is not None and not CURRENT_THREAD.is_alive():
         # Make sure this function doesn't run if it is already running
+        print('REQUEST DENIED')
         return False
-    print('Requesting background reindex')
+    print('REQUEST ACCPETED')
     daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     flann_cachedir = qreq_.ibs.get_flann_cachedir()

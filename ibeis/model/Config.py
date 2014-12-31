@@ -132,8 +132,8 @@ class NNConfig(ConfigBase):
         nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'
         nn_cfg.Knorm = 1
+        nn_cfg.checks = 800
         nn_cfg.normalizer_rule = ['last', 'name'][0]
-        nn_cfg.checks  = 1024  # 512#128
         nn_cfg.update(**kwargs)
 
     def make_feasible(nn_cfg):
@@ -385,7 +385,6 @@ class FlannConfig(ConfigBase):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
         #General Params
         flann_cfg.algorithm = 'kdtree'  # linear
-        flann_cfg.checks = 724
         flann_cfg.flann_cores = 0  # doesnt change config, just speed
         # KDTree params
         flann_cfg.trees = 8
@@ -401,7 +400,6 @@ class FlannConfig(ConfigBase):
             algorithm=flann_cfg.algorithm,
             trees=flann_cfg.trees,
             cores=flann_cfg.flann_cores,
-            checks=flann_cfg.checks,
         )
         return flann_params
 
@@ -420,7 +418,7 @@ class FlannConfig(ConfigBase):
             ]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
-        flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
+        #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
         flann_cfgstrs += [')']
         return flann_cfgstrs
 
@@ -1195,15 +1193,33 @@ def _default_config(cfg, cfgname=None):
 
 
 def _default_named_config(cfg, cfgname):
-    """ hack 12-30-2014 """
+    """ hack 12-30-2014
+
+    list default parameters per species
+
+    """
+    Species = const.Species
     if cfgname == 'cfg':
         cfg.detect_cfg.species = 'none'
-    if cfgname == const.Species.ZEB_PLAIN:
+    elif cfgname == Species.ZEB_PLAIN:
         cfg.detect_cfg.species = cfgname
-    if cfgname == const.Species.ZEB_GREVY:
+        #speedup': 46.90769958496094,
+        cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
+        cfg.query_cfg.flann_cfg.trees = 8
+        cfg.query_cfg.nn_cfg.checks = 704
+    elif cfgname == Species.ZEB_GREVY:
         cfg.detect_cfg.species = cfgname
-    if cfgname == const.Species.GIRAFFE:
+        #speedup': 224.7425994873047,
+        cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
+        cfg.query_cfg.flann_cfg.trees = 4
+        cfg.query_cfg.nn_cfg.checks = 896
+    elif cfgname == Species.GIRAFFE:
         cfg.detect_cfg.species = cfgname
+        cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
+        cfg.query_cfg.flann_cfg.trees = 8
+        cfg.query_cfg.nn_cfg.checks = 316
+    else:
+        print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
 
 
 if __name__ == '__main__':
