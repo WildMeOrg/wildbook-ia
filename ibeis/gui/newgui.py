@@ -343,7 +343,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                           bgcolor=(255, 255, 150))
 
         ibswgt.detect_button = _NEWBUT('3) Detect',
-                                       ibswgt.back.run_detection_coarse,
+                                       ibswgt.back.run_detection,
                                        bgcolor=(150, 255, 150))
 
         #ibswgt.species_button = _NEWBUT('Update Encounter Species',

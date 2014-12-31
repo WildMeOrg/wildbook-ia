@@ -14,7 +14,7 @@ import six
 import atexit
 import requests
 import weakref
-from six.moves import zip, range
+from six.moves import zip
 from os.path import join, split
 # UTool
 import utool as ut  # NOQA
@@ -624,64 +624,22 @@ class IBEISController(object):
     #------------------
 
     @default_decorator
-    def detect_existence(ibs, gid_list, **kwargs):
-        """ Detects the probability of animal existence in each image """
-        from ibeis.model.detect import randomforest  # NOQ
-        probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
-        # Return for user inspection
-        return probexist_list
-
-    @default_decorator
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         from ibeis.model.detect import randomforest  # NOQ
-        tt = ut.tic()
-        detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **kwargs)
-        detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
-        ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
-        ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
+        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
+        # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
+        # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
+        for gid, (gpath, result_list) in zip(gid_list, detect_gen):
+            for result in result_list:
+                # Ideally, species will come from the detector with confidences that actually mean something
+                bbox = (result['xtl'], result['ytl'], result['width'], result['height'])
+                ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
+                               species_list=[species],
+                               detect_confidence_list=[result['confidence']])
 
-        def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):
-            """ helper to commit detections on the fly """
-            if len(detected_gids) == 0:
-                return
-            notes_list = ['rfdetect' for _ in range(len(detected_gid_list))]
-            # Ideally, species will come from the detector with confidences that actually mean something
-            species_list = [ibs.cfg.detect_cfg.species] * len(notes_list)
-            ibs.add_annots(detected_gids, detected_bboxes,
-                                notes_list=notes_list,
-                                species_list=species_list,
-                                detect_confidence_list=detected_confidences)
-
-        # Adding new detections on the fly as they are generated
-        for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
-            detected_gid_list.append(gid)
-            detected_bbox_list.append(bbox)
-            detected_confidence_list.append(confidence)
-            detected_img_confs.append(img_conf)
-            # Save detections as we go, then reset lists
-            if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
-                commit_detections(detected_gid_list,
-                                  detected_bbox_list,
-                                  detected_confidence_list,
-                                  detected_img_confs)
-                detected_gid_list  = []
-                detected_bbox_list = []
-                detected_confidence_list = []
-                detected_img_confs = []
-        # Save any leftover detections
-        commit_detections(  detected_gid_list,
-                            detected_bbox_list,
-                            detected_confidence_list,
-                            detected_img_confs)
-        tt_total = float(ut.toc(tt))
-        if len(gid_list) > 0:
-            print('[ibs] finshed detecting, took %.2f seconds (avg. %.2f seconds per image)' %
-                  (tt_total, tt_total / len(gid_list)))
-        else:
-            print('[ibs] finshed detecting')
     #
     #
     #-----------------------------

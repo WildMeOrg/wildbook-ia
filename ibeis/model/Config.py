@@ -1099,7 +1099,7 @@ class OtherConfig(ConfigBase):
         other_cfg.max_exemplars  = 6
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
-        other_cfg.detect_use_chunks = True
+        # other_cfg.detect_use_chunks = True
         other_cfg.use_more_special_encounters = False
         other_cfg.update(**kwargs)
 

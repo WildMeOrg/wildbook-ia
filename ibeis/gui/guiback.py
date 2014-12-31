@@ -578,7 +578,7 @@ class MainWindowBackend(QtCore.QObject):
         #ibs.cfg.save()
 
     @blocking_slot()
-    def _run_detection(back, quick=True, refresh=True, **kwargs):
+    def run_detection(back, refresh=True, **kwargs):
         print('\n\n')
         eid = back._eidfromkw(kwargs)
         ibs = back.ibs
@@ -591,20 +591,12 @@ class MainWindowBackend(QtCore.QObject):
         approx_seconds = len(gid_list) * 40 / cpu_count()   # 40 seconds per image / num cores
         conf_msg = conf_msg_fmststr % (species, len(gid_list), approx_seconds)
         if back.are_you_sure(use_msg=conf_msg):
-            print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
-            ibs.detect_random_forest(gid_list, species, quick=quick)
+            print('[back] run_detection(species=%r, eid=%r)' % (species, eid))
+            ibs.detect_random_forest(gid_list, species)
             print('[back] about to finish detection')
             if refresh:
                 back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
             print('[back] finished detection')
-
-    @blocking_slot()
-    def run_detection_coarse(back, refresh=True):
-        back._run_detection(quick=True)
-
-    @blocking_slot()
-    def run_detection_fine(back, refresh=True):
-        back._run_detection(quick=False)
 
     @blocking_slot()
     def compute_feats(back, refresh=True, **kwargs):
@@ -910,7 +902,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] redownload_detection_models')
         if not back.are_you_sure():
             return
-        ibsfuncs.redownload_detection_models()
+        ibsfuncs.redownload_detection_models(back.ibs)
 
     @slot_()
     def delete_cache(back):

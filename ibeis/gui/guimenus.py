@@ -159,15 +159,10 @@ def setup_batch_menu(mainwin, back):
         slot_fn=back.compute_encounters)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
-        name='actionDetect_Coarse',
-        text='Run Detection (coarse)',
+        name='actionDetect',
+        text='Run Detection',
         shortcut='Ctrl+3',
-        slot_fn=back.run_detection_coarse)
-    mainwin.menuBatch.newAction(
-        name='actionDetect_Fine',
-        text='Run Detection (fine)',
-        shortcut='Ctrl+Shift+3',
-        slot_fn=back.run_detection_fine)
+        slot_fn=back.run_detection)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionCompute_Queries',
