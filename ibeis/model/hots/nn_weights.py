@@ -355,6 +355,8 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
     elif rule == 'name':
         # Normalizers for 'name' rule
         qfx2_normk = get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx)
+    elif rule == 'external':
+        pass
     else:
         raise NotImplementedError('[nn_weights] no rule=%r' % rule)
     qfx2_normdist = np.array([dists[normk]

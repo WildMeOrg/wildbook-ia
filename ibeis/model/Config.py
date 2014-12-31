@@ -127,7 +127,7 @@ class NNConfig(ConfigBase):
         #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
         #nn_cfg.min_reindex_thresh = 50  # 200  # number of annots before a new multi-indexer is built
         nn_cfg.min_reindex_thresh = 10  # 200  # number of annots before a new multi-indexer is built
-        nn_cfg.max_subindexers = 1  # number of annots before a new multi-indexer is built
+        nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'
@@ -846,7 +846,7 @@ class FeatureConfig(ConfigBase):
         # Inlineish copy of pyhesaff.hesaff_types_parms
         PY2 = True
         if PY2:
-            int_t     = C.c_int
+            int_t = C.c_int
         else:
             raise NotImplementedError('PY3')
         bool_t    = C.c_bool
@@ -1161,7 +1161,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
     cfg = GenericConfig(cfgname, fpath=fpath)
     try:
         # Use pref cache
-        if use_config_cache:
+        if not use_config_cache:
             raise Exception('force config cache miss')
         cfg.load()
         if ut.NOT_QUIET:

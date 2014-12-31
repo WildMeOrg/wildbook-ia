@@ -238,6 +238,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     qaid2_qres_ = chipmatch_to_resdict(qreq_, qaid2_chipmatch_SVER_,
                                        verbose=verbose)
 
+    # <HACK>
     if qreq_.qparams.return_expanded_nns:
         assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
         # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
@@ -245,10 +246,12 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
         # CAUSES TOO MUCH DATA TO BE SAVED
         for qaid in qreq_.get_external_qaids():
+            # TODO: hook up external neighbor mechanism?
+            # No, not here, further down.
             (qfx2_idx, qfx2_dist) = qaid2_nns_[qaid]
             qres = qaid2_qres_[qaid]
             #qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
-            #qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_idx)
+            #qfx2_dfx  = qreq_.indexer.get_nn_featxs(qfx2_idx)
             #qres.qfx2_daid = qfx2_daid
             #qres.qfx2_dfx = qfx2_dfx
             qres.qfx2_dist = qfx2_dist
@@ -259,6 +262,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
             ]
             print('\n'.join(msg_list))
             #ut.embed()
+    # </HACK>
 
     if VERB_PIPELINE:
         print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
@@ -368,8 +372,8 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Get both match neighbors and normalizing neighbors
     num_neighbors  = K + Knorm
     if verbose:
-        print('[hs] Step 1) Assign nearest neighbors: ' +
-              qreq_.qparams.nn_cfgstr)
+        print('[hs] Step 1) Assign nearest neighbors: %s' %
+              (qreq_.qparams.nn_cfgstr,))
     # For each internal query annotation
     internal_qaids = qreq_.get_internal_qaids()
     # Find the nearest neighbors of each descriptor vector
@@ -597,9 +601,14 @@ def weight_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0, verbose=VERB_PIPELINE):
         qweights_list = [filtfn(qaid2_nns, qaid2_nnvalid0, qreq_) for filtfn in filtfn_list]
         # Index by qaids first
         filtweights_list = [
-            ut.odict(zip(filtkey_list,
-                         [qaid2_weights[qaid] for qaid2_weights in qweights_list]))
-            for qaid in internal_qaids]
+            ut.odict(
+                zip(
+                    filtkey_list,
+                    [qaid2_weights[qaid] for qaid2_weights in qweights_list]
+                )
+            )
+            for qaid in internal_qaids
+        ]
         # Use dictionary output until ready to move completely to lists
         qaid2_filtweights = ut.odict(zip(internal_qaids, filtweights_list))
     else:

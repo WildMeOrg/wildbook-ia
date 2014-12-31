@@ -647,6 +647,9 @@ class MainWindowBackend(QtCore.QObject):
             species_phrase = ut.cond_phrase(species_nice_list, 'and')
             return species_phrase
 
+        num_daids = 0
+        num_qaids = 0
+
         if daid_list is not None:
             species_phrase = get_unique_species_phrase(daid_list)
             num_daids = len(daid_list)
@@ -658,17 +661,20 @@ class MainWindowBackend(QtCore.QObject):
             annotation_s = pluralize('annotation', daid_list)
         if qaid_list is not None:
             species_phrase = get_unique_species_phrase(qaid_list)
-            num_daids = len(qaid_list)
+            num_qaids = len(qaid_list)
             msg_fmtstr = ut.codeblock(
                 '''
-                You are about to query {num_daids} unknown {annotation_s} of
+                You are about to query {num_qaids} unidentified {annotation_s} of
                 species {species_phrase} for identification. Continue?
                 ''')
             annotation_s = pluralize('annotation', qaid_list)
-        msg_str = msg_fmtstr.format(
+        fmtdict = dict(
+            num_qaids=num_qaids,
             num_daids=num_daids,
             annotation_s=annotation_s,
-            species_phrase=species_phrase)
+            species_phrase=species_phrase
+        )
+        msg_str = msg_fmtstr.format(**fmtdict)
         if not back.are_you_sure(use_msg=msg_str):
             raise StopIteration
 

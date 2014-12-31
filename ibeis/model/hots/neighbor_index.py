@@ -1283,53 +1283,85 @@ def augment_nnindexer_experiment(update=True):
 
 
 def request_background_nnindexer(qreq_, daid_list):
-    """ FIXME: Duplicate code """
+    """ FIXME: Duplicate code
+
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        daid_list (list):
+
+    Returns:
+        ?: False
+
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-request_background_nnindexer
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> from ibeis.model.hots import neighbor_index  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> # execute function
+        >>> neighbor_index.request_background_nnindexer(qreq_, daid_list)
+        >>> # verify results
+        >>> result = str(False)
+        >>> print(result)
+    """
     global CURRENT_THREAD
     print('Requesting background reindex')
-    if CURRENT_THREAD is not None and not CURRENT_THREAD.is_alive():
-        # Make sure this function doesn't run if it is already running
-        print('REQUEST DENIED')
-        return False
+    if CURRENT_THREAD is not None:
+        if CURRENT_THREAD.is_alive():
+            # Make sure this function doesn't run if it is already running
+            print('REQUEST DENIED')
+            return False
     print('REQUEST ACCPETED')
     daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
-    nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
-    flann_cachedir = qreq_.ibs.get_flann_cachedir()
+    cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
+    cachedir = qreq_.ibs.get_flann_cachedir()
     # Save inverted cache uuid mappings for
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
     # Grab the keypoints names and image ids before query time?
     flann_params =  qreq_.qparams.flann_params
     # Get annot descriptors to index
-    vecs_list = qreq_.ibs.get_annot_vecs(daid_list)
-    fgws_list = get_fgweights_hack(qreq_, daid_list)
-    preptup = prepare_index_data(daid_list, vecs_list, fgws_list, verbose=True)
-    (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
-    use_memcache = False
+    aid_list = daid_list
+    vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
+    fgws_list = get_fgweights_hack(qreq_, aid_list)
     # Dont hash rowids when given enough info in nnindex_cfgstr
     flann_params['cores'] = 2  # Only ues a few cores in the background
-    flannkw = dict(cache_dir=flann_cachedir, cfgstr=nnindex_cfgstr,
-                   flann_params=flann_params, use_memcache=use_memcache,
-                   use_params_hash=False)
-    #cores = flann_params.get('cores', 0)
     # Build/Load the flann index
     #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
 
     threadobj = ut.spawn_background_process(
-        background_flann_func, idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
-        visual_uuid_list, min_reindex_thresh)
+        background_flann_func, cachedir, aid_list, vecs_list, fgws_list,
+        flann_params, cfgstr, uuid_map_fpath, daids_hashid, visual_uuid_list,
+        min_reindex_thresh)
     CURRENT_THREAD = threadobj
 
 
-def background_flann_func(idx2_vec, flannkw, uuid_map_fpath, daids_hashid,
+def background_flann_func(cachedir, aid_list, vecs_list, fgws_list, flann_params, cfgstr,
+                          uuid_map_fpath, daids_hashid,
                           visual_uuid_list, min_reindex_thresh):
     """ FIXME: Duplicate code """
-    print('Starting Background FLANN')
+    print('[BG] Starting Background FLANN')
     # FIXME. dont use flann cache
-    nntool.flann_cache(idx2_vec, **flannkw)
+    #nntool.flann_cache(idx2_vec, **flannkw)
+    nnindexer = NeighborIndex(flann_params, cfgstr)
+    #if verbose:
+    #    print('[nnindex] nnindexer.init_support()')
+    # Initialize neighbor with unindexed data
+    nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=True)
+    #if verbose:
+    #    print('[nnindex] nnindexer.load_or_build()')
+    # Load or build the indexing structure
+    nnindexer.load_or_build(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:
         write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
-    print('Finished Background FLANN')
+    print('[BG] Finished Background FLANN')
 
 
 if __name__ == '__main__':

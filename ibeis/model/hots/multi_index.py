@@ -47,7 +47,10 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
 def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     """
 
-    Examples:
+    CommandLine:
+        python -m ibeis.model.hots.multi_index --test-request_ibeis_mindexer:2
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> import ibeis
@@ -58,21 +61,60 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
 
-    Examples2:
+    Example1:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='PZ_Master0')
         >>> valid_aids = ibs.get_valid_aids()
-        >>> num_feats = np.array(ibs.get_annot_num_feats(valid_aids))
         >>> daid_list = valid_aids[1:60]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> # Test background reindex
+        >>> from ibeis.model.hots.multi_index import *  # NOQA
+        >>> import ibeis
+        >>> import time
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> # Remove all cached nnindexers
+        >>> ibs.delete_flann_cachedir()
+        >>> # This request should build a new nnindexer
+        >>> daid_list = valid_aids[1:30]
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> index_method = 'multi'
+        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one subindexer')
+        >>> # The next request should trigger a background process
+        >>> # and build two subindexer
+        >>> daid_list = valid_aids[1:60]
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> index_method = 'multi'
+        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> # Do some work in the foreground to ensure that it doesnt block
+        >>> # the background job
+        >>> print('[FG] sleeping or doing bit compute')
+        >>> # Takes about 15 seconds
+        >>> with ut.Timer():
+        ...     ut.enumerate_primes(int(9E4))
+        >>> #time.sleep(10)
+        >>> print('[FG] done sleeping')
+        >>> ut.assert_eq(len(mxer.nn_indexer_list), 2, 'two subindexer')
+        >>> # And this shoud build just one subindexer
+        >>> daid_list = valid_aids[1:60]
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> index_method = 'multi'
+        >>> mxer = request_ibeis_mindexer(qreq_, index_method)
+        >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one big subindexer')
+
     """
 
     daid_list = qreq_.get_internal_daids()
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
+    print('[mindex] index_method=%r' % index_method)
 
     # Split annotations into groups accorindg to index_method
     ibs = qreq_.ibs
@@ -84,15 +126,19 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         # Use greedy set cover to get a list of nnindxers that are already built
         uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh)
-        num_subindexers = len(covered_aids_list)
+        num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
         # If the number of bins gets too big do a reindex
         # in the background
         if num_subindexers > qreq_.qparams.max_subindexers:
+            print('need to reindex something')
             #  TODO: Dont start background request if one already exists
-            neighbor_index.request_background_nnindexer(qreq_, daid_list)
-            #ut.embed()
-            #aids_list = [sorted(ut.flatten(covered_aids_list))]
-            aids_list = covered_aids_list
+            USE_FORGROUND_REINDEX = False
+            if USE_FORGROUND_REINDEX:
+                aids_list = [sorted(ut.flatten(covered_aids_list))]
+                #ut.embed()
+            else:
+                neighbor_index.request_background_nnindexer(qreq_, daid_list)
+                aids_list = covered_aids_list
         else:
             aids_list = covered_aids_list
         if len(uncovered_aids) > 0:
