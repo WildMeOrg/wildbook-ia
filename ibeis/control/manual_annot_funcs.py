@@ -1331,8 +1331,42 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     Note: The viewpoint value cannot be None as a default because None is used as a
           filtering value
 
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid (None):
+        include_only_gid_list (list):
+        viewpoint (str):
+        is_exemplar (None):
+        species (None):
+        is_known (None):
+
     Returns:
-        list_ (list):  a list of valid ANNOTATION unique ids
+        list: aid_list - a list of valid ANNOTATION unique ids
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid = 1
+        >>> include_only_gid_list = None
+        >>> viewpoint = 'no-filter'
+        >>> is_exemplar = None
+        >>> species = const.Species.ZEB_PLAIN
+        >>> is_known = False
+        >>> # execute function
+        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN])
+        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN])
+        >>> # verify results
+        >>> result = str(aid_list)
+        >>> print(result)
+        [4]
     """
     # getting encounter aid
     if eid is None:
@@ -1367,11 +1401,11 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
         aid_list           = ut.filter_items(aid_list, is_valid_species)
     if is_known is not None:
-        is_known_list = ibs.is_aid_unknown(aid_list)
+        is_unknown_list = ibs.is_aid_unknown(aid_list)
         if is_known is True:
-            aid_list = ut.filter_items(aid_list, is_known_list)
+            aid_list = ut.filterfalse_items(aid_list, is_unknown_list)
         elif is_known is False:
-            aid_list = ut.filterfalse_items(aid_list, is_known_list)
+            aid_list = ut.filter_items(aid_list, is_unknown_list)
     return aid_list
 
 

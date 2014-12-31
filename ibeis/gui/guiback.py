@@ -740,6 +740,28 @@ class MainWindowBackend(QtCore.QObject):
     #@blocking_slot()
     @slot_()
     def incremental_query(back, refresh=True, **kwargs):
+        r"""
+        Returns:
+            ?: result
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-incremental_query
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(db='testdb1')
+            >>> # build test data
+            >>> back = main_locals['back']
+            >>> ibs = back.ibs
+            >>> # execute function
+            >>> refresh = True
+            >>> kwargs = {}
+            >>> back.incremental_query()
+            >>> # verify results
+            >>> print(result)
+        """
         from ibeis.model.hots import interactive_automated_matcher as iautomatch
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
         eid = back._eidfromkw(kwargs)
@@ -752,6 +774,10 @@ class MainWindowBackend(QtCore.QObject):
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
         qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
+        if len(qaid_list) == 0:
+            back.user_info(msg='No unknown annotations left for species=%r' % (species,))
+            return
+
         back.confirm_query_dialog(qaid_list=qaid_list)
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
