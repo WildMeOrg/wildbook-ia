@@ -7,23 +7,29 @@
 #export IBSFLAGS='--noqcache --screen --delete-query-cache'
 export IBSFLAGS=''
 
+
+python dev.py -t tune --db PZ_MTEST
+python dev.py -t tune --db GZ_ALL
+python dev.py -t tune --db GIR_Tanya
+python dev.py -t tune --db PZ_Mothers0
+
 # Current best algorithm 
 
-python dev.py -t small_best --db GZ_ALL --allgt
-python dev.py -t small_best --db PZ_MTEST --allgt
-python dev.py -t small_best --db PZ_Master0 --allgt
+#python dev.py -t small_best --db GZ_ALL --allgt
+#python dev.py -t small_best --db PZ_MTEST --allgt
+#python dev.py -t small_best --db PZ_Master0 --allgt
 
-python dev.py -t nsum --db GZ_ALL --allgt
-python dev.py -t nsum --db PZ_MTEST --allgt
-python dev.py -t nsum --db PZ_Master0 --allgt
+#python dev.py -t nsum --db GZ_ALL --allgt
+#python dev.py -t nsum --db PZ_MTEST --allgt
+#python dev.py -t nsum --db PZ_Master0 --allgt
 
-python dev.py -t nsum --db GZ_ALL --allgt --vh --fig-dname nsum_hard
-python dev.py -t nsum --db PZ_MTEST --allgt --vh --fig-dname nsum_hard
-python dev.py -t nsum --db PZ_Master0 --allgt --vh --fig-dname nsum_hard
+#python dev.py -t nsum --db GZ_ALL --allgt --vh --fig-dname nsum_hard
+#python dev.py -t nsum --db PZ_MTEST --allgt --vh --fig-dname nsum_hard
+#python dev.py -t nsum --db PZ_Master0 --allgt --vh --fig-dname nsum_hard
 
-python dev.py -t vsmany nsum --db GZ_ALL --allgt
-python dev.py -t vsmany nsum --db PZ_MTEST --allgt
-python dev.py -t vsmany nsum --db PZ_Master0 --allgt
+#python dev.py -t vsmany nsum --db GZ_ALL --allgt
+#python dev.py -t vsmany nsum --db PZ_MTEST --allgt
+#python dev.py -t vsmany nsum --db PZ_Master0 --allgt
 
 
 # Test if feature weights do something
