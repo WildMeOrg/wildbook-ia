@@ -157,9 +157,9 @@ def incremental_test_qt(ibs, num_initial=0):
     exec_interactive_incremental_queries(ibs, qaid_list)
 
 
-def exec_interactive_incremental_queries(ibs, qaid_list):
+def exec_interactive_incremental_queries(ibs, qaid_list, back=None):
     self = IncQueryHarness()
-    self = self.begin_incremental_query(ibs, qaid_list)
+    self = self.begin_incremental_query(ibs, qaid_list, back=back)
 
 
 class IncQueryHarness(INC_LOOP_BASE):
@@ -206,6 +206,13 @@ class IncQueryHarness(INC_LOOP_BASE):
             #'try_decision_callback': self.try_decision_signal.emit
         }
 
+    def setup_back_callbacks(self, back, incinfo):
+            import functools
+            from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
+            back.front.set_table_tab(NAMES_TREE)
+            update_callback = functools.partial(back.front.update_tables, tblnames=[NAMES_TREE])
+            incinfo['update_callback'] = update_callback
+
     def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                interactive_after=None, back=None):
         """
@@ -213,11 +220,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         """
         incinfo = self.incinfo
         if back is not None:
-            import functools
-            from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
-            back.front.set_table_tab(NAMES_TREE)
-            update_callback = functools.partial(back.front.update_tables, tblnames=[NAMES_TREE])
-            incinfo['update_callback'] = update_callback
+            self.setup_back_callbacks(back, incinfo)
         self.ibs = ibs
         incinfo['nTotal'] = len(aid_list1)
         #incinfo['nTotal'] = len(aid_list1)
@@ -251,12 +254,14 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo['interactive'] = True
         incinfo['next_query_callback']()
 
-    def begin_incremental_query(self, ibs, qaid_list):
+    def begin_incremental_query(self, ibs, qaid_list, back=None):
         """
         runs incremental query in live mode
         """
         self.ibs = ibs
         incinfo = self.incinfo
+        if back is not None:
+            self.setup_back_callbacks(back, incinfo)
         incinfo['nTotal'] = len(qaid_list)
         # Create live query generator
         self.inc_query_gen = automatch.generate_incremental_queries(
@@ -289,6 +294,11 @@ class IncQueryHarness(INC_LOOP_BASE):
             #TODO: close this figure
             # incinfo['fnum']
             print('NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE')
+            import plottool as pt
+            fig1 = pt.figure(fnum=511)
+            fig2 = pt.figure(fnum=512)
+            pt.close_figure(fig1)
+            pt.close_figure(fig2)
             pass
 
     #@guitool.slot_(list)

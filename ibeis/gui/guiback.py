@@ -775,13 +775,14 @@ class MainWindowBackend(QtCore.QObject):
         # no need to specify it here
         qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
         if len(qaid_list) == 0:
-            back.user_info(msg='No unknown annotations left for species=%r' % (species,))
+            msg = 'No unknown species=%r annotations in encounter.  Is the species correctly set? Do you need to run detection? ' % (species,)
+            back.user_info(msg=msg)
             return
 
         back.confirm_query_dialog(qaid_list=qaid_list)
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
-        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list)
+        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):
