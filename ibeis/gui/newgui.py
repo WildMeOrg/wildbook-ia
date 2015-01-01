@@ -1,4 +1,9 @@
 #!/usr/bin/env python2.7
+"""
+This should probably be renamed guifront.py This defines all of the visual
+components to the GUI It is invoked from guiback, which handles the nonvisual
+logic.
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 from os.path import isdir
@@ -22,15 +27,14 @@ from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         IBEISTableWidget, IBEISTreeWidget,
                                         EncTableWidget)
 import guitool
-import utool as ut  # NOQA
-import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
+import utool as ut
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
 
 
 IBEIS_WIDGET_BASE = QtGui.QWidget
 
-#WITH_GUILOG = not utool.get_argflag('--noguilog')
-WITH_GUILOG = utool.get_argflag('--guilog')
+#WITH_GUILOG = not ut.get_argflag('--noguilog')
+WITH_GUILOG = ut.get_argflag('--guilog')
 
 """
 from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
@@ -88,7 +92,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
-            #if utool.VERBOSE:
+            #if ut.VERBOSE:
             print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
         else:
@@ -485,17 +489,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
             ibswgt.ibs = ibs
-            with utool.Timer('update special'):
+            with ut.Timer('update special'):
                 ibs.update_special_encounters()
             # Update the api models to use the new control
-            with utool.Timer('make headers'):
+            with ut.Timer('make headers'):
                 header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
             block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
-            with utool.Timer('[newgui] update models'):
+            with ut.Timer('[newgui] update models'):
                 for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                     model = ibswgt.models[tblname]
                     view = ibswgt.views[tblname]
@@ -705,7 +709,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         #model_name = model.name
-        #print('clicked: %s' + utool.dict_str(locals()))
+        #print('clicked: %s' + ut.dict_str(locals()))
         if model.name == ENCOUNTER_TABLE:
             pass
             #printDBG('clicked encounter')
@@ -819,14 +823,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def imagesDropped(ibswgt, url_list):
         """ image drag and drop event """
         print('[drop_event] url_list=%r' % (url_list,))
-        gpath_list = filter(utool.matches_image, url_list)
+        gpath_list = filter(ut.matches_image, url_list)
         dir_list   = filter(isdir, url_list)
         if len(dir_list) > 0:
             ans = guitool.user_option(ibswgt, title='Non-Images dropped',
                                       msg='Recursively import from directories?')
             if ans == 'Yes':
-                gpath_list.extend(list(map(utool.unixpath,
-                                           utool.flatten([utool.list_images(dir_, fullpath=True, recursive=True)
+                gpath_list.extend(list(map(ut.unixpath,
+                                           ut.flatten([ut.list_images(dir_, fullpath=True, recursive=True)
                                                           for dir_ in dir_list]))))
             else:
                 return
@@ -845,6 +849,6 @@ if __name__ == '__main__':
 
     if '--cmd' in sys.argv:
         guitool.qtapp_loop(qwin=ibswgt, ipy=True)
-        exec(utool.ipython_execstr())
+        exec(ut.ipython_execstr())
     else:
         guitool.qtapp_loop(qwin=ibswgt)

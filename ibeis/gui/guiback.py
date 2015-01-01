@@ -1,3 +1,8 @@
+"""
+This module controls the GUI backend.  It is the layer between the GUI frontend
+(newgui.py) and the IBEIS controller.  All the functionality of the nonvisual
+gui components is written or called from here
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 import six
@@ -29,16 +34,11 @@ import utool as ut
 VERBOSE = ut.VERBOSE
 
 
-def default_decorator(func):
-    return func
-    #return ut.indent_func('[back.' + func.__name__ + ']')(func)
-
-
 def backblock(func):
     """ BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
-    way to make it more general? """
-    func = default_decorator(func)
+    way to make it more general?
+    """
     @functools.wraps(func)
     #@guitool.checks_qt_error
     def bacblock_wrapper(back, *args, **kwargs):
@@ -48,7 +48,7 @@ def backblock(func):
         except Exception:
             raise
         finally:
-            back.front.blockSignals(_wasBlocked_)  # unblock regardless
+            back.front.blockSignals(_wasBlocked_)
         return result
     bacblock_wrapper = ut.preserve_sig(bacblock_wrapper, func)
     return bacblock_wrapper

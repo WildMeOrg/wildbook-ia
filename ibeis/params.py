@@ -1,3 +1,10 @@
+"""
+this module lists most of the command line args available for use.  there are
+still many cases where util_arg.get_argval and util_arg.get_argflag are used
+instead of this module. Those command line arguments will not be represented
+here and they should eventually be integrated into this module (hopefully
+automagically)
+"""
 from __future__ import absolute_import, division, print_function
 from utool import util_arg
 import os

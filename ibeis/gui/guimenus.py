@@ -1,4 +1,11 @@
+"""
+This module defines all of the menu items in the main GUI
+as well as their callbacks in guiback
+"""
+from __future__ import absolute_import, division, print_function
+import utool as ut
 from guitool.guitool_components import newMenu, newMenubar, msg_event
+ut.noinject(__name__, '[guimenus]', DEBUG=False)
 
 
 class DummyBack(object):

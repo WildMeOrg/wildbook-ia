@@ -1,3 +1,7 @@
+"""
+Algorithm and behavior configurations are stored here.  These classes are based
+off of the utool.Preference.Pref class which really needs a good overhaul
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import utool as ut

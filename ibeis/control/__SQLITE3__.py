@@ -1,3 +1,6 @@
+"""
+custom sqlite3 module that supports numpy types
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 import six

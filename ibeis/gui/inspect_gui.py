@@ -1,3 +1,8 @@
+"""
+This module was never really finished. It is used in some cases
+to display the results from a query in a qt window. It needs
+some work if its to be re-integrated.
+"""
 from __future__ import absolute_import, division, print_function
 from functools import partial
 from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext

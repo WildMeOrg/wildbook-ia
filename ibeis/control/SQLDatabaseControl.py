@@ -1,3 +1,6 @@
+"""
+Interface into SQL for the IBEIS Controller
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 import six

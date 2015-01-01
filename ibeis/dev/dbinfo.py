@@ -1,4 +1,7 @@
 # This is not the cleanest module
+"""
+get_dbinfo is probably the only usefull funciton in here
+"""
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import utool as ut

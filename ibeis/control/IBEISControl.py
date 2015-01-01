@@ -2,6 +2,9 @@
 TODO: Module Licence and docstring
 
 functions in the IBEISController have been split up into several submodules.
+
+look at the modules listed in autogenmodname_list to see the full list of
+functions that will be injected into an IBEISController object
 """
 # TODO: rename annotation annotations
 # TODO: make all names consistent

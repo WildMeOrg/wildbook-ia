@@ -1,3 +1,11 @@
+"""
+This model provides the declarative interface to all of the api_*_models in
+guitool. Each different type of model/view has to register its iders, getters,
+and potentially setters (hopefully if guitool ever gets off the ground the
+delters as well)
+
+Different columns can be hidden / shown by modifying this file
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 from six.moves import zip, map, range
