@@ -10,10 +10,12 @@ TODO:
 from __future__ import absolute_import, division, print_function
 from collections import namedtuple
 import utool
+import utool as ut
 import datetime
 # import ibeis
 import inspect
 from ibeis import ibsfuncs  # NOQA
+from ibeis import constants as const
 # from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,
 #                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE,
 #                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,
@@ -132,7 +134,7 @@ def _index(value, list_, warning=False):
         return None
 
 
-def geo_locate(default="Unknown", timeout=5):
+def geo_locate(default="Unknown", timeout=1):
     try:
         import urllib2
         import json
@@ -214,11 +216,33 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
 #############################
 
 
-def export_transfer_data(ibs_src, user_prompt=False):
+def export_transfer_data(ibs_src, user_prompt=False, gid_list=None):
     """
     Packs all the data you are going to transfer from ibs_src
     info the transfer_data named tuple.
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.dbio import export_subset
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> bulk_conflict_resolution = 'ignore'
+        >>> gid_list = ibs.get_valid_gids()[::10]
+        >>> user_prompt = False
     """
+    if gid_list is None:
+        nid_list = ibs_src._get_all_known_name_rowids()
+        species_rowid_list = ibs_src._get_all_species_rowids()
+    else:
+        nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
+        species_rowid_list = ibs_src._get_all_species_rowids()
+        #species_rowid_list = list(set(ut.flatten(ibs_src.species_rowid_list(gid_list))))
+    # Create Name TransferData
+    name_td = export_name_transfer_data(ibs_src, nid_list)  # NOQA
+    # Create Species TranferData
+    species_td = export_species_transfer_data(ibs_src, species_rowid_list)   # NOQA
+    # Create Contributor TranferData
     contrib_rowid_list = ensure_contributor_rowids(ibs_src, user_prompt=user_prompt)
     assert len(contrib_rowid_list) > 0, "There must be at least one contributor to merge"
     contributor_td_list = [
@@ -240,11 +264,48 @@ def export_transfer_data(ibs_src, user_prompt=False):
     return td
 
 
-def export_contributor_transfer_data(ibs_src, contributor_rowid):
+def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
+                                     species_rowid_list, valid_gid_list=None):
+    """
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.dbio import export_subset
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> bulk_conflict_resolution = 'ignore'
+        >>> gid_list = ibs_src.get_valid_gids()[::10]
+        >>> user_prompt = False
+        >>> nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
+        >>> species_rowid_list = ibs_src._get_all_species_rowids()
+        >>> contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
+        >>> valid_gid_list = gid_list
+        >>> contributor_rowid = contrib_rowid_list[0]
+        >>> contrib_td = export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list, valid_gid_list=valid_gid_list)
+
+    Dev::
+        ibs = ibs_src
+        configid_list = ibs.get_valid_configids()
+        config_suffix_list = ibs.get_config_suffixes(configid_list)
+        print(ut.list_str(list(zip(configid_list, config_suffix_list))))
+
+        eid_list = ibs.get_valid_eids()
+        enc_config_rowid_list = ibs.get_encounter_configid(eid_list)
+        enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)
+        print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))
+
+    """
     # Get configs
-    config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)
+    #config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)
+    # Hack around config-less encounters
+    config_rowid_list = ibs_src.get_valid_configids()
     config_td = export_config_transfer_data(ibs_src, config_rowid_list)
     # Get encounters
+    #eid_list = ibs_src.get_valid_eids()
     eid_list = utool.flatten( ibs_src.get_contributor_eids(config_rowid_list) )
     encounter_td = export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list)
     # Get images
@@ -342,7 +403,7 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list):
     return image_td
 
 
-def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
+def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, species_rowid_list):
     if aid_list is None or len(aid_list) == 0:
         return None
     # Get annotation parents
@@ -357,6 +418,14 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list):
     lblannot_td_list = [
         export_lblannot_transfer_data(ibs_src, alrid_list, config_rowid_list)
         for alrid_list in alrids_list
+    ]
+    # Get names and species of annotations
+    annot_name_rowid_list = ibs_src.get_annot_name_rowids(aid_list, distinguish_unknowns=False)
+    annot_name_INDEX_list = [ _index(nid, nid_list) if nid != const.UNKNOWN_NAME_ROWID else None for nid in annot_name_rowid_list ]  # NOQA
+    annot_species_rowid_list = ibs_src.get_annot_species_rowids(aid_list)
+    annot_species_INDEX_list = [  # NOQA
+        _index(species_rowid, species_rowid_list)
+        for species_rowid in annot_species_rowid_list
     ]
     # Create Annotation TransferData
     annot_td = ANNOTATION_TransferData(
@@ -732,18 +801,33 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     return gid_list
 
 
-def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list):
+def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list,
+                               nid_list, species_rowid_list):
     parent_gid_list = [parent_gid] * len(annot_td.annot_uuid_list)
+    name_rowid_list = [
+        const.UNKNOWN_NAME_ROWID
+        if annot_name_INDEX is None else
+        nid_list[annot_name_INDEX]
+        for annot_name_INDEX in annot_td.annot_name_INDEX_list
+    ]
+    species_rowid_list = [
+        const.UNKNOWN_SPECIES_ROWID
+        if annot_species_INDEX is None else
+        species_rowid_list[annot_species_INDEX]
+        for annot_species_INDEX in annot_td.annot_species_INDEX_list
+    ]
     aid_list = ibs_dst.add_annots(
         parent_gid_list,
         theta_list=annot_td.annot_theta_list,
         detect_confidence_list=annot_td.annot_detection_confidence_list,
         notes_list=annot_td.annot_note_list,
         vert_list=annot_td.annot_verts_list,
-        annotation_uuid_list=annot_td.annot_uuid_list,
+        annot_uuid_list=annot_td.annot_uuid_list,
         viewpoint_list=annot_td.annot_viewpoint_list,
-        name_rowid_list=annot_td.name_rowid_list,
-        species_rowid_list=annot_td.species_rowid_list,
+        annot_visual_uuid_list=annot_td.annot_visual_uuid_list,
+        annot_semantic_uuid_list=annot_td.annot_semantic_uuid_list,
+        nid_list=name_rowid_list,
+        species_rowid_list=species_rowid_list,
         quiet_delete_thumbs=True  # Turns off thumbnail deletion print statements
     )
     if utool.VERBOSE:
@@ -838,7 +922,7 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
 #############################
 
 
-def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflict_resolution='merge'):
+def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=False, bulk_conflict_resolution='ignore'):
     """
     Conflict resolutions are only between contributors, configs, encounters and images.
     Annotations, lblannots, lblimages, their respective relationships, and image-encounter
@@ -871,7 +955,12 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
         >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset
+        >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> ibs_src = ibeis.opendb(dbdir='testdb1')
+        >>> bulk_conflict_resolution = 'ignore'
+        >>> #gid_list = None
+        >>> back = None
+        >>> user_prompt = False
         >>> #ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
         >>> print(ibs_src.get_infostr())
         >>> #print(ibs_src2.get_infostr())
@@ -880,12 +969,13 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
         >>> assert ibs_dst.get_num_images() == 0
         >>> assert ibs_dst.get_num_annotations() == 0
         >>> #ibs_dst = ibs
-        >>> export_subset.merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
+        >>> export_subset.merge_databases(ibs_src, ibs_dst,
+        ...                               bulk_conflict_resolution=bulk_conflict_resolution)
         >>> #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
         >>> print(ibs_dst.get_infostr())
     """
     # Export source database
-    td = export_transfer_data(ibs_src, user_prompt=user_prompt)
+    td = export_transfer_data(ibs_src, gid_list=gid_list, user_prompt=user_prompt)
     if utool.VERBOSE:
         print("\n\n[merge_databases] -------------------\n\n")
         print("[merge_databases] %s" % (td,))
@@ -980,5 +1070,4 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()
-    import utool as ut
     ut.doctest_funcs()

@@ -48,6 +48,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 detect_confidence_list=None, notes_list=None,
                 vert_list=None, annot_uuid_list=None, viewpoint_list=None,
+                annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
+                species_rowid_list=None,
                 quiet_delete_thumbs=False, prevent_visual_duplicates=False):
     r"""
     Adds an annotation to images
@@ -176,11 +178,15 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
             nid_list = [ibs.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
         name_list = ibs.get_name_texts(nid_list)
 
-    if species_list is not None:
-        species_rowid_list = ibs.add_species(species_list)
-    else:
-        species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+    if species_rowid_list is not None:
+        assert species_list is None, 'cannot mix species_rowid and species'
         species_list = ibs.get_species_texts(species_rowid_list)
+    else:
+        if species_list is not None:
+            species_rowid_list = ibs.add_species(species_list)
+        else:
+            species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+            species_list = ibs.get_species_texts(species_rowid_list)
     if detect_confidence_list is None:
         detect_confidence_list = [0.0 for _ in range(len(gid_list))]
     if notes_list is None:

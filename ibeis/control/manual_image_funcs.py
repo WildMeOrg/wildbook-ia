@@ -411,7 +411,7 @@ def get_image_uuids(ibs, gid_list):
 def get_image_contributor_rowid(ibs, gid_list):
     """
     Returns:
-        list_ (list): a list of image' contributor rowids by gid """
+        list_ (list): a list of image contributor rowids by gid """
     contrib_rowid_list = ibs.db.get(const.IMAGE_TABLE, ('contributor_rowid',), gid_list)
     return contrib_rowid_list
 
@@ -584,10 +584,33 @@ def get_image_notes(ibs, gid_list):
 @getter_1to1
 def get_image_nids(ibs, gid_list):
     """
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
     Returns:
-        list_ (list): the name ids associated with an image id """
+        list: nids_list - the name ids associated with an image id
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> nids_list = ibs.get_image_nids(gid_list)
+        >>> # verify results
+        >>> result = str(nids_list)
+        >>> print(result)
+
+    """
     aids_list = ibs.get_image_aids(gid_list)
-    nids_list = ibs.get_annot_name_rowids(aids_list)
+    nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
     return nids_list
 
 

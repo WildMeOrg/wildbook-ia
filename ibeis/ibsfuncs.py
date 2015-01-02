@@ -459,7 +459,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
 @__injectable
 def vacuum_and_clean_databases(ibs):
     # Add to duct tape?
-    ibs.vdd()
+    #ibs.vdd()
     print(ibs.db.get_table_names())
     # Removes all lblannots and lblannot relations as we are not using them
     if False:
@@ -2227,16 +2227,27 @@ def export_testset_for_chuck(ibs, min_num_annots):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 100
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 500
+
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 100
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 500
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> dbdir = ut.get_argval(('--dbdir',), type_=str, default='testdb1')
+        >>> min_num_annots = ut.get_argval(('--min-num-annots',), type_=int, default=500)
+        >>> #ibs = ibeis.opendb('testdb1')
+        >>> #ibs = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> #ibs = ibeis.opendb(dbdir='/raid/work2/Turk/GZ_Master')
+        >>> print(ibs.get_dbinfo_str())
+        >>> #ibs = ibeis.opendb('testdb1')
         >>> # execute function
-        >>> result = export_testset_for_chuck(ibs)
+        >>> result = export_testset_for_chuck(ibs, min_num_annots)
         >>> # verify results
         >>> print(result)
 
@@ -2244,8 +2255,12 @@ def export_testset_for_chuck(ibs, min_num_annots):
     """
     import numpy as np
 
-    min_num_annots_per_name = 5
-    max_annot_per_image = 3
+    min_num_annots_per_name = 3
+    max_annot_per_image = 5
+    #3
+
+    #min_num_annots_per_name = 1
+    #max_annot_per_image = 3000
 
     nid_list = ibs.get_valid_nids()
     aids_list = ibs.get_name_aids(nid_list)
@@ -2271,11 +2286,15 @@ def export_testset_for_chuck(ibs, min_num_annots):
     sorted_nids = ut.sortedby(valid_nids, std_list, reverse=True)
 
     # Find which names to include
-    pos_list = np.where(np.cumsum(ibs.get_name_num_annotations(sorted_nids)) >= min_num_annots)[0]
+    num_annot_cumsum = np.cumsum(ibs.get_name_num_annotations(sorted_nids))
+    pos_list = np.where(num_annot_cumsum >= min_num_annots)[0]
     assert len(pos_list) > 0
 
-    nid_list_chosen = sorted_nids[:pos_list[0]]
-    aid_list_chosen = ut.flatten(ibs.get_name_aids(nid_list_chosen))
+    nid_list_chosen = sorted_nids[:pos_list[0] + 1]
+    print('using names:')
+    print(ibs.get_name_texts(nid_list_chosen))
+    aids_list_chosen = ibs.get_name_aids(nid_list_chosen)
+    aid_list_chosen = ut.flatten(aids_list_chosen)
     gid_list_chosen = ibs.get_annot_gids(aid_list_chosen)
     #ut.debug_duplicate_items(gid_list_chosen)
 
@@ -2292,9 +2311,13 @@ def export_testset_for_chuck(ibs, min_num_annots):
         new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
         return new_dbpath
 
+    #ut.embed()
+
     dbpath = new_nonconflicting_dbpath(ibs)
     ibs_dst = ibeis.opendb(dbdir=dbpath, allow_newdir=True)
-    export_subset.merge_databases(ibs, ibs_dst, gid_list_chosen)
+    ibs_src = ibs
+    gid_list = gid_list_chosen
+    export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
 
     DEBUG_NAME = False
     if DEBUG_NAME:
