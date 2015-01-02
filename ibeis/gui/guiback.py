@@ -762,7 +762,7 @@ class MainWindowBackend(QtCore.QObject):
             >>> # verify results
             >>> print(result)
         """
-        from ibeis.model.hots import interactive_automated_matcher as iautomatch
+        from ibeis.model.hots import qt_inc_automatch as iautomatch
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
         eid = back._eidfromkw(kwargs)
         print('------')

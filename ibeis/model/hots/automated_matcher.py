@@ -22,7 +22,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
     ibs2 is ibs
 
     CommandLine:
-        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
+        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
 
         sh Tinc.sh --test-test_inc_query:0
         sh Tinc.sh --test-test_inc_query:1

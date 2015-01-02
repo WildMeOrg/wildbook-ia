@@ -54,32 +54,34 @@ def test_inc_query(ibs_gt, num_initial=0):
 
 
     CommandLine:
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0  --interact-after 444440 --noqcache
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:1  --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0  --interact-after 444440 --noqcache
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1  --interact-after 444440 --noqcache
 
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:1
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:2
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:3
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3
 
-        profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:3
-        profiler.sh ibeis/model/hots/interactive_automated_matcher.py --test-test_inc_query:0
+        profiler.sh ibeis/model/hots/qt_inc_automatch.py --test-test_inc_query:3
+        profiler.sh ibeis/model/hots/qt_inc_automatch.py --test-test_inc_query:0
 
         # Writes out test script
-        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
+        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
 
         sh Tinc.sh --test-test_inc_query:0
         sh Tinc.sh --test-test_inc_query:1
         sh Tinc.sh --test-test_inc_query:2
         sh Tinc.sh --test-test_inc_query:3
 
+        profiler.sh -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
+
         sh Tinc.sh --test-test_inc_query:0 --ninit 10
         sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful
 
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0 --ia 10
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 10
 
         # Runs into a merge case
-        python -m ibeis.model.hots.interactive_automated_matcher --test-test_inc_query:0 --ia 30
+        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 30
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -135,12 +137,12 @@ def test_inc_query(ibs_gt, num_initial=0):
 def incremental_test_qt(ibs, num_initial=0):
     """
     CommandLine:
-        python -m ibeis.model.hots.interactive_automated_matcher --test-incremental_test_qt
+        python -m ibeis.model.hots.qt_inc_automatch --test-incremental_test_qt
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
-        >>> from ibeis.model.hots.interactive_automated_matcher import *  # NOQA
+        >>> from ibeis.model.hots.qt_inc_automatch import *  # NOQA
         >>> main_locals = ibeis.main(db='testdb1')
         >>> ibs = main_locals['ibs']
         >>> back = main_locals['back']
@@ -338,9 +340,9 @@ class IncQueryHarness(INC_LOOP_BASE):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.model.hots.interactive_automated_matcher
-        python -m ibeis.model.hots.interactive_automated_matcher --allexamples
-        python -m ibeis.model.hots.interactive_automated_matcher --allexamples --noface --nosrc
+        python -m ibeis.model.hots.qt_inc_automatch
+        python -m ibeis.model.hots.qt_inc_automatch --allexamples
+        python -m ibeis.model.hots.qt_inc_automatch --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
