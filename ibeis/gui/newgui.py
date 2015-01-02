@@ -662,6 +662,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 gid = id_list[0]
                 image_context_options += [
                     ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('run detection (can cause duplicates)', lambda: ibswgt.back.run_detection_on_image(gid)),
                     ('delete image', lambda: ibswgt.back.delete_image(gid)),
                 ]
             if len(image_context_options) > 0:

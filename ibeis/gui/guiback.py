@@ -189,6 +189,12 @@ class MainWindowBackend(QtCore.QObject):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
 
+    def run_detection_on_image(back, gid, refresh=True, **kwargs):
+        species = back.ibs.cfg.detect_cfg.species
+        back.ibs.detect_random_forest([gid], species)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE])
+
     def show_probability_chip(back, cid, **kwargs):
         viz.show_probability_chip(back.ibs, cid, **kwargs)
         viz.draw()
