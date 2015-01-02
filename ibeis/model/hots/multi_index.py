@@ -8,6 +8,9 @@ from ibeis.model.hots import neighbor_index
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
 
+USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reindex'))
+
+
 @profile
 def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
                                      verbose=True):
@@ -125,14 +128,14 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     elif index_method == 'multi':
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         # Use greedy set cover to get a list of nnindxers that are already built
-        uncovered_aids, covered_aids_list = neighbor_index.group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh)
-        num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
+        tup = neighbor_index.group_daids_by_cached_nnindexer(
+            qreq_, daid_list, min_reindex_thresh)
+        uncovered_aids, covered_aids_list = tup
         # If the number of bins gets too big do a reindex
         # in the background
+        num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
         if num_subindexers > qreq_.qparams.max_subindexers:
             print('need to reindex something')
-            #  TODO: Dont start background request if one already exists
-            USE_FORGROUND_REINDEX = False
             if USE_FORGROUND_REINDEX:
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
                 #ut.embed()

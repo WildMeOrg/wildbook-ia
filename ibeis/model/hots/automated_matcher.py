@@ -13,38 +13,62 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 # ---- ENTRY POINT ----
 
 
-def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo=None):
+def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
+                                      num_initial=0, incinfo=None):
     """
     Adds and queries new annotations one at a time with oracle guidance
 
+    ibs1 is ibs_gt
+    ibs2 is ibs
 
     CommandLine:
         python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.interactive_automated_matcher')"
-        sh Tinc.sh --test-test_interactive_incremental_queries:0
-        sh Tinc.sh --test-test_interactive_incremental_queries:1
-        sh Tinc.sh --test-test_interactive_incremental_queries:2
+
+        sh Tinc.sh --test-test_inc_query:0
+        sh Tinc.sh --test-test_inc_query:1
+        sh Tinc.sh --test-test_inc_query:2
+        sh Tinc.sh --test-test_inc_query:3 --num-initial 5000
 
     """
     print('begin test interactive iter')
-    #interact_after = 100
-    #interact_after = None
-    #interact_after = ut.get_argval(('--interactive-after', '--interact-after',),
-    #                               type_=int, default=0)
-    # Execute each query as a test
-    chunksize = 1
-    #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
     # Query aids in a random order
     SHUFFLE_AIDS = True
     if SHUFFLE_AIDS:
         aids_list1_ = ut.deterministic_shuffle(aid_list1[:])
     else:
         aids_list1_ = aid_list1
-    aids_chunk1_iter = ut.progress_chunks(aids_list1_, chunksize, lbl='TEST QUERY')
+
+    # Transfer some amount of initial data
+    print('Transfer %d initial test annotations' % (num_initial,))
+    if num_initial > 0:
+        aid_sublist1 = aids_list1_[0:num_initial]
+        aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)
+        # Add names from old databse. add all initial as exemplars
+        name_list = ibs_gt.get_annot_names(aid_sublist1)
+        ibs.set_annot_names(aid_sublist2, name_list)
+        ibs.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
+        aids_list1_ = aids_list1_[num_initial:]
+
+    # Print info
+    print('+-------')
+    print('Printing ibs_gt and ibs info before start')
+    print('--------')
+    print('\nibs info:')
+    print(ibs.get_dbinfo_str())
+    print('--------')
+    print('\nibs_gt info')
+    print(ibs_gt.get_dbinfo_str())
+    print('L________')
+
+    # Setup metadata tuple
     metatup = (ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup
     incinfo['interactive'] = False
 
+    # Begin incremental iteration
+    chunksize = 1
+    aids_chunk1_iter = ut.progress_chunks(aids_list1_, chunksize, lbl='TEST QUERY')
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         with ut.Timer('teststep'):
             #sys.stdout.write('\n')
@@ -55,6 +79,8 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2, inci
             qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
             for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
                 (ibs, qres, qreq_, incinfo) = item
+                # Yeild results for qt interface to call down into user or
+                # oracle code and make a decision
                 yield item
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
@@ -132,8 +158,6 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     Either makes automatic decision or asks user for feedback.
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-test_generate_incremental_queries:0
-        python -m ibeis.model.hots.automated_matcher --test-test_generate_incremental_queries:1
         python -m ibeis.model.hots.automated_matcher --test-run_until_name_decision_signal
 
     Example:

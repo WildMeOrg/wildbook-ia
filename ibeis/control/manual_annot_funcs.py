@@ -578,6 +578,52 @@ def get_annot_gids(ibs, aid_list):
 
 @register_ibs_method
 @getter_1toM
+def get_annot_contact_aids(ibs, aid_list):
+    """
+    Returns the other aids that appear in the same image that this
+    annotation is from.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
+        >>> # verify results
+        >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
+        >>> gid_list = ibs.get_annot_gids(aid_list)
+        >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
+        ...     assert ut.list_allsame(gids), 'annots should be from same image'
+        ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
+        ...     assert aid not in aids, 'should not include self'
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    other_aids_list = ibs.get_image_aids(gid_list)
+    # remove self
+    contact_aids = [list(set(aids) - {aid})
+                    for aids, aid in zip(other_aids_list, aid_list)]
+    return contact_aids
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_num_contact_aids(ibs, aid_list):
+    nOther_aids_list = list(map(len, ibs.get_annot_contact_aids(aid_list)))
+    return nOther_aids_list
+
+
+@register_ibs_method
+@getter_1toM
 def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
                           filter_unknowns=True, daid_list=None):
     """
@@ -775,6 +821,21 @@ def get_annot_image_names(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     return gname_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_image_unixtimes(ibs, aid_list):
+    """
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: unixtime_list
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    return unixtime_list
 
 
 @register_ibs_method

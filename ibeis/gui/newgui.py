@@ -3,9 +3,13 @@
 This should probably be renamed guifront.py This defines all of the visual
 components to the GUI It is invoked from guiback, which handles the nonvisual
 logic.
+
+
+BUGS:
+    * On opening new database the tables are refreshed for the closing database.
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, map
+from six.moves import zip, map, filter
 from os.path import isdir
 from ibeis import constants as const
 import functools  # NOQA
@@ -599,6 +603,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt.get_table_tab_index(tblname)
         ibswgt._tab_table_wgt.setCurrentIndex(index)
 
+    def select_encounter_tab(ibswgt, eid):
+        if True:
+            prefix = ut.get_caller_name(range(1, 8))
+        else:
+            prefix = ''
+        print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
+        enctext = ibswgt.ibs.get_encounter_enctext(eid)
+        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
+        #ibswgt.back.select_eid(eid)
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """
@@ -618,6 +632,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         """
+        Right click anywhere in the GUI
         Context menus on right click of a table
         """
         #printDBG('[newgui] contextmenu')
@@ -705,6 +720,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
+        """
+        Clicking anywhere in the GUI
+        """
         #printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
@@ -733,18 +751,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     aid = id_
                     ibswgt.back.select_aid(aid, eid, show=False)
 
-    def select_encounter_tab(ibswgt, eid):
-        if True:
-            prefix = ut.get_caller_name(range(1, 8))
-        else:
-            prefix = ''
-        print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
-        enctext = ibswgt.ibs.get_encounter_enctext(eid)
-        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
-        #ibswgt.back.select_eid(eid)
-
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
+        """
+        Double clicking anywhere in the GUI
+        """
         #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
@@ -786,6 +797,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.back.select_aid(aid, eid, show=True)
 
     def _interactannot2_callbacks(ibswgt, model, qtindex):
+        """
+        callbacks for the edit image annotation (from image table) interaction
+        """
         #if not qtindex.isValid():
         #    raise AssertionError('Bug: qtindex got invalidated')
         #    # BUG: somewhere qtindex gets invalidated
@@ -821,17 +835,24 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):
-        """ image drag and drop event """
+        """
+        image drag and drop event
+        """
         print('[drop_event] url_list=%r' % (url_list,))
-        gpath_list = filter(ut.matches_image, url_list)
-        dir_list   = filter(isdir, url_list)
+        gpath_list = list(filter(ut.matches_image, url_list))
+        dir_list   = list(filter(isdir, url_list))
         if len(dir_list) > 0:
-            ans = guitool.user_option(ibswgt, title='Non-Images dropped',
-                                      msg='Recursively import from directories?')
+            options = ['No', 'Yes']
+            title   = 'Non-Images dropped'
+            msg     = 'Recursively import from directories?'
+            ans = guitool.user_option(ibswgt, msg=msg, title=title,
+                                      options=options)
             if ans == 'Yes':
-                gpath_list.extend(list(map(ut.unixpath,
-                                           ut.flatten([ut.list_images(dir_, fullpath=True, recursive=True)
-                                                          for dir_ in dir_list]))))
+                unflat_gpaths = [ut.list_images(dir_, fullpath=True, recursive=True)
+                                 for dir_ in dir_list]
+                flat_gpaths = ut.flatten(unflat_gpaths)
+                flat_unix_gpaths = list(map(ut.unixpath, flat_gpaths))
+                gpath_list.extend(flat_unix_gpaths)
             else:
                 return
         print('[drop_event] gpath_list=%r' % (gpath_list,))

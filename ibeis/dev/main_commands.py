@@ -58,8 +58,6 @@ def preload_commands(dbdir, **kwargs):
         ibsfuncs.delete_ibeis_database(dbdir)
     if params.args.convert:
         preload_convert_hsdb(dbdir)
-    if params.args.merge_species is not None:
-        ibsfuncs.merge_species_databases(params.args.merge_species)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
         sys.exit(1)

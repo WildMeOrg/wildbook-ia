@@ -118,7 +118,7 @@ def test_inc_query(ibs_gt, num_initial=0):
     num_initial = ut.get_argval(('--num-initial', '--ninit'), int, 0)
     interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
     # Add information to an empty database from a groundtruth database
-    ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt, num_initial=num_initial)
+    ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt)
     if interactive_after is not None:
         back = main_module._init_gui()
         back.connect_ibeis_control(ibs)
@@ -126,6 +126,7 @@ def test_inc_query(ibs_gt, num_initial=0):
         back = None
     self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                        interactive_after=interactive_after,
+                                       num_initial=num_initial,
                                        back=back)
     if interactive_after is not None:
         guitool.qtapp_loop()
@@ -215,7 +216,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo['finish_callback'] = functools.partial(back.user_info, msg='Finished Query')
 
     def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2,
-                               interactive_after=None, back=None):
+                               num_initial=0, interactive_after=None, back=None):
         """
         Adds and queries new annotations one at a time with oracle guidance
         """
@@ -229,7 +230,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         next_query_callback = self.incinfo['next_query_callback']  # NOQA
         del self.incinfo['next_query_callback']
         self.inc_query_gen = automatch.test_generate_incremental_queries(
-            ibs_gt, ibs, aid_list1, aid1_to_aid2, incinfo)
+            ibs_gt, ibs, aid_list1, aid1_to_aid2, num_initial, incinfo)
         # When in interactive mode it seems like the stack never gets out of hand
         # but if the oracle is allowed to make decisions and emit signals like
         # the user then we get into a maximum recursion limit.
@@ -247,7 +248,7 @@ class IncQueryHarness(INC_LOOP_BASE):
                     break
                 automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
-        # INTERACTIVE PART
+        # BEGIN INTERACTIVE PART
         # (this does nothing if inc_query_gen is exhausted)
         # need to fix the incinfo dictionary
         incinfo['next_query_callback'] = next_query_callback

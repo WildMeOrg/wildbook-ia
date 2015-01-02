@@ -470,12 +470,13 @@ def print_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> dbname = 'PZ_Master0'  # 'testdb1'
+        >>> ibs = ibeis.opendb(dbname)
         >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
         >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(qaids, daids)
         >>> # execute function
-        >>> nnindexer = print_uuid_cache(qreq_)
+        >>> print_uuid_cache(qreq_)
         >>> # verify results
         >>> result = str(nnindexer)
         >>> print(result)

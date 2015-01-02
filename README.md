@@ -378,9 +378,6 @@ python ibeis/ingest/ingest_database.py --db JAG_Kieryn
 # Ingest an hsdb
 python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
 
-# Merge all jaguar databases into single big database
-python main.py --merge-species JAG_
-
 
 #---------
 # Run Tests

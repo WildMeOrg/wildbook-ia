@@ -261,7 +261,7 @@ def interactive_commandline_prompt(msg, decisiontype):
         return True
 
 
-def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
+def setup_incremental_test(ibs_gt, clear_names=True):
     r"""
     CommandLine:
         python -m ibeis.model.hots.automated_helpers --test-setup_incremental_test:0
@@ -274,16 +274,14 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
         >>> import ibeis # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
-        >>> num_initial = 0
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt)
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
-        >>> num_initial = 100
-        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt, num_initial)
+        >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt)
     """
     # Take a known dataase
     # Create an empty database to test in
@@ -303,9 +301,9 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
         start.
 
         Args:
-            ibs_gt      (IBEISController):
+            ibs_gt    (IBEISController):
             aid_list1 (list):
-            reset     (bool):
+            reset     (bool): if True the test database is completely rebuilt
 
         Returns:
             IBEISController: ibs2
@@ -336,7 +334,7 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
 
     ibs2 = make_incremental_test_database(ibs_gt, aid_list1, reset)
 
-    # Add the annotations with names
+    # Preadd all annotatinos to the test database
     aids_chunk1 = aid_list1
     aid_list2 = add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2)
 
@@ -344,23 +342,13 @@ def setup_incremental_test(ibs_gt, num_initial=0, clear_names=True):
     # Assert annotation visual uuids are in agreement
     annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
 
-    # Remove name exemplars
+    # Remove names and exemplar information from test database
     if clear_names:
         ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2)
 
-    # Preprocess features and such
+    # Preprocess features before testing
     ibs2.ensure_annotation_data(aid_list2, featweights=True)
 
-    print('Transfer %d initial test annotations' % (num_initial,))
-    if num_initial > 0:
-        # Transfer some initial data
-        aid_sublist1 = aid_list1[0:num_initial]
-        aid_sublist2 = aid_list2[0:num_initial]
-        name_list = ibs_gt.get_annot_names(aid_sublist1)
-        ibs2.set_annot_names(aid_sublist2, name_list)
-        ibs2.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
-        aid_list1 = aid_list1[num_initial:]
-    print(ibs2.get_dbinfo_str())
     return ibs2, aid_list1, aid1_to_aid2
 
 

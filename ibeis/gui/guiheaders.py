@@ -61,7 +61,7 @@ TABLE_COLNAMES = {
         #'reviewed',  # detection reviewed flag is not fullyused
         'datetime',
         'gps',
-        'gdconf',
+        #'gdconf',
         'imgnotes',
     ],
 

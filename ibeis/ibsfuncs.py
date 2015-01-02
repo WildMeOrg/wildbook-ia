@@ -324,11 +324,20 @@ def assert_valid_aids(ibs, aid_list, verbose=False):
         print('passed assert_valid_aids')
 
 
-def assert_images_exist(ibs, gid_list):
+@__injectable
+def assert_images_exist(ibs, gid_list=None, verbose=True):
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    print('checking images exist')
     gpath_list = ibs.get_image_paths(gid_list)
     exists_list = list(map(exists, gpath_list))
     bad_gids = ut.filterfalse_items(gid_list, exists_list)
-    assert len(bad_gids) == 0, 'some images dont exist'
+    num_bad_gids = len(bad_gids)
+    if verbose:
+        bad_gpaths = ut.filterfalse_items(gpath_list, exists_list)
+        print('Bad Gpaths:')
+        print(ut.truncate_str(ut.list_str(bad_gpaths), maxlen=500))
+    assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
     print('[check] checked %d images exist' % len(gid_list))
 
 
@@ -353,6 +362,7 @@ def check_image_uuid_consistency(ibs, gid_list):
 
     VERY SLOW
     """
+    print('checking image uuid consistency')
     import ibeis.model.preproc.preproc_image as preproc_image
     gpath_list = ibs.get_image_paths(gid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
@@ -630,6 +640,11 @@ def delete_flann_cachedir(ibs):
     print('[ibs] delete_flann_cachedir')
     flann_cachedir = ibs.get_flann_cachedir()
     ut.remove_files_in_dir(flann_cachedir)
+
+
+def print_flann_cachedir(ibs):
+    flann_cachedir = ibs.get_flann_cachedir()
+    print(ut.list_str(ut.ls(flann_cachedir)))
 
 
 @__injectable
@@ -1177,85 +1192,6 @@ def get_species_dbs(species_prefix):
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return ut.filter_items(ibs_dblist, isvalid_list)
-
-
-def merge_species_databases(species_prefix):
-    """ Build a merged database """
-    from ibeis.control import IBEISControl
-    from ibeis.dev import sysres
-    print('[ibsfuncs] Merging species with prefix: %r' % species_prefix)
-    ut.util_parallel.ensure_pool(warn=False)
-    with ut.Indenter('    '):
-        # Build / get target database
-        all_db = '__ALL_' + species_prefix + '_'
-        all_dbdir = sysres.db_to_dbdir(all_db, allow_newdir=True)
-        ibs_target = IBEISControl.IBEISController(all_dbdir)
-        # Build list of databases to merge
-        species_dbdir_list = get_species_dbs(species_prefix)
-        ibs_source_list = []
-        for dbdir in species_dbdir_list:
-            ibs_source = IBEISControl.IBEISController(dbdir)
-            ibs_source_list.append(ibs_source)
-    print('[ibsfuncs] Destination database: %r' % all_db)
-    print('[ibsfuncs] Source databases:' +
-          ut.indentjoin(species_dbdir_list, '\n *   '))
-    #Merge the databases into ibs_target
-    merge_databases(ibs_target, ibs_source_list)
-    return ibs_target
-
-
-def merge_databases(ibs_target, ibs_source_list):
-    """ Merges a list of databases into a target
-    This is OLD. use export_subset instead
-    """
-    raise AssertionError('Use transfer_subset instead')
-
-    def merge_images(ibs_target, ibs_source):
-        """ merge image helper """
-        gid_list1   = ibs_source.get_valid_gids()
-        uuid_list1  = ibs_source.get_image_uuids(gid_list1)
-        gpath_list1 = ibs_source.get_image_paths(gid_list1)
-        reviewed_list1 = ibs_source.get_image_reviewed(gid_list1)
-        # Add images to target
-        ibs_target.add_images(gpath_list1)
-        # Merge properties
-        gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
-        ibs_target.set_image_reviewed(gid_list2, reviewed_list1)
-
-    def merge_annotations(ibs_target, ibs_source):
-        """ merge annotations helper """
-        aid_list1   = ibs_source.get_valid_aids()
-        uuid_list1  = ibs_source.get_annot_uuids(aid_list1)
-        # Get the images in target_db
-        gid_list1   = ibs_source.get_annot_gids(aid_list1)
-        bbox_list1  = ibs_source.get_annot_bboxes(aid_list1)
-        theta_list1 = ibs_source.get_annot_thetas(aid_list1)
-        name_list1  = ibs_source.get_annot_names(aid_list1)
-        notes_list1 = ibs_source.get_annot_notes(aid_list1)
-
-        image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
-        gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
-        image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
-        # Assert that the image uuids have not changed
-        assert image_uuid_list1 == image_uuid_list2, 'error merging annotation image uuids'
-        aid_list2 = ibs_target.add_annots(gid_list2,
-                                          bbox_list1,
-                                          theta_list=theta_list1,
-                                          name_list=name_list1,
-                                          notes_list=notes_list1)
-        uuid_list2 = ibs_target.get_annot_uuids(aid_list2)
-        assert uuid_list2 == uuid_list1, 'error merging annotation uuids'
-
-    # Do the merging
-    for ibs_source in ibs_source_list:
-        try:
-            print('Merging ' + ibs_source.get_dbname() +
-                  ' into ' + ibs_target.get_dbname())
-            merge_images(ibs_target, ibs_source)
-            merge_annotations(ibs_target, ibs_source)
-        except Exception as ex:
-            ut.printex(ex, 'error merging ' + ibs_source.get_dbname() +
-                          ' into ' + ibs_target.get_dbname())
 
 
 #def delete_non_exemplars(ibs):
@@ -2280,6 +2216,92 @@ def merge_names(ibs, merge_name, other_names):
     print('[ibsfuncs] ... %r annotations are being merged into merge_name=%r' %
             (len(other_aids), merge_name))
     ibs.set_annot_names(other_aids, [merge_name] * len(other_aids))
+
+
+def export_testset_for_chuck(ibs, min_num_annots):
+    """
+    Exports a set with some number of annotations that has good demo examples.
+    multiple annotations per name and large time variation within names.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = export_testset_for_chuck(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    min_num_annots = 500
+    """
+    import numpy as np
+
+    min_num_annots_per_name = 5
+    max_annot_per_image = 3
+
+    nid_list = ibs.get_valid_nids()
+    aids_list = ibs.get_name_aids(nid_list)
+    nAids_list = list(map(len, aids_list))
+    nOther_aids_list = ibs.unflat_map(ibs.get_annot_num_contact_aids, aids_list)
+
+    invalid_by_num_annots = [num < min_num_annots_per_name for num in nAids_list]
+    invalid_by_num_others = [any([num > max_annot_per_image for num in nums])
+                             for nums in nOther_aids_list]
+    invalid_list = ut.or_lists(invalid_by_num_annots, invalid_by_num_others)
+
+    valid_nids = ut.filterfalse_items(nid_list, invalid_list)
+
+    def get_name_time_variation(ibs, nid_list):
+        aids_list      = ibs.get_name_aids(nid_list)
+        unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
+        unixtimes_arrs = list(map(np.array, unixtimes_list))
+        fixtimes_list  = [arr[arr > 0] for arr in unixtimes_arrs]
+        std_list       = [np.std(arr) if len(arr) > 1 else 0 for arr in fixtimes_list]
+        return std_list
+
+    std_list = get_name_time_variation(ibs, valid_nids)
+    sorted_nids = ut.sortedby(valid_nids, std_list, reverse=True)
+
+    # Find which names to include
+    pos_list = np.where(np.cumsum(ibs.get_name_num_annotations(sorted_nids)) >= min_num_annots)[0]
+    assert len(pos_list) > 0
+
+    nid_list_chosen = sorted_nids[:pos_list[0]]
+    aid_list_chosen = ut.flatten(ibs.get_name_aids(nid_list_chosen))
+    gid_list_chosen = ibs.get_annot_gids(aid_list_chosen)
+    #ut.debug_duplicate_items(gid_list_chosen)
+
+    # make sure not too many other annots are along for the ride
+    other_aids = ibs.get_annot_contact_aids(aid_list_chosen)
+    unexpected_aids = list(set(ut.flatten(other_aids)).difference(set(aid_list_chosen)))
+    print('got %d unexpected_aids' % (len(unexpected_aids),))
+
+    from ibeis.dbio import export_subset
+
+    def new_nonconflicting_dbpath(ibs):
+        dpath, dbname = split(ibs.get_dbdir())
+        base_fmtstr = dbname + '_demo' + str(min_num_annots) + '_export%d'
+        new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+        return new_dbpath
+
+    dbpath = new_nonconflicting_dbpath(ibs)
+    ibs_dst = ibeis.opendb(dbdir=dbpath, allow_newdir=True)
+    export_subset.merge_databases(ibs, ibs_dst, gid_list_chosen)
+
+    DEBUG_NAME = False
+    if DEBUG_NAME:
+        ibs.get_name_num_annotations(sorted_nids[0:10])
+        import plottool as pt
+        ibeis.viz.viz_name.show_name(ibs, sorted_nids[0])
+        pt.update()
 
 
 if __name__ == '__main__':

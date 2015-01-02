@@ -129,8 +129,7 @@ class NNConfig(ConfigBase):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
         #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
-        #nn_cfg.min_reindex_thresh = 50  # 200  # number of annots before a new multi-indexer is built
-        nn_cfg.min_reindex_thresh = 10  # 200  # number of annots before a new multi-indexer is built
+        nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
         nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.index_method = 'multi'
@@ -1212,6 +1211,17 @@ def _default_named_config(cfg, cfgname):
         #'algorithm': 'kdtree',
         #[dev.tune_flann]    'checks': 6656,
         #[dev.tune_flann]    'trees': 4,
+
+        # Kmeans seems a bit more accurate
+        #'algorithm': 'kmeans',
+        #'branching': 16,
+        #'cb_index': 0.6000000238418579,
+        #'centers_init': 'random',
+        #'checks': 18432,
+        #'iterations': 1,
+        #'leaf_max_size': 4,
+        #'speedup': 65.54280090332031,
+        #'target_precision': 0.9800000190734863,
 
     elif cfgname == Species.ZEB_GREVY:
         cfg.detect_cfg.species = cfgname
