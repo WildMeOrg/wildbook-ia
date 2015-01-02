@@ -176,6 +176,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'simplejson',
         'pyinstaller',
         'statsmodels',
+        'lockfile',  # Need to do upgrade on this
     ]
 
     OPTIONAL_PYPKG_LIST = [

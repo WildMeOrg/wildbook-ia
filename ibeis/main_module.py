@@ -290,6 +290,8 @@ def _preload(mpl=True, par=True, logging=True):
     _parse_args()
     # mpl backends
     if logging and not params.args.nologging:
+        # Log in the configured ibeis log dir (which is maintained by utool)
+        # fix this to be easier to figure out where the logs actually are
         utool.start_logging(appname='ibeis')
     if mpl:
         _init_matplotlib()

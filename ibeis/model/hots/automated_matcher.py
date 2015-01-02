@@ -7,7 +7,7 @@ from ibeis.model.hots import special_query
 from ibeis.model.hots import system_suggestor
 from ibeis.model.hots import user_dialogs
 ut.noinject(__name__, '[inc]')
-#print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
 # ---- ENTRY POINT ----

@@ -3,6 +3,7 @@ import six
 import numpy as np
 import utool as ut
 import pyflann
+import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
 from six.moves import range
@@ -304,11 +305,12 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     ibs = qreq_.ibs
     # read which annotations have prebuilt caches
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        candidate_uuids = {
-            key: val for key, val in six.iteritems(uuid_map)
-            if len(val) >= min_reindex_thresh
-        }
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            candidate_uuids = {
+                key: val for key, val in six.iteritems(uuid_map)
+                if len(val) >= min_reindex_thresh
+            }
         #candidate_uuids = {
         #    key: set(val) for key, val in six.iteritems(uuid_map)
         #    if len(val) >= min_reindex_thresh
@@ -342,8 +344,9 @@ def write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     just add points to them as to avoid a rebuild.
     """
     print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        uuid_map[daids_hashid] = visual_uuid_list
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            uuid_map[daids_hashid] = visual_uuid_list
 
 
 def get_data_cfgstr(ibs, daid_list):
@@ -450,6 +453,7 @@ def clear_uuid_cache(qreq_):
     print('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     ut.delete(uuid_map_fpath)
+    ut.delete(uuid_map_fpath + '.lock')
     #with ut.shelf_open(uuid_map_fpath) as uuid_map:
     #    uuid_map.clear()
     print('[nnindex] finished uuid cache clear')
@@ -478,8 +482,9 @@ def print_uuid_cache(qreq_):
     """
     print('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        print(uuid_map)
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            print(uuid_map)
 
 
 @profile
@@ -1002,8 +1007,9 @@ def test_incremental_add(ibs):
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(aids3)
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup
@@ -1019,8 +1025,9 @@ def test_incremental_add(ibs):
     items = ibs.get_annot_visual_uuids(sample_aids)
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
-    with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup

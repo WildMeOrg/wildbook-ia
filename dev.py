@@ -75,10 +75,10 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
     print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
     tuned_params = vt.tune_flann(vecs,
-                                 target_precision=.90,
+                                 target_precision=.98,
                                  build_weight=0.05,
                                  memory_weight=0.00,
-                                 sample_fraction=1.0)
+                                 sample_fraction=0.1)
     tuned_params
 
     #tuned_params2 = vt.tune_flann(vecs,

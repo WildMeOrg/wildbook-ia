@@ -984,10 +984,11 @@ class MainWindowBackend(QtCore.QObject):
         ibsfuncs.export_to_xml(ibs)
 
     @blocking_slot()
-    def clean_database(back):
-        """ Help -> Clean Database"""
-        print('[back] Cleaning database')
-        back.ibs.clean_database()
+    def fix_and_clean_database(back):
+        """ Help -> Fix/Clean Database """
+        print('[back] Fix/Clean Database')
+        back.ibs.fix_and_clean_database()
+        back.front.update_tables()
 
     @blocking_slot()
     def run_consistency_checks(back):

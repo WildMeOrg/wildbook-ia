@@ -1209,6 +1209,10 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8
         cfg.query_cfg.nn_cfg.checks = 704
+        #'algorithm': 'kdtree',
+        #[dev.tune_flann]    'checks': 6656,
+        #[dev.tune_flann]    'trees': 4,
+
     elif cfgname == Species.ZEB_GREVY:
         cfg.detect_cfg.species = cfgname
         #speedup': 224.7425994873047,

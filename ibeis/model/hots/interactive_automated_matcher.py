@@ -207,11 +207,12 @@ class IncQueryHarness(INC_LOOP_BASE):
         }
 
     def setup_back_callbacks(self, back, incinfo):
-            import functools
-            from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
-            back.front.set_table_tab(NAMES_TREE)
-            update_callback = functools.partial(back.front.update_tables, tblnames=[NAMES_TREE])
-            incinfo['update_callback'] = update_callback
+        import functools
+        from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
+        back.front.set_table_tab(NAMES_TREE)
+        update_callback = functools.partial(back.front.update_tables, tblnames=[NAMES_TREE])
+        incinfo['update_callback'] = update_callback
+        incinfo['finish_callback'] = functools.partial(back.user_info, msg='Finished Query')
 
     def test_incremental_query(self, ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                interactive_after=None, back=None):
@@ -299,6 +300,10 @@ class IncQueryHarness(INC_LOOP_BASE):
             fig2 = pt.figure(fnum=512)
             pt.close_figure(fig1)
             pt.close_figure(fig2)
+            if 'finish_callback' in self.incinfo:
+                self.incinfo['update_callback']()
+            if 'finish_callback' in self.incinfo:
+                self.incinfo['finish_callback']()
             pass
 
     #@guitool.slot_(list)

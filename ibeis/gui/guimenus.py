@@ -279,11 +279,12 @@ def setup_help_menu(mainwin, back):
         text='Delete Thumbnails',
         shortcut='',
         slot_fn=back.delete_thumbnails)
+    mainwin.menuHelp.addSeparator()
     mainwin.menuHelp.newAction(
-        name='actionCleanDatabase',
-        text='Clean Database',
+        name='actionFixCleanDatabase',
+        text='Fix/Clean Database',
         shortcut='',
-        slot_fn=back.clean_database)
+        slot_fn=back.fix_and_clean_database)
     mainwin.menuHelp.newAction(
         name='actionConsistencyCheck',
         text='Run Consistency Checks',

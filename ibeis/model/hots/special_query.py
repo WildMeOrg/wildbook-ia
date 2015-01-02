@@ -9,6 +9,8 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 def choose_vsmany_K(num_names, qaids, daids):
     """
+    TODO: Should also scale up the number of checks as well
+
     method for choosing K in the initial vsmany queries
 
     Ignore:

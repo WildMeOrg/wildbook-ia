@@ -401,6 +401,12 @@ def check_annot_consistency(ibs, aid_list=None):
         ibs.delete_chips(invalid_cids, verbose=True)
 
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    exemplar_flag = ibs.get_annot_exemplar_flags(aid_list)
+    is_unknown = ibs.is_aid_unknown(aid_list)
+    # Exemplars should all be known
+    unknown_exemplar_flags = ut.filter_items(exemplar_flag, is_unknown)
+    is_error = [not flag for flag in unknown_exemplar_flags]
+    assert all(is_error), 'Unknown annotations are set as exemplars'
     ut.debug_duplicate_items(visual_uuid_list)
 
 
@@ -464,7 +470,7 @@ def vacuum_and_clean_databases(ibs):
 
 
 @__injectable
-def clean_database(ibs):
+def fix_and_clean_database(ibs):
     #TODO: Call more stuff, maybe rename to 'apply duct tape'
     ibs.fix_unknown_exemplars()
     ibs.fix_invalid_name_texts()
@@ -472,9 +478,32 @@ def clean_database(ibs):
 
 
 def check_name_consistency(ibs, nid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid_list (list):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-check_name_consistency
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> # execute function
+        >>> result = check_name_consistency(ibs, nid_list)
+        >>> # verify results
+        >>> print(result)
+    """
     #aids_list = ibs.get_name_aids(nid_list)
     print('check name consistency. len(nid_list)=%r' % len(nid_list))
     print('WARNING: check_name_consistency function is not longer used')
+    #aids_list = ibs.get_name_aids(nid_list)
+    #aid_list = ut.flatten(aids_list)
+    #
     #lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
     #individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     #for lbltype_rowid in lbltype_rowid_list:
@@ -2202,11 +2231,19 @@ def fix_unknown_exemplars(ibs):
     is associated with an unknown annotation
     """
     aid_list = ibs.get_valid_aids()
-    nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
-    new_annots = [annot if nid != const.UNKNOWN_NAME_ROWID else 0
-                  for nid, annot in
-                  zip(nid_list, ibs.get_annot_exemplar_flags(aid_list))]
-    ibs.set_annot_exemplar_flags(aid_list, new_annots)
+    #nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+    flag_list = ibs.get_annot_exemplar_flags(aid_list)
+    unknown_list = ibs.is_aid_unknown(aid_list)
+    # Exemplars should all be known
+    unknown_exemplar_flags = ut.filter_items(flag_list, unknown_list)
+    unknown_aid_list = ut.filter_items(aid_list, unknown_list)
+    print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
+    ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
+    #is_error = [not flag for flag in unknown_exemplar_flags]
+    #new_annots = [flag if nid != const.UNKNOWN_NAME_ROWID else 0
+    #              for nid, flag in
+    #              zip(nid_list, flag_list)]
+    #ibs.set_annot_exemplar_flags(aid_list, new_annots)
 
 
 @__injectable

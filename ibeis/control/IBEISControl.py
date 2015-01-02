@@ -442,6 +442,9 @@ class IBEISController(object):
             list_ (list): database name """
         return ibs.dbname
 
+    def get_logdir(ibs):
+        return ut.get_logging_dir(appname='ibeis')
+
     def get_dbdir(ibs):
         """
         Returns:

@@ -105,11 +105,11 @@ TABLE_COLNAMES = {
     ],
 
     ENCOUNTER_TABLE : [
-        'eid',
+        #'eid',
         'enctext',
         'nImgs',
-        'encounter_processed_flag',
-        'encounter_shipped_flag',
+        #'encounter_processed_flag',
+        #'encounter_shipped_flag',
     ],
 
     NAMES_TREE      : [
