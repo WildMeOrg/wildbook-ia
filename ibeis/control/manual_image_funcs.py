@@ -592,6 +592,17 @@ def get_image_nids(ibs, gid_list):
 
 
 @register_ibs_method
+@getter_1to1
+def get_image_species_rowids(ibs, gid_list):
+    """
+    Returns:
+        list_ (list): the name ids associated with an image id """
+    aids_list = ibs.get_image_aids(gid_list)
+    species_rowid_list = ibs.get_annot_species_rowids(aids_list)
+    return species_rowid_list
+
+
+@register_ibs_method
 @getter_1toM
 def get_image_eids(ibs, gid_list):
     """

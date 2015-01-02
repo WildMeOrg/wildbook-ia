@@ -235,22 +235,29 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
 #############################
 
 
-def export_transfer_data(ibs_src, user_prompt=False):
+def export_transfer_data(ibs_src, gid_list=None, user_prompt=False):
     """
     Packs all the data you are going to transfer from ibs_src
     info the transfer_data named tuple.
     """
-    # Create Name TransferDa
-    nid_list = ibs_src._get_all_known_name_rowids()
+    if gid_list is None:
+        nid_list = ibs_src._get_all_known_name_rowids()
+        species_rowid_list = ibs_src._get_all_species_rowids()
+    else:
+        nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
+        species_rowid_list = list(set(ut.flatten(ibs_src.species_rowid_list(gid_list))))
+    # Create Name TransferData
     name_td = export_name_transfer_data(ibs_src, nid_list)
     # Create Species TranferData
-    species_rowid_list = ibs_src._get_all_species_rowids()
     species_td = export_species_transfer_data(ibs_src, species_rowid_list)
     # Create Contributor TranferData
     contrib_rowid_list = ensure_contributor_rowids(ibs_src, user_prompt=user_prompt)
+    if gid_list is not None:
+        contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
     assert len(contrib_rowid_list) > 0, "There must be at least one contributor to merge"
     contributor_td_list = [
-        export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list, species_rowid_list)
+        export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list,
+                                         species_rowid_list, valid_gid_list=gid_list)
         for contrib_rowid in contrib_rowid_list
     ]
     # Geolocate and create database's TransferData object
@@ -270,7 +277,8 @@ def export_transfer_data(ibs_src, user_prompt=False):
     return td
 
 
-def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list):
+def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
+                                     species_rowid_list, valid_gid_list=None):
     # Get configs
     config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)
     config_td = export_config_transfer_data(ibs_src, config_rowid_list)
@@ -279,6 +287,9 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, speci
     encounter_td = export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list)
     # Get images
     gid_list = ibs_src.get_contributor_gids(contributor_rowid)
+    if valid_gid_list is not None:
+        isvalid_list = [ gid in valid_gid_list for gid in gid_list ]
+        gid_list = ut.filter_items(gid_list, isvalid_list)
     image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list,
                                           nid_list, species_rowid_list)
     # Create Contributor TransferData
