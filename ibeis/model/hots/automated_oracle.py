@@ -4,6 +4,7 @@ import utool as ut
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[incoracle]')
 
 
+@profile
 def oracle_method1(ibs_gt, ibs, qnid1, aid_list2, aid2_to_aid1, sorted_nids, MAX_LOOK):
     """ METHOD 1: MAKE BEST DECISION FROM GIVEN INFORMATION """
     # Map annotations to ibs_gt annotation rowids
@@ -19,6 +20,7 @@ def oracle_method1(ibs_gt, ibs, qnid1, aid_list2, aid2_to_aid1, sorted_nids, MAX
     return chosen_names
 
 
+@profile
 def oracle_method2(ibs_gt, qnid1):
     """ METHOD 2: MAKE THE ABSOLUTE CORRECT DECISION REGARDLESS OF RESULT """
     # use the name from the groundruth database
@@ -27,6 +29,7 @@ def oracle_method2(ibs_gt, qnid1):
     return chosen_names
 
 
+@profile
 def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
     """
     Find what the correct decision should be ibs is the database we are working
@@ -55,6 +58,7 @@ def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
     return chosen_names
 
 
+@profile
 def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup):
     #system_autoname_msg = system_name_suggest_tup[0]
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup

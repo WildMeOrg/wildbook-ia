@@ -305,20 +305,7 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     ibs = qreq_.ibs
     # read which annotations have prebuilt caches
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            candidate_uuids = {
-                key: val for key, val in six.iteritems(uuid_map)
-                if len(val) >= min_reindex_thresh
-            }
-        #candidate_uuids = {
-        #    key: set(val) for key, val in six.iteritems(uuid_map)
-        #    if len(val) >= min_reindex_thresh
-        #}
-        #for key in list(six.iterkeys(candidate_uuids)):
-        #    # remove any sets less than the threshold
-        #    if len(candidate_uuids[key]) < min_reindex_thresh:
-        #        del candidate_uuids[key]
+    candidate_uuids = read_uuid_map(uuid_map_fpath, min_reindex_thresh)
     # find a maximum independent set cover of the requested annotations
     annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
     covertup = ut.greedy_max_inden_setcover(
@@ -337,6 +324,35 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
 
 
 @profile
+def get_nnindexer_uuid_map_fpath(qreq_):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> # build test data
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+        >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
+        >>> print(result)
+        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf
+    """
+    flann_cachedir = qreq_.ibs.get_flann_cachedir()
+    # Have uuid shelf conditioned on the baseline flann and feature parameters
+    flann_cfgstr    = qreq_.qparams.flann_cfgstr
+    feat_cfgstr     = qreq_.qparams.feat_cfgstr
+    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr))
+    #uuid_map_ext    = '.shelf'
+    uuid_map_ext    = '.cPkl'
+    uuid_map_prefix = 'uuid_map'
+    uuid_map_fname  = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
+    uuid_map_fpath  = join(flann_cachedir, uuid_map_fname)
+    return uuid_map_fpath
+
+
+@profile
 def write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     """
     let the multi-indexer know about any big caches we've made multi-indexer.
@@ -345,8 +361,87 @@ def write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     """
     print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
     with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            uuid_map = ut.load_cPkl(uuid_map_fpath)
             uuid_map[daids_hashid] = visual_uuid_list
+            ut.save_cPkl(uuid_map_fpath, uuid_map)
+
+
+@profile
+def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
+    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+        try:
+            uuid_map = ut.load_cPkl(uuid_map_fpath)
+            candidate_uuids = {
+                key: val for key, val in six.iteritems(uuid_map)
+                if len(val) >= min_reindex_thresh
+            }
+        except IOError:
+            return {}
+    return candidate_uuids
+
+
+def clear_memcache():
+    global NEIGHBOR_CACHE
+    NEIGHBOR_CACHE.clear()
+
+
+@profile
+def clear_uuid_cache(qreq_):
+    """
+
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-clear_uuid_cache
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> # execute function
+        >>> fgws_list = clear_uuid_cache(qreq_)
+        >>> # verify results
+        >>> result = str(fgws_list)
+        >>> print(result)
+    """
+    print('[nnindex] clearing uuid cache')
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+    ut.delete(uuid_map_fpath)
+    ut.delete(uuid_map_fpath + '.lock')
+    print('[nnindex] finished uuid cache clear')
+
+
+def print_uuid_cache(qreq_):
+    """
+
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-print_uuid_cache
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> dbname = 'PZ_Master0'  # 'testdb1'
+        >>> ibs = ibeis.opendb(dbname)
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> # execute function
+        >>> print_uuid_cache(qreq_)
+        >>> # verify results
+        >>> result = str(nnindexer)
+        >>> print(result)
+    """
+    print('[nnindex] clearing uuid cache')
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
+    print(candidate_uuids)
 
 
 def get_data_cfgstr(ibs, daid_list):
@@ -393,99 +488,6 @@ def build_nnindex_cfgstr(qreq_, daid_list):
     data_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
     nnindex_cfgstr = ''.join((data_hashid, flann_cfgstr, featweight_cfgstr))
     return nnindex_cfgstr
-
-
-@profile
-def get_nnindexer_uuid_map_fpath(qreq_):
-    """
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> # build test data
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
-        >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-        >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
-        >>> print(result)
-        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf
-    """
-    flann_cachedir = qreq_.ibs.get_flann_cachedir()
-    # Have uuid shelf conditioned on the baseline flann and feature parameters
-    flann_cfgstr    = qreq_.qparams.flann_cfgstr
-    feat_cfgstr     = qreq_.qparams.feat_cfgstr
-    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr))
-    uuid_map_ext    = '.shelf'
-    uuid_map_prefix = 'uuid_map'
-    uuid_map_fname  = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
-    uuid_map_fpath  = join(flann_cachedir, uuid_map_fname)
-    return uuid_map_fpath
-
-
-def clear_memcache():
-    global NEIGHBOR_CACHE
-    NEIGHBOR_CACHE.clear()
-
-
-@profile
-def clear_uuid_cache(qreq_):
-    """
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-clear_uuid_cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
-        >>> # execute function
-        >>> fgws_list = clear_uuid_cache(qreq_)
-        >>> # verify results
-        >>> result = str(fgws_list)
-        >>> print(result)
-    """
-    print('[nnindex] clearing uuid cache')
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    ut.delete(uuid_map_fpath)
-    ut.delete(uuid_map_fpath + '.lock')
-    #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-    #    uuid_map.clear()
-    print('[nnindex] finished uuid cache clear')
-
-
-def print_uuid_cache(qreq_):
-    """
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-print_uuid_cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> dbname = 'PZ_Master0'  # 'testdb1'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
-        >>> # execute function
-        >>> print_uuid_cache(qreq_)
-        >>> # verify results
-        >>> result = str(nnindexer)
-        >>> print(result)
-    """
-    print('[nnindex] clearing uuid cache')
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            print(uuid_map)
 
 
 @profile
@@ -1008,9 +1010,7 @@ def test_incremental_add(ibs):
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(aids3)
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
+    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup
@@ -1026,9 +1026,7 @@ def test_incremental_add(ibs):
     items = ibs.get_annot_visual_uuids(sample_aids)
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            candidate_uuids = {key: set(val) for key, val in six.iteritems(uuid_map)}
+    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup
@@ -1037,7 +1035,6 @@ def test_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))  # NOQA
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    uuid_map
     #uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
     #uuid_map = shelve.open(uuid_map_fpath)
     #uuid_map[daids_hashid] = visual_uuid_list

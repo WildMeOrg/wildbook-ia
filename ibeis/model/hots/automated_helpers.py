@@ -190,6 +190,7 @@ def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     assert len(ibs2_dup_annots) == 0
 
 
+@profile
 def ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
     """
     removes previously set names and exemplars
@@ -261,6 +262,7 @@ def interactive_commandline_prompt(msg, decisiontype):
         return True
 
 
+@profile
 def setup_incremental_test(ibs_gt, clear_names=True):
     r"""
     CommandLine:
@@ -418,6 +420,7 @@ def check_results(ibs_gt, ibs2, aid1_to_aid2):
     #ut.embed()
 
 
+@profile
 def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     """
     adds annotations to the tempoarary database and prevents duplicate

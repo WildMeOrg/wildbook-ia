@@ -73,7 +73,7 @@ def test_inc_query(ibs_gt, num_initial=0):
         sh Tinc.sh --test-test_inc_query:2
         sh Tinc.sh --test-test_inc_query:3
 
-        profiler.sh -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
+        profiler.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
 
         sh Tinc.sh --test-test_inc_query:0 --ninit 10
         sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful

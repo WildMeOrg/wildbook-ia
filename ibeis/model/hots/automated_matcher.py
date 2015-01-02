@@ -7,12 +7,14 @@ from ibeis.model.hots import special_query
 from ibeis.model.hots import system_suggestor
 from ibeis.model.hots import user_dialogs
 ut.noinject(__name__, '[inc]')
+#profile = ut.profile
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
 # ---- ENTRY POINT ----
 
 
+@profile
 def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                       num_initial=0, incinfo=None):
     """
@@ -42,7 +44,8 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
     print('Transfer %d initial test annotations' % (num_initial,))
     if num_initial > 0:
         aid_sublist1 = aids_list1_[0:num_initial]
-        aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)
+        aid_sublist2 = ut.dict_take_list(aid1_to_aid2, aid_sublist1)
+        #aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)
         # Add names from old databse. add all initial as exemplars
         name_list = ibs_gt.get_annot_names(aid_sublist1)
         ibs.set_annot_names(aid_sublist2, name_list)
@@ -75,8 +78,14 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
             print('\n==== EXECUTING TESTSTEP %d ====' % (count,))
             print('generator_stack_depth = %r' % ut.get_current_stack_depth())
             #incinfo['interactive'] = (interact_after is not None and count >= interact_after)
+            #---
             # ensure new annot is added (most likely it will have been preadded)
-            qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
+            #qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)
+            #---
+            # Assume annot has alredy been added
+            # Get mapping
+            qaid_chunk = ut.dict_take_list(aid1_to_aid2, aid_sublist1)
+            #---
             for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
                 (ibs, qres, qreq_, incinfo) = item
                 # Yeild results for qt interface to call down into user or
@@ -86,6 +95,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
     ah.check_results(ibs_gt, ibs, aid1_to_aid2)
 
 
+@profile
 def generate_incremental_queries(ibs, qaid_list, incinfo=None):
     r"""
     qt entry point. generates query results for the qt harness to process.
@@ -120,6 +130,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
 
 # ---- QUERY ----
 
+@profile
 def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """
     Args:
@@ -153,6 +164,7 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
 # ---- DECISION ---
 
 
+@profile
 def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     r"""
     Either makes automatic decision or asks user for feedback.
@@ -224,6 +236,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         #exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_, incinfo=incinfo)
 
 
+@profile
 def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
                                     incinfo=None):
     """
@@ -259,6 +272,7 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
 
+@profile
 def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
@@ -278,6 +292,7 @@ def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
         exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_, incinfo=incinfo)
 
 
+@profile
 def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
                                         incinfo=None):
     qaid = qres.get_qaid()
@@ -287,6 +302,7 @@ def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
     run_until_finish(incinfo=incinfo)
 
 
+@profile
 def run_until_finish(incinfo=None):
     if incinfo is not None:
         # This query run as eneded
@@ -300,6 +316,7 @@ def run_until_finish(incinfo=None):
 # ---- POST DECISION ---
 
 
+@profile
 def update_normalizer(ibs, qres, qreq_, chosen_names):
     r"""
     adds new support data to the current normalizer
