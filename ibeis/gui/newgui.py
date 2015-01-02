@@ -570,6 +570,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
+        ibswgt.set_table_tab(IMAGE_TABLE)
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)

@@ -272,7 +272,12 @@ class MainWindowBackend(QtCore.QObject):
                        sel_qres=None, sel_eids=None, **kwargs):
         if sel_eids is not None:
             back.sel_eids = sel_eids
-            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_eids,))
+            sel_enctexts = back.ibs.get_encounter_enctext(sel_eids)
+            if sel_enctexts == [None]:
+                sel_enctexts = []
+            else:
+                sel_enctexts = map(str, sel_enctexts)
+            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_enctexts,))
         if sel_gids is not None:
             back.sel_gids = sel_gids
             back.ibswgt.set_status_text(1, 'Selected Image: %r' % (sel_gids,))
@@ -839,6 +844,7 @@ class MainWindowBackend(QtCore.QObject):
             # Set encounter to be processed
             back.ibs.set_encounter_processed_flags([eid], [1])
             back.ibs.wildbook_signal_eid_list([eid])
+            back.front.enc_tabwgt._close_tab_with_eid(eid)
             if refresh:
                 back.front.update_tables([gh.IMAGE_TABLE])
 
