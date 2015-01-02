@@ -1,4 +1,5 @@
 import sys
+# FIXME: setup for more than just win32
 
 WIN32 = sys.platform.startswith('win32')
 
