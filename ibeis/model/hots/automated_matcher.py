@@ -53,15 +53,17 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         aids_list1_ = aids_list1_[num_initial:]
 
     # Print info
-    print('+-------')
-    print('Printing ibs_gt and ibs info before start')
-    print('--------')
-    print('\nibs info:')
-    print(ibs.get_dbinfo_str())
-    print('--------')
-    print('\nibs_gt info')
-    print(ibs_gt.get_dbinfo_str())
-    print('L________')
+    WITHINFO = False
+    if WITHINFO:
+        print('+-------')
+        print('Printing ibs_gt and ibs info before start')
+        print('--------')
+        print('\nibs info:')
+        print(ibs.get_dbinfo_str())
+        print('--------')
+        print('\nibs_gt info')
+        print(ibs_gt.get_dbinfo_str())
+        print('L________')
 
     # Setup metadata tuple
     metatup = (ibs_gt, aid1_to_aid2)
@@ -84,7 +86,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
             #---
             # Assume annot has alredy been added
             # Get mapping
-            qaid_chunk = ut.dict_take_list(aid1_to_aid2, aid_sublist1)
+            qaid_chunk = ut.dict_take_list(aid1_to_aid2, aids_chunk1)
             #---
             for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
                 (ibs, qres, qreq_, incinfo) = item
