@@ -112,7 +112,10 @@ class ContextUUIDMap(object):
         """
         print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
         with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            uuid_map = ut.load_cPkl(uuid_map_fpath)
+            try:
+                uuid_map = ut.load_cPkl(uuid_map_fpath)
+            except IOError:
+                uuid_map = {}
             uuid_map[daids_hashid] = visual_uuid_list
             ut.save_cPkl(uuid_map_fpath, uuid_map)
 
