@@ -1,3 +1,6 @@
+"""
+module which handles the building and caching of individual flann indexes
+"""
 from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
@@ -6,7 +9,7 @@ import pyflann
 import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
-from six.moves import range
+from six.moves import range  # NOQA
 import vtool.nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
@@ -16,7 +19,209 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
 MAX_NEIGHBOR_CACHE_SIZE = 8
 NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
+# Background process for building indexes
 CURRENT_THREAD = None
+
+UUID_MAP = ut.ddict(dict)
+
+
+class ContextUUIDMap(object):
+    """
+    Class that lets multiple ways of writing to the uuid_map
+    be swapped in and out interchangably
+    """
+    def __init__(self, uuid_map_fpath, min_reindex_thresh):
+        self.init(uuid_map_fpath, min_reindex_thresh)
+
+    def init(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        #self.read_func  = self.read_uuid_map_cpkl
+        #self.write_func = self.write_uuid_map_cpkl
+        self.read_func  = self.read_uuid_map_global
+        self.write_func = self.write_uuid_map_global
+
+    def __call__(self):
+        return  self.read_func(*self.args, **self.kwargs)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_trace):
+        pass
+
+    def __setitem__(self, visual_uuid_list, daids_hashid):
+        uuid_map_fpath = self.uuid_map_fpath
+        self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
+
+    @profile
+    def read_uuid_map_global(uuid_map_fpath, min_reindex_thresh):
+        """ uses global variable instead of disk """
+        global UUID_MAP
+        uuid_map = UUID_MAP[uuid_map_fpath]
+        candidate_uuids = {
+            key: val for key, val in six.iteritems(uuid_map)
+            if len(val) >= min_reindex_thresh
+        }
+        return candidate_uuids
+
+    @profile
+    def write_uuid_map_global(uuid_map_fpath, visual_uuid_list, daids_hashid):
+        """ uses global variable instead of disk """
+        global UUID_MAP
+        uuid_map = UUID_MAP[uuid_map_fpath]
+        uuid_map[daids_hashid] = visual_uuid_list
+
+    @profile
+    def read_uuid_map_shelf(uuid_map_fpath, min_reindex_thresh):
+        with lockfile.LockFile(uuid_map_fpath + '.lock'):
+            with ut.shelf_open(uuid_map_fpath) as uuid_map:
+                candidate_uuids = {
+                    key: val for key, val in six.iteritems(uuid_map)
+                    if len(val) >= min_reindex_thresh
+                }
+        return candidate_uuids
+
+    @profile
+    def write_uuid_map_shelf(uuid_map_fpath, visual_uuid_list, daids_hashid):
+        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+        with lockfile.LockFile(uuid_map_fpath + '.lock'):
+            with ut.shelf_open(uuid_map_fpath) as uuid_map:
+                uuid_map[daids_hashid] = visual_uuid_list
+
+    @profile
+    def read_uuid_map_cpkl(uuid_map_fpath, min_reindex_thresh):
+        with lockfile.LockFile(uuid_map_fpath + '.lock'):
+            #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+            try:
+                uuid_map = ut.load_cPkl(uuid_map_fpath)
+                candidate_uuids = {
+                    key: val for key, val in six.iteritems(uuid_map)
+                    if len(val) >= min_reindex_thresh
+                }
+            except IOError:
+                return {}
+        return candidate_uuids
+
+    @profile
+    def write_uuid_map_cpkl(uuid_map_fpath, visual_uuid_list, daids_hashid):
+        """
+        let the multi-indexer know about any big caches we've made multi-indexer.
+        Also lets nnindexer know about other prebuilt indexers so it can attempt to
+        just add points to them as to avoid a rebuild.
+        """
+        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+        with lockfile.LockFile(uuid_map_fpath + '.lock'):
+            uuid_map = ut.load_cPkl(uuid_map_fpath)
+            uuid_map[daids_hashid] = visual_uuid_list
+            ut.save_cPkl(uuid_map_fpath, uuid_map)
+
+
+@profile
+def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
+    """
+    let the multi-indexer know about any big caches we've made multi-indexer.
+    Also lets nnindexer know about other prebuilt indexers so it can attempt to
+    just add points to them as to avoid a rebuild.
+    """
+    with ContextUUIDMap(uuid_map_fpath) as uuid_map:
+        uuid_map[daids_hashid] = visual_uuid_list
+
+
+@profile
+def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
+    with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
+        candidate_uuids = uuid_map()
+    return candidate_uuids
+
+
+@profile
+def get_nnindexer_uuid_map_fpath(qreq_):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> # build test data
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+        >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
+        >>> print(result)
+        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf
+    """
+    flann_cachedir = qreq_.ibs.get_flann_cachedir()
+    # Have uuid shelf conditioned on the baseline flann and feature parameters
+    flann_cfgstr    = qreq_.qparams.flann_cfgstr
+    feat_cfgstr     = qreq_.qparams.feat_cfgstr
+    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr))
+    #uuid_map_ext    = '.shelf'
+    uuid_map_ext    = '.cPkl'
+    uuid_map_prefix = 'uuid_map'
+    uuid_map_fname  = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
+    uuid_map_fpath  = join(flann_cachedir, uuid_map_fname)
+    return uuid_map_fpath
+
+
+def clear_memcache():
+    global NEIGHBOR_CACHE
+    NEIGHBOR_CACHE.clear()
+
+
+@profile
+def clear_uuid_cache(qreq_):
+    """
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-clear_uuid_cache
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> # execute function
+        >>> fgws_list = clear_uuid_cache(qreq_)
+        >>> # verify results
+        >>> result = str(fgws_list)
+        >>> print(result)
+    """
+    print('[nnindex] clearing uuid cache')
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+    ut.delete(uuid_map_fpath)
+    ut.delete(uuid_map_fpath + '.lock')
+    print('[nnindex] finished uuid cache clear')
+
+
+def print_uuid_cache(qreq_):
+    """
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-print_uuid_cache
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> dbname = 'PZ_Master0'  # 'testdb1'
+        >>> ibs = ibeis.opendb(dbname)
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> # execute function
+        >>> print_uuid_cache(qreq_)
+        >>> # verify results
+        >>> result = str(nnindexer)
+        >>> print(result)
+    """
+    print('[nnindex] clearing uuid cache')
+    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
+    print(candidate_uuids)
 
 
 @profile
@@ -143,7 +348,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
             daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
             visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-            write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+            write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
         # Write to memcache
         if ut.VERBOSE:
             print('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))
@@ -260,7 +465,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
         uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
         visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-        write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
     return nnindexer
 
 
@@ -321,127 +526,6 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     #covered_aids_list = list(map(sorted, covered_aids_list_))
     covered_aids_list = covered_aids_list_
     return uncovered_aids, covered_aids_list
-
-
-@profile
-def get_nnindexer_uuid_map_fpath(qreq_):
-    """
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> # build test data
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
-        >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-        >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
-        >>> print(result)
-        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf
-    """
-    flann_cachedir = qreq_.ibs.get_flann_cachedir()
-    # Have uuid shelf conditioned on the baseline flann and feature parameters
-    flann_cfgstr    = qreq_.qparams.flann_cfgstr
-    feat_cfgstr     = qreq_.qparams.feat_cfgstr
-    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr))
-    #uuid_map_ext    = '.shelf'
-    uuid_map_ext    = '.cPkl'
-    uuid_map_prefix = 'uuid_map'
-    uuid_map_fname  = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
-    uuid_map_fpath  = join(flann_cachedir, uuid_map_fname)
-    return uuid_map_fpath
-
-
-@profile
-def write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
-    """
-    let the multi-indexer know about any big caches we've made multi-indexer.
-    Also lets nnindexer know about other prebuilt indexers so it can attempt to
-    just add points to them as to avoid a rebuild.
-    """
-    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            uuid_map = ut.load_cPkl(uuid_map_fpath)
-            uuid_map[daids_hashid] = visual_uuid_list
-            ut.save_cPkl(uuid_map_fpath, uuid_map)
-
-
-@profile
-def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
-    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-        try:
-            uuid_map = ut.load_cPkl(uuid_map_fpath)
-            candidate_uuids = {
-                key: val for key, val in six.iteritems(uuid_map)
-                if len(val) >= min_reindex_thresh
-            }
-        except IOError:
-            return {}
-    return candidate_uuids
-
-
-def clear_memcache():
-    global NEIGHBOR_CACHE
-    NEIGHBOR_CACHE.clear()
-
-
-@profile
-def clear_uuid_cache(qreq_):
-    """
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-clear_uuid_cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
-        >>> # execute function
-        >>> fgws_list = clear_uuid_cache(qreq_)
-        >>> # verify results
-        >>> result = str(fgws_list)
-        >>> print(result)
-    """
-    print('[nnindex] clearing uuid cache')
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    ut.delete(uuid_map_fpath)
-    ut.delete(uuid_map_fpath + '.lock')
-    print('[nnindex] finished uuid cache clear')
-
-
-def print_uuid_cache(qreq_):
-    """
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-print_uuid_cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> dbname = 'PZ_Master0'  # 'testdb1'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
-        >>> # execute function
-        >>> print_uuid_cache(qreq_)
-        >>> # verify results
-        >>> result = str(nnindexer)
-        >>> print(result)
-    """
-    print('[nnindex] clearing uuid cache')
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
-    print(candidate_uuids)
 
 
 def get_data_cfgstr(ibs, daid_list):
@@ -546,19 +630,11 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> nnindexer = new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
 
     """
-    if verbose:
-        print('[nnindex] nnindexer = new NeighborIndex')
     nnindexer = NeighborIndex(flann_params, cfgstr)
-    if verbose:
-        print('[nnindex] nnindexer.init_support()')
     # Initialize neighbor with unindexed data
     nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=verbose)
-    if verbose:
-        print('[nnindex] nnindexer.load_or_build()')
     # Load or build the indexing structure
     nnindexer.load_or_build(cachedir, verbose=verbose)
-    if verbose:
-        print('[nnindex] ...')
     return nnindexer
 
 
@@ -981,310 +1057,33 @@ def test_nnindexer(dbname='testdb1', with_indexer=True):
     return nnindexer, qreq_, ibs
 
 
-def test_incremental_add(ibs):
-    r"""
-    Args:
-        ibs (IBEISController):
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-test_incremental_add
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> result = test_incremental_add(ibs)
-        >>> print(result)
-    """
-    sample_aids = ibs.get_annot_rowid_sample()
-    aids1 = sample_aids[::2]
-    aids2 = sample_aids[0:5]
-    aids3 = sample_aids[:-1]  # NOQA
-    daid_list = aids1  # NOQA
-    qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
-    nnindexer2 = request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
-
-    # TODO: SYSTEM use visual uuids
-    #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
-    items = ibs.get_annot_visual_uuids(aids3)
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
-    candidate_sets = candidate_uuids
-    covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
-    uncovered_items, covered_items_list, accepted_keys = covertup
-    covered_items = ut.flatten(covered_items_list)
-
-    covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
-    uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
-
-    nnindexer3 = request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
-
-    # TODO: SYSTEM use visual uuids
-    #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
-    items = ibs.get_annot_visual_uuids(sample_aids)
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
-    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
-    candidate_sets = candidate_uuids
-    covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
-    uncovered_items, covered_items_list, accepted_keys = covertup
-    covered_items = ut.flatten(covered_items_list)
-
-    covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))  # NOQA
-    uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
-
-    #uuid_map_fpath = join(flann_cachedir, 'uuid_map.shelf')
-    #uuid_map = shelve.open(uuid_map_fpath)
-    #uuid_map[daids_hashid] = visual_uuid_list
-    #visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-    #visual_uuid_list
-    #%timeit request_ibeis_nnindexer(qreq_, use_memcache=False)
-    #%timeit request_ibeis_nnindexer(qreq_, use_memcache=True)
-
-    #for uuids in uuid_set
-    #    if
-
-
-def subindexer_time_experiment():
-    """
-    builds plot of number of annotations vs indexer build time.
-
-    TODO: time experiment
-    """
-    import ibeis
-    import utool as ut
-    import pyflann
-    import numpy as np
-    import plottool as pt
-    ibs = ibeis.opendb(db='PZ_Master0')
-    daid_list = ibs.get_valid_aids()
-    count_list = []
-    time_list = []
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
-    for count in ut.ProgressIter(range(1, 301)):
-        daids_ = daid_list[:]
-        np.random.shuffle(daids_)
-        daids = daids_[0:count]
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann = pyflann.FLANN()
-            flann.build_index(vecs, **flann_params)
-        count_list.append(count)
-        time_list.append(t.ellapsed)
-    count_arr = np.array(count_list)
-    time_arr = np.array(time_list)
-    pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
-             x_label='num_annotations', y_label='FLANN build time')
-    pt.update()
-
 # ------------
 # NEW
 
+class BuildBackgroundNNIndexer(object):
+    def __init__(self):
+        pass
 
-def flann_add_time_experiment(update=False):
+
+def check_background_process():
     """
-    builds plot of number of annotations vs indexer build time.
-
-    TODO: time experiment
-
-    CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
-        profiler.py -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb('PZ_MTEST')
-        >>> update = True
-        >>> result = flann_add_time_experiment(update)
-        >>> # verify results
-        >>> print(result)
-        >>> from matplotlib import pyplot as plt
-        >>> plt.show()
-        #>>> ibeis.main_loop({'ibs': ibs, 'back': None})
-
+    checks to see if the process has finished and then
+    writes the uuid map to disk
     """
-    import ibeis
-    import utool as ut
-    import numpy as np
-    import plottool as pt
-
-    def make_flann_index(vecs, flann_params):
-        flann = pyflann.FLANN()
-        flann.build_index(vecs, **flann_params)
-        return flann
-
-    def get_reindex_time(ibs, daids, flann_params):
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann = make_flann_index(vecs, flann_params)  # NOQA
-        return t.ellapsed
-
-    def get_addition_time(ibs, daids, flann, flann_params):
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann.add_points(vecs)
-        return t.ellapsed
-
-    # Input
-    #ibs = ibeis.opendb(db='PZ_MTEST')
-    #ibs = ibeis.opendb(db='GZ_ALL')
-    ibs = ibeis.opendb(db='PZ_Master0')
-    #max_ceiling = 32
-    initial = 32
-    reindex_stride = 32
-    addition_stride = 16
-    max_ceiling = 300001
-    all_daids = ibs.get_valid_aids()
-    max_num = min(max_ceiling, len(all_daids))
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
-
-    # Output
-    count_list,  time_list_reindex  = [], []
-    count_list2, time_list_addition = [], []
-
-    # Setup
-    #all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
-    all_randomize_daids_ = all_daids
-    # ensure all features are computed
-    ibs.get_annot_vecs(all_randomize_daids_)
-
-    def reindex_step(count, count_list, time_list_reindex):
-        daids    = all_randomize_daids_[0:count]
-        ellapsed = get_reindex_time(ibs, daids, flann_params)
-        count_list.append(count)
-        time_list_reindex.append(ellapsed)
-
-    def addition_step(count, flann, count_list2, time_list_addition):
-        daids = all_randomize_daids_[count:count + 1]
-        ellapsed = get_addition_time(ibs, daids, flann, flann_params)
-        count_list2.append(count)
-        time_list_addition.append(ellapsed)
-
-    def make_initial_index(initial):
-        daids = all_randomize_daids_[0:initial + 1]
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        flann = make_flann_index(vecs, flann_params)
-        return flann
-
-    # Reindex Part
-    reindex_lbl = 'Reindexing'
-    _reindex_iter = range(1, max_num, reindex_stride)
-    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_lbl)
-    for count in reindex_iter:
-        reindex_step(count, count_list, time_list_reindex)
-
-    # Add Part
-    flann = make_initial_index(initial)
-    addition_lbl = 'Addition'
-    _addition_iter = range(initial + 1, max_num, addition_stride)
-    addition_iter = ut.ProgressIter(_addition_iter, lbl=addition_lbl)
-    for count in addition_iter:
-        addition_step(count, flann, count_list2, time_list_addition)
-
-    print('---')
-    print('Reindex took time_list_reindex %.2s seconds' % sum(time_list_reindex))
-    print('Addition took time_list_reindex  %.2s seconds' % sum(time_list_addition))
-    print('---')
-    statskw = dict(precision=2, newlines=True)
-    print('Reindex stats ' + ut.get_stats_str(time_list_reindex, **statskw))
-    print('Addition stats ' + ut.get_stats_str(time_list_addition, **statskw))
-
-    print('Plotting')
-
-    #with pt.FigureContext:
-
-    next_fnum = iter(range(0, 2)).next  # python3 PY3
-    pt.figure(fnum=next_fnum())
-    pt.plot2(count_list, time_list_reindex, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=reindex_lbl + ' Time')
-
-    #pt.figure(fnum=next_fnum())
-    pt.plot2(count_list2, time_list_addition, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=addition_lbl + ' Time')
-
-    pt
-    pt.legend()
-    if update:
-        pt.update()
-
-
-def augment_nnindexer_experiment(update=True):
-    """
-
-    python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.neighbor_index', 'augment_nnindexer_experiment'))"
-
-    CommandLine:
-        profiler.py -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
-        python -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> # build test data
-        >>> show = ut.get_argflag('--show')
-        >>> update = show
-        >>> # execute function
-        >>> augment_nnindexer_experiment(update)
-        >>> # verify results
-        >>> if show:
-        ...     from matplotlib import pyplot as plt
-        ...     plt.show()
-
-    """
-    import ibeis
-    import plottool as pt
-    # build test data
-    ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
-    #ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb('PZ_Master0')
-    all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
-    qreq_ = ibs.new_query_request(all_daids, all_daids)
-    initial = 128
-    addition_stride = 64
-    max_ceiling = 10000
-    max_num = min(max_ceiling, len(all_daids))
-
-    # Clear Caches
-    ibs.delete_flann_cachedir()
-    clear_memcache()
-    clear_uuid_cache(qreq_)
-
-    # Setup
-    all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
-    # ensure all features are computed
-    #ibs.get_annot_vecs(all_randomize_daids_, ensure=True)
-    #ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
-
-    nnindexer_list = []
-    addition_lbl = 'Addition'
-    _addition_iter = range(initial + 1, max_num, addition_stride)
-    addition_iter = ut.ProgressIter(_addition_iter, lbl=addition_lbl)
-    time_list_addition = []
-    #time_list_reindex = []
-    count_list = []
-    for count in addition_iter:
-        aid_list_ = all_randomize_daids_[0:count]
-        with ut.Timer(verbose=False) as t:
-            nnindexer_ = request_augmented_ibeis_nnindexer(qreq_, aid_list_)
-        nnindexer_list.append(nnindexer_)
-        count_list.append(count)
-        time_list_addition.append(t.ellapsed)
-        print('===============\n\n')
-    print(ut.list_str(time_list_addition))
-    print(ut.list_str(list(map(id, nnindexer_list))))
-    print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
-
-    next_fnum = iter(range(0, 1)).next  # python3 PY3
-    pt.figure(fnum=next_fnum())
-    pt.plot2(count_list, time_list_addition, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=addition_lbl + ' Time')
-    pt.legend()
-    if update:
-        pt.update()
+    global CURRENT_THREAD
+    if CURRENT_THREAD is not None:
+        if CURRENT_THREAD.is_alive():
+            print('[FG] background thread is not ready yet')
+            return
+    # Get info set in background process
+    finishtup = CURRENT_THREAD.finishtup
+    (uuid_map_fpath, daids_hashid, visual_uuid_list, min_reindex_thresh) = finishtup
+    # Clean up background process
+    CURRENT_THREAD.join()
+    CURRENT_THREAD = None
+    # Write data to current uuidcache
+    if len(visual_uuid_list) > min_reindex_thresh:
+        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
 
 
 def request_background_nnindexer(qreq_, daid_list):
@@ -1295,7 +1094,7 @@ def request_background_nnindexer(qreq_, daid_list):
         daid_list (list):
 
     Returns:
-        ?: False
+        bool:
 
     CommandLine:
         python -m ibeis.model.hots.neighbor_index --test-request_background_nnindexer
@@ -1338,14 +1137,16 @@ def request_background_nnindexer(qreq_, daid_list):
     flann_params['cores'] = 2  # Only ues a few cores in the background
     # Build/Load the flann index
     #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
-    uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
+    uuid_map_fpath   = get_nnindexer_uuid_map_fpath(qreq_)
     visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
 
-    threadobj = ut.spawn_background_process(
+    # set temporary attribute for when the thread finishes
+    finishtup = (uuid_map_fpath, daids_hashid, visual_uuid_list, min_reindex_thresh)
+    CURRENT_THREAD = ut.spawn_background_process(
         background_flann_func, cachedir, aid_list, vecs_list, fgws_list,
-        flann_params, cfgstr, uuid_map_fpath, daids_hashid, visual_uuid_list,
-        min_reindex_thresh)
-    CURRENT_THREAD = threadobj
+        flann_params, cfgstr)
+
+    CURRENT_THREAD.finishtup = finishtup
 
 
 def background_flann_func(cachedir, aid_list, vecs_list, fgws_list, flann_params, cfgstr,
@@ -1356,16 +1157,12 @@ def background_flann_func(cachedir, aid_list, vecs_list, fgws_list, flann_params
     # FIXME. dont use flann cache
     #nntool.flann_cache(idx2_vec, **flannkw)
     nnindexer = NeighborIndex(flann_params, cfgstr)
-    #if verbose:
-    #    print('[nnindex] nnindexer.init_support()')
     # Initialize neighbor with unindexed data
     nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=True)
-    #if verbose:
-    #    print('[nnindex] nnindexer.load_or_build()')
     # Load or build the indexing structure
     nnindexer.load_or_build(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:
-        write_to_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
     print('[BG] Finished Background FLANN')
 
 

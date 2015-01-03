@@ -1,3 +1,7 @@
+"""
+module which uses multiple flann indexes as a way of working around adding
+points to a single flann structure which seems to cause crashes.
+"""
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import zip, map, range
@@ -126,6 +130,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         num_indexers = 8
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
+        neighbor_index.check_background_process(qreq_, daid_list)
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         # Use greedy set cover to get a list of nnindxers that are already built
         tup = neighbor_index.group_daids_by_cached_nnindexer(
