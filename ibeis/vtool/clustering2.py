@@ -189,7 +189,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
         >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
 
     CommandLine:
-        profiler.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+        utprof.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
         python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
     """
     if samples_per_iter is None:
