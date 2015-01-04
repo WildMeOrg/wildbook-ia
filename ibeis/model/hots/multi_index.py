@@ -130,7 +130,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         num_indexers = 8
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
-        neighbor_index.check_background_process(qreq_, daid_list)
+        neighbor_index.check_background_process()
         min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         # Use greedy set cover to get a list of nnindxers that are already built
         tup = neighbor_index.group_daids_by_cached_nnindexer(
@@ -574,7 +574,7 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.multi_index --allexamples
         python -m ibeis.model.hots.multi_index --allexamples --noface --nosrc
 
-        profiler.sh ibeis/model/hots/multi_index.py --allexamples
+        utprof.sh ibeis/model/hots/multi_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

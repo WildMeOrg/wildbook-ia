@@ -715,7 +715,7 @@ if __name__ == '__main__':
     """
     CommandLine:
         python -m ibeis.model.hots.query_request --test-QueryParams
-        profiler.sh -m ibeis.model.hots.query_request --test-QueryParams
+        utprof.sh -m ibeis.model.hots.query_request --test-QueryParams
 
         python -m ibeis.model.hots.query_request
         python -m ibeis.model.hots.query_request --allexamples

@@ -4,8 +4,7 @@ Please only download files as needed.
 """
 from __future__ import division, print_function
 import parse
-import os
-import utool
+#import os
 import utool as ut
 from six.moves import filterfalse
 import urllib2
@@ -16,6 +15,45 @@ UNOFFICIAL_WEBURL = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 OS_VERSION = 'win32'
 PY_VERSION = 'py2.7'
 #PY_VERSION = 'py3.4'
+
+# force redownload of hrefs
+FORCE = ut.get_argflag('--force')
+
+
+# TODO: implement this
+class CPlatPkg(object):
+    def __init__(self,
+                 default_name,
+                 pkgmanager_map={},
+                 alias_list=[]):
+        self.default_name = default_name
+        self.pkgmanager_map = {
+            'default': None,
+            'yum': None,
+            'apt-get': None,
+            'ports': None,
+            'win32unoff': None,
+        }
+        self.alias_list = alias_list
+        self.pkgmanager_map.update(pkgmanager_map)
+
+
+alias_list = [
+
+    CPlatPkg(
+        'line-profiler',
+        {'win32': 'line_profiler'},
+        ['kernprof']),
+
+    CPlatPkg(
+        'numpy',
+        {'win32': 'numpy-MKL'}),
+    # alias_tup = (std_dict, alias_list)
+    # std_dict = keys=packagemanager, vals=truename
+    # alias_list = list of names
+    ({'default': 'line_profiler', }, ['line-profiler'],),
+]
+
 
 KNOWN_PKG_LIST = [
     'pip',
@@ -261,13 +299,16 @@ def main():
 
 
 def bootstrap_sysreq(pkg_list='all'):
+    """
+    pkg_list = ['line_profiler']
+    """
     # Still very hacky
     if pkg_list == 'all':
         pkg_list = get_uninstalled_project_names()
 
     py_version = PY_VERSION
     #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
-    #python34_win32_x86_exe = utool.grab_file_url(python34_win32_x64_url)
+    #python34_win32_x86_exe = ut.grab_file_url(python34_win32_x64_url)
     href_list = get_win_packages_href(py_version, pkg_list)
     print('Available hrefs are:\n' +  '\n'.join(href_list))
     pkg_exe_list = download_win_packages(href_list)
@@ -283,11 +324,21 @@ def bootstrap_sysreq(pkg_list='all'):
 def download_win_packages(href_list):
     pkg_exe_list = []
     #href = href_list[0]
-    #pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+    #pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
     #pkg_exe_list += [pkg_exe]
     ## Execute download
     for href in href_list:
-        pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+        # Download the file if you havent already done so
+        pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+        # Check to make sure it worked
+        nBytes = ut.get_file_nBytes(pkg_exe)
+        if nBytes < 1000:
+            print('There may be a problem with %r' % (pkg_exe,))
+            RETRY_PROBLEMS = False
+            if RETRY_PROBLEMS:
+                # retry if file was probably corrupted
+                ut.delete(pkg_exe)
+                pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
         pkg_exe_list += [pkg_exe]
     return pkg_exe_list
 
@@ -323,8 +374,13 @@ def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
     return filtered_list4, missing
 
 
-def get_unofficial_package_hrefs(force=False):
-    """ Downloads the entire webpage of available hrefs """
+def get_unofficial_package_hrefs(force=None):
+    """
+    Downloads the entire webpage of available hrefs
+
+    """
+    if force is None:
+        force = FORCE
 
     cachedir = ut.get_app_resource_dir('utool')
     try:
@@ -332,10 +388,10 @@ def get_unofficial_package_hrefs(force=False):
             raise Exception('cachemiss')
         all_href_list = ut.load_cache(cachedir, 'win32_hrefs', 'all_href_list')
         page_str      = ut.load_cache(cachedir, 'win32_hrefs', 'page_str')
-        print('cache hit')
+        print('all_href_list cache hit')
         return all_href_list, page_str
     except Exception:
-        print('cache miss')
+        print('all_href_list cache miss')
         pass
     # Read page html
     headers = { 'User-Agent' : 'Mozilla/5.0' }

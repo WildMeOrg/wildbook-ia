@@ -1,5 +1,19 @@
 """
 module which handles the building and caching of individual flann indexes
+
+
+CommandLine:
+    # Runs the incremental query test
+    # {0:testdb1, 1:PZ_MTEST, 2:GZ_ALL, 3:PZ_Master0}
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3
+
+    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1
+    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -55,7 +69,7 @@ class ContextUUIDMap(object):
         self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
 
     @profile
-    def read_uuid_map_global(uuid_map_fpath, min_reindex_thresh):
+    def read_uuid_map_global(self, uuid_map_fpath, min_reindex_thresh):
         """ uses global variable instead of disk """
         global UUID_MAP
         uuid_map = UUID_MAP[uuid_map_fpath]
@@ -66,14 +80,14 @@ class ContextUUIDMap(object):
         return candidate_uuids
 
     @profile
-    def write_uuid_map_global(uuid_map_fpath, visual_uuid_list, daids_hashid):
+    def write_uuid_map_global(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
         """ uses global variable instead of disk """
         global UUID_MAP
         uuid_map = UUID_MAP[uuid_map_fpath]
         uuid_map[daids_hashid] = visual_uuid_list
 
     @profile
-    def read_uuid_map_shelf(uuid_map_fpath, min_reindex_thresh):
+    def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
         with lockfile.LockFile(uuid_map_fpath + '.lock'):
             with ut.shelf_open(uuid_map_fpath) as uuid_map:
                 candidate_uuids = {
@@ -83,14 +97,14 @@ class ContextUUIDMap(object):
         return candidate_uuids
 
     @profile
-    def write_uuid_map_shelf(uuid_map_fpath, visual_uuid_list, daids_hashid):
+    def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
         print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
         with lockfile.LockFile(uuid_map_fpath + '.lock'):
             with ut.shelf_open(uuid_map_fpath) as uuid_map:
                 uuid_map[daids_hashid] = visual_uuid_list
 
     @profile
-    def read_uuid_map_cpkl(uuid_map_fpath, min_reindex_thresh):
+    def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
         with lockfile.LockFile(uuid_map_fpath + '.lock'):
             #with ut.shelf_open(uuid_map_fpath) as uuid_map:
             try:
@@ -104,7 +118,7 @@ class ContextUUIDMap(object):
         return candidate_uuids
 
     @profile
-    def write_uuid_map_cpkl(uuid_map_fpath, visual_uuid_list, daids_hashid):
+    def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
         """
         let the multi-indexer know about any big caches we've made multi-indexer.
         Also lets nnindexer know about other prebuilt indexers so it can attempt to
@@ -1074,10 +1088,9 @@ def check_background_process():
     writes the uuid map to disk
     """
     global CURRENT_THREAD
-    if CURRENT_THREAD is not None:
-        if CURRENT_THREAD.is_alive():
-            print('[FG] background thread is not ready yet')
-            return
+    if CURRENT_THREAD is None or CURRENT_THREAD.is_alive():
+        print('[FG] background thread is not ready yet')
+        return
     # Get info set in background process
     finishtup = CURRENT_THREAD.finishtup
     (uuid_map_fpath, daids_hashid, visual_uuid_list, min_reindex_thresh) = finishtup
@@ -1176,7 +1189,7 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.neighbor_index --allexamples
         python -m ibeis.model.hots.neighbor_index --allexamples --noface --nosrc
 
-        profiler.sh ibeis/model/hots/neighbor_index.py --allexamples
+        utprof.sh ibeis/model/hots/neighbor_index.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

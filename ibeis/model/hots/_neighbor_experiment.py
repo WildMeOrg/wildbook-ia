@@ -19,7 +19,7 @@ def flann_add_time_experiment(update=False):
 
     CommandLine:
         python -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
-        profiler.py -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
+        utprof.py -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -146,7 +146,7 @@ def augment_nnindexer_experiment(update=True):
     python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.neighbor_index', 'augment_nnindexer_experiment'))"
 
     CommandLine:
-        profiler.py -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
+        utprof.py -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
         python -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
 
     Example:
