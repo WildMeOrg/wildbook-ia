@@ -205,7 +205,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         # Ensure that all chips are computed
         preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         config = {
-            'scale_list': [1.0],
+            # 'scale_list': [1.0],
             'output_gpath_list': probchip_fpath_list,
             'mode': 1,
         }

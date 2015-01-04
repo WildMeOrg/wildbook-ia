@@ -220,7 +220,9 @@ def _get_models(species, modeldir='default', verbose=VERBOSE_RF):
     if ut.checkpath(trees_path, verbose=verbose):
         direct = Directory(trees_path, include_extensions=['txt'])
         print(direct.files())
-        return direct.files()
+        files = direct.files()
     else:
         # If the models do not exist, return None
-        return None
+        files = None
+    assert files is not None, '[_get_models] Cannot detect without specifying a species'
+    return files
