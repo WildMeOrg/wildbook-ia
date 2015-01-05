@@ -625,7 +625,7 @@ class IBEISController(object):
                     content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
                 # Write to the configuration
                 print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-                ut.cmd('echo "%s" > %s' (content, dst_config), sudo=True)
+                ut.cmd('echo "%s" > %s' % (content, dst_config), sudo=True)
                 # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
                 #     f.write(content)
                 # Call Wildbook url to signal update
