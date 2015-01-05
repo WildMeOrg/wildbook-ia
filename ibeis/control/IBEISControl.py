@@ -784,7 +784,8 @@ class IBEISController(object):
                     use_bigcache=None,
                     qreq_=None,
                     return_request=False,
-                    verbose=pipeline.VERB_PIPELINE):
+                    verbose=pipeline.VERB_PIPELINE,
+                    save_qcache=None):
         r"""
         Args:
             qaid_list (list):
@@ -817,7 +818,8 @@ class IBEISController(object):
         res = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
-            return_request=return_request, verbose=verbose)
+            return_request=return_request, verbose=verbose,
+            save_qcache=save_qcache)
 
         with ut.EmbedOnException():
 
@@ -839,7 +841,8 @@ class IBEISController(object):
                       return_request=False,
                       cfgdict=None,
                       qreq_=None,
-                      verbose=pipeline.VERB_PIPELINE):
+                      verbose=pipeline.VERB_PIPELINE,
+                      save_qcache=None):
         """
         main entrypoint to submitting a query request
 
@@ -884,7 +887,7 @@ class IBEISController(object):
         res = mc4.submit_query_request(
             ibs,  qaid_list, daid_list, use_cache, use_bigcache,
             return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
-            verbose=verbose)
+            verbose=verbose, save_qcache=save_qcache)
 
         if return_request:
             qaid2_qres, qreq_ = res

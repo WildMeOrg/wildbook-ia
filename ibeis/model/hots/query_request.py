@@ -173,6 +173,7 @@ class QueryRequest(object):
         qreq_.set_external_daids(daid_list)
         qreq_.set_external_qaids(qaid_list)
 
+    @profile
     def add_internal_daids(qreq_, new_daids):
         """
         State Modification: add new daid to query request. Should only be
@@ -181,7 +182,7 @@ class QueryRequest(object):
         qreq_.internal_daids_mask = None
         qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
         # TODO: multi-indexer add_support
-        #qreq_.indexer.add_support(new_daids)
+        qreq_.indexer.add_ibeis_support(qreq_, new_daids)
 
     @profile
     def shallowcopy(qreq_, qx=None, dx=None):

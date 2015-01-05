@@ -8,6 +8,7 @@ from six.moves import zip, map, range
 from ibeis import ibsfuncs
 import numpy as np
 import utool as ut
+import vtool as vt
 from ibeis.model.hots import neighbor_index
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
@@ -343,13 +344,6 @@ class MultiNeighborIndex(object):
                          for nnindexer in mxer.nn_indexer_list]
         return nIndexed_list
 
-    def add_support(mxer, new_aid_list, new_vecs_list, new_fgws_list, verbose=True):
-        """
-        Chooses indexer with smallest number of annotations and reindexes it.
-        """
-        print('adding multi-indexer support')
-        raise NotImplementedError()
-
     def get_multi_indexed_aids(mxer):
         index_aids_list = np.array([nnindexer.get_indexed_aids() for nnindexer in
                                      mxer.nn_indexer_list])
@@ -361,9 +355,15 @@ class MultiNeighborIndex(object):
         return num_indexed_list
 
     def assert_can_add_aids(mxer, new_aid_list):
-        import vtool as vt
         indexed_aids = np.hstack(mxer.get_multi_indexed_aids())
         assert np.all(vt.get_uncovered_mask(indexed_aids, new_aid_list)), 'new aids must be disjoint from current aids'
+
+    def add_support(mxer, new_aid_list, new_vecs_list, new_fgws_list, verbose=True):
+        """
+        Chooses indexer with smallest number of annotations and reindexes it.
+        """
+        print('adding multi-indexer support')
+        raise NotImplementedError()
 
     def add_ibeis_support(mxer, qreq_, new_aid_list):
         """
@@ -496,7 +496,6 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
-            >>> import vtool as vt
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qaid = 1
