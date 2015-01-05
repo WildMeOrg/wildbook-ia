@@ -410,15 +410,15 @@ class ANNOTATIONInteraction(object):
         but_width = self.but_width
         but_height = self.but_height
         self.add_ax  = self.fig.add_axes([0.21, 0.01, but_width, but_height])
-        self.add_but = Button(self.add_ax, 'Add Rectangle\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
+        self.add_but = Button(self.add_ax, 'Add Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
         self.del_ax  = self.fig.add_axes([0.41, 0.01, but_width, but_height])
-        self.del_but = Button(self.del_ax, 'Delete Rectangle\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
+        self.del_but = Button(self.del_ax, 'Delete Annotation\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
         self.accept_ax  = self.fig.add_axes([0.61, 0.01, but_width, but_height])
-        self.accept_but = Button(self.accept_ax, 'Accept and Save\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
+        self.accept_but = Button(self.accept_ax, 'Save and Exit\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
@@ -428,12 +428,12 @@ class ANNOTATIONInteraction(object):
         self.next_callback = next_callback
         if self.prev_callback is not None:
             self.prev_ax = self.fig.add_axes([0.01, 0.01, but_width, but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Annotation\n(left arrow)')
+            self.prev_but = Button(self.prev_ax, 'Save and Previous Image\n(left arrow)')
             self.prev_but.on_clicked(self.prev_annotation)
 
         if self.next_callback is not None:
             self.next_ax = self.fig.add_axes([0.81, 0.01, but_width, but_height])
-            self.next_but = Button(self.next_ax, 'Next Annotation\n(right arrow)')
+            self.next_but = Button(self.next_ax, 'Save and Next Image\n(right arrow)')
             self.next_but.on_clicked(self.next_annotation)
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
