@@ -452,6 +452,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(int)
     def delete_encounter(back, eid_list):
         print('\n\n[back] delete encounter')
+        if back.contains_special_encounters(eid_list):
+            back.display_special_encounters_error()
+            return
         if not back.are_you_sure():
             return
         back.ibs.delete_encounters(eid_list)
@@ -474,6 +477,9 @@ class MainWindowBackend(QtCore.QObject):
     def merge_encounters(back, eid_list, destination_eid):
         assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
         print('[back] merge_encounters: %r, %r' % (destination_eid, eid_list))
+        if back.contains_special_encounters(eid_list):
+            back.display_special_encounters_error()
+            return
         ibs = back.ibs
         try:
             destination_index = eid_list.index(destination_eid)
@@ -1171,3 +1177,12 @@ class MainWindowBackend(QtCore.QObject):
         else:
             eid = kwargs['eid']
         return eid
+
+    def contains_special_encounters(back, eid_list):
+        enctext_list = back.ibs.get_encounter_enctext(eid_list)
+        is_valid = [enctext not in const.SPECIAL_ENCOUNTER_LABELS for enctext in enctext_list]
+        #filtered_eid_list = ut.filter_items(eid_list, is_valid)
+        return not all(is_valid)
+
+    def display_special_encounters_error(back):
+        back.user_info(msg="Contains special encounters")
