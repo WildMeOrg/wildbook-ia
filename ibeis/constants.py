@@ -134,6 +134,11 @@ ALL_IMAGE_ENCTEXT        = 'All Images'
 UNREVIEWED_IMAGE_ENCTEXT = 'Unreviewed Images'
 REVIEWED_IMAGE_ENCTEXT   = 'Reviewed Images'
 UNGROUPED_IMAGES_ENCTEXT = 'Ungrouped Images'
+SPECIAL_ENCOUNTER_LABELS = [EXEMPLAR_ENCTEXT,
+                            ALL_IMAGE_ENCTEXT,
+                            UNREVIEWED_IMAGE_ENCTEXT,
+                            REVIEWED_IMAGE_ENCTEXT,
+                            UNGROUPED_IMAGES_ENCTEXT]
 NEW_ENCOUNTER_ENCTEXT = 'NEW ENCOUNTER'
 
 #IMAGE_THUMB_SUFFIX = '_thumb.png'

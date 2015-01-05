@@ -22,7 +22,6 @@ from ibeis import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_annotations2
-from ibeis import constants
 from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
                                   NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
@@ -89,7 +88,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
         enc_tabwgt.eid_list = []
         # TURNING ON / OFF ALL IMAGES
-        # enc_tabwgt._add_enc_tab(-1, constants.ALL_IMAGE_ENCTEXT)
+        # enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_ENCTEXT)
 
     @slot_(int)
     def _on_change(enc_tabwgt, index):
@@ -125,7 +124,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
     def _add_enc_tab(enc_tabwgt, eid, enctext):
         # <HACK>
-        # if enctext == constants.ALL_IMAGE_ENCTEXT:
+        # if enctext == const.ALL_IMAGE_ENCTEXT:
         #     eid = None
         # </HACK>
         if eid not in enc_tabwgt.eid_list:
@@ -330,7 +329,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         detection_combo_box_options = [
             # Text              # Value
             ('Select Species',  'none'),
-        ] + list(zip(constants.SPECIES_NICE, constants.VALID_SPECIES))
+        ] + list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 
@@ -356,8 +355,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         detection_combo_box_options = [
             # Text              # Value
-            #('4) Intra Encounter', constants.INTRA_ENC_KEY),
-            ('5) Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
+            #('4) Intra Encounter', const.INTRA_ENC_KEY),
+            ('5) Vs Exemplars',    const.VS_EXEMPLARS_KEY),
         ]
         #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
         #                              ibswgt.back.change_query_mode)
@@ -555,14 +554,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         try:
             #if eid is None:
             #    # HACK
-            #    enctext = constants.ALL_IMAGE_ENCTEXT
+            #    enctext = const.ALL_IMAGE_ENCTEXT
             #else:
             #    enctext = ibswgt.ibs.get_encounter_enctext(eid)
             ibswgt.back.select_eid(eid)
             ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species)
             #text_list = [
             #    'Identify Mode: Within-Encounter (%s vs. %s)' % (enctext, enctext),
-            #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, constants.EXEMPLAR_ENCTEXT)]
+            #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, const.EXEMPLAR_ENCTEXT)]
             #text_list = [
             #    'Identify Mode: Within-Encounter' ,
             #    'Identify Mode: Exemplars']
@@ -571,7 +570,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.querydb_combo.setOptionText(text_list)
             #ibswgt.query_
             #ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
+            #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
 
