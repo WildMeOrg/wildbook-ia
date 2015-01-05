@@ -617,14 +617,17 @@ class IBEISController(object):
             hostname = '127.0.0.1'
             addr = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
             # With a lock file, modify the configuration with the new settings
-            with lockfile.LockFile(join(wildbook_properties_path_, '.lock')):
+            with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
                 with open(join(wildbook_properties_path_, src_config), 'r') as f:
                     content = f.readlines()
-                with open(join(wildbook_properties_path_, dst_config), 'w') as f:
                     content = content.replace('__IBEIS_DB_PATH__', ibs.get_dbdir())
                     content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
-                    f.write(content)
+                # Write to the configuration
+                print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
+                ut.cmd('echo "%s" > %s' (content, dst_config), sudo=True)
+                # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
+                #     f.write(content)
                 # Call Wildbook url to signal update
                 print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
                 if eid_list is None:
