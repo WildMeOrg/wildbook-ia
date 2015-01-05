@@ -53,9 +53,12 @@ class ChangeLayoutContext(object):
     def __enter__(self):
         for model in self.model_list:
             if model._get_context_id() is not None:
+                print("[ChangeLayoutContext] WARNING: ENTERING CONTEXT TWICE")
                 continue
             model._set_context_id(id(self))
-            model._about_to_change()
+            print("[ChangeLayoutContext] ENTERING CONTEXT, context_id: %r" % (model._get_context_id(), ))
+            isabouttochange = model._about_to_change()
+            print("... isabouttochange = %r" % (isabouttochange,))
             model._set_changeblocked(True)
         return self
 
@@ -65,9 +68,11 @@ class ChangeLayoutContext(object):
             return False  # return a falsey value on error
         for model in self.model_list:
             if model._get_context_id() == id(self):
+                print("[ChangeLayoutContext] EXITING CONTEXT, context_id: %r" % (id(self), ))
                 model._set_context_id(None)
                 model._set_changeblocked(False)
-                model._change()
+                didchange = model._change()
+                print("... didchange = %r" % (didchange,))
 
 
 def default_method_decorator(func):
@@ -209,6 +214,7 @@ class APIItemModel(API_MODEL_BASE):
         Uses the current ider and col_sort_index to create
         row_indicies
         """
+        print("!!!!!!!!!UPDATE ROWS!!!!!!!!!")
         if VERBOSE:
             print('[APIItemModel] +-----------')
             print('[APIItemModel] _update_rows')
