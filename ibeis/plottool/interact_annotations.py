@@ -344,7 +344,7 @@ class ANNOTATIONInteraction(object):
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
-            'Press enter to clear the species tag of the selected ANNOTATION',
+            #'Press enter to clear the species tag of the selected ANNOTATION',
             'Type to set the species tag of the selected ANNOTATION', ])))
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
@@ -732,9 +732,10 @@ class ANNOTATIONInteraction(object):
         # enter clears the species tag, workaround since matplotlib doesn't seem
         # to trigger 'key_press_event's for backspace (which would be the
         # preferred interface)
-        match = re.match('^enter$', event.key)
-        if match:
-            self._currently_selected_poly.species_tag.set_text('')
+        #match = re.match('^enter$', event.key)
+        #if match:
+        #    self._currently_selected_poly.species_tag.set_text('')
+        # FIXED, but leaving for posterity
 
         match = re.match('^backspace$', event.key)
         if match:
