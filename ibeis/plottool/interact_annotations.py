@@ -693,6 +693,7 @@ class ANNOTATIONInteraction(object):
     def key_press_callback(self, event):
         """ whenever a key is pressed """
         #print('[interact_annot] key_press_callback')
+        print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
             return
 
@@ -722,6 +723,7 @@ class ANNOTATIONInteraction(object):
                 text += keychar
                 self._currently_selected_poly.species_tag.set_text(text)
 
+
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
         match = re.match('^ctrl\+(.)$', event.key)
         if match:
@@ -733,6 +735,12 @@ class ANNOTATIONInteraction(object):
         match = re.match('^enter$', event.key)
         if match:
             self._currently_selected_poly.species_tag.set_text('')
+
+        match = re.match('^backspace$', event.key)
+        if match:
+            text = self._currently_selected_poly.species_tag.get_text()
+            self._currently_selected_poly.species_tag.set_text(text[:-1])
+
 
         match = re.match('^.$', event.key)
         if match:
