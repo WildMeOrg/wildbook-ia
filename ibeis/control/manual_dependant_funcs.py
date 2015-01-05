@@ -274,8 +274,8 @@ def get_feat_config_rowid(ibs):
 
 
 @register_ibs_method
-@accessor_decors.cache_getter(const.FEATURE_TABLE, FEAT_KPTS)
 @getter_1toM
+@accessor_decors.cache_getter(const.FEATURE_TABLE, FEAT_KPTS)
 def get_feat_kpts(ibs, fid_list, eager=True, nInput=None):
     """
     Returns:
@@ -286,8 +286,8 @@ def get_feat_kpts(ibs, fid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.cache_getter(const.FEATURE_TABLE, FEAT_VECS)
 @getter_1toM
+@accessor_decors.cache_getter(const.FEATURE_TABLE, FEAT_VECS)
 def get_feat_vecs(ibs, fid_list, eager=True, nInput=None):
     """
     Returns:

@@ -33,9 +33,11 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> aid_list, score_list = qres.get_aids_and_scores()
         >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
-        >>> result = np.array_repr(sorted_nids[0:3])
+        >>> result = np.array_repr(sorted_nids[0:2])
         >>> print(result)
-        array([ 1,  5, 41])
+        array([1, 5])
+
+    array([ 1,  5, 26])
 
     [2 6 5]
     """

@@ -1,8 +1,16 @@
+"""
+handles the "special" more complex vs-one re-ranked query
+
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 8690
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+"""
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 import numpy as np
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import match_chips4 as mc4
 from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
@@ -18,6 +26,110 @@ def testdata_special_query(dbname=None):
     #ibs = ibeis.opendb('PZ_MTEST')
     valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
     return ibs, valid_aids
+
+
+@profile
+def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
+    """
+    main special query entry point
+
+    A hacked in vsone-reranked pipeline
+    Actually just two calls to the pipeline
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (list):  query annotation ids
+        daids (list):  database annotation ids
+        qreq_vsmany_ (QueryRequest):  used for persitant QueryRequest objects
+            if None creates new query request otherwise
+
+    Returns:
+        tuple: qaid2_qres, qreq_
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-query_vsone_verified
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> ibs, valid_aids = testdata_special_query('PZ_MTEST')
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
+        >>> # execute function
+        >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
+        >>> qres = qaid2_qres[qaid]
+
+    Ignore:
+        from ibeis.model.hots import score_normalization
+
+        qres = qaid2_qres_vsmany[qaid]
+
+        ibs.delete_qres_cache()
+        qres = qaid2_qres[qaid]
+        qres.show_top(ibs, update=True, name_scoring=True)
+
+        qres_vsmany = qaid2_qres_vsmany[qaid]
+        qres_vsmany.show_top(ibs, update=True, name_scoring=True)
+
+        qres_vsone = qaid2_qres_vsone[qaid]
+        qres_vsone.show_top(ibs, update=True, name_scoring=True)
+
+    """
+    if len(daids) == 0:
+        print('[special_query.X] no daids... returning empty query')
+        return mc4.empty_query(ibs, qaids)
+    use_cache = True
+    use_cache = False
+
+    # vs-many initial scoring
+    print('[special_query.1] issue vsmany query')
+    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids,
+                                                           use_cache=use_cache,
+                                                           qreq_vsmany_=qreq_vsmany_)
+
+    # HACK TO JUST USE VSMANY
+    # this can ensure that the baseline system is not out of wack
+    USE_VSMANY_HACK = ut.get_argflag('--vsmany-hack')
+    if USE_VSMANY_HACK:
+        print('[special_query.X] vsmany hack on... returning vsmany result')
+        qaid2_qres = qaid2_qres_vsmany
+        qreq_ = qreq_vsmany_
+        return qaid2_qres, qreq_
+
+    # build vs one list
+    print('[special_query.2] finished vsmany query... building vsone pairs')
+    vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
+
+    # vs-one reranking
+    print('[special_query.3] issue vsone queries')
+    qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+
+    # hack in score normalization
+    if qreq_vsone_.qparams.score_normalization:
+        qreq_vsone_.load_score_normalizer()
+
+    # Augment vsone queries with vsmany distinctiveness
+    print('[special_query.4] augmenting vsone queries')
+    augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vsmany, qreq_vsone_)
+
+    if ut.VERBOSE:
+        verbose_report_results(ibs, qaids, qaid2_qres_vsone, qaid2_qres_vsmany)
+
+    print('[special_query.5] finished vsone query... checking results')
+
+    # FIXME: returns the last qreq_. There should be a notion of a query
+    # request for a vsone reranked query
+    qaid2_qres = qaid2_qres_vsone
+    qreq_ = qreq_vsone_
+    all_failed_qres = all([qres is None for qres in six.itervalues(qaid2_qres)])
+    any_failed_qres = any([qres is None for qres in six.itervalues(qaid2_qres)])
+    if any_failed_qres:
+        assert all_failed_qres, "Needs to finish implemetation"
+        print('[special_query.X] failed vsone qreq... returning empty query')
+        return mc4.empty_query(ibs, qaids)
+    print('[special_query.5] finished special query')
+    return qaid2_qres, qreq_
 
 
 def choose_vsmany_K(num_names, qaids, daids):
@@ -64,11 +176,13 @@ def choose_vsmany_K(num_names, qaids, daids):
 @profile
 def query_vsmany_initial(ibs, qaids, daids, use_cache=True, qreq_vsmany_=None):
     r"""
+
     Args:
         ibs (IBEISController):  ibeis controller object
-        qaids (?):
-        daids (?):
-        use_cache (bool):
+        qaids (list):  query annotation ids
+        daids (list):  database annotation ids
+        use_cache (bool):  turns on disk based caching
+        qreq_vsmany_ (QueryRequest):  persistant vsmany query request
 
     Returns:
         tuple: (newfsv_list, newscore_aids)
@@ -107,6 +221,7 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True, qreq_vsmany_=None):
     return qaid2_qres_vsmany, qreq_vsmany_
 
 
+@profile
 def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
     """
     looks that the top N names in a vsmany query to apply vsone reranking
@@ -214,6 +329,30 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
     # Hack in a special config name
     qreq_vsone_.qparams.query_cfgstr = '_special' + qreq_vsone_.qparams.query_cfgstr
     return qaid2_qres_vsone, qreq_vsone_
+
+
+@profile
+def augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vsmany, qreq_vsone_):
+    """
+    AUGMENT VSONE QUERIES (BIG HACKS AFTER THIS POINT)
+    Apply vsmany distinctiveness scores to vsone
+    """
+    for qaid, top_aids in vsone_query_pairs:
+        qres_vsone = qaid2_qres_vsone[qaid]
+        qres_vsmany = qaid2_qres_vsmany[qaid]
+        #with ut.EmbedOnException():
+        if len(top_aids) == 0:
+            print('Warning: top_aids is len 0')
+            qaid = qres_vsmany.qaid
+            continue
+        qres_vsone.assert_self()
+        qres_vsmany.assert_self()
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+        newfsv_list, newscore_aids = get_new_qres_distinctiveness(
+            qres_vsone, qres_vsmany, top_aids, filtkey)
+        with ut.EmbedOnException():
+            apply_new_qres_filter_scores(
+                qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
 
 
 @profile
@@ -410,167 +549,16 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         qres_vsone.aid2_prob = daid2_prob
 
 
-def empty_query(ibs, qaids):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        qaids (?):
-
-    Returns:
-        tuple: (qaid2_qres, qreq_)
-
-    CommandLine:
-        python -m ibeis.model.hots.special_query --test-empty_query --show
-        python -m ibeis.model.hots.special_query --test-empty_query
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.special_query import *  # NOQA
-        >>> ibs, valid_aids = testdata_special_query()
-        >>> # execute function
-        >>> (qaid2_qres, qreq_) = empty_query(ibs, valid_aids)
-        >>> # verify results
-        >>> result = str((qaid2_qres, qreq_))
-        >>> print(result)
-        >>> qres = qaid2_qres[valid_aids[0]]
-        >>> if ut.get_argflag('--show'):
-        ...    qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
-        ...    from matplotlib import pyplot as plt
-        ...    plt.show()
-        >>> ut.assert_eq(len(qres.get_top_aids()), 0)
-    """
-    daids = []
-    qreq_ = ibs.new_query_request(qaids, daids)
-    qres_list = qreq_.make_empty_query_results()
-    for qres in qres_list:
-        qres.aid2_score = {}
-    qaid2_qres = dict(zip(qaids, qres_list))
-    return qaid2_qres, qreq_
-
-
-#@ut.indent_func
-@profile
-def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
-    """
-    main special query
-
-    A hacked in vsone-reranked pipeline
-    Actually just two calls to the pipeline
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        qaids (list):
-        daids (list):
-        qreq_vsmany_ (QueryRequest): used for persitant QueryRequest objects
-            if None creates new query request otherwise
-
-
-    Returns:
-        tuple: qaid2_qres, qreq_
-
-    CommandLine:
-        python -m ibeis.model.hots.special_query --test-query_vsone_verified
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.special_query import *  # NOQA
-        >>> ibs, valid_aids = testdata_special_query('PZ_MTEST')
-        >>> qaids = valid_aids[0:1]
-        >>> daids = valid_aids[1:]
-        >>> qaid = qaids[0]
-        >>> # execute function
-        >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
-        >>> qres = qaid2_qres[qaid]
-
-    Ignore:
-        from ibeis.model.hots import score_normalization
-
-        qres = qaid2_qres_vsmany[qaid]
-
-        ibs.delete_qres_cache()
-        qres = qaid2_qres[qaid]
-        qres.show_top(ibs, update=True, name_scoring=True)
-
-        qres_vsmany = qaid2_qres_vsmany[qaid]
-        qres_vsmany.show_top(ibs, update=True, name_scoring=True)
-
-        qres_vsone = qaid2_qres_vsone[qaid]
-        qres_vsone.show_top(ibs, update=True, name_scoring=True)
-
-    """
-    if len(daids) == 0:
-        return empty_query(ibs, qaids)
-    use_cache = True
-    use_cache = False
-
-    # vs-many initial scoring
-    print('issuing vsmany part')
-    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids,
-                                                           use_cache=use_cache,
-                                                           qreq_vsmany_=qreq_vsmany_)
-    print('finished vsmany part')
-    #qreq_vsmany_.qparams.prescore_method
-
-    # HACK TO JUST USE VSMANY
-    # this can ensure that the baseline system is not out of wack
-    USE_VSMANY_HACK = False
-    if USE_VSMANY_HACK:
-        qaid2_qres = qaid2_qres_vsmany
-        qreq_ = qreq_vsmany_
-        return qaid2_qres, qreq_
-
-    # build vs one list
-    print('[query_vsone_verified] building vsone pairs')
-    vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-
-    # vs-one reranking
-    print('running vsone queries')
-    qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
-    # hack in score normalization
-    if qreq_vsone_.qparams.score_normalization:
-        qreq_vsone_.load_score_normalizer()
-
-    # AUGMENT VSONE QUERIES (BIG HACKS AFTER THIS POINT)
-    # Apply vsmany distinctiveness scores to vsone
-    for qaid, top_aids in vsone_query_pairs:
+def verbose_report_results(ibs, qaids, qaid2_qres_vsone, qaid2_qres_vsmany):
+    for qaid in qaids:
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsmany = qaid2_qres_vsmany[qaid]
-        #with ut.EmbedOnException():
-        if len(top_aids) == 0:
-            print('Warning: top_aids is len 0')
-            qaid = qres_vsmany.qaid
-            continue
-        qres_vsone.assert_self()
-        qres_vsmany.assert_self()
-        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-        newfsv_list, newscore_aids = get_new_qres_distinctiveness(
-            qres_vsone, qres_vsmany, top_aids, filtkey)
-        with ut.EmbedOnException():
-            apply_new_qres_filter_scores(
-                qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
-
-    print('finished vsone queries')
-    if ut.VERBOSE:
-        for qaid in qaids:
-            qres_vsone = qaid2_qres_vsone[qaid]
-            qres_vsmany = qaid2_qres_vsmany[qaid]
-            if qres_vsmany is not None:
-                vsmanyinspectstr = qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True)
-                print(ut.msgblock('VSMANY-INITIAL-RESULT qaid=%r' % (qaid,), vsmanyinspectstr))
-            if qres_vsone is not None:
-                vsoneinspectstr = qres_vsone.get_inspect_str(ibs=ibs, name_scoring=True)
-                print(ut.msgblock('VSONE-VERIFIED-RESULT qaid=%r' % (qaid,), vsoneinspectstr))
-
-    # FIXME: returns the last qreq_. There should be a notion of a query
-    # request for a vsone reranked query
-    qaid2_qres = qaid2_qres_vsone
-    qreq_ = qreq_vsone_
-    all_failed_qres = all([qres is None for qres in six.itervalues(qaid2_qres)])
-    any_failed_qres = any([qres is None for qres in six.itervalues(qaid2_qres)])
-    if any_failed_qres:
-        assert all_failed_qres, "Needs to finish implemetation"
-        return empty_query(ibs, qaids)
-    return qaid2_qres, qreq_
+        if qres_vsmany is not None:
+            vsmanyinspectstr = qres_vsmany.get_inspect_str(ibs=ibs, name_scoring=True)
+            print(ut.msgblock('VSMANY-INITIAL-RESULT qaid=%r' % (qaid,), vsmanyinspectstr))
+        if qres_vsone is not None:
+            vsoneinspectstr = qres_vsone.get_inspect_str(ibs=ibs, name_scoring=True)
+            print(ut.msgblock('VSONE-VERIFIED-RESULT qaid=%r' % (qaid,), vsoneinspectstr))
 
 
 def test_vsone_verified(ibs):

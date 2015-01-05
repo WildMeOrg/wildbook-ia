@@ -1,3 +1,7 @@
+"""
+Reports decisions and confidences about names (identifications) and
+exemplars using query results objects.
+"""
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
@@ -40,6 +44,10 @@ def get_qres_name_choices(ibs, qres):
         >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
         >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> print(choicetup)
+        >>> result = np.array_repr(choicetup.sorted_nids)
+        >>> print(result)
+        array([ 1,  2, -4])
+
     """
     if qres is None:
         nscoretup = list(map(np.array, ([], [], [], [])))
@@ -73,14 +81,14 @@ def get_system_name_suggestion(ibs, choicetup):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.automated_matcher import *  # NOQA
+        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(),
         ...            return_request=True)
         >>> qres = qaid2_qres[1]
-        >>> choicetup = get_qres_choices(ibs, qres)
+        >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup)
         >>> # verify results
         >>> result = str((autoname_msg, name, name_confidence))
@@ -145,18 +153,34 @@ def get_system_exemplar_suggestion(ibs, qaid):
 
     SeeAlso:
         ibsfuncs.prune_exemplars
+
+    CommandLine:
+        python -m ibeis.model.hots.system_suggestor --test-get_system_exemplar_suggestion
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaid = 2
+        >>> # execute function
+        >>> (autoexmplr_msg, exemplar_decision, exemplar_confidence) = get_system_exemplar_suggestion(ibs, qaid)
+        >>> # verify results
+        >>> result = str((autoexmplr_msg, exemplar_decision, exemplar_confidence))
+        >>> print(result)
     """
-    print('Deciding if adding qaid=%r as an exemplar' % (qaid,))
+    print('[suggest_exemplar] Deciding if adding qaid=%r as an exemplar' % (qaid,))
     # Need a good criteria here
     max_exemplars = ibs.cfg.other_cfg.max_exemplars
+    print('[suggest_exemplar] max_exemplars = %r' % max_exemplars)
     other_exemplars = ibs.get_annot_groundtruth(qaid, is_exemplar=True)
     num_other_exemplars = len(other_exemplars)
     #
-    is_non_exemplar = not ibs.get_annot_exemplar_flags(qaid)
+    is_already_exemplar = not ibs.get_annot_exemplar_flags(qaid)
     can_add_more = num_other_exemplars < max_exemplars
-    print('num_other_exemplars = %r' % num_other_exemplars)
-    print('max_exemplars = %r' % max_exemplars)
-    print('is_non_exemplar = %r' % is_non_exemplar)
+    print('[suggest_exemplar] num_other_exemplars = %r' % num_other_exemplars)
+    print('[suggest_exemplar] is_already_exemplar = %r' % is_already_exemplar)
 
     exemplar_confidence = 0
 
@@ -165,9 +189,9 @@ def get_system_exemplar_suggestion(ibs, qaid):
         exemplar_decision = True
         exemplar_confidence = 1.0
         return autoexmplr_msg, exemplar_decision, exemplar_confidence
-    elif is_non_exemplar and can_add_more:
-        print('Testing exemplar disinctiveness')
-        with ut.Indenter('[exemplar_test]'):
+    elif not is_already_exemplar and can_add_more:
+        print('[suggest_exemplar] Testing exemplar disinctiveness')
+        with ut.Indenter('[suggest_exemplar]'):
             exemplar_distinctiveness_thresh = ibs.cfg.other_cfg.exemplar_distinctiveness_thresh
             # Logic to choose query based on exemplar score distance
             qaid_list = [qaid]
@@ -182,9 +206,9 @@ def get_system_exemplar_suggestion(ibs, qaid):
                 is_distinctive = np.all(aid_arr < exemplar_distinctiveness_thresh)
     else:
         is_distinctive = True
-        print('Not testing exemplar disinctiveness')
+        print('[suggest_exemplar] Not testing exemplar disinctiveness')
 
-    do_exemplar_add = (can_add_more and is_distinctive and is_non_exemplar)
+    do_exemplar_add = (can_add_more and is_distinctive and not is_already_exemplar)
     if do_exemplar_add:
         autoexmplr_msg = ('marking as qaid=%r exemplar' % (qaid,))
         exemplar_decision = True
@@ -193,3 +217,16 @@ def get_system_exemplar_suggestion(ibs, qaid):
         autoexmplr_msg = 'annotation is not marked as exemplar'
 
     return autoexmplr_msg, exemplar_decision, exemplar_confidence
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.system_suggestor
+        python -m ibeis.model.hots.system_suggestor --allexamples
+        python -m ibeis.model.hots.system_suggestor --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

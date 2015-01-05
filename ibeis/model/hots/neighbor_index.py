@@ -592,7 +592,7 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         >>> # verify results
         >>> result = str(nnindex_cfgstr)
         >>> print(result)
-        _VUUIDS((6)fvpdb9cud49@ll@+)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+        _VUUIDS((6)fvpdb9cud49@ll@+)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
     """
     flann_cfgstr      = qreq_.qparams.flann_cfgstr
     featweight_cfgstr = qreq_.qparams.featweight_cfgstr
