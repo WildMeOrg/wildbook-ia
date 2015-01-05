@@ -616,15 +616,17 @@ class IBEISController(object):
         def _send(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             submit_url_ = submit_url % (hostname, encounter_uuid)
+            print('[_send] URL=%r' % (submit_url_, ))
             response = ibs._init_wb(submit_url_)
             if response.status_code == 200:
                 return True
             else:
-                raise AssertionError('Wildbook response not OK (200) - %r' % (response.text, ))
+                raise AssertionError('Wildbook response NOT ok (200) - %r' % (ut.dict_str(response.json()), ))
                 return False
         def _complete(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             complete_url_ = complete_url % (hostname, encounter_uuid)
+            print('[_complete] URL=%r' % (complete_url_, ))
             webbrowser.open_new_tab(complete_url_)
         # Setup
         wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
