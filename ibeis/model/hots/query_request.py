@@ -173,6 +173,17 @@ class QueryRequest(object):
         qreq_.set_external_daids(daid_list)
         qreq_.set_external_qaids(qaid_list)
 
+    def add_internal_daids(qreq_, new_daids):
+        """
+        State Modification: add new daid to query request. Should only be
+        done between query pipeline runs
+        """
+        qreq_.internal_daids_mask = None
+        qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
+        # TODO: multi-indexer add_support
+        #qreq_.indexer.add_support(new_daids)
+
+    @profile
     def shallowcopy(qreq_, qx=None, dx=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the qx
@@ -212,6 +223,7 @@ class QueryRequest(object):
     # --- State Modification ---
     # TODO: Dont modify state
 
+    @profile
     def set_external_daids(qreq_, daid_list):
         # DO NOT USE
         #assert len(daid_list) == len(duuid_list), 'unequal len external daids'
@@ -220,6 +232,7 @@ class QueryRequest(object):
         else:
             qreq_.set_internal_qaids(daid_list)
 
+    @profile
     def set_external_qaids(qreq_, qaid_list):
         # TODO make shallow copy instead
         # DO NOT USE
@@ -229,6 +242,7 @@ class QueryRequest(object):
         else:
             qreq_.set_internal_daids(qaid_list)
 
+    @profile
     def set_external_qaid_mask(qreq_, masked_qaid_list):
         r"""
         Args:
@@ -258,6 +272,7 @@ class QueryRequest(object):
 
     # --- Internal Annotation ID Masks ----
 
+    @profile
     def set_internal_masked_daids(qreq_, masked_daid_list):
         """ used by the pipeline to execute a subset of the query request
         without modifying important state """
@@ -271,6 +286,7 @@ class QueryRequest(object):
             assert len(flags) == len(qreq_.internal_daids), 'unequal len internal daids'
             qreq_.internal_daids_mask = flags
 
+    @profile
     def set_internal_masked_qaids(qreq_, masked_qaid_list):
         """
         used by the pipeline to execute a subset of the query request
@@ -302,6 +318,7 @@ class QueryRequest(object):
             assert len(flags) == len(qreq_.internal_qaids), 'unequal len internal qaids'
             qreq_.internal_qaids_mask = flags
 
+    @profile
     def set_internal_unmasked_qaids(qreq_, unmasked_qaid_list):
         """
         used by the pipeline to execute a subset of the query request
@@ -333,6 +350,7 @@ class QueryRequest(object):
 
     # --- Internal Annotation IDs ----
 
+    @profile
     def set_internal_daids(qreq_, daid_list):
         qreq_.internal_daids_mask = None  # Invalidate mask
         qreq_.internal_daids = np.array(daid_list)
@@ -341,6 +359,7 @@ class QueryRequest(object):
         # Index the annotation ids for fast internal lookup
         #qreq_.internal_didx = np.arange(len(daid_list))
 
+    @profile
     def set_internal_qaids(qreq_, qaid_list):
         qreq_.internal_qaids_mask = None  # Invalidate mask
         qreq_.internal_qaids = np.array(qaid_list)
@@ -352,22 +371,26 @@ class QueryRequest(object):
     # --- INTERNAL INTERFACE ---
     # For within pipeline use only
 
+    @profile
     def get_internal_daids(qreq_):
         if qreq_.internal_daids_mask is None:
             return qreq_.internal_daids
         else:
             return qreq_.internal_daids[qreq_.internal_daids_mask]
 
+    @profile
     def get_internal_qaids(qreq_):
         if qreq_.internal_qaids_mask is None:
             return qreq_.internal_qaids
         else:
             return qreq_.internal_qaids[qreq_.internal_qaids_mask]
 
+    @profile
     def get_internal_duuids(qreq_):
         return qreq_.ibs.get_annot_semantic_uuids(qreq_.get_internal_daids())
         #return qreq_.internal_duuids
 
+    @profile
     def get_internal_quuids(qreq_):
         return qreq_.ibs.get_annot_semantic_uuids(qreq_.get_internal_qaids())
         #return qreq_.internal_quuids
@@ -379,6 +402,7 @@ class QueryRequest(object):
 
     # External id-lists
 
+    @profile
     def get_external_daids(qreq_):
         """ These are the users daids in vsone mode """
         if qreq_.qparams.vsmany:
@@ -386,6 +410,7 @@ class QueryRequest(object):
         else:
             return qreq_.get_internal_qaids()
 
+    @profile
     def get_external_qaids(qreq_):
         """ These are the users qaids in vsone mode """
         if qreq_.qparams.vsmany:
@@ -393,6 +418,7 @@ class QueryRequest(object):
         else:
             return qreq_.get_internal_daids()
 
+    @profile
     def get_external_quuids(qreq_):
         """ These are the users qauuids in vsone mode """
         if qreq_.qparams.vsmany:
@@ -400,6 +426,7 @@ class QueryRequest(object):
         else:
             return qreq_.get_internal_duuids()
 
+    @profile
     def get_external_duuids(qreq_):
         """ These are the users qauuids in vsone mode """
         if qreq_.qparams.vsmany:
@@ -409,6 +436,7 @@ class QueryRequest(object):
 
     # External id-hashes
 
+    @profile
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
         try:
@@ -419,6 +447,7 @@ class QueryRequest(object):
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(daids, prefix='D')
         return data_hashid
 
+    @profile
     def get_query_hashid(qreq_):
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
@@ -426,10 +455,12 @@ class QueryRequest(object):
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qaids, prefix='Q')
         return query_hashid
 
+    @profile
     def get_query_cfgstr(qreq_):
         query_cfgstr = qreq_.qparams.query_cfgstr
         return query_cfgstr
 
+    @profile
     def get_cfgstr(qreq_):
         """ main cfgstring used to identify the 'querytype' """
         data_hashid = qreq_.get_data_hashid()
@@ -457,6 +488,7 @@ class QueryRequest(object):
 
     # --- Lazy Loading ---
 
+    @profile
     def lazy_preload(qreq_, verbose=True):
         """
         feature weights and normalizers should be loaded before vsone queries
@@ -489,15 +521,17 @@ class QueryRequest(object):
 
     # load query data structures
 
+    @profile
     def ensure_featweights(qreq_, verbose=True):
         """ ensure feature weights are computed """
-        with ut.EmbedOnException():
-            internal_qaids = qreq_.get_internal_qaids()
-            internal_daids = qreq_.get_internal_daids()
-            # TODO: pass qreq_ down so the right parameters are computed
-            qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, qreq_=qreq_)
-            qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, qreq_=qreq_)
+        #with ut.EmbedOnException():
+        internal_qaids = qreq_.get_internal_qaids()
+        internal_daids = qreq_.get_internal_daids()
+        # TODO: pass qreq_ down so the right parameters are computed
+        qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, qreq_=qreq_)
+        qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, qreq_=qreq_)
 
+    @profile
     def load_indexer(qreq_, verbose=True):
         if qreq_.indexer is not None:
             return False
@@ -509,6 +543,7 @@ class QueryRequest(object):
             indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
         qreq_.indexer = indexer
 
+    @profile
     def load_score_normalizer(qreq_, verbose=True):
         if qreq_.normalizer is not None:
             return False
@@ -558,12 +593,14 @@ class QueryRequest(object):
         infostr = '\n'.join(infostr_list)
         return infostr
 
+    @profile
     def get_external_query_groundtruth(qreq_, qaids):
         """ gets groundtruth that are accessible via this query """
         external_daids = qreq_.get_external_daids()
         gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=external_daids)
         return gt_aids
 
+    @profile
     def get_internal_query_groundtruth(qreq_, qaids):
         """ gets groundtruth that are accessible via this query """
         internal_daids = qreq_.get_internal_daids()

@@ -25,9 +25,12 @@ MIN_BIGCACHE_BUNDLE = 150
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
-                         cfgdict=None, qreq_=None, verbose=pipeline.VERB_PIPELINE):
+                         cfgdict=None, qreq_=None,
+                         verbose=pipeline.VERB_PIPELINE, save_qcache=None):
     """
     The standard query interface.
+
+    TODO: rename use_cache to use_qcache
 
     Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres
     individually.  On an individual cache miss, it preforms the query.
@@ -57,8 +60,11 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
         >>> qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)
     """
+    # Get flag defaults if necessary
     if use_cache is None:
         use_cache = USE_CACHE
+    if save_qcache is None:
+        save_qcache = SAVE_CACHE
     if use_bigcache is None:
         use_bigcache = USE_BIGCACHE
     # Create new query request object to store temporary state
@@ -73,7 +79,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
-    if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
+    if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
@@ -90,10 +96,11 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                     return qaid2_qres
             except IOError:
                 print('... qaid2_qres bigcache miss')
-    # Execute query request
-    qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, verbose=verbose)
     # ------------
-    if len(qaid_list) > MIN_BIGCACHE_BUNDLE:
+    # Execute query request
+    qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=verbose)
+    # ------------
+    if save_qcache and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_qres)
     if return_request:
         return qaid2_qres, qreq_
@@ -102,7 +109,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
 
 #@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
-                              save_cache=SAVE_CACHE, verbose=True):
+                              save_qcache=None, verbose=True):
     """
     Args:
         ibs (IBEISController):
@@ -123,8 +130,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
         >>> use_cache = False
-        >>> save_cache = False
-        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
+        >>> save_qcache = False
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache)
         >>> print(qaid2_qres_hit)
 
     Example2:
@@ -135,8 +142,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
         >>> use_cache = False
-        >>> save_cache = False
-        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_cache)
+        >>> save_qcache = False
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache)
         >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
@@ -157,12 +164,12 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE,
     # Execute and save cachemiss queries
     if qreq_.qparams.vsone:
         # break vsone queries into multiple queries - one for each external qaid
-        qaid2_qres = execute_vsone_query(ibs, qreq_, save_cache=save_cache,
+        qaid2_qres = execute_vsone_query(ibs, qreq_, save_qcache=save_qcache,
                                                   verbose=verbose)
     else:
         # execute non-vsone queries
         qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
-        if save_cache:
+        if save_qcache:
             pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
     # Cache save only misses
     if ut.DEBUG2:
@@ -195,7 +202,7 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
             yield (qaid, qres)
 
 
-def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
+def execute_vsone_query(ibs, qreq_, verbose=True, save_qcache=SAVE_CACHE):
     qaid_list = qreq_.get_external_qaids()
     qaid2_qres = {}
     chunksize = 4
@@ -209,7 +216,7 @@ def execute_vsone_query(ibs, qreq_, verbose=True, save_cache=SAVE_CACHE):
     for qres_chunk in qres_chunk_iter:
         qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
         # Save chunk of vsone queries
-        if save_cache:
+        if save_qcache:
             print('[mc4] saving vsone chunk')
             pipeline.save_resdict(qreq_, qaid2_qres_, verbose=verbose)
         # Add current chunk to results

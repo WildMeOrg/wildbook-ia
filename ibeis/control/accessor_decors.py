@@ -145,7 +145,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
             print('\n[get] %s.%s %d / %d cache hits' %
                   (tblname, colname, num_hit, num_total))
 
-        @profile
+        #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
             if cfgkeys is not None:
                 kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))

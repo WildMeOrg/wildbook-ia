@@ -7,6 +7,19 @@ from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 
+def testdata_special_query(dbname=None):
+    """ test data for special query doctests """
+    import ibeis
+    from ibeis import constants as const
+    if dbname is None:
+        dbname = 'testdb1'
+    # build test data
+    ibs = ibeis.opendb(dbname)
+    #ibs = ibeis.opendb('PZ_MTEST')
+    valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+    return ibs, valid_aids
+
+
 def choose_vsmany_K(num_names, qaids, daids):
     """
     TODO: Should also scale up the number of checks as well
@@ -49,7 +62,7 @@ def choose_vsmany_K(num_names, qaids, daids):
 
 
 @profile
-def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
+def query_vsmany_initial(ibs, qaids, daids, use_cache=True, qreq_vsmany_=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -86,7 +99,8 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True):
         'return_expanded_nns': True
     }
     qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
-        qaids, daids, cfgdict=vsmany_cfgdict, return_request=True, use_cache=use_cache)
+        qaids, daids, cfgdict=vsmany_cfgdict, return_request=True,
+        use_cache=use_cache, qreq_=qreq_vsmany_)
     isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
     assert isnsum, 'not nsum'
     assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
@@ -436,7 +450,7 @@ def empty_query(ibs, qaids):
 
 #@ut.indent_func
 @profile
-def query_vsone_verified(ibs, qaids, daids):
+def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
     """
     main special query
 
@@ -447,6 +461,9 @@ def query_vsone_verified(ibs, qaids, daids):
         ibs (IBEISController):  ibeis controller object
         qaids (list):
         daids (list):
+        qreq_vsmany_ (QueryRequest): used for persitant QueryRequest objects
+            if None creates new query request otherwise
+
 
     Returns:
         tuple: qaid2_qres, qreq_
@@ -488,7 +505,9 @@ def query_vsone_verified(ibs, qaids, daids):
 
     # vs-many initial scoring
     print('issuing vsmany part')
-    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache=use_cache)
+    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids,
+                                                           use_cache=use_cache,
+                                                           qreq_vsmany_=qreq_vsmany_)
     print('finished vsmany part')
     #qreq_vsmany_.qparams.prescore_method
 
@@ -581,16 +600,6 @@ def test_vsone_verified(ibs):
         fig = qres.ishow_top(ibs)
         fig.show()
     #return qaid2_qres
-
-
-def testdata_special_query(dbname='testdb1'):
-    import ibeis
-    from ibeis import constants as const
-    # build test data
-    ibs = ibeis.opendb(dbname)
-    #ibs = ibeis.opendb('PZ_MTEST')
-    valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
-    return ibs, valid_aids
 
 
 if __name__ == '__main__':

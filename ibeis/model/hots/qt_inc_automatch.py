@@ -1,4 +1,8 @@
 """
+
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+
 TODO:
     * spatially constrained matching
     * benchmarks for reconstruction
@@ -62,7 +66,7 @@ def test_inc_query(ibs_gt, num_initial=0):
         python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2
         python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3
 
-        utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3
+        utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ninit 5000
         utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
 
         # Writes out test script
@@ -200,7 +204,6 @@ class IncQueryHarness(INC_LOOP_BASE):
             'name_decision_callback': name_decision_callback,
             'exemplar_decision_callback': exemplar_decision_callback,
             'metatup': None,
-            'dry': False,
             'interactive': True,
             'count': 0,
             'fnum': 512,

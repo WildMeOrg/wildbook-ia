@@ -11,6 +11,15 @@ ut.noinject(__name__, '[inc]')
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
+def testdata_automatch(dbname=None):
+    if dbname is None:
+        dbname = 'testdb1'
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    qaid_chunk = ibs.get_valid_aids()[0:1]
+    return ibs, qaid_chunk
+
+
 # ---- ENTRY POINT ----
 
 
@@ -112,8 +121,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs, qaid_chunk = testdata_automatch()
         >>> generate_incremental_queries(ibs, qaid_list)
     """
     # Execute each query as a test
@@ -135,6 +143,9 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
 @profile
 def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """
+    Generats query results for the qt harness to then send into the next
+    decision steps.
+
     Args:
         ibs (IBEISController):  ibeis controller object
         qaid_chunk (?):
@@ -146,10 +157,7 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_chunk = [1]
+        >>> ibs, qaid_chunk = testdata_automatch()
         >>> generate_subquery_steps(ibs, qaid_chunk)
     """
     species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
@@ -157,7 +165,10 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     species_text = list(species_text_set)[0]
     daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
     # Execute actual queries
-    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk, daid_list)
+    qreq_vsmany_ = incinfo.get('qreq_vsmany_', None)
+    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk,
+                                                           daid_list,
+                                                           qreq_vsmany_=qreq_vsmany_)
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
         item = [ibs, qres, qreq_, incinfo]
@@ -169,7 +180,10 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
 @profile
 def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     r"""
-    Either makes automatic decision or asks user for feedback.
+    DECISION STEP 1)
+
+    Either the system or the user makes a decision about the name of the query
+    annotation.
 
     CommandLine:
         python -m ibeis.model.hots.automated_matcher --test-run_until_name_decision_signal
@@ -177,10 +191,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_chunk = ibs.get_valid_aids()[0:1]
+        >>> ibs, qaid_chunk = testdata_automatch()
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
         >>> incinfo = {}
         >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
@@ -189,7 +200,8 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         >>> # verify results
         >>> run_until_name_decision_signal(ibs, qres, qreq_, incinfo)
 
-    qres.ishow_top(ibs, sidebyside=False, show_query=True)
+    Ignore::
+        qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
     print('--- Identifying Query Animal ---')
     #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
@@ -242,40 +254,49 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
 def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
                                     incinfo=None):
     """
-    called either directory or using a callbackfrom the qt harness
+    DECISION STEP 2)
+
+    The name decision from the previous step is executed and the score
+    normalizer is updated. Then execution continues to the exemplar decision
+    step.
     """
     print('--- Updating Exemplars ---')
-    if not incinfo.get('dry', False):
-        qaid = qres.get_qaid()
-        #assert ibs.is_aid_unknown(qaid), 'animal is already known'
-        if chosen_names is None or len(chosen_names) == 0:
-            newname = ibs.make_next_name()
-            print('identifiying qaid=%r as a new animal. newname=%r' % (qaid, newname))
-            ibs.set_annot_names((qaid,), (newname,))
-        elif len(chosen_names) == 1:
-            print('identifiying qaid=%r as name=%r' % (qaid, chosen_names,))
-            ibs.set_annot_names((qaid,), chosen_names)
-        elif len(chosen_names) > 1:
-            merge_name = chosen_names[0]
-            other_names = chosen_names[1:]
-            print('identifiying qaid=%r as name=%r and merging with %r ' %
-                    (qaid, merge_name, other_names))
-            ibs.merge_names(merge_name, other_names)
-            ibs.set_annot_names((qaid,), (merge_name,))
-        # TODO make sure update normalizer works
-        if qreq_.normalizer is not None:
-            update_normalizer(ibs, qres, qreq_, chosen_names)
-        # Do update callback so the name updates in the main GUI
-        interactive = incinfo.get('interactive', False)
-        update_callback = incinfo.get('update_callback', None)
-        if interactive and update_callback is not None:
-            # Update callback repopulates the names tree
-            update_callback()
+    qaid = qres.get_qaid()
+    #assert ibs.is_aid_unknown(qaid), 'animal is already known'
+    if chosen_names is None or len(chosen_names) == 0:
+        newname = ibs.make_next_name()
+        print('identifiying qaid=%r as a new animal. newname=%r' % (qaid, newname))
+        ibs.set_annot_names((qaid,), (newname,))
+    elif len(chosen_names) == 1:
+        print('identifiying qaid=%r as name=%r' % (qaid, chosen_names,))
+        ibs.set_annot_names((qaid,), chosen_names)
+    elif len(chosen_names) > 1:
+        merge_name = chosen_names[0]
+        other_names = chosen_names[1:]
+        print('identifiying qaid=%r as name=%r and merging with %r ' %
+                (qaid, merge_name, other_names))
+        ibs.merge_names(merge_name, other_names)
+        ibs.set_annot_names((qaid,), (merge_name,))
+    # TODO make sure update normalizer works
+    if qreq_.normalizer is not None:
+        update_normalizer(ibs, qres, qreq_, chosen_names)
+    # Do update callback so the name updates in the main GUI
+    interactive = incinfo.get('interactive', False)
+    update_callback = incinfo.get('update_callback', None)
+    if interactive and update_callback is not None:
+        # Update callback repopulates the names tree
+        update_callback()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
 
 @profile
 def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
+    """
+    DECISION STEP 3)
+
+    Either the system or the user decides if the query should be added to the
+    database as an exemplar.
+    """
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
     exmplr_suggestion = system_suggestor.get_system_exemplar_suggestion(ibs, qaid)
@@ -297,15 +318,30 @@ def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
 @profile
 def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
                                         incinfo=None):
+    """
+    DECISION STEP 4)
+
+    The exemplar decision in the previous step is executed.  The persistant
+    vsmany query request is updated if needbe and the execution continues.
+    (currently to the end of this iteration)
+    """
     qaid = qres.get_qaid()
     if exemplar_decision:
-        if not incinfo.get('dry', False):
-            ibs.set_annot_exemplar_flags((qaid,), [1])
+        ibs.set_annot_exemplar_flags((qaid,), [1])
+        if hasattr(incinfo, 'qreq_vsmany_'):
+            qreq_vsmany_ = incinfo.get('qreq_vsmany_')
+            # STATE_MAINTENANCE
+            # Add new query as a database annotation
+            qreq_vsmany_.add_internal_daids(qaid)
     run_until_finish(incinfo=incinfo)
 
 
 @profile
 def run_until_finish(incinfo=None):
+    """
+    DECISION STEP 5)
+
+    """
     if incinfo is not None:
         # This query run as eneded
         next_query_attr = 'next_query_callback'
@@ -339,12 +375,8 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_chunk = ibs.get_valid_aids()[0:1]
+        >>> ibs, qaid_chunk = testdata_automatch()
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
         >>> incinfo = {}
         >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)

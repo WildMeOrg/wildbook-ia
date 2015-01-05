@@ -35,7 +35,7 @@ MAX_NEIGHBOR_CACHE_SIZE = 8
 NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
 # Background process for building indexes
 CURRENT_THREAD = None
-
+# Global map to keep track of UUID lists with prebuild indexers.
 UUID_MAP = ut.ddict(dict)
 
 
@@ -43,8 +43,12 @@ class ContextUUIDMap(object):
     """
     Class that lets multiple ways of writing to the uuid_map
     be swapped in and out interchangably
+
+    TODO: the global read / write should periodically sync itself to disk and it
+    should be loaded from disk initially
     """
     def __init__(self, uuid_map_fpath, min_reindex_thresh):
+        self.uuid_map_fpath = uuid_map_fpath
         self.init(uuid_map_fpath, min_reindex_thresh)
 
     def init(self, *args, **kwargs):
@@ -64,7 +68,7 @@ class ContextUUIDMap(object):
     def __exit__(self, exc_type, exc_value, exc_trace):
         pass
 
-    def __setitem__(self, visual_uuid_list, daids_hashid):
+    def __setitem__(self, daids_hashid, visual_uuid_list):
         uuid_map_fpath = self.uuid_map_fpath
         self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
 
@@ -83,11 +87,13 @@ class ContextUUIDMap(object):
     def write_uuid_map_global(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
         """ uses global variable instead of disk """
         global UUID_MAP
+        #with ut.EmbedOnException():
         uuid_map = UUID_MAP[uuid_map_fpath]
         uuid_map[daids_hashid] = visual_uuid_list
 
     @profile
     def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
+        #with ut.EmbedOnException():
         with lockfile.LockFile(uuid_map_fpath + '.lock'):
             with ut.shelf_open(uuid_map_fpath) as uuid_map:
                 candidate_uuids = {
@@ -141,7 +147,7 @@ def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     Also lets nnindexer know about other prebuilt indexers so it can attempt to
     just add points to them as to avoid a rebuild.
     """
-    with ContextUUIDMap(uuid_map_fpath) as uuid_map:
+    with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
         uuid_map[daids_hashid] = visual_uuid_list
 
 
@@ -490,6 +496,9 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
 def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
+    FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
+    282.253 seconds for 600 queries
+
     Args:
         ibs       (IBEISController):
         daid_list (list):
@@ -529,15 +538,16 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     candidate_uuids = read_uuid_map(uuid_map_fpath, min_reindex_thresh)
     # find a maximum independent set cover of the requested annotations
-    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)
+    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)  # 3.2 %
     covertup = ut.greedy_max_inden_setcover(
-        candidate_uuids, annot_vuuid_list, max_covers)
+        candidate_uuids, annot_vuuid_list, max_covers)  # 0.2 %
     uncovered_vuuids, covered_vuuids_list, accepted_keys = covertup
     # return the grouped covered items (so they can be loaded) and
     # the remaining uuids which need to have an index computed.
-    uncovered_aids_ = ibs.get_annot_aids_from_visual_uuid(uncovered_vuuids)
+    #
+    uncovered_aids_ = ibs.get_annot_aids_from_visual_uuid(uncovered_vuuids)  # 28.0%
     covered_aids_list_ = ibs.unflat_map(
-        ibs.get_annot_aids_from_visual_uuid, covered_vuuids_list)
+        ibs.get_annot_aids_from_visual_uuid, covered_vuuids_list)  # 68%
     # FIXME:
     uncovered_aids = sorted(uncovered_aids_)
     #covered_aids_list = list(map(sorted, covered_aids_list_))
@@ -958,6 +968,9 @@ class NeighborIndex(object):
 
     def num_indexed_annots(nnindexer):
         return len(nnindexer.ax2_aid)
+
+    def get_indexed_aids(nnindexer):
+        return nnindexer.ax2_aid
 
     def get_nn_vecs(nnindexer, qfx2_nnidx):
         """ gets matching vectors """

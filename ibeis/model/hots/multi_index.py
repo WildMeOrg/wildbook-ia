@@ -15,6 +15,16 @@ from ibeis.model.hots import neighbor_index
 USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reindex'))
 
 
+def testdata_mindexer():
+    import ibeis
+    ibs = ibeis.opendb(db='PZ_MTEST')
+    daid_list = ibs.get_valid_aids()[1:60]
+    qreq_ = ibs.new_query_request(daid_list, daid_list)
+    index_method = 'name'
+    mxer = request_ibeis_mindexer(qreq_, index_method)
+    return mxer, qreq_, ibs
+
+
 @profile
 def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
                                      verbose=True):
@@ -118,6 +128,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one big subindexer')
 
     """
+    min_reindex_thresh = qreq_.qparams.min_reindex_thresh
 
     daid_list = qreq_.get_internal_daids()
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
@@ -131,7 +142,6 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
         neighbor_index.check_background_process()
-        min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         # Use greedy set cover to get a list of nnindxers that are already built
         tup = neighbor_index.group_daids_by_cached_nnindexer(
             qreq_, daid_list, min_reindex_thresh)
@@ -176,18 +186,8 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     #mxer.extra_indexes = extra_indexes
     #mxer.overflow_index = overflow_index
     #mxer.unknown_index = unknown_index
-    mxer = MultiNeighborIndex(nn_indexer_list)
+    mxer = MultiNeighborIndex(nn_indexer_list, min_reindex_thresh)
     return mxer
-
-
-def test_mindexer():
-    import ibeis
-    ibs = ibeis.opendb(db='PZ_MTEST')
-    daid_list = ibs.get_valid_aids()[1:60]
-    qreq_ = ibs.new_query_request(daid_list, daid_list)
-    index_method = 'name'
-    mxer = request_ibeis_mindexer(qreq_, index_method)
-    return mxer, qreq_, ibs
 
 
 #@profile
@@ -204,17 +204,21 @@ def sort_along_rows(qfx2_xxx, qfx2_sortx):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class MultiNeighborIndex(object):
     """
+    TODO: rename to DistributedNeighborIndex
+
     Generalization of a NeighborIndex
     More abstract wrapper around flann
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.multi_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
+        >>> mxer, qreq_, ibs = testdata_mindexer()
     """
 
-    def __init__(mxer, nn_indexer_list):
+    def __init__(mxer, nn_indexer_list, min_reindex_thresh=10):
         mxer.nn_indexer_list = nn_indexer_list  # List of single indexes
+        # Parameters for adding support to multi_indexer
+        mxer.min_reindex_thresh = min_reindex_thresh
 
     def get_dtype(mxer):
         return mxer.nn_indexer_list[0].get_dtype()
@@ -229,7 +233,7 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
@@ -258,7 +262,7 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
@@ -269,7 +273,7 @@ class MultiNeighborIndex(object):
         Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = np.empty((0, 128), dtype=mxer.get_dtype())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
@@ -306,7 +310,7 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.get_offsets()
             >>> print(result)
             [21384 36627 49435 54244 57786 60482]
@@ -330,7 +334,7 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.get_nIndexed_list()
             >>> print(result)
             [21384, 15243, 12808, 4809, 3542, 2696]
@@ -339,15 +343,70 @@ class MultiNeighborIndex(object):
                          for nnindexer in mxer.nn_indexer_list]
         return nIndexed_list
 
-    def add_points(mxer, new_aid_list, new_vecs_list, new_fgws_list):
+    def add_support(mxer, new_aid_list, new_vecs_list, new_fgws_list, verbose=True):
+        """
+        Chooses indexer with smallest number of annotations and reindexes it.
+        """
+        print('adding multi-indexer support')
         raise NotImplementedError()
+
+    def get_multi_indexed_aids(mxer):
+        index_aids_list = np.array([nnindexer.get_indexed_aids() for nnindexer in
+                                     mxer.nn_indexer_list])
+        return index_aids_list
+
+    def get_multi_num_indexed_annots(mxer):
+        num_indexed_list = np.array([nnindexer.num_indexed_annots() for nnindexer in
+                                     mxer.nn_indexer_list])
+        return num_indexed_list
+
+    def assert_can_add_aids(mxer, new_aid_list):
+        import vtool as vt
+        indexed_aids = np.hstack(mxer.get_multi_indexed_aids())
+        assert np.all(vt.get_uncovered_mask(indexed_aids, new_aid_list)), 'new aids must be disjoint from current aids'
+
+    def add_ibeis_support(mxer, qreq_, new_aid_list):
+        """
+        Chooses indexer with smallest number of annotations and reindexes it.
+
+        Args:
+            qreq_ (QueryRequest):  query request object with hyper-parameters
+            new_aid_list (list):
+
+        CommandLine:
+            python -m ibeis.model.hots.multi_index --test-add_ibeis_support
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.multi_index import *  # NOQA
+            >>> mxer, qreq_, ibs = testdata_mindexer()
+            >>> new_aid_list = ibs.get_valid_aids()[70:80]
+            >>> # execute function
+            >>> result = mxer.add_ibeis_support(qreq_, new_aid_list)
+            >>> # verify results
+            >>> print(result)
+        """
+        print('adding multi-indexer support')
+        # Assert that the aids are indeed new
+        mxer.assert_can_add_aids(new_aid_list)
+        # Find the indexer to add to
+        num_indexed_list = mxer.get_multi_num_indexed_annots()
+        min_argx = num_indexed_list.argmin()
+        nnindexer_old = mxer.nn_indexer_list[min_argx]
+        # Combine old and new aids
+        prev_aids = nnindexer_old.get_indexed_aids()
+        new_aid_list_ = np.append(prev_aids, new_aid_list)
+        # Reindexed combined aids
+        nnindexer_new = neighbor_index.request_memcached_ibeis_nnindexer(qreq_, new_aid_list_)
+        # Replace the old nnindexer with the new nnindexer
+        mxer.nn_indexer_list[min_argx] = nnindexer_new
 
     def num_indexed_vecs(mxer):
         """
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.num_indexed_vecs()
             >>> print(result)
             60482
@@ -363,7 +422,7 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.num_indexed_annots()
             >>> print(result)
             59
@@ -386,7 +445,7 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3, 1028
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
@@ -438,7 +497,7 @@ class MultiNeighborIndex(object):
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> import vtool as vt
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qaid = 1
             >>> qfx2_vec = ibs.get_annot_vecs(qaid)
@@ -475,7 +534,7 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
@@ -504,7 +563,7 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
@@ -523,7 +582,7 @@ class MultiNeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
-            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
