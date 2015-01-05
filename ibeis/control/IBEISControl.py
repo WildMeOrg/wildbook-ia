@@ -622,6 +622,7 @@ class IBEISController(object):
                 return True
             else:
                 raise AssertionError('Wildbook response NOT ok (200)')
+                webbrowser.open_new_tab(submit_url_)
                 return False
         def _complete(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
