@@ -629,7 +629,9 @@ class IBEISController(object):
                 print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
                 command = ['sudo', 'echo', content, '>', dst_config]
                 # ut.cmd(command, sudo=True)
-                system(' '.join(command))
+                command = ' '.join(command)
+                print(command)
+                system(command)
                 # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
                 #     f.write(content)
                 # Call Wildbook url to signal update
