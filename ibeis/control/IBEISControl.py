@@ -620,7 +620,7 @@ class IBEISController(object):
             with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
                 with open(join(wildbook_properties_path_, src_config), 'r') as f:
-                    content = f.readlines()
+                    content = f.read()
                     content = content.replace('__IBEIS_DB_PATH__', ibs.get_dbdir())
                     content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
                 # Write to the configuration
