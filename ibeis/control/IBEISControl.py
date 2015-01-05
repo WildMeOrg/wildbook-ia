@@ -15,6 +15,7 @@ import atexit
 import requests
 import weakref
 import lockfile
+import webbrowser
 from six.moves import zip
 from os import system
 from os.path import join, exists, split
@@ -610,14 +611,21 @@ class IBEISController(object):
         raise NotImplementedError()
 
     @default_decorator
-    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True):
+    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
         """ Exports specified encounters to wildbook """
         def _send(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
-            addr_ = addr % (hostname, encounter_uuid)
-            response = ibs._init_wb(addr_)
-            print(addr_, response)
-            return response is not None
+            submit_url_ = submit_url % (hostname, encounter_uuid)
+            response = ibs._init_wb(submit_url_)
+            if response.status_code == 200:
+                return True
+            else:
+                raise AssertionError('Wildbook response not OK (200) - %r' % (response.text, ))
+                return False
+        def _complete(eid):
+            encounter_uuid = ibs.get_encounter_uuid(eid)
+            complete_url_ = complete_url % (hostname, encounter_uuid)
+            webbrowser.open_new_tab(complete_url_)
         # Setup
         wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
         if exists(wildbook_tomcat_path):
@@ -628,7 +636,8 @@ class IBEISController(object):
             print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
              # Configuration
             hostname = '127.0.0.1'
-            addr = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+            submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+            complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
@@ -653,8 +662,11 @@ class IBEISController(object):
                 status_list = [ _send(eid) for eid in eid_list ]
                 if set_shipped_flag:
                     for eid, status in zip(eid_list, status_list):
-                        val = 1 if status else 0
-                        ibs.set_encounter_shipped_flags([eid], [val])
+                        if status:
+                            ibs.set_encounter_shipped_flags([eid], [1])
+                            _complete(eid)
+                        else:
+                            ibs.set_encounter_shipped_flags([eid], [0])
                 return status_list
         else:
             raise AssertionError('Wildbook is not installed on this machine')
