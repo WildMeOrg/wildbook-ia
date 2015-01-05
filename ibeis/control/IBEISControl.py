@@ -621,7 +621,7 @@ class IBEISController(object):
             if response.status_code == 200:
                 return True
             else:
-                raise AssertionError('Wildbook response NOT ok (200) - %r' % (ut.dict_str(response.json()), ))
+                raise AssertionError('Wildbook response NOT ok (200)')
                 return False
         def _complete(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
