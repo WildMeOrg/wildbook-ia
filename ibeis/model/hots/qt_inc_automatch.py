@@ -121,7 +121,7 @@ def test_inc_query(ibs_gt, num_initial=0):
     guitool.ensure_qtapp()
     num_initial
     self = IncQueryHarness()
-    num_initial = ut.get_argval(('--num-initial', '--ninit'), int, 0)
+    num_initial = ut.get_argval(('--num-initial', '--num-init', '--ninit'), int, 0)
     interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
     # Add information to an empty database from a groundtruth database
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt)
