@@ -349,6 +349,9 @@ class MultiNeighborIndex(object):
                                      mxer.nn_indexer_list])
         return index_aids_list
 
+    def get_indexed_aids(mxer):
+        return ut.flatten(mxer.get_multi_indexed_aids())
+
     def get_multi_num_indexed_annots(mxer):
         num_indexed_list = np.array([nnindexer.num_indexed_annots() for nnindexer in
                                      mxer.nn_indexer_list])
@@ -400,6 +403,21 @@ class MultiNeighborIndex(object):
         nnindexer_new = neighbor_index.request_memcached_ibeis_nnindexer(qreq_, new_aid_list_)
         # Replace the old nnindexer with the new nnindexer
         mxer.nn_indexer_list[min_argx] = nnindexer_new
+        mxer.min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+
+        if neighbor_index.can_request_background_nnindexer():
+            # Check if background process needs to be spawned
+            # FIXME: this does not belong in method code
+            num_indexed_list_new = mxer.get_multi_num_indexed_annots()
+            new_smalled_size = min(num_indexed_list_new)
+            need_reindex = (new_smalled_size > mxer.min_reindex_thresh or
+                            len(num_indexed_list_new) > mxer.max_subindexers)
+            if need_reindex:
+                if USE_FORGROUND_REINDEX:
+                    raise NotImplementedError('no foreground reindex in stateful query')
+                else:
+                    aid_list = mxer.get_indexed_aids()
+                    neighbor_index.request_background_nnindexer(qreq_, aid_list)
 
     def num_indexed_vecs(mxer):
         """

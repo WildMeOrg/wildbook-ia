@@ -179,7 +179,11 @@ class QueryRequest(object):
         State Modification: add new daid to query request. Should only be
         done between query pipeline runs
         """
+        if ut.DEBUG2:
+            species = qreq_.ibs.get_annot_species(new_daids)
+            assert set(qreq_.unique_species) == set(species), 'inconsistent species'
         qreq_.internal_daids_mask = None
+        qreq_.metadata = {}
         qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
         # TODO: multi-indexer add_support
         qreq_.indexer.add_ibeis_support(qreq_, new_daids)
@@ -533,16 +537,18 @@ class QueryRequest(object):
         qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, qreq_=qreq_)
 
     @profile
-    def load_indexer(qreq_, verbose=True):
-        if qreq_.indexer is not None:
+    def load_indexer(qreq_, verbose=True, force=False):
+        if not force and qreq_.indexer is not None:
             return False
-        index_method = qreq_.qparams.index_method
-        if index_method == 'single':
-            # TODO: SYSTEM updatable indexer
-            indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
         else:
-            indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
-        qreq_.indexer = indexer
+            index_method = qreq_.qparams.index_method
+            if index_method == 'single':
+                # TODO: SYSTEM updatable indexer
+                indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
+            else:
+                indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
+            qreq_.indexer = indexer
+            return True
 
     @profile
     def load_score_normalizer(qreq_, verbose=True):

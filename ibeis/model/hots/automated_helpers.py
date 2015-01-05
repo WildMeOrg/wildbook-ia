@@ -285,6 +285,7 @@ def setup_incremental_test(ibs_gt, clear_names=True):
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt)
     """
+    print('\n\n---- SETUP INCREMENTAL TEST ---\n\n')
     # Take a known dataase
     # Create an empty database to test in
     #aid_list1 = ibs_gt.get_aids_with_groundtruth()
@@ -444,7 +445,16 @@ def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     # Non-name semantic info
     species_chunk1 = ibs_gt.get_annot_species_texts(aids_chunk1)
     gids_chunk2 = ibs2.get_image_gids_from_uuid(guuids_chunk1)
-    ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
+    ut.assert_all_not_None(aids_chunk1, 'aids_chunk1')
+    ut.assert_all_not_None(guuids_chunk1, 'guuids_chunk1')
+    try:
+        ut.assert_all_not_None(gids_chunk2, 'gids_chunk2')
+    except Exception as ex:
+        #index = ut.get_first_None_position(gids_chunk2)
+        #set(ibs2.get_valid_gids()).difference(set(gids_chunk2))
+        ut.printex(ex, keys=['gids_chunk2'])
+        #ut.embed()
+        #raise
     # Add this new unseen test case to the database
     aids_chunk2 = ibs2.add_annots(gids_chunk2,
                                   species_list=species_chunk1,

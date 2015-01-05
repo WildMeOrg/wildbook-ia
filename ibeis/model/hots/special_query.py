@@ -29,7 +29,7 @@ def testdata_special_query(dbname=None):
 
 
 @profile
-def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
+def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None):
     """
     main special query entry point
 
@@ -78,15 +78,18 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
     """
     if len(daids) == 0:
         print('[special_query.X] no daids... returning empty query')
-        return mc4.empty_query(ibs, qaids)
-    use_cache = True
+        qaid2_qres, qreq_ = mc4.empty_query(ibs, qaids)
+        return qaid2_qres, qreq_, None
+    #use_cache = True
     use_cache = False
+    save_qcache = False
 
     # vs-many initial scoring
     print('[special_query.1] issue vsmany query')
     qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids,
                                                            use_cache=use_cache,
-                                                           qreq_vsmany_=qreq_vsmany_)
+                                                           save_qcache=save_qcache,
+                                                           qreq_vsmany_=qreq_vsmany__)
 
     # HACK TO JUST USE VSMANY
     # this can ensure that the baseline system is not out of wack
@@ -95,7 +98,7 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
         print('[special_query.X] vsmany hack on... returning vsmany result')
         qaid2_qres = qaid2_qres_vsmany
         qreq_ = qreq_vsmany_
-        return qaid2_qres, qreq_
+        return qaid2_qres, qreq_, qreq_vsmany_
 
     # build vs one list
     print('[special_query.2] finished vsmany query... building vsone pairs')
@@ -127,9 +130,10 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany_=None):
     if any_failed_qres:
         assert all_failed_qres, "Needs to finish implemetation"
         print('[special_query.X] failed vsone qreq... returning empty query')
-        return mc4.empty_query(ibs, qaids)
+        qaid2_qres, qreq_ = mc4.empty_query(ibs, qaids)
+        return qaid2_qres, qreq_, None
     print('[special_query.5] finished special query')
-    return qaid2_qres, qreq_
+    return qaid2_qres, qreq_, qreq_vsmany_
 
 
 def choose_vsmany_K(num_names, qaids, daids):
@@ -174,7 +178,8 @@ def choose_vsmany_K(num_names, qaids, daids):
 
 
 @profile
-def query_vsmany_initial(ibs, qaids, daids, use_cache=True, qreq_vsmany_=None):
+def query_vsmany_initial(ibs, qaids, daids, use_cache=False, qreq_vsmany_=None,
+                         save_qcache=False):
     r"""
 
     Args:
@@ -214,7 +219,7 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=True, qreq_vsmany_=None):
     }
     qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
         qaids, daids, cfgdict=vsmany_cfgdict, return_request=True,
-        use_cache=use_cache, qreq_=qreq_vsmany_)
+        use_cache=use_cache, qreq_=qreq_vsmany_, save_qcache=save_qcache)
     isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
     assert isnsum, 'not nsum'
     assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
@@ -272,7 +277,7 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
 
 
 @profile
-def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
+def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False):
     """
     does vsone queries to rerank the top few vsmany querys
 
@@ -288,10 +293,11 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
         >>> qaid = qaids[0]
         >>> filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         >>> use_cache = False
+        >>> save_qcache = False
         >>> # execute function
-        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids, use_cache)
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids)
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-        >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, use_cache)
+        >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs)
         >>> qres_vsone = qaid2_qres_vsone[qaid]
         >>> top_namescore_aids = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
         >>> result = str(top_namescore_aids)
@@ -307,7 +313,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
         # Perform a query request for each
         qaid2_qres_vsone_, __qreq_vsone_ = ibs._query_chips4(
             [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,
-            use_cache=use_cache)
+            use_cache=use_cache, save_qcache=save_qcache)
         qaid2_qres_vsone.update(qaid2_qres_vsone_)
     #------------------------
     # METHOD 2:
@@ -322,6 +328,8 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache):
     pseudo_vsone_cfgdict = dict(codename='vsone_norm')
     pseudo_qaids = ut.get_list_column(vsone_query_pairs, 0)
     pseudo_daids = ut.unique_ordered(ut.flatten(ut.get_list_column(vsone_query_pairs, 1)))
+    # FIXME: making the pseudo qreq_ takes a nontrivial amount of time for what
+    # should be a trivial task.
     pseudo_qreq_vsone_ = ibs.new_query_request(pseudo_qaids, pseudo_daids,
                                                cfgdict=pseudo_vsone_cfgdict,
                                                verbose=ut.VERBOSE)
@@ -540,6 +548,8 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
 
     # This is how to compute new probability
     if qreq_vsone_.qparams.score_normalization:
+        # FIXME: TODO: Have unsupported scores be represented as Nones
+        # while score normalizer is still being trained.
         normalizer = qreq_vsone_.normalizer
         daid2_score = qres_vsone.aid2_score
         score_list = list(six.itervalues(daid2_score))

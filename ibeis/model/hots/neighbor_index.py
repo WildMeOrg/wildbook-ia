@@ -1103,7 +1103,7 @@ def check_background_process():
     global CURRENT_THREAD
     if CURRENT_THREAD is None or CURRENT_THREAD.is_alive():
         print('[FG] background thread is not ready yet')
-        return
+        return False
     # Get info set in background process
     finishtup = CURRENT_THREAD.finishtup
     (uuid_map_fpath, daids_hashid, visual_uuid_list, min_reindex_thresh) = finishtup
@@ -1113,6 +1113,11 @@ def check_background_process():
     # Write data to current uuidcache
     if len(visual_uuid_list) > min_reindex_thresh:
         write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+    return True
+
+
+def can_request_background_nnindexer():
+    return CURRENT_THREAD is None or not CURRENT_THREAD.is_alive()
 
 
 def request_background_nnindexer(qreq_, daid_list):
@@ -1145,11 +1150,10 @@ def request_background_nnindexer(qreq_, daid_list):
     """
     global CURRENT_THREAD
     print('Requesting background reindex')
-    if CURRENT_THREAD is not None:
-        if CURRENT_THREAD.is_alive():
-            # Make sure this function doesn't run if it is already running
-            print('REQUEST DENIED')
-            return False
+    if not can_request_background_nnindexer():
+        # Make sure this function doesn't run if it is already running
+        print('REQUEST DENIED')
+        return False
     print('REQUEST ACCPETED')
     daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)
     cfgstr = build_nnindex_cfgstr(qreq_, daid_list)

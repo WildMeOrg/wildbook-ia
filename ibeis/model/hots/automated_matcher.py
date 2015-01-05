@@ -1,14 +1,27 @@
+"""
+CommandLine:
+    python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
+
+    sh Tinc.sh --test-test_inc_query:0
+    sh Tinc.sh --test-test_inc_query:1
+    sh Tinc.sh --test-test_inc_query:2
+    sh Tinc.sh --test-test_inc_query:3 --num-initial 5000
+"""
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 from ibeis.model.hots import automated_oracle as ao
 from ibeis.model.hots import automated_helpers as ah
 from ibeis.model.hots import special_query
+from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import system_suggestor
 from ibeis.model.hots import user_dialogs
 ut.noinject(__name__, '[inc]')
 #profile = ut.profile
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
+
+
+USE_STATEFULNESS = False
 
 
 def testdata_automatch(dbname=None):
@@ -31,14 +44,6 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
 
     ibs1 is ibs_gt
     ibs2 is ibs
-
-    CommandLine:
-        python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
-
-        sh Tinc.sh --test-test_inc_query:0
-        sh Tinc.sh --test-test_inc_query:1
-        sh Tinc.sh --test-test_inc_query:2
-        sh Tinc.sh --test-test_inc_query:3 --num-initial 5000
 
     """
     print('begin test interactive iter')
@@ -160,15 +165,30 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
         >>> ibs, qaid_chunk = testdata_automatch()
         >>> generate_subquery_steps(ibs, qaid_chunk)
     """
-    species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
-    assert len(species_text_set) == 1, 'query chunk has more than one species'
-    species_text = list(species_text_set)[0]
-    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
-    # Execute actual queries
+    # Use either state-based exemplars or controller based exemplars
     qreq_vsmany_ = incinfo.get('qreq_vsmany_', None)
-    qaid2_qres, qreq_ = special_query.query_vsone_verified(ibs, qaid_chunk,
-                                                           daid_list,
-                                                           qreq_vsmany_=qreq_vsmany_)
+    if qreq_vsmany_ is not None:
+        # state based exemplars
+        daid_list = qreq_vsmany_.get_external_daids()
+        if neighbor_index.check_background_process():
+            # background indexer is done, reload
+            qreq_vsmany_.load_indexer(force=True)
+    else:
+        # FIXME: allow for multiple species or make a nicer way of ensuring that
+        # there is only one species here
+        species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
+        assert len(species_text_set) == 1, 'query chunk has more than one species'
+        species_text = list(species_text_set)[0]
+        # controller based exemplars
+        daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
+    # Execute actual queries
+    qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
+        ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_)
+    if USE_STATEFULNESS and qreq_vsmany_ is not None:
+        if getattr(incinfo, 'qreq_vsmany_', None) is None:
+            incinfo['qreq_vsmany_'] = qreq_vsmany_
+        else:
+            assert getattr(incinfo, 'qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
         item = [ibs, qres, qreq_, incinfo]

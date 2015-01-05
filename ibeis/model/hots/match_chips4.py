@@ -228,6 +228,7 @@ def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):
         pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
     else:
         print('[mc4] not saving vsmany chunk')
+    return qaid2_qres
 
 
 def execute_vsone_query(ibs, qreq_, verbose, save_qcache):
