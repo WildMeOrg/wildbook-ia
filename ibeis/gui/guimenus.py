@@ -143,6 +143,12 @@ def setup_actions_menu(mainwin, back):
         slot_fn=back.delete_all_encounters)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
+        name='actionTrainWithEncounters',
+        text='Train RF with Open Encounter',
+        shortcut='',
+        slot_fn=back.train_rf_with_encounter)
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
         name='toggleThumbnails',
         text='Toggle Thumbnails',
         shortcut='',

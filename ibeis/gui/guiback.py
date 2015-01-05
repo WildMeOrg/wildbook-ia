@@ -481,6 +481,20 @@ class MainWindowBackend(QtCore.QObject):
         #    return
         back.ibs.export_encounters(eid_list, new_dbdir=None)
 
+    @blocking_slot()
+    def train_rf_with_encounter(back, **kwargs):
+        from ibeis.model.detect import randomforest
+        eid = back._eidfromkw(kwargs)
+        if eid < 0:
+            gid_list = back.ibs.get_valid_gids()
+        else:
+            gid_list = back.ibs.get_valid_gids(eid=eid)
+        species = back.ibs.cfg.detect_cfg.species
+        if species == 'none':
+            species = None
+        print("[train_rf_with_encounter] Training Random Forest trees with enc=%r and species=%r" % (eid, species, ))
+        randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
+
     @blocking_slot(int)
     def merge_encounters(back, eid_list, destination_eid):
         assert len(eid_list) > 1, "Cannot merge fewer than two encounters"

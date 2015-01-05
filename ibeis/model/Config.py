@@ -1029,6 +1029,7 @@ class DetectionConfig(ConfigBase):
         detect_cfg.species     = const.Species.ZEB_GREVY
         detect_cfg.detector    = 'rf'
         detect_cfg.scale_list  = '1.33, 1.00, 0.75, 0.56, 0.42, 0.32, 0.24, 0.18, 0.13'
+        detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
         detect_cfg.update(**kwargs)
 

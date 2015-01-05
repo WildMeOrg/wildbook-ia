@@ -726,8 +726,9 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
         species_list = ibs.get_annot_species(aid_list)
         isvalid_list = [ species_ == species for species_ in species_list ]
         aid_list = ut.filter_items(aid_list, isvalid_list)
+        return aid_list
     # Get and filter aids_list
-    aids_list = ibs.get_iamge_aids(gid_list)
+    aids_list = ibs.get_image_aids(gid_list)
     if species is None:
         # We do this so that the species flag behaves nicely with the getter_1toM
         print('[get_image_aids_of_species] WARNING! Use get_image_aids() instead.')
