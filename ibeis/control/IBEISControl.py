@@ -16,7 +16,7 @@ import requests
 import weakref
 import lockfile
 from six.moves import zip
-from os import system
+import subprocess
 from os.path import join, exists, split
 # UTool
 import utool as ut  # NOQA
@@ -628,12 +628,12 @@ class IBEISController(object):
                 # Write to the configuration
                 print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
                 command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', join(wildbook_properties_path_, dst_config), '\'']
-                # ut.cmd(command, sudo=True)
                 command = ' '.join(command)
-                print(command)
-                system(command)
+                subprocess.call(command)
+                # ut.cmd(command, sudo=True)
                 # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
                 #     f.write(content)
+
                 # Call Wildbook url to signal update
                 print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
                 if eid_list is None:
