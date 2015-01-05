@@ -45,11 +45,11 @@ def empty_query(ibs, qaids):
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
         >>> # execute function
-        >>> (qaid2_qres, qreq_) = empty_query(ibs, valid_aids)
+        >>> (qaid2_qres, qreq_) = empty_query(ibs, qaids)
         >>> # verify results
         >>> result = str((qaid2_qres, qreq_))
         >>> print(result)
-        >>> qres = qaid2_qres[valid_aids[0]]
+        >>> qres = qaid2_qres[qaids[0]]
         >>> if ut.get_argflag('--show'):
         ...    qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
         ...    from matplotlib import pyplot as plt
