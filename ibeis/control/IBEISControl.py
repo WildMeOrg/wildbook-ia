@@ -454,6 +454,18 @@ class IBEISController(object):
         #return join(ibs.workdir, ibs.dbname)
         return ibs.dbdir
 
+    def get_db_core_path(ibs):
+        """
+        Returns:
+            path (str): path of the sqlite3 core database file """
+        return ibs.db.fpath
+
+    def get_db_cache_path(ibs):
+        """
+        Returns:
+            path (str): path of the sqlite3 cache database file """
+        return ibs.dbcache.fpath
+
     def get_trashdir(ibs):
         return ibs.trashdir
 
@@ -622,7 +634,7 @@ class IBEISController(object):
                 # Update the Wildbook configuration to see *THIS* ibeis database
                 with open(join(wildbook_properties_path_, src_config), 'r') as f:
                     content = f.read()
-                    content = content.replace('__IBEIS_DB_PATH__', ibs.get_dbdir())
+                    content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
                     content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
                     content = '"%s"' % (content, )
                 # Write to the configuration
