@@ -22,6 +22,49 @@ MIN_BIGCACHE_BUNDLE = 150
 # Main Query Logic
 #----------------------
 
+
+def empty_query(ibs, qaids):
+    r"""
+    Hack to give an empty query a query result object
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (?):
+
+    Returns:
+        tuple: (qaid2_qres, qreq_)
+
+    CommandLine:
+        python -m ibeis.model.hots.match_chips4 --test-empty_query
+        python -m ibeis.model.hots.match_chips4 --test-empty_query --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> # execute function
+        >>> (qaid2_qres, qreq_) = empty_query(ibs, valid_aids)
+        >>> # verify results
+        >>> result = str((qaid2_qres, qreq_))
+        >>> print(result)
+        >>> qres = qaid2_qres[valid_aids[0]]
+        >>> if ut.get_argflag('--show'):
+        ...    qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
+        ...    from matplotlib import pyplot as plt
+        ...    plt.show()
+        >>> ut.assert_eq(len(qres.get_top_aids()), 0)
+    """
+    daids = []
+    qreq_ = ibs.new_query_request(qaids, daids)
+    qres_list = qreq_.make_empty_query_results()
+    for qres in qres_list:
+        qres.aid2_score = {}
+    qaid2_qres = dict(zip(qaids, qres_list))
+    return qaid2_qres, qreq_
+
+
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
