@@ -49,24 +49,26 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 detect_confidence_list=None, notes_list=None,
                 vert_list=None, annot_uuid_list=None, viewpoint_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
-                species_rowid_list=None,
-                quiet_delete_thumbs=False, prevent_visual_duplicates=False):
+                species_rowid_list=None, quiet_delete_thumbs=False,
+                prevent_visual_duplicates=False):
     r"""
     Adds an annotation to images
 
     Args:
-        gid_list               (list): image rowids to add annotation to
-        bbox_list              (list): of [x, y, w, h] bounding boxes for each image (supply verts instead)
-        theta_list             (list): orientations of annotations
-        species_list           (list):
-        nid_list               (list):
-        name_list              (list):
-        detect_confidence_list (list):
-        notes_list             (list):
-        vert_list              (list): alternative to bounding box
-        annot_uuid_list        (list):
-        viewpoint_list         (list):
-        quiet_delete_thumbs    (bool):
+        gid_list                 (list): image rowids to add annotation to
+        bbox_list                (list): of [x, y, w, h] bounding boxes for each image (supply verts instead)
+        theta_list               (list): orientations of annotations
+        species_list             (list):
+        nid_list                 (list):
+        name_list                (list):
+        detect_confidence_list   (list):
+        notes_list               (list):
+        vert_list                (list): alternative to bounding box
+        annot_uuid_list          (list):
+        viewpoint_list           (list):
+        annot_visual_uuid_list   (list):
+        annot_semantic_uuid_list (list):
+        quiet_delete_thumbs      (bool):
 
     Returns:
         list: aid_list
@@ -234,13 +236,13 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # with the updating of the determenistic uuids. Find a way to
     # integrate both pieces of code without too much reundancy.
     # Make sure these tuples are constructed correctly
-    #if annot_visual_uuid_list is None:
-    #if annot_semantic_uuid_list is None:
-    visual_infotup = (image_uuid_list, vert_list, theta_list)
-    semantic_infotup = (image_uuid_list, vert_list, theta_list, viewpoint_list,
-                        name_list, species_list)
-    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
-    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+    if annot_visual_uuid_list is None:
+        visual_infotup = (image_uuid_list, vert_list, theta_list)
+        annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+    if annot_semantic_uuid_list is None:
+        semantic_infotup = (image_uuid_list, vert_list, theta_list, viewpoint_list,
+                            name_list, species_list)
+        annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
 
     # Define arguments to insert
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',

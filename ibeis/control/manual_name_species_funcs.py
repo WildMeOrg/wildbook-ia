@@ -66,21 +66,22 @@ def _get_all_species_rowids(ibs):
 
 @register_ibs_method
 @adder
-def add_names(ibs, name_text_list, note_list=None):
+def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     """
     Adds a list of names.
 
     Returns:
         name_rowid_list (list): their nids
     """
-    if note_list is None:
-        note_list = [''] * len(name_text_list)
+    if name_note_list is None:
+        name_note_list = [''] * len(name_text_list)
     # Get random uuids
-    name_uuid_list = [uuid.uuid4() for _ in range(len(name_text_list))]
+    if name_uuid_list is None:
+        name_uuid_list = [uuid.uuid4() for _ in range(len(name_text_list))]
     get_rowid_from_superkey = functools.partial(ibs.get_name_rowids_from_text, ensure=False)
     superkey_paramx = (1,)
     colnames = [NAME_UUID, NAME_TEXT, NAME_NOTE]
-    params_iter = list(zip(name_uuid_list, name_text_list, note_list))
+    params_iter = list(zip(name_uuid_list, name_text_list, name_note_list))
     name_rowid_list = ibs.db.add_cleanly(const.NAME_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
     return name_rowid_list
@@ -150,7 +151,7 @@ def sanatize_name_texts(ibs, name_text_list):
 
 @register_ibs_method
 @adder
-def add_species(ibs, species_text_list, note_list=None):
+def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
     """
     Adds a list of species.
 
@@ -191,7 +192,8 @@ def add_species(ibs, species_text_list, note_list=None):
     # Sanatize to remove ____
     species_text_list_ = ibs.sanatize_species_texts(species_text_list)
     # Get random uuids
-    species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
+    if species_uuid_list is None:
+        species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
     superkey_paramx = (1,)
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
@@ -547,6 +549,18 @@ def get_name_gids(ibs, nid_list):
 
 @register_ibs_method
 @getter_1to1
+def get_name_uuids(ibs, name_rowid_list):
+    """
+    Returns:
+        list_ (list): uuids_list - name uuids
+    """
+    uuids_list = ibs.db.get(const.NAME_TABLE, (NAME_UUID,), name_rowid_list)
+    #notes_list = ibs.get_lblannot_notes(nid_list)
+    return uuids_list
+
+
+@register_ibs_method
+@getter_1to1
 def get_name_notes(ibs, name_rowid_list):
     """
     Returns:
@@ -873,6 +887,30 @@ def get_species_texts(ibs, species_rowid_list):
                          if rowid == ibs.UNKNOWN_SPECIES_ROWID else species_text
                          for species_text, rowid in zip(species_text_list, species_rowid_list)]
     return species_text_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_species_uuids(ibs, species_rowid_list):
+    """
+    Returns:
+        list_ (list): uuids_list - species uuids
+    """
+    uuids_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_UUID,), species_rowid_list)
+    #notes_list = ibs.get_lblannot_notes(nid_list)
+    return uuids_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_species_notes(ibs, species_rowid_list):
+    """
+    Returns:
+        list_ (list): notes_list - species notes
+    """
+    notes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NOTE,), species_rowid_list)
+    #notes_list = ibs.get_lblannot_notes(nid_list)
+    return notes_list
 
 
 @register_ibs_method
