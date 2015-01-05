@@ -38,6 +38,7 @@ Theader_ibeiscontrol = ut.codeblock(
     import utool  # NOQA
     import utool as ut  # NOQA
     from ibeis.control.controller_inject import make_ibs_register_decorator
+    from ibeis.control import accessor_decors
     print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_{autogen_key}]')
 
     # Create dectorator to inject functions in this module into the IBEISController

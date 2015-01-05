@@ -47,6 +47,7 @@ REMOVE_EAGER = True
 REMOVE_QREQ = False  # False
 WITH_PEP8 = True
 WITH_DECOR = True
+WITH_API_CACHE = True
 
 
 #STRIP_DOCSTR   = True
@@ -178,13 +179,15 @@ def remove_sentinals(code_text):
     return code_text
 
 
-def format_controller_func(func_code, flagskw):
+def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     """
     Applys formatting and filtering to function code strings
+    Format the template into a function and apply postprocessing
 
     CommandLine:
         python ibeis/control/template_generator.py
     """
+    func_code = func_code_fmtstr.format(**fmtdict)
     func_code = remove_sentinals(func_code)
     # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
     # good place to look.
@@ -235,6 +238,14 @@ def format_controller_func(func_code, flagskw):
                                               variable_aliases.keys(),
                                               variable_aliases.values())
     # add decorators
+    # HACK IN API_CACHE decorators
+    if func_type == '2_Native.getter_col':
+        if flagskw.get('with_api_cache', WITH_API_CACHE):
+            func_code = '@accessor_decors.cache_getter({TABLE}, {COLNAME})\n'.format(**fmtdict) + func_code
+    if func_type == '2_Native.deleter':
+        if flagskw.get('with_api_cache', WITH_API_CACHE):
+            func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
+    # Need to register all function with ibs
     if flagskw.get('with_decor', WITH_DECOR):
         func_code = '@register_ibs_method\n' + func_code
     # ensure pep8 formating
@@ -605,8 +616,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         #type1, type2 = func_type.split('.')
         func_type = func_type
         try:
-            func_code = func_code_fmtstr.format(**fmtdict)
-            func_code = format_controller_func(func_code, flagskw)
+            # Format the template into a function and apply postprocessing
+            func_code = format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict)
             # HACK to remove double table names like: get_chip_chip_width
             single_tbl = fmtdict['tbl']
             double_tbl = single_tbl + '_' + single_tbl
@@ -616,6 +627,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             # ENDHACK
             # parse out function name
             func_name = parse_first_func_name(func_code)
+            #if func_name == 'get_featweight_fgweights':
+            #    ut.embed()
             #
             #
             # <HACKS>
