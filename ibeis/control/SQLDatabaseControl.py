@@ -152,7 +152,7 @@ class SQLDatabaseController(object):
             ('metadata_key',                 'TEXT'),
             ('metadata_value',               'TEXT'),
         ),
-            superkey_colnames=['metadata_key'],
+            superkey_colnames_list=[('metadata_key',)],
             # IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation
             docstr='''
         The table that stores permanently all of the metadata about the
@@ -560,7 +560,7 @@ class SQLDatabaseController(object):
     #=========
 
     @default_decorator
-    def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames=None):
+    def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames_list=None):
         """
         add_table
 
@@ -569,7 +569,7 @@ class SQLDatabaseController(object):
             coldef_list (list):
             table_constraints (list or None):
             docstr (str):
-            superkey_colnames (list or None): list of column names which uniquely identifies a rowid
+            superkey_colnames_list (list or None): list of tuples of column names which uniquely identifies a rowid
         """
         assert tablename is not None, 'tablename must be given'
         assert coldef_list is not None, 'tablename must be given'
@@ -577,31 +577,35 @@ class SQLDatabaseController(object):
             print('[sql] schema ensuring tablename=%r' % tablename)
         if utool.VERBOSE:
             print('')
-            print(utool.func_str(db.add_table, [tablename, coldef_list],
-                                 dict(table_constraints=table_constraints, docstr=docstr,
-                                      superkey_colnames=superkey_colnames)))
+            _args = [tablename, coldef_list]
+            _kwargs = dict(table_constraints=table_constraints, docstr=docstr,
+                           superkey_colnames_list=superkey_colnames_list)
+            print(utool.func_str(db.add_table, _args, _kwargs))
             print('')
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
         if table_constraints is None:
             table_constraints = []
-
         try:
-            if superkey_colnames is not None and len(superkey_colnames) > 0:
-                _ = ','.join(superkey_colnames)
-                ###
-                #c = superkey_colnames
-                #_ = (c if isinstance(c, six.string_types) else ','.join(c))
-                unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
-                if len(table_constraints) != 0:
-                    print('[sql] Warning: blindly commented assert would have triggered')
+            has_superkeys = (superkey_colnames_list is not None and
+                             len(superkey_colnames_list) > 0)
+            if has_superkeys:
+                #if len(table_constraints) != 0:
+                #    print('[sql] Warning: blindly commented assert would have triggered')
                 #assert len(table_constraints) == 0
-                table_constraints.append(unique_constraint)
-            body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
+                # Add each superkey_colnames as a table constraint
+                constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
+                assert isinstance(superkey_colnames_list, list), 'must be list got %r' % (type(superkey_colnames_list))
+                for superkey_colnames in superkey_colnames_list:
+                    assert isinstance(superkey_colnames, tuple), 'must be list of tuples'
+                    colnames_str = ','.join(superkey_colnames)
+                    unique_constraint = constraint_fmtstr.format(colnames_str=colnames_str)
+                    table_constraints.append(unique_constraint)
         except Exception as ex:
             utool.printex(ex, keys=locals().keys())
             raise
+        body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
 
         fmtkw = {
             'table_body': ', '.join(body_list + table_constraints),
@@ -633,7 +637,8 @@ class SQLDatabaseController(object):
             params = [tablename + '_constraint', ';'.join(table_constraints)]
             db.executeone(operation, params, verbose=False)
 
-        if superkey_colnames is not None:
+        if superkey_colnames_list is not None:
+            # have the metadata table keep track of table superkeys
             # Insert or replace superkeys in metadata table
             fmtkw = {
                 'tablename': constants.METADATA_TABLE,
@@ -641,7 +646,9 @@ class SQLDatabaseController(object):
             }
             op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
             operation = op_fmtstr.format(**fmtkw)
-            params = [tablename + '_superkeys', ';'.join(superkey_colnames)]
+            #superkey_colnames_list_repr = ';'.join(superkey_colnames_list)
+            superkey_colnames_list_repr = repr(superkey_colnames_list)
+            params = [tablename + '_superkeys', superkey_colnames_list_repr]
             db.executeone(operation, params, verbose=False)
 
     @default_decorator
@@ -658,7 +665,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def modify_table(db, tablename, colmap_list=None, table_constraints=None,
-                     docstr=None, superkey_colnames=None, tablename_new=None):
+                     docstr=None, superkey_colnames_list=None, tablename_new=None):
         assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'must specify tablename'
         """
@@ -668,7 +675,7 @@ class SQLDatabaseController(object):
            tablename (str): tablename
            colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)
            table_constraints (str):
-           superkey_colnames (list)
+           superkey_colnames_list (list)
            docstr (str)
            tablename_new (?)
 
@@ -679,15 +686,22 @@ class SQLDatabaseController(object):
             >>> ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
             ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new
             ... #   [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
-            ...    ('contributor_rowid',             '',                              '',               None), # a non-needed, but correct mapping (identity function)
-            ...    (None,                            'contributor__location_address', 'TEXT',           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
-            ...    (4,                               'contributor__location_address', 'TEXT',           None), # adding a new column at index 4 (if index is invalid, None is used)
-            ...    ('contributor__location_city',    None,                            '',               None), # for deleted columns, type and function are ignored
-            ...    ('contributor__location_city',    'contributor__location_town',    '',               None), # for renamed columns, type and function are ignored
+            ...    # a non-needed, but correct mapping (identity function)
+            ...    ('contributor_rowid',             '',                              '',               None),
+            ...    # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+            ...    (None,                            'contributor__location_address', 'TEXT',           None),
+            ...    # adding a new column at index 4 (if index is invalid, None is used)
+            ...    (4,                               'contributor__location_address', 'TEXT',           None),
+            ...    # for deleted columns, type and function are ignored
+            ...    ('contributor__location_city',    None,                            '',               None),
+            ...    # for renamed columns, type and function are ignored
+            ...    ('contributor__location_city',    'contributor__location_town',    '',               None),
             ...    ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
-            ...    ('contributor__location_country', '',                              'TEXT NOT NULL',  None), # type not changing, only NOT NULL provision
+            ...    # type not changing, only NOT NULL provision
+            ...    ('contributor__location_country', '',                              'TEXT NOT NULL',  None),
             ...    ),
-            ...    superkey_colnames=['contributor_rowid'],
+            ...    superkey_colnames_list=[('contributor_rowid',)],
+            ...    table_constraints=[],
             ...    docstr='Used to store the contributors to the project'
             ... )
         """
@@ -701,7 +715,10 @@ class SQLDatabaseController(object):
 
         insert = False
         for (src, dst, type_, map_) in colmap_list:
-            if src is None or isinstance(src, int):
+            #is_newcol = dst not in colname_list
+            #if dst == 'annot_visual_uuid':
+            #    ut.embed()
+            if (src is None or isinstance(src, int)):
                 # Add column
                 assert dst is not None and len(dst) > 0, "New column's name must be valid"
                 assert type_ is not None and len(type_) > 0, "New column's type must be specified"
@@ -767,7 +784,7 @@ class SQLDatabaseController(object):
         db.add_table(tablename_temp, coldef_list,
                      table_constraints=table_constraints,
                      docstr=docstr,
-                     superkey_colnames=superkey_colnames)
+                     superkey_colnames_list=superkey_colnames_list)
 
         # Copy data
         src_list = []
@@ -1123,9 +1140,9 @@ class SQLDatabaseController(object):
                     col_type += " DEFAULT " + str(column[4])  # Specify default value
                 line_list.append('%s%s(%s%r),' % (tab, tab, col_name, col_type, ))
             line_list.append('%s),' % tab)
-            colnames = db.get_table_superkeys(tablename)
+            superkey_colnames_list = db.get_table_superkeys(tablename)
             docstr = db.get_table_docstr(tablename)
-            line_list.append('%s%ssuperkey_colnames=%r,' % (tab, tab, colnames, ))
+            line_list.append('%s%ssuperkey_colnames=%r,' % (tab, tab, superkey_colnames_list, ))
             line_list.append('%s%sdocstr=\'\'\'%s\'\'\')' % (tab, tab, docstr, ))
         line_list.append('')
         return '\n'.join(line_list)
@@ -1193,43 +1210,55 @@ class SQLDatabaseController(object):
             tablename (str):
 
         Returns:
-            list: superkey_colname_list
+            list: superkey_colnames_list
 
-        Example:
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_superkeys
+
+        Example0:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> print(ibs.db.get_table_superkeys('lblimage'))
-            ['lbltype_rowid', 'lblimage_value']
+            >>> result = ibs.db.get_table_superkeys('lblimage')
+            >>> print(result)
+            [('lbltype_rowid', 'lblimage_value')]
         """
         assert tablename in db.get_table_names(), 'tablename=%r is not a part of this database' % (tablename,)
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         data = [(tablename + '_superkeys',)]
-        superkeys = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
+        superkey_colnames_list_repr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
-        assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
-        superkey_colnames_str = superkeys[0]
-        if superkey_colnames_str is None:
+        #assert len(superkey_colnames_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
+        if superkey_colnames_list_repr is None:
             # Sometimes the metadata gets moved for some reason
             # Hack the information out of the constraints
             constraint_list = db.get_table_constraints(tablename)
             assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT'
+            superkey_colnames_list = []
             if constraint_list is not None:
                 import parse
                 for constraint in constraint_list:
                     parse_result = parse.parse('CONSTRAINT superkey UNIQUE ({colnames})', constraint)
                     if parse_result is not None:
                         superkey_colnames = list(map(lambda x: x.strip(), parse_result['colnames'].split(',')))
-            else:
-                superkey_colnames = None
+                        superkey_colnames_list.append(superkey_colnames)
         else:
-            superkey_colnames = superkey_colnames_str.split(';')
-        superkey_colnames = [
-            None if superkey_colname is None else str(superkey_colname)
-            for superkey_colname in superkey_colnames
-        ]
-        return superkey_colnames
+            #superkey_colnames = superkey_colnames_str.split(';')
+            #with ut.EmbedOnException():
+            if superkey_colnames_list_repr.find(';') > -1:
+                # hack for old metadata superkey_val format
+                superkey_colnames_list = [tuple(map(str, superkey_colnames_list_repr.split(';')))]
+            else:
+                # new evalable format
+                superkey_colnames_list = eval(superkey_colnames_list_repr)
+        #superkey_colnames_list = [
+        #    None if superkey_colname is None else str(superkey_colname)
+        #    for superkey_colname in superkey_colnames
+        #]
+        #superkey_colnames_list = list(map(tuple, superkey_colnames_list))
+        return superkey_colnames_list
 
     get_table_superkey_colnames = get_table_superkeys
 
@@ -1243,11 +1272,13 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_otherkey_colnames(db, tablename):
-        superkey_colnames = set((lambda x: x if x is not None else [])(db.get_table_superkeys(tablename)))
+        flat_superkey_colnames_list = ut.flatten(db.get_table_superkeys(tablename))
+        #superkey_colnames_list = set((lambda x: x if x is not None else [])(db.get_table_superkeys(tablename)))
         columns = db.get_columns(tablename)
         otherkey_colnames = [name
                              for (column_id, name, type_, notnull, dflt_value, pk,) in columns
-                             if not pk and name not in superkey_colnames]
+                             if (not pk and   # not primary key
+                                 name not in flat_superkey_colnames_list)]
         return otherkey_colnames
 
     @default_decorator
@@ -1494,3 +1525,15 @@ class SQLDatabaseController(object):
 #    TODO: Add handling for column addition between software versions.
 #    Column deletions will not be removed from the database schema.
 #"""
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.control.SQLDatabaseControl
+        python -m ibeis.control.SQLDatabaseControl --allexamples
+        python -m ibeis.control.SQLDatabaseControl --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

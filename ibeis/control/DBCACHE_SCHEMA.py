@@ -35,7 +35,7 @@ def update_1_0_0(db, ibs=None):
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ),
-        superkey_colnames=['annot_rowid', 'config_rowid'],
+        superkey_colnames_list=[('annot_rowid', 'config_rowid',)],
         docstr='''
         Used to store *processed* annots as chips''')
 
@@ -48,7 +48,7 @@ def update_1_0_0(db, ibs=None):
         # Maybe change name to feature_vecs
         ('feature_sifts',                'NUMPY'),
     ),
-        superkey_colnames=['chip_rowid, config_rowid'],
+        superkey_colnames_list=[('chip_rowid, config_rowid',)],
         docstr='''
         Used to store individual chip features (ellipses)''')
 
@@ -69,7 +69,7 @@ def update_1_0_1(db, ibs=None):
         ('residual_vector',              'NUMPY'),
     ),
         # TODO: Remove residual_rowid from being a superkey
-        superkey_colnames=['residual_rowid', 'feature_rowid', 'config_rowid'],
+        superkey_colnames_list=[('residual_rowid', 'feature_rowid', 'config_rowid',)],
         docstr='''
         Used to store individual SMK/ASMK residual vectors for features''')
     pass
@@ -96,7 +96,7 @@ def update_1_0_3(db, ibs=None):
         ('config_rowid',                'INTEGER DEFAULT 0'),
         ('featweight_forground_weight', 'NUMPY'),
     ),
-        superkey_colnames=['feature_rowid', 'config_rowid'],
+        superkey_colnames_list=[('feature_rowid', 'config_rowid',)],
         docstr='''
         Stores weightings of features based on the forground... etc
         '''
@@ -104,7 +104,7 @@ def update_1_0_3(db, ibs=None):
 
     # Fix the superkeys for the residual table
     db.modify_table(tablename=constants.RESIDUAL_TABLE, colmap_list=[],
-                    superkey_colnames=['feature_rowid', 'config_rowid'],)
+                    superkey_colnames_list=[('feature_rowid', 'config_rowid',)],)
 
 
 # ========================

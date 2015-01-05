@@ -284,7 +284,20 @@ class IBEISController(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> #ibs = ibeis.opendb('PZ_MTEST')
+            >>> #ibs = ibeis.opendb('testdb1')
+            >>> ibs = ibeis.opendb('PZ_Master0')
+
+        Ignore:
+            aid_list = ibs.get_valid_aids()
+            #ibs.update_annot_visual_uuids(aid_list)
+            vuuid_list = ibs.get_annot_visual_uuids(aid_list)
+            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            assert aid_list2 == aid_list
+            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s
+            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
+
         """
         from ibeis.control import _sql_helpers
         from ibeis.control import SQLDatabaseControl as sqldbc
@@ -293,21 +306,23 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.0'
-        ## TODO: add this functionality to SQLController
-        #testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1', 'testdb0']
-        ##testing_newschmea = False
-        ##ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-        #if testing_newschmea:
-        #    # Set to true until the schema module is good then continue tests with this set to false
-        #    testing_force_fresh = True or ut.get_argflag('--force-fresh')
-        #    # Work on a fresh schema copy when developing
-        #    dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
-        #    sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
-        #    dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
-        #    ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-        #    # Set testing schema version
-        #    ibs.db_version_expected = '1.3.0'
+        ibs.db_version_expected = '1.3.1'
+        # TODO: add this functionality to SQLController
+        TESTING_NEW_SQL_VERSION = True
+        if TESTING_NEW_SQL_VERSION:
+            testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1', 'testdb0']
+            #testing_newschmea = False
+            #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+            if testing_newschmea:
+                # Set to true until the schema module is good then continue tests with this set to false
+                testing_force_fresh = True or ut.get_argflag('--force-fresh')
+                # Work on a fresh schema copy when developing
+                dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
+                sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+                dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
+                ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
+                # Set testing schema version
+                ibs.db_version_expected = '1.3.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)

@@ -19,7 +19,7 @@ def update_current(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('alr_confidence',               'REAL DEFAULT 0.0'),
     ),
-        superkey_colnames=['annot_rowid', 'lblannot_rowid', 'config_rowid'],
+        superkey_colnames_list=[('annot_rowid', 'lblannot_rowid', 'config_rowid',)],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and labels''')
@@ -45,7 +45,7 @@ def update_current(db, ibs=None):
         ('name_rowid',                   'INTEGER DEFAULT 0'),
         ('species_rowid',                'INTEGER DEFAULT 0'),
     ),
-        superkey_colnames=['annot_uuid'],
+        superkey_colnames_list=[('annot_uuid',)],
         docstr='''
         Mainly used to store the geometry of the annotation within its parent
         image The one-to-many relationship between images and annotations is
@@ -57,7 +57,7 @@ def update_current(db, ibs=None):
         ('contributor_rowid',            'INTEGER'),
         ('config_suffix',                'TEXT NOT NULL'),
     ),
-        superkey_colnames=['contributor_rowid', 'config_suffix'],
+        superkey_colnames_list=[('contributor_rowid', 'config_suffix',)],
         docstr='''
         Used to store the ids of algorithm configurations that generate
         annotation lblannots.  Each user will have a config id for manual
@@ -75,7 +75,7 @@ def update_current(db, ibs=None):
         ('contributor_location_zip',     'TEXT'),
         ('contributor_note',             'TEXT'),
     ),
-        superkey_colnames=['contributor_tag'],
+        superkey_colnames_list=[('contributor_tag',)],
         docstr='''
         Used to store the contributors to the project
         ''')
@@ -85,7 +85,7 @@ def update_current(db, ibs=None):
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
     ),
-        superkey_colnames=['image_rowid, encounter_rowid'],
+        superkey_colnames_list=[('image_rowid, encounter_rowid',)],
         docstr='''
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
@@ -104,7 +104,7 @@ def update_current(db, ibs=None):
         ('encounter_processed_flag',     'INTEGER DEFAULT 0'),
         ('encounter_shipped_flag',       'INTEGER DEFAULT 0'),
     ),
-        superkey_colnames=['encounter_uuid', 'encounter_text'],
+        superkey_colnames_list=[('encounter_uuid', 'encounter_text',)],
         docstr='''
         List of all encounters''')
 
@@ -115,7 +115,7 @@ def update_current(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('glr_confidence',               'REAL DEFAULT 0.0'),
     ),
-        superkey_colnames=['image_rowid', 'lblimage_rowid', 'config_rowid'],
+        superkey_colnames_list=[('image_rowid', 'lblimage_rowid', 'config_rowid',)],
         docstr='''
         Used to store one-to-many the relationship between images
         and labels''')
@@ -137,7 +137,7 @@ def update_current(db, ibs=None):
         ('image_note',                   'TEXT'),
         ('image_timedelta_posix',        'INTEGER DEFAULT 0'),
     ),
-        superkey_colnames=['image_uuid'],
+        superkey_colnames_list=[('image_uuid',)],
         docstr='''
         First class table used to store image locations and meta-data''')
 
@@ -146,7 +146,7 @@ def update_current(db, ibs=None):
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
     ),
-        superkey_colnames=['lbltype_text'],
+        superkey_colnames_list=[('lbltype_text',)],
         docstr='''
         List of keys used to define the categories of annotation lables, text
         is for human-readability. The lbltype_default specifies the
@@ -160,7 +160,7 @@ def update_current(db, ibs=None):
         ('lblannot_value',               'TEXT NOT NULL'),
         ('lblannot_note',                'TEXT'),
     ),
-        superkey_colnames=['lbltype_rowid', 'lblannot_value'],
+        superkey_colnames_list=[('lbltype_rowid', 'lblannot_value',)],
         docstr='''
         Used to store the labels / attributes of annotations.
         E.G name, species ''')
@@ -172,7 +172,7 @@ def update_current(db, ibs=None):
         ('lblimage_value',               'TEXT NOT NULL'),
         ('lblimage_note',                'TEXT'),
     ),
-        superkey_colnames=['lbltype_rowid', 'lblimage_value'],
+        superkey_colnames_list=[('lbltype_rowid', 'lblimage_value',)],
         docstr='''
         Used to store the labels (attributes) of images''')
 
@@ -181,7 +181,7 @@ def update_current(db, ibs=None):
         ('metadata_key',                 'TEXT'),
         ('metadata_value',               'TEXT'),
     ),
-        superkey_colnames=['metadata_key'],
+        superkey_colnames_list=[('metadata_key',)],
         docstr='''
         The table that stores permanently all of the metadata about the
         database (tables, etc)''')
@@ -194,7 +194,7 @@ def update_current(db, ibs=None):
         ('name_temp_flag',               'INTEGER DEFAULT 0'),
         ('name_alias_text',              'TEXT'),
     ),
-        superkey_colnames=['name_text'],
+        superkey_colnames_list=[('name_text',)],
         docstr='''
         Stores the individual animal names
         ''')
@@ -205,7 +205,7 @@ def update_current(db, ibs=None):
         ('species_text',                 'TEXT NOT NULL'),
         ('species_note',                 'TEXT'),
     ),
-        superkey_colnames=['species_text'],
+        superkey_colnames_list=[('species_text',)],
         docstr='''
         Stores the different animal species
         ''')

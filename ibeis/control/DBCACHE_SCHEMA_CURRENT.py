@@ -20,7 +20,7 @@ def update_current(db, ibs=None):
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ),
-        superkey_colnames=['annot_rowid', 'config_rowid'],
+        superkey_colnames_list=[('annot_rowid', 'config_rowid',)],
         docstr='''
         Used to store *processed* annots as chips''')
 
@@ -30,7 +30,7 @@ def update_current(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('featweight_forground_weight',  'NUMPY'),
     ),
-        superkey_colnames=['feature_rowid', 'config_rowid'],
+        superkey_colnames_list=[('feature_rowid', 'config_rowid',)],
         docstr='''
         Stores weightings of features based on the forground... etc
         ''')
@@ -43,7 +43,7 @@ def update_current(db, ibs=None):
         ('feature_keypoints',            'NUMPY'),
         ('feature_vecs',                 'NUMPY'),
     ),
-        superkey_colnames=['chip_rowid', 'config_rowid'],
+        superkey_colnames_list=[('chip_rowid', 'config_rowid',)],
         docstr='''
         Used to store individual chip features (ellipses)''')
 
@@ -52,7 +52,7 @@ def update_current(db, ibs=None):
         ('metadata_key',                 'TEXT'),
         ('metadata_value',               'TEXT'),
     ),
-        superkey_colnames=['metadata_key'],
+        superkey_colnames_list=[('metadata_key',)],
         docstr='''
         The table that stores permanently all of the metadata about the
         database (tables, etc)''')
@@ -63,6 +63,6 @@ def update_current(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('residual_vector',              'NUMPY'),
     ),
-        superkey_colnames=['feature_rowid', 'config_rowid'],
+        superkey_colnames_list=[('feature_rowid', 'config_rowid',)],
         docstr='''
         Used to store individual SMK/ASMK residual vectors for features''')
