@@ -42,6 +42,7 @@ import math as math
 import numpy as np
 import utool
 import re
+from ibeis.constants import VALID_SPECIES
 
 from plottool import draw_func2 as df2
 from six.moves import zip
@@ -345,7 +346,7 @@ class ANNOTATIONInteraction(object):
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
             #'Press enter to clear the species tag of the selected ANNOTATION',
-            'Type to set the species tag of the selected ANNOTATION', ])))
+            'Start type to set the species tag of the selected ANNOTATION', ])))
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
         # Maintain original input
@@ -719,10 +720,19 @@ class ANNOTATIONInteraction(object):
 
         def handle_label_typing(keychar):
             if self._currently_selected_poly:
-                text = self._currently_selected_poly.species_tag.get_text()
-                text += keychar
-                self._currently_selected_poly.species_tag.set_text(text)
+                #text = self._currently_selected_poly.species_tag.get_text()
+                self._currently_selected_poly.tctext += keychar
+                # TODO: Something better like greying out the tab suggestion
+                # instead of just deleting it
+                self._currently_selected_poly.species_tag.set_text(
+                        self._currently_selected_poly.tctext)
+                regen_tc()
 
+        def regen_tc():
+            # Setup tab completion
+            # Yes this will redo the tab completion list every time a user types. This should be improved if we move to having more species
+            self._currently_selected_poly.tab_list = [spec for spec in VALID_SPECIES if spec.startswith(self._currently_selected_poly.tctext)]
+            self._currently_selected_poly.tcindex = 0
 
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
         match = re.match('^ctrl\+(.)$', event.key)
@@ -739,9 +749,23 @@ class ANNOTATIONInteraction(object):
 
         match = re.match('^backspace$', event.key)
         if match:
-            text = self._currently_selected_poly.species_tag.get_text()
-            self._currently_selected_poly.species_tag.set_text(text[:-1])
+            # We want backspace to operate on the tctext
+            #text = self._currently_selected_poly.species_tag.get_text()
+            self._currently_selected_poly.tctext = self._currently_selected_poly.tctext[:-1]
+            self._currently_selected_poly.species_tag.set_text(self._currently_selected_poly.tctext)
+            regen_tc()
 
+        match = re.match('^tab$', event.key)
+        if match:
+            if len(self._currently_selected_poly.tab_list) > 0:
+                tci = self._currently_selected_poly.tcindex
+                tci = tci + 1 if tci != len(self._currently_selected_poly.tab_list) - 1 else 0
+                self._currently_selected_poly.tcindex = tci
+                # All tab is going to do is go through the possibilities
+                self._currently_selected_poly.species_tag.set_text(
+                        self._currently_selected_poly.tab_list[
+                            self._currently_selected_poly.tcindex])
+        #TODO: Similar functionality for shift+tab to go backwards
 
         match = re.match('^.$', event.key)
         if match:
@@ -1083,6 +1107,10 @@ class ANNOTATIONInteraction(object):
         tagpos = calc_tag_position(poly)
         poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
         poly.species_tag.remove()  # eliminate "leftover" copies
+        # put in previous text and tabcomplete list for autocompletion
+        poly.tctext = ''
+        poly.tab_list = VALID_SPECIES
+        poly.tcindex = 0
         return poly
 
     def make_lines(self, poly, line_color, line_width):
