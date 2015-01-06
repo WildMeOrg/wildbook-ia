@@ -440,6 +440,42 @@ def post_1_2_1(db, ibs=None):
         update_annot_visual_uuids_v121(aid_list)
 
 
+def pre_1_3_1(db, ibs=None):
+    """
+    need to ensure that visual uuid columns are unique before we add that
+    constaint to sql. This will remove any annotations that are not unique
+    """
+    if ibs is not None:
+        #from ibeis import ibsfuncs
+        import utool as ut
+        import six
+        ibs._init_rowid_constants()
+        ibs._init_config()
+        aid_list = ibs.get_valid_aids()
+        ibs.update_annot_visual_uuids(aid_list)
+        #ibsfuncs.fix_remove_visual_dupliate_annotations(ibs)
+        aid_list = ibs.get_valid_aids()
+        visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+        ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
+        dupaids_list = []
+        if len(ibs_dup_annots):
+            for key, dupxs in six.iteritems(ibs_dup_annots):
+                aids = ut.list_take(aid_list, dupxs)
+                dupaids_list.append(aids[1:])
+            toremove_aids = ut.flatten(dupaids_list)
+            print('About to delete toremove_aids=%r' % (toremove_aids,))
+            #if ut.are_you_sure():
+            #ibs.delete_annots(toremove_aids)
+            #from ibeis.model.preproc import preproc_annot
+            #preproc_annot.on_delete(ibs, toremove_aids)
+            ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
+
+            aid_list = ibs.get_valid_aids()
+            visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+            ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
+            assert len(ibs_dup_annots) == 0
+
+
 # =======================
 # Schema Version 1.0.1
 # =======================
@@ -701,7 +737,7 @@ VALID_VERSIONS = utool.odict([
     ('1.2.0',    (None,                 update_1_2_0,       post_1_2_0          )),
     ('1.2.1',    (None,                 update_1_2_1,       post_1_2_1          )),
     ('1.3.0',    (None,                 update_1_3_0,       None                )),
-    ('1.3.1',    (None,                 update_1_3_1,       None                )),
+    ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
 ])
 
 

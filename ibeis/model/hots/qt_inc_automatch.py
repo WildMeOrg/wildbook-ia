@@ -2,6 +2,7 @@
 
 utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
 utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
 
 TODO:
     * spatially constrained matching

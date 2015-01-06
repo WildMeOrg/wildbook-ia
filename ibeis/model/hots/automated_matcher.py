@@ -6,6 +6,9 @@ CommandLine:
     sh Tinc.sh --test-test_inc_query:1
     sh Tinc.sh --test-test_inc_query:2
     sh Tinc.sh --test-test_inc_query:3 --num-initial 5000
+
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --stateful-query
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -21,7 +24,7 @@ ut.noinject(__name__, '[inc]')
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
-USE_STATEFULNESS = False
+USE_STATEFULNESS = ut.get_argflag('--stateful-query')
 
 
 def testdata_automatch(dbname=None):
@@ -169,6 +172,7 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     qreq_vsmany_ = incinfo.get('qreq_vsmany_', None)
     if qreq_vsmany_ is not None:
         # state based exemplars
+        qreq_vsmany_.set_internal_qaids(qaid_chunk)
         daid_list = qreq_vsmany_.get_external_daids()
         if neighbor_index.check_background_process():
             # background indexer is done, reload

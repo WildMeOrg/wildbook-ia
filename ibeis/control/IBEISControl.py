@@ -815,20 +815,18 @@ class IBEISController(object):
         if daid_list is None:
             daid_list = ibs.get_valid_aids()
 
-        res = ibs._query_chips4(
+        _res = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
             return_request=return_request, verbose=verbose,
             save_qcache=save_qcache)
 
-        with ut.EmbedOnException():
+        if return_request:
+            qaid2_qres, qreq_ = _res
+        else:
+            qaid2_qres = _res
 
-            if return_request:
-                qaid2_qres, qreq_ = res
-            else:
-                qaid2_qres = res
-
-            qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
 
         if return_request:
             return qres_list, qreq_
@@ -880,20 +878,26 @@ class IBEISController(object):
 
         # Actually run query
         if qreq_ is not None:
-            import numpy as np
-            assert np.all(qreq_.get_external_qaids() == qaid_list)
-            assert np.all(qreq_.get_external_daids() == daid_list)
+            #import numpy as np
+            #assert np.all(qreq_.get_external_qaids() == qaid_list)
+            #assert np.all(qreq_.get_external_daids() == daid_list)
+            ut.assert_lists_eq(
+                qreq_.get_external_qaids(), qaid_list,
+                'qaids do not agree with qreq_', verbose=True)
+            ut.assert_lists_eq(
+                qreq_.get_external_daids(), daid_list,
+                'daids do not agree with qreq_', verbose=True)
 
-        res = mc4.submit_query_request(
+        _res = mc4.submit_query_request(
             ibs,  qaid_list, daid_list, use_cache, use_bigcache,
             return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
             verbose=verbose, save_qcache=save_qcache)
 
         if return_request:
-            qaid2_qres, qreq_ = res
+            qaid2_qres, qreq_ = _res
             return qaid2_qres, qreq_
         else:
-            qaid2_qres = res
+            qaid2_qres = _res
             return qaid2_qres
 
     #_query_chips = _query_chips3

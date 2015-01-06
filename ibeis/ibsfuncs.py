@@ -422,6 +422,9 @@ def check_annot_consistency(ibs, aid_list=None):
 
 def fix_remove_visual_dupliate_annotations(ibs):
     r"""
+    depricate because duplicate visual_uuids
+    are no longer allowed to be duplicates
+
     Add to clean database?
 
     removes visually duplicate annotations
