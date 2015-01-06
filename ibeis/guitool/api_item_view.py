@@ -112,7 +112,7 @@ def hide_cols(view):
 
 
 @register_view_method
-def select_row_from_id(view, _id, level=0):
+def select_row_from_id(view, _id, scroll=False, level=0):
     """
     _id is from the iders function (i.e. an ibeis rowid)
     selects the row in that view if it exists
@@ -146,6 +146,9 @@ def select_row_from_id(view, _id, level=0):
         row = model.get_row_from_id(_id)
         if row is not None:
             view.selectRow(row)
+            if scroll:
+                qtindex = model.index(row, 0)
+                view.scrollTo(qtindex)
             return row
 
 #---------------
