@@ -52,6 +52,71 @@ def patch_ori(gradx, grady):
     return gori
 
 
+def gaussian_average_patch(patch, sigma=None):
+    """
+
+    Args:
+        patch (ndarray):
+        sigma (float):
+
+    CommandLine:
+        python -m vtool.patch --test-gaussian_average_patch
+
+    References:
+        http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> # build test data
+        >>> patch = np.array([
+        ... [.1, .1, .1, .8, .1, .1, .1],
+        ... [.1, .1, .1, .8, .1, .1, .1],
+        ... [.1, .1, .8, .8, .8, .1, .1],
+        ... [.8, .8, .8, .8, .8, .8, .8],
+        ... [.1, .8, .8, .8, .8, .8, .1],
+        ... [.1, .1, .8, .8, .8, .1, .1],
+        ... [.1, .8, .8, .8, .8, .8, .1],
+        ... [.1, .8, .1, .1, .1, .8, .1],
+        ... [.8, .1, .1, .1, .1, .1, .8]])
+        >>> sigma = 1.6
+        >>> # execute function
+        >>> result = gaussian_average_patch(patch, sigma)
+        >>> # verify results
+        >>> print(result)
+        0.414210641527
+
+    Ignore:
+        import utool as ut
+        import plottool as pt
+        import vtool as vt
+        import cv2
+        gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)
+        gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
+        gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
+        weighted_patch = patch.copy()
+        weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
+        weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
+        gaussian_kern2 = gauss_kernel_d0.dot(gauss_kernel_d1.T)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 1), doclf=True, docla=True)
+        pt.imshow(patch * 255)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 2))
+        pt.imshow(ut.norm_zero_one(gaussian_kern2) * 255.0)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 3))
+        pt.imshow(ut.norm_zero_one(weighted_patch) * 255.0)
+        pt.update()
+    """
+    if sigma is None:
+        sigma = 0.3 * ((min(patch.shape[0:1]) - 1) * 0.5 - 1) + 0.8
+    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
+    weighted_patch = patch.copy()
+    weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
+    weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
+    average = weighted_patch.sum()
+    return average
+
+
 @lru_cache(maxsize=1000)
 def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
     """
