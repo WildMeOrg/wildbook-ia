@@ -208,9 +208,12 @@ def get_axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
     return xy, width, height
 
 
-def draw_border(ax, color=GREEN, lw=2, offset=None):
+def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
     'draws rectangle border around a subplot'
-    xy, width, height = get_axis_xy_width_height(ax, -.7, -.2, 1, .4)
+    if adjust:
+        xy, width, height = get_axis_xy_width_height(ax, -.7, -.2, 1, .4)
+    else:
+        xy, width, height = get_axis_xy_width_height(ax)
     if offset is not None:
         xoff, yoff = offset
         xy = [xoff, yoff]

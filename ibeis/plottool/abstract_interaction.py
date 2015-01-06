@@ -37,7 +37,9 @@ class AbstractInteraction(object):
         for key, val in six.iteritems(kwargs):
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop
-        self.scope.append((new_but, new_ax))
+        tup = (new_but, new_ax)
+        self.scope.append(tup)
+        return tup
 
     # def make_hud(self):
 
