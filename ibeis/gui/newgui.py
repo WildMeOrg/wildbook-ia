@@ -346,7 +346,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                           bgcolor=(255, 255, 150))
 
         ibswgt.detect_button = _NEWBUT('3) Detect',
-                                       ibswgt.back.run_detection_coarse,
+                                       ibswgt.back.run_detection,
                                        bgcolor=(150, 255, 150))
 
         #ibswgt.species_button = _NEWBUT('Update Encounter Species',
@@ -573,6 +573,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
+        ibswgt.set_table_tab(IMAGE_TABLE)
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
@@ -675,6 +676,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 gid = id_list[0]
                 image_context_options += [
                     ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('run detection (can cause duplicates)', lambda: ibswgt.back.run_detection_on_image(gid)),
                     ('delete image', lambda: ibswgt.back.delete_image(gid)),
                 ]
             if len(image_context_options) > 0:

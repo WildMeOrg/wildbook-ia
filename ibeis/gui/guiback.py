@@ -189,6 +189,12 @@ class MainWindowBackend(QtCore.QObject):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
 
+    def run_detection_on_image(back, gid, refresh=True, **kwargs):
+        species = back.ibs.cfg.detect_cfg.species
+        back.ibs.detect_random_forest([gid], species)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE])
+
     def show_probability_chip(back, cid, **kwargs):
         viz.show_probability_chip(back.ibs, cid, **kwargs)
         viz.draw()
@@ -272,7 +278,12 @@ class MainWindowBackend(QtCore.QObject):
                        sel_qres=None, sel_eids=None, **kwargs):
         if sel_eids is not None:
             back.sel_eids = sel_eids
-            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_eids,))
+            sel_enctexts = back.ibs.get_encounter_enctext(sel_eids)
+            if sel_enctexts == [None]:
+                sel_enctexts = []
+            else:
+                sel_enctexts = map(str, sel_enctexts)
+            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_enctexts,))
         if sel_gids is not None:
             back.sel_gids = sel_gids
             back.ibswgt.set_status_text(1, 'Selected Image: %r' % (sel_gids,))
@@ -473,6 +484,20 @@ class MainWindowBackend(QtCore.QObject):
         #    return
         back.ibs.export_encounters(eid_list, new_dbdir=None)
 
+    @blocking_slot()
+    def train_rf_with_encounter(back, **kwargs):
+        from ibeis.model.detect import randomforest
+        eid = back._eidfromkw(kwargs)
+        if eid < 0:
+            gid_list = back.ibs.get_valid_gids()
+        else:
+            gid_list = back.ibs.get_valid_gids(eid=eid)
+        species = back.ibs.cfg.detect_cfg.species
+        if species == 'none':
+            species = None
+        print("[train_rf_with_encounter] Training Random Forest trees with enc=%r and species=%r" % (eid, species, ))
+        randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
+
     @blocking_slot(int)
     def merge_encounters(back, eid_list, destination_eid):
         assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
@@ -584,7 +609,7 @@ class MainWindowBackend(QtCore.QObject):
         #ibs.cfg.save()
 
     @blocking_slot()
-    def _run_detection(back, quick=True, refresh=True, **kwargs):
+    def run_detection(back, refresh=True, **kwargs):
         print('\n\n')
         eid = back._eidfromkw(kwargs)
         ibs = back.ibs
@@ -597,20 +622,12 @@ class MainWindowBackend(QtCore.QObject):
         approx_seconds = len(gid_list) * 40 / cpu_count()   # 40 seconds per image / num cores
         conf_msg = conf_msg_fmststr % (species, len(gid_list), approx_seconds)
         if back.are_you_sure(use_msg=conf_msg):
-            print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
-            ibs.detect_random_forest(gid_list, species, quick=quick)
+            print('[back] run_detection(species=%r, eid=%r)' % (species, eid))
+            ibs.detect_random_forest(gid_list, species)
             print('[back] about to finish detection')
             if refresh:
                 back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
             print('[back] finished detection')
-
-    @blocking_slot()
-    def run_detection_coarse(back, refresh=True):
-        back._run_detection(quick=True)
-
-    @blocking_slot()
-    def run_detection_fine(back, refresh=True):
-        back._run_detection(quick=False)
 
     @blocking_slot()
     def compute_feats(back, refresh=True, **kwargs):
@@ -853,6 +870,7 @@ class MainWindowBackend(QtCore.QObject):
             # Set encounter to be processed
             back.ibs.set_encounter_processed_flags([eid], [1])
             back.ibs.wildbook_signal_eid_list([eid])
+            back.front.enc_tabwgt._close_tab_with_eid(eid)
             if refresh:
                 back.front.update_tables([gh.IMAGE_TABLE])
 
@@ -916,7 +934,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] redownload_detection_models')
         if not back.are_you_sure():
             return
-        ibsfuncs.redownload_detection_models()
+        ibsfuncs.redownload_detection_models(back.ibs)
 
     @slot_()
     def delete_cache(back):

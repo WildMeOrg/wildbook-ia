@@ -33,6 +33,8 @@ TransferData = namedtuple(
         'transfer_export_location_zip',
         'transfer_export_location_country',
         'contributor_td_list',
+        'name_td',
+        'species_td',
     ))
 
 CONTRIBUTOR_TransferData = namedtuple(
@@ -49,6 +51,20 @@ CONTRIBUTOR_TransferData = namedtuple(
         'config_td',
         'encounter_td',
         'image_td',
+    ))
+
+NAME_TransferData = namedtuple(
+    'NAME_TransferData', (
+        'name_uuid_list',
+        'name_text_list',
+        'name_note_list',
+    ))
+
+SPECIES_TransferData = namedtuple(
+    'SPECIES_TransferData', (
+        'species_uuid_list',
+        'species_text_list',
+        'species_note_list',
     ))
 
 CONFIG_TransferData = namedtuple(
@@ -92,9 +108,11 @@ ANNOTATION_TransferData = namedtuple(
         'annot_viewpoint_list',
         'annot_detection_confidence_list',
         'annot_exemplar_flag_list',
+        'annot_visual_uuid_list',
+        'annot_semantic_uuid_list',
         'annot_note_list',
-        'annot_name_rowid_list',
-        'annot_species_rowid_list',
+        'annot_name_INDEX_list',
+        'annot_species_INDEX_list',
         'lblannot_td_list',
     ))
 
@@ -124,13 +142,14 @@ LBLANNOT_TransferData = namedtuple(
 #############################
 
 
-def _index(value, list_, warning=False):
+def _index(value, list_, warning=True):
     if value in list_:
         return list_.index(value)
     else:
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        print("[export_subset] WARNING: value (%r) not in list: %r (%r)" % (value, list_, calframe[1][3]))
+        if warning:
+            print("[export_subset] WARNING: value (%r) not in list: %r (%r)" % (value, list_, calframe[1][3]))
         return None
 
 
@@ -138,7 +157,8 @@ def geo_locate(default="Unknown", timeout=1):
     try:
         import urllib2
         import json
-        f = urllib2.urlopen('http://freegeoip.net/json/', timeout=timeout)
+        req = urllib2.Request('http://freegeoip.net/json/', headers={ 'User-Agent': 'Mozilla/5.0' })
+        f = urllib2.urlopen(req, timeout=timeout)
         json_string = f.read()
         f.close()
         location = json.loads(json_string)
@@ -216,7 +236,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
 #############################
 
 
-def export_transfer_data(ibs_src, user_prompt=False, gid_list=None):
+def export_transfer_data(ibs_src, gid_list=None, user_prompt=False):
     """
     Packs all the data you are going to transfer from ibs_src
     info the transfer_data named tuple.
@@ -224,7 +244,7 @@ def export_transfer_data(ibs_src, user_prompt=False, gid_list=None):
     Example:
         >>> # SLOW_DOCTEST
         >>> import ibeis
-        >>> from ibeis.dbio import export_subset
+        >>> from ibeis.dbio import export_subset    # NOQA
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
         >>> bulk_conflict_resolution = 'ignore'
@@ -244,12 +264,15 @@ def export_transfer_data(ibs_src, user_prompt=False, gid_list=None):
     species_td = export_species_transfer_data(ibs_src, species_rowid_list)   # NOQA
     # Create Contributor TranferData
     contrib_rowid_list = ensure_contributor_rowids(ibs_src, user_prompt=user_prompt)
+    if gid_list is not None:
+        contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
     assert len(contrib_rowid_list) > 0, "There must be at least one contributor to merge"
     contributor_td_list = [
-        export_contributor_transfer_data(ibs_src, contrib_rowid)
+        export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list,
+                                         species_rowid_list, valid_gid_list=gid_list)
         for contrib_rowid in contrib_rowid_list
     ]
-
+    # Geolocate and create database's TransferData object
     success, location_city, location_state, location_country, location_zip = geo_locate()
     td = TransferData(
         ibs_src.dbname,
@@ -259,7 +282,9 @@ def export_transfer_data(ibs_src, user_prompt=False, gid_list=None):
         location_state,
         location_zip,
         location_country,
-        contributor_td_list
+        contributor_td_list,
+        name_td,
+        species_td
     )
     return td
 
@@ -274,7 +299,7 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
     Example:
         >>> # SLOW_DOCTEST
         >>> import ibeis
-        >>> from ibeis.dbio import export_subset
+        >>> from ibeis.dbio import export_subset    # NOQA
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
         >>> bulk_conflict_resolution = 'ignore'
@@ -310,7 +335,11 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
     encounter_td = export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list)
     # Get images
     gid_list = ibs_src.get_contributor_gids(contributor_rowid)
-    image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list)
+    if valid_gid_list is not None:
+        isvalid_list = [ gid in valid_gid_list for gid in gid_list ]
+        gid_list = ut.filter_items(gid_list, isvalid_list)
+    image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list,
+                                          nid_list, species_rowid_list)
     # Create Contributor TransferData
     contributor_td = CONTRIBUTOR_TransferData(
         ibs_src.get_contributor_uuid(contributor_rowid),
@@ -327,6 +356,26 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         image_td
     )
     return contributor_td
+
+
+def export_name_transfer_data(ibs_src, nid_list):
+    # Create Name TransferData
+    name_td = NAME_TransferData(
+        ibs_src.get_name_uuids(nid_list),
+        ibs_src.get_name_texts(nid_list),
+        ibs_src.get_name_notes(nid_list)
+    )
+    return name_td
+
+
+def export_species_transfer_data(ibs_src, species_rowid_list):
+    # Create Species TransferData
+    species_td = SPECIES_TransferData(
+        ibs_src.get_species_uuids(species_rowid_list),
+        ibs_src.get_species_texts(species_rowid_list),
+        ibs_src.get_species_notes(species_rowid_list)
+    )
+    return species_td
 
 
 def export_config_transfer_data(ibs_src, config_rowid_list):
@@ -354,7 +403,8 @@ def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
     return encounter_td
 
 
-def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list):
+def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, nid_list,
+                               species_rowid_list):
     """
     builds transfer data for seleted image ids in ibs_src.
     NOTE: gid_list, config_rowid_list and eid_list do not correspond
@@ -379,7 +429,8 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list):
     # Get annotations
     aids_list = ibs_src.get_image_aids(gid_list)
     annot_td_list = [
-        export_annot_transfer_data(ibs_src, aid_list, config_rowid_list)
+        export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, nid_list,
+                                   species_rowid_list)
         for aid_list in aids_list
     ]
     # Create Image TransferData
@@ -436,9 +487,11 @@ def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, species_row
         ibs_src.get_annot_viewpoints(aid_list),
         ibs_src.get_annot_detect_confidence(aid_list),
         ibs_src.get_annot_exemplar_flags(aid_list),
-        ibs_src.get_annot_name_rowids(aid_list),
-        ibs_src.get_annot_species_rowids(aid_list),
+        ibs_src.get_annot_visual_uuids(aid_list),
+        ibs_src.get_annot_semantic_uuids(aid_list),
         ibs_src.get_annot_notes(aid_list),
+        annot_name_INDEX_list,
+        annot_species_INDEX_list,
         lblannot_td_list
     )
     return annot_td
@@ -497,6 +550,9 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
     """
     Imports transfer data from any ibeis database and moves it into ibs_dst
     """
+    nid_list = import_name_transfer_data(ibs_dst, td.name_td)
+    species_rowid_list = import_species_transfer_data(ibs_dst, td.species_td)
+    # Import the contributors
     added = []
     rejected = []
     for contributor_td in td.contributor_td_list:
@@ -504,6 +560,8 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
         success = import_contributor_transfer_data(
             ibs_dst,
             contributor_td,
+            nid_list,
+            species_rowid_list,
             bulk_conflict_resolution=bulk_conflict_resolution
         )
         if success:
@@ -516,7 +574,8 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
     print("[import_transfer_data]   Contributors Rejected: %i" % (len(rejected),))
 
 
-def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_resolution='merge'):
+def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_rowid_list,
+                                     bulk_conflict_resolution='merge'):
     print("[import_transfer_data] Import Contributor: %r" % (contributor_td.contributor_uuid,))
     # Find conflicts
     contributor_rowid = ibs_dst.get_contributor_rowid_from_uuid([contributor_td.contributor_uuid])[0]
@@ -588,6 +647,8 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_reso
             contributor_td.image_td,
             contributor_rowid,
             eid_list,
+            nid_list,
+            species_rowid_list,
             config_rowid_list,
             bulk_conflict_resolution=bulk_conflict_resolution
         )
@@ -599,8 +660,28 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_reso
     return True
 
 
+def import_name_transfer_data(ibs_dst, name_td):
+    # Import Name TransferData
+    name_rowid_list = ibs_dst.add_names(
+        name_td.name_text_list,
+        name_td.name_uuid_list,
+        name_td.name_note_list
+    )
+    return name_rowid_list
+
+
+def import_species_transfer_data(ibs_dst, species_td):
+    # Import Species TransferData
+    species_rowid_list = ibs_dst.add_species(
+        species_td.species_text_list,
+        species_td.species_uuid_list,
+        species_td.species_note_list
+    )
+    return species_rowid_list
+
+
 def import_config_transfer_data(ibs_dst, config_td, contributor_rowid, bulk_conflict_resolution='merge'):
-        # Find conflicts
+    # Find conflicts
     # Map input (because transfer objects are read-only)
     config_suffixes_list = config_td.config_suffixes_list
     # Find conflicts
@@ -684,7 +765,8 @@ def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list, bul
 
 
 def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
-                               eid_list, config_rowid_list, bulk_conflict_resolution='merge'):
+                               eid_list, nid_list, species_rowid_list,
+                               config_rowid_list, bulk_conflict_resolution='merge'):
     # Map input (because transfer objects are read-only)
     encounter_INDEXs_list      = image_td.encounter_INDEXs_list
     image_path_list            = image_td.image_path_list
@@ -790,6 +872,8 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
                 ibs_dst,
                 annotation_td,
                 gid,
+                nid_list,
+                species_rowid_list,
                 config_rowid_list
             )
             aid_total += len(aid_list)
