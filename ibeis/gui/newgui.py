@@ -203,12 +203,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Sturcutres that will hold models and views
         ibswgt.models       = {}
         ibswgt.views        = {}
+        ibswgt.redirects    = {}
         #ibswgt.widgets      = {}
 
         # FIXME: Duplicate models
         # Create models and views
         # Define the abstract item models and views for the tables
-        ibswgt.tblname_list = []
+        ibswgt.tblname_list   = []
         ibswgt.modelview_defs = []
 
         # OLD STATIC WAY OF USING TABS AND API VIEWS
@@ -445,6 +446,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for widget in ibswgt.statusLabel_list:
             ibswgt.statusBar.addWidget(widget)
 
+    def _init_redirects(ibswgt):
+        redirects = gh.get_redirects(ibswgt.ibs)
+        for src_table in redirects.keys():
+            for src_table_name in redirects[src_table].keys():
+                dst_table, mapping_func = redirects[src_table][src_table_name]
+                src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
+                ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
+
     def set_status_text(ibswgt, index, text):
         #printDBG('set_status_text[%r] = %r' % (index, text))
         ibswgt.statusLabel_list[index].setText(text)
@@ -497,6 +506,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Update the api models to use the new control
             with ut.Timer('make headers'):
                 header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
+            # Enable the redirections between tables
+            ibswgt._init_redirects()
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
@@ -719,6 +730,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print(id_list)
             pass
 
+    def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
+        if src_table not in ibswgt.redirects.keys():
+            ibswgt.redirects[src_table] = {}
+        ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
+
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
         """
@@ -729,6 +745,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_ = model._get_row_id(qtindex)
         #model_name = model.name
         #print('clicked: %s' + ut.dict_str(locals()))
+        try:
+            dst_table, mapping_func = ibswgt.redirects[model.name][qtindex.column()]
+            dst_id = mapping_func(id_)
+            print("[on_click] Redirecting to: %r" % (dst_table, ))
+            print("[on_click]     Mapping %r -> %r" % (id_, dst_id, ))
+            ibswgt.set_table_tab(dst_table)
+            qtrow = ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
+            print(qtrow)
+            return None
+        except:
+            # No redirect listed for this table
+            print('No redirect found')
+            pass
+
+        # If no link, process normally
         if model.name == ENCOUNTER_TABLE:
             pass
             #printDBG('clicked encounter')
