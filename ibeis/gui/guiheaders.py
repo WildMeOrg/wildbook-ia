@@ -245,9 +245,9 @@ expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
 def get_redirects(ibs):
     redirects = {}
     # Annotation redirects
-    redirects[ANNOTATION_TABLE] = {
-        'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
-    }
+    # redirects[ANNOTATION_TABLE] = {
+    #     'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
+    # }
     # Return the redirects dictionary
     return redirects
 

@@ -751,12 +751,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print("[on_click] Redirecting to: %r" % (dst_table, ))
             print("[on_click]     Mapping %r -> %r" % (id_, dst_id, ))
             ibswgt.set_table_tab(dst_table)
-            qtrow = ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
-            print(qtrow)
+            ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
             return None
         except:
             # No redirect listed for this table
-            print('No redirect found')
             pass
 
         # If no link, process normally
