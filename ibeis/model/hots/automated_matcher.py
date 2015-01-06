@@ -52,24 +52,20 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
 
     """
     print('begin test interactive iter')
-    # Query aids in a random order
-    SHUFFLE_AIDS = True
-    if SHUFFLE_AIDS:
-        aids_list1_ = ut.deterministic_shuffle(aid_list1[:])
-    else:
-        aids_list1_ = aid_list1
+
+    #ut.embed()
 
     # Transfer some amount of initial data
     print('Transfer %d initial test annotations' % (num_initial,))
     if num_initial > 0:
-        aid_sublist1 = aids_list1_[0:num_initial]
+        aid_sublist1 = aid_list1[0:num_initial]
         aid_sublist2 = ut.dict_take_list(aid1_to_aid2, aid_sublist1)
         #aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)
         # Add names from old databse. add all initial as exemplars
         name_list = ibs_gt.get_annot_names(aid_sublist1)
         ibs.set_annot_names(aid_sublist2, name_list)
         ibs.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
-        aids_list1_ = aids_list1_[num_initial:]
+        aid_list1 = aid_list1[num_initial:]
 
     # Print info
     WITHINFO = ut.get_argflag('--withinfo')
@@ -81,8 +77,10 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         print(ibs.get_dbinfo_str())
         print('--------')
         print('\nibs_gt info')
-        print(ibs_gt.get_dbinfo_str())
+        #print(ibs_gt.get_dbinfo_str())
         print('L________')
+
+    #ut.embed()
 
     # Setup metadata tuple
     metatup = Metatup(ibs_gt, aid1_to_aid2)
@@ -92,7 +90,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
 
     # Begin incremental iteration
     chunksize = 1
-    aids_chunk1_iter = ut.progress_chunks(aids_list1_, chunksize, lbl='TEST QUERY')
+    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         with ut.Timer('teststep'):
             #sys.stdout.write('\n')
@@ -113,7 +111,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                 # oracle code and make a decision
                 yield item
     print('ending interactive iter')
-    ah.check_results(ibs_gt, ibs, aid1_to_aid2, aids_list1_, incinfo)
+    ah.check_results(ibs_gt, ibs, aid1_to_aid2, aid_list1, incinfo)
 
 
 @profile

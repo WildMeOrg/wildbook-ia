@@ -329,22 +329,51 @@ def setup_incremental_test(ibs_gt, clear_names=True):
     ONLY_GT = True
     if ONLY_GT:
         # use only annotations that will have matches in test
-        aid_list1 = ibs_gt.get_aids_with_groundtruth()
+        aid_list1_ = ibs_gt.get_aids_with_groundtruth()
     else:
         # use every annotation in test
-        aid_list1 = ibs_gt.get_valid_aids()
+        aid_list1_ = ibs_gt.get_valid_aids()
 
     if ut.get_argflag('--gzdev'):
         # Use a custom selection of gzall
         from ibeis.model.hots import devcases
         assert ibs_gt.get_dbname() == 'GZ_ALL', 'not gzall'
-        _aid_list, vuuid_list = devcases.get_gzall_small_test()
+        vuuid_list, ignore_vuuids = devcases.get_gzall_small_test()
+        # TODO; include all names of these annots too
         aid_list = ibs_gt.get_annot_aids_from_visual_uuid(vuuid_list)
-        if _aid_list == aid_list:
-            print('Warning: GZ_ALL aids are inconsistent')
+        ignore_aid_list = ibs_gt.get_annot_aids_from_visual_uuid(ignore_vuuids)
+        ignore_nid_list = ibs_gt.get_annot_nids(ignore_aid_list)
         ut.assert_all_not_None(aid_list)
-        aid_list1 = aid_list
+        other_aids = ut.flatten(ibs_gt.get_annot_groundtruth(aid_list))
+        aid_list.extend(other_aids)
+        aid_list = sorted(set(aid_list))
+        nid_list = ibs_gt.get_annot_nids(aid_list)
+        isinvalid_list = [nid in ignore_nid_list for nid in nid_list]
+        print('Filtering %r annots specified to ignore' % (sum(isinvalid_list),))
+        aid_list = ut.filterfalse_items(aid_list, isinvalid_list)
         #ut.embed()
+        aid_list1_ = aid_list
+        #ut.embed()
+
+    # Add aids in a random order
+    VALID_ORDERS = ['shuffle', 'stagger', 'same']
+    #AID_ORDER = 'shuffle'
+    AID_ORDER = 'stagger'
+    assert VALID_ORDERS.index(AID_ORDER) > -1
+
+    if AID_ORDER == 'shuffle':
+        aid_list1 = ut.deterministic_shuffle(aid_list1_[:])
+    elif AID_ORDER == 'stagger':
+        from six.moves import zip_longest, filter
+        aid_groups, unique_nid_list = ibs_gt.group_annots_by_name(aid_list1_)
+        def stagger_group(list_):
+            return ut.filter_Nones(ut.iflatten(zip_longest(*list_)))
+        aid_multiton_group = list(filter(lambda aids: len(aids) > 1, aid_groups))
+        aid_list1 = stagger_group(aid_multiton_group)
+        #aid_list1 = ibs_gt.get_annot_rowid_sample(per_name=10, aid_list=aid_list1_, stagger_names=True)
+        pass
+    elif AID_ORDER == 'same':
+        aid_list1 = aid_list1_
 
     # If reset is true the test database is started completely from scratch
     reset = ut.get_argflag('--reset')

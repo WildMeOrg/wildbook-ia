@@ -214,7 +214,9 @@ class QueryVerificationInteraction(AbstractInteraction):
         print(' examining aid %r against the query result' % aid)
         figtitle = 'Examine a specific image against the query'
         #interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle)
-        fig = df2.figure(fnum=510, pnum=(1, 1, 1), doclf=True, docla=True)
+        #fnum = 510
+        fnum = df2.next_fnum()
+        fig = df2.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
         viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
         fig.show()
         # this is only relevant to matplotlib.__version__ < 1.4.2
@@ -245,7 +247,6 @@ class QueryVerificationInteraction(AbstractInteraction):
         #Add other HUD buttons
         self.append_button('Quit', callback=partial(self.quit), rect=hr_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hr_slot(1))
-
 
         if self.progress_current is not None and self.progress_total is not None:
             self.progress_string = str(self.progress_current) + '/' + str(self.progress_total)

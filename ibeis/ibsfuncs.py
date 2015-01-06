@@ -305,7 +305,7 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 
 @__injectable
-def assert_valid_aids(ibs, aid_list, verbose=False):
+def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     if ut.NO_ASSERTS:
         return
     valid_aids = set(ibs.get_valid_aids())
@@ -320,7 +320,7 @@ def assert_valid_aids(ibs, aid_list, verbose=False):
         ut.printex(ex)
         ut.embed()
         raise
-    if verbose:
+    if veryverbose:
         print('passed assert_valid_aids')
 
 
@@ -1733,6 +1733,42 @@ def compute_all_thumbs(ibs, **kwargs):
     preprocess_image_thumbs(ibs, **kwargs)
 
 
+@__injectable
+def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
+    r"""
+    This function is probably the fastest of its siblings
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+        distinguish_unknowns (bool):
+
+    Returns:
+        tuple: grouped_aids_, unique_nids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-group_annots_by_name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> distinguish_unknowns = True
+        >>> # execute function
+        >>> result = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
+        >>> # verify results
+        >>> print(result)
+    """
+    import vtool as vt
+    nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
+    unique_nids, groupxs_list = vt.group_indicies(nid_list)
+    grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    return grouped_aids_, unique_nids
+
+
 def group_annots_by_known_names_nochecks(ibs, aid_list):
     nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = ut.group_items(aid_list, nid_list)
@@ -1742,12 +1778,14 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
 @__injectable
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     r"""
+    FIXME; rectify this
     #>>> import ibeis  # NOQA
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-group_annots_by_known_names
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -1860,17 +1898,48 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 
 @__injectable
-def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0):
+def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
+                           stagger_names=False):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        per_name (int):
+        min_ngt (int):
+        seed (int):
+        aid_list (list):
+
+    Returns:
+        ?: sample_aids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> per_name = 100
+        >>> min_ngt = 1
+        >>> seed = 0
+        >>> # execute function
+        >>> sample_aids = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
+        >>> # verify results
+        >>> result = str(sample_aids)
+        >>> print(result)
+    """
     #qaids = ibs.get_easy_annot_rowids()
-    import vtool as vt
-    all_aids = np.array(ibs.get_valid_aids())
-    all_nids = np.array(ibs.get_annot_name_rowids(all_aids, distinguish_unknowns=False))
-    unique_nids, groupxs_list = vt.group_indicies(all_nids)
-    grouped_aids_ = vt.apply_grouping(all_aids, groupxs_list)
-    #nids = ibs.get_valid_nids(filter_empty=True)
-    #grouped_aids_ = ibs.get_name_aids(nids)
+    if aid_list is None:
+        aid_list = np.array(ibs.get_valid_aids())
+    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=False)
     grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
-    sample_aids = ut.flatten(ut.sample_lists(grouped_aids, num=per_name, seed=seed))
+    if stagger_names:
+        from six.moves import zip_longest
+        sample_aids = ut.filter_Nones(ut.iflatten(zip_longest(*ut.sample_lists(grouped_aids, num=per_name, seed=seed))))
+    else:
+        sample_aids = ut.flatten(ut.sample_lists(grouped_aids, num=per_name, seed=seed))
+
     return sample_aids
 
 

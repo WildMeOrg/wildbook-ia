@@ -22,7 +22,7 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vs
 
 
 # Automatic GZ Test Small
-sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs  --test-title "GZ_DEV" --gzdev --withinfo
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev
 
 
 """
@@ -180,9 +180,30 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
     ibs2 = ibs (the current test database, sorry for the backwardness)
     aid1_to_aid2 - maps annots from ibs1 to ibs2
     """
+    WASH                = 'wash'
+    BOTH_FAIL           = 'both_fail'
+    SINGLETON           = 'singleton'
+    VSMANY_OUTPERFORMED = 'vsmany_outperformed'
+    VSMANY_DOMINATES    = 'vsmany_dominates'
+    VSMANY_WINS         = 'vsmany_wins'
+    VSONE_WINS          = 'vsone_wins'
     if 'testcases' not in incinfo:
-        incinfo['testcases'] = ut.ddict(list)
+        testcases = {}
+        for case in [WASH, BOTH_FAIL, SINGLETON, VSMANY_OUTPERFORMED,
+                     VSMANY_DOMINATES, VSMANY_WINS, VSONE_WINS]:
+            testcases[case] = []
+        incinfo['testcases'] = testcases
     testcases = incinfo['testcases']
+    def append_case(case, testtup):
+        print('APPENDED NEW TESTCASE: case=%r' % (case,))
+        print('* testup = %r' % (testtup,))
+        print('* vuuid = %r' % (ibs_gt.get_annot_visual_uuids(testtup.qaid_t),))
+        if case in [VSMANY_WINS, VSMANY_DOMINATES]:
+            incinfo['interactive'] = True
+            incinfo['use_oracle'] = False
+            incinfo['PLEASE_STOP'] = True
+        testcases[case].append(testtup)
+
     for qaid in six.iterkeys(qaid2_qres_vsmany):
         qres_vsmany = qaid2_qres_vsmany[qaid]
         qres_vsone  = qaid2_qres_vsone[qaid]
@@ -211,17 +232,20 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
         # Sort the test case into a category
         testtup = TestTup(qaid_t, qaid, vsmany_rank, vsone_rank)
         if vsmany_rank is None and vsone_rank is None and impossible_to_match:
-            testcases['singleton'].append(testtup)
+            append_case(SINGLETON, testtup)
         elif vsmany_rank is not None and vsone_rank is None:
-            testcases['vsmany_dominates'].append(testtup)
+            if vsmany_rank < 5:
+                append_case(VSMANY_DOMINATES, testtup)
+            else:
+                append_case(VSMANY_OUTPERFORMED, testtup)
         elif vsmany_rank is None:
-            testcases['both_fail'].append(testtup)
+            append_case(BOTH_FAIL, testtup)
         elif vsone_rank > vsmany_rank:
-            testcases['vsmany_wins'].append(testtup)
+            append_case(VSMANY_WINS, testtup)
         elif vsone_rank < vsmany_rank:
-            testcases['vsone_wins'].append(testtup)
+            append_case(VSONE_WINS, testtup)
         elif vsone_rank == vsmany_rank:
-            testcases['wash'].append(testtup)
+            append_case(WASH, testtup)
         else:
             raise AssertionError('unenumerated case')
         count_dict = ut.count_dict_vals(testcases)
