@@ -13,24 +13,25 @@ SPECIAL = utool.get_argflag('--special') or utool.inIPython()
 
 def TEST_DETECT(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
-    print('get_valid_ANNOTATIONS')
-    gid_list = ibs.get_valid_gids()[0:1]
-    if SPECIAL:
-        gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)
-    #gid_list.extend(ibs.add_images([utool.unixpath('~/Dropbox/Chuck/detect_testimg/testgrevy.jpg')]))
-    species = 'zebra_plains'
-    detectkw = {
-        'quick': True,
-        'save_detection_images': SPECIAL,
-        'save_scales': SPECIAL,
-    }
-    detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **detectkw)
-    gid_list2 = []
-    bbox_list2 = []
-    for gid, bboxes, confidences, img_conf in detect_gen:
-        for bbox in bboxes:
-            gid_list2.append(gid)
-            bbox_list2.append(bbox)
+    assert False, "Re-do this detect test"
+    # print('get_valid_ANNOTATIONS')
+    # gid_list = ibs.get_valid_gids()[0:1]
+    # if SPECIAL:
+    #     gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)
+    # #gid_list.extend(ibs.add_images([utool.unixpath('~/Dropbox/Chuck/detect_testimg/testgrevy.jpg')]))
+    # species = 'zebra_plains'
+    # detectkw = {
+    #     'quick': True,
+    #     'save_detection_images': SPECIAL,
+    #     'save_scales': SPECIAL,
+    # }
+    # detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **detectkw)
+    # gid_list2 = []
+    # bbox_list2 = []
+    # for gid, bboxes, confidences, img_conf in detect_gen:
+    #     for bbox in bboxes:
+    #         gid_list2.append(gid)
+    #         bbox_list2.append(bbox)
             # not using confidence nor img_conf here
 
     # if SPECIAL:

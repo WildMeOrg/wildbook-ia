@@ -34,7 +34,7 @@ def postprocess_dev():
     """
     from plottool import df2 as df2
     import cv2
-    import numpy as np
+    import numpy as np  # NOQA
 
     fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
     img = cv2.imread(fpath)
@@ -187,17 +187,11 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
     """
     # Get probchip dest information (output path)
     from ibeis.model.detect import randomforest
-    if qreq_ is None:
-        use_chunks = ibs.cfg.other_cfg.detect_use_chunks
-    else:
-        use_chunks = qreq_.qparams.detect_use_chunks
-
     grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
     cachedir   = get_probchip_cachedir(ibs)
-    modeldir   = ibs.get_detect_modeldir()
     ut.ensuredir(cachedir)
 
-    gropued_probchip_fpath_lists = []
+    probchip_fpath_list_ = []
     if ut.VERBOSE:
         print('[preproc_probchip] +--------------------')
     for aids, species in zip(grouped_aids, unique_species):
@@ -208,16 +202,15 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
         cfpath_list  = ibs.get_annot_chip_fpaths(aids)
-        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
         # Ensure that all chips are computed
-        # LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to
-        randomforest.compute_probability_images(
-            cfpath_list, probchip_fpath_list, species, use_chunks=use_chunks,
-            modeldir=modeldir, verbose=ut.VERBOSE)
-        # HACK: Fix stupid bug in pyrf
-        fixed_probchip_fpath_list = [fpath + '.png' for fpath in probchip_fpath_list]
-        gropued_probchip_fpath_lists.append(fixed_probchip_fpath_list)
-    probchip_fpath_list_ = ut.flatten(gropued_probchip_fpath_lists)
+        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
+        config = {
+            # 'scale_list': [1.0],
+            'output_gpath_list': probchip_fpath_list,
+            'mode': 1,
+        }
+        randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config)
+        probchip_fpath_list_.extend(probchip_fpath_list)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
