@@ -24,7 +24,7 @@ ut.noinject(__name__, '[inc]')
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
 
-USE_STATEFULNESS = ut.get_argflag('--stateful-query')
+USE_STATEFULNESS = not ut.get_argflag('--nostateful-query')
 
 
 def testdata_automatch(dbname=None):

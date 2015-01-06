@@ -12,7 +12,7 @@ from ibeis.model.hots import hots_query_result
 
 @profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
-                            verbose=ut.NOT_QUIET):
+                            verbose=ut.NOT_QUIET, unique_species=None):
     """
     ibeis entry point to create a new query request object
 
@@ -71,14 +71,16 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
     # <HACK>
-    unique_species = apply_species_with_detector_hack(ibs, cfgdict, qaid_list,
-                                                      daid_list)
+    if unique_species is None:
+        unique_species_ = apply_species_with_detector_hack(ibs, cfgdict, qaid_list, daid_list)
+    else:
+        unique_species_ = unique_species
     # </HACK>
     qparams = QueryParams(cfg, cfgdict)
     qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs)
     if verbose:
         print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
-    qreq_.unique_species = unique_species  # HACK
+    qreq_.unique_species = unique_species_  # HACK
     return qreq_
 
 

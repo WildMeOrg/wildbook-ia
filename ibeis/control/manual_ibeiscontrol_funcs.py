@@ -8,7 +8,8 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def new_query_request(ibs, qaid_list, daid_list, cfgdict=None, verbose=ut.NOT_QUIET):
+def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
+                      verbose=ut.NOT_QUIET, **kwargs):
     """
     alias for ibeis.model.hots.query_request.new_ibeis_query_request
 
@@ -42,7 +43,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None, verbose=ut.NOT_QU
     """
     from ibeis.model.hots import query_request
     qreq_ = query_request.new_ibeis_query_request(
-        ibs, qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose)
+        ibs, qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose, **kwargs)
     return qreq_
 
 
