@@ -79,17 +79,7 @@ def init_tablecache():
     return tablecache
 
 
-def dev_cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
-    """ cache getter for when the database is gaurenteed not to change """
-    def closure_dev_getter_cacher(getter_func):
-        if not DEV_CACHE:
-            return getter_func
-        return cache_getter(tblname, colname, cfgkeys=None, force=False,
-                            debug=False)(getter_func)
-    return closure_dev_getter_cacher
-
-
-def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
+def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, native_rowids=True):
     """
     Creates a getter cacher
     the class must have a table_cache property
@@ -214,6 +204,20 @@ def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
+
+
+def dev_cache_getter(tblname, colname, *args, **kwargs):
+    """ cache getter for when the database is gaurenteed not to change """
+    def closure_dev_getter_cacher(getter_func):
+        if not DEV_CACHE:
+            return getter_func
+        return cache_getter(tblname, colname, *args, **kwargs)(getter_func)
+    return closure_dev_getter_cacher
+
+
+# alias for easy removal of dev functions.
+# dev case is same as normal case though
+dev_cache_invalidator = cache_invalidator
 
 
 #@decorator.decorator

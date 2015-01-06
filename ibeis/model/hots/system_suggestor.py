@@ -64,7 +64,9 @@ def get_qres_name_choices(ibs, qres):
 
 
 def get_system_name_suggestion(ibs, choicetup):
-    """ hotspotter returns an name suggestion
+    """
+    Suggests a decision based on the current choices
+
     Args:
         ibs      (IBEISController):
         qaid      (int):  query annotation id
@@ -125,7 +127,9 @@ def get_system_name_suggestion(ibs, choicetup):
         score = sorted_nscore[rank]
         nid = sorted_nids[rank]
         rawscore = sorted_rawscore[rank][0]
-        autoname_msg_list.append('suggesting nid=%r, score=%.2f, rank=%r, rawscore=%.2f' % (nid, score, rank, rawscore))
+        msg_fmtstr = 'suggesting nid=%r, score=%.2f, rank=%r, rawscore=%.2f'
+        msg = msg_fmtstr % (nid, score, rank, rawscore)
+        autoname_msg_list.append(msg)
     else:
         nid, score, rawscore = None, None, None
         autoname_msg_list.append('suggesting new name')

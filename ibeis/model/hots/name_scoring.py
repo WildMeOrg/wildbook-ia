@@ -25,8 +25,9 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> daid_list = ibs.get_valid_aids()
         >>> qaid_list = daid_list[0:1]
         >>> cfgdict = dict()
-        >>> #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list, cfgdict)
-        >>> qaid2_qres, qreq_ = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict, use_cache=False, return_request=True)
+        >>> qaid2_qres, qreq_ = ibs._query_chips4(
+        ...     qaid_list, daid_list, cfgdict=cfgdict, return_request=True,
+        ...     use_cache=False, save_qcache=False)
         >>> qres = qaid2_qres[qaid_list[0]]
         >>> print(qres.get_inspect_str())
         >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
@@ -37,8 +38,12 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> print(result)
         array([1, 5])
 
-    array([ 1,  5, 26])
+    Ignore::
+        # hack in dict of Nones prob for testing
+        import six
+        qres.aid2_prob = {aid:None for aid in six.iterkeys(qres.aid2_score)}
 
+    array([ 1,  5, 26])
     [2 6 5]
     """
     score_arr = np.array(score_list)

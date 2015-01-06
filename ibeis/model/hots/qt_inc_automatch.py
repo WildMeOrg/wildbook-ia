@@ -205,6 +205,7 @@ class IncQueryHarness(INC_LOOP_BASE):
             'name_decision_callback': name_decision_callback,
             'exemplar_decision_callback': exemplar_decision_callback,
             'metatup': None,
+            'use_oracle': False,
             'interactive': True,
             'count': 0,
             'fnum': 512,
@@ -240,6 +241,8 @@ class IncQueryHarness(INC_LOOP_BASE):
         # When in interactive mode it seems like the stack never gets out of hand
         # but if the oracle is allowed to make decisions and emit signals like
         # the user then we get into a maximum recursion limit.
+        incinfo['interactive'] = False
+        incinfo['use_oracle'] = True
         with ut.Timer('test_incremental_query'):
             for item  in self.inc_query_gen:
                 (ibs, qres, qreq_, incinfo) = item
@@ -258,7 +261,8 @@ class IncQueryHarness(INC_LOOP_BASE):
         # (this does nothing if inc_query_gen is exhausted)
         # need to fix the incinfo dictionary
         incinfo['next_query_callback'] = next_query_callback
-        incinfo['metatup'] = None
+        incinfo['use_oracle'] = False
+        #incinfo['metatup'] = None
         incinfo['interactive'] = True
         incinfo['next_query_callback']()
 

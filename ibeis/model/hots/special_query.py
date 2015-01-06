@@ -1,15 +1,28 @@
 """
 handles the "special" more complex vs-one re-ranked query
 
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 8690
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+# Write some alias for ourselves
+python -c "import utool as ut; ut.write_modscript_alias( 'Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
+python -c "import utool as ut; ut.write_modscript_alias('pTinc.sh', 'ibeis.model.hots.qt_inc_automatch', 'utprof.py')"
+
+# PROFILE PZ_Master0 With lots of preadded data
+sh pTinc.sh --test-test_inc_query:3 --num-init 7500 --test-title "ProfileIncPZMaster0"
+
+sh pTinc.sh --test-test_inc_query:3 --num-init 8690
+sh pTinc.sh --test-test_inc_query:0
+sh pTinc.sh --test-test_inc_query:3 --num-init 5000 --devcache --vsone-errs
 
 
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --devcache --vsone-errs
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
+
+# Interactive GZ Test
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs --ia 10  --test-title "GZ_Inc_Errors"
+# Automatic GZ Test
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs  --test-title "GZ_Inc_Errors"
 
 
-python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
+# Automatic GZ Test Small
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs  --test-title "GZ_DEV" --gzdev --withinfo
 
 
 """
@@ -23,8 +36,20 @@ from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 
+# hack for tests
+if ut.in_main_process():
+    test_title = ut.get_argval('--test-title', type_=str, default=None)
+    if test_title is not None:
+        ut.change_term_title(test_title)
+
+
 USE_VSMANY_HACK = ut.get_argflag('--vsmany-hack')
 TEST_VSONE_ERRORS = ut.get_argflag(('--test-vsone-errors', '--vsone-errs'))
+
+
+TestTup = ut.namedtuple(
+    'TestTup', (
+        'qaid_t', 'qaid', 'vsmany_rank', 'vsone_rank'))
 
 
 def testdata_special_query(dbname=None):
@@ -142,20 +167,22 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
         qaid2_qres, qreq_ = mc4.empty_query(ibs, qaids)
         return qaid2_qres, qreq_, None
 
-    if TEST_VSONE_ERRORS and incinfo is not None and hasattr(incinfo, 'metatup'):
-        test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo)
+    if TEST_VSONE_ERRORS and incinfo is not None and 'metatup' in incinfo:
+        test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo)
 
     print('[special_query.5] finished special query')
     return qaid2_qres, qreq_, qreq_vsmany_
 
 
-def test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
+def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
     """
     ibs1 = ibs_gt
     ibs2 = ibs (the current test database, sorry for the backwardness)
     aid1_to_aid2 - maps annots from ibs1 to ibs2
     """
-    ut.embed()
+    if 'testcases' not in incinfo:
+        incinfo['testcases'] = ut.ddict(list)
+    testcases = incinfo['testcases']
     for qaid in six.iterkeys(qaid2_qres_vsmany):
         qres_vsmany = qaid2_qres_vsmany[qaid]
         qres_vsone  = qaid2_qres_vsone[qaid]
@@ -168,13 +195,42 @@ def test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
         top_aids_vsone  = ut.get_list_column(nscoretup_vsone.sorted_aids, 0)
         top_aids_vsmany = ut.get_list_column(nscoretup_vsmany.sorted_aids, 0)
         # tranform to groundtruth database coordinates
+        all_daids_t = ut.dict_take_list(aid2_to_aid1, daids)
         top_aids_vsone_t  = ut.dict_take_list(aid2_to_aid1, top_aids_vsone)
         top_aids_vsmany_t = ut.dict_take_list(aid2_to_aid1, top_aids_vsmany)
         qaid_t = aid2_to_aid1[qaid]
 
-        aids_tup = (top_aids_vsone_t, top_aids_vsmany_t, (qaid_t,),)
-        nids_tup = ibs_gt.unflat_map(ibs.get_annot_nids, aids_tup)
-        (top_nids_vsone_t, top_nids_vsmany_t, (qnid_t,),) = nids_tup
+        aids_tup = (all_daids_t, top_aids_vsone_t, top_aids_vsmany_t, (qaid_t,),)
+        nids_tup = ibs_gt.unflat_map(ibs_gt.get_annot_nids, aids_tup)
+        (all_nids_t, top_nids_vsone_t, top_nids_vsmany_t, (qnid_t,),) = nids_tup
+
+        vsmany_rank = ut.listfind(top_nids_vsmany_t, qnid_t)
+        vsone_rank  = ut.listfind(top_nids_vsone_t, qnid_t)
+        impossible_to_match = ut.listfind(all_nids_t, qnid_t) is None
+
+        # Sort the test case into a category
+        testtup = TestTup(qaid_t, qaid, vsmany_rank, vsone_rank)
+        if vsmany_rank is None and vsone_rank is None and impossible_to_match:
+            testcases['singleton'].append(testtup)
+        elif vsmany_rank is not None and vsone_rank is None:
+            testcases['vsmany_dominates'].append(testtup)
+        elif vsmany_rank is None:
+            testcases['both_fail'].append(testtup)
+        elif vsone_rank > vsmany_rank:
+            testcases['vsmany_wins'].append(testtup)
+        elif vsone_rank < vsmany_rank:
+            testcases['vsone_wins'].append(testtup)
+        elif vsone_rank == vsmany_rank:
+            testcases['wash'].append(testtup)
+        else:
+            raise AssertionError('unenumerated case')
+        count_dict = ut.count_dict_vals(testcases)
+        print('+--')
+        #print(ut.dict_str(testcases))
+        print('---')
+        print(ut.dict_str(count_dict))
+        print('L__')
+        #ut.embed()
 
 
 @profile

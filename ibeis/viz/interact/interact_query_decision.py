@@ -155,7 +155,10 @@ class QueryVerificationInteraction(AbstractInteraction):
             score    = self.qres.get_aid_scores([aid])[0]
             rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
             title_suf = kwargs.get('title_suffix', '')
-            title_suf += '\n score=%0.2f' % score
+            if score is None:
+                title_suf += '\n score=____'
+            else:
+                title_suf += '\n score=%0.2f' % score
             title_suf += '\n rawscore=%0.2f' % rawscore
         else:
             title_suf = kwargs.get('title_suffix', '')

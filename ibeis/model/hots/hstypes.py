@@ -45,9 +45,9 @@ VEC_MIN = VEC_IINFO.min
 # Psuedo max values come from SIFT descriptors implementation
 VEC_PSEUDO_MAX = 512
 # unit sphere points can only be twice the maximum descriptor magnitude away
-# from each other
-VEC_PSEUDO_MAX_DISTANCE = 1024
-PSEUDO_UINT8_MAX_SQRD = 512.0 ** 2
+# from each other. The pseudo max is 512, so 1024 is the upper bound
+VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * 2
+PSEUDO_UINT8_MAX_SQRD = float(VEC_PSEUDO_MAX) ** 2
 
 
 RVEC_TYPE = np.int8
