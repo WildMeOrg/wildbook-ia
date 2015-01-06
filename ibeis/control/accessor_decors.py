@@ -49,6 +49,7 @@ def default_decorator(input_):
 
 #API_CACHE = ut.get_argflag('--api-cache')
 API_CACHE = not ut.get_argflag('--no-api-cache')
+DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
 if ut.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
@@ -76,6 +77,16 @@ def init_tablecache():
     # tablename, colname, kwargs, and then rowids
     tablecache = ut.ddict(lambda: ut.ddict(lambda: ut.ddict(dict)))
     return tablecache
+
+
+def dev_cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
+    """ cache getter for when the database is gaurenteed not to change """
+    def closure_dev_getter_cacher(getter_func):
+        if not DEV_CACHE:
+            return getter_func
+        return cache_getter(tblname, colname, cfgkeys=None, force=False,
+                            debug=False)(getter_func)
+    return closure_dev_getter_cacher
 
 
 def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):

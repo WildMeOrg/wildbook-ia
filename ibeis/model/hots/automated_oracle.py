@@ -1,3 +1,6 @@
+"""
+module for making the correct automatic decisions in incremental tests
+"""
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
@@ -60,6 +63,9 @@ def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
 
 @profile
 def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup):
+    """
+    main entry point for the oracle
+    """
     #system_autoname_msg = system_name_suggest_tup[0]
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     oracle_msg_list = []
@@ -79,3 +85,16 @@ def get_oracle_name_suggestion(ibs, qaid, choicetup,  metatup):
     autoname_msg = '\n'.join(oracle_msg_list)
     oracle_name_suggest_tup = autoname_msg, chosen_names, name_confidence
     return oracle_name_suggest_tup
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.automated_oracle
+        python -m ibeis.model.hots.automated_oracle --allexamples
+        python -m ibeis.model.hots.automated_oracle --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -152,7 +152,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
         if aid in self.comp_aids:
-            score = self.qres.get_aid_scores([aid])[0]
+            score    = self.qres.get_aid_scores([aid])[0]
             rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
             title_suf = kwargs.get('title_suffix', '')
             title_suf += '\n score=%0.2f' % score

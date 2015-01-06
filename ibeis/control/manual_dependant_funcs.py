@@ -203,6 +203,7 @@ def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, qr
 
 @register_ibs_method
 @getter_1to1
+@accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
 def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
     if ensure:
         ibs.add_chip_feats(cid_list)

@@ -262,6 +262,43 @@ def interactive_commandline_prompt(msg, decisiontype):
         return True
 
 
+def make_incremental_test_database(ibs_gt, aid_list1, reset):
+    """
+    Makes test database. adds image and annotations but does not transfer names.
+    if reset is true the new database is gaurenteed to be built from a fresh
+    start.
+
+    Args:
+        ibs_gt    (IBEISController):
+        aid_list1 (list):
+        reset     (bool): if True the test database is completely rebuilt
+
+    Returns:
+        IBEISController: ibs2
+    """
+    print('make_incremental_test_database. reset=%r' % (reset,))
+    aids1_hashid = ut.hashstr_arr(aid_list1)
+    prefix = '_INCTEST_' + aids1_hashid + '_'
+    dbname2 = prefix + ibs_gt.get_dbname()
+    ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=reset, use_cache=False)
+    # reset if flag specified or no data in ibs2
+    if reset or len(ibs2.get_valid_gids()) == 0:
+        assert len(ibs2.get_valid_aids())  == 0
+        assert len(ibs2.get_valid_gids())  == 0
+        assert len(ibs2.get_valid_nids())  == 0
+        # Get annotations and their images from database 1
+        gid_list1 = ibs_gt.get_annot_gids(aid_list1)
+        gpath_list1 = ibs_gt.get_image_paths(gid_list1)
+        # Add all images from database 1 to database 2
+        gid_list2 = ibs2.add_images(gpath_list1, auto_localize=False)
+        # Image UUIDS should be consistent between databases
+        image_uuid_list1 = ibs_gt.get_image_uuids(gid_list1)
+        image_uuid_list2 = ibs2.get_image_uuids(gid_list2)
+        assert image_uuid_list1 == image_uuid_list2
+        ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
+    return ibs2
+
+
 @profile
 def setup_incremental_test(ibs_gt, clear_names=True):
     r"""
@@ -288,52 +325,19 @@ def setup_incremental_test(ibs_gt, clear_names=True):
     print('\n\n---- SETUP INCREMENTAL TEST ---\n\n')
     # Take a known dataase
     # Create an empty database to test in
-    #aid_list1 = ibs_gt.get_aids_with_groundtruth()
-    aid_list1 = ibs_gt.get_valid_aids()
+
+    ONLY_GT = True
+    if ONLY_GT:
+        # use only annotations that will have matches in test
+        aid_list1 = ibs_gt.get_aids_with_groundtruth()
+    else:
+        # use every annotation in test
+        aid_list1 = ibs_gt.get_valid_aids()
 
     # If reset is true the test database is started completely from scratch
     reset = ut.get_argflag('--reset')
-    #reset = True
 
     aid1_to_aid2 = {}  # annotation mapping
-
-    def make_incremental_test_database(ibs_gt, aid_list1, reset):
-        """
-        Makes test database. adds image and annotations but does not transfer names.
-        if reset is true the new database is gaurenteed to be built from a fresh
-        start.
-
-        Args:
-            ibs_gt    (IBEISController):
-            aid_list1 (list):
-            reset     (bool): if True the test database is completely rebuilt
-
-        Returns:
-            IBEISController: ibs2
-        """
-        print('make_incremental_test_database. reset=%r' % (reset,))
-        dbname2 = '_INCREMENTALTEST_' + ibs_gt.get_dbname()
-        ibs2 = ibeis.opendb(dbname2, allow_newdir=True, delete_ibsdir=reset, use_cache=False)
-
-        # reset if flag specified or no data in ibs2
-        if reset or len(ibs2.get_valid_gids()) == 0:
-            assert len(ibs2.get_valid_aids())  == 0
-            assert len(ibs2.get_valid_gids())  == 0
-            assert len(ibs2.get_valid_nids())  == 0
-
-            # Get annotations and their images from database 1
-            gid_list1 = ibs_gt.get_annot_gids(aid_list1)
-            gpath_list1 = ibs_gt.get_image_paths(gid_list1)
-
-            # Add all images from database 1 to database 2
-            gid_list2 = ibs2.add_images(gpath_list1, auto_localize=False)
-
-            # Image UUIDS should be consistent between databases
-            image_uuid_list1 = ibs_gt.get_image_uuids(gid_list1)
-            image_uuid_list2 = ibs2.get_image_uuids(gid_list2)
-            assert image_uuid_list1 == image_uuid_list2
-            ut.assert_lists_eq(image_uuid_list1, image_uuid_list2)
-        return ibs2
 
     ibs2 = make_incremental_test_database(ibs_gt, aid_list1, reset)
 
@@ -343,7 +347,8 @@ def setup_incremental_test(ibs_gt, clear_names=True):
 
     #ut.embed()
     # Assert annotation visual uuids are in agreement
-    annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
+    if ut.DEBUG2:
+        annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2)
 
     # Remove names and exemplar information from test database
     if clear_names:
@@ -430,7 +435,7 @@ def add_annot_chunk(ibs_gt, ibs2, aids_chunk1, aid1_to_aid2):
     aids_chunk1 = aid_list1
 
     Args:
-        ibs_gt         (IBEISController):
+        ibs_gt       (IBEISController):
         ibs2         (IBEISController):
         aids_chunk1  (list):
         aid1_to_aid2 (dict):

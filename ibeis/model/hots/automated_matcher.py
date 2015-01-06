@@ -7,7 +7,7 @@ CommandLine:
     sh Tinc.sh --test-test_inc_query:2
     sh Tinc.sh --test-test_inc_query:3 --num-initial 5000
 
-    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --stateful-query
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
 
 """
 from __future__ import absolute_import, division, print_function
@@ -19,12 +19,14 @@ from ibeis.model.hots import special_query
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import system_suggestor
 from ibeis.model.hots import user_dialogs
+from collections import namedtuple
 ut.noinject(__name__, '[inc]')
 #profile = ut.profile
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
 
-
 USE_STATEFULNESS = not ut.get_argflag('--nostateful-query')
+
+Metatup = namedtuple('Metatup', ('ibs_gt', 'aid1_to_aid2'))
 
 
 def testdata_automatch(dbname=None):
@@ -83,7 +85,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         print('L________')
 
     # Setup metadata tuple
-    metatup = (ibs_gt, aid1_to_aid2)
+    metatup = Metatup(ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup
     incinfo['interactive'] = False
@@ -187,7 +189,7 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
         daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
     # Execute actual queries
     qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
-        ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_)
+        ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
     if USE_STATEFULNESS and qreq_vsmany_ is not None:
         if getattr(incinfo, 'qreq_vsmany_', None) is None:
             incinfo['qreq_vsmany_'] = qreq_vsmany_

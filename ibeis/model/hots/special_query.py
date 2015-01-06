@@ -4,6 +4,14 @@ handles the "special" more complex vs-one re-ranked query
 utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
 utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 8690
 utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+
+
+utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --devcache --vsone-errs
+
+
+python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
+
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -13,6 +21,10 @@ from ibeis.model.hots import hstypes
 from ibeis.model.hots import match_chips4 as mc4
 from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
+
+
+USE_VSMANY_HACK = ut.get_argflag('--vsmany-hack')
+TEST_VSONE_ERRORS = ut.get_argflag(('--test-vsone-errors', '--vsone-errs'))
 
 
 def testdata_special_query(dbname=None):
@@ -29,7 +41,7 @@ def testdata_special_query(dbname=None):
 
 
 @profile
-def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None):
+def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
     """
     main special query entry point
 
@@ -74,7 +86,6 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None):
 
         qres_vsone = qaid2_qres_vsone[qaid]
         qres_vsone.show_top(ibs, update=True, name_scoring=True)
-
     """
     if len(daids) == 0:
         print('[special_query.X] no daids... returning empty query')
@@ -86,14 +97,12 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None):
 
     # vs-many initial scoring
     print('[special_query.1] issue vsmany query')
-    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids,
-                                                           use_cache=use_cache,
-                                                           save_qcache=save_qcache,
-                                                           qreq_vsmany_=qreq_vsmany__)
+    qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(
+        ibs, qaids, daids, use_cache=use_cache, save_qcache=save_qcache,
+        qreq_vsmany_=qreq_vsmany__)
 
     # HACK TO JUST USE VSMANY
     # this can ensure that the baseline system is not out of wack
-    USE_VSMANY_HACK = ut.get_argflag('--vsmany-hack')
     if USE_VSMANY_HACK:
         print('[special_query.X] vsmany hack on... returning vsmany result')
         qaid2_qres = qaid2_qres_vsmany
@@ -132,10 +141,43 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None):
         print('[special_query.X] failed vsone qreq... returning empty query')
         qaid2_qres, qreq_ = mc4.empty_query(ibs, qaids)
         return qaid2_qres, qreq_, None
+
+    if TEST_VSONE_ERRORS and incinfo is not None and hasattr(incinfo, 'metatup'):
+        test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo)
+
     print('[special_query.5] finished special query')
     return qaid2_qres, qreq_, qreq_vsmany_
 
 
+def test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
+    """
+    ibs1 = ibs_gt
+    ibs2 = ibs (the current test database, sorry for the backwardness)
+    aid1_to_aid2 - maps annots from ibs1 to ibs2
+    """
+    ut.embed()
+    for qaid in six.iterkeys(qaid2_qres_vsmany):
+        qres_vsmany = qaid2_qres_vsmany[qaid]
+        qres_vsone  = qaid2_qres_vsone[qaid]
+        nscoretup_vsone  = qres_vsone.get_nscoretup(ibs)
+        nscoretup_vsmany = qres_vsmany.get_nscoretup(ibs)
+        metatup = incinfo['metatup']
+        ibs_gt, aid1_to_aid2 = metatup
+        aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
+
+        top_aids_vsone  = ut.get_list_column(nscoretup_vsone.sorted_aids, 0)
+        top_aids_vsmany = ut.get_list_column(nscoretup_vsmany.sorted_aids, 0)
+        # tranform to groundtruth database coordinates
+        top_aids_vsone_t  = ut.dict_take_list(aid2_to_aid1, top_aids_vsone)
+        top_aids_vsmany_t = ut.dict_take_list(aid2_to_aid1, top_aids_vsmany)
+        qaid_t = aid2_to_aid1[qaid]
+
+        aids_tup = (top_aids_vsone_t, top_aids_vsmany_t, (qaid_t,),)
+        nids_tup = ibs_gt.unflat_map(ibs.get_annot_nids, aids_tup)
+        (top_nids_vsone_t, top_nids_vsmany_t, (qnid_t,),) = nids_tup
+
+
+@profile
 def choose_vsmany_K(num_names, qaids, daids):
     """
     TODO: Should also scale up the number of checks as well
