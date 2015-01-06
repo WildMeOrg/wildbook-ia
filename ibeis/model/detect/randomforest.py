@@ -19,7 +19,7 @@ import random
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
 
 
-def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, teardown=True, **kwargs):
+def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, teardown=False, **kwargs):
     '''
         Args:
             gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -34,27 +34,26 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
         Returns:
             None
     '''
-    species = 'zebra_plains'
     print("[randomforest.train()] training with %d gids and species=%r" % (len(gid_list), species, ))
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_ibsdir(), 'trees', species)
 
-    if setup:
-        # Ensure directories for negatives
-        negatives_cache = join(ibs.get_cachedir(), 'pyrf_train_negatives')
+    # Get positive chip paths
+    if species is None:
+        aids_list = ibs.get_image_aids(gid_list)
+    else:
+        aids_list = ibs.get_image_aids_of_species(gid_list, species)
+    # aids_list = [ [] if aid_list is None else aid_list for aid_list in aids_list ]
+    aid_list = ut.flatten(aids_list)
+    train_pos_cpath_list = ibs.get_annot_chip_fpaths(aid_list)
+
+    # Ensure directories for negatives
+    negatives_cache = join(ibs.get_cachedir(), 'pyrf_train_negatives')
+    if (setup and not exists(negatives_cache)) or setup == 'force':
+        # Force Check
         if exists(negatives_cache):
             ut.remove_dirs(negatives_cache)
         ut.ensuredir(negatives_cache)
-
-        # Get positive chip paths
-        if species is None:
-            aids_list = ibs.get_image_aids(gid_list)
-        else:
-            aids_list = ibs.get_image_aids_of_species(gid_list, species)
-        # aids_list = [ [] if aid_list is None else aid_list for aid_list in aids_list ]
-        aid_list = ut.flatten(aids_list)
-        train_pos_cpath_list = ibs.get_annot_chip_fpaths(aid_list)
-
         # Get negative chip paths
         print("[randomforest.train()] Mining negative patches")
         train_neg_cpath_list = []
@@ -82,6 +81,9 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
                 img = img[ymin:ymax, xmin:xmax]
                 cv2.imwrite(img_path, img)
                 train_neg_cpath_list.append(img_path)
+    else:
+        direct = Directory(negatives_cache, include_extensions=['JPEG'])
+        train_neg_cpath_list = direct.files()
 
     # Train trees
     train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
