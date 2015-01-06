@@ -189,9 +189,9 @@ class MainWindowBackend(QtCore.QObject):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
 
-    def run_detection_on_image(back, gid, refresh=True, **kwargs):
+    def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
         species = back.ibs.cfg.detect_cfg.species
-        back.ibs.detect_random_forest([gid], species)
+        back.ibs.detect_random_forest(gid_list, species)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])
 
@@ -395,6 +395,11 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] reselect_ori')
         raise NotImplementedError()
         pass
+
+    @blocking_slot()
+    def delete_image_annotations(back, gid_list):
+        aid_list = ut.flatten(back.ibs.get_image_aids(gid_list))
+        back.delete_annot(aid_list)
 
     @blocking_slot()
     def delete_annot(back, aid_list=None):

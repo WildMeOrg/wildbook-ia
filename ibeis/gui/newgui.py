@@ -646,89 +646,168 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Right click anywhere in the GUI
         Context menus on right click of a table
         """
+        def _goto_image_image(gid):
+            ibswgt.set_table_tab(IMAGE_TABLE)
+            imgtbl = ibswgt.views[IMAGE_TABLE]
+            imgtbl.select_row_from_id(gid, scroll=True)
+
+        def _goto_annot_image(aid):
+            ibswgt.set_table_tab(IMAGE_TABLE)
+            imgtbl = ibswgt.views[IMAGE_TABLE]
+            gid = ibswgt.back.ibs.get_annot_gids(aid)
+            imgtbl.select_row_from_id(gid, scroll=True)
+
+        def _goto_annot_annot(aid):
+            ibswgt.set_table_tab(ANNOTATION_TABLE)
+            imgtbl = ibswgt.views[ANNOTATION_TABLE]
+            imgtbl.select_row_from_id(aid, scroll=True)
+
+        def _goto_annot_name(aid):
+            ibswgt.set_table_tab(NAMES_TREE)
+            nametree = ibswgt.views[NAMES_TREE]
+            nid = ibswgt.back.ibs.get_annot_nids(aid)
+            nametree.select_row_from_id(nid, scroll=True)
+
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
+        context_options = []
         id_list = sorted(list(set([model._get_row_id(_qtindex) for _qtindex in
                                    tblview.selectedIndexes()])))
         # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
-            options = [
-                ('delete encounter(s)', lambda: ibswgt.back.delete_encounter(id_list)),
-                #('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
-            ]
-            if len(id_list) > 1:
-                merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
-                enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
-                options += [
-                    ('merge %d encounters into %s' %  (len(id_list), (enctext))
-                     , lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+            merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
+            enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
+            # Conditional context menu
+            if len(id_list) == 1:
+                context_options += [
+                    ('merge %d encounter into %s' %  (len(id_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                    ('----', lambda: None),
+                    ('delete encounter', lambda: ibswgt.back.delete_encounter(id_list)),
+                    ('export encounter', lambda: ibswgt.back.export_encounters(id_list)),
                 ]
-            guitool.popup_menu(tblview, pos, options)
+            else:
+                context_options += [
+                    ('merge %d encounters into %s' %  (len(id_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                    ('----', lambda: None),
+                    ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
+                    # ('export encounters', lambda: ibswgt.back.export_encounters(id_list)),
+                ]
         # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
-            # CONTEXT OPTIONS FOR IMAGE TABLE ITEMS
-            image_context_options = []
             current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
-            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
-                image_context_options += [
-                    ('move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
-                    ('copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
-                ]
-            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
-                image_context_options += [
-                    ('remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
-                ]
-            if len(id_list) > 1:
-                image_context_options += [
-                    ('delete images', lambda: ibswgt.back.delete_image(id_list)),
-                ]
+            # Conditional context menu
             if len(id_list) == 1:
                 gid = id_list[0]
-                image_context_options += [
-                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
-                    ('run detection (can cause duplicates)', lambda: ibswgt.back.run_detection_on_image(gid)),
-                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
+                eid = model.eid
+                context_options += [
+                    ('View image', lambda: ibswgt.back.select_gid(gid, eid, show=True)),
+                    ('View detection image (Hough) [dev]', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('Run detection on image (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images([gid])),
                 ]
-            if len(image_context_options) > 0:
-                guitool.popup_menu(tblview, pos, image_context_options)
+            else:
+                context_options += [
+                    ('Run detection on images (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images(id_list)),
+                ]
+            # Special condition for encounters
+            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+                context_options += [
+                    ('----', lambda: None),
+                    ('Move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
+                    ('Copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                ]
+            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+                context_options += [
+                    ('----', lambda: None),
+                    ('Remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
+                ]
+            # Continue the conditional context menu
+            if len(id_list) == 1:
+                # We get gid from above
+                context_options += [
+                    ('----', lambda: None),
+                    ('Delete image\'s annotations', lambda: ibswgt.back.delete_image_annotations([gid])),
+                    ('Delete image', lambda: ibswgt.back.delete_image(gid)),
+                ]
+            else:
+                context_options += [
+                    ('----', lambda: None),
+                    ('Delete images\' annotations', lambda: ibswgt.back.delete_image_annotations(id_list)),
+                    ('Delete images', lambda: ibswgt.back.delete_image(id_list)),
+                ]
+        # ---- IMAGE GRID CONTEXT ----
+        elif model.name == IMAGE_GRID:
+            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            # Conditional context menu
+            if len(id_list) == 1:
+                gid = id_list[0]
+                eid = model.eid
+                context_options += [
+                    ('View image', lambda: ibswgt.back.select_gid(gid, eid, show=True)),
+                    ('View detection image (Hough) [dev]', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('Run detection on image (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images([gid])),
+                    ('----', lambda: None),
+                    ('Go to image in Images Table', lambda: _goto_image_image(gid)),
+                ]
+            # Special condition for encounters
+            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+                context_options += [
+                    ('----', lambda: None),
+                    ('Move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
+                    ('Copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                ]
+            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+                context_options += [
+                    ('----', lambda: None),
+                    ('Remove from encounter', lambda: ibswgt.back.remove_from_encounter(id_list)),
+                ]
+            # Continue the conditional context menu
+            if len(id_list) == 1:
+                # We get gid from above
+                context_options += [
+                    ('----', lambda: None),
+                    ('Delete image\'s annotations', lambda: ibswgt.back.delete_image_annotations([gid])),
+                    ('Delete image', lambda: ibswgt.back.delete_image(gid)),
+                ]
         # ---- ANNOTATION CONTEXT ----
         elif model.name == ANNOTATION_TABLE:
+            # Conditional context menu
             if len(id_list) == 1:
-                eid = model.eid
                 aid = id_list[0]
-
-                def goto_annot_image(aid):
-                    ibswgt.set_table_tab(IMAGE_TABLE)
-                    imgtbl = ibswgt.views[IMAGE_TABLE]
-                    gid = ibswgt.back.ibs.get_annot_gids(aid)
-                    imgtbl.select_row_from_id(gid)
-
-                def goto_annot_name(aid):
-                    ibswgt.set_table_tab(NAMES_TREE)
-                    nametree = ibswgt.views[NAMES_TREE]
-                    nid = ibswgt.back.ibs.get_annot_nids(aid)
-                    nametree.select_row_from_id(nid)
-
-                guitool.popup_menu(tblview, pos, [
+                eid = model.eid
+                context_options += [
                     ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('Goto image', lambda: goto_annot_image(aid)),
-                    #('Goto name', lambda: goto_annot_name(aid)),
                     ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
-                    ('View probability chip', lambda: ibswgt.back.show_probability_chip(aid)),
-                    ('Unset annotation name', lambda: ibswgt.back.unset_names([aid])),
+                    ('View detection chip (probability) [dev]', lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
+                    ('Go to image', lambda: _goto_annot_image(aid)),
+                    # ('Go to name', lambda: _goto_annot_name(aid)),
+                    ('----', lambda: None),
+                    ('Unset annotation\'s name', lambda: ibswgt.back.unset_names([aid])),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
-                ])
+                ]
             else:
-                guitool.popup_menu(tblview, pos, [
+                context_options += [
+                    ('Unset annotations\' names', lambda: ibswgt.back.unset_names(id_list)),
                     ('Delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
-                    ('Unset all annotation names', lambda: ibswgt.back.unset_names(id_list)),
-                ])
-        # ---- ANNOTATION CONTEXT ----
+                ]
+        # ---- NAMES TREE CONTEXT ----
         elif model.name == NAMES_TREE:
-            print(id_list)
-            pass
+            if len(id_list) == 1:
+                aid = id_list[0]
+                eid = model.eid
+                context_options += [
+                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ('----', lambda: None),
+                    ('Go to image', lambda: _goto_annot_image(aid)),
+                    ('Go to annotation', lambda: _goto_annot_annot(aid)),
+                ]
+        # Show the context menu
+        if len(context_options) > 0:
+            guitool.popup_menu(tblview, pos, context_options)
 
     def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
         if src_table not in ibswgt.redirects.keys():
