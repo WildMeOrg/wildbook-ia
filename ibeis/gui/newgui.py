@@ -783,7 +783,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('View detection chip (probability) [dev]', lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
                     ('Go to image', lambda: _goto_annot_image(aid)),
-                    # ('Go to name', lambda: _goto_annot_name(aid)),
+                    ('Go to name', lambda: _goto_annot_name(aid)),
                     ('----', lambda: None),
                     ('Unset annotation\'s name', lambda: ibswgt.back.unset_names([aid])),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
