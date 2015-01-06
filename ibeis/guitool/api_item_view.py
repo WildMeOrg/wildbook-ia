@@ -112,44 +112,27 @@ def hide_cols(view):
 
 
 @register_view_method
-def select_row_from_id(view, _id, scroll=False, level=0):
+def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
-    _id is from the iders function (i.e. an ibeis rowid)
-    selects the row in that view if it exists
-
-
-    Ignore:
-        from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
-                                          NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
-        ibsgwt = back.front
-
-        view   = ibsgwt.views[IMAGE_TABLE]
-        model  = ibsgwt.models[IMAGE_TABLE]
-        row = model.get_row_from_id(3)
-        view.selectRow(row)
-
-
-        view   = ibsgwt.views[NAMES_TREE]
-        model  = ibsgwt.models[NAMES_TREE]
-
-    References:
-        http://stackoverflow.com/questions/4967660/selecting-a-row-in-qtreeview-programatically
-        http://stackoverflow.com/questions/17912812/how-do-i-select-a-row-in-a-qtreeview-programatically
-        http://qt-project.org/doc/qt-4.8/qabstractitemview.html#setSelection
+        _id is from the iders function (i.e. an ibeis rowid)
+        selects the row in that view if it exists
     """
-    if isinstance(view, QtGui.QTreeView):
-        # TODO find a way to get tree views to select by _id
-        # TODO: use level as well
-        return None
-    else:
-        model = view.model()
-        row = model.get_row_from_id(_id)
-        if row is not None:
+    model = view.model()
+    row = model.get_row_from_id(_id)
+    if row is not None:
+        qtindex = model.index(row, 0)
+        if isinstance(view, QtGui.QTreeView):
+            if collapse:
+                view.collapseAll()
+            view.selectionModel().select(qtindex, QtGui.QItemSelectionModel.ClearAndSelect)
+            view.setExpanded(qtindex, True)
+        else:
             view.selectRow(row)
-            if scroll:
-                qtindex = model.index(row, 0)
-                view.scrollTo(qtindex)
-            return row
+        # Scroll to selection
+        if scroll:
+            view.scrollTo(qtindex)
+        return row
+    return None
 
 #---------------
 # Qt Overrides
