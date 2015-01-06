@@ -190,7 +190,6 @@ class QueryVerificationInteraction(AbstractInteraction):
             #Hack to toggle colors
             if aid in self.checkbox_states:
                 #If we are selecting it, then make it green, otherwise change it back to grey
-                button = self.checkbox_states[aid]  # NOQA
                 if self.checkbox_states[aid]:
                     df2.draw_border(ax, color=(0, 1, 0), lw=4)
                 else:
@@ -203,10 +202,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         print(' selected aid %r as best choice' % aid)
         state = self.checkbox_states[aid]
         self.checkbox_states[aid] = not state
-        # if self.checkbox_states[aid]:
-        #     df2.draw_border(ax, color=(0, 1, 0), lw=4)
-        # else:
-        #     df2.draw_border(ax, color=(.7, .7, .7), lw=4)
+
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -228,14 +224,26 @@ class QueryVerificationInteraction(AbstractInteraction):
         # Button positioners
         hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.16,
                                                      h=3 * utool.PHI_B ** 4,
-                                                     xpad=.02, startx=0, stopx=1)
+                                                     xpad=.05, startx=0, stopx=1)
 
         select_none_text = 'None of these'
         if len(self.suggest_aids) == 0:
             select_none_text += '\n(SUGGESTED BY IBEIS)'
 
-        self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
-        self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hl_slot(1))
+        tup = self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
+        # ut.embed()
+        #Draw boarder around the None of these button
+        none_button, none_button_axis = tup
+        if any(self.checkbox_states.values()):
+            df2.draw_border(none_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
+        else:
+            df2.draw_border(none_button_axis, color=(0, 1, 0), lw=4, adjust=False)
+
+        #Add other HUD buttons
+        self.append_button('Quit', callback=partial(self.quit), rect=hr_slot(0))
+        self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hr_slot(1))
+
+
         if self.progress_current is not None and self.progress_total is not None:
             self.progress_string = str(self.progress_current) + '/' + str(self.progress_total)
         else:
@@ -249,7 +257,13 @@ class QueryVerificationInteraction(AbstractInteraction):
     def select_none(self, event=None):
         for aid in self.comp_aids:
             self.checkbox_states[aid] = False
-        self.confirm()
+
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
+
+    def quit(self, event=None):
+        self.close()
 
     def confirm(self, event=None):
         """
