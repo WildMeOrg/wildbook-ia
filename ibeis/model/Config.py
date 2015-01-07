@@ -1028,6 +1028,7 @@ class DetectionConfig(ConfigBase):
         detect_cfg.species     = const.Species.ZEB_GREVY
         detect_cfg.detector    = 'rf'
         detect_cfg.scale_list  = '1.33, 1.00, 0.75, 0.56, 0.42, 0.32, 0.24, 0.18, 0.13'
+        detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
         detect_cfg.update(**kwargs)
 
@@ -1098,7 +1099,7 @@ class OtherConfig(ConfigBase):
         other_cfg.max_exemplars  = 6
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
-        other_cfg.detect_use_chunks = True
+        # other_cfg.detect_use_chunks = True
         other_cfg.use_more_special_encounters = False
         other_cfg.update(**kwargs)
 

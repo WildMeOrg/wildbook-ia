@@ -44,11 +44,13 @@ APPLE_NONPORTS_PYPKGS = [
 
 
 MACPORTS_PKGMAP = {
-    #'gfortran':
-    #'g++':
-    #'libjpg'       : 'parsing',
     'gcc'           : 'gcc48',
-    'libjpeg'       : 'libjpg',
+    'libjpg'        : 'jpeg',
+    'libjpeg'       : 'jpeg',
+    'libtiff'       : 'tiff',
+    'fftw3'         : 'fftw-3',
+    'python-pyqt4'  : 'py-pyqt4',
+    'littlecms'     : 'lcms',
 }
 
 
@@ -616,6 +618,19 @@ def apply_preinstall_fixes():
         return []
 
 
+def apply_postinstall_fixes():
+    if MACPORTS:
+        return [
+            'sudo port select --set python python27',
+            'sudo port select --set ipython ipython27',
+            'sudo port select --set cython cython27',
+            'sudo port select --set pip pip27',
+            'echo "NEED TO INSTALL CLANG2: http://stackoverflow.com/questions/20321988/error-enabling-openmp-ld-library-not-found-for-lgomp-and-clang-errors/21789869#21789869"'
+        ]
+    else:
+        return []
+
+
 def update_and_upgrade():
     if DEBIAN_FAMILY:
         return cmd(__update_apt_get())
@@ -699,7 +714,7 @@ def cmd(command, lbl=None):
 
 
 def make_prereq_script(pkg_list, pypkg_list, with_sysfix=True, with_syspkg=True,
-                       with_pypkg=True, upgrade=None):
+                       with_pypkg=True, with_config=True, upgrade=None):
     output_list = []
     if with_sysfix:
         output_list.extend(apply_preinstall_fixes())
@@ -707,5 +722,7 @@ def make_prereq_script(pkg_list, pypkg_list, with_sysfix=True, with_syspkg=True,
         output_list.extend([ensure_package(pkg) for pkg in pkg_list])
     if with_pypkg:
         output_list.extend([ensure_python_package(pypkg, upgrade=upgrade) for pypkg in pypkg_list])
+    if with_config:
+        output_list.extend(apply_postinstall_fixes())
     output = ''.join(output_list)
     return output

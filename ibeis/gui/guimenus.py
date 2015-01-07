@@ -143,6 +143,12 @@ def setup_actions_menu(mainwin, back):
         slot_fn=back.delete_all_encounters)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
+        name='actionTrainWithEncounters',
+        text='Train RF with Open Encounter',
+        shortcut='',
+        slot_fn=back.train_rf_with_encounter)
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
         name='toggleThumbnails',
         text='Toggle Thumbnails',
         shortcut='',
@@ -159,15 +165,10 @@ def setup_batch_menu(mainwin, back):
         slot_fn=back.compute_encounters)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
-        name='actionDetect_Coarse',
-        text='Run Detection (coarse)',
+        name='actionDetect',
+        text='Run Detection',
         shortcut='Ctrl+3',
-        slot_fn=back.run_detection_coarse)
-    mainwin.menuBatch.newAction(
-        name='actionDetect_Fine',
-        text='Run Detection (fine)',
-        shortcut='Ctrl+Shift+3',
-        slot_fn=back.run_detection_fine)
+        slot_fn=back.run_detection)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionCompute_Queries',

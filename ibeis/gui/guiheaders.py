@@ -136,6 +136,7 @@ TABLE_COLNAMES = {
 
 
 }
+
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
 #NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
 
@@ -239,6 +240,20 @@ def expand_special_colnames(annot_metadata):
 expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
 
 #-----
+
+
+def get_redirects(ibs):
+    '''
+        Allows one to specify a column in a particular table to redirect the view
+        to a different view (like a link in HTML to a different page)
+    '''
+    redirects = {}
+    # Annotation redirects
+    # redirects[ANNOTATION_TABLE] = {
+    #     'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
+    # }
+    # Return the redirects dictionary
+    return redirects
 
 
 def make_ibeis_headers_dict(ibs):
