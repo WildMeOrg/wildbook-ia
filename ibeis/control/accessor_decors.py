@@ -79,17 +79,7 @@ def init_tablecache():
     return tablecache
 
 
-def dev_cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
-    """ cache getter for when the database is gaurenteed not to change """
-    def closure_dev_getter_cacher(getter_func):
-        if not DEV_CACHE:
-            return getter_func
-        return cache_getter(tblname, colname, cfgkeys=None, force=False,
-                            debug=False)(getter_func)
-    return closure_dev_getter_cacher
-
-
-def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
+def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, native_rowids=True):
     """
     Creates a getter cacher
     the class must have a table_cache property
@@ -156,8 +146,19 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
             print('\n[get] %s.%s %d / %d cache hits' %
                   (tblname, colname, num_hit, num_total))
 
+        def assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs):
+            cached_rowid_list = ut.filterfalse_items(rowid_list, ismiss_list)
+            cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+            # Load cached values for each rowid
+            cache_vals_list = ut.dict_take_list(cache_, cached_rowid_list, None)
+            db_vals_list = getter_func(ibs, cached_rowid_list, **kwargs)
+            # Assert everything is valid
+            assert cache_vals_list == db_vals_list, '[assert_cache_hits] CACHE INVALID: %r != %r' % (cache_vals_list, db_vals_list, )
+
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+            # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
+            debug_ = kwargs.pop('debug', False)
             if cfgkeys is not None:
                 kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
             else:
@@ -168,8 +169,11 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
             vals_list = ut.dict_take_list(cache_, rowid_list, None)
             # Mark rowids with cache misses
             ismiss_list = [val is None for val in vals_list]
-            if debug:
+            if debug or debug_:
                 debug_cache_hits(ismiss_list, rowid_list)
+            # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
+            assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
+            # END HACK
             if any(ismiss_list):
                 miss_indices = ut.list_where(ismiss_list)
                 miss_rowids  = ut.filter_items(rowid_list, ismiss_list)
@@ -180,7 +184,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
                     vals_list[index] = val  # Output write
                 # cache save
                 for rowid, val in zip(miss_rowids, miss_vals):
-                    cache_[rowid] = val     # Cache write
+                    cache_[rowid] = val     # Cache writd(ne
             return vals_list
         wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
@@ -214,6 +218,20 @@ def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
+
+
+def dev_cache_getter(tblname, colname, *args, **kwargs):
+    """ cache getter for when the database is gaurenteed not to change """
+    def closure_dev_getter_cacher(getter_func):
+        if not DEV_CACHE:
+            return getter_func
+        return cache_getter(tblname, colname, *args, **kwargs)(getter_func)
+    return closure_dev_getter_cacher
+
+
+# alias for easy removal of dev functions.
+# dev case is same as normal case though
+dev_cache_invalidator = cache_invalidator
 
 
 #@decorator.decorator

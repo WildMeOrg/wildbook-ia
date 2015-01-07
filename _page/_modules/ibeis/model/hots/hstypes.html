@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.hstypes &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.hstypes</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">hstypes</span>
+<span class="sd">Todo:</span>
+<span class="sd">* SIFT: Root_SIFT -&gt; L2 normalized -&gt; Centering.</span>
+<span class="sd"># http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf</span>
+<span class="sd">The devil is in the deatails</span>
+<span class="sd">http://www.robots.ox.ac.uk/~vilem/bmvc2011.pdf</span>
+<span class="sd">This says dont clip, do rootsift instead</span>
+<span class="sd"># http://hal.archives-ouvertes.fr/docs/00/68/81/69/PDF/hal_v1.pdf</span>
+<span class="sd">* Quantization of residual vectors</span>
+<span class="sd">* Burstiness normalization for N-SMK</span>
+<span class="sd">* Implemented A-SMK</span>
+<span class="sd">* Incorporate Spatial Verification</span>
+<span class="sd">* Implement correct cfgstrs based on algorithm input</span>
+<span class="sd">for cached computations.</span>
+<span class="sd">* Color by word</span>
+<span class="sd">* Profile on hyrule</span>
+<span class="sd">* Train vocab on paris</span>
+<span class="sd">* Remove self matches.</span>
+<span class="sd">* New SIFT parameters for pyhesaff (root, powerlaw, meanwhatever, output_dtype)</span>
+
+<span class="sd">Issues:</span>
+<span class="sd">* 10GB are in use when performing query on Oxford 5K</span>
+<span class="sd">* errors when there is a word without any database vectors.</span>
+<span class="sd">currently a weight of zero is hacked in</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c">#INTEGER_TYPE = np.int32</span>
+<span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+
+<span class="c">#INTEGER_TYPE = np.int64</span>
+<span class="n">INTEGER_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+
+<span class="c">#FLOAT_TYPE = np.float64</span>
+<span class="n">FLOAT_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+
+<span class="n">VEC_DIM</span> <span class="o">=</span> <span class="mi">128</span>
+
+<span class="n">VEC_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span>
+<span class="n">VEC_IINFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">VEC_TYPE</span><span class="p">)</span>
+<span class="n">VEC_MAX</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">max</span>
+<span class="n">VEC_MIN</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">min</span>
+<span class="c"># Psuedo max values come from SIFT descriptors implementation</span>
+<span class="n">VEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="mi">512</span>
+<span class="c"># unit sphere points can only be twice the maximum descriptor magnitude away</span>
+<span class="c"># from each other. The pseudo max is 512, so 1024 is the upper bound</span>
+<span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">PSEUDO_UINT8_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">VEC_PSEUDO_MAX</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="n">RVEC_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
+<span class="c">#RVEC_TYPE = np.float16</span>
+<span class="k">if</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
+    <span class="c"># Unfortunatley int8 cannot represent NaN, maybe used a masked array</span>
+    <span class="n">RVEC_INFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
+    <span class="n">RVEC_MAX</span> <span class="o">=</span> <span class="mi">128</span>
+    <span class="n">RVEC_MIN</span> <span class="o">=</span> <span class="o">-</span><span class="mi">128</span>
+    <span class="c"># Psuedo max values is used for a quantization trick where you pack more data</span>
+    <span class="c"># into a smaller space than would normally be allowed. We are able to do this</span>
+    <span class="c"># because values will hardly ever be close to the true max.</span>
+    <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+    <span class="n">RVEC_INFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
+    <span class="n">RVEC_MAX</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">RVEC_MIN</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span>
+    <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible RVEC_TYPE&#39;</span><span class="p">)</span>
+
+
+<span class="c"># Feature Match datatype</span>
+<span class="n">FM_DTYPE</span>  <span class="o">=</span> <span class="n">INTEGER_TYPE</span>
+<span class="c"># Feature Score datatype</span>
+<span class="n">FS_DTYPE</span>  <span class="o">=</span> <span class="n">FLOAT_TYPE</span>
+<span class="c"># Feature Rank datatype</span>
+<span class="n">FK_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span>
+
+
+<div class="viewcode-block" id="FiltKeys"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hstypes.FiltKeys">[docs]</a><span class="k">class</span> <span class="nc">FiltKeys</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">DISTINCTIVENESS</span> <span class="o">=</span> <span class="s">&#39;distinctiveness&#39;</span>
+    <span class="n">FG</span> <span class="o">=</span> <span class="s">&#39;fg&#39;</span>
+    <span class="n">RATIO</span> <span class="o">=</span> <span class="s">&#39;ratio&#39;</span>
+    <span class="n">LNBNN</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
+    <span class="n">DUPVOTE</span> <span class="o">=</span> <span class="s">&#39;dupvote&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

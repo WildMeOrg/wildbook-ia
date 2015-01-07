@@ -130,6 +130,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
 
     """
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
+    max_subindexers = qreq_.qparams.max_subindexers
 
     daid_list = qreq_.get_internal_daids()
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
@@ -150,7 +151,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         # If the number of bins gets too big do a reindex
         # in the background
         num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
-        if num_subindexers > qreq_.qparams.max_subindexers:
+        if num_subindexers > max_subindexers:
             print('need to reindex something')
             if USE_FORGROUND_REINDEX:
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
@@ -187,7 +188,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     #mxer.extra_indexes = extra_indexes
     #mxer.overflow_index = overflow_index
     #mxer.unknown_index = unknown_index
-    mxer = MultiNeighborIndex(nn_indexer_list, min_reindex_thresh)
+    mxer = MultiNeighborIndex(nn_indexer_list, min_reindex_thresh, max_subindexers)
     return mxer
 
 
@@ -216,10 +217,11 @@ class MultiNeighborIndex(object):
         >>> mxer, qreq_, ibs = testdata_mindexer()
     """
 
-    def __init__(mxer, nn_indexer_list, min_reindex_thresh=10):
+    def __init__(mxer, nn_indexer_list, min_reindex_thresh=10, max_subindexers=2):
         mxer.nn_indexer_list = nn_indexer_list  # List of single indexes
         # Parameters for adding support to multi_indexer
         mxer.min_reindex_thresh = min_reindex_thresh
+        mxer.max_subindexers = max_subindexers
 
     def get_dtype(mxer):
         return mxer.nn_indexer_list[0].get_dtype()

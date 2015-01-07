@@ -52,27 +52,23 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
 
     """
     print('begin test interactive iter')
-    # Query aids in a random order
-    SHUFFLE_AIDS = True
-    if SHUFFLE_AIDS:
-        aids_list1_ = ut.deterministic_shuffle(aid_list1[:])
-    else:
-        aids_list1_ = aid_list1
+
+    #ut.embed()
 
     # Transfer some amount of initial data
     print('Transfer %d initial test annotations' % (num_initial,))
     if num_initial > 0:
-        aid_sublist1 = aids_list1_[0:num_initial]
+        aid_sublist1 = aid_list1[0:num_initial]
         aid_sublist2 = ut.dict_take_list(aid1_to_aid2, aid_sublist1)
         #aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)
         # Add names from old databse. add all initial as exemplars
         name_list = ibs_gt.get_annot_names(aid_sublist1)
         ibs.set_annot_names(aid_sublist2, name_list)
         ibs.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
-        aids_list1_ = aids_list1_[num_initial:]
+        aid_list1 = aid_list1[num_initial:]
 
     # Print info
-    WITHINFO = False
+    WITHINFO = ut.get_argflag('--withinfo')
     if WITHINFO:
         print('+-------')
         print('Printing ibs_gt and ibs info before start')
@@ -81,8 +77,10 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         print(ibs.get_dbinfo_str())
         print('--------')
         print('\nibs_gt info')
-        print(ibs_gt.get_dbinfo_str())
+        #print(ibs_gt.get_dbinfo_str())
         print('L________')
+
+    #ut.embed()
 
     # Setup metadata tuple
     metatup = Metatup(ibs_gt, aid1_to_aid2)
@@ -92,7 +90,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
 
     # Begin incremental iteration
     chunksize = 1
-    aids_chunk1_iter = ut.progress_chunks(aids_list1_, chunksize, lbl='TEST QUERY')
+    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         with ut.Timer('teststep'):
             #sys.stdout.write('\n')
@@ -113,7 +111,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                 # oracle code and make a decision
                 yield item
     print('ending interactive iter')
-    ah.check_results(ibs_gt, ibs, aid1_to_aid2)
+    ah.check_results(ibs_gt, ibs, aid1_to_aid2, aid_list1, incinfo)
 
 
 @profile
@@ -191,10 +189,10 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
         ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
     if USE_STATEFULNESS and qreq_vsmany_ is not None:
-        if getattr(incinfo, 'qreq_vsmany_', None) is None:
+        if incinfo.get('qreq_vsmany_', None) is None:
             incinfo['qreq_vsmany_'] = qreq_vsmany_
         else:
-            assert getattr(incinfo, 'qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
+            assert incinfo.get('qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
         item = [ibs, qres, qreq_, incinfo]
@@ -240,7 +238,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
     # ---------------------------------------------
     # Get oracle suggestion if we have the metadata
     # override the system suggestion
-    if metatup is not None:
+    if incinfo['use_oracle'] and metatup is not None:
         oracle_name_suggest_tup = ao.get_oracle_name_suggestion(
             ibs, qaid, choicetup, metatup)
         name_suggest_tup = oracle_name_suggest_tup
@@ -354,11 +352,11 @@ def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
     qaid = qres.get_qaid()
     if exemplar_decision:
         ibs.set_annot_exemplar_flags((qaid,), [1])
-        if hasattr(incinfo, 'qreq_vsmany_'):
+        if 'qreq_vsmany_' in incinfo:
             qreq_vsmany_ = incinfo.get('qreq_vsmany_')
             # STATE_MAINTENANCE
             # Add new query as a database annotation
-            qreq_vsmany_.add_internal_daids(qaid)
+            qreq_vsmany_.add_internal_daids([qaid])
     run_until_finish(incinfo=incinfo)
 
 
@@ -370,11 +368,11 @@ def run_until_finish(incinfo=None):
     """
     if incinfo is not None:
         # This query run as eneded
-        next_query_attr = 'next_query_callback'
-        if next_query_attr in incinfo:
-            incinfo[next_query_attr]()
+        next_query_key = 'next_query_callback'
+        if next_query_key in incinfo:
+            incinfo[next_query_key]()
         else:
-            print('Warning: no next_query_attr')
+            print('Warning: no next_query_key=%r' % (next_query_key,))
 
 
 # ---- POST DECISION ---

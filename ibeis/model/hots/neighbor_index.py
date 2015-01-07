@@ -172,7 +172,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
-        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf
+        _ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
     """
     flann_cachedir = qreq_.ibs.get_flann_cachedir()
     # Have uuid shelf conditioned on the baseline flann and feature parameters
@@ -898,6 +898,10 @@ class NeighborIndex(object):
     #@profile
     def knn(nnindexer, qfx2_vec, K):
         """
+        Returns the indicies and squared distance to the nearest K neighbors.
+        The distance is noramlized between zero and one using
+        VEC_PSEUDO_MAX_DISTANCE
+
         Args:
             qfx2_vec : (N x D) an array of N, D-dimensional query vectors
 

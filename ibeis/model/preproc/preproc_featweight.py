@@ -35,7 +35,7 @@ def gen_featweight_worker(tup):
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_list = [vtimage.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
+        >>> probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
         >>> kpts  = kpts_list[0]
         >>> aid   = aid_list[0]
         >>> probchip = probchip_list[0]
@@ -43,10 +43,57 @@ def gen_featweight_worker(tup):
         >>> (aid, weights) = gen_featweight_worker(tup)
         >>> weights_03_test = weights[0:3]
         >>> print('weights[0:3] = %r' % (weights_03_test,))
-        >>> weights_03_target = [ 0.098, 0.155,  0.422]
-        >>> weights_thresh = [ 0.003, 0.002,  0.002]
+        >>> #weights_03_target = [ 0.098, 0.155,  0.422]
+        >>> weights_03_target = [ 0.504, 0.875,  2.205]
+        >>> weights_thresh = [ 0.005, 0.002,  0.002]
         >>> ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
         >>> assert aid == 3
+
+    Ignore::
+        import plottool as pt
+        pt.imshow(probchip_list[0])
+        patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts[0:1]]
+        patch_ = patch_list[0].copy()
+        patch = patch_
+        patch = patch_[-20:, :20, 0]
+
+
+        import vtool as vt
+        gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)
+
+        import cv2
+        sigma = 1/10
+        xkernel = (cv2.getGaussianKernel(patch.shape[1], sigma))
+        ykernel = (cv2.getGaussianKernel(patch.shape[0], sigma))
+
+        #ykernel = ykernel / ykernel.max()
+        #xkernel = ykernel / xkernel.max()
+
+        gaussian_kern2 = ykernel.dot(xkernel.T)
+        print(gaussian_kern2.sum())
+
+        patch2 = patch.copy()
+        patch2 = np.multiply(patch2,   ykernel)
+        patch2 = np.multiply(patch2.T, xkernel).T
+
+        if len(patch3.shape) == 2:
+            patch3 = patch.copy() * gaussian_patch[:,:]
+        else:
+            patch3 = patch.copy() * gaussian_patch[:,:, None]
+
+        sum2 = patch2.sum() / (patch2.size)
+        sum3 = patch3.sum() / (patch3.size)
+
+        print(sum2)
+        print(sum3)
+
+        fig = pt.figure(fnum=1, pnum=(1, 3, 1), doclf=True, docla=True)
+        pt.imshow(patch * 255)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 2))
+        pt.imshow(gaussian_kern2 * 255.0)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 3))
+        pt.imshow(patch2 * 255.0)
+        pt.update()
     """
     (aid, kpts, probchip) = tup
     if probchip is None:
@@ -54,8 +101,9 @@ def gen_featweight_worker(tup):
         weights = np.full(len(kpts), .25, dtype=np.float32)
     else:
         #vtpatch.get_warped_patches()
-        patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
-        weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        patch_list  = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
+        weight_list = [vtpatch.gaussian_average_patch(patch) for patch in patch_list]
+        #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
     return (aid, weights)
 
@@ -85,7 +133,8 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list)
-    probchip_list = [vtimage.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
+    # Force grayscale reading of chips
+    probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
 
     print('[preproc_featweight] Computing fgweights')
     arg_iter = zip(aid_list, kpts_list, probchip_list)

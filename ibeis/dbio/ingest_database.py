@@ -215,13 +215,14 @@ def ingest_testdb1(dbname):
         # Set some test species labels
         from ibeis.constants import Species
         species_text_list = ibs.get_annot_species_texts(aid_list)
-        for ix in range(0, 6):
-            species_text_list[ix] = Species.ZEB_PLAIN
-        # These are actually plains zebras.
-        for ix in range(8, 10):
-            species_text_list[ix] = Species.ZEB_GREVY
-        for ix in range(10, 12):
-            species_text_list[ix] = Species.POLAR_BEAR
+        with ut.EmbedOnException():
+            for ix in range(0, 6):
+                species_text_list[ix] = Species.ZEB_PLAIN
+            # These are actually plains zebras.
+            for ix in range(8, 10):
+                species_text_list[ix] = Species.ZEB_GREVY
+            for ix in range(10, 12):
+                species_text_list[ix] = Species.POLAR_BEAR
 
         ibs.set_annot_species(aid_list, species_text_list)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)

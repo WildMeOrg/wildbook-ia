@@ -113,7 +113,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
         'openjpeg',
-        'zlib',
+        'zlib-dev',
         'freetype',
         'fftw3',
         'atlas',
@@ -147,6 +147,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         ])
 
     if FEDORA_FAMILY:
+        PREREQ_PKG_LIST.extend([
+            'python-dev',
+        ])
         pass
 
     PREREQ_PYPKG_LIST = [
@@ -174,9 +177,10 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'scikit-learn',
         'parse',
         'simplejson',
-        'pyinstaller',
+        # 'pyinstaller',
         'statsmodels',
         'lockfile',  # Need to do upgrade on this
+        'git+https://github.com/amitdev/lru-dict',
     ]
 
     OPTIONAL_PYPKG_LIST = [

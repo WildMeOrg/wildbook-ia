@@ -155,7 +155,10 @@ class QueryVerificationInteraction(AbstractInteraction):
             score    = self.qres.get_aid_scores([aid])[0]
             rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
             title_suf = kwargs.get('title_suffix', '')
-            title_suf += '\n score=%0.2f' % score
+            if score is None:
+                title_suf += '\n score=____'
+            else:
+                title_suf += '\n score=%0.2f' % score
             title_suf += '\n rawscore=%0.2f' % rawscore
         else:
             title_suf = kwargs.get('title_suffix', '')
@@ -210,14 +213,22 @@ class QueryVerificationInteraction(AbstractInteraction):
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
         figtitle = 'Examine a specific image against the query'
-        #interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle)
-        fig = df2.figure(fnum=510, pnum=(1, 1, 1), doclf=True, docla=True)
-        viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
-        fig.show()
-        # this is only relevant to matplotlib.__version__ < 1.4.2
-        #raise Exception(
-        #    'BLACK MAGIC: error intentionally included as a workaround that seems'
-        #    'to fix a gui hang on certain computers.')
+
+        #fnum = 510
+        fnum = df2.next_fnum()
+        fig = df2.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
+        # can cause freezes should be False
+        INTERACT_EXAMINE = True
+        if INTERACT_EXAMINE:
+            fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
+            print('Finished interact')
+            # this is only relevant to matplotlib.__version__ < 1.4.2
+            #raise Exception(
+            #    'BLACK MAGIC: error intentionally included as a workaround that seems'
+            #    'to fix a gui hang on certain computers.')
+        else:
+            viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+            fig.show()
 
     def show_hud(self):
         """ Creates heads up display """
@@ -242,7 +253,6 @@ class QueryVerificationInteraction(AbstractInteraction):
         #Add other HUD buttons
         self.append_button('Quit', callback=partial(self.quit), rect=hr_slot(0))
         self.append_button('Confirm Selection', callback=partial(self.confirm), rect=hr_slot(1))
-
 
         if self.progress_current is not None and self.progress_total is not None:
             self.progress_string = str(self.progress_current) + '/' + str(self.progress_total)

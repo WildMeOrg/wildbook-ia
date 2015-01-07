@@ -14,8 +14,11 @@ import six
 import atexit
 import requests
 import weakref
-from six.moves import zip, range
-from os.path import join, split
+import lockfile
+import webbrowser
+from six.moves import zip
+from os import system
+from os.path import join, exists, split
 # UTool
 import utool as ut  # NOQA
 # IBEIS
@@ -467,6 +470,18 @@ class IBEISController(object):
         #return join(ibs.workdir, ibs.dbname)
         return ibs.dbdir
 
+    def get_db_core_path(ibs):
+        """
+        Returns:
+            path (str): path of the sqlite3 core database file """
+        return ibs.db.fpath
+
+    def get_db_cache_path(ibs):
+        """
+        Returns:
+            path (str): path of the sqlite3 cache database file """
+        return ibs.dbcache.fpath
+
     def get_trashdir(ibs):
         return ibs.trashdir
 
@@ -611,26 +626,68 @@ class IBEISController(object):
         raise NotImplementedError()
 
     @default_decorator
-    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True):
+    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
         """ Exports specified encounters to wildbook """
         def _send(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
-            addr_ = addr % (hostname, encounter_uuid)
-            response = ibs._init_wb(addr_)
-            print(addr_, response)
-            return response is not None
-        # Configuration
-        hostname = '127.0.0.1'
-        addr = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-        print('[ibs] shipping eid_list = %r to wildbook' % (eid_list, ))
-        if eid_list is None:
-            eid_list = ibs.get_valid_eids()
-        status_list = [ _send(eid) for eid in eid_list ]
-        if set_shipped_flag:
-            for eid, status in zip(eid_list, status_list):
-                val = 1 if status else 0
-                ibs.set_encounter_shipped_flags([eid], [val])
-        return status_list
+            submit_url_ = submit_url % (hostname, encounter_uuid)
+            print('[_send] URL=%r' % (submit_url_, ))
+            response = ibs._init_wb(submit_url_)
+            if response.status_code == 200:
+                return True
+            else:
+                webbrowser.open_new_tab(submit_url_)
+                raise AssertionError('Wildbook response NOT ok (200)')
+                return False
+        def _complete(eid):
+            encounter_uuid = ibs.get_encounter_uuid(eid)
+            complete_url_ = complete_url % (hostname, encounter_uuid)
+            print('[_complete] URL=%r' % (complete_url_, ))
+            webbrowser.open_new_tab(complete_url_)
+        # Setup
+        wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
+        if exists(wildbook_tomcat_path):
+            wildbook_properties_path  = 'WEB-INF/classes/bundles/'
+            wildbook_properties_path_ = join(wildbook_tomcat_path, wildbook_properties_path)
+            src_config = 'commonConfiguration.properties.default'
+            dst_config = 'commonConfiguration.properties'
+            print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
+            # Configuration
+            hostname = '127.0.0.1'
+            submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+            complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
+            # With a lock file, modify the configuration with the new settings
+            with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
+                # Update the Wildbook configuration to see *THIS* ibeis database
+                with open(join(wildbook_properties_path_, src_config), 'r') as f:
+                    content = f.read()
+                    content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
+                    content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
+                    content = '"%s"' % (content, )
+                # Write to the configuration
+                print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
+                command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', join(wildbook_properties_path_, dst_config), '\'']
+                # ut.cmd(command, sudo=True)
+                command = ' '.join(command)
+                system(command)
+                # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
+                #     f.write(content)
+
+                # Call Wildbook url to signal update
+                print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
+                if eid_list is None:
+                    eid_list = ibs.get_valid_eids()
+                status_list = [ _send(eid) for eid in eid_list ]
+                if set_shipped_flag:
+                    for eid, status in zip(eid_list, status_list):
+                        if status:
+                            ibs.set_encounter_shipped_flags([eid], [1])
+                            _complete(eid)
+                        else:
+                            ibs.set_encounter_shipped_flags([eid], [0])
+                return status_list
+        else:
+            raise AssertionError('Wildbook is not installed on this machine')
 
     #
     #
@@ -639,64 +696,22 @@ class IBEISController(object):
     #------------------
 
     @default_decorator
-    def detect_existence(ibs, gid_list, **kwargs):
-        """ Detects the probability of animal existence in each image """
-        from ibeis.model.detect import randomforest  # NOQ
-        probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
-        # Return for user inspection
-        return probexist_list
-
-    @default_decorator
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         from ibeis.model.detect import randomforest  # NOQ
-        tt = ut.tic()
-        detect_gen = randomforest.ibeis_generate_image_detections(ibs, gid_list, species, **kwargs)
-        detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
-        ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
-        ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
+        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
+        # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
+        # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
+        for gid, (gpath, result_list) in zip(gid_list, detect_gen):
+            for result in result_list:
+                # Ideally, species will come from the detector with confidences that actually mean something
+                bbox = (result['xtl'], result['ytl'], result['width'], result['height'])
+                ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
+                               species_list=[species],
+                               detect_confidence_list=[result['confidence']])
 
-        def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):
-            """ helper to commit detections on the fly """
-            if len(detected_gids) == 0:
-                return
-            notes_list = ['rfdetect' for _ in range(len(detected_gid_list))]
-            # Ideally, species will come from the detector with confidences that actually mean something
-            species_list = [ibs.cfg.detect_cfg.species] * len(notes_list)
-            ibs.add_annots(detected_gids, detected_bboxes,
-                                notes_list=notes_list,
-                                species_list=species_list,
-                                detect_confidence_list=detected_confidences)
-
-        # Adding new detections on the fly as they are generated
-        for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
-            detected_gid_list.append(gid)
-            detected_bbox_list.append(bbox)
-            detected_confidence_list.append(confidence)
-            detected_img_confs.append(img_conf)
-            # Save detections as we go, then reset lists
-            if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
-                commit_detections(detected_gid_list,
-                                  detected_bbox_list,
-                                  detected_confidence_list,
-                                  detected_img_confs)
-                detected_gid_list  = []
-                detected_bbox_list = []
-                detected_confidence_list = []
-                detected_img_confs = []
-        # Save any leftover detections
-        commit_detections(  detected_gid_list,
-                            detected_bbox_list,
-                            detected_confidence_list,
-                            detected_img_confs)
-        tt_total = float(ut.toc(tt))
-        if len(gid_list) > 0:
-            print('[ibs] finshed detecting, took %.2f seconds (avg. %.2f seconds per image)' %
-                  (tt_total, tt_total / len(gid_list)))
-        else:
-            print('[ibs] finshed detecting')
     #
     #
     #-----------------------------

@@ -357,7 +357,9 @@ class QueryResult(__OBJECT_BASE__):
             >>> result = str(nscoretup)
             >>> print(result)
         """
-        aid_list, score_list = qres.get_aids_and_scores(name_scoring=False)
+        aid_list, score_list = qres.get_aids_and_chip_scores()
+        if np.all(np.isnan(score_list)):
+            score_list = qres.get_aid_scores(aid_list, rawscore=True)
         nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
@@ -366,6 +368,15 @@ class QueryResult(__OBJECT_BASE__):
         nscoretup = qres.get_nscoretup(ibs)
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
         return sorted_nids, sorted_nscores
+
+    def get_aids_and_chip_scores(qres, rawscore=False):
+        if qres.aid2_prob is None or rawscore:
+            aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
+            score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
+        else:
+            aid_arr   = np.array(list(qres.aid2_prob.keys()), dtype=np.int32)
+            score_arr = np.array(list(qres.aid2_prob.values()), dtype=np.float64)
+        return aid_arr, score_arr
 
     def get_aids_and_scores(qres, name_scoring=False, ibs=None):
         """ returns a chip index list and associated score list """
@@ -376,12 +387,7 @@ class QueryResult(__OBJECT_BASE__):
             score_arr = np.array(sorted_nscore)
             aid_arr = np.array(ut.get_list_column(sorted_aids, 0))
         else:
-            if qres.aid2_prob is None:
-                aid_arr   = np.array(list(qres.aid2_score.keys()), dtype=np.int32)
-                score_arr = np.array(list(qres.aid2_score.values()), dtype=np.float64)
-            else:
-                aid_arr   = np.array(list(qres.aid2_prob.keys()), dtype=np.int32)
-                score_arr = np.array(list(qres.aid2_prob.values()), dtype=np.float64)
+            aid_arr, score_arr = qres.get_aids_and_chip_scores()
         return aid_arr, score_arr
 
     def get_aid_scores(qres, aid_arr, fillvalue=None, rawscore=False):
@@ -706,6 +712,13 @@ class QueryResult(__OBJECT_BASE__):
         if kwargs.get('update', False):
             fig.show()
         return fig
+
+    def ishow_matches(qres, ibs, aid, *args, **kwargs):
+        from ibeis.viz.interact import interact_matches  # NOQA
+        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
+        return match_interaction
+        #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
+        #return fig
 
     def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
         print('[qres] qt_inspect_gui')

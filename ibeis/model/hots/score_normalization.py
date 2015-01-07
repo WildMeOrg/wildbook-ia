@@ -37,6 +37,11 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[scorenorm]', DE
 
 
 # NORMALIZER STORAGE AND CACHINE CLASS
+USE_NORMALIZER_CACHE = not ut.get_argflag(('--no-normalizer-cache', '--no-normcache'))
+# IBEIS FUNCTIONS
+MAX_NORMALIZER_CACHE_SIZE = 8
+NORMALIZER_CACHE = ut.get_lru_cache(MAX_NORMALIZER_CACHE_SIZE)
+#NORMALIZER_CACHE = {}
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -111,10 +116,13 @@ class ScoreNormalizer(ut.Cachable):
             raise AssertionError('user normalize score list')
             return .5
         if score < normalizer.score_domain[0]:
+            # clip scores at 0
             prob = 0.0
         elif score > normalizer.score_domain[-1]:
+            # interpolate between max probability and one
             prob = (normalizer.p_tp_given_score[-1] + 1.0) / 2.0
         else:
+            # use normalizer to get scores
             indexes = np.where(normalizer.score_domain <= score)[0]
             index = indexes[-1]
             prob = normalizer.p_tp_given_score[index]
@@ -127,16 +135,25 @@ class ScoreNormalizer(ut.Cachable):
 
     def normalize_score_list(normalizer, score_list):
         if normalizer.get_num_training_pairs() < 2:
-            # HACK
-            # return scores from .4 to .6 if we have no idea
-            score_arr = np.array(score_list)
-            if len(score_arr) < 2 or score_arr.max() == score_arr.min():
-                return np.full(score_arr.shape, .5)
-            else:
-                prob_list = (ut.norm_zero_one(score_arr) * .2) + .4
-            return prob_list
+            #prob_list = normalizer.empty_normalize_score_list_46(score_list)
+            prob_list = normalizer.empty_normalize_score_list_None(score_list)
+        else:
+            prob_list = [normalizer.normalize_score_(score) for score in score_list]
+        return prob_list
 
-        prob_list = [normalizer.normalize_score_(score) for score in score_list]
+    def empty_normalize_score_list_None(normalizer, score_list):
+        return [None] * len(score_list)
+
+    def empty_normalize_score_list_46(normalizer, score_list):
+        """
+        # HACK
+        # return scores from .4 to .6 if we have no idea
+        """
+        score_arr = np.array(score_list)
+        if len(score_arr) < 2 or score_arr.max() == score_arr.min():
+            return np.full(score_arr.shape, .5)
+        else:
+            prob_list = (ut.norm_zero_one(score_arr) * .2) + .4
         return prob_list
 
     def normalizer_score_list2(normalizer, score_list):
@@ -147,7 +164,8 @@ class ScoreNormalizer(ut.Cachable):
         num_train_pairs = normalizer.get_num_training_pairs()
         score_list = np.array(score_list)
         prob_list = normalizer.normalize_score_list(score_list)
-        alpha = min(1.0, num_train_pairs / 200.0)
+        NUM_SUPPORT_THRESH = 200
+        alpha = min(1.0, num_train_pairs / float(NUM_SUPPORT_THRESH))
         prob_list2 = (alpha * score_list) + ((1 - alpha) * prob_list)
         return prob_list2
 
@@ -313,10 +331,33 @@ def load_precomputed_normalizer(index, *args, **kwargs):
     return normalizer
 
 
+def testload_myscorenorm():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.score_normalization --test-testload_myscorenorm
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> testload_myscorenorm()
+        >>> import plottool as pt
+        >>> six.exec_(pt.present(), globals(), locals())
+    """
+    normalizer = ScoreNormalizer(cfgstr='gzbase')
+    normalizer.load(utool.truepath('~/Dropbox/IBEIS'))
+    normalizer.visualize()
+
+
 def list_available_score_normalizers(with_global=True, with_local=True):
     r"""
     CommandLine:
         python -m ibeis.model.hots.score_normalization --test-list_available_score_normalizers
+
+    Ignore::
+        cp /media/raid/work/_INCTEST_arr((666)7xcu21@fcschv2@m)_GZ_ALL/_ibsdb/_ibeis_cache/scorenorm/zebra_grevys/zebra_grevys_normalizer_bi+i4y&3dl8!xb!+.cPkl
+        mkdir ~/Dropbox/IBEIS
+        cp '/media/raid/work/_INCTEST_arr((666)7xcu21@fcschv2@m)_GZ_ALL/_ibsdb/_ibeis_cache/scorenorm/zebra_grevys/zebra_grevys_normalizer_bi+i4y&3dl8!xb!+.cPkl' ~/Dropbox/IBEIS/normalizer.cPkl
+        mv ~/Dropbox/IBEIS/normalizer.cPkl ~/Dropbox/IBEIS/_normalizer_gzbase.cPkl
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -335,7 +376,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
     from ibeis.dev import sysres
     from ibeis import constants
     #from os.path import join
-    pattern = ScoreNormalizer.prefix + '*' + ScoreNormalizer.ext
+    pattern = '*' + ScoreNormalizer.prefix2 + '*' + ScoreNormalizer.ext
     ibeis_resdir = sysres.get_ibeis_resource_dir()
     workdir = sysres.get_workdir()
 
@@ -499,11 +540,6 @@ def try_download_baseline_ibeis_normalizer(ibs, qreq_):
             #raise NotImplementedError('return the nodata noramlizer with 1/2 default')
     return normalizer
 
-# IBEIS FUNCTIONS
-NORMALIZER_CACHE = {}
-#NEIGHBOR_CACHE_VUUIDS = {}
-MAX_NORMALIZER_CACHE_SIZE = 8
-
 
 @profile
 def request_ibeis_normalizer(qreq_, verbose=True):
@@ -547,12 +583,15 @@ def request_ibeis_normalizer(qreq_, verbose=True):
         >>> normalizer.add_support([100], [10], [1], [2])
     """
     global NORMALIZER_CACHE
+    if not USE_NORMALIZER_CACHE:
+        normalizer = try_download_baseline_ibeis_normalizer(qreq_.ibs, qreq_)
+        return normalizer
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
     query_cfgstr = qreq_.get_query_cfgstr()
 
     cfgstr = species_text + query_cfgstr
 
-    if cfgstr in NORMALIZER_CACHE:
+    if NORMALIZER_CACHE.has_key(cfgstr):  # NOQA
         # use memory cache
         normalizer = NORMALIZER_CACHE[cfgstr]
         if verbose:

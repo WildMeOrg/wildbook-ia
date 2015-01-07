@@ -53,13 +53,22 @@
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span><span class="n">adder</span><span class="p">,</span> <span class="n">ider</span><span class="p">,</span> <span class="n">default_decorator</span><span class="p">,</span> <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">deleter</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span><span class="n">adder</span><span class="p">,</span> <span class="n">ider</span><span class="p">,</span> <span class="n">default_decorator</span><span class="p">,</span>
+                                           <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">deleter</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_dependant]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">ANNOT_ROWID</span>   <span class="o">=</span> <span class="s">&#39;annot_rowid&#39;</span>
+<span class="n">CHIP_ROWID</span>    <span class="o">=</span> <span class="s">&#39;chip_rowid&#39;</span>
+<span class="n">FEAT_VECS</span>     <span class="o">=</span> <span class="s">&#39;feature_vecs&#39;</span>
+<span class="n">FEAT_KPTS</span>     <span class="o">=</span> <span class="s">&#39;feature_keypoints&#39;</span>
+<span class="n">FEAT_NUM_FEAT</span> <span class="o">=</span> <span class="s">&#39;feature_num_feats&#39;</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -119,7 +128,7 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!ibs.add_annot_chips]&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[!ibs.add_annot_chips] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_dbgstr</span><span class="p">(</span><span class="s">&#39;aid_list&#39;</span><span class="p">))</span>
             <span class="k">raise</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;chip_uri&#39;</span><span class="p">,</span> <span class="s">&#39;chip_width&#39;</span><span class="p">,</span> <span class="s">&#39;chip_height&#39;</span><span class="p">,)</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;chip_uri&#39;</span><span class="p">,</span> <span class="s">&#39;chip_width&#39;</span><span class="p">,</span> <span class="s">&#39;chip_height&#39;</span><span class="p">,)</span>
         <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
 
@@ -137,8 +146,7 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> features&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_cids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)))</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="n">preproc_feat</span><span class="o">.</span><span class="n">add_feat_params_gen</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dirty_cids</span><span class="p">)</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_num_feats&#39;</span><span class="p">,</span> <span class="s">&#39;feature_keypoints&#39;</span><span class="p">,</span>
-                    <span class="s">&#39;feature_vecs&#39;</span><span class="p">)</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">CHIP_ROWID</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="n">FEAT_NUM_FEAT</span><span class="p">,</span> <span class="n">FEAT_KPTS</span><span class="p">,</span> <span class="n">FEAT_VECS</span><span class="p">)</span>
         <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
 
@@ -161,6 +169,12 @@
     <span class="n">_cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">_cid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_chips</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="c"># HACK FIX: if annot chips are None then the image thumbnail</span>
+    <span class="c"># will not be invalidated</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_cid_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">):</span>
+        <span class="n">aid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">_cid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_cid_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">_cid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">]</span>
+        <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -184,7 +198,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@deleter</span>
-<span class="c">#@cache_invalidator(const.FEATURE_TABLE)</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">)</span>
 <div class="viewcode-block" id="delete_features"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.delete_features">[docs]</a><span class="k">def</span> <span class="nf">delete_features</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; deletes images from the database that belong to fids&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -195,7 +209,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_chip_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.get_chip_aids">[docs]</a><span class="k">def</span> <span class="nf">get_chip_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">):</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">cid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="n">cid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list</span>
 
 </div>
@@ -240,12 +254,13 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
+<span class="nd">@accessor_decors.dev_cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="get_chip_fids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.get_chip_fids">[docs]</a><span class="k">def</span> <span class="nf">get_chip_fids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">add_chip_feats</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
     <span class="n">feat_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">()</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,)</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;chip_rowid=? AND config_rowid=?&#39;</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="n">CHIP_ROWID</span> <span class="o">+</span> <span class="s">&#39;=? AND config_rowid=?&#39;</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">cid</span><span class="p">,</span> <span class="n">feat_config_rowid</span><span class="p">)</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">cid_list</span><span class="p">)</span>
     <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
                                      <span class="n">where_clause</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
@@ -312,37 +327,37 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
-<span class="c">#@cache_getter(const.FEATURE_TABLE, &#39;feature_keypoints&#39;)</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">FEAT_KPTS</span><span class="p">)</span>
 <div class="viewcode-block" id="get_feat_kpts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.get_feat_kpts">[docs]</a><span class="k">def</span> <span class="nf">get_feat_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        kpts_list (list): chip keypoints in [x, y, iv11, iv21, iv22, ori] format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_keypoints&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">FEAT_KPTS</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">kpts_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
-<span class="c">#@cache_getter(const.FEATURE_TABLE, &#39;feature_vecs&#39;)</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">FEAT_VECS</span><span class="p">)</span>
 <div class="viewcode-block" id="get_feat_vecs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.get_feat_vecs">[docs]</a><span class="k">def</span> <span class="nf">get_feat_vecs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        vecs_list (list): chip SIFT descriptors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_vecs&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">FEAT_VECS</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">vecs_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
-<span class="c">#@cache_getter(const.FEATURE_TABLE, &#39;feature_num_feats&#39;)</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">FEAT_NUM_FEAT</span><span class="p">)</span>
 <div class="viewcode-block" id="get_num_feats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_dependant_funcs.get_num_feats">[docs]</a><span class="k">def</span> <span class="nf">get_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        nFeats_list (list): the number of keypoint / descriptor pairs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;feature_num_feats&#39;</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">FEAT_NUM_FEAT</span><span class="p">,),</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">nFeats_list</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">nFeats</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nFeats</span><span class="p">)</span> <span class="k">for</span> <span class="n">nFeats</span> <span class="ow">in</span> <span class="n">nFeats_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">nFeats_list</span>
 
@@ -418,7 +433,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

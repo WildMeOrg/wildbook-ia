@@ -86,7 +86,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span> <span class="k">as</span> <span class="n">df2</span>
     <span class="kn">import</span> <span class="nn">cv2</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
 
     <span class="n">fpath</span> <span class="o">=</span> <span class="s">&#39;/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&amp;%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png&#39;</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
@@ -120,7 +120,7 @@
         <span class="n">featweight_species</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">featweight_species</span>
     <span class="k">if</span> <span class="n">featweight_species</span> <span class="o">==</span> <span class="s">&#39;uselabel&#39;</span><span class="p">:</span>
         <span class="c"># Use the labeled species for the detector</span>
-        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">featweight_species</span><span class="p">]</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -239,17 +239,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get probchip dest information (output path)</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
-    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">use_chunks</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_use_chunks</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">use_chunks</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">detect_use_chunks</span>
-
     <span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span> <span class="o">=</span> <span class="n">group_aids_by_featweight_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="n">cachedir</span>   <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">modeldir</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_detect_modeldir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
 
-    <span class="n">gropued_probchip_fpath_lists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">):</span>
@@ -260,16 +254,15 @@
             <span class="k">continue</span>
         <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
         <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
-        <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
         <span class="c"># Ensure that all chips are computed</span>
-        <span class="c"># LAZY-CODE IS DONE HERE randomforest only computes probchips that it needs to</span>
-        <span class="n">randomforest</span><span class="o">.</span><span class="n">compute_probability_images</span><span class="p">(</span>
-            <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">use_chunks</span><span class="o">=</span><span class="n">use_chunks</span><span class="p">,</span>
-            <span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
-        <span class="c"># HACK: Fix stupid bug in pyrf</span>
-        <span class="n">fixed_probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
-        <span class="n">gropued_probchip_fpath_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixed_probchip_fpath_list</span><span class="p">)</span>
-    <span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gropued_probchip_fpath_lists</span><span class="p">)</span>
+        <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c"># &#39;scale_list&#39;: [1.0],</span>
+            <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">probchip_fpath_list</span><span class="p">,</span>
+            <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">probchip_fpath_list_</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
@@ -329,7 +322,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -16,7 +16,7 @@ MODEL_ALGO_SUBDIRS = {
 }
 
 MODEL_URLS = {
-    DETECTOR_KEY_RF: 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip'
+    DETECTOR_KEY_RF: 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip',
 }
 
 

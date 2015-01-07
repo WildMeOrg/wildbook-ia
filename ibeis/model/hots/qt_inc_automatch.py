@@ -131,11 +131,14 @@ def test_inc_query(ibs_gt, num_initial=0):
         back.connect_ibeis_control(ibs)
     else:
         back = None
-    self = self.test_incremental_query(ibs_gt, ibs, aid_list1, aid1_to_aid2,
-                                       interactive_after=interactive_after,
-                                       num_initial=num_initial,
-                                       back=back)
-    if interactive_after is not None:
+    interactive = self.test_incremental_query(
+        ibs_gt, ibs, aid_list1, aid1_to_aid2,
+        interactive_after=interactive_after, num_initial=num_initial, back=back)
+    if interactive_after is None and interactive:
+        # need to startup backend
+        back = main_module._init_gui()
+        back.connect_ibeis_control(ibs)
+    if interactive or interactive_after is not None:
         guitool.qtapp_loop()
 
 
@@ -205,6 +208,7 @@ class IncQueryHarness(INC_LOOP_BASE):
             'name_decision_callback': name_decision_callback,
             'exemplar_decision_callback': exemplar_decision_callback,
             'metatup': None,
+            'use_oracle': False,
             'interactive': True,
             'count': 0,
             'fnum': 512,
@@ -240,6 +244,9 @@ class IncQueryHarness(INC_LOOP_BASE):
         # When in interactive mode it seems like the stack never gets out of hand
         # but if the oracle is allowed to make decisions and emit signals like
         # the user then we get into a maximum recursion limit.
+        incinfo['interactive'] = False
+        incinfo['use_oracle'] = True
+        hack_run_name_decision = False
         with ut.Timer('test_incremental_query'):
             for item  in self.inc_query_gen:
                 (ibs, qres, qreq_, incinfo) = item
@@ -248,19 +255,34 @@ class IncQueryHarness(INC_LOOP_BASE):
                 self.qreq_     = qreq_
                 self.incinfo = incinfo
                 incinfo['count'] += 1
+                if incinfo.get('PLEASE_STOP', False):
+                    print('PLEASE_STOP triggered')
+                    interactive_after = incinfo['count'] - 1
+                    incinfo['next_query_callback'] = next_query_callback
+                    incinfo['use_oracle'] = False
+                    incinfo['interactive'] = True
+                    hack_run_name_decision = True
+                    break
+                automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
                 #ut.embed()
                 if interactive_after is not None and incinfo['count'] > interactive_after:
                     # stop the automated queries and start interaction
+                    print('Interactive after triggered')
+                    incinfo['interactive'] = True
                     break
-                automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
 
         # BEGIN INTERACTIVE PART
         # (this does nothing if inc_query_gen is exhausted)
         # need to fix the incinfo dictionary
         incinfo['next_query_callback'] = next_query_callback
-        incinfo['metatup'] = None
-        incinfo['interactive'] = True
-        incinfo['next_query_callback']()
+        incinfo['use_oracle'] = False
+        #incinfo['metatup'] = None
+        if hack_run_name_decision:
+            # need to rn this so PLEASE_STOP can trigger user interaction
+            automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+        else:
+            incinfo['next_query_callback']()
+        return incinfo['interactive']
 
     def begin_incremental_query(self, ibs, qaid_list, back=None):
         """

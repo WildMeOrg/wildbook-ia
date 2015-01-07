@@ -1,15 +1,28 @@
 """
 handles the "special" more complex vs-one re-ranked query
 
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 8690
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+# Write some alias for ourselves
+python -c "import utool as ut; ut.write_modscript_alias( 'Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"
+python -c "import utool as ut; ut.write_modscript_alias('pTinc.sh', 'ibeis.model.hots.qt_inc_automatch', 'utprof.py')"
+
+# PROFILE PZ_Master0 With lots of preadded data
+sh pTinc.sh --test-test_inc_query:3 --num-init 7500 --test-title "ProfileIncPZMaster0"
+
+sh pTinc.sh --test-test_inc_query:3 --num-init 8690
+sh pTinc.sh --test-test_inc_query:0
+sh pTinc.sh --test-test_inc_query:3 --num-init 5000 --devcache --vsone-errs
 
 
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --devcache --vsone-errs
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
+
+# Interactive GZ Test
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs --ia 10  --test-title "GZ_Inc_Errors"
+# Automatic GZ Test
+sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs  --test-title "GZ_Inc_Errors"
 
 
-python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
+# Automatic GZ Test Small
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34
 
 
 """
@@ -23,8 +36,20 @@ from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
 
+# hack for tests
+if ut.in_main_process():
+    test_title = ut.get_argval('--test-title', type_=str, default=None)
+    if test_title is not None:
+        ut.change_term_title(test_title)
+
+
 USE_VSMANY_HACK = ut.get_argflag('--vsmany-hack')
 TEST_VSONE_ERRORS = ut.get_argflag(('--test-vsone-errors', '--vsone-errs'))
+
+
+TestTup = ut.namedtuple(
+    'TestTup', (
+        'qaid_t', 'qaid', 'vsmany_rank', 'vsone_rank'))
 
 
 def testdata_special_query(dbname=None):
@@ -69,7 +94,7 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
         >>> daids = valid_aids[1:]
         >>> qaid = qaids[0]
         >>> # execute function
-        >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
+        >>> qaid2_qres, qreq_, qreq_vsmany_ = query_vsone_verified(ibs, qaids, daids)
         >>> qres = qaid2_qres[qaid]
 
     Ignore:
@@ -142,20 +167,108 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
         qaid2_qres, qreq_ = mc4.empty_query(ibs, qaids)
         return qaid2_qres, qreq_, None
 
-    if TEST_VSONE_ERRORS and incinfo is not None and hasattr(incinfo, 'metatup'):
-        test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo)
+    if TEST_VSONE_ERRORS and incinfo is not None and 'metatup' in incinfo:
+        test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo)
 
     print('[special_query.5] finished special query')
     return qaid2_qres, qreq_, qreq_vsmany_
 
 
-def test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
+def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
     """
     ibs1 = ibs_gt
     ibs2 = ibs (the current test database, sorry for the backwardness)
     aid1_to_aid2 - maps annots from ibs1 to ibs2
     """
-    ut.embed()
+    WASH                = 'wash'
+    BOTH_FAIL           = 'both_fail'
+    SINGLETON           = 'singleton'
+    VSMANY_OUTPERFORMED = 'vsmany_outperformed'
+    VSMANY_DOMINATES    = 'vsmany_dominates'
+    VSMANY_WINS         = 'vsmany_wins'
+    VSONE_WINS          = 'vsone_wins'
+    if 'testcases' not in incinfo:
+        testcases = {}
+        for case in [WASH, BOTH_FAIL, SINGLETON, VSMANY_OUTPERFORMED,
+                     VSMANY_DOMINATES, VSMANY_WINS, VSONE_WINS]:
+            testcases[case] = []
+        incinfo['testcases'] = testcases
+    testcases = incinfo['testcases']
+
+    def append_case(case, testtup):
+        print('APPENDED NEW TESTCASE: case=%r' % (case,))
+        print('* testup = %r' % (testtup,))
+        print('* vuuid = %r' % (ibs_gt.get_annot_visual_uuids(testtup.qaid_t),))
+        if case in [VSMANY_WINS, VSMANY_DOMINATES]:
+            incinfo['interactive'] = True
+            incinfo['use_oracle'] = False
+            incinfo['PLEASE_STOP'] = True
+            if False:
+                import plottool as pt  # NOQA
+                IPYTHON_COMMANDS = """
+                >>> %pylab qt4
+                >>> from ibeis.viz.interact import interact_matches  # NOQA
+                >>> #qres_vsmany = ut.search_stack_for_localvar('qres_vsmany')
+                >>> ibs        = ut.search_stack_for_localvar('ibs')
+                >>> daids      = ut.search_stack_for_localvar('daids')
+                >>> qnid_t     = ut.search_stack_for_localvar('qnid_t')
+                >>> qres_vsone = ut.search_stack_for_localvar('qres_vsone')
+                >>> all_nids_t = ut.search_stack_for_localvar('all_nids_t')
+                >>> # Find index in daids of correct matches
+                >>> qres = qres_vsone
+                >>> correct_indicies = np.where(np.array(all_nids_t) == qnid_t)[0]
+                >>> correct_aids2 = ut.list_take(daids, correct_indicies)
+                >>> qaid = qres.qaid
+                >>> aid = correct_aids2[0]
+                >>> # Feature match things
+                >>> print('qres.filtkey_list = %r' % (qres.filtkey_list,))
+                >>> fm  = qres.aid2_fm[aid]
+                >>> fs  = qres.aid2_fs[aid]
+                >>> fsv = qres.aid2_fsv[aid]
+                >>> mx = 2
+                >>> qfx, dfx = fm[mx]
+                >>> fsv_single = fsv[mx]
+                >>> fs_single = fs[mx]
+                >>> # check featweights
+                >>> data_featweights = ibs.get_annot_fgweights([aid])[0]
+                >>> data_featweights[dfx]
+                >>> fnum = pt.next_fnum()
+                >>> match_interaction = interact_matches.MatchInteraction(ibs, qres, aid)
+                >>> self = match_interaction
+                >>> self.select_ith_match(mx)
+                >>> #impossible_to_match = len(correct_indicies) > 0
+                """
+                y = """
+                >>> from ibeis.model.preproc import preproc_probchip
+                >>> from os.path import exists
+                >>> import vtool as vt
+                >>> import vtool.patch as vtpatch
+                >>> import vtool.image as vtimage  # NOQA
+                >>> chip_list = ibs.get_annot_chips([aid])
+                >>> kpts_list = ibs.get_annot_kpts([aid])
+                >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, [aid])
+                >>> probchip_list = [vt.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
+                >>> kpts  = kpts_list[0]
+                >>> probchip = probchip_list[0]
+                >>> kp = kpts[dfx]
+                >>> patch  = vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+                >>> fnum2 = pt.next_fnum()
+                >>> pt.figure(fnum2, pnum=(1, 2, 1), doclf=True, docla=True)
+                >>> pt.imshow(probchip)
+                >>> pt.draw_kpts2([kp])
+                >>> pt.figure(fnum2, pnum=(1, 2, 2))
+                >>> pt.imshow(patch * 255)
+                >>> pt.update()
+                >>> vt.gaussian_average_patch(patch)
+                """
+                y
+                # Gonna be pasting
+                ut.set_clipboard(IPYTHON_COMMANDS)
+                ut.embed(remove_pyqt_hook=False)
+                IPYTHON_COMMANDS
+
+        testcases[case].append(testtup)
+
     for qaid in six.iterkeys(qaid2_qres_vsmany):
         qres_vsmany = qaid2_qres_vsmany[qaid]
         qres_vsone  = qaid2_qres_vsone[qaid]
@@ -168,13 +281,45 @@ def test_vsone_errors(ibs, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
         top_aids_vsone  = ut.get_list_column(nscoretup_vsone.sorted_aids, 0)
         top_aids_vsmany = ut.get_list_column(nscoretup_vsmany.sorted_aids, 0)
         # tranform to groundtruth database coordinates
+        all_daids_t = ut.dict_take_list(aid2_to_aid1, daids)
         top_aids_vsone_t  = ut.dict_take_list(aid2_to_aid1, top_aids_vsone)
         top_aids_vsmany_t = ut.dict_take_list(aid2_to_aid1, top_aids_vsmany)
         qaid_t = aid2_to_aid1[qaid]
 
-        aids_tup = (top_aids_vsone_t, top_aids_vsmany_t, (qaid_t,),)
-        nids_tup = ibs_gt.unflat_map(ibs.get_annot_nids, aids_tup)
-        (top_nids_vsone_t, top_nids_vsmany_t, (qnid_t,),) = nids_tup
+        aids_tup = (all_daids_t, top_aids_vsone_t, top_aids_vsmany_t, (qaid_t,),)
+        nids_tup = ibs_gt.unflat_map(ibs_gt.get_annot_nids, aids_tup)
+        (all_nids_t, top_nids_vsone_t, top_nids_vsmany_t, (qnid_t,),) = nids_tup
+
+        vsmany_rank  = ut.listfind(top_nids_vsmany_t, qnid_t)
+        vsone_rank   = ut.listfind(top_nids_vsone_t, qnid_t)
+        impossible_to_match = ut.listfind(all_nids_t, qnid_t) is None
+
+        # Sort the test case into a category
+        testtup = TestTup(qaid_t, qaid, vsmany_rank, vsone_rank)
+        if vsmany_rank is None and vsone_rank is None and impossible_to_match:
+            append_case(SINGLETON, testtup)
+        elif vsmany_rank is not None and vsone_rank is None:
+            if vsmany_rank < 5:
+                append_case(VSMANY_DOMINATES, testtup)
+            else:
+                append_case(VSMANY_OUTPERFORMED, testtup)
+        elif vsmany_rank is None:
+            append_case(BOTH_FAIL, testtup)
+        elif vsone_rank > vsmany_rank:
+            append_case(VSMANY_WINS, testtup)
+        elif vsone_rank < vsmany_rank:
+            append_case(VSONE_WINS, testtup)
+        elif vsone_rank == vsmany_rank:
+            append_case(WASH, testtup)
+        else:
+            raise AssertionError('unenumerated case')
+        count_dict = ut.count_dict_vals(testcases)
+        print('+--')
+        #print(ut.dict_str(testcases))
+        print('---')
+        print(ut.dict_str(count_dict))
+        print('L__')
+        #ut.embed()
 
 
 @profile
