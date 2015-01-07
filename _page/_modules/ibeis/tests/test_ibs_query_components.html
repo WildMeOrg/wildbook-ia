@@ -53,7 +53,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c">#import sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="c"># Tools</span>
@@ -68,6 +68,19 @@
 
 
 <div class="viewcode-block" id="TEST_QUERY_COMP"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP">[docs]</a><span class="k">def</span> <span class="nf">TEST_QUERY_COMP</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.tests.test_ibs_query_components --test-TEST_QUERY_COMP</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.tests.test_ibs_query_components import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; TEST_QUERY_COMP(ibs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST_QUERY_COMP]&#39;</span><span class="p">)</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
@@ -112,8 +125,20 @@
     <span class="n">viz</span><span class="o">.</span><span class="n">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
+
+<span class="c">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    CommandLine:</span>
+<span class="c">#        python -m ibeis.tests.test_ibs_query_components</span>
+<span class="c">#        python -m ibeis.tests.test_ibs_query_components --allexamples</span>
+<span class="c">#        python -m ibeis.tests.test_ibs_query_components --allexamples --noface --nosrc</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    multiprocessing.freeze_support()  # for win32</span>
+<span class="c">#    import utool as ut  # NOQA</span>
+<span class="c">#    ut.doctest_funcs()</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -162,7 +187,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

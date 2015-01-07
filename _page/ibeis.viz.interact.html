@@ -64,7 +64,7 @@
 <span id="ibeis-viz-interact-interact-annotations2-module"></span><h2>ibeis.viz.interact.interact_annotations2 module<a class="headerlink" href="#module-ibeis.viz.interact.interact_annotations2" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2">
-<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_annotations2.</tt><tt class="descname">ANNOTATION_Interaction2</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>next_callback=None</em>, <em>prev_callback=None</em>, <em>rows_updated_callback=&lt;function &lt;lambda&gt; at 0x2b4af61df050&gt;</em>, <em>reset_window=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_annotations2.</tt><tt class="descname">ANNOTATION_Interaction2</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>next_callback=None</em>, <em>prev_callback=None</em>, <em>rows_updated_callback=&lt;function &lt;lambda&gt; at 0x2b4c62ff6320&gt;</em>, <em>reset_window=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <dl class="method">
 <dt id="ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2.commit_callback">
@@ -102,7 +102,7 @@ Callback from interact_annotations to ibs for when data is modified</p>
 <dl class="function">
 <dt id="ibeis.viz.interact.interact_image.ishow_image">
 <tt class="descclassname">ibeis.viz.interact.interact_image.</tt><tt class="descname">ishow_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=1</em>, <em>select_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_image.html#ishow_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_image.ishow_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_indent(ishow_image)</p>
+<dd><p>Wrapped function wrp_noexectb(ishow_image)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid&#8217;, &#8216;sel_aids&#8217;, &#8216;fnum&#8217;, &#8216;select_callback&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=([], 1, None))</p>
 <p>orig_docstr =</p>
 </dd></dl>
@@ -357,7 +357,7 @@ visualiztion</p>
 <span id="ibeis-viz-interact-interact-query-decision-module"></span><h2>ibeis.viz.interact.interact_query_decision module<a class="headerlink" href="#module-ibeis.viz.interact.interact_query_decision" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction">
-<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_query_decision.</tt><tt class="descname">QueryVerificationInteraction</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>comp_aids</em>, <em>suggest_aid</em>, <em>progress_current=None</em>, <em>progress_total=None</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>decision_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_query_decision.</tt><tt class="descname">QueryVerificationInteraction</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>comp_aids</em>, <em>suggest_aids</em>, <em>progress_current=None</em>, <em>progress_total=None</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>name_decision_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">plottool.abstract_interaction.AbstractInteraction</span></tt></p>
 <dl class="method">
 <dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm">
@@ -378,9 +378,9 @@ visualiztion</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()),</span> <span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">comfirm_res</span> <span class="o">=</span> <span class="s">&#39;jeff&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirm</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#result = self.confirm(event)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(result)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -405,6 +405,11 @@ visualiztion</p>
 <dl class="method">
 <dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page">
 <tt class="descname">prepare_page</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.quit">
+<tt class="descname">quit</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.quit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -439,7 +444,7 @@ visualiztion</p>
 <dd>python -m ibeis.viz.interact.interact_query_decision &#8211;test-test_QueryVerificationInteraction</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_query_decision</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
@@ -556,7 +561,7 @@ visualiztion</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

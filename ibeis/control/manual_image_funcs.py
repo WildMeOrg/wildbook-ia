@@ -722,8 +722,9 @@ def get_image_aids(ibs, gid_list):
         with ut.EmbedOnException():
             aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
     else:
-        USE_NUMPY_IMPL = True  # len(gid_list) > 10
-        #USE_NUMPY_IMPL = False
+        USE_NUMPY_IMPL = True
+        # Use qt if getting one at a time otherwise perform bulk operation
+        USE_NUMPY_IMPL = len(gid_list) > 1
         if USE_NUMPY_IMPL:
             # This seems to be 30x faster for bigger inputs
             valid_aids = np.array(ibs._get_all_aids())

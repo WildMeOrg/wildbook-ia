@@ -156,9 +156,6 @@
     <span class="k">return</span> <span class="n">qaid2_dupvote_weight</span>
 
 </div>
-<span class="n">PSEUDO_UINT8_MAX_SQRD</span> <span class="o">=</span> <span class="mf">512.0</span> <span class="o">**</span> <span class="mi">2</span>
-
-
 <div class="viewcode-block" id="componentwise_uint8_dot"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.componentwise_uint8_dot">[docs]</a><span class="k">def</span> <span class="nf">componentwise_uint8_dot</span><span class="p">(</span><span class="n">qfx2_qvec</span><span class="p">,</span> <span class="n">qfx2_dvec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; a dot product is a componentwise multiplication of</span>
 <span class="sd">    two vector and then a sum. Do that for arbitary vectors.</span>
@@ -168,7 +165,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arr1</span> <span class="o">=</span> <span class="n">qfx2_qvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">arr2</span> <span class="o">=</span> <span class="n">qfx2_dvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">cosangle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">PSEUDO_UINT8_MAX_SQRD</span>
+    <span class="n">cosangle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">PSEUDO_UINT8_MAX_SQRD</span>
     <span class="k">return</span> <span class="n">cosangle</span>
 
 </div>
@@ -410,6 +407,8 @@
     <span class="k">elif</span> <span class="n">rule</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span><span class="p">:</span>
         <span class="c"># Normalizers for &#39;name&#39; rule</span>
         <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">get_name_normalizers</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rule</span> <span class="o">==</span> <span class="s">&#39;external&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[nn_weights] no rule=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rule</span><span class="p">)</span>
     <span class="n">qfx2_normdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dists</span><span class="p">[</span><span class="n">normk</span><span class="p">]</span>
@@ -529,7 +528,7 @@
 <span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist3, ndist))</span>
 <span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist4, ndist))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1000.0</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span><span class="p">)</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
@@ -696,7 +695,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

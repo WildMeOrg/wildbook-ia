@@ -60,10 +60,12 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="c"># import ibeis</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="c"># from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,</span>
 <span class="c">#                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE,</span>
 <span class="c">#                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,</span>
@@ -81,6 +83,8 @@
         <span class="s">&#39;transfer_export_location_zip&#39;</span><span class="p">,</span>
         <span class="s">&#39;transfer_export_location_country&#39;</span><span class="p">,</span>
         <span class="s">&#39;contributor_td_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;name_td&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species_td&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
 <span class="n">CONTRIBUTOR_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
@@ -97,6 +101,20 @@
         <span class="s">&#39;config_td&#39;</span><span class="p">,</span>
         <span class="s">&#39;encounter_td&#39;</span><span class="p">,</span>
         <span class="s">&#39;image_td&#39;</span><span class="p">,</span>
+    <span class="p">))</span>
+
+<span class="n">NAME_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;NAME_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s">&#39;name_uuid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;name_text_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;name_note_list&#39;</span><span class="p">,</span>
+    <span class="p">))</span>
+
+<span class="n">SPECIES_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;SPECIES_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s">&#39;species_uuid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species_text_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species_note_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
 <span class="n">CONFIG_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
@@ -140,9 +158,11 @@
         <span class="s">&#39;annot_viewpoint_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;annot_detection_confidence_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;annot_exemplar_flag_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_visual_uuid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_semantic_uuid_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;annot_note_list&#39;</span><span class="p">,</span>
-        <span class="s">&#39;annot_name_rowid_list&#39;</span><span class="p">,</span>
-        <span class="s">&#39;annot_species_rowid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_name_INDEX_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annot_species_INDEX_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;lblannot_td_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
@@ -172,21 +192,23 @@
 <span class="c">#############################</span>
 
 
-<span class="k">def</span> <span class="nf">_index</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">warning</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_index</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">warning</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">list_</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">curframe</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
         <span class="n">calframe</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getouterframes</span><span class="p">(</span><span class="n">curframe</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[export_subset] WARNING: value (</span><span class="si">%r</span><span class="s">) not in list: </span><span class="si">%r</span><span class="s"> (</span><span class="si">%r</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">calframe</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">warning</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;[export_subset] WARNING: value (</span><span class="si">%r</span><span class="s">) not in list: </span><span class="si">%r</span><span class="s"> (</span><span class="si">%r</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">calframe</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]))</span>
         <span class="k">return</span> <span class="bp">None</span>
 
 
-<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="geo_locate"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.geo_locate">[docs]</a><span class="k">def</span> <span class="nf">geo_locate</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;Unknown&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">urllib2</span>
         <span class="kn">import</span> <span class="nn">json</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span> <span class="s">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s">&#39;Mozilla/5.0&#39;</span> <span class="p">})</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="n">json_string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">location</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
@@ -264,18 +286,43 @@
 <span class="c">#############################</span>
 
 </div>
-<div class="viewcode-block" id="export_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="export_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Packs all the data you are going to transfer from ibs_src</span>
 <span class="sd">    info the transfer_data named tuple.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio import export_subset    # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_src = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; bulk_conflict_resolution = &#39;ignore&#39;</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[::10]</span>
+<span class="sd">        &gt;&gt;&gt; user_prompt = False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_nids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))))</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+        <span class="c">#species_rowid_list = list(set(ut.flatten(ibs_src.species_rowid_list(gid_list))))</span>
+    <span class="c"># Create Name TransferData</span>
+    <span class="n">name_td</span> <span class="o">=</span> <span class="n">export_name_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="c"># Create Species TranferData</span>
+    <span class="n">species_td</span> <span class="o">=</span> <span class="n">export_species_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>   <span class="c"># NOQA</span>
+    <span class="c"># Create Contributor TranferData</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ensure_contributor_rowids</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;There must be at least one contributor to merge&quot;</span>
     <span class="n">contributor_td_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contrib_rowid</span><span class="p">)</span>
+        <span class="n">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contrib_rowid</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
+                                         <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">valid_gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span>
     <span class="p">]</span>
-
+    <span class="c"># Geolocate and create database&#39;s TransferData object</span>
     <span class="n">success</span><span class="p">,</span> <span class="n">location_city</span><span class="p">,</span> <span class="n">location_state</span><span class="p">,</span> <span class="n">location_country</span><span class="p">,</span> <span class="n">location_zip</span> <span class="o">=</span> <span class="n">geo_locate</span><span class="p">()</span>
     <span class="n">td</span> <span class="o">=</span> <span class="n">TransferData</span><span class="p">(</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span>
@@ -285,21 +332,64 @@
         <span class="n">location_state</span><span class="p">,</span>
         <span class="n">location_zip</span><span class="p">,</span>
         <span class="n">location_country</span><span class="p">,</span>
-        <span class="n">contributor_td_list</span>
+        <span class="n">contributor_td_list</span><span class="p">,</span>
+        <span class="n">name_td</span><span class="p">,</span>
+        <span class="n">species_td</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">td</span>
 
 </div>
-<div class="viewcode-block" id="export_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">):</span>
+<div class="viewcode-block" id="export_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
+                                     <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">valid_gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio import export_subset    # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_src = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; bulk_conflict_resolution = &#39;ignore&#39;</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs_src.get_valid_gids()[::10]</span>
+<span class="sd">        &gt;&gt;&gt; user_prompt = False</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs_src._get_all_species_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))</span>
+<span class="sd">        &gt;&gt;&gt; valid_gid_list = gid_list</span>
+<span class="sd">        &gt;&gt;&gt; contributor_rowid = contrib_rowid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; contrib_td = export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list, valid_gid_list=valid_gid_list)</span>
+
+<span class="sd">    Dev::</span>
+<span class="sd">        ibs = ibs_src</span>
+<span class="sd">        configid_list = ibs.get_valid_configids()</span>
+<span class="sd">        config_suffix_list = ibs.get_config_suffixes(configid_list)</span>
+<span class="sd">        print(ut.list_str(list(zip(configid_list, config_suffix_list))))</span>
+
+<span class="sd">        eid_list = ibs.get_valid_eids()</span>
+<span class="sd">        enc_config_rowid_list = ibs.get_encounter_configid(eid_list)</span>
+<span class="sd">        enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)</span>
+<span class="sd">        print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get configs</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_config_rowids</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">)</span>
+    <span class="c">#config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)</span>
+    <span class="c"># Hack around config-less encounters</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_configids</span><span class="p">()</span>
     <span class="n">config_td</span> <span class="o">=</span> <span class="n">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="c"># Get encounters</span>
+    <span class="c">#eid_list = ibs_src.get_valid_eids()</span>
     <span class="n">eid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_eids</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span> <span class="p">)</span>
     <span class="n">encounter_td</span> <span class="o">=</span> <span class="n">export_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="c"># Get images</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_gids</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">)</span>
-    <span class="n">image_td</span> <span class="o">=</span> <span class="n">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">valid_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">valid_gid_list</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span> <span class="p">]</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="n">image_td</span> <span class="o">=</span> <span class="n">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span>
+                                          <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="c"># Create Contributor TransferData</span>
     <span class="n">contributor_td</span> <span class="o">=</span> <span class="n">CONTRIBUTOR_TransferData</span><span class="p">(</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_uuid</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">),</span>
@@ -316,6 +406,26 @@
         <span class="n">image_td</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">contributor_td</span>
+
+</div>
+<div class="viewcode-block" id="export_name_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_name_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_name_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="c"># Create Name TransferData</span>
+    <span class="n">name_td</span> <span class="o">=</span> <span class="n">NAME_TransferData</span><span class="p">(</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_name_notes</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_td</span>
+
+</div>
+<div class="viewcode-block" id="export_species_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_species_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_species_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="c"># Create Species TransferData</span>
+    <span class="n">species_td</span> <span class="o">=</span> <span class="n">SPECIES_TransferData</span><span class="p">(</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_uuids</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_notes</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">species_td</span>
 
 </div>
 <div class="viewcode-block" id="export_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
@@ -343,7 +453,8 @@
     <span class="k">return</span> <span class="n">encounter_td</span>
 
 </div>
-<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
+                               <span class="n">species_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds transfer data for seleted image ids in ibs_src.</span>
 <span class="sd">    NOTE: gid_list, config_rowid_list and eid_list do not correspond</span>
@@ -368,7 +479,8 @@
     <span class="c"># Get annotations</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">annot_td_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
+        <span class="n">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
+                                   <span class="n">species_rowid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span>
     <span class="p">]</span>
     <span class="c"># Create Image TransferData</span>
@@ -392,7 +504,7 @@
     <span class="k">return</span> <span class="n">image_td</span>
 
 </div>
-<div class="viewcode-block" id="export_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="export_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get annotation parents</span>
@@ -408,6 +520,14 @@
         <span class="n">export_lblannot_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">alrid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span>
     <span class="p">]</span>
+    <span class="c"># Get names and species of annotations</span>
+    <span class="n">annot_name_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">annot_name_INDEX_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_index</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">else</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">annot_name_rowid_list</span> <span class="p">]</span>  <span class="c"># NOQA</span>
+    <span class="n">annot_species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">annot_species_INDEX_list</span> <span class="o">=</span> <span class="p">[</span>  <span class="c"># NOQA</span>
+        <span class="n">_index</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">annot_species_rowid_list</span>
+    <span class="p">]</span>
     <span class="c"># Create Annotation TransferData</span>
     <span class="n">annot_td</span> <span class="o">=</span> <span class="n">ANNOTATION_TransferData</span><span class="p">(</span>
         <span class="n">annot_parent_INDEX_list</span><span class="p">,</span>
@@ -417,9 +537,11 @@
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="n">annot_name_INDEX_list</span><span class="p">,</span>
+        <span class="n">annot_species_INDEX_list</span><span class="p">,</span>
         <span class="n">lblannot_td_list</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_td</span>
@@ -478,6 +600,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports transfer data from any ibeis database and moves it into ibs_dst</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">import_name_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">td</span><span class="o">.</span><span class="n">name_td</span><span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">import_species_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">td</span><span class="o">.</span><span class="n">species_td</span><span class="p">)</span>
+    <span class="c"># Import the contributors</span>
     <span class="n">added</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">rejected</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">contributor_td</span> <span class="ow">in</span> <span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">:</span>
@@ -485,6 +610,8 @@
         <span class="n">success</span> <span class="o">=</span> <span class="n">import_contributor_transfer_data</span><span class="p">(</span>
             <span class="n">ibs_dst</span><span class="p">,</span>
             <span class="n">contributor_td</span><span class="p">,</span>
+            <span class="n">nid_list</span><span class="p">,</span>
+            <span class="n">species_rowid_list</span><span class="p">,</span>
             <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
@@ -497,7 +624,8 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[import_transfer_data]   Contributors Rejected: </span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rejected</span><span class="p">),))</span>
 
 </div>
-<div class="viewcode-block" id="import_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">contributor_td</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="import_contributor_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_contributor_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">contributor_td</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span>
+                                     <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[import_transfer_data] Import Contributor: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">contributor_uuid</span><span class="p">,))</span>
     <span class="c"># Find conflicts</span>
     <span class="n">contributor_rowid</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_contributor_rowid_from_uuid</span><span class="p">([</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">contributor_uuid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -569,6 +697,8 @@
             <span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span><span class="p">,</span>
             <span class="n">contributor_rowid</span><span class="p">,</span>
             <span class="n">eid_list</span><span class="p">,</span>
+            <span class="n">nid_list</span><span class="p">,</span>
+            <span class="n">species_rowid_list</span><span class="p">,</span>
             <span class="n">config_rowid_list</span><span class="p">,</span>
             <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span>
         <span class="p">)</span>
@@ -580,8 +710,28 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
+<div class="viewcode-block" id="import_name_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_name_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_name_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">name_td</span><span class="p">):</span>
+    <span class="c"># Import Name TransferData</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span>
+        <span class="n">name_td</span><span class="o">.</span><span class="n">name_text_list</span><span class="p">,</span>
+        <span class="n">name_td</span><span class="o">.</span><span class="n">name_uuid_list</span><span class="p">,</span>
+        <span class="n">name_td</span><span class="o">.</span><span class="n">name_note_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span>
+
+</div>
+<div class="viewcode-block" id="import_species_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_species_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_species_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">species_td</span><span class="p">):</span>
+    <span class="c"># Import Species TransferData</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span>
+        <span class="n">species_td</span><span class="o">.</span><span class="n">species_text_list</span><span class="p">,</span>
+        <span class="n">species_td</span><span class="o">.</span><span class="n">species_uuid_list</span><span class="p">,</span>
+        <span class="n">species_td</span><span class="o">.</span><span class="n">species_note_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">species_rowid_list</span>
+
+</div>
 <div class="viewcode-block" id="import_config_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_config_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_config_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">config_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
-        <span class="c"># Find conflicts</span>
+    <span class="c"># Find conflicts</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
     <span class="n">config_suffixes_list</span> <span class="o">=</span> <span class="n">config_td</span><span class="o">.</span><span class="n">config_suffixes_list</span>
     <span class="c"># Find conflicts</span>
@@ -665,7 +815,8 @@
 
 </div>
 <div class="viewcode-block" id="import_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_image_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">image_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span>
-                               <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+                               <span class="n">eid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span>
+                               <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
     <span class="n">encounter_INDEXs_list</span>      <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">encounter_INDEXs_list</span>
     <span class="n">image_path_list</span>            <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">image_path_list</span>
@@ -771,6 +922,8 @@
                 <span class="n">ibs_dst</span><span class="p">,</span>
                 <span class="n">annotation_td</span><span class="p">,</span>
                 <span class="n">gid</span><span class="p">,</span>
+                <span class="n">nid_list</span><span class="p">,</span>
+                <span class="n">species_rowid_list</span><span class="p">,</span>
                 <span class="n">config_rowid_list</span>
             <span class="p">)</span>
             <span class="n">aid_total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -782,18 +935,33 @@
     <span class="k">return</span> <span class="n">gid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">annot_td</span><span class="p">,</span> <span class="n">parent_gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="import_annot_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_annot_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_annot_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">annot_td</span><span class="p">,</span> <span class="n">parent_gid</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span>
+                               <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
     <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">parent_gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span>
+        <span class="k">if</span> <span class="n">annot_name_INDEX</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
+        <span class="n">nid_list</span><span class="p">[</span><span class="n">annot_name_INDEX</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">annot_name_INDEX</span> <span class="ow">in</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">annot_name_INDEX_list</span>
+    <span class="p">]</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>
+        <span class="k">if</span> <span class="n">annot_species_INDEX</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
+        <span class="n">species_rowid_list</span><span class="p">[</span><span class="n">annot_species_INDEX</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">annot_species_INDEX</span> <span class="ow">in</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">annot_species_INDEX_list</span>
+    <span class="p">]</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
         <span class="n">parent_gid_list</span><span class="p">,</span>
         <span class="n">theta_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_theta_list</span><span class="p">,</span>
         <span class="n">detect_confidence_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_detection_confidence_list</span><span class="p">,</span>
         <span class="n">notes_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_note_list</span><span class="p">,</span>
         <span class="n">vert_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_verts_list</span><span class="p">,</span>
-        <span class="n">annotation_uuid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">,</span>
+        <span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">,</span>
         <span class="n">viewpoint_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_viewpoint_list</span><span class="p">,</span>
-        <span class="n">name_rowid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">name_rowid_list</span><span class="p">,</span>
-        <span class="n">species_rowid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">species_rowid_list</span><span class="p">,</span>
+        <span class="n">annot_visual_uuid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_visual_uuid_list</span><span class="p">,</span>
+        <span class="n">annot_semantic_uuid_list</span><span class="o">=</span><span class="n">annot_td</span><span class="o">.</span><span class="n">annot_semantic_uuid_list</span><span class="p">,</span>
+        <span class="n">nid_list</span><span class="o">=</span><span class="n">name_rowid_list</span><span class="p">,</span>
+        <span class="n">species_rowid_list</span><span class="o">=</span><span class="n">species_rowid_list</span><span class="p">,</span>
         <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span>  <span class="c"># Turns off thumbnail deletion print statements</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -888,7 +1056,7 @@
 <span class="c">#############################</span>
 
 </div>
-<div class="viewcode-block" id="merge_databases"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.merge_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="merge_databases"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.merge_databases">[docs]</a><span class="k">def</span> <span class="nf">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Conflict resolutions are only between contributors, configs, encounters and images.</span>
 <span class="sd">    Annotations, lblannots, lblimages, their respective relationships, and image-encounter</span>
@@ -921,7 +1089,12 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dbio import export_subset</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs_src = ibeis.opendb(dbdir=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; bulk_conflict_resolution = &#39;ignore&#39;</span>
+<span class="sd">        &gt;&gt;&gt; #gid_list = None</span>
+<span class="sd">        &gt;&gt;&gt; back = None</span>
+<span class="sd">        &gt;&gt;&gt; user_prompt = False</span>
 <span class="sd">        &gt;&gt;&gt; #ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(ibs_src.get_infostr())</span>
 <span class="sd">        &gt;&gt;&gt; #print(ibs_src2.get_infostr())</span>
@@ -930,12 +1103,13 @@
 <span class="sd">        &gt;&gt;&gt; assert ibs_dst.get_num_images() == 0</span>
 <span class="sd">        &gt;&gt;&gt; assert ibs_dst.get_num_annotations() == 0</span>
 <span class="sd">        &gt;&gt;&gt; #ibs_dst = ibs</span>
-<span class="sd">        &gt;&gt;&gt; export_subset.merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; export_subset.merge_databases(ibs_src, ibs_dst,</span>
+<span class="sd">        ...                               bulk_conflict_resolution=bulk_conflict_resolution)</span>
 <span class="sd">        &gt;&gt;&gt; #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(ibs_dst.get_infostr())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Export source database</span>
-    <span class="n">td</span> <span class="o">=</span> <span class="n">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">)</span>
+    <span class="n">td</span> <span class="o">=</span> <span class="n">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">[merge_databases] -------------------</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;[merge_databases] </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">td</span><span class="p">,))</span>
@@ -1030,7 +1204,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -1071,7 +1244,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

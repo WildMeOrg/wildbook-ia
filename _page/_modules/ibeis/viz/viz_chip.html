@@ -90,13 +90,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.viz.viz_chip&#39;, &#39;show_chip&#39;)</span>
     <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[viz] show_chip()&#39;</span><span class="p">)</span>
-    <span class="n">vh</span><span class="o">.</span><span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">((</span><span class="n">aid</span><span class="p">,))</span>
     <span class="c">#utool.embed()</span>
     <span class="c"># Get chip</span>
     <span class="n">chip</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c"># Create chip title</span>
-    <span class="n">chip_text</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;enable_chip_title_prefix&#39;</span><span class="p">,</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">chip_text</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;enable_chip_title_prefix&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">chip_text</span> <span class="o">+</span> <span class="n">title_suffix</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">title_suffix</span>
@@ -202,7 +202,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

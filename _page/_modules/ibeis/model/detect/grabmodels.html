@@ -67,8 +67,12 @@
     <span class="n">DETECTOR_KEY_RF</span><span class="p">:</span>  <span class="s">&#39;rf&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
+<span class="n">MODEL_BASE_VERSION</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
 <span class="n">MODEL_URLS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">DETECTOR_KEY_RF</span><span class="p">:</span> <span class="s">&#39;https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip&#39;</span>
+    <span class="n">DETECTOR_KEY_RF</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">MODEL_BASE_VERSION</span><span class="p">:</span> <span class="s">&#39;https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip&#39;</span><span class="p">,</span>
+        <span class="s">&#39;2.0&#39;</span><span class="p">:</span>              <span class="s">&#39;https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 
 
@@ -101,7 +105,7 @@
         <span class="c">#assert ut.checkpath(algo_modeldir, verbose=True), (&#39;algo_modeldir=%r does not exist&#39; % algo_modeldir)</span>
 
 </div>
-<div class="viewcode-block" id="ensure_models"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.grabmodels.ensure_models">[docs]</a><span class="k">def</span> <span class="nf">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_models"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.grabmodels.ensure_models">[docs]</a><span class="k">def</span> <span class="nf">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">MODEL_BASE_VERSION</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        modeldir (str):</span>
@@ -119,27 +123,27 @@
     <span class="n">modeldir</span> <span class="o">=</span> <span class="n">_expand_modeldir</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">algo</span><span class="p">,</span> <span class="n">algo_modeldir</span> <span class="ow">in</span> <span class="n">iter_algo_modeldirs</span><span class="p">(</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">ensurebase</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">algo_modeldir</span><span class="p">):</span>
-            <span class="n">_download_model</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
+            <span class="n">_download_model</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span>
     <span class="n">assert_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="redownload_models"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.grabmodels.redownload_models">[docs]</a><span class="k">def</span> <span class="nf">redownload_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="redownload_models"><a class="viewcode-back" href="../../../../ibeis.model.detect.html#ibeis.model.detect.grabmodels.redownload_models">[docs]</a><span class="k">def</span> <span class="nf">redownload_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">MODEL_BASE_VERSION</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[grabmodels] redownload_detection_models&#39;</span><span class="p">)</span>
     <span class="n">modeldir</span> <span class="o">=</span> <span class="n">_expand_modeldir</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
-    <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[grabmodels] finished redownload_detection_models&#39;</span><span class="p">)</span>
 
 </div>
-<span class="k">def</span> <span class="nf">_download_model</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">algo_modeldir</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_download_model</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">algo_modeldir</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">MODEL_BASE_VERSION</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Download and overwrites models</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">algo_modeldir</span><span class="p">,</span> <span class="n">algo</span> <span class="o">+</span> <span class="s">&#39;.zip&#39;</span><span class="p">))</span>
     <span class="c"># Download and unzip model</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[grabmodels] Downloading model_dir=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">zip_fpath</span><span class="p">)</span>
-    <span class="n">dropbox_link</span> <span class="o">=</span> <span class="n">MODEL_URLS</span><span class="p">[</span><span class="n">algo</span><span class="p">]</span>
+    <span class="n">dropbox_link</span> <span class="o">=</span> <span class="n">MODEL_URLS</span><span class="p">[</span><span class="n">algo</span><span class="p">][</span><span class="n">version</span><span class="p">]</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">download_url</span><span class="p">(</span><span class="n">dropbox_link</span><span class="p">,</span> <span class="n">zip_fpath</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
     <span class="c"># Cleanup</span>
@@ -201,7 +205,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

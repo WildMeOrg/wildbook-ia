@@ -153,6 +153,8 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
 
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+            # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
+            debug_ = kwargs.pop('debug', False)
             if cfgkeys is not None:
                 kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
             else:
@@ -163,7 +165,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             vals_list = ut.dict_take_list(cache_, rowid_list, None)
             # Mark rowids with cache misses
             ismiss_list = [val is None for val in vals_list]
-            if debug:
+            if debug or debug_:
                 debug_cache_hits(ismiss_list, rowid_list)
                 assert_cache_hits(ismiss_list, rowid_list)
             if any(ismiss_list):
@@ -176,7 +178,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
                     vals_list[index] = val  # Output write
                 # cache save
                 for rowid, val in zip(miss_rowids, miss_vals):
-                    cache_[rowid] = val     # Cache write
+                    cache_[rowid] = val     # Cache writd(ne
             return vals_list
         wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher

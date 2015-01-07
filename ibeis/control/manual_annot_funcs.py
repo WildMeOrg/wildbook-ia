@@ -32,6 +32,8 @@ SPECIES_ROWID       = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG = 'annot_exemplar_flag'
 
 
+# TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT
+# ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?
 @register_ibs_method
 @ider
 def _get_all_aids(ibs):

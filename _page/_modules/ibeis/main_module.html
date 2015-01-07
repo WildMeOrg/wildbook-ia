@@ -48,6 +48,10 @@
           <div class="body">
             
   <h1>Source code for ibeis.main_module</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines the entry point into the IBEIS system</span>
+<span class="sd">ibeis.opendb and ibeis.main are the main entry points</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -201,7 +205,8 @@
     <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;back&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">loop_freq</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">loop_freq</span>
-        <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">ipy</span><span class="o">=</span><span class="n">ipy</span> <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="n">loop_freq</span><span class="p">)</span>
+        <span class="n">ipy</span> <span class="o">=</span> <span class="n">ipy</span> <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cmd</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">ipy</span><span class="o">=</span><span class="n">ipy</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="n">loop_freq</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ipy</span><span class="p">:</span>  <span class="c"># If we&#39;re in IPython, the qtapp loop won&#39;t block, so we need to refresh</span>
             <span class="n">back</span><span class="o">.</span><span class="n">refresh_state</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
@@ -335,6 +340,8 @@
     <span class="n">_parse_args</span><span class="p">()</span>
     <span class="c"># mpl backends</span>
     <span class="k">if</span> <span class="n">logging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nologging</span><span class="p">:</span>
+        <span class="c"># Log in the configured ibeis log dir (which is maintained by utool)</span>
+        <span class="c"># fix this to be easier to figure out where the logs actually are</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">start_logging</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mpl</span><span class="p">:</span>
         <span class="n">_init_matplotlib</span><span class="p">()</span>
@@ -448,7 +455,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

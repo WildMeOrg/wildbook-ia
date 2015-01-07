@@ -49,16 +49,20 @@
           <div class="body">
             
   <h1>Source code for ibeis.control.manual_meta_funcs</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">controller functions for contributors, versions, configs, and other metadata</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="c">#from os.path import join</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">adder</span><span class="p">,</span> <span class="n">deleter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">default_decorator</span><span class="p">,</span> <span class="n">ider</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="c">#from ibeis import ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_meta]&#39;</span><span class="p">)</span>
@@ -550,63 +554,84 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_init_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Loads the database&#39;s algorithm configuration &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
-    <span class="c"># Always a fresh object</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">GenericConfig</span><span class="p">(</span><span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">))</span>
-    <span class="c"># TODO: update cfgs between versions</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c"># Use pref cache</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-pref&#39;</span><span class="p">,)):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] successfully loaded config&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="c"># Totally new completely default preferences</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_default_config</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads the database&#39;s algorithm configuration</span>
+
+<span class="sd">    TODO: per-species config</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">()</span>
+    <span class="c"># try to be intelligent about the default speceis</span>
+    <span class="n">cfgname</span> <span class="o">=</span> <span class="n">species_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;cfg&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">_default_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Resets the databases&#39;s algorithm configuration &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] building default config&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
-        <span class="c"># Sometimes a fresh object</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">GenericConfig</span><span class="p">(</span><span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">))</span>
-    <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">default_query_cfg</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">enc_cfg</span>     <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">EncounterConfig</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span>  <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">DetectionConfig</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span>   <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">OtherConfig</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_load_named_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># TODO: update cfgs between versions</span>
+    <span class="c"># Try to load previous config otherwise default</span>
+    <span class="n">use_config_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-pref&#39;</span><span class="p">,)))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">use_config_cache</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
 
-    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="c"># try to be intelligent about the default speceis</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_default_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resets the databases&#39;s algorithm configuration</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        cfgname (None):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_meta_funcs --test-_default_config</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_meta_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; assert not hasattr(ibs.cfg.query_cfg.flann_cfg, &#39;badparam&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.cfg.query_cfg.flann_cfg.badparam = True</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs.cfg.query_cfg.flann_cfg.cb_index == .4</span>
+<span class="sd">        &gt;&gt;&gt; ibs.cfg.query_cfg.flann_cfg.cb_index = .5</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs.cfg.query_cfg.flann_cfg.cb_index == .5</span>
+<span class="sd">        &gt;&gt;&gt; assert hasattr(ibs.cfg.query_cfg.flann_cfg, &#39;badparam&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # bad params is not initially removed but when you specify new it is</span>
+<span class="sd">        &gt;&gt;&gt; ibs._default_config(new=False)</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs.cfg.query_cfg.flann_cfg.cb_index == .4</span>
+<span class="sd">        &gt;&gt;&gt; assert hasattr(ibs.cfg.query_cfg.flann_cfg, &#39;badparam&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # bad param should be removed when config is defaulted</span>
+<span class="sd">        &gt;&gt;&gt; ibs._default_config(new=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert not hasattr(ibs.cfg.query_cfg.flann_cfg, &#39;badparam&#39;)</span>
+
+<span class="sd">    cfg = ibs.cfg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#species_list = ibs.get_database_species()</span>
+    <span class="c">#if len(species_list) == 1:</span>
+    <span class="c">#    # try to be intelligent about the default speceis</span>
+    <span class="c">#    cfgname = species_list[0]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">_default_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="n">new</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
 
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="set_query_cfg"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.set_query_cfg">[docs]</a><span class="k">def</span> <span class="nf">set_query_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">):</span>
+    <span class="n">Config</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
     <span class="c">#if ibs.qreq is not None:</span>
     <span class="c">#    ibs.qreq.set_cfg(query_cfg)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="update_query_cfg"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.update_query_cfg">[docs]</a><span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Updates query config only. Configs needs a restructure very badly &quot;&quot;&quot;</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span>
+    <span class="n">Config</span><span class="o">.</span><span class="n">update_query_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -683,7 +708,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

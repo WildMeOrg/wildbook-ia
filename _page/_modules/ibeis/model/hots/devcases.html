@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.devcases &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.devcases</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">development module storing my &quot;development state&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[devcases]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_gztest"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.load_gztest">[docs]</a><span class="k">def</span> <span class="nf">load_gztest</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --test-load_gztest</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;GZ_ALL&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+    <span class="n">dir_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">mc4</span><span class="p">)</span>
+    <span class="n">eval_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span>  <span class="s">&#39;GZ_TESTTUP.txt&#39;</span><span class="p">))</span>
+    <span class="n">testcases</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">eval_text</span><span class="p">)</span>
+    <span class="n">count_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">count_dict_vals</span><span class="p">(</span><span class="n">testcases</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">count_dict</span><span class="p">))</span>
+
+    <span class="n">testtup_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">testcases</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;vsone_wins&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_outperformed&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_dominates&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_wins&#39;</span><span class="p">]))</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">testtup</span><span class="o">.</span><span class="n">qaid_t</span> <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">testtup_list</span><span class="p">]</span>
+    <span class="n">visual_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">visual_uuids</span>
+
+</div>
+<div class="viewcode-block" id="get_gzall_small_test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.get_gzall_small_test">[docs]</a><span class="k">def</span> <span class="nf">get_gzall_small_test</span><span class="p">():</span>
+    <span class="c">#aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,</span>
+    <span class="c">#              306, 742, 1010, 802, 619, 1041, 27, 420, 740, 1016, 140, 992,</span>
+    <span class="c">#              1043, 662, 816, 793, 994, 867, 534, 986, 783, 858, 937, 60,</span>
+    <span class="c">#              879, 1044, 528, 459, 639]</span>
+    <span class="n">debug_examples</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">vsone_pair_examples</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;8415b50f-2c98-0d52-77d6-04002ff4d6f8&#39;</span><span class="p">),</span> <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">)]</span>
+    <span class="p">]</span>
+    <span class="n">vsone_pair_examples</span>
+    <span class="n">debug_examples</span>
+
+    <span class="n">ignore_vuuids</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;be6fe4d6-ae87-0f8f-269f-e9f706b69e41&#39;</span><span class="p">),</span>  <span class="c"># OUT OF PLANE</span>
+    <span class="p">]</span>
+    <span class="n">vuuid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;e9a9544d-083d-6c30-b00f-d6806824a21a&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;153306d8-e9f8-b5a6-a06d-90ddb7de6c17&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;04908b6f-b775-46f1-e9ec-fd834d9fe046&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;20817244-12d1-bcf4-dac8-b787c064e6b4&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;7ad8b4fc-f057-bac9-0b1a-fa05db09b685&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;df418005-ce26-e439-ab43-00f56447a3c8&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2ca8c5b0-ae45-a1a2-11fb-3497dfd58736&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;7c6fd123-ad9c-7360-8b7c-b8d694ac4057&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;98e87153-4437-562b-9f77-d7c58495cfea&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;7bb9b77a-7ad5-44f3-4352-bf6bf901323a&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;863786d9-853d-859d-f726-13796fc0a257&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;9c1b04bc-7af1-bd3f-85d3-7c06c8b0d0a7&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c0775a6d-f3a9-f1d2-1a92-cfc4817ecedf&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;52668d79-8065-bae4-29ca-0f393e8b0331&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;86bf60e5-20a8-0e8d-590c-836ac4723d23&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2046509f-0a9f-1470-2b47-5ea59f803d4b&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;a0444615-1264-8768-8a4e-fbc2cafb76ce&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">),</span>  <span class="c"># testcase</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;4bd156a3-0315-72fd-d181-309b92f21d58&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;04815be5-fee7-f34d-e2cd-6130914e2071&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;815a8276-8812-35a3-d1e5-963c2047edc5&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2d94da8d-0d97-815d-d350-bf3ab1caaf23&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;9732e459-4c73-c8d5-3911-59c6e66d81f8&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;38e39dda-bae3-ce19-f7d3-a50fc1c3554d&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;1509cad7-e368-6d95-9047-552d054ddabd&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2091fa5b-bf9d-25ba-b539-9156202dd522&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;fc94609f-b378-9877-d0ac-433993e7f6bd&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;914f1c91-c22b-a4b5-77f8-59423bc6d99d&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;249f7615-95e2-ea66-649f-ec8021e5aa41&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2de71fb1-dd7c-a7de-2e0d-0be399286d09&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;94010938-cb14-c209-5488-5372b81d1eb1&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;d75a9205-efc4-a078-a533-bdde5345b74a&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;99a1e02a-0e3d-cd9a-b410-902f5d8cf308&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;193ade79-eff2-f888-7f15-27a399c505b0&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;190bf50d-9729-48c3-47b6-acefc6f3ef03&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;5345c6dc-bc52-43ec-d792-0e7c9e7ec3b5&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;10757fe8-8fd3-ad59-f550-c941da967b82&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;89859efb-a233-5e43-fb5e-c36e9d446a1e&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;265cf095-64f6-e5dd-8f7d-2a82f627b7d1&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;4b19968e-f813-f238-0dcc-6a54f1943d57&#39;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">vuuid_list</span><span class="p">,</span> <span class="n">ignore_vuuids</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.devcases</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

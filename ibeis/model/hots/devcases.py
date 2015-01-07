@@ -13,8 +13,7 @@ def load_gztest(ibs):
         python -m ibeis.model.hots.special_query --test-load_gztest
 
     Example:
-        >>> # ENABLE_DOCTEST
-        import ibeis
+        >>> import ibeis
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs = ibeis.opendb('GZ_ALL')
     """

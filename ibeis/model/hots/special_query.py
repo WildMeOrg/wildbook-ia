@@ -94,7 +94,7 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
         >>> daids = valid_aids[1:]
         >>> qaid = qaids[0]
         >>> # execute function
-        >>> qaid2_qres, qreq_ = query_vsone_verified(ibs, qaids, daids)
+        >>> qaid2_qres, qreq_, qreq_vsmany_ = query_vsone_verified(ibs, qaids, daids)
         >>> qres = qaid2_qres[qaid]
 
     Ignore:

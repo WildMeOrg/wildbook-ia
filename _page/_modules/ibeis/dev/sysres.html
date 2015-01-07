@@ -256,7 +256,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;!!!&gt;&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres!] Here is a list of valid dbs: &#39;</span> <span class="o">+</span>
-                  <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">fname_list</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
+                  <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fname_list</span><span class="p">),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres!] dbdir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres!] db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">db</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres!] work_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">work_dir</span><span class="p">)</span>
@@ -460,7 +460,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

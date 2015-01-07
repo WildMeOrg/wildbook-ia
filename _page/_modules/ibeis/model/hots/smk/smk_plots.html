@@ -719,6 +719,7 @@
     <span class="c">#ut.save_testdata(*testdata)</span>
     <span class="n">valid_aids</span> <span class="o">=</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
+    <span class="c"># HACK</span>
     <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;GZ_&#39;</span><span class="p">):</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
     <span class="k">else</span><span class="p">:</span>
@@ -824,7 +825,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

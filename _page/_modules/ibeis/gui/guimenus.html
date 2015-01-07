@@ -48,7 +48,14 @@
           <div class="body">
             
   <h1>Source code for ibeis.gui.guimenus</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines all of the menu items in the main GUI</span>
+<span class="sd">as well as their callbacks in guiback</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">guitool.guitool_components</span> <span class="kn">import</span> <span class="n">newMenu</span><span class="p">,</span> <span class="n">newMenubar</span><span class="p">,</span> <span class="n">msg_event</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[guimenus]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DummyBack"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.DummyBack">[docs]</a><span class="k">class</span> <span class="nc">DummyBack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -186,6 +193,12 @@
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionTrainWithEncounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Train RF with Open Encounter&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_encounter</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;toggleThumbnails&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Toggle Thumbnails&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
@@ -202,15 +215,10 @@
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect_Coarse&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Detection (coarse)&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Detection&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+3&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_coarse</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect_Fine&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Detection (fine)&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+3&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_fine</span><span class="p">)</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Queries&#39;</span><span class="p">,</span>
@@ -221,6 +229,15 @@
 <span class="s">                    allows multiple queries to be rapidly inspected later.&#39;&#39;&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+4&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionShipProcessedEncounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Ship Processed Encounters&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This action will ship to WildBook any encounters that have</span>
+<span class="s">                    been marked as processed.  This can also be used to send</span>
+<span class="s">                    processed encounters that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+5&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_encounters</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionEncounterImagesReviewed&#39;</span><span class="p">,</span>
@@ -313,11 +330,12 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Thumbnails&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCleanDatabase&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Clean Database&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionFixCleanDatabase&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Fix/Clean Database&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">clean_database</span><span class="p">)</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionConsistencyCheck&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Consistency Checks&#39;</span><span class="p">,</span>
@@ -390,7 +408,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
