@@ -56,7 +56,7 @@ MACPORTS_PKGMAP = {
 
 APT_GET_PKGMAP = {
     'python-pyqt4' : 'python-qt4',
-    'zlib'         : 'zlib1g-dev',
+    'zlib-dev'     : 'zlib1g-dev',
     'libjpg'       : 'libjpeg-dev',
     'libjpeg'      : 'libjpeg-dev',
     'libpng'       : 'libpng12-dev',
@@ -75,7 +75,7 @@ YUM_PKGMAP = {
     'gfortran'   : 'gcc-gfortran',
     'ffmpeg'     : 'ffmpeg-devel',
     'libpng'     : 'libpng-devel',
-    'zlib'       : 'zlib-devel',
+    'zlib-dev'   : 'zlib-devel',
     'libjpg'     : 'libjpeg-devel',
     'freetype'   : 'freetype-devel',
     'fftw3'      : 'fftw3-devel',

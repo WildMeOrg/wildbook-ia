@@ -652,7 +652,7 @@ class IBEISController(object):
             src_config = 'commonConfiguration.properties.default'
             dst_config = 'commonConfiguration.properties'
             print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
-             # Configuration
+            # Configuration
             hostname = '127.0.0.1'
             submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
             complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"

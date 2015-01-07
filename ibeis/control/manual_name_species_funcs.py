@@ -278,7 +278,7 @@ def get_invalid_nids(ibs):
 
 @register_ibs_method
 @getter_1toM
-#@cache_getter(const.NAME_TABLE, ANNOT_ROWID)
+#@cache_getter(const.NAME_TABLE, ANNOT_ROWID, native_rowids=False)
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -451,8 +451,6 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     # TODO: should a query of the UNKNOWN_NAME_ROWID return anything?
     # TODO: don't even run negative aids as queries
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
-    #USE_NUMPY_IMPL = len(nid_list_) > 10
-    #USE_NUMPY_IMPL = len(nid_list_) > 10
     USE_GROUPING_HACK = False
     if USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
@@ -476,6 +474,9 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     else:
         USE_NUMPY_IMPL = True
         #USE_NUMPY_IMPL = False
+        # Use qt if getting one at a time otherwise perform bulk operation
+        USE_NUMPY_IMPL = len(nid_list_) > 1
+        #USE_NUMPY_IMPL = len(nid_list_) > 10
         if USE_NUMPY_IMPL:
             # This seems to be 30x faster for bigger inputs
             valid_aids = np.array(ibs._get_all_aids())

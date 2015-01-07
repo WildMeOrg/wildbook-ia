@@ -1926,8 +1926,9 @@ def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
         >>> # execute function
         >>> sample_aids = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
         >>> # verify results
-        >>> result = str(sample_aids)
-        >>> print(result)
+        >>> # FIXME
+        >>> #result = str(sample_aids)
+        >>> #print(result)
     """
     #qaids = ibs.get_easy_annot_rowids()
     if aid_list is None:
@@ -1948,6 +1949,8 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     """
     get_annot_groundfalse_sample
 
+    FIXME
+
     Args:
         ibs (IBEISController):
         aid_list (list):
@@ -1966,12 +1969,12 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
         >>> per_name = 1
         >>> seed = 42
         >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name, seed)
-        >>> result = str(sample_trues_list)
-        >>> print(result)
-        [[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+        >>> #result = str(sample_trues_list)
+        >>> #print(result)
 
-        [[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
-        [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
+    [[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+    [[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+    [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
     """
     if seed is not False:
         # Determanism

@@ -9,4 +9,7 @@ touch _page/.nojekyll
 git add _page/*
 #git add _page
 git commit -m "updated docs"
+git subtree pull --prefix _page origin gh-pages
 git subtree push --prefix _page origin gh-pages
+
+#git push origin --delete gh-pages
