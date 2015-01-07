@@ -48,6 +48,14 @@
           <div class="body">
             
   <h1>Source code for ibeis.gui.guiheaders</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This model provides the declarative interface to all of the api_*_models in</span>
+<span class="sd">guitool. Each different type of model/view has to register its iders, getters,</span>
+<span class="sd">and potentially setters (hopefully if guitool ever gets off the ground the</span>
+<span class="sd">delters as well)</span>
+
+<span class="sd">Different columns can be hidden / shown by modifying this file</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
@@ -103,7 +111,7 @@
         <span class="c">#&#39;reviewed&#39;,  # detection reviewed flag is not fullyused</span>
         <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
         <span class="s">&#39;gps&#39;</span><span class="p">,</span>
-        <span class="s">&#39;gdconf&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;gdconf&#39;,</span>
         <span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>
     <span class="p">],</span>
 
@@ -147,11 +155,11 @@
     <span class="p">],</span>
 
     <span class="n">ENCOUNTER_TABLE</span> <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;eid&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;eid&#39;,</span>
         <span class="s">&#39;enctext&#39;</span><span class="p">,</span>
         <span class="s">&#39;nImgs&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;encounter_processed_flag&#39;,</span>
+        <span class="c">#&#39;encounter_shipped_flag&#39;,</span>
     <span class="p">],</span>
 
     <span class="n">NAMES_TREE</span>      <span class="p">:</span> <span class="p">[</span>
@@ -162,7 +170,7 @@
         <span class="c">#&#39;nExAids&#39;,</span>
         <span class="c">#&#39;exemplar&#39;,</span>
         <span class="c">#&#39;aid&#39;,</span>
-        <span class="s">&#39;annot_gname&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;annot_gname&#39;,</span>
         <span class="c">#&#39;namenotes&#39;,</span>
     <span class="p">],</span>
 
@@ -178,6 +186,7 @@
 
 
 <span class="p">}</span>
+
 <span class="c">#THUMB_TABLE     : [&#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39;],</span>
 <span class="c">#NAMES_TREE      : {(&#39;name&#39; &#39;nid&#39; &#39;nAids&#39;) : [&#39;aid&#39; &#39;bbox&#39; &#39;thumb&#39;]}</span>
 
@@ -283,6 +292,20 @@
 <span class="c">#-----</span>
 
 
+<div class="viewcode-block" id="get_redirects"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiheaders.get_redirects">[docs]</a><span class="k">def</span> <span class="nf">get_redirects</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Allows one to specify a column in a particular table to redirect the view</span>
+<span class="sd">        to a different view (like a link in HTML to a different page)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">redirects</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Annotation redirects</span>
+    <span class="c"># redirects[ANNOTATION_TABLE] = {</span>
+    <span class="c">#     &#39;annot_gname&#39; : (IMAGE_TABLE, ibs.get_annot_gids),</span>
+    <span class="c"># }</span>
+    <span class="c"># Return the redirects dictionary</span>
+    <span class="k">return</span> <span class="n">redirects</span>
+
+</div>
 <div class="viewcode-block" id="make_ibeis_headers_dict"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiheaders.make_ibeis_headers_dict">[docs]</a><span class="k">def</span> <span class="nf">make_ibeis_headers_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="n">partial_imap_1to1</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">partial_imap_1to1</span>
     <span class="c">#</span>
@@ -319,7 +342,7 @@
     <span class="n">getters</span><span class="p">[</span><span class="n">ANNOTATION_TABLE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;aid&#39;</span>                 <span class="p">:</span> <span class="k">lambda</span> <span class="n">aids</span><span class="p">:</span> <span class="n">aids</span><span class="p">,</span>
         <span class="s">&#39;name&#39;</span>                <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">,</span>
-        <span class="s">&#39;species&#39;</span>             <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">,</span>
+        <span class="s">&#39;species&#39;</span>             <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">,</span>
         <span class="s">&#39;viewpoint&#39;</span>           <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">,</span>
         <span class="s">&#39;annot_gname&#39;</span>         <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">,</span>
         <span class="s">&#39;nGt&#39;</span>                 <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_groundtruth</span><span class="p">,</span>
@@ -493,7 +516,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

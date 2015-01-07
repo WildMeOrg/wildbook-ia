@@ -109,8 +109,8 @@
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
 <span class="sd">        &gt;&gt;&gt; show_sver(ibs, aid1, aid2)</span>
 <span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--show&#39;) or ut.inIPython():</span>
-<span class="sd">        ...     from plottool import df2</span>
-<span class="sd">        ...     exec(df2.present())</span>
+<span class="sd">        ...     import plottool as pt</span>
+<span class="sd">        ...     exec(pt.present())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[show_sver] ====================== [show_sver]&#39;</span><span class="p">)</span>
     <span class="c">#print(utool.func_str(show_sv, kwargs=locals()))</span>
@@ -173,7 +173,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

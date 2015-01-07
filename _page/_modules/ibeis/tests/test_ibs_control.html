@@ -210,19 +210,19 @@
     <span class="sd">&quot;&quot;&quot; set annotation species / get annotation species &quot;&quot;&quot;</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
-    <span class="n">orig_species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">orig_species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;orig_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orig_species</span><span class="p">,))</span>
     <span class="n">new_species</span> <span class="o">=</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">[</span><span class="n">x</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">)]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;new_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_species</span><span class="p">,))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_species</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">new_species2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">new_species2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">new_species</span> <span class="o">==</span> <span class="n">new_species2</span><span class="p">,</span> <span class="s">&#39;new_species == new_species2 failed!&#39;</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;new_species&#39;</span><span class="p">,</span> <span class="s">&#39;new_species2&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">orig_species</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">orig_species</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;species were not reset&#39;</span>
+    <span class="k">assert</span> <span class="n">orig_species</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;species were not reset&#39;</span>
 
     <span class="sd">&quot;&quot;&quot; set alr confidence / get alr confidence &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
@@ -299,7 +299,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

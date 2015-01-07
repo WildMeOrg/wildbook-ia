@@ -89,12 +89,20 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@ider</span>
-<span class="k">def</span> <span class="nf">_get_all_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_all_encounter_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list):  all unfiltered eids (encounter rowids) &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list):  all unfiltered eids (encounter rowids)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">all_eids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">all_eids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@ider</span>
+<span class="k">def</span> <span class="nf">_get_all_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; alias &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_all_encounter_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -118,7 +126,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@ider</span>
-<div class="viewcode-block" id="get_valid_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_eids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_eids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">processed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list):  list of all encounter ids &quot;&quot;&quot;</span>
@@ -127,6 +135,15 @@
         <span class="n">num_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_gids</span> <span class="o">&gt;=</span> <span class="n">min_num_gids</span> <span class="k">for</span> <span class="n">num_gids</span> <span class="ow">in</span> <span class="n">num_gids_list</span><span class="p">]</span>
         <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">processed</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_processed_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shipped</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_shipped_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">eid_list</span>
 
 </div>
@@ -445,7 +462,7 @@
 <div class="viewcode-block" id="get_image_contributor_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_contributor_rowid">[docs]</a><span class="k">def</span> <span class="nf">get_image_contributor_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): a list of image&#39; contributor rowids by gid &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list): a list of image contributor rowids by gid &quot;&quot;&quot;</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_rowid_list</span>
 
@@ -618,11 +635,45 @@
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_image_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_nids">[docs]</a><span class="k">def</span> <span class="nf">get_image_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        gid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: nids_list - the name ids associated with an image id</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_image_funcs --test-get_image_nids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; nids_list = ibs.get_image_nids(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nids_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<div class="viewcode-block" id="get_image_species_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_species_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_image_species_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): the name ids associated with an image id &quot;&quot;&quot;</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">nids_list</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">species_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -656,7 +707,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
 <span class="c">#@cache_getter(const.IMAGE_TABLE)</span>
-<span class="nd">@profile</span>
+<span class="c">#@profile</span>
 <div class="viewcode-block" id="get_image_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_aids">[docs]</a><span class="k">def</span> <span class="nf">get_image_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -722,8 +773,9 @@
         <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">structured_aids_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># len(gid_list) &gt; 10</span>
-        <span class="c">#USE_NUMPY_IMPL = False</span>
+        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># Use qt if getting one at a time otherwise perform bulk operation</span>
+        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
             <span class="c"># This seems to be 30x faster for bigger inputs</span>
             <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
@@ -739,8 +791,30 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1toM</span>
+<span class="c">#@cache_getter(const.IMAGE_TABLE)</span>
+<div class="viewcode-block" id="get_image_aids_of_species"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_aids_of_species">[docs]</a><span class="k">def</span> <span class="nf">get_image_aids_of_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of aids for each image by gid filtered by species &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">species_</span> <span class="o">==</span> <span class="n">species</span> <span class="k">for</span> <span class="n">species_</span> <span class="ow">in</span> <span class="n">species_list</span> <span class="p">]</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aid_list</span>
+    <span class="c"># Get and filter aids_list</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># We do this so that the species flag behaves nicely with the getter_1toM</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_image_aids_of_species] WARNING! Use get_image_aids() instead.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aids_list</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_filter</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
-<span class="nd">@profile</span>
+<span class="c">#@profile</span>
 <div class="viewcode-block" id="get_image_num_annotations"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_num_annotations">[docs]</a><span class="k">def</span> <span class="nf">get_image_num_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -1094,7 +1168,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_end_time_posix_list = ibs.get_encounter_end_time_posixs(encounter_rowid_list)</span>
@@ -1127,7 +1201,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)</span>
@@ -1160,7 +1234,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)</span>
@@ -1193,7 +1267,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)</span>
@@ -1226,7 +1300,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)</span>
@@ -1259,7 +1333,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)</span>
@@ -1292,7 +1366,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_default_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_start_time_posix_list = ibs.get_encounter_start_time_posixs(encounter_rowid_list)</span>
@@ -1459,6 +1533,13 @@
     <span class="k">return</span> <span class="n">egrid_list</span>
 
 </div>
+<div class="viewcode-block" id="get_autogen_testdata"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_autogen_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_autogen_testdata</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -1510,7 +1591,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -142,6 +142,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">detecttools</span>
 <span class="kn">import</span> <span class="nn">vtool</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">plottool</span>
 <span class="kn">import</span> <span class="nn">guitool</span>
 
@@ -231,6 +232,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hots_query_result</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">voting_rules2</span> <span class="k">as</span> <span class="n">vr2</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">score_normalization</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="n">QueryResult</span>
 <span class="c"># IBEIS MODEL DETECT</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
@@ -310,6 +312,7 @@
     <span class="sd">&quot;&quot;&quot; Allows for embedding in an environment with all imports &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">front</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">front</span>
+    <span class="n">ibswgt</span> <span class="o">=</span> <span class="n">front</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
 </pre></div>
 
@@ -350,7 +353,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

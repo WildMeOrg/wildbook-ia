@@ -76,6 +76,7 @@
 
 <span class="n">NAME_UUID</span> <span class="o">=</span> <span class="s">&#39;name_uuid&#39;</span>
 <span class="n">NAME_TEXT</span> <span class="o">=</span> <span class="s">&#39;name_text&#39;</span>
+<span class="n">NAME_ALIAS_TEXT</span> <span class="o">=</span> <span class="s">&#39;name_alias_text&#39;</span>
 <span class="n">NAME_NOTE</span> <span class="o">=</span> <span class="s">&#39;name_note&#39;</span>
 <span class="n">SPECIES_UUID</span> <span class="o">=</span> <span class="s">&#39;species_uuid&#39;</span>
 <span class="n">SPECIES_TEXT</span> <span class="o">=</span> <span class="s">&#39;species_text&#39;</span>
@@ -116,21 +117,22 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@adder</span>
-<div class="viewcode-block" id="add_names"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.add_names">[docs]</a><span class="k">def</span> <span class="nf">add_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="add_names"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.add_names">[docs]</a><span class="k">def</span> <span class="nf">add_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_note_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of names.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        name_rowid_list (list): their nids</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">note_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name_note_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">name_note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
     <span class="c"># Get random uuids</span>
-    <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">name_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">))]</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">NAME_UUID</span><span class="p">,</span> <span class="n">NAME_TEXT</span><span class="p">,</span> <span class="n">NAME_NOTE</span><span class="p">]</span>
-    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_uuid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">note_list</span><span class="p">))</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_uuid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_note_list</span><span class="p">))</span>
     <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
                                              <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span>
@@ -162,13 +164,29 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="sanatize_species_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.sanatize_species_texts">[docs]</a><span class="k">def</span> <span class="nf">sanatize_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; changes unknown species to the unknown value &quot;&quot;&quot;</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">species_text_list_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span>
-                          <span class="k">if</span> <span class="n">species_text</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">species_text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
-                          <span class="k">else</span> <span class="n">species_text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_sanatize_species_text</span><span class="p">(</span><span class="n">species_text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">species_text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">species_text</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+    <span class="n">species_text_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">_sanatize_species_text</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
                           <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">]</span>
-    <span class="n">species_text_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">species_text</span> <span class="k">if</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VALID_SPECIES</span> <span class="k">else</span> <span class="bp">None</span>
-                          <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list_</span><span class="p">]</span>
+    <span class="c"># old but same logic</span>
+    <span class="c">#species_text_list_ = [None if species_text is None else</span>
+    <span class="c">#                      species_text if species_text in const.VALID_SPECIES else</span>
+    <span class="c">#                      const.UNKNOWN</span>
+    <span class="c">#                      for species_text in species_text_list]</span>
+    <span class="c"># oldest different logic</span>
+    <span class="c">#species_text_list_ = [None</span>
+    <span class="c">#                      if species_text is None or species_text == const.UNKNOWN</span>
+    <span class="c">#                      else species_text.lower()</span>
+    <span class="c">#                      for species_text in species_text_list]</span>
+    <span class="c">#species_text_list_ = [species_text if species_text in const.VALID_SPECIES else None</span>
+    <span class="c">#                      for species_text in species_text_list_]</span>
     <span class="k">return</span> <span class="n">species_text_list_</span>
 
 </div>
@@ -184,7 +202,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@adder</span>
-<div class="viewcode-block" id="add_species"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.add_species">[docs]</a><span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="add_species"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.add_species">[docs]</a><span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of species.</span>
 
@@ -225,7 +243,8 @@
     <span class="c"># Sanatize to remove ____</span>
     <span class="n">species_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanatize_species_texts</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">)</span>
     <span class="c"># Get random uuids</span>
-    <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">species_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">))]</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
     <span class="c"># TODO Allow for better ensure=False without using partial</span>
     <span class="c"># Just autogenerate these functions</span>
@@ -282,6 +301,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list: nid_list - all names without any animals (does not include unknown names)</span>
+<span class="sd">        an nid is not invalid if it has a valid alias</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids</span>
@@ -291,23 +311,25 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_name_species_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aids_list = get_invalid_nids(ibs)</span>
-<span class="sd">        &gt;&gt;&gt; result = str(aids_list)</span>
+<span class="sd">        &gt;&gt;&gt; nids_list = get_invalid_nids(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nids_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        []</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
     <span class="n">nRois_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">)</span>
+    <span class="c"># Filter names with rois</span>
     <span class="n">isempty_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">nRois</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nRois</span> <span class="ow">in</span> <span class="n">nRois_list</span><span class="p">)</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilter_items</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">,</span> <span class="n">isempty_list</span><span class="p">))</span>
-    <span class="c">#[nid for nid, nRois in zip(_nid_list, nRois_list) if nRois &lt;= 0]</span>
+    <span class="c"># Filter names with aliases (TODO: use transitivity to determine validity)</span>
+    <span class="n">hasalias_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">alias_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">alias_text</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)]</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">hasalias_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">nid_list</span>
 
-
-<span class="c">#@profile</span></div>
+</div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
-<span class="c">#@cache_getter(const.NAME_TABLE, ANNOT_ROWID)</span>
-<span class="nd">@profile</span>
+<span class="c">#@cache_getter(const.NAME_TABLE, ANNOT_ROWID, native_rowids=False)</span>
 <div class="viewcode-block" id="get_name_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_name_aids">[docs]</a><span class="k">def</span> <span class="nf">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # TODO: Rename to get_anot_rowids_from_name_rowid</span>
@@ -480,8 +502,6 @@
     <span class="c"># TODO: should a query of the UNKNOWN_NAME_ROWID return anything?</span>
     <span class="c"># TODO: don&#39;t even run negative aids as queries</span>
     <span class="n">nid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
-    <span class="c">#USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
-    <span class="c">#USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
     <span class="n">USE_GROUPING_HACK</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">USE_GROUPING_HACK</span><span class="p">:</span>
         <span class="c"># This code doesn&#39;t work because it doesn&#39;t respect empty names</span>
@@ -505,6 +525,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="c">#USE_NUMPY_IMPL = False</span>
+        <span class="c"># Use qt if getting one at a time otherwise perform bulk operation</span>
+        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="c">#USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
         <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
             <span class="c"># This seems to be 30x faster for bigger inputs</span>
             <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
@@ -519,8 +542,7 @@
         <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="n">nid</span><span class="p">]</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">aids</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">aids_list</span>
 
-
-<span class="c">#@profile</span></div>
+</div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
 <div class="viewcode-block" id="get_name_exemplar_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_name_exemplar_aids">[docs]</a><span class="k">def</span> <span class="nf">get_name_exemplar_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
@@ -579,6 +601,18 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
+<div class="viewcode-block" id="get_name_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_name_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): uuids_list - name uuids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_UUID</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="c">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">uuids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_name_notes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_name_notes">[docs]</a><span class="k">def</span> <span class="nf">get_name_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -621,6 +655,52 @@
 <span class="sd">        list_ (list):  the number of annotations, which are exemplars for each name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_exemplar_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<div class="viewcode-block" id="get_name_alias_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_name_alias_texts">[docs]</a><span class="k">def</span> <span class="nf">get_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): name_alias_text_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_name_species_funcs --test-get_name_alias_texts</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_name_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_valid_nids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; name_alias_text_list = get_name_alias_texts(ibs, name_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(name_alias_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [None, None, None, None, None, None, None]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_alias_text_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@setter</span>
+<div class="viewcode-block" id="set_name_alias_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.set_name_alias_texts">[docs]</a><span class="k">def</span> <span class="nf">set_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_alias_text_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): name_alias_text_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#ibsfuncs.assert_valid_names(name_alias_text_list)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_alias_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -727,7 +807,7 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_name_species_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; species_text_list = [</span>
 <span class="sd">        ...     u&#39;jaguar&#39;, u&#39;zebra_plains&#39;, u&#39;zebra_plains&#39;, &#39;____&#39;, &#39;TYPO&#39;,</span>
@@ -798,7 +878,7 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_name_species_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; name_text_list = [u&#39;Fred&#39;, &#39;easy&#39;, u&#39;Sue&#39;, &#39;____&#39;, u&#39;zebra_grevys&#39;, &#39;TYPO&#39;, &#39;jeff&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; ensure = False</span>
@@ -862,6 +942,30 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<div class="viewcode-block" id="get_species_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_species_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_species_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): uuids_list - species uuids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_UUID</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="c">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">uuids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<div class="viewcode-block" id="get_species_notes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_species_notes">[docs]</a><span class="k">def</span> <span class="nf">get_species_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): notes_list - species notes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NOTE</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="c">#notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">notes_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
 <span class="nd">@ider</span>
 <div class="viewcode-block" id="get_valid_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.get_valid_nids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -897,7 +1001,7 @@
 <div class="viewcode-block" id="set_name_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.set_name_texts">[docs]</a><span class="k">def</span> <span class="nf">set_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Changes the name text. Does not affect the animals of this name.</span>
-<span class="sd">    Effectively an alias.</span>
+<span class="sd">    Effectively just changes the TEXT UUID</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_name_species_funcs --test-set_name_texts</span>
@@ -971,7 +1075,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

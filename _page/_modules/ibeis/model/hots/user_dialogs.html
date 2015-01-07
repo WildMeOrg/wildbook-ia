@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.user_dialogs &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.user_dialogs</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[user_dialogs]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="convert_name_suggestion_to_aids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.user_dialogs.convert_name_suggestion_to_aids">[docs]</a><span class="k">def</span> <span class="nf">convert_name_suggestion_to_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">name_suggest_tup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.user_dialogs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; comp_aids = [2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; comp_names = [&#39;fred&#39;, &#39;sue&#39;, &#39;alice&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; chosen_names = [&#39;fred&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_top</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">autoname_msg</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">,</span> <span class="n">name_confidence</span> <span class="o">=</span> <span class="n">name_suggest_tup</span>
+    <span class="n">comp_aids_all</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">choicetup</span><span class="o">.</span><span class="n">sorted_aids</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">comp_aids</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">comp_aids_all</span><span class="p">,</span> <span class="n">num_top</span><span class="p">)</span>
+    <span class="n">comp_names</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">comp_aids</span><span class="p">)</span>
+    <span class="n">issuggested</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_cover</span><span class="p">(</span><span class="n">comp_names</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">)</span>
+    <span class="n">suggest_aids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">comp_aids</span><span class="p">,</span> <span class="n">issuggested</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">comp_aids</span><span class="p">,</span> <span class="n">suggest_aids</span>
+
+</div>
+<div class="viewcode-block" id="wait_for_user_name_decision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.user_dialogs.wait_for_user_name_decision">[docs]</a><span class="k">def</span> <span class="nf">wait_for_user_name_decision</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">name_suggest_tup</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Prompts the user for input</span>
+<span class="sd">    hooks into to some method of getting user input for names</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qres (QueryResult):  object of feature correspondences and scores</span>
+<span class="sd">        autoname_func (function):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.user_dialogs --test-wait_for_user_name_decision</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.user_dialogs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daids = [2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; qres, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=dict(), return_request=True)[1]</span>
+<span class="sd">        &gt;&gt;&gt; choicetup = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; name_suggest_tup = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; incinfo = None</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, incinfo)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: qres is None&#39;</span><span class="p">)</span>
+
+    <span class="n">new_mplshow</span> <span class="o">=</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">mplshowtop</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">qtinspect</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">new_mplshow</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_query_decision</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Showing matplotlib window&#39;</span><span class="p">)</span>
+        <span class="c"># convert name choices into data for gui</span>
+        <span class="n">comp_aids</span><span class="p">,</span> <span class="n">suggest_aids</span> <span class="o">=</span> <span class="n">convert_name_suggestion_to_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">name_suggest_tup</span><span class="p">)</span>
+        <span class="c"># Update names tree callback</span>
+        <span class="c"># Let the harness do these callbacks</span>
+        <span class="c">#backend_callback = incinfo.get(&#39;backend_callback&#39;, None)</span>
+        <span class="c">#update_callback = incinfo.get(&#39;update_callback&#39;, None)</span>
+        <span class="n">name_decision_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;name_decision_callback&#39;</span><span class="p">]</span>
+        <span class="n">progress_current</span>       <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span>
+        <span class="n">progress_total</span>         <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;fnum&#39;</span><span class="p">]</span>
+        <span class="n">qvi</span> <span class="o">=</span> <span class="n">interact_query_decision</span><span class="o">.</span><span class="n">QueryVerificationInteraction</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">comp_aids</span><span class="p">,</span> <span class="n">suggest_aids</span><span class="p">,</span>
+            <span class="n">name_decision_callback</span><span class="o">=</span><span class="n">name_decision_callback</span><span class="p">,</span>
+            <span class="c">#update_callback=update_callback,</span>
+            <span class="c">#backend_callback=backend_callback,</span>
+            <span class="n">progress_current</span><span class="o">=</span><span class="n">progress_current</span><span class="p">,</span> <span class="n">progress_total</span><span class="o">=</span><span class="n">progress_total</span><span class="p">,</span>
+            <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">qvi</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">qvi</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mplshowtop</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">guitool</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="mi">513</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">annot_mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidebyside</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="c">#fig.canvas.raise_()</span>
+        <span class="c">#from plottool import fig_presenter</span>
+        <span class="c">#fig_presenter.bring_to_front(fig)</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_name</span><span class="p">()</span>
+        <span class="n">newname_prefix</span> <span class="o">=</span> <span class="s">&#39;New Name:</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># FIXME or remoev</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#if chosen_names is None:</span>
+        <span class="c">#    name = newname_prefix + newname</span>
+
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">choicetup</span><span class="o">.</span><span class="n">sorted_aids</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">name_options</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">newname_prefix</span> <span class="o">+</span> <span class="n">newname</span><span class="p">]</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Decide on query name. System suggests; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;name decision&#39;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">name_options</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">user_chosen_name</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>  <span class="c"># NOQA</span>
+        <span class="k">if</span> <span class="n">user_chosen_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;User Canceled Query&#39;</span><span class="p">)</span>
+        <span class="n">user_chosen_name</span> <span class="o">=</span> <span class="n">user_chosen_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">newname_prefix</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="c"># TODO: Make the old interface use the correct sorted_aids format</span>
+        <span class="c">#name_decision_callback(user_chosen_name)</span>
+    <span class="k">if</span> <span class="n">qtinspect</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Showing qt inspect window&#39;</span><span class="p">)</span>
+        <span class="n">qres_wgt</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qt_inspect_gui</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">qres_wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+    <span class="c">#if qreq_ is not None:</span>
+    <span class="c">#    if qreq_.normalizer is None:</span>
+    <span class="c">#        print(&#39;normalizer is None!!&#39;)</span>
+    <span class="c">#    else:</span>
+    <span class="c">#        qreq_.normalizer.visualize(update=False, fnum=2)</span>
+
+    <span class="c"># Prompt the user (this could be swaped out with a qt or web interface)</span>
+    <span class="c">#if qtinspect:</span>
+    <span class="c">#    qres_wgt.close()</span>
+    <span class="c">#return user_chosen_name</span>
+
+</div>
+<div class="viewcode-block" id="wait_for_user_exemplar_decision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.user_dialogs.wait_for_user_exemplar_decision">[docs]</a><span class="k">def</span> <span class="nf">wait_for_user_exemplar_decision</span><span class="p">(</span><span class="n">autoexemplar_msg</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">,</span>
+                                    <span class="n">exemplar_condience</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot; hooks into to some method of getting user input for exemplars</span>
+
+<span class="sd">    TODO: really good interface</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        autoexemplar_msg (?):</span>
+<span class="sd">        exemplar_decision (?):</span>
+<span class="sd">        exemplar_condience (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: True</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.automated_matcher --test-get_user_exemplar_decision</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; autoexemplar_msg = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; exemplar_decision = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; exemplar_condience = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; True = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;No&#39;</span><span class="p">,</span> <span class="s">&#39;Yes&#39;</span><span class="p">]</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Add query as new exemplar?. IBEIS suggests: &#39;</span> <span class="o">+</span> <span class="n">options</span><span class="p">[</span><span class="n">exemplar_decision</span><span class="p">]</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;exemplar decision&#39;</span>
+    <span class="n">responce</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">responce</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;User Canceled Query&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">responce</span> <span class="o">==</span> <span class="s">&#39;Yes&#39;</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">elif</span> <span class="n">responce</span> <span class="o">==</span> <span class="s">&#39;No&#39;</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;answer yes or no&#39;</span><span class="p">)</span>
+    <span class="c"># TODO CALLBACK HERE</span>
+    <span class="n">exemplar_decision_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;exemplar_decision_callback&#39;</span><span class="p">]</span>
+    <span class="n">exemplar_decision_callback</span><span class="p">(</span><span class="n">exemplar_decision</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

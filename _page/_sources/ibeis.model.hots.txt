@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+ibeis.model.hots._neighbor_experiment module
+--------------------------------------------
+
+.. automodule:: ibeis.model.hots._neighbor_experiment
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.automated_helpers module
 -----------------------------------------
 
@@ -35,6 +43,14 @@ ibeis.model.hots.automated_oracle module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.devcases module
+--------------------------------
+
+.. automodule:: ibeis.model.hots.devcases
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.exceptions module
 ----------------------------------
 
@@ -55,14 +71,6 @@ ibeis.model.hots.hstypes module
 -------------------------------
 
 .. automodule:: ibeis.model.hots.hstypes
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.model.hots.interactive_automated_matcher module
------------------------------------------------------
-
-.. automodule:: ibeis.model.hots.interactive_automated_matcher
     :members:
     :undoc-members:
     :show-inheritance:
@@ -123,6 +131,14 @@ ibeis.model.hots.precision_recall module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.qt_inc_automatch module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.qt_inc_automatch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.query_helpers module
 -------------------------------------
 
@@ -151,6 +167,22 @@ ibeis.model.hots.special_query module
 -------------------------------------
 
 .. automodule:: ibeis.model.hots.special_query
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.system_suggestor module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.system_suggestor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.user_dialogs module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.user_dialogs
     :members:
     :undoc-members:
     :show-inheritance:

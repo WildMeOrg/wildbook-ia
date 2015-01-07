@@ -86,13 +86,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._neighbor_experiment">ibeis.model.hots._neighbor_experiment module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.devcases">ibeis.model.hots.devcases module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.interactive_automated_matcher">ibeis.model.hots.interactive_automated_matcher module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.name_scoring">ibeis.model.hots.name_scoring module</a></li>
@@ -100,10 +101,13 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.nn_weights">ibeis.model.hots.nn_weights module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.pipeline">ibeis.model.hots.pipeline module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.precision_recall">ibeis.model.hots.precision_recall module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.qt_inc_automatch">ibeis.model.hots.qt_inc_automatch module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.score_normalization">ibeis.model.hots.score_normalization module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.special_query">ibeis.model.hots.special_query module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.system_suggestor">ibeis.model.hots.system_suggestor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.user_dialogs">ibeis.model.hots.user_dialogs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
@@ -133,6 +137,8 @@
 </div>
 <div class="section" id="module-ibeis.model.Config">
 <span id="ibeis-model-config-module"></span><h2>ibeis.model.Config module<a class="headerlink" href="#module-ibeis.model.Config" title="Permalink to this headline">¶</a></h2>
+<p>Algorithm and behavior configurations are stored here.  These classes are based
+off of the utool.Preference.Pref class which really needs a good overhaul</p>
 <dl class="class">
 <dt id="ibeis.model.Config.AggregateConfig">
 <em class="property">class </em><tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">AggregateConfig</tt><big>(</big><em>agg_cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#AggregateConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.AggregateConfig" title="Permalink to this definition">¶</a></dt>
@@ -245,7 +251,6 @@
 <p>Feature configuration object.</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">FeatureConfig</span><span class="p">()</span>
@@ -266,8 +271,8 @@
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.model.Config.FeatureConfig.get_dict_args">
-<tt class="descname">get_dict_args</tt><big>(</big><em>feat_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureConfig.get_dict_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_dict_args" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.model.Config.FeatureConfig.get_hesaff_params">
+<tt class="descname">get_hesaff_params</tt><big>(</big><em>feat_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureConfig.get_hesaff_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_hesaff_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -351,6 +356,10 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></tt></p>
 <p>this flann is only for neareset neighbors in vsone/many
 TODO: this might not need to be here</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf</a>
+<a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf</a>
+<a class="reference external" href="http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html">http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html</a></p>
 <dl class="method">
 <dt id="ibeis.model.Config.FlannConfig.get_cfgstr">
 <tt class="descname">get_cfgstr</tt><big>(</big><em>cfg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
@@ -362,8 +371,8 @@ TODO: this might not need to be here</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.model.Config.FlannConfig.get_dict_args">
-<tt class="descname">get_dict_args</tt><big>(</big><em>flann_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig.get_dict_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_dict_args" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.model.Config.FlannConfig.get_flann_params">
+<tt class="descname">get_flann_params</tt><big>(</big><em>flann_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig.get_flann_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_flann_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -585,14 +594,15 @@ TODO: this might not need to be here</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.Config.default_query_cfg">
-<tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">default_query_cfg</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#default_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.default_query_cfg" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="ibeis.model.Config.default_vsone_cfg">
 <tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">default_vsone_cfg</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#default_vsone_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.default_vsone_cfg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.load_named_config">
+<tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">load_named_config</tt><big>(</big><em>cfgname</em>, <em>dpath</em>, <em>use_config_cache=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#load_named_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.load_named_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.Config.make_config_metaclass">
@@ -612,6 +622,18 @@ into a flat list. (there must not be name conflicts)</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.set_query_cfg">
+<tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">set_query_cfg</tt><big>(</big><em>cfg</em>, <em>query_cfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#set_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.set_query_cfg" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.update_query_config">
+<tt class="descclassname">ibeis.model.Config.</tt><tt class="descname">update_query_config</tt><big>(</big><em>cfg</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#update_query_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.update_query_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
 </dd></dl>
 
 </div>
@@ -697,7 +719,7 @@ into a flat list. (there must not be name conflicts)</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

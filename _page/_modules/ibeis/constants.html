@@ -48,6 +48,11 @@
           <div class="body">
             
   <h1>Source code for ibeis.constants</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">It is better to use constant variables instead of hoping you spell the same</span>
+<span class="sd">string correctly every time you use it. (Also it makes it much easier if a</span>
+<span class="sd">string name changes)</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># import utool</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -179,6 +184,11 @@
 <span class="n">UNREVIEWED_IMAGE_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;Unreviewed Images&#39;</span>
 <span class="n">REVIEWED_IMAGE_ENCTEXT</span>   <span class="o">=</span> <span class="s">&#39;Reviewed Images&#39;</span>
 <span class="n">UNGROUPED_IMAGES_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;Ungrouped Images&#39;</span>
+<span class="n">SPECIAL_ENCOUNTER_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">EXEMPLAR_ENCTEXT</span><span class="p">,</span>
+                            <span class="n">ALL_IMAGE_ENCTEXT</span><span class="p">,</span>
+                            <span class="n">UNREVIEWED_IMAGE_ENCTEXT</span><span class="p">,</span>
+                            <span class="n">REVIEWED_IMAGE_ENCTEXT</span><span class="p">,</span>
+                            <span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">]</span>
 <span class="n">NEW_ENCOUNTER_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;NEW ENCOUNTER&#39;</span>
 
 <span class="c">#IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
@@ -231,6 +241,12 @@
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">CHEETAH</span><span class="p">,</span>       <span class="s">&#39;Cheetah&#39;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>       <span class="s">&#39;Unknown&#39;</span><span class="p">),</span>
 <span class="p">]</span>
+
+<span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>
+    <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>
+    <span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">VALID_SPECIES</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
 <span class="n">SPECIES_NICE</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
@@ -290,7 +306,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
