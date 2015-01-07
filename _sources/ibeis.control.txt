@@ -76,14 +76,6 @@ ibeis.control._autogen_featweight_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._grave_template module
-------------------------------------
-
-.. automodule:: ibeis.control._grave_template
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control._sql_helpers module
 ---------------------------------
 
