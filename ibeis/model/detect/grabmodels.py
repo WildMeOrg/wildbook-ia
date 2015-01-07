@@ -15,8 +15,12 @@ MODEL_ALGO_SUBDIRS = {
     DETECTOR_KEY_RF:  'rf',
 }
 
+MODEL_BASE_VERSION = '1.0'
 MODEL_URLS = {
-    DETECTOR_KEY_RF: 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip'
+    DETECTOR_KEY_RF: {
+        MODEL_BASE_VERSION: 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip',
+        '2.0':              'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip',
+    }
 }
 
 
@@ -49,7 +53,7 @@ def assert_models(modeldir='default', verbose=True):
         #assert ut.checkpath(algo_modeldir, verbose=True), ('algo_modeldir=%r does not exist' % algo_modeldir)
 
 
-def ensure_models(modeldir='default', verbose=True):
+def ensure_models(modeldir='default', version=MODEL_BASE_VERSION, verbose=True):
     r"""
     Args:
         modeldir (str):
@@ -67,27 +71,27 @@ def ensure_models(modeldir='default', verbose=True):
     modeldir = _expand_modeldir(modeldir)
     for algo, algo_modeldir in iter_algo_modeldirs(modeldir, ensurebase=True):
         if not exists(algo_modeldir):
-            _download_model(algo, modeldir)
+            _download_model(algo, modeldir, version=version)
     assert_models(modeldir, verbose=verbose)
 
 
-def redownload_models(modeldir='default', verbose=True):
+def redownload_models(modeldir='default', version=MODEL_BASE_VERSION, verbose=True):
     print('[grabmodels] redownload_detection_models')
     modeldir = _expand_modeldir(modeldir)
     ut.delete(modeldir)
-    ensure_models(modeldir=modeldir, verbose=verbose)
+    ensure_models(modeldir=modeldir, version=version, verbose=verbose)
     if verbose:
         print('[grabmodels] finished redownload_detection_models')
 
 
-def _download_model(algo, algo_modeldir):
+def _download_model(algo, algo_modeldir, version=MODEL_BASE_VERSION):
     """
     Download and overwrites models
     """
     zip_fpath = realpath(join(algo_modeldir, algo + '.zip'))
     # Download and unzip model
     print('[grabmodels] Downloading model_dir=%s' % zip_fpath)
-    dropbox_link = MODEL_URLS[algo]
+    dropbox_link = MODEL_URLS[algo][version]
     ut.download_url(dropbox_link, zip_fpath)
     ut.unzip_file(zip_fpath)
     # Cleanup

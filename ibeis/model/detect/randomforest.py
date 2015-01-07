@@ -17,6 +17,7 @@ import random
 
 
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
+MODELS_VERSION = '2.0'
 
 
 def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, teardown=False, **kwargs):
@@ -255,7 +256,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
     else:
         # Ensure all models downloaded and accounted for
         assert species is not None, '[_get_models] Cannot detect without specifying a species'
-        grabmodels.ensure_models(modeldir=modeldir, verbose=verbose)
+        grabmodels.ensure_models(modeldir=modeldir, version=MODELS_VERSION, verbose=verbose)
         trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
     # Load tree paths
     if ut.checkpath(trees_path, verbose=verbose):
