@@ -13,8 +13,9 @@ def load_gztest(ibs):
         python -m ibeis.model.hots.special_query --test-load_gztest
 
     Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.devcases import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs = ibeis.opendb('GZ_ALL')
     """
     from os.path import join
@@ -35,12 +36,31 @@ def load_gztest(ibs):
 
 
 def myquery(ibs, vsone_pair_examples):
-    vuuid_pair = vsone_pair_examples[0]
-    aid1, aid2 = ibs.get_annot_aids_from_visual_uuids(vuuid_pair)
-    pass
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('GZ_ALL')
+
+    """
+    from ibeis.model.hots import special_query
+    vuuid_pair = vsone_pair_examples[1]
+    aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
+    daids = ibs.get_valid_aids()
+
+    use_cache = False
+    save_qcache = False
+    qaids = [aid1]
+
+    qaid2_qres_vsmany, qreq_vsmany_ = special_query.query_vsmany_initial(
+        ibs, qaids, daids, use_cache=use_cache, save_qcache=save_qcache)
 
 
 def get_gzall_small_test():
+    """
+    ibs.get_annot_visual_uuids([qaid, aid])
+    """
     #aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,
     #              306, 742, 1010, 802, 619, 1041, 27, 420, 740, 1016, 140, 992,
     #              1043, 662, 816, 793, 994, 867, 534, 986, 783, 858, 937, 60,
@@ -49,13 +69,15 @@ def get_gzall_small_test():
         UUID('308fc664-7990-91ad-0576-d2e8ea3103d0'),
     ]
     vsone_pair_examples = [
-        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')]
+        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
     ]
     vsone_pair_examples
     debug_examples
 
     ignore_vuuids = [
         UUID('be6fe4d6-ae87-0f8f-269f-e9f706b69e41'),  # OUT OF PLANE
+        UUID('c3394b28-e7f2-2da6-1a49-335b748acf9e'),  # HUGE OUT OF PLANE, foal (vsmany gets rank3)
     ]
     vuuid_list = [
         UUID('e9a9544d-083d-6c30-b00f-d6806824a21a'),

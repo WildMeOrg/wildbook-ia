@@ -227,6 +227,7 @@ def precompute_all_annot_dependants(ibs, **kwargs):
     ibs.compute_all_featweights(**kwargs)
 
 
+@__injectable
 def recompute_fgweights(ibs):
     """ delete all feature weights and then recompute them """
     # Delete all featureweights

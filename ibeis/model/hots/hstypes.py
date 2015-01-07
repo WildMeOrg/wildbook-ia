@@ -46,7 +46,18 @@ VEC_MIN = VEC_IINFO.min
 VEC_PSEUDO_MAX = 512
 # unit sphere points can only be twice the maximum descriptor magnitude away
 # from each other. The pseudo max is 512, so 1024 is the upper bound
-VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * 2
+# FURTHERMORE SIFT Descriptors are constrained to be in the upper right quadrent
+# which means any two vectors with one full component and zeros elsewhere are
+# maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX
+if VEC_MIN == 0:
+    # Can be on only on one quadrent of unit sphere
+    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * np.sqrt(2)
+elif VEC_MIN < 0:
+    # Can be on whole unit sphere
+    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * 2
+else:
+    raise AssertionError('impossible state')
+
 PSEUDO_UINT8_MAX_SQRD = float(VEC_PSEUDO_MAX) ** 2
 
 

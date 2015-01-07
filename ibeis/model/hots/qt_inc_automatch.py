@@ -126,7 +126,7 @@ def test_inc_query(ibs_gt, num_initial=0):
     interactive_after = ut.get_argval(('--interactive-after', '--ia'), type_=int, default=None)
     # Add information to an empty database from a groundtruth database
     ibs, aid_list1, aid1_to_aid2 = ah.setup_incremental_test(ibs_gt)
-    if interactive_after is not None:
+    if True or interactive_after is not None:
         back = main_module._init_gui()
         back.connect_ibeis_control(ibs)
     else:
@@ -134,7 +134,7 @@ def test_inc_query(ibs_gt, num_initial=0):
     interactive = self.test_incremental_query(
         ibs_gt, ibs, aid_list1, aid1_to_aid2,
         interactive_after=interactive_after, num_initial=num_initial, back=back)
-    if interactive_after is None and interactive:
+    if back is None and interactive_after is None and interactive:
         # need to startup backend
         back = main_module._init_gui()
         back.connect_ibeis_control(ibs)

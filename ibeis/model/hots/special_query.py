@@ -22,7 +22,7 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vs
 
 
 # Automatic GZ Test Small
-sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac
 
 
 """
@@ -203,7 +203,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
             incinfo['interactive'] = True
             incinfo['use_oracle'] = False
             incinfo['PLEASE_STOP'] = True
-            if False:
+            if True:
                 import plottool as pt  # NOQA
                 IPYTHON_COMMANDS = """
                 >>> %pylab qt4

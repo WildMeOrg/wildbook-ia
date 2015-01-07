@@ -1272,7 +1272,7 @@ def get_annot_uuids(ibs, aid_list):
 
 @register_ibs_method
 @getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
+#@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
 def get_annot_semantic_uuids(ibs, aid_list):
     """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
 

@@ -4,6 +4,7 @@ import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
+#import numpy as np
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[decor]')
 
 DEBUG_ADDERS  = ut.get_argflag('--debug-adders')
@@ -50,6 +51,7 @@ def default_decorator(input_):
 #API_CACHE = ut.get_argflag('--api-cache')
 API_CACHE = not ut.get_argflag('--no-api-cache')
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
+ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
 if ut.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
@@ -153,7 +155,31 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             cache_vals_list = ut.dict_take_list(cache_, cached_rowid_list, None)
             db_vals_list = getter_func(ibs, cached_rowid_list, **kwargs)
             # Assert everything is valid
-            assert cache_vals_list == db_vals_list, '[assert_cache_hits] CACHE INVALID: %r != %r' % (cache_vals_list, db_vals_list, )
+            msg_fmt = ut.codeblock(
+                '''
+                [assert_cache_hits] tblname = %r
+                [assert_cache_hits] colname = %r
+                [assert_cache_hits] cfgkeys = %r
+                [assert_cache_hits] CACHE INVALID: %r != %r
+                '''
+            )
+            msg = msg_fmt % (tblname, colname, cfgkeys, cache_vals_list, db_vals_list, )
+            try:
+                list1 = cache_vals_list
+                list2 = db_vals_list
+                assert ut.lists_eq(list1, list2), msg
+                #if isinstance(db_vals_list, list):
+                #    assert cache_vals_list == db_vals_list, msg
+                #else:
+                #    assert np.all(cache_vals_list == db_vals_list), msg
+            except AssertionError as ex:
+                raise ex
+            except Exception as ex2:
+                print(type(cache_vals_list))
+                print(type(db_vals_list))
+                ut.printex(ex2)
+                ut.embed()
+                raise
 
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
@@ -172,7 +198,9 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             if debug or debug_:
                 debug_cache_hits(ismiss_list, rowid_list)
             # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
-            assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
+            with_assert = ASSERT_API_CACHE
+            if with_assert:
+                assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
             # END HACK
             if any(ismiss_list):
                 miss_indices = ut.list_where(ismiss_list)

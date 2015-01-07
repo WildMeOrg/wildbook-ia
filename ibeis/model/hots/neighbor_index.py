@@ -900,7 +900,7 @@ class NeighborIndex(object):
         """
         Returns the indicies and squared distance to the nearest K neighbors.
         The distance is noramlized between zero and one using
-        VEC_PSEUDO_MAX_DISTANCE
+        VEC_PSEUDO_MAX_DISTANCE = (np.sqrt(2) * VEC_PSEUDO_MAX)
 
         Args:
             qfx2_vec : (N x D) an array of N, D-dimensional query vectors

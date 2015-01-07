@@ -20,6 +20,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 ANNOT_ROWID         = 'annot_rowid'
+ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 
@@ -638,6 +639,7 @@ def get_name_alias_texts(ibs, name_rowid_list):
 
 
 @register_ibs_method
+@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=False)
 @setter
 def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     """
@@ -650,6 +652,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     #ibsfuncs.assert_valid_names(name_alias_text_list)
     val_list = ((value,) for value in name_alias_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_ALIAS_TEXT,), val_list, name_rowid_list)
+    # TODO: ibs.update_annot_semantic_uuids(aid_list)
 
 
 @register_ibs_method
