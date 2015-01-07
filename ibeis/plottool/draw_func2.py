@@ -1108,6 +1108,10 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     if ell_color is None:
         ell_color = kwargs.get('color', BLUE)
 
+    if isinstance(kpts, list):
+        # ensure numpy
+        kpts = np.array(kpts)
+
     if utool.DEBUG2:
         printDBG('-------------')
         printDBG('draw_kpts2():')
