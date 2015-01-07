@@ -591,7 +591,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
 
     cfgstr = species_text + query_cfgstr
 
-    if cfgstr in NORMALIZER_CACHE:
+    if NORMALIZER_CACHE.has_key(cfgstr):  # NOQA
         # use memory cache
         normalizer = NORMALIZER_CACHE[cfgstr]
         if verbose:
