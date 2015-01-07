@@ -146,6 +146,15 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             print('\n[get] %s.%s %d / %d cache hits' %
                   (tblname, colname, num_hit, num_total))
 
+        def assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs):
+            cached_rowid_list = ut.filterfalse_items(rowid_list, ismiss_list)
+            cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+            # Load cached values for each rowid
+            cache_vals_list = ut.dict_take_list(cache_, cached_rowid_list, None)
+            db_vals_list = getter_func(ibs, cached_rowid_list, **kwargs)
+            # Assert everything is valid
+            assert cache_vals_list == db_vals_list, '[assert_cache_hits] CACHE INVALID: %r != %r' % (cache_vals_list, db_vals_list, )
+
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
             # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
@@ -162,6 +171,9 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             ismiss_list = [val is None for val in vals_list]
             if debug or debug_:
                 debug_cache_hits(ismiss_list, rowid_list)
+            # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
+            assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
+            # END HACK
             if any(ismiss_list):
                 miss_indices = ut.list_where(ismiss_list)
                 miss_rowids  = ut.filter_items(rowid_list, ismiss_list)
