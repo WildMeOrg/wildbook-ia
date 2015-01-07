@@ -34,6 +34,12 @@ def load_gztest(ibs):
     visual_uuids
 
 
+def myquery(ibs, vsone_pair_examples):
+    vuuid_pair = vsone_pair_examples[0]
+    aid1, aid2 = ibs.get_annot_aids_from_visual_uuids(vuuid_pair)
+    pass
+
+
 def get_gzall_small_test():
     #aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,
     #              306, 742, 1010, 802, 619, 1041, 27, 420, 740, 1016, 140, 992,

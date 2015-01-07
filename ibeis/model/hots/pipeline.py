@@ -705,6 +705,9 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
     qfx2_score is an ndarray containing the score of individual feature matches.
     qfx2_valid marks if that score will be thresholded.
 
+    FIXME: currently what should be called scores are called weights and visveras
+    maybe raw_weight and weight would be better
+
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
         qaid (int):  query annotation id

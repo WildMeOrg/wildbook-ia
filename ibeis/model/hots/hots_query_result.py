@@ -713,6 +713,13 @@ class QueryResult(__OBJECT_BASE__):
             fig.show()
         return fig
 
+    def ishow_matches(qres, ibs, aid, *args, **kwargs):
+        from ibeis.viz.interact import interact_matches  # NOQA
+        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
+        return match_interaction
+        #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
+        #return fig
+
     def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
         print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui

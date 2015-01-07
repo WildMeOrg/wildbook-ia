@@ -213,16 +213,22 @@ class QueryVerificationInteraction(AbstractInteraction):
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
         figtitle = 'Examine a specific image against the query'
-        #interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+
         #fnum = 510
         fnum = df2.next_fnum()
         fig = df2.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
-        viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
-        fig.show()
-        # this is only relevant to matplotlib.__version__ < 1.4.2
-        #raise Exception(
-        #    'BLACK MAGIC: error intentionally included as a workaround that seems'
-        #    'to fix a gui hang on certain computers.')
+        # can cause freezes should be False
+        INTERACT_EXAMINE = True
+        if INTERACT_EXAMINE:
+            fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
+            print('Finished interact')
+            # this is only relevant to matplotlib.__version__ < 1.4.2
+            #raise Exception(
+            #    'BLACK MAGIC: error intentionally included as a workaround that seems'
+            #    'to fix a gui hang on certain computers.')
+        else:
+            viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+            fig.show()
 
     def show_hud(self):
         """ Creates heads up display """
