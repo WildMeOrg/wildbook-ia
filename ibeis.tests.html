@@ -62,6 +62,15 @@
 <div class="section" id="module-ibeis.tests.assert_modules">
 <span id="ibeis-tests-assert-modules-module"></span><h2>ibeis.tests.assert_modules module<a class="headerlink" href="#module-ibeis.tests.assert_modules" title="Permalink to this headline">¶</a></h2>
 <p>Very useful script to ensure you have all the modules you need</p>
+<dl class="docutils">
+<dt>Updater For Linux:</dt>
+<dd><p class="first">sudo pip install matplotlib &#8211;upgrade
+sudo pip install Pillow &#8211;upgrade
+sudo pip install scipy &#8211;upgrade
+sudo pip install numpy &#8211;upgrade</p>
+<p class="last">./super_setup.py &#8211;bootstrap &#8211;upgrade</p>
+</dd>
+</dl>
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.PyQt4_version">
 <tt class="descclassname">ibeis.tests.assert_modules.</tt><tt class="descname">PyQt4_version</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#PyQt4_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.PyQt4_version" title="Permalink to this definition">¶</a></dt>
@@ -394,7 +403,21 @@ Selects things</p>
 <dl class="function">
 <dt id="ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP">
 <tt class="descclassname">ibeis.tests.test_ibs_query_components.</tt><tt class="descname">TEST_QUERY_COMP</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/tests/test_ibs_query_components.html#TEST_QUERY_COMP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.tests.test_ibs_query_components &#8211;test-TEST_QUERY_COMP</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.test_ibs_query_components</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TEST_QUERY_COMP</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.tests.test_ibs_uuid">
@@ -779,7 +802,7 @@ Selects things</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

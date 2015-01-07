@@ -946,7 +946,7 @@ print(argdoc)</dd>
 <dl class="function">
 <dt id="ibeis.model.hots.smk.smk_match.execute_smk_L5">
 <tt class="descclassname">ibeis.model.hots.smk.smk_match.</tt><tt class="descname">execute_smk_L5</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_match.html#execute_smk_L5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_match.execute_smk_L5" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_indent(execute_smk_L5)</p>
+<dd><p>Wrapped function wrp_noexectb(execute_smk_L5)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;<a href="#id5"><span class="problematic" id="id6">qreq_</span></a>&#8216;], varargs=None, keywords=None, defaults=None)</p>
 <dl class="docutils">
 <dt>orig_docstr =</dt>
@@ -1938,7 +1938,7 @@ end{equation}</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_scoring</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh, wx2_flags = smk_debug.testdata_sccw_sum(db=&#39;testdb1&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_sccw_sum</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Mothers&#39;</span><span class="p">,</span> <span class="n">nWords</span><span class="o">=</span><span class="mi">128000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_sccw_sum</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">nWords</span><span class="o">=</span><span class="mi">128000</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">idf_list</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span> <span class="o">=</span> <span class="n">tup</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sccw</span> <span class="o">=</span> <span class="n">smk_scoring</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sccw</span><span class="p">)</span>
@@ -2198,7 +2198,7 @@ scores3 = scores_list3[-1]
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

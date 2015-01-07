@@ -86,7 +86,7 @@
         <span class="p">(</span><span class="s">&#39;chip_width&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;chip_height&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store *processed* annots as chips&#39;&#39;&#39;</span><span class="p">)</span>
 
@@ -99,7 +99,7 @@
         <span class="c"># Maybe change name to feature_vecs</span>
         <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span>                <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;chip_rowid, config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;chip_rowid, config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
 
@@ -120,7 +120,7 @@
         <span class="p">(</span><span class="s">&#39;residual_vector&#39;</span><span class="p">,</span>              <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
         <span class="c"># TODO: Remove residual_rowid from being a superkey</span>
-        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual SMK/ASMK residual vectors for features&#39;&#39;&#39;</span><span class="p">)</span>
     <span class="k">pass</span>
@@ -147,7 +147,7 @@
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;featweight_forground_weight&#39;</span><span class="p">,</span> <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Stores weightings of features based on the forground... etc</span>
 <span class="s">        &#39;&#39;&#39;</span>
@@ -155,7 +155,7 @@
 
     <span class="c"># Fix the superkeys for the residual table</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="n">colmap_list</span><span class="o">=</span><span class="p">[],</span>
-                    <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],)</span>
+                    <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],)</span>
 
 
 <span class="c"># ========================</span>
@@ -248,7 +248,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

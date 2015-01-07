@@ -49,6 +49,9 @@
           <div class="body">
             
   <h1>Source code for ibeis.control.SQLDatabaseControl</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface into SQL for the IBEIS Controller</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -69,11 +72,11 @@
     <span class="c">#return profile(func)</span>
     <span class="c">#return utool.indent_func(&#39;[sql.&#39; + func.__name__ + &#39;]&#39;)(func)</span>
 </div>
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span>
-<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
-<span class="n">VERYSQL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-sql&#39;</span><span class="p">)</span>
-<span class="n">QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
-<span class="n">AUTODUMP</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
+<span class="n">VERBOSE</span>        <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">VERYVERBOSE</span>    <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="n">QUIET</span>          <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
+<span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-sql&#39;</span><span class="p">)</span>
+<span class="n">AUTODUMP</span>       <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
 <span class="n">COPY_TO_MEMORY</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--copy-db-to-memory&#39;</span><span class="p">))</span>
 
 <span class="sd">&quot;&quot;&quot; If would be really great if we could get a certain set of setters, getters,</span>
@@ -200,7 +203,7 @@
             <span class="p">(</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,</span>                 <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-            <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">],</span>
+            <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,)],</span>
             <span class="c"># IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation</span>
             <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        The table that stores permanently all of the metadata about the</span>
@@ -257,7 +260,7 @@
 <div class="viewcode-block" id="SQLDatabaseController.optimize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size</span>
         <span class="c"># http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html</span>
-        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] running sql pragma optimizions&#39;</span><span class="p">)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 0;&#39;)</span>
         <span class="c">#db.cur.execute(&#39;PRAGMA cache_size = 1024;&#39;)</span>
@@ -398,7 +401,7 @@
         <span class="c"># Check to see if this already exists in the database</span>
         <span class="n">rowid_list_</span> <span class="o">=</span> <span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="o">*</span><span class="n">superkey_lists</span><span class="p">)</span>
         <span class="n">isnew_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list_</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">isunique_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">VERBOSE_SQL</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">isunique_list</span><span class="p">):</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[WARNING]: duplicate inputs to db.add_cleanly&#39;</span><span class="p">)</span>
         <span class="c"># Flag each item that needs to added to the database</span>
         <span class="n">needsadd_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">isvalid_list</span><span class="p">,</span> <span class="n">isunique_list</span><span class="p">,</span> <span class="n">isnew_list</span><span class="p">)))</span>
@@ -608,7 +611,7 @@
     <span class="c">#=========</span>
 
     <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.add_table"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.add_table">[docs]</a>    <span class="k">def</span> <span class="nf">add_table</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">coldef_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">table_constraints</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLDatabaseController.add_table"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.add_table">[docs]</a>    <span class="k">def</span> <span class="nf">add_table</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">coldef_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">table_constraints</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        add_table</span>
 
@@ -617,7 +620,7 @@
 <span class="sd">            coldef_list (list):</span>
 <span class="sd">            table_constraints (list or None):</span>
 <span class="sd">            docstr (str):</span>
-<span class="sd">            superkey_colnames (list or None): list of column names which uniquely identifies a rowid</span>
+<span class="sd">            superkey_colnames_list (list or None): list of tuples of column names which uniquely identifies a rowid</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;tablename must be given&#39;</span>
         <span class="k">assert</span> <span class="n">coldef_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;tablename must be given&#39;</span>
@@ -625,31 +628,35 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] schema ensuring tablename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">tablename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">,</span> <span class="p">[</span><span class="n">tablename</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">],</span>
-                                 <span class="nb">dict</span><span class="p">(</span><span class="n">table_constraints</span><span class="o">=</span><span class="n">table_constraints</span><span class="p">,</span> <span class="n">docstr</span><span class="o">=</span><span class="n">docstr</span><span class="p">,</span>
-                                      <span class="n">superkey_colnames</span><span class="o">=</span><span class="n">superkey_colnames</span><span class="p">)))</span>
+            <span class="n">_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">]</span>
+            <span class="n">_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">table_constraints</span><span class="o">=</span><span class="n">table_constraints</span><span class="p">,</span> <span class="n">docstr</span><span class="o">=</span><span class="n">docstr</span><span class="p">,</span>
+                           <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="n">superkey_colnames_list</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">,</span> <span class="n">_args</span><span class="p">,</span> <span class="n">_kwargs</span><span class="p">))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="c"># Technically insecure call, but all entries are statically inputted by</span>
         <span class="c"># the database&#39;s owner, who could delete or alter the entire database</span>
         <span class="c"># anyway.</span>
         <span class="k">if</span> <span class="n">table_constraints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">table_constraints</span> <span class="o">=</span> <span class="p">[]</span>
-
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">superkey_colnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">_</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)</span>
-                <span class="c">###</span>
-                <span class="c">#c = superkey_colnames</span>
-                <span class="c">#_ = (c if isinstance(c, six.string_types) else &#39;,&#39;.join(c))</span>
-                <span class="n">unique_constraint</span> <span class="o">=</span> <span class="s">&#39;CONSTRAINT superkey UNIQUE ({_})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_</span><span class="o">=</span><span class="n">_</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_constraints</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Warning: blindly commented assert would have triggered&#39;</span><span class="p">)</span>
+            <span class="n">has_superkeys</span> <span class="o">=</span> <span class="p">(</span><span class="n">superkey_colnames_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span>
+                             <span class="nb">len</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">has_superkeys</span><span class="p">:</span>
+                <span class="c">#if len(table_constraints) != 0:</span>
+                <span class="c">#    print(&#39;[sql] Warning: blindly commented assert would have triggered&#39;)</span>
                 <span class="c">#assert len(table_constraints) == 0</span>
-                <span class="n">table_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unique_constraint</span><span class="p">)</span>
-            <span class="n">body_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">coldef_list</span><span class="p">]</span>
+                <span class="c"># Add each superkey_colnames as a table constraint</span>
+                <span class="n">constraint_fmtstr</span> <span class="o">=</span> <span class="s">&#39;CONSTRAINT superkey UNIQUE ({colnames_str})&#39;</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s">&#39;must be list got </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">superkey_colnames</span> <span class="ow">in</span> <span class="n">superkey_colnames_list</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;must be list of tuples&#39;</span>
+                    <span class="n">colnames_str</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)</span>
+                    <span class="n">unique_constraint</span> <span class="o">=</span> <span class="n">constraint_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colnames_str</span><span class="o">=</span><span class="n">colnames_str</span><span class="p">)</span>
+                    <span class="n">table_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unique_constraint</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="k">raise</span>
+        <span class="n">body_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">coldef_list</span><span class="p">]</span>
 
         <span class="n">fmtkw</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;table_body&#39;</span><span class="p">:</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">body_list</span> <span class="o">+</span> <span class="n">table_constraints</span><span class="p">),</span>
@@ -681,7 +688,8 @@
             <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;_constraint&#39;</span><span class="p">,</span> <span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table_constraints</span><span class="p">)]</span>
             <span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">superkey_colnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">superkey_colnames_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># have the metadata table keep track of table superkeys</span>
             <span class="c"># Insert or replace superkeys in metadata table</span>
             <span class="n">fmtkw</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s">&#39;tablename&#39;</span><span class="p">:</span> <span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span>
@@ -689,7 +697,9 @@
             <span class="p">}</span>
             <span class="n">op_fmtstr</span> <span class="o">=</span> <span class="s">&#39;INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)&#39;</span>
             <span class="n">operation</span> <span class="o">=</span> <span class="n">op_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtkw</span><span class="p">)</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;_superkeys&#39;</span><span class="p">,</span> <span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)]</span>
+            <span class="c">#superkey_colnames_list_repr = &#39;;&#39;.join(superkey_colnames_list)</span>
+            <span class="n">superkey_colnames_list_repr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">)</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;_superkeys&#39;</span><span class="p">,</span> <span class="n">superkey_colnames_list_repr</span><span class="p">]</span>
             <span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
@@ -706,7 +716,7 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.modify_table"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.modify_table">[docs]</a>    <span class="k">def</span> <span class="nf">modify_table</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colmap_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">table_constraints</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                     <span class="n">docstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tablename_new</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                     <span class="n">docstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tablename_new</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">colmap_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify colmaplist&#39;</span>
         <span class="k">assert</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify tablename&#39;</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -716,7 +726,7 @@
 <span class="sd">           tablename (str): tablename</span>
 <span class="sd">           colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)</span>
 <span class="sd">           table_constraints (str):</span>
-<span class="sd">           superkey_colnames (list)</span>
+<span class="sd">           superkey_colnames_list (list)</span>
 <span class="sd">           docstr (str)</span>
 <span class="sd">           tablename_new (?)</span>
 
@@ -727,15 +737,22 @@
 <span class="sd">            &gt;&gt;&gt; ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (</span>
 <span class="sd">            ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new</span>
 <span class="sd">            ... #   [None to append, int for index]  [&#39;&#39; for same, None to delete]    [&#39;&#39; for same]    [None to use data unmodified]</span>
-<span class="sd">            ...    (&#39;contributor_rowid&#39;,             &#39;&#39;,                              &#39;&#39;,               None), # a non-needed, but correct mapping (identity function)</span>
-<span class="sd">            ...    (None,                            &#39;contributor__location_address&#39;, &#39;TEXT&#39;,           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)</span>
-<span class="sd">            ...    (4,                               &#39;contributor__location_address&#39;, &#39;TEXT&#39;,           None), # adding a new column at index 4 (if index is invalid, None is used)</span>
-<span class="sd">            ...    (&#39;contributor__location_city&#39;,    None,                            &#39;&#39;,               None), # for deleted columns, type and function are ignored</span>
-<span class="sd">            ...    (&#39;contributor__location_city&#39;,    &#39;contributor__location_town&#39;,    &#39;&#39;,               None), # for renamed columns, type and function are ignored</span>
+<span class="sd">            ...    # a non-needed, but correct mapping (identity function)</span>
+<span class="sd">            ...    (&#39;contributor_rowid&#39;,             &#39;&#39;,                              &#39;&#39;,               None),</span>
+<span class="sd">            ...    # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)</span>
+<span class="sd">            ...    (None,                            &#39;contributor__location_address&#39;, &#39;TEXT&#39;,           None),</span>
+<span class="sd">            ...    # adding a new column at index 4 (if index is invalid, None is used)</span>
+<span class="sd">            ...    (4,                               &#39;contributor__location_address&#39;, &#39;TEXT&#39;,           None),</span>
+<span class="sd">            ...    # for deleted columns, type and function are ignored</span>
+<span class="sd">            ...    (&#39;contributor__location_city&#39;,    None,                            &#39;&#39;,               None),</span>
+<span class="sd">            ...    # for renamed columns, type and function are ignored</span>
+<span class="sd">            ...    (&#39;contributor__location_city&#39;,    &#39;contributor__location_town&#39;,    &#39;&#39;,               None),</span>
 <span class="sd">            ...    (&#39;contributor_location_zip&#39;,      &#39;contributor_location_zip&#39;,      &#39;TEXT&#39;,           contributor_location_zip_map),</span>
-<span class="sd">            ...    (&#39;contributor__location_country&#39;, &#39;&#39;,                              &#39;TEXT NOT NULL&#39;,  None), # type not changing, only NOT NULL provision</span>
+<span class="sd">            ...    # type not changing, only NOT NULL provision</span>
+<span class="sd">            ...    (&#39;contributor__location_country&#39;, &#39;&#39;,                              &#39;TEXT NOT NULL&#39;,  None),</span>
 <span class="sd">            ...    ),</span>
-<span class="sd">            ...    superkey_colnames=[&#39;contributor_rowid&#39;],</span>
+<span class="sd">            ...    superkey_colnames_list=[(&#39;contributor_rowid&#39;,)],</span>
+<span class="sd">            ...    table_constraints=[],</span>
 <span class="sd">            ...    docstr=&#39;Used to store the contributors to the project&#39;</span>
 <span class="sd">            ... )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -749,7 +766,10 @@
 
         <span class="n">insert</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">map_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">colmap_list</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="c">#is_newcol = dst not in colname_list</span>
+            <span class="c">#if dst == &#39;annot_visual_uuid&#39;:</span>
+            <span class="c">#    ut.embed()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">src</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
                 <span class="c"># Add column</span>
                 <span class="k">assert</span> <span class="n">dst</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;New column&#39;s name must be valid&quot;</span>
                 <span class="k">assert</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;New column&#39;s type must be specified&quot;</span>
@@ -815,7 +835,7 @@
         <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">tablename_temp</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">,</span>
                      <span class="n">table_constraints</span><span class="o">=</span><span class="n">table_constraints</span><span class="p">,</span>
                      <span class="n">docstr</span><span class="o">=</span><span class="n">docstr</span><span class="p">,</span>
-                     <span class="n">superkey_colnames</span><span class="o">=</span><span class="n">superkey_colnames</span><span class="p">)</span>
+                     <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="n">superkey_colnames_list</span><span class="p">)</span>
 
         <span class="c"># Copy data</span>
         <span class="n">src_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -976,7 +996,7 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.executeone"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executeone">[docs]</a>    <span class="k">def</span> <span class="nf">executeone</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                   <span class="n">verbose</span><span class="o">=</span><span class="n">VERYSQL</span><span class="p">):</span>
+                   <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SQL</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">SQLExecutionContext</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">result_iter</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">execute_and_generate_results</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -990,7 +1010,7 @@
     <span class="nd">@default_decorator</span>
     <span class="c">#@utool.memprof</span>
 <div class="viewcode-block" id="SQLDatabaseController.executemany"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERYSQL</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SQL</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c"># --- ARGS PREPROC ---</span>
         <span class="c"># Aggresively compute iterator if the nInput is not given</span>
@@ -998,17 +1018,17 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
                 <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: aggressive eval of params_iter because nInput=None&#39;</span><span class="p">)</span>
                 <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
                 <span class="n">nInput</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Taking params_iter as iterator&#39;</span><span class="p">)</span>
 
         <span class="c"># Do not compute executemany without params</span>
         <span class="k">if</span> <span class="n">nInput</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql!] WARNING: dont use executemany&#39;</span>
                       <span class="s">&#39;with no params use executeone instead.&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[]</span>
@@ -1064,7 +1084,7 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.dump_to_file"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">dump_to_file</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">schema_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.dump]&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auto_commit</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -1077,7 +1097,7 @@
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.dump_to_string"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_to_string">[docs]</a>    <span class="k">def</span> <span class="nf">dump_to_string</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">schema_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="n">retStr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">VERYSQL</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql.dump]&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">auto_commit</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -1171,9 +1191,9 @@
                     <span class="n">col_type</span> <span class="o">+=</span> <span class="s">&quot; DEFAULT &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>  <span class="c"># Specify default value</span>
                 <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">(</span><span class="si">%s%r</span><span class="s">),&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">),&#39;</span> <span class="o">%</span> <span class="n">tab</span><span class="p">)</span>
-            <span class="n">colnames</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_superkeys</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_superkeys</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
             <span class="n">docstr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_docstr</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">superkey_colnames=</span><span class="si">%r</span><span class="s">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">superkey_colnames=</span><span class="si">%r</span><span class="s">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">docstr=</span><span class="se">\&#39;\&#39;\&#39;</span><span class="si">%s</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">docstr</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
@@ -1241,43 +1261,55 @@
 <span class="sd">            tablename (str):</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            list: superkey_colname_list</span>
+<span class="sd">            list: superkey_colnames_list</span>
 
-<span class="sd">        Example:</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.SQLDatabaseControl --test-get_table_superkeys</span>
+
+<span class="sd">        Example0:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; print(ibs.db.get_table_superkeys(&#39;lblimage&#39;))</span>
-<span class="sd">            [&#39;lbltype_rowid&#39;, &#39;lblimage_value&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; result = ibs.db.get_table_superkeys(&#39;lblimage&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            [(&#39;lbltype_rowid&#39;, &#39;lblimage_value&#39;)]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">(),</span> <span class="s">&#39;tablename=</span><span class="si">%r</span><span class="s"> is not a part of this database&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,)</span>
         <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;metadata_key=?&#39;</span>
         <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;_superkeys&#39;</span><span class="p">,)]</span>
-        <span class="n">superkeys</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
+        <span class="n">superkey_colnames_list_repr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c"># These asserts might not be valid, but in that case this function needs</span>
         <span class="c"># to be rewritten under a different name</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">superkeys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY&#39;</span>
-        <span class="n">superkey_colnames_str</span> <span class="o">=</span> <span class="n">superkeys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">superkey_colnames_str</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#assert len(superkey_colnames_list) == 1, &#39;INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY&#39;</span>
+        <span class="k">if</span> <span class="n">superkey_colnames_list_repr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Sometimes the metadata gets moved for some reason</span>
             <span class="c"># Hack the information out of the constraints</span>
             <span class="n">constraint_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_constraints</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraint_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT&#39;</span>
+            <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">constraint_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">parse</span>
                 <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraint_list</span><span class="p">:</span>
                     <span class="n">parse_result</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&#39;CONSTRAINT superkey UNIQUE ({colnames})&#39;</span><span class="p">,</span> <span class="n">constraint</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">parse_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                         <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">parse_result</span><span class="p">[</span><span class="s">&#39;colnames&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="n">superkey_colnames_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="n">superkey_colnames_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
-        <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="bp">None</span> <span class="k">if</span> <span class="n">superkey_colname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">superkey_colname</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">superkey_colname</span> <span class="ow">in</span> <span class="n">superkey_colnames</span>
-        <span class="p">]</span>
-        <span class="k">return</span> <span class="n">superkey_colnames</span>
+            <span class="c">#superkey_colnames = superkey_colnames_str.split(&#39;;&#39;)</span>
+            <span class="c">#with ut.EmbedOnException():</span>
+            <span class="k">if</span> <span class="n">superkey_colnames_list_repr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c"># hack for old metadata superkey_val format</span>
+                <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">superkey_colnames_list_repr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)))]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># new evalable format</span>
+                <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">superkey_colnames_list_repr</span><span class="p">)</span>
+        <span class="c">#superkey_colnames_list = [</span>
+        <span class="c">#    None if superkey_colname is None else str(superkey_colname)</span>
+        <span class="c">#    for superkey_colname in superkey_colnames</span>
+        <span class="c">#]</span>
+        <span class="c">#superkey_colnames_list = list(map(tuple, superkey_colnames_list))</span>
+        <span class="k">return</span> <span class="n">superkey_colnames_list</span>
 </div>
     <span class="n">get_table_superkey_colnames</span> <span class="o">=</span> <span class="n">get_table_superkeys</span>
 
@@ -1291,11 +1323,13 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.get_table_otherkey_colnames"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_table_otherkey_colnames">[docs]</a>    <span class="k">def</span> <span class="nf">get_table_otherkey_colnames</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
-        <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[])(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_superkeys</span><span class="p">(</span><span class="n">tablename</span><span class="p">)))</span>
+        <span class="n">flat_superkey_colnames_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_superkeys</span><span class="p">(</span><span class="n">tablename</span><span class="p">))</span>
+        <span class="c">#superkey_colnames_list = set((lambda x: x if x is not None else [])(db.get_table_superkeys(tablename)))</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_columns</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">otherkey_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span>
                              <span class="k">for</span> <span class="p">(</span><span class="n">column_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">notnull</span><span class="p">,</span> <span class="n">dflt_value</span><span class="p">,</span> <span class="n">pk</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">columns</span>
-                             <span class="k">if</span> <span class="ow">not</span> <span class="n">pk</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">superkey_colnames</span><span class="p">]</span>
+                             <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">pk</span> <span class="ow">and</span>   <span class="c"># not primary key</span>
+                                 <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">flat_superkey_colnames_list</span><span class="p">)]</span>
         <span class="k">return</span> <span class="n">otherkey_colnames</span>
 </div>
     <span class="nd">@default_decorator</span>
@@ -1541,7 +1575,19 @@
 <span class="c">#    ---------------------------------------------</span>
 <span class="c">#    TODO: Add handling for column addition between software versions.</span>
 <span class="c">#    Column deletions will not be removed from the database schema.</span>
-<span class="c">#&quot;&quot;&quot;</span></div></div>
+<span class="c">#&quot;&quot;&quot;</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.SQLDatabaseControl</span>
+<span class="sd">        python -m ibeis.control.SQLDatabaseControl --allexamples</span>
+<span class="sd">        python -m ibeis.control.SQLDatabaseControl --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1582,7 +1628,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

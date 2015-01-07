@@ -50,37 +50,44 @@
           <div class="body">
             
   <h1>Source code for ibeis.model.hots.automated_oracle</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">module for making the correct automatic decisions in incremental tests</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[incoracle]&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="oracle_method1"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.oracle_method1">[docs]</a><span class="k">def</span> <span class="nf">oracle_method1</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">,</span> <span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">MAX_LOOK</span><span class="p">):</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="oracle_method1"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.oracle_method1">[docs]</a><span class="k">def</span> <span class="nf">oracle_method1</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">,</span> <span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">MAX_LOOK</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; METHOD 1: MAKE BEST DECISION FROM GIVEN INFORMATION &quot;&quot;&quot;</span>
     <span class="c"># Map annotations to ibs_gt annotation rowids</span>
+    <span class="n">sorted_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">)</span>
     <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
-    <span class="n">nid_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">nid_list1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">))</span>
     <span class="c"># Using ibs_gt nameids find the correct index in returned results</span>
-    <span class="n">correct_rank</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">nid_list1</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">correct_rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">correct_rank</span> <span class="o">&gt;=</span> <span class="n">MAX_LOOK</span><span class="p">:</span>
-        <span class="c"># If the correct result was not presented create a new name</span>
-        <span class="n">name2</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Otherwise return the correct result</span>
-        <span class="n">nid2</span> <span class="o">=</span> <span class="n">sorted_nids</span><span class="p">[</span><span class="n">correct_rank</span><span class="p">]</span>
-        <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">name2</span>
+    <span class="n">correct_rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nid_list1</span> <span class="o">==</span> <span class="n">qnid1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">correct_rank</span> <span class="o">=</span> <span class="n">correct_rank</span><span class="p">[</span><span class="n">correct_rank</span> <span class="o">&lt;</span> <span class="n">MAX_LOOK</span><span class="p">]</span>
+    <span class="c"># Return a list of any number of correct names or empty if it is a new name</span>
+    <span class="n">nid_list2</span> <span class="o">=</span> <span class="n">sorted_nids</span><span class="p">[</span><span class="n">correct_rank</span><span class="p">]</span>
+    <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chosen_names</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="oracle_method2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.oracle_method2">[docs]</a><span class="k">def</span> <span class="nf">oracle_method2</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; METHOD 2: MAKE THE ABSOLUTE CORRECT DECISION REGARDLESS OF RESULT &quot;&quot;&quot;</span>
+    <span class="c"># use the name from the groundruth database</span>
     <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">qnid1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">name2</span>
+    <span class="n">chosen_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">name2</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">chosen_names</span>
 
 </div>
-<div class="viewcode-block" id="get_oracle_decision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.get_oracle_decision">[docs]</a><span class="k">def</span> <span class="nf">get_oracle_decision</span><span class="p">(</span><span class="n">metatup</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">oracle_method</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_oracle_name_decision"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.get_oracle_name_decision">[docs]</a><span class="k">def</span> <span class="nf">get_oracle_name_decision</span><span class="p">(</span><span class="n">metatup</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">oracle_method</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Find what the correct decision should be ibs2 is the database we are working</span>
+<span class="sd">    Find what the correct decision should be ibs is the database we are working</span>
 <span class="sd">    with ibs_gt has pristine groundtruth</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle is making decision using oracle_method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">oracle_method</span><span class="p">)</span>
@@ -90,50 +97,59 @@
     <span class="n">MAX_LOOK</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c"># the oracle should only see what the user sees</span>
     <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscore</span><span class="p">,</span> <span class="n">sorted_rawscore</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_ascores</span><span class="p">)</span> <span class="o">=</span> <span class="n">choicetup</span>
     <span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span> <span class="o">=</span> <span class="n">metatup</span>
-
-    <span class="c">#ut.embed()</span>
     <span class="c"># Get the annotations that the user can see</span>
     <span class="n">aid_list2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">sorted_aids</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="c"># Get name rowids of the query from ibs_gt</span>
+    <span class="c"># Get the groundtruth name of the query</span>
     <span class="n">aid2_to_aid1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">)</span>
-    <span class="n">qannot_rowid1</span> <span class="o">=</span> <span class="n">aid2_to_aid1</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-    <span class="n">qnid1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qannot_rowid1</span><span class="p">)</span>
+    <span class="n">qnid1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid2_to_aid1</span><span class="p">[</span><span class="n">qaid</span><span class="p">])</span>
     <span class="c"># Make an oracle decision by choosing a name (like a user would)</span>
     <span class="k">if</span> <span class="n">oracle_method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">name2</span> <span class="o">=</span> <span class="n">oracle_method1</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">,</span> <span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">MAX_LOOK</span><span class="p">)</span>
+        <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">oracle_method1</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">,</span> <span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">MAX_LOOK</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">oracle_method</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">name2</span> <span class="o">=</span> <span class="n">oracle_method2</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">)</span>
+        <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">oracle_method2</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown oracle method </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">oracle_method</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle decision is name2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name2</span><span class="p">,))</span>
-    <span class="k">return</span> <span class="n">name2</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle decision is chosen_names=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chosen_names</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">chosen_names</span>
 
 </div>
-<div class="viewcode-block" id="get_oracle_name_suggestion"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.get_oracle_name_suggestion">[docs]</a><span class="k">def</span> <span class="nf">get_oracle_name_suggestion</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">autoname_msg</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span>  <span class="n">metatup</span><span class="p">):</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_oracle_name_suggestion"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_oracle.get_oracle_name_suggestion">[docs]</a><span class="k">def</span> <span class="nf">get_oracle_name_suggestion</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span>  <span class="n">metatup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    main entry point for the oracle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#system_autoname_msg = system_name_suggest_tup[0]</span>
     <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscore</span><span class="p">,</span> <span class="n">sorted_rawscore</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_ascores</span><span class="p">)</span> <span class="o">=</span> <span class="n">choicetup</span>
     <span class="n">oracle_msg_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">oracle_msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;The overrided system responce was:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span>
-                           <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">autoname_msg</span><span class="p">,</span> <span class="s">&#39;  ~~&#39;</span><span class="p">),))</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">get_oracle_decision</span><span class="p">(</span><span class="n">metatup</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">)</span>
+    <span class="c">#oracle_msg_list.append(&#39;The overrided system responce was:\n%s&#39;</span>
+    <span class="c">#                       % (ut.indent(system_autoname_msg, &#39;  ~~&#39;),))</span>
+    <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">get_oracle_name_decision</span><span class="p">(</span><span class="n">metatup</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">oracle_msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Oracle suggests a new name&#39;</span><span class="p">)</span>
+        <span class="c"># be confident if suggesting a new name</span>
+        <span class="n">name_confidence</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">rank</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">sorted_nids</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">nid</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: impossible state if oracle_method == 1&#39;</span><span class="p">)</span>
-            <span class="n">score</span><span class="p">,</span> <span class="n">rawscore</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">score</span> <span class="o">=</span> <span class="n">sorted_nscore</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
-            <span class="n">rawscore</span> <span class="o">=</span> <span class="n">sorted_rawscore</span><span class="p">[</span><span class="n">rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c">#name_confidence = 0.99  # The oracle is confident in its decision</span>
+        <span class="n">name_confidence</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c"># The oracle is confident in its decision</span>
         <span class="n">oracle_msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="s">&#39;Oracle suggests nid=</span><span class="si">%r</span><span class="s">, score=</span><span class="si">%.2f</span><span class="s">, rank=</span><span class="si">%r</span><span class="s">, rawscore=</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">rawscore</span><span class="p">))</span>
+            <span class="s">&#39;Oracle suggests chosen_names=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chosen_names</span><span class="p">,))</span>
     <span class="n">autoname_msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">oracle_msg_list</span><span class="p">)</span>
-    <span class="n">name_confidence</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="k">return</span> <span class="n">autoname_msg</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_confidence</span>
-    <span class="c">#print(autoname_msg)</span>
-    <span class="c">#ut.embed()</span></div>
+    <span class="n">oracle_name_suggest_tup</span> <span class="o">=</span> <span class="n">autoname_msg</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">,</span> <span class="n">name_confidence</span>
+    <span class="k">return</span> <span class="n">oracle_name_suggest_tup</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.automated_oracle</span>
+<span class="sd">        python -m ibeis.model.hots.automated_oracle --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.automated_oracle --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -175,7 +191,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -129,7 +129,7 @@
     <span class="n">indexer_cfgstr</span> <span class="o">=</span> <span class="n">daids_hashid</span> <span class="o">+</span> <span class="n">flann_cfgstr</span> <span class="o">+</span> <span class="n">feat_cfgstr</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c"># Grab the keypoints names and image ids before query time</span>
-        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">()</span>
         <span class="c"># Get annotation descriptors that will be searched</span>
         <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
@@ -345,7 +345,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
