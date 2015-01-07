@@ -40,6 +40,11 @@ class APIItemView(API_VIEW_BASE):
     """
     Trees and Tables implicitly inherit from this class.
     Abstractish class.
+
+    other function in this file will be injected into the concrete
+    implementations of either a table or tree view. The code is only written
+    once but duplicated in each of the psuedo-children. It is done this way to
+    avoid explicit multiple inheritance.
     """
 
     def __init__(view, parent=None):
@@ -112,26 +117,35 @@ def hide_cols(view):
 
 
 @register_view_method
+@profile
 def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
         _id is from the iders function (i.e. an ibeis rowid)
         selects the row in that view if it exists
     """
-    model = view.model()
-    row = model.get_row_from_id(_id)
-    if row is not None:
-        qtindex = model.index(row, 0)
-        if isinstance(view, QtGui.QTreeView):
-            if collapse:
-                view.collapseAll()
-            view.selectionModel().select(qtindex, QtGui.QItemSelectionModel.ClearAndSelect)
-            view.setExpanded(qtindex, True)
-        else:
-            view.selectRow(row)
-        # Scroll to selection
-        if scroll:
-            view.scrollTo(qtindex)
-        return row
+    with ut.Timer('selecting row from id'):
+        model = view.model()
+        row = model.get_row_from_id(_id)
+        if row is not None:
+            qtindex = model.index(row, 0)
+            if isinstance(view, QtGui.QTreeView):
+                if collapse:
+                    view.collapseAll()
+                select_model = view.selectionModel()
+                select_flag = QtGui.QItemSelectionModel.ClearAndSelect
+                #select_flag = QtGui.QItemSelectionModel.Select
+                #select_flag = QtGui.QItemSelectionModel.NoUpdate
+                with ut.Timer('selecting name'):
+                    select_model.select(qtindex, select_flag)
+                with ut.Timer('expanding'):
+                    view.setExpanded(qtindex, True)
+            else:
+                view.selectRow(row)
+            # Scroll to selection
+            if scroll:
+                with ut.Timer('scrolling'):
+                    view.scrollTo(qtindex)
+            return row
     return None
 
 #---------------
