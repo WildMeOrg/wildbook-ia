@@ -56,7 +56,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
             ut.remove_dirs(negatives_cache)
         ut.ensuredir(negatives_cache)
         # Get negative chip paths
-        print("[randomforest.train()] Mining negative patches")
+        print("[randomforest.train()] Mining %d negative patches" % (len(train_pos_cpath_list), ))
         train_neg_cpath_list = []
         while len(train_neg_cpath_list) < len(train_pos_cpath_list):
             sample = random.randint(0, len(gid_list) - 1)
@@ -212,12 +212,13 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
             iter
     '''
     # Get scales from detect config, if not specified
-    if 'scale_list' not in kwargs.keys() is None:
+    if 'scale_list' not in kwargs.keys():
         kwargs['scale_list'] = map(float, ibs.cfg.detect_cfg.scale_list.split(','))
-        assert all([ isinstance(float, scale) for scale in kwargs['scale_list'] ])
+        assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
+    print('[randomforest.detect()] scale_list=%r' % (kwargs['scale_list'], ))
     # Run detection
     detector = pyrf.Random_Forest_Detector()
-    forest = detector.forest(tree_path_list)
+    forest = detector.forest(tree_path_list, verbose=False)
     results_iter = detector.detect(forest, gpath_list, **kwargs)
     return list(results_iter)
 
