@@ -45,7 +45,9 @@ def backblock(func):
         _wasBlocked_ = back.front.blockSignals(True)
         try:
             result = func(back, *args, **kwargs)
-        except Exception:
+        except Exception as ex:
+            error_msg = "Error caught while preforming function. \n %r" % ex
+            guitool.msgbox(title="Error Catch!", msg=error_msg)
             raise
         finally:
             back.front.blockSignals(_wasBlocked_)
