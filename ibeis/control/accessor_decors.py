@@ -146,6 +146,11 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             print('\n[get] %s.%s %d / %d cache hits' %
                   (tblname, colname, num_hit, num_total))
 
+        def assert_cache_hits(ismiss_list, rowid_list):
+            print(ismiss_list)
+            print(rowid_list)
+            pass
+
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
             if cfgkeys is not None:
@@ -160,6 +165,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             ismiss_list = [val is None for val in vals_list]
             if debug:
                 debug_cache_hits(ismiss_list, rowid_list)
+                assert_cache_hits(ismiss_list, rowid_list)
             if any(ismiss_list):
                 miss_indices = ut.list_where(ismiss_list)
                 miss_rowids  = ut.filter_items(rowid_list, ismiss_list)
