@@ -9,6 +9,7 @@ from ibeis.model.detect import grabmodels
 from detecttools.directory import Directory
 import utool as ut
 import vtool as vt
+from six.moves import zip
 import cv2
 import pyrf
 # import multiprocessing
@@ -133,11 +134,13 @@ def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
 
         Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Returns:
+        Yields:
             iter
     '''
     tree_path_list = _get_models(ibs, species)
-    return detect(ibs, gpath_list, tree_path_list, **kwargs)
+    results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
+    for results in results_iter:
+        yield results
 
 
 def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwargs):
@@ -190,7 +193,6 @@ def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
     results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
     # Upscale the results
     for downsample, (gpath, result_list) in zip(downsample_list, results_iter):
-        print(result_list)
         # Upscale the results back up to the original image size
         if downsample is not None and downsample != 1.0:
             for result in result_list:
@@ -214,12 +216,12 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     if 'scale_list' not in kwargs.keys():
         kwargs['scale_list'] = map(float, ibs.cfg.detect_cfg.scale_list.split(','))
         assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
-    print('[randomforest.detect()] scale_list=%r' % (kwargs['scale_list'], ))
+    print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
     # Run detection
     detector = pyrf.Random_Forest_Detector()
     forest = detector.forest(tree_path_list, verbose=False)
     results_iter = detector.detect(forest, gpath_list, **kwargs)
-    return list(results_iter)
+    return results_iter
 
 
 ########################
@@ -261,7 +263,6 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
     # Load tree paths
     if ut.checkpath(trees_path, verbose=verbose):
         direct = Directory(trees_path, include_extensions=['txt'])
-        print(direct.files())
         files = direct.files()
     else:
         # If the models do not exist, return None
