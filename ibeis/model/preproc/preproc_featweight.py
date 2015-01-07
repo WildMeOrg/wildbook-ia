@@ -35,7 +35,7 @@ def gen_featweight_worker(tup):
         >>> chip_list = ibs.get_annot_chips(aid_list)
         >>> kpts_list = ibs.get_annot_kpts(aid_list)
         >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
-        >>> probchip_list = [vtimage.imread(fpath, grayscale=False) if exists(fpath) else None for fpath in probchip_fpath_list]
+        >>> probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
         >>> kpts  = kpts_list[0]
         >>> aid   = aid_list[0]
         >>> probchip = probchip_list[0]
@@ -133,7 +133,8 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list)
-    probchip_list = [vtimage.imread(fpath) if exists(fpath) else None for fpath in probchip_fpath_list]
+    # Force grayscale reading of chips
+    probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
 
     print('[preproc_featweight] Computing fgweights')
     arg_iter = zip(aid_list, kpts_list, probchip_list)
