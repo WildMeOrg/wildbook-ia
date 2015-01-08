@@ -633,6 +633,7 @@ class IBEISController(object):
             submit_url_ = submit_url % (hostname, encounter_uuid)
             print('[_send] URL=%r' % (submit_url_, ))
             response = ibs._init_wb(submit_url_)
+            print(response.text)
             if response.status_code == 200:
                 return True
             else:
