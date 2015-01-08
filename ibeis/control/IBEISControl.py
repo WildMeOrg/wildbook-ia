@@ -636,6 +636,7 @@ class IBEISController(object):
             if response.status_code == 200:
                 return True
             else:
+                print("WILDBOOK SERVER RESPONSE = %r" % (response.text, ))
                 webbrowser.open_new_tab(submit_url_)
                 raise AssertionError('Wildbook response NOT ok (200)')
                 return False
