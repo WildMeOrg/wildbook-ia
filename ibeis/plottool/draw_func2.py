@@ -276,8 +276,8 @@ def plot(*args, **kwargs):
 
 
 def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
-          unitbox=False, flipx=False, flipy=False, title=None,
-          equal_aspect=True, label='', *args, **kwargs):
+          unitbox=False, flipx=False, flipy=False, title=None, dark=True,
+          equal_aspect=True, pad=0, label='', *args, **kwargs):
     do_plot = True
     # ensure length
     if len(x_data) != len(y_data):
@@ -299,9 +299,14 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
     if do_plot:
         ax.plot(x_data, y_data, marker, label=label, *args, **kwargs)
 
+        min_x = x_data.min()
+        min_y = y_data.min()
+        max_x = x_data.max()
+        max_y = y_data.max()
+        min_ = min(min_x, min_y)
+        max_ = max(max_x, max_y)
+
         if equal_aspect:
-            min_ = min(x_data.min(), y_data.min())
-            max_ = max(x_data.max(), y_data.max())
             # Equal aspect ratio
             if unitbox is True:
                 # Just plot a little bit outside  the box
@@ -315,10 +320,16 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
                 ax.set_aspect('equal')
         else:
             ax.set_aspect('auto')
+        if pad > 0:
+            ax.set_xlim(min_x - pad, max_x + pad)
+            ax.set_ylim(min_y - pad, max_y + pad)
+        ax.grid(True, color='w' if dark else 'k')
         if flipx:
             ax.invert_xaxis()
         if flipy:
             ax.invert_yaxis()
+        if dark:
+            dark_background()
     else:
         # No data, draw big red x
         draw_boxedX()
