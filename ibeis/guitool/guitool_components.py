@@ -106,6 +106,31 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
 
 
 def newProgressBar(parent, visible=True, verticalStretch=1):
+    r"""
+    Args:
+        parent (?):
+        visible (bool):
+        verticalStretch (int):
+
+    Returns:
+        ?: progressBar
+
+    CommandLine:
+        python -m guitool.guitool_components --test-newProgressBar
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> # build test data
+        >>> parent = '?'
+        >>> visible = True
+        >>> verticalStretch = 1
+        >>> # execute function
+        >>> progressBar = newProgressBar(parent, visible, verticalStretch)
+        >>> # verify results
+        >>> result = str(progressBar)
+        >>> print(result)
+    """
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
                                verticalSizePolicy=QSizePolicy.Maximum,
@@ -392,3 +417,16 @@ def layoutSplitter(splitter):
 def msg_event(title, msg):
     """ Returns a message event slot """
     return lambda: guitool_dialogs.msgbox(title, msg)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m guitool.guitool_components
+        python -m guitool.guitool_components --allexamples
+        python -m guitool.guitool_components --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
