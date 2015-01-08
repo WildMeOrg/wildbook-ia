@@ -633,10 +633,10 @@ class IBEISController(object):
             submit_url_ = submit_url % (hostname, encounter_uuid)
             print('[_send] URL=%r' % (submit_url_, ))
             response = ibs._init_wb(submit_url_)
-            print(response.text)
             if response.status_code == 200:
                 return True
             else:
+                print("WILDBOOK SERVER RESPONSE = %r" % (response.text, ))
                 webbrowser.open_new_tab(submit_url_)
                 raise AssertionError('Wildbook response NOT ok (200)')
                 return False
