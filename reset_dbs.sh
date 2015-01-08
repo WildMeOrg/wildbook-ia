@@ -4,11 +4,15 @@ cd $(dirname $0)
 # <CORRECT_PYTHON>
 # GET CORRECT PYTHON ON ALL PLATFORMS
 export PYMAJOR="$(python -c "import sys; print(sys.version_info[0])")"
+export PYMINOR="$(python -c "import sys; print(sys.version_info[1])")"
 export SYSNAME="$(expr substr $(uname -s) 1 10)"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export PYEXE=python
 else
     if [ "$PYMAJOR" = "3" ]; then
+        # virtual env?
+        export PYEXE=python2.7
+    elif [ "$PYMAJOR" = "2" ] && [ "$PYMINOR" != "7" ] ; then
         # virtual env?
         export PYEXE=python2.7
     else
