@@ -95,5 +95,6 @@ class FiltKeys(object):
     DISTINCTIVENESS = 'distinctiveness'
     FG = 'fg'
     RATIO = 'ratio'
+    DIST = 'dist'
     LNBNN = 'lnbnn'
     DUPVOTE = 'dupvote'

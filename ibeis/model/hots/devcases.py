@@ -45,6 +45,12 @@ def myquery(ibs, vsone_pair_examples):
 
     """
     from ibeis.model.hots import special_query
+    from uuid import UUID
+    from ibeis import viz
+    vsone_pair_examples = [
+        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
+    ]
     vuuid_pair = vsone_pair_examples[1]
     aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
     daids = ibs.get_valid_aids()
@@ -55,6 +61,12 @@ def myquery(ibs, vsone_pair_examples):
 
     qaid2_qres_vsmany, qreq_vsmany_ = special_query.query_vsmany_initial(
         ibs, qaids, daids, use_cache=use_cache, save_qcache=save_qcache)
+
+    viz.show_chip(aid1)
+
+    qres_list, qreq_ = ibs.query_chips([aid1], [aid2], cfgdict=dict(codename='vsone_unnorm'), return_request=True, use_cache=use_cache, save_qcache=save_qcache)
+    qres = qres_list[0]
+    qres
 
 
 def get_gzall_small_test():
@@ -68,11 +80,7 @@ def get_gzall_small_test():
     debug_examples = [
         UUID('308fc664-7990-91ad-0576-d2e8ea3103d0'),
     ]
-    vsone_pair_examples = [
-        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
-    ]
-    vsone_pair_examples
+    #vsone_pair_examples
     debug_examples
 
     ignore_vuuids = [

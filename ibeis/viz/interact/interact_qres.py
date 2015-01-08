@@ -19,6 +19,7 @@ from .interact_sver import ishow_sver
 def ishow_qres(ibs, qres, **kwargs):
     """
     Displays query chip, groundtruth matches, and top matches
+    TODO: make this a class
     """
     fnum = df2.kwargs_fnum(kwargs)
     fig = ih.begin_interaction('qres', fnum)

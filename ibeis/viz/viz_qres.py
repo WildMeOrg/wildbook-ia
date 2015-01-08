@@ -140,16 +140,16 @@ def show_qres(ibs, qres, **kwargs):
         >>> fig.show()
 
     """
-    annot_mode = kwargs.get('annot_mode', 1) % 3  # this is toggled
-    figtitle    = kwargs.get('figtitle', '')
+    annot_mode    = kwargs.get('annot_mode', 1) % 3  # this is toggled
+    figtitle      = kwargs.get('figtitle', '')
     make_figtitle = kwargs.get('make_figtitle', False)
-    aug         = kwargs.get('aug', '')
-    top_aids    = kwargs.get('top_aids', DEFAULT_NTOP)
-    gt_aids     = kwargs.get('gt_aids',   [])
-    all_kpts    = kwargs.get('all_kpts', False)
-    show_query  = kwargs.get('show_query', False)
-    in_image    = kwargs.get('in_image', False)
-    sidebyside  = kwargs.get('sidebyside', True)
+    aug           = kwargs.get('aug', '')
+    top_aids      = kwargs.get('top_aids', DEFAULT_NTOP)
+    gt_aids       = kwargs.get('gt_aids',   [])
+    all_kpts      = kwargs.get('all_kpts', False)
+    show_query    = kwargs.get('show_query', False)
+    in_image      = kwargs.get('in_image', False)
+    sidebyside    = kwargs.get('sidebyside', True)
     name_scoring  = kwargs.get('name_scoring', False)
 
     fnum = df2.kwargs_fnum(kwargs)

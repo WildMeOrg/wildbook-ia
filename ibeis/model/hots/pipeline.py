@@ -720,6 +720,9 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
     NOTE:
         soon nnfiltagg will not be returned
 
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-threshold_and_scale_weights:0
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
@@ -760,10 +763,10 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
 
     """
     # Apply the filter weightings to determine feature validity and scores
-    filt_list = list(six.iterkeys(filt2_weights))
-    weights_list = list(six.itervalues(filt2_weights))
+    filtkey_list = list(six.iterkeys(filt2_weights))
+    raw_weights_list = list(six.itervalues(filt2_weights))
     # stw := sign, thresh, weight
-    stw_list = [qreq_.qparams.filt2_stw[filt] for filt in filt_list]
+    stw_list = [qreq_.qparams.filt2_stw[filt] for filt in filtkey_list]
     st_list  = [stw[0:2] for stw in stw_list]
     w_list   = [stw[2]   for stw in stw_list]
 
@@ -772,25 +775,29 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
     # comphrehensions I've written. They aren't that bad.
     #-------
 
-    # Build a mask fo every feature weight denoting if it passed its
-    # threshold from FiltCfg (if specifid)
+    # Mask feature weights that do not pass their threshold specified in FiltCfg
+    # This leaves passing features marked as True and failing features as False
+    # The sign lets us toggle less than or greater than
     qfx2_valid_list = [
         None if thresh is None else (
-            np.less_equal(np.multiply(sign, qfx2_weights), (sign * thresh))
+            np.less_equal(np.multiply(sign, qfx2_raw_weights), (sign * thresh))
         )
-        for qfx2_weights, (sign, thresh) in zip(weights_list, st_list)
+        for qfx2_raw_weights, (sign, thresh) in zip(raw_weights_list, st_list)
     ]
 
+    #ut.embed()
+
     # Build feature scores as feature weights scaled by values in FiltCfg
-    invert_score_filter_set = {hstypes.FiltKeys.RATIO}
+    # these should correspond to filtkeys with a sign of +1
+    invert_score_filter_set = {hstypes.FiltKeys.RATIO, hstypes.FiltKeys.DIST}
     qfx2_score_list = [
         None if weight == 0 else (
-            np.multiply(qfx2_weights, weight)
+            np.multiply(qfx2_raw_weights, weight)
             # hack to make higher ratio scores better.
             if filt not in invert_score_filter_set else
-            np.multiply(np.subtract(1.0, qfx2_weights), weight)
+            np.multiply(np.subtract(1.0, qfx2_raw_weights), weight)
         )
-        for qfx2_weights, filt, weight in zip(weights_list, filt_list, w_list)
+        for qfx2_raw_weights, filt, weight in zip(raw_weights_list, filtkey_list, w_list)
     ]
 
     # Aggregation: # TODO: this step should happen later
@@ -801,7 +808,7 @@ def threshold_and_scale_weights(qreq_, qaid, qfx2_valid0, filt2_weights):
         qfx2_score_agg = np.ones(qfx2_valid0.shape, dtype=hstypes.FS_DTYPE)
 
     # outputs
-    nnfilts = (filt_list, qfx2_score_list, qfx2_valid_list)
+    nnfilts = (filtkey_list, qfx2_score_list, qfx2_valid_list)
     nnfiltagg = (qfx2_score_agg, qfx2_valid_agg)
 
     return nnfilts, nnfiltagg
@@ -884,10 +891,10 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         >>> fsv = qaid2_chipmatch[qaid][1][daid]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
-        >>> filt_list = qaid2_nnfilts[qaid][0]
-        >>> print('filt_list = %r' % (filt_list,))
+        >>> filtkey_list = qaid2_nnfilts[qaid][0]
+        >>> print('filtkey_list = %r' % (filtkey_list,))
         >>> ut.assert_eq(fm.shape[1], 2, 'feat matches have 2 cols (qfx, dfx)')
-        >>> ut.assert_eq(fsv.shape[1], len(filt_list), 'feat score vectors have 1 col per filt')
+        >>> ut.assert_eq(fsv.shape[1], len(filtkey_list), 'feat score vectors have 1 col per filt')
         >>> ut.assert_inbounds(num_matches, 33, 42, 'vsone nmatches out of bounds')
 
     Example2:
@@ -975,7 +982,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
     Args:
         qfx2_idx (ndarray[int32_t, ndims=2]): mapping from query feature index
             to db neighbor index
-        nnfilts (tuple): (filt_list, qfx2_score_list, qfx2_valid_list)
+        nnfilts (tuple): (filtkey_list, qfx2_score_list, qfx2_valid_list)
         qreq_ (QueryRequest): query request object with hyper-parameters
 
     Returns:
@@ -999,7 +1006,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
         >>> qfx2_valid0 = qaid2_nnvalid0[qaid]
         >>> nnfilts = qaid2_nnfilts[qaid]
         >>> nnfiltagg = qaid2_nnfiltagg[qaid]
-        >>> (filt_list, qfx2_score_list, qfx2_valid_list) = nnfilts
+        >>> (filtkey_list, qfx2_score_list, qfx2_valid_list) = nnfilts
         >>> (qfx2_score_agg, qfx2_valid_agg) = nnfiltagg
         >>> # execute function
         >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts)
@@ -1019,7 +1026,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
     qfx2_nnidx = qfx2_idx.T[0:K].T
     qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
     qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
-    (filt_list, qfx2_score_list, qfx2_valid_list) = nnfilts
+    (filtkey_list, qfx2_score_list, qfx2_valid_list) = nnfilts
     # Get an aggregate validity. This is ok because filters like dupvote dont
     # actually invalidate features it just heavilly downweights them
     qfx2_valid_agg = vt.and_lists(qfx2_valid0, *ut.filter_Nones(qfx2_valid_list))
@@ -1258,7 +1265,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
     """
     #filtlist_list = [nnfilts[0] for nnfilts in six.itervalues(qaid2_nnfilts)]
     #assert ut.list_allsame(filtlist_list), 'different queries with differnt filts'
-    #filt_list = filtlist_list[0]
+    #filtkey_list = filtlist_list[0]
     dupvotex = ut.listfind(qreq_.qparams.active_filter_list, hstypes.FiltKeys.DUPVOTE)
     if dupvotex is None:
         return

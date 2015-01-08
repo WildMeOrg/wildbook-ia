@@ -193,14 +193,15 @@ class FilterConfig(ConfigBase):
             filt_cfg['_' + filt + '_depends'] = depends
             filt_cfg['_' + filt + '_sign'] = sign
         # thresh test is: sign * score <= sign * thresh
-        # sign +1 --> Lower scores are better
-        # sign -1 --> Higher scores are better
+        # sign +1 := Lower scores are better
+        # sign -1 := Higher scores are better
         #tup( Sign,        Filt, ValidSignThresh, ScoreMetaWeight)
         #    (sign,        filt, thresh, weight,  depends)
         addfilt(+1,  'bboxdist',   None,    0.0)
         addfilt(-1,     'recip',    0.0,    0.0, 'filt_cfg.Krecip > 0')
         addfilt(+1,    'bursty',   None,    0.0)
         addfilt(+1,     'ratio',   None,    0.0)
+        addfilt(+1,      'dist',   None,    0.0)
         addfilt(-1,     'lnbnn',   None,    1.0)
         addfilt(-1,   'dupvote',   None,    1.0)
         addfilt(-1,    'lograt',   None,    0.0)
@@ -661,8 +662,18 @@ class QueryConfig(ConfigBase):
             nn_cfg.Knorm = 1
             filt_cfg.lnbnn_weight = 0.0
             #filt_cfg.ratio_thresh = 1.6
-            filt_cfg.ratio_thresh = .625
-            filt_cfg.ratio_weight = 1.0
+            if '_dist' in codename:
+                # no ratio use distance
+                filt_cfg.ratio_thresh = None
+                filt_cfg.ratio_weight = 0.0
+                filt_cfg.dist_thresh = None
+                filt_cfg.dist_weight = 1.0
+            else:
+                filt_cfg.ratio_thresh = .625
+                filt_cfg.ratio_weight = 1.0
+            if '_ratio' in codename:
+                filt_cfg.ratio_thresh = .625
+                filt_cfg.ratio_weight = 1.0
             filt_cfg.dupvote_weight = 0.0
             if codename.startswith('vsone_unnorm'):
                 agg_cfg.score_normalization = False

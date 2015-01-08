@@ -518,6 +518,12 @@ def ratio_fn(vdist, ndist):
 
 
 @_register_nn_normalized_weight_func
+def dist_fn(vdist, ndist):
+    """ just use straight up distance """
+    return vdist
+
+
+@_register_nn_normalized_weight_func
 def logratio_fn(vdist, ndist):
     return np.log(np.divide(ndist, vdist + EPS) + 1.0)
 

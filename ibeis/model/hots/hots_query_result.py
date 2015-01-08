@@ -410,8 +410,9 @@ class QueryResult(__OBJECT_BASE__):
     def get_top_aids(qres, num=None, name_scoring=False, ibs=None):
         """ Returns a ranked list of chip indexes """
         # TODO: rename num to ranks_lt
-        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring,
-                                                      ibs=ibs)
+        aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
+        # fix when score_arr is a bad probability
+        score_arr = np.array(qres.get_aid_scores(aid_arr, rawscore=True))
         # Get chip-ids sorted by scores
         top_aids = aid_arr[score_arr.argsort()[::-1]]
         num_indexed = len(top_aids)

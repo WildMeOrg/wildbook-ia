@@ -716,6 +716,7 @@ class NeighborIndex(object):
         nnindexer.idx2_fgw = None  # (M x 1) Descriptor forground weight
         nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
+        nnindexer.max_distance = None  # max possible distance for normalization
         nnindexer.cfgstr   = cfgstr  # configuration id
         nnindexer.flann_params = flann_params
         nnindexer.cores  = flann_params.get('cores', 0)
@@ -736,7 +737,7 @@ class NeighborIndex(object):
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
         else:
-            assert False, 'NNindexer should get uint8s right now unless the algorithm has changed'
+            raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
 
     @profile
     def add_support(nnindexer, new_aid_list, new_vecs_list, new_fgws_list,

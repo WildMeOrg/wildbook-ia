@@ -138,10 +138,14 @@ class MatchInteraction(object):
         aid        = self.aid
         # </CLOSURE VARS>
         qaid = qres.qaid
+        print('+--- SELECT --- ')
+        print('qaid=%r, daid=%r' % (qaid, aid))
         print('... selecting mx-th=%r feature match' % mx)
         print('qres.filtkey_list = %r' % (qres.filtkey_list,))
         fsv = qres.aid2_fsv[aid]
+        fs  = qres.aid2_fs[aid]
         print('fsv[mx] = %r' % (fsv[mx],))
+        print('fs[mx] = %r' % (fs[mx],))
 
         #----------------------
         # Get info for the select_ith_match plot
@@ -175,7 +179,8 @@ class MatchInteraction(object):
             info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
             extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
         else:
-            print('WARNING: meta doesnt exist')
+            pass
+            #print('WARNING: meta doesnt exist')
 
         #----------------------
         # Draw the select_ith_match plot
