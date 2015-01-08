@@ -705,10 +705,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View image', lambda: ibswgt.back.select_gid(gid, eid, show=True)),
                     ('View detection image (Hough) [dev]', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('Add annotation from entire image', lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images([gid])),
                 ]
             else:
                 context_options += [
+                    ('Add annotation from entire images', lambda: ibswgt.back.add_annotation_from_image(id_list)),
                     ('Run detection on images (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images(id_list)),
                 ]
             # Special condition for encounters
@@ -747,6 +749,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View image', lambda: ibswgt.back.select_gid(gid, eid, show=True)),
                     ('View detection image (Hough) [dev]', lambda: ibswgt.back.show_hough_image(gid)),
+                    ('Add annotation from entire image', lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)', lambda: ibswgt.back.run_detection_on_images([gid])),
                     ('----', lambda: None),
                     ('Go to image in Images Table', lambda: _goto_image_image(gid)),

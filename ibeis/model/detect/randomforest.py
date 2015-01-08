@@ -37,7 +37,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
     '''
     print("[randomforest.train()] training with %d gids and species=%r" % (len(gid_list), species, ))
     if trees_path is None and species is not None:
-        trees_path = join(ibs.get_ibsdir(), 'trees', species)
+        trees_path = join(ibs.get_treesdir(), species)
 
     # Get positive chip paths
     if species is None:
@@ -114,7 +114,7 @@ def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path
             None
     '''
     if trees_path is None:
-        trees_path = join(ibs.get_ibsdir(), 'trees', 'generic')
+        trees_path = join(ibs.get_treesdir(), 'generic')
     # Train trees
     detector = pyrf.Random_Forest_Detector()
     detector.train(train_pos_cpath_list, train_neg_cpath_list, trees_path, **kwargs)
