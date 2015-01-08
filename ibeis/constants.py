@@ -25,6 +25,8 @@ class PATH_NAMES(object):
     detectimg  = 'detectimg'
     thumbs     = 'thumbs'
     trashdir   = 'trashed_images'
+    distinctdir = 'distinctiveness_model'
+    scorenormdir = 'scorenorm'
 
 
 class REL_PATHS(object):
@@ -40,6 +42,7 @@ class REL_PATHS(object):
     flann    = join(cache, PATH_NAMES.flann)
     qres     = join(cache, PATH_NAMES.qres)
     bigcache = join(cache, PATH_NAMES.bigcache)
+    distinctdir = join(cache, PATH_NAMES.distinctdir)
 
 
 # TODO: Remove anything under this block completely

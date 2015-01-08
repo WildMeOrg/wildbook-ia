@@ -428,6 +428,7 @@ class IBEISController(object):
         ibs.flanndir    = join(ibs.dbdir, REL_PATHS.flann)
         ibs.qresdir     = join(ibs.dbdir, REL_PATHS.qres)
         ibs.bigcachedir = join(ibs.dbdir, REL_PATHS.bigcache)
+        ibs.distinctdir = join(ibs.dbdir, REL_PATHS.distinctdir)
         if ensure:
             ibs.ensure_directories()
         assert dbdir is not None, 'must specify database directory'
@@ -447,6 +448,7 @@ class IBEISController(object):
         ut.ensuredir(ibs.qresdir,     verbose=_verbose)
         ut.ensuredir(ibs.bigcachedir, verbose=_verbose)
         ut.ensuredir(ibs.thumb_dpath, verbose=_verbose)
+        ut.ensuredir(ibs.distinctdir, verbose=_verbose)
 
     #
     #
@@ -522,8 +524,10 @@ class IBEISController(object):
         return ibs.cachedir
 
     def get_ibeis_resource_dir(ibs):
+        """ returns the global resource dir in .config or AppData or whatever """
         from ibeis.dev import sysres
-        return sysres.get_ibeis_resource_dir()
+        resource_dir = sysres.get_ibeis_resource_dir()
+        return resource_dir
 
     def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
@@ -552,7 +556,7 @@ class IBEISController(object):
             scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), 'scorenorm')
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAME.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensurepath(scorenorm_cachedir)
@@ -562,12 +566,27 @@ class IBEISController(object):
     def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
         """
-        scorenorm_cachedir = join(ibs.get_cachedir(), 'scorenorm')
+        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAME.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensuredir(scorenorm_cachedir)
             ut.ensuredir(species_cachedir)
         return species_cachedir
+
+    def get_global_distinctiveness_modeldir(ibs, species=None, ensure=True):
+        """
+        Returns:
+            list_ (list): ibs internal directory """
+        global_distinctdir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAMES.distinctdir)
+        if ensure:
+            ut.ensuredir(global_distinctdir)
+        return global_distinctdir
+
+    def get_local_distinctiveness_modeldir(ibs):
+        """
+        Returns:
+            list_ (list): ibs internal directory """
+        return ibs.distinctdir
 
     def get_detect_modeldir(ibs):
         from ibeis.dev import sysres
