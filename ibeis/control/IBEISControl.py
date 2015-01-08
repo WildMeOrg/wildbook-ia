@@ -704,12 +704,14 @@ class IBEISController(object):
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
+        print("TYPE:", type(detect_gen))
         for gid, (gpath, result_list) in zip(gid_list, detect_gen):
             for result in result_list:
                 # Ideally, species will come from the detector with confidences that actually mean something
                 bbox = (result['xtl'], result['ytl'], result['width'], result['height'])
                 ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
                                species_list=[species],
+                               quiet_delete_thumbs=True,
                                detect_confidence_list=[result['confidence']])
 
     #

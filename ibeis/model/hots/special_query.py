@@ -203,7 +203,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
             incinfo['interactive'] = True
             incinfo['use_oracle'] = False
             incinfo['PLEASE_STOP'] = True
-            if True:
+            if ut.is_developer():
                 import plottool as pt  # NOQA
                 IPYTHON_COMMANDS = """
                 >>> %pylab qt4
