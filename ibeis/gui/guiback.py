@@ -378,6 +378,17 @@ class MainWindowBackend(QtCore.QObject):
         return aid
 
     @blocking_slot()
+    def add_annotation_from_image(back, gid_list, refresh=True):
+        """ Action -> Add Annotation from Image"""
+        print('[back] add_annotation_from_image')
+        size_list = back.ibs.get_image_sizes(gid_list)
+        bbox_list = [ (0, 0, w, h) for (w, h) in size_list ]
+        theta_list = [0.0] * len(gid_list)
+        back.ibs.add_annots(gid_list, bbox_list, theta_list)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+
+    @blocking_slot()
     def reselect_annotation(back, aid=None, bbox=None, refresh=True, **kwargs):
         """ Action -> Reselect ANNOTATION"""
         if aid is None:

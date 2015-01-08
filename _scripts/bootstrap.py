@@ -180,7 +180,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         # 'pyinstaller',
         'statsmodels',
         'lockfile',  # Need to do upgrade on this
-        'git+https://github.com/amitdev/lru-dict',
+        'lru-dict',
     ]
 
     OPTIONAL_PYPKG_LIST = [

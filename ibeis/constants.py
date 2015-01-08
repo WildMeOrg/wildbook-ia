@@ -20,6 +20,7 @@ class PATH_NAMES(object):
     chips      = 'chips'
     flann      = 'flann'
     images     = 'images'
+    trees      = 'trees'
     qres       = 'qres'
     bigcache   = 'qres_bigcache'
     detectimg  = 'detectimg'
@@ -37,6 +38,7 @@ class REL_PATHS(object):
     backups  = join(_ibsdb, PATH_NAMES.backups)
     chips    = join(_ibsdb, PATH_NAMES.chips)
     images   = join(_ibsdb, PATH_NAMES.images)
+    trees    = join(_ibsdb, PATH_NAMES.trees)
     # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
     thumbs   = join(cache, PATH_NAMES.thumbs)
     flann    = join(cache, PATH_NAMES.flann)
