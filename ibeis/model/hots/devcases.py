@@ -50,7 +50,12 @@ def myquery(ibs, vsone_pair_examples):
     vsone_pair_examples = [
         [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
         [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
+        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')]
+
     ]
+    ibs.get_annot_visual_uuids([36, 3])
+
     vuuid_pair = vsone_pair_examples[1]
     aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
     daids = ibs.get_valid_aids()

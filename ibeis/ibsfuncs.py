@@ -228,14 +228,17 @@ def precompute_all_annot_dependants(ibs, **kwargs):
 
 
 @__injectable
-def recompute_fgweights(ibs):
+def recompute_fgweights(ibs, aid_list=None):
     """ delete all feature weights and then recompute them """
     # Delete all featureweights
-    featweight_rowid_list = ibs._get_all_featweight_rowids()
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+        featweight_rowid_list = ibs._get_all_featweight_rowids()
+    else:
+        featweight_rowid_list = ibs.get_annot_featweight_rowids(aid_list)
     ibs.delete_featweight(featweight_rowid_list)
     #ibs.delete_annot_featweight(aid_list)
     # Recompute current featureweights
-    aid_list = ibs.get_valid_aids()
     ibs.get_annot_fgweights(aid_list, ensure=True)
 
 
