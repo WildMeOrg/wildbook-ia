@@ -52,12 +52,12 @@ def default_decorator(input_):
 API_CACHE = not ut.get_argflag('--no-api-cache')
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
 ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
-if ut.in_main_process():
-    if API_CACHE:
-        print('[accessor_decors] API_CACHE IS ENABLED')
-    else:
-        #print('[accessor_decors] API_CACHE IS DISABLED')
-        pass
+if ut.VERBOSE:
+    if ut.in_main_process():
+        if API_CACHE:
+            print('[accessor_decors] API_CACHE IS ENABLED')
+        else:
+            print('[accessor_decors] API_CACHE IS DISABLED')
 
 
 def init_tablecache():
