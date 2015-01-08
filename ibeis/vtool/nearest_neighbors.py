@@ -76,10 +76,10 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> qpts = np.zeros((2, 128))
         >>> dpts[:, 0] = 0
         >>> qpts[:, 0] = 512
-        >>> dpts[:, 1::2] = 1
         >>> qpts[:, 0::2] = 1
-        >>> dpts[:, 0::2] = 0
+        >>> dpts[:, 1::2] = 1
         >>> qpts[:, 1::2] = 0
+        >>> dpts[:, 0::2] = 0
         >>> qmag = np.sqrt(np.power(qpts.astype(np.float64), 2).sum(1))
         >>> dmag = np.sqrt(np.power(dpts.astype(np.float64), 2).sum(1))
         >>> # FIX TO ACTUALLY BE AT THE RIGHT NORM
