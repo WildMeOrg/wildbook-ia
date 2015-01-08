@@ -138,9 +138,7 @@ def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
             iter
     '''
     tree_path_list = _get_models(ibs, species)
-    results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
-    for results in results_iter:
-        yield results
+    return detect(ibs, gpath_list, tree_path_list, **kwargs)
 
 
 def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwargs):

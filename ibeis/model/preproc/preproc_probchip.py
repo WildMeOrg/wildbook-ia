@@ -209,7 +209,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
             'output_gpath_list': probchip_fpath_list,
             'mode': 1,
         }
-        randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config)
+        results_list = list(randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config))  # NOQA
         probchip_fpath_list_.extend(probchip_fpath_list)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
