@@ -73,6 +73,7 @@ class MatchInteraction(object):
 
         toggle_samefig_key = 'Toggle same_fig (currently %r)' % same_fig
 
+        # TODO: view probchip
         opt2_callback = [
             (toggle_samefig_key, self.toggle_samefig),
             ('query last feature', self.query_last_feature),
@@ -144,8 +145,18 @@ class MatchInteraction(object):
         print('qres.filtkey_list = %r' % (qres.filtkey_list,))
         fsv = qres.aid2_fsv[aid]
         fs  = qres.aid2_fs[aid]
+        print('score stats:')
+        print(ut.get_stats_str(fsv, axis=0, newlines=True))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
+        """
+        # test feature weights of actual chips
+        fx1, fx2 = qres.aid2_fm[aid][mx]
+        daid = aid
+        ibs.get_annot_fgweights([daid])[0][fx2]
+        ibs.get_annot_fgweights([qaid])[0][fx1]
+
+        """
 
         #----------------------
         # Get info for the select_ith_match plot
@@ -356,7 +367,6 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
         print('qres.filtkey_list = %r' % (qres.filtkey_list,))
         fsv = qres.aid2_fsv[aid]
         print('fsv[mx] = %r' % (fsv[mx],))
-
         #----------------------
         # Get info for the _select_ith_match plot
         annote_ptr[0] = 1

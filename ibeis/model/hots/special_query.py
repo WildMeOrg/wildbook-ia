@@ -22,7 +22,7 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vs
 
 
 # Automatic GZ Test Small
-sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac --interupt-case
 
 
 """
@@ -199,7 +199,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
         print('APPENDED NEW TESTCASE: case=%r' % (case,))
         print('* testup = %r' % (testtup,))
         print('* vuuid = %r' % (ibs_gt.get_annot_visual_uuids(testtup.qaid_t),))
-        if case in [VSMANY_WINS, VSMANY_DOMINATES]:
+        if ut.get_argflag('--interupt-case') and case in [VSMANY_WINS, VSMANY_DOMINATES]:
             incinfo['interactive'] = True
             incinfo['use_oracle'] = False
             incinfo['PLEASE_STOP'] = True

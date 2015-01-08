@@ -14,6 +14,45 @@ from os.path import exists
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
 
 
+def test_problem_featweight(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        auuid (?):
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_featweight --test-test_problem_featweight
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> test_problem_featweight(ibs)
+    """
+    from uuid import UUID
+    import vtool.patch as vtpatch  # NOQA
+    import vtool.image as vtimage  # NOQA
+    from ibeis.model.preproc import preproc_probchip
+    # build test data
+    avuuid = UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')
+    aid_list = ibs.get_annot_aids_from_visual_uuid([avuuid])
+    aid = aid_list[0]
+    fx = 68
+    probchip_fpath = preproc_probchip.compute_and_write_probchip(ibs, aid_list)[0]
+    probchip = vtimage.imread(probchip_fpath, grayscale=True)
+    #kp = np.array([ 508.7315979 ,  208.54475403,   13.65085793, 10.16940975,    6.1403141 ,    0.        ])
+    kpts = ibs.get_annot_kpts(aid_list)[0]
+    kp = kpts[fx]
+    patch = vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+    vtpatch.gaussian_average_patch(patch)
+    tup = (aid, kpts, probchip)
+    featweights = gen_featweight_worker(tup)[1]
+    featweights[fx]
+
+    ibs.get_annot_fgweights(aid_list)[0][fx]
+
+
 def gen_featweight_worker(tup):
     """
     Function to be parallelized by multiprocessing / joblib / whatever.
@@ -21,6 +60,7 @@ def gen_featweight_worker(tup):
 
     Args:
         tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
+           aid, kpts, probchip_fpath
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker
