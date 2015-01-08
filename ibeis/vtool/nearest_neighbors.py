@@ -39,8 +39,10 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> import numpy as np
         >>> np.random.seed(1)
         >>> # get points on unit sphere
-        >>> dpts = vt.normalize_rows(np.random.rand(5, 128))
-        >>> qpts = vt.normalize_rows(np.random.rand(10, 128))
+        >>> nDpts = 5000 # 5
+        >>> nQpts = 10000 # 10
+        >>> dpts = vt.normalize_rows(np.random.rand(nDpts, 128))
+        >>> qpts = vt.normalize_rows(np.random.rand(nQpts, 128))
         >>> qmag = np.sqrt(np.power(qpts, 2).sum(1))
         >>> dmag = np.sqrt(np.power(dpts, 2).sum(1))
         >>> assert np.all(np.allclose(qmag, 1)), 'not on unit sphere'
@@ -48,18 +50,50 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> # cast to uint8
         >>> uint8_max = 512  # hack
         >>> uint8_min = 0  # hack
+        >>> K = 100 # 2
+
         >>> qpts8 = np.clip(np.round(qpts * uint8_max), uint8_min, uint8_max).astype(np.uint8)
         >>> dpts8 = np.clip(np.round(dpts * uint8_max), uint8_min, uint8_max).astype(np.uint8)
         >>> qmag8 = np.sqrt(np.power(qpts8.astype(np.float32), 2).sum(1))
         >>> dmag8 = np.sqrt(np.power(dpts8.astype(np.float32), 2).sum(1))
         >>> # test
-        >>> qx2_dx, qx2_dist = ann_flann_once(dpts8, qpts8, 2)
+        >>> qx2_dx, qx2_dist = ann_flann_once(dpts8, qpts8, K)
+        >>> biggest_dist = np.sqrt(qx2_dist.max())
+        >>> print('biggest_dist = %r' % (biggest_dist))
         >>> # Get actual distance by hand
         >>> hand_dist = np.sum((qpts8 - dpts8[qx2_dx.T[0]]) ** 2, 0)
         >>> # Seems like flann returns squared distance. makes sense
         >>> result = utool.hashstr(repr((qx2_dx, qx2_dist)))
         >>> print(result)
         8zdwd&q0mu+ez4gp
+
+     Example:
+        >>> # Build theoretically maximally distant vectors
+        >>> b = 512
+        >>> D = 128
+        >>> x = np.sqrt((float(b) ** 2) / float(D - 1))
+        >>> dpts = np.ones((2, 128)) * x
+        >>> qpts = np.zeros((2, 128))
+        >>> dpts[:, 0] = 0
+        >>> qpts[:, 0] = 512
+        >>> dpts[:, 1::2] = 1
+        >>> qpts[:, 0::2] = 1
+        >>> dpts[:, 0::2] = 0
+        >>> qpts[:, 1::2] = 0
+        >>> qmag = np.sqrt(np.power(qpts.astype(np.float64), 2).sum(1))
+        >>> dmag = np.sqrt(np.power(dpts.astype(np.float64), 2).sum(1))
+        >>> # FIX TO ACTUALLY BE AT THE RIGHT NORM
+        >>> dpts = dpts * (512 / np.linalg.norm(dpts, axis=1))[:, None]
+        >>> qpts = qpts * (512 / np.linalg.norm(qpts, axis=1))[:, None]
+        >>> print(np.linalg.norm(dpts))
+        >>> print(np.linalg.norm(qpts))
+        >>> dist = np.sqrt(np.sum((qpts - dpts) ** 2, 1))
+        >>> # Because of norm condition another maximally disant pair of vectors
+        >>> # is [1, 0, 0, ... 0] and [0, 1, .. 0, 0, 0]
+        >>> # verifythat this gives you same dist.
+        >>> dist2 = np.sqrt((512 ** 2 + 512 ** 2))
+        >>> print(dist2)
+        >>> print(dist)
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
@@ -181,16 +215,18 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
 def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
                   use_cache=True, save=True):
     """
-    >>> from vtool.nearest_neighbors import *  # NOQA
-    >>> import vtool.tests.dummy as dummy  # NOQA
-    >>> dpts = dummy.get_dummy_dpts(utool.get_nth_prime(10))
-    >>> new_dpts = dummy.get_dummy_dpts(utool.get_nth_prime(9))
-    >>> cache_dir = utool.get_app_resource_dir('vtool')
-    >>> cfgstr = '_testcfg'
-    >>> new_cfgstr = '_new_testcfg'
-    >>> flann_params = get_kdtree_flann_params()
-    >>> use_cache = False
-    >>> save = False
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> import vtool.tests.dummy as dummy  # NOQA
+        >>> dpts = dummy.get_dummy_dpts(utool.get_nth_prime(10))
+        >>> new_dpts = dummy.get_dummy_dpts(utool.get_nth_prime(9))
+        >>> cache_dir = utool.get_app_resource_dir('vtool')
+        >>> cfgstr = '_testcfg'
+        >>> new_cfgstr = '_new_testcfg'
+        >>> flann_params = get_kdtree_flann_params()
+        >>> use_cache = False
+        >>> save = False
     """
     flann = flann_cache(dpts, cache_dir, cfgstr, flann_params)
     flann.add_points(new_dpts)
@@ -402,24 +438,27 @@ def invertable_stack(vecs_list, label_list):
         idx2_fx   - inverted index into features
 
     # Example with 2D Descriptors
-    >>> from vtool.nearest_neighbors import *  # NOQA
-    >>> DESC_TYPE = np.uint8
-    >>> label_list  = [1, 2, 3, 4, 5]
-    >>> vecs_list = [
-    ...     np.array([[0, 0], [0, 1]], dtype=DESC_TYPE),
-    ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
-    ...     np.empty((0, 2), dtype=DESC_TYPE),
-    ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
-    ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
-    ...     ]
-    >>> idx2_vec, idx2_label, idx2_fx = invertable_stack(vecs_list, label_list)
-    >>> print(repr(idx2_vec.T))
-    array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
-           [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
-    >>> print(repr(idx2_label))
-    array([1, 1, 2, 2, 2, 4, 4, 4, 5, 5, 5])
-    >>> print(repr(idx2_fx))
-    array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> DESC_TYPE = np.uint8
+        >>> label_list  = [1, 2, 3, 4, 5]
+        >>> vecs_list = [
+        ...     np.array([[0, 0], [0, 1]], dtype=DESC_TYPE),
+        ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
+        ...     np.empty((0, 2), dtype=DESC_TYPE),
+        ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
+        ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
+        ...     ]
+        >>> idx2_vec, idx2_label, idx2_fx = invertable_stack(vecs_list, label_list)
+        >>> print(repr(idx2_vec.T))
+        array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
+               [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
+        >>> print(repr(idx2_label))
+        array([1, 1, 2, 2, 2, 4, 4, 4, 5, 5, 5])
+        >>> print(repr(idx2_fx))
+        array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
     """
     # INFER DTYPE? dtype = vecs_list[0].dtype
     # Build inverted index of (label, fx) pairs
@@ -468,3 +507,15 @@ def invertable_stack(vecs_list, label_list):
 #        CYTHONIZED = False
 #    # </AUTOGEN_CYTH>
 #    pass
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.nearest_neighbors
+        python -m vtool.nearest_neighbors --allexamples
+        python -m vtool.nearest_neighbors --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
