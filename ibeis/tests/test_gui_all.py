@@ -108,5 +108,5 @@ if __name__ == '__main__':
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_GUI_ALL, ibs, back, gpath_list)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
+    #execstr = utool.execstr_dict(test_locals, 'test_locals')
+    #exec(execstr)

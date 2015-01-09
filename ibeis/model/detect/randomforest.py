@@ -265,5 +265,14 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
     else:
         # If the models do not exist, return None
         files = None
-    assert files is not None and len(files) > 0, '[_get_models] Error loading trees, either directory or files not found'
+    if not (files is not None and len(files) > 0):
+        msg = ut.codeblock(
+            '''
+            [_get_models] Error loading trees, either directory or files not found
+              * species = %r
+              * model_dir = %r
+              * cfg_override = %r
+            '''
+        ) % (species, modeldir, cfg_override)
+        raise AssertionError(msg)
     return files

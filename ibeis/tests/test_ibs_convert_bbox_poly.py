@@ -39,6 +39,6 @@ if __name__ == '__main__':
                              allow_newdir=False, delete_ibsdir=False)
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = utool.run_test(TEST_CONVERT_BBOX_POLY, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    execstr += '\n' + utool.ipython_execstr()
-    exec(execstr)
+    #execstr = utool.execstr_dict(test_locals, 'test_locals')
+    #execstr += '\n' + utool.ipython_execstr()
+    #exec(execstr)

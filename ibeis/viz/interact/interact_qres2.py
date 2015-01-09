@@ -12,7 +12,7 @@ from ibeis.viz import viz_helpers as vh
 from ibeis import ibsfuncs
 from plottool import interact_helpers as ih
 from ibeis.viz import viz_matches
-from ibeis.viz.interact.interact_matches import ishow_matches
+#from ibeis.viz.interact.interact_matches import ishow_matches
 from ibeis.viz.interact.interact_sver import ishow_sver
 from ibeis.dev import results_organizer
 import matplotlib as mpl
@@ -334,7 +334,7 @@ class Interact_QueryResult(object):
         printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
         qres = self.qaid2_qres[aid1]
-        ishow_matches(self.ibs, qres, aid2, fnum=fnum_)
+        qres.ishow_matches(self.ibs, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)

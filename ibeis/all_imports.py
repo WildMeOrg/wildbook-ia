@@ -205,7 +205,7 @@ from ibeis.viz.interact import ishow_chip
 from ibeis.viz.interact import ishow_name
 from ibeis.viz.interact import ishow_qres
 from ibeis.viz.interact import ishow_sver
-from ibeis.viz.interact import ishow_matches
+#from ibeis.viz.interact import ishow_matches
 from ibeis.viz.interact import iselect_bbox
 
 (print, print_, printDBG, rrr, profile) = utool.inject(

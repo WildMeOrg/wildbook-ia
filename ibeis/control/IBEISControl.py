@@ -563,7 +563,7 @@ class IBEISController(object):
             scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAME.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensurepath(scorenorm_cachedir)
@@ -573,7 +573,7 @@ class IBEISController(object):
     def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
         """
-        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAME.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensuredir(scorenorm_cachedir)
@@ -795,6 +795,8 @@ class IBEISController(object):
         print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
+        # HACK TO UPDATE TIMES
+        ibs.update_encounter_info(ibs.get_valid_eids())
         print('[ibs] Finished computing and adding encounters.')
 
     #
@@ -971,6 +973,15 @@ class IBEISController(object):
         daid_list = ibs.get_valid_aids()
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
+
+    @default_decorator
+    def has_species_detector(ibs, species_text):
+        return species_text in const.SPECIES_WITH_DETECTORS
+
+    @default_decorator
+    def get_species_with_detectors(ibs):
+        return const.SPECIES_WITH_DETECTORS
+        pass
 
 
 if __name__ == '__main__':

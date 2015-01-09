@@ -89,27 +89,19 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
     """
     HACK turns of featweights if they cannot be applied
     """
-    from ibeis import constants as const
     # Only apply the hack with repsect to the queried annotations
     aid_list = np.hstack((qaids, daids)).tolist()
     unique_species = ibs.get_database_species(aid_list)
     # turn off featureweights when not absolutely sure they are ok to us,)
-    SPECIES_WITH_DETECTORS = (
-        const.Species.ZEB_GREVY,
-        const.Species.ZEB_PLAIN,
-        const.Species.GIRAFFE,
-    )
-    candetect = (
-        len(unique_species) == 1 and
-        unique_species[0] in SPECIES_WITH_DETECTORS
-    )
+    candetect = (len(unique_species) == 1 and
+                 ibs.has_species_detector(unique_species[0]))
     if not candetect:
         print('HACKING FG_WEIGHT OFF (database species is not supported)')
         if len(unique_species) != 1:
             print('  * len(unique_species) = %r' % len(unique_species))
         else:
             print('  * unique_species = %r' % (unique_species,))
-        print('  * valid species = %r' % (SPECIES_WITH_DETECTORS,))
+        print('  * valid species = %r' % (ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_on = 'ERR'
         cfgdict['featweight_on'] = 'ERR'
     else:

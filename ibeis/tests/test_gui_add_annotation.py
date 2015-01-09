@@ -25,5 +25,5 @@ if __name__ == '__main__':
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_GUI_ADD_ANNOTATION, ibs, back)
-    exec(utool.execstr_dict(test_locals, 'test_locals'))
-    exec(utool.ipython_execstr())
+    #exec(utool.execstr_dict(test_locals, 'test_locals'))
+    #exec(utool.ipython_execstr())
