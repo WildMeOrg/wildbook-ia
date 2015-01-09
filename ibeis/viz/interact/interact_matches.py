@@ -29,8 +29,32 @@ class MatchInteraction(object):
     TODO: replace functional version with this class
 
     Plots a chip result and sets up callbacks for interaction.
+
     """
     def __init__(self, *args, **kwargs):
+        r"""
+        Args:
+
+
+        CommandLine:
+            python -m ibeis.viz.interact.interact_matches --test-__init__ --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+            >>> aid2 = 2
+            >>> sel_fm = []
+            >>> # execute function
+            >>> self  = MatchInteraction(ibs, qres, aid2, annot_mode=1)
+            >>> #if not utool.get_argflag('--noshow'):
+            >>> if utool.get_argflag('--show'):
+            >>>    execstr = df2.present()
+            >>>    exec(execstr)
+        """
         self.begin(*args, **kwargs)
 
     def begin(self, ibs, qres, aid=None, fnum=4,
@@ -82,7 +106,7 @@ class MatchInteraction(object):
         # FIXME: this should probably not be called here
         viz.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
 
-    def chipmatch_view(self, pnum=(1, 1, 1), **kwargs):
+    def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
         just visualizes the matches using some type of lines
         """
@@ -104,9 +128,13 @@ class MatchInteraction(object):
         annote_ptr[0] = (annote_ptr[0] + 1) % 3
         df2.figure(fnum=fnum, docla=True, doclf=True)
         # TODO RENAME This to remove qres and rectify with show_matches
-        tup = viz.show_matches(ibs, qres, aid, fnum=fnum, pnum=pnum,
-                               draw_lines=draw_lines, draw_ell=draw_ell,
-                               colorbar_=True, vert=self.vert, **kwargs)
+        show_matches_kw = self.kwargs
+        show_matches_kw.update(
+            dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines, draw_ell=draw_ell,
+                 colorbar_=True, vert=self.vert))
+        show_matches_kw.update(kwargs_)
+
+        tup = viz.show_matches(ibs, qres, aid, **show_matches_kw)
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
@@ -129,7 +157,6 @@ class MatchInteraction(object):
         aid        = self.aid
         fnum       = self.fnum
         figtitle   = self.figtitle
-        kwargs     = self.kwargs
         same_fig   = self.same_fig
         #last_state = self.last_state
         annote_ptr = self.annote_ptr
@@ -200,8 +227,9 @@ class MatchInteraction(object):
         # Draw matching chips and features
         sel_fm = np.array([(fx1, fx2)])
         pnum1 = (nRows, 1, 1) if same_fig else (1, 1, 1)
-        self.chipmatch_view(pnum1, vert=False, ell_alpha=.4, ell_linewidth=1.8,
-                             colors=df2.BLUE, sel_fm=sel_fm, **kwargs)
+        vert = self.vert if self.vert is not None else False
+        self.chipmatch_view(pnum1, ell_alpha=.4, ell_linewidth=1.8,
+                            colors=df2.BLUE, sel_fm=sel_fm, vert=vert)
         # Draw selected feature matches
         px = nCols * same_fig  # plot offset
         prevsift = None
@@ -251,41 +279,42 @@ class MatchInteraction(object):
             self.chipmatch_view()
             viz.draw()
             return
-        viztype = vh.get_ibsdat(ax, 'viztype', '')
-        print_('[ir] viztype=%r ' % viztype)
-        key = '' if event.key is None else event.key
-        print_('key=%r ' % key)
-        ctrl_down = key.find('control') == 0
-        # Click in match axes
-        if viztype == 'matches' and ctrl_down:
-            # Ctrl-Click
-            print('.. control click')
-            return self.sv_view()
-        elif viztype == 'matches':
-            if len(fm) == 0:
-                print('[inter] no feature matches to click')
-            else:
-                # Normal Click
-                # Select nearest feature match to the click
-                kpts1, kpts2 = ibs.get_annot_kpts([qaid, aid])
-                kpts1_m = kpts1[fm[:, 0]]
-                kpts2_m = kpts2[fm[:, 1]]
-                x2, y2, w2, h2 = xywh2_ptr[0]
-                _mx1, _dist1 = utool.nearest_point(x, y, kpts1_m)
-                _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
-                mx = _mx1 if _dist1 < _dist2 else _mx2
-                print('... clicked mx=%r' % mx)
-                self.select_ith_match(mx)
-        elif viztype in ['warped', 'unwarped']:
-            hs_aid = ax.__dict__.get('_hs_aid', None)
-            hs_fx = ax.__dict__.get('_hs_fx', None)
-            if hs_aid is not None and viztype == 'unwarped':
-                ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
-            elif hs_aid is not None and viztype == 'warped':
-                viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=df2.next_fnum())
         else:
-            print('...Unknown viztype: %r' % viztype)
-        viz.draw()
+            viztype = vh.get_ibsdat(ax, 'viztype', '')
+            print_('[ir] viztype=%r ' % viztype)
+            key = '' if event.key is None else event.key
+            print_('key=%r ' % key)
+            ctrl_down = key.find('control') == 0
+            # Click in match axes
+            if viztype == 'matches' and ctrl_down:
+                # Ctrl-Click
+                print('.. control click')
+                return self.sv_view()
+            elif viztype == 'matches':
+                if len(fm) == 0:
+                    print('[inter] no feature matches to click')
+                else:
+                    # Normal Click
+                    # Select nearest feature match to the click
+                    kpts1, kpts2 = ibs.get_annot_kpts([qaid, aid])
+                    kpts1_m = kpts1[fm[:, 0]]
+                    kpts2_m = kpts2[fm[:, 1]]
+                    x2, y2, w2, h2 = xywh2_ptr[0]
+                    _mx1, _dist1 = utool.nearest_point(x, y, kpts1_m)
+                    _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
+                    mx = _mx1 if _dist1 < _dist2 else _mx2
+                    print('... clicked mx=%r' % mx)
+                    self.select_ith_match(mx)
+            elif viztype in ['warped', 'unwarped']:
+                hs_aid = ax.__dict__.get('_hs_aid', None)
+                hs_fx = ax.__dict__.get('_hs_fx', None)
+                if hs_aid is not None and viztype == 'unwarped':
+                    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
+                elif hs_aid is not None and viztype == 'warped':
+                    viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=df2.next_fnum())
+            else:
+                print('...Unknown viztype: %r' % viztype)
+            viz.draw()
 
     def set_callbacks(self):
         # TODO: view probchip
@@ -324,3 +353,16 @@ class MatchInteraction(object):
         fig3 = df2.gcf()
         ih.connect_callback(fig3, 'button_press_event', self._click_matches_click)
         df2.update()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_matches
+        python -m ibeis.viz.interact.interact_matches --allexamples
+        python -m ibeis.viz.interact.interact_matches --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

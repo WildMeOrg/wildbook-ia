@@ -118,7 +118,8 @@ def dev_train_distinctiveness(species=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> import ibeis
-        >>> species = None
+        >>> species = const.Species.ZEB_GREVY
+        >>> species = const.Species.ZEB_PLAIN
         >>> dev_train_distinctiveness(species)
     """
     import ibeis

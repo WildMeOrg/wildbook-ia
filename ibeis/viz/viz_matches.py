@@ -20,6 +20,31 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
 
     Kwargs:
         vert (bool)
+
+    Returns:
+        tuple: (ax, xywh1, xywh2)
+
+    CommandLine:
+        python -m ibeis.viz.viz_matches --test-show_matches --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_matches import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> aid2 = 2
+        >>> sel_fm = []
+        >>> # execute function
+        >>> (ax, xywh1, xywh2) = show_matches(ibs, qres, aid2, sel_fm)
+        >>> # verify results
+        >>> result = str((ax, xywh1, xywh2))
+        >>> print(result)
+        >>> #if not utool.get_argflag('--noshow'):
+        >>> if utool.get_argflag('--show'):
+        >>>    execstr = df2.present()
+        >>>    exec(execstr)
     """
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
@@ -132,3 +157,16 @@ def annotate_matches(ibs, qres, aid2,
     if aid2 not in qres.aid2_fm or len(qres.aid2_fm[aid2]) == 0:
         if draw_border:
             df2.draw_boxedX(bbox2, theta=theta2)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_matches
+        python -m ibeis.viz.viz_matches --allexamples
+        python -m ibeis.viz.viz_matches --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
