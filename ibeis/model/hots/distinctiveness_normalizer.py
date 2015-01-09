@@ -127,6 +127,8 @@ def dev_train_distinctiveness(species=None):
         species = const.Species.ZEB_GREVY
     if species == const.Species.ZEB_GREVY:
         dbname = 'GZ_ALL'
+    elif species == const.Species.ZEB_PLAIN:
+        dbname = 'PZ_Master0'
     self = DistinctivnessNormalizer(species)
     ibs = ibeis.opendb(dbname)
     global_distinctdir = ibs.get_global_distinctiveness_modeldir()

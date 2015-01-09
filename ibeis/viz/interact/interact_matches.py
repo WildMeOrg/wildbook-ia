@@ -44,9 +44,15 @@ class MatchInteraction(object):
         mx = kwargs.pop('mx', None)
         xywh2_ptr = [None]
         annote_ptr = [kwargs.pop('mode', 0)]
-        last_state = LastState()
-        last_state.same_fig = same_fig
-        last_state.last_fx = 0
+        #last_state = LastState()
+        #last_state.same_fig = same_fig
+        #last_state.last_fx = 0
+        self.same_fig = same_fig
+        self.last_fx = 0
+
+        # New state vars
+        self.vert = kwargs.pop('vert', None)
+        self.mx = None
 
         # SET CLOSURE VARS
         self.ibs      = ibs
@@ -59,29 +65,20 @@ class MatchInteraction(object):
         self.same_fig = same_fig
         self.kwargs   = kwargs
         self.fig = fig
-        self.last_state = last_state
+        #self.last_state = last_state
         self.fig        = fig
         self.annote_ptr = annote_ptr
         self.xywh2_ptr  = xywh2_ptr
         self.fm         = fm
         self.rchip1     = rchip1
         self.rchip2     = rchip2
-        self.mx = None
 
         if mx is None:
             self.chipmatch_view()
         else:
             self.select_ith_match(mx)
 
-        toggle_samefig_key = 'Toggle same_fig'
-
-        # TODO: view probchip
-        opt2_callback = [
-            (toggle_samefig_key, self.toggle_samefig),
-            ('query last feature', self.query_last_feature),
-            ('cancel', lambda: print('cancel')), ]
-        guitool.connect_context_menu(fig.canvas, opt2_callback)
-        ih.connect_callback(fig, 'button_press_event', self._click_matches_click)
+        self.set_callbacks()
         # FIXME: this should probably not be called here
         viz.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
 
@@ -109,7 +106,7 @@ class MatchInteraction(object):
         # TODO RENAME This to remove qres and rectify with show_matches
         tup = viz.show_matches(ibs, qres, aid, fnum=fnum, pnum=pnum,
                                draw_lines=draw_lines, draw_ell=draw_ell,
-                               colorbar_=True, **kwargs)
+                               colorbar_=True, vert=self.vert, **kwargs)
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
@@ -134,7 +131,7 @@ class MatchInteraction(object):
         figtitle   = self.figtitle
         kwargs     = self.kwargs
         same_fig   = self.same_fig
-        last_state = self.last_state
+        #last_state = self.last_state
         annote_ptr = self.annote_ptr
         rchip1     = self.rchip1
         rchip2     = self.rchip2
@@ -177,7 +174,8 @@ class MatchInteraction(object):
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'
         info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
-        last_state.last_fx = fx1
+        #last_state.last_fx = fx1
+        self.last_fx = fx1
 
         # Extracted keypoints to draw
         extracted_list = [(rchip1, kp1, sift1, fx1, aid1, info1),
@@ -288,6 +286,22 @@ class MatchInteraction(object):
         else:
             print('...Unknown viztype: %r' % viztype)
         viz.draw()
+
+    def set_callbacks(self):
+        # TODO: view probchip
+        toggle_samefig_key = 'Toggle same_fig'
+        opt2_callback = [
+            (toggle_samefig_key, self.toggle_samefig),
+            ('Toggle vert', self.toggle_vert),
+            ('query last feature', self.query_last_feature),
+            ('cancel', lambda: print('cancel')), ]
+        guitool.connect_context_menu(self.fig.canvas, opt2_callback)
+        ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
+
+    def toggle_vert(self):
+        self.vert = not self.vert
+        if self.mx is not None:
+            self.select_ith_match(self.mx)
 
     def toggle_samefig(self):
         self.same_fig = not self.same_fig

@@ -91,6 +91,8 @@ def get_gzall_small_test():
     ignore_vuuids = [
         UUID('be6fe4d6-ae87-0f8f-269f-e9f706b69e41'),  # OUT OF PLANE
         UUID('c3394b28-e7f2-2da6-1a49-335b748acf9e'),  # HUGE OUT OF PLANE, foal (vsmany gets rank3)
+        UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'),
+        UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b'),
     ]
     vuuid_list = [
         UUID('e9a9544d-083d-6c30-b00f-d6806824a21a'),

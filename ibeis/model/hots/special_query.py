@@ -220,6 +220,9 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> correct_aids2 = ut.list_take(daids, correct_indicies)
                 >>> qaid = qres.qaid
                 >>> aid = correct_aids2[0]
+                >>> # Report visual uuid for inclusion or exclusion in script
+                >>> print(ibs.get_annot_visual_uuids([qaid, aid]))
+
                 >>> # Feature match things
                 >>> print('qres.filtkey_list = %r' % (qres.filtkey_list,))
                 >>> fm  = qres.aid2_fm[aid]
@@ -233,10 +236,12 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> data_featweights = ibs.get_annot_fgweights([aid])[0]
                 >>> data_featweights[dfx]
                 >>> fnum = pt.next_fnum()
-                >>> match_interaction = interact_matches.MatchInteraction(ibs, qres, aid)
+                >>> match_interaction_good = interact_matches.MatchInteraction(ibs, qres, aid)
+                >>> match_interaction = match_interaction_good
                 >>> self = match_interaction
                 >>> self.select_ith_match(mx)
                 >>> #impossible_to_match = len(correct_indicies) > 0
+                >>> bad_aid = qres.get_top_aids()[0]
                 """
                 y = """
                 >>> from ibeis.model.preproc import preproc_probchip
@@ -260,10 +265,23 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> pt.imshow(patch * 255)
                 >>> pt.update()
                 >>> vt.gaussian_average_patch(patch)
+
+
+                >>> qres.ishow_top(ibs, annot_mode=1)
                 """
                 y
                 # Gonna be pasting
+                def delayed_ipython_paste(delay):
+                    import time
+                    import utool as ut
+                    #import os
+                    print('waiting')
+                    time.sleep(delay)
+                    ut.send_keyboard_input(text='%paste')
+                    ut.send_keyboard_input(key_list=['KP_Enter'])
+                    #os.system(' '.join(['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'KP_Enter']))
                 ut.set_clipboard(IPYTHON_COMMANDS)
+                ut.spawn_background_thread(delayed_ipython_paste, .1)
                 ut.embed(remove_pyqt_hook=False)
                 IPYTHON_COMMANDS
 
