@@ -7,34 +7,6 @@ import utool as ut
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
 
 
-def load_gztest(ibs):
-    r"""
-    CommandLine:
-        python -m ibeis.model.hots.special_query --test-load_gztest
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('GZ_ALL')
-    """
-    from os.path import join
-    from ibeis.model.hots import match_chips4 as mc4
-    dir_ = ut.get_module_dir(mc4)
-    eval_text = ut.read_from(join(dir_,  'GZ_TESTTUP.txt'))
-    testcases = eval(eval_text)
-    count_dict = ut.count_dict_vals(testcases)
-    print(ut.dict_str(count_dict))
-
-    testtup_list = ut.flatten(ut.dict_take_list(testcases, ['vsone_wins',
-                                                            'vsmany_outperformed',
-                                                            'vsmany_dominates',
-                                                            'vsmany_wins']))
-    qaid_list = [testtup.qaid_t for testtup in testtup_list]
-    visual_uuids = ibs.get_annot_visual_uuids(qaid_list)
-    visual_uuids
-
-
 def myquery(ibs, vsone_pair_examples):
     """
     Example:
@@ -136,6 +108,34 @@ def get_gzall_small_test():
         UUID('265cf095-64f6-e5dd-8f7d-2a82f627b7d1'),
         UUID('4b19968e-f813-f238-0dcc-6a54f1943d57')]
     return vuuid_list, ignore_vuuids
+
+
+def load_gztest(ibs):
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-load_gztest
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('GZ_ALL')
+    """
+    from os.path import join
+    from ibeis.model.hots import match_chips4 as mc4
+    dir_ = ut.get_module_dir(mc4)
+    eval_text = ut.read_from(join(dir_,  'GZ_TESTTUP.txt'))
+    testcases = eval(eval_text)
+    count_dict = ut.count_dict_vals(testcases)
+    print(ut.dict_str(count_dict))
+
+    testtup_list = ut.flatten(ut.dict_take_list(testcases, ['vsone_wins',
+                                                            'vsmany_outperformed',
+                                                            'vsmany_dominates',
+                                                            'vsmany_wins']))
+    qaid_list = [testtup.qaid_t for testtup in testtup_list]
+    visual_uuids = ibs.get_annot_visual_uuids(qaid_list)
+    visual_uuids
 
 
 if __name__ == '__main__':

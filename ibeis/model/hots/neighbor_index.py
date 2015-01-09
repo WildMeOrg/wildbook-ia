@@ -738,6 +738,7 @@ class NeighborIndex(object):
             nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
         else:
             raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
+        nnindexer.max_distance_sqrd = nnindexer.max_distance ** 2
 
     @profile
     def add_support(nnindexer, new_aid_list, new_vecs_list, new_fgws_list,
@@ -959,8 +960,8 @@ class NeighborIndex(object):
             (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
                 qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
             # Ensure that distance returned are between 0 and 1
-            qfx2_dist = qfx2_dist / (nnindexer.max_distance ** 2)
-            #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance
+            qfx2_dist = np.divide(qfx2_dist, nnindexer.max_distance_sqrd)
+            #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd
         return (qfx2_idx, qfx2_dist)
 
     def empty_neighbors(nnindexer, nQfx, K):

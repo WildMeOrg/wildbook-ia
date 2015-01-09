@@ -1214,8 +1214,6 @@ class MainWindowBackend(QtCore.QObject):
         co_wgt.show()
         return gid_list
 
-
-
     @blocking_slot()
     def import_images_as_annots_from_file(back, gpath_list=None, refresh=True):
         return back.import_images_from_file(gpath_list=None, refresh=True, as_annots=True)

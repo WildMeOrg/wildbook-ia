@@ -5,22 +5,18 @@ from __future__ import absolute_import, division, print_function
 import utool
 import guitool
 import numpy as np
-from plottool import draw_func2 as df2
 import plottool as pt
 import six
-from ibeis import viz
 import utool as ut
-from plottool.viz_featrow import draw_feat_row
+from ibeis import viz
 from ibeis.viz import viz_helpers as vh
+from ibeis.viz import viz_hough
+from ibeis.viz import viz_chip
+from plottool import draw_func2 as df2
+from plottool.viz_featrow import draw_feat_row
 from plottool import interact_helpers as ih
-from .interact_chip import ishow_chip
+from ibeis.viz.interact.interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
-
-
-class LastState(object):
-    def __init__(last_state):
-        last_state.same_fig = None
-        last_state.last_fx = None
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -32,12 +28,22 @@ class MatchInteraction(object):
 
     """
     def __init__(self, *args, **kwargs):
+        self.begin(*args, **kwargs)
+
+    def begin(self, ibs, qres, aid=None, fnum=None,
+              figtitle='Inspect Query Result', same_fig=True, **kwargs):
         r"""
         Args:
-
+            ibs (IBEISController):  ibeis controller object
+            qres (QueryResult):  object of feature correspondences and scores
+            aid (None):
+            fnum (int):  figure number
+            figtitle (str):
+            same_fig (bool):
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-__init__ --show
+            python -m ibeis.viz.interact.interact_matches --test-begin
+            python -m ibeis.viz.interact.interact_matches --test-begin --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -55,10 +61,8 @@ class MatchInteraction(object):
             >>>    execstr = df2.present()
             >>>    exec(execstr)
         """
-        self.begin(*args, **kwargs)
-
-    def begin(self, ibs, qres, aid=None, fnum=4,
-              figtitle='Inspect Query Result', same_fig=True, **kwargs):
+        if fnum is None:
+            fnum = pt.next_fnum()
         fig = ih.begin_interaction('matches', fnum)  # call doclf docla and make figure
         qaid = qres.qaid
         if aid is None:
@@ -68,9 +72,6 @@ class MatchInteraction(object):
         mx = kwargs.pop('mx', None)
         xywh2_ptr = [None]
         annote_ptr = [kwargs.pop('mode', 0)]
-        #last_state = LastState()
-        #last_state.same_fig = same_fig
-        #last_state.last_fx = 0
         self.same_fig = same_fig
         self.last_fx = 0
 
@@ -316,13 +317,39 @@ class MatchInteraction(object):
                 print('...Unknown viztype: %r' % viztype)
             viz.draw()
 
+    def show_each_chip(self):
+        viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
+        viz_chip.show_chip(self.ibs, self.aid, fnum=pt.next_fnum())
+        viz.draw()
+
+    def show_each_probchip(self):
+        viz_hough.show_probability_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
+        viz_hough.show_probability_chip(self.ibs, self.aid, fnum=pt.next_fnum())
+        viz.draw()
+
     def set_callbacks(self):
+        """
+        CommandLine:
+            python -m ibeis.viz.interact.interact_matches --test-begin --show
+            python -m ibeis.viz.interact.interact_matches --test-begin
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> code = ut.parse_doctest_from_docstr(MatchInteraction.begin.__doc__)[1][0]
+            >>> ut.set_clipboard(code)
+            >>> ut.send_keyboard_input(text='%paste')
+            >>> ut.send_keyboard_input(key_list=['KP_Enter'])
+        """
         # TODO: view probchip
         toggle_samefig_key = 'Toggle same_fig'
         opt2_callback = [
             (toggle_samefig_key, self.toggle_samefig),
             ('Toggle vert', self.toggle_vert),
             ('query last feature', self.query_last_feature),
+            ('show each chip', self.show_each_chip),
+            ('show each probchip', self.show_each_probchip),
+            #('show each probchip', self.query_last_feature),
             ('cancel', lambda: print('cancel')), ]
         guitool.connect_context_menu(self.fig.canvas, opt2_callback)
         ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
