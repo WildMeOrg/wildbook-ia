@@ -682,7 +682,8 @@ class IBEISController(object):
             # Configuration
             hostname = '127.0.0.1'
             submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-            complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
+            # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
+            complete_url = "http://%s:8080/wildbook/occurrence.jsp?number=%s"
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
