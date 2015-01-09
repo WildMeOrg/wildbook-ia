@@ -545,8 +545,12 @@ class QueryRequest(object):
             index_method = qreq_.qparams.index_method
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
+                if verbose:
+                    print('loading single indexer normalizer')
                 indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
             else:
+                if verbose:
+                    print('loading multi indexer normalizer')
                 indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
             qreq_.indexer = indexer
             return True
@@ -555,6 +559,8 @@ class QueryRequest(object):
     def load_score_normalizer(qreq_, verbose=True):
         if qreq_.normalizer is not None:
             return False
+        if verbose:
+            print('loading score normalizer')
         # TODO: SYSTEM updatable normalizer
         normalizer = score_normalization.request_ibeis_normalizer(qreq_, verbose=verbose)
         qreq_.normalizer = normalizer

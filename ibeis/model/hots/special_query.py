@@ -643,6 +643,12 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
     return newfsv_list, newscore_aids
 
 
+@profile
+def get_extern_distinctiveness(qres_vsone, top_aids):
+    filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+    pass
+
+
 def index_partition(item_list, part1_items):
     """
     returns two lists. The first are the indecies of items in item_list that

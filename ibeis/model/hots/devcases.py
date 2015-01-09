@@ -9,41 +9,99 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
 
 def myquery(ibs, vsone_pair_examples):
     """
+
+    see how seperability changes as we very things
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('GZ_ALL')
 
     """
-    from ibeis.model.hots import special_query
+    from ibeis.all_imports import *  # NOQA
+    import ibeis
+    import utool as ut
+    from ibeis.model.hots import special_query  # NOQA
+    from ibeis import viz  # NOQA
     from uuid import UUID
-    from ibeis import viz
+    ibs = ibeis.opendb('GZ_ALL')
     vsone_pair_examples = [
         [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')]
-        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')]
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
+        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
 
     ]
-    ibs.get_annot_visual_uuids([36, 3])
+    gf_mapping = {
+        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
+    }
 
-    vuuid_pair = vsone_pair_examples[1]
+    #ibs.get_annot_visual_uuids([36, 3])
+
+    vuuid_pair = vsone_pair_examples[2]
+    vuuid1, vuuid2 = vuuid_pair
     aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
-    daids = ibs.get_valid_aids()
+    #daids = ibs.get_valid_aids()
 
     use_cache = False
     save_qcache = False
+
+    bad_vuuid = gf_mapping.get(vuuid1)
+    bad_aids = ibs.get_annot_aids_from_visual_uuid(bad_vuuid)
+    bad_aid = bad_aids[0]
     qaids = [aid1]
+    daids = [aid2] + bad_aids
 
-    qaid2_qres_vsmany, qreq_vsmany_ = special_query.query_vsmany_initial(
-        ibs, qaids, daids, use_cache=use_cache, save_qcache=save_qcache)
+    """
+    viz.show_chip(ibs, aid1)
+    import plottool as pt
+    pt.update()
+    """
 
-    viz.show_chip(aid1)
+    cfgdict_vsone = dict(
+        sv_on=True,
+        #sv_on=False,
+        codename='vsone_unnorm_extern_distinctiveness'
+    )
 
-    qres_list, qreq_ = ibs.query_chips([aid1], [aid2], cfgdict=dict(codename='vsone_unnorm'), return_request=True, use_cache=use_cache, save_qcache=save_qcache)
+    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
+                                       return_request=True, use_cache=use_cache,
+                                       save_qcache=save_qcache, verbose=True)
     qres = qres_list[0]
     qres
+    qres.ishow_top(ibs, annot_mode=1)
+
+    top_aids = qres.get_top_aids()
+
+    # PRINT INFO
+    print('qres.filtkey_list = %r' % (qres.filtkey_list,))
+    print('CORRECT STATS')
+    print(ut.get_stats_str(qres.aid2_fsv[aid2], axis=0, newlines=True))
+    print('INCORRECT STATS')
+    print(ut.get_stats_str(qres.aid2_fsv[bad_aid], axis=0, newlines=True))
+
+
+def find_close_incorrect_match(ibs, qaids):
+    use_cache = False
+    save_qcache = False
+    cfgdict_vsmany = dict(index_method='single',
+                          pipeline_root='vsmany',)
+    qres_vsmany_list, qreq_vsmany_ = ibs.query_chips(
+        qaids, ibs.get_valid_aids(), cfgdict=cfgdict_vsmany,
+        return_request=True, use_cache=use_cache, save_qcache=save_qcache,
+        verbose=True)
+    qres_vsmany = qres_vsmany_list[0]
+    qres_vsmany.ishow_top(ibs)
+    top_aids = qres_vsmany.get_top_aids()
+    top_nids = ibs.get_annot_nids(top_aids)
+    qaid = qaids[0]
+    qnid = ibs.get_annot_nids(qaid)
+    is_groundfalse = [nid != qnid for nid in top_nids]
+    top_gf_aids = ut.filter_items(top_aids, is_groundfalse)
+    #top_gt_aids = ut.filterfalse_items(top_aids, is_groundfalse)
+    top_gf_vuuids = ibs.get_annot_visual_uuids(top_gf_aids)
+    qvuuid = ibs.get_annot_visual_uuids(qaid)
+    gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
+    print('gf_mapping = ' + ut.dict_str(gf_mapping))
+    pass
 
 
 def get_gzall_small_test():

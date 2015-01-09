@@ -664,7 +664,7 @@ class QueryConfig(ConfigBase):
             nn_cfg.Knorm = 1
             filt_cfg.lnbnn_weight = 0.0
             #filt_cfg.ratio_thresh = 1.6
-            if '_dist' in codename:
+            if codename.endswith('_dist') or '_dist_' in codename:
                 # no ratio use distance
                 filt_cfg.ratio_thresh = None
                 filt_cfg.ratio_weight = 0.0
