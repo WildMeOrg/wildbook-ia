@@ -67,6 +67,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         assert(len(comp_aids) <= NUM_TOP)
         self.comp_aids = comp_aids
         self.suggest_aids = suggest_aids
+        self.suggest_aids = None  # HACK TO TURN OFF SUGGESTIONS
         self.progress_current = progress_current
         self.progress_total = progress_total
         if update_callback is None:
@@ -128,10 +129,10 @@ class QueryVerificationInteraction(AbstractInteraction):
         for count, c_aid in enumerate(self.comp_aids):
             if c_aid is not None:
                 px = nCols + count + 1
-                if c_aid in self.suggest_aids:
-                    self.plot_chip(c_aid, nRows, nCols, px, title_suffix='SUGGESTED BY IBEIS')
-                else:
-                    self.plot_chip(c_aid, nRows, nCols, px)
+                title_suffix = ''
+                if self.suggest_aids is not None and c_aid in self.suggest_aids:
+                    title_suffix = 'SUGGESTED BY IBEIS'
+                self.plot_chip(c_aid, nRows, nCols, px, title_suffix=title_suffix)
             else:
                 df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title='NO RESULT')
 
@@ -239,7 +240,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                                                      xpad=.05, startx=0, stopx=1)
 
         select_none_text = 'None of these'
-        if len(self.suggest_aids) == 0:
+        if self.suggest_aids is not None and len(self.suggest_aids) == 0:
             select_none_text += '\n(SUGGESTED BY IBEIS)'
 
         tup = self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
