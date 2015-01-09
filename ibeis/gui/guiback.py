@@ -24,7 +24,6 @@ from ibeis import viz
 from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
-from multiprocessing import cpu_count
 # Utool
 #import utool
 import utool as ut
@@ -654,13 +653,22 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
         species = ibs.cfg.detect_cfg.species
-        conf_msg_fmststr = ut.codeblock(
-            '''Are you sure you want to run detection on %s?
-            There are %d images, so it will take at least %0.2f seconds
-            ''')
-        approx_seconds = len(gid_list) * 40 / cpu_count()   # 40 seconds per image / num cores
-        conf_msg = conf_msg_fmststr % (species, len(gid_list), approx_seconds)
-        if back.are_you_sure(use_msg=conf_msg):
+        # Construct message
+        msg_fmtstr_list = ['You are about to run detection...']
+        fmtdict = dict()
+        # Append detection configuration information
+        msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
+        msg_fmtstr_list += ['    Species: {species_phrase}']
+        # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+        # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+        fmtdict['num_gids'] = len(gid_list)
+        fmtdict['species_phrase'] = species
+        # Finish building confirmation message
+        msg_fmtstr_list += ['']
+        msg_fmtstr_list += ['Press \'Yes\' to continue']
+        msg_fmtstr = '\n'.join(msg_fmtstr_list)
+        msg_str = msg_fmtstr.format(**fmtdict)
+        if back.are_you_sure(use_msg=msg_str):
             print('[back] run_detection(species=%r, eid=%r)' % (species, eid))
             ibs.detect_random_forest(gid_list, species)
             print('[back] about to finish detection')
@@ -720,25 +728,29 @@ class MainWindowBackend(QtCore.QObject):
             return species_phrase
 
         # Build confirmation message
-        msg_fmtstr_list = ['About to run identification.']
+        msg_fmtstr_list = ['You are about to run identification...']
         fmtdict = dict()
         # Append database information to query confirmation
         if daid_list is not None:
-            msg_fmtstr_list += ['* # database annotations={num_daids}.']
-            msg_fmtstr_list += ['* database species={d_species_phrase}.']
+            msg_fmtstr_list += ['    Database annotations: {num_daids}']
+            msg_fmtstr_list += ['    Database species:         {d_species_phrase}']  # Add more spaces
+            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
             fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
             fmtdict['num_daids'] = len(daid_list)
             fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
         # Append query information to query confirmation
         if qaid_list is not None:
-            msg_fmtstr_list += ['* # query annotations={num_qaids}.']
-            msg_fmtstr_list += ['* query species={q_species_phrase}.']
+            msg_fmtstr_list += ['    Query annotations: {num_qaids}']
+            msg_fmtstr_list += ['    Query species:         {q_species_phrase}']  # Add more spaces
+            # msg_fmtstr_list += ['* # query annotations={num_qaids}.']
+            # msg_fmtstr_list += ['* query species={q_species_phrase}.']
             fmtdict['q_annotation_s']  = pluralize('annotation', qaid_list)
             fmtdict['num_qaids'] = len(qaid_list)
             fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
         # Finish building confirmation message
         msg_fmtstr_list += ['']
-        msg_fmtstr_list += ['Press yes to confirm and continue....']
+        msg_fmtstr_list += ['Press \'Yes\' to continue']
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
         if not back.are_you_sure(use_msg=msg_str, title='Begin Identification'):
