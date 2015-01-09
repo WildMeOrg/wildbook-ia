@@ -713,7 +713,7 @@ class MainWindowBackend(QtCore.QObject):
         msg_fmtstr_list += ['Press yes to confirm and continue....']
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
-        if not back.are_you_sure(use_msg=msg_str):
+        if not back.are_you_sure(use_msg=msg_str, title='Begin Identification'):
             raise StopIteration
 
     @blocking_slot()
