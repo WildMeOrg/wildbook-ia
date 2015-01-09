@@ -644,7 +644,7 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
 
 
 @profile
-def get_extern_distinctiveness(qres_vsone, top_aids):
+def get_extern_distinctiveness(qreq_, qres_vsone, top_aids):
     filtkey = hstypes.FiltKeys.DISTINCTIVENESS
     pass
 

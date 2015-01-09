@@ -99,6 +99,13 @@ class DistinctivnessNormalizer(ut.Cachable):
                 print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
             dstcnvs_normer.flann.save_index(flann_fpath)
 
+    def archive(dstcnvs_normer, cachedir):
+        data_fpath = dstcnvs_normer.get_fpath(cachedir)
+        flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
+        archive_fpath = dstcnvs_normer.get_fpath(cachedir, ext='.zip')
+        fpath_list = [data_fpath, flann_fpath]
+        ut.archive_files(archive_fpath, fpath_list)
+
     def get_distinctiveness(dstcnvs_normer, qfx2_vec):
         K = 5
         assert K > 0 and K < len(dstcnvs_normer.vecs)
@@ -177,8 +184,8 @@ def dev_train_distinctiveness(species=None):
 
     CommandLine:
         python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
-        python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --gz
-        python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --pz
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --gz --archive
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --pz --archive
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -233,6 +240,9 @@ def dev_train_distinctiveness(species=None):
             print('vecs size = %r' % (ut.get_object_size_str(vecs),))
             dstcnvs_normer.init_support(vecs)
             dstcnvs_normer.save(global_distinctdir)
+
+    if ut.get_argflag('--archive'):
+        dstcnvs_normer.archive(global_distinctdir)
     #vsone_
     #inct
 
