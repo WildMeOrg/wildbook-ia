@@ -34,13 +34,15 @@ class ClockOffsetWidget(QtGui.QWidget):
         co_wgt.fnum = next_fnum()
 
         co_wgt.main_layout = QtGui.QVBoxLayout(co_wgt)
+
+        co_wgt.text_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
+        co_wgt.main_layout.addWidget(co_wgt.text_layout)
+
         co_wgt.button_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
         co_wgt.main_layout.addWidget(co_wgt.button_layout)
 
         co_wgt.combo_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
         co_wgt.main_layout.addWidget(co_wgt.combo_layout)
-        #co_wgt.combo_layout = QtGui.QHBoxLayout(co_wgt)#.main_layout)
-        #co_wgt.button_layout = QtGui.QHBoxLayout(co_wgt)#.main_layout)
 
         co_wgt.imfig = None
         co_wgt.imax = None
@@ -51,6 +53,7 @@ class ClockOffsetWidget(QtGui.QWidget):
         co_wgt.offset = 0
         # Set image datetime with first image
         co_wgt.get_image_datetime()
+        co_wgt.add_label()
         co_wgt.add_combo_boxes()
         co_wgt.add_buttons()
         co_wgt.update_ui()
@@ -74,18 +77,29 @@ class ClockOffsetWidget(QtGui.QWidget):
         #TODO Either integrate this into utool or check if it's already there
         extract_tuple = lambda li, idx: list(zip(*li)[idx])
         # Update option setting, assume datetime has been updated
-        co_wgt.combo_list[0].setCurrentIndex(extract_tuple(co_wgt.opt_list['year'],1).index(co_wgt.dtime.year))
-        co_wgt.combo_list[1].setCurrentIndex(extract_tuple(co_wgt.opt_list['month'],1).index(co_wgt.dtime.month))
-        co_wgt.combo_list[2].setCurrentIndex(extract_tuple(co_wgt.opt_list['day'],1).index(co_wgt.dtime.day))
-        co_wgt.combo_list[3].setCurrentIndex(extract_tuple(co_wgt.opt_list['hour'],1).index(co_wgt.dtime.hour))
-        co_wgt.combo_list[4].setCurrentIndex(extract_tuple(co_wgt.opt_list['minute'],1).index(co_wgt.dtime.minute))
-        co_wgt.combo_list[5].setCurrentIndex(extract_tuple(co_wgt.opt_list['second'],1).index(co_wgt.dtime.second))
+        co_wgt.combo_list[1].setCurrentIndex(extract_tuple(co_wgt.opt_list['year'],1).index(co_wgt.dtime.year))
+        co_wgt.combo_list[3].setCurrentIndex(extract_tuple(co_wgt.opt_list['month'],1).index(co_wgt.dtime.month))
+        co_wgt.combo_list[5].setCurrentIndex(extract_tuple(co_wgt.opt_list['day'],1).index(co_wgt.dtime.day))
+        co_wgt.combo_list[7].setCurrentIndex(extract_tuple(co_wgt.opt_list['hour'],1).index(co_wgt.dtime.hour))
+        co_wgt.combo_list[9].setCurrentIndex(extract_tuple(co_wgt.opt_list['minute'],1).index(co_wgt.dtime.minute))
+        co_wgt.combo_list[11].setCurrentIndex(extract_tuple(co_wgt.opt_list['second'],1).index(co_wgt.dtime.second))
 
         # Redraw image
         if co_wgt.imfig is not None:
             close_figure(co_wgt.imfig)
-        co_wgt.imfig, co_wgt.imax = imshow(ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex]), fnum=co_wgt.fnum)
+        co_wgt.imfig, co_wgt.imax = imshow(ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex]), fnum=co_wgt.fnum, title="Time Synchronization Picture")
         co_wgt.imfig.show()
+
+    def add_label(co_wgt):
+        # Very simply adds the text
+        _LABEL = partial(guitool.newLabel, parent=co_wgt)
+        text = """This step is for synchronizing the time of the images being imported with the actual time of the encounter.
+Use the Previous and Next buttons until the 'Time Synchronization Picture' is of the clock taken at the beginning of the encounter.
+Once found, change the date and time in the boxes below to match the time of the clock in the image, and correct the date if necessary.
+Once done, click 'Set' and the difference will be applied to all images currently being imported.
+If you are sure the camera was synchronized, you can skip this step by pressing 'Skip'."""
+        main_label = _LABEL(text=text, align='left')
+        co_wgt.text_layout.addWidget(main_label)
 
     def add_buttons(co_wgt):
         _BUTTON = partial(guitool.newButton, parent=co_wgt)
@@ -106,7 +120,8 @@ class ClockOffsetWidget(QtGui.QWidget):
 
     def add_combo_boxes(co_wgt):
         _CBOX = partial(guitool.newComboBox, parent=co_wgt)
-        to_opt_list = lambda x: [(str(i), i) for i in x]
+        _LABEL = partial(guitool.newLabel, parent=co_wgt, align='right')
+        to_opt_list = lambda x: [("%02d" % i, i) for i in x]
         co_wgt.opt_list = {
                 'year': to_opt_list(range(1969, date.today().year+1)),
                 'month': to_opt_list(range(1,13)),
@@ -116,18 +131,24 @@ class ClockOffsetWidget(QtGui.QWidget):
                 'second': to_opt_list(range(60)),
         }
         co_wgt.combo_list = [
+                _LABEL(text="YYYY"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'year'),
-                    options=co_wgt.opt_list['year'], default=str(co_wgt.dtime.year)),
+                    options=co_wgt.opt_list['year'], default=co_wgt.dtime.year),
+                _LABEL(text="MM"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'month'),
-                    options=co_wgt.opt_list['month'], default=str(co_wgt.dtime.month)),
+                    options=co_wgt.opt_list['month'], default=co_wgt.dtime.month),
+                _LABEL(text="DD"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'day'),
-                    options=co_wgt.opt_list['day'], default=str(co_wgt.dtime.day)),
+                    options=co_wgt.opt_list['day'], default=co_wgt.dtime.day),
+                _LABEL(text="HH (24H)"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'hour'),
-                    options=co_wgt.opt_list['hour'], default=str(co_wgt.dtime.hour)),
+                    options=co_wgt.opt_list['hour'], default=co_wgt.dtime.hour),
+                _LABEL(text="mm"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'minute'),
-                    options=co_wgt.opt_list['minute'], default=str(co_wgt.dtime.minute)),
+                    options=co_wgt.opt_list['minute'], default=co_wgt.dtime.minute),
+                _LABEL(text="ss"),
                 _CBOX(changed=partial(co_wgt.change_dt, 'second'),
-                    options=co_wgt.opt_list['second'], default=str(co_wgt.dtime.second)),
+                    options=co_wgt.opt_list['second'], default=co_wgt.dtime.second),
         ]
 
         for combo in co_wgt.combo_list:
