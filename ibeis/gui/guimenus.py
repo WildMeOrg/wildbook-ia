@@ -161,13 +161,13 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.newAction(
         name='actionCompute_Encounters',
         text='Cluster Encounters',
-        shortcut='Ctrl+2',
+        #shortcut='Ctrl+2',
         slot_fn=back.compute_encounters)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionDetect',
         text='Run Detection',
-        shortcut='Ctrl+3',
+        #shortcut='Ctrl+3',
         slot_fn=back.run_detection)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
@@ -177,7 +177,7 @@ def setup_batch_menu(mainwin, back):
                     overnight procedure depending on how many ANNOTATIONs you\'ve
                     made. It queries each chip and saves the result which
                     allows multiple queries to be rapidly inspected later.''',
-        shortcut='Ctrl+4',
+        #shortcut='Ctrl+4',
         slot_fn=back.compute_queries)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
@@ -186,7 +186,7 @@ def setup_batch_menu(mainwin, back):
         tooltip='''This action will ship to WildBook any encounters that have
                     been marked as processed.  This can also be used to send
                     processed encounters that failed to ship correctly.''',
-        shortcut='Ctrl+5',
+        #shortcut='Ctrl+5',
         slot_fn=back.send_unshipped_processed_encounters)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
@@ -197,7 +197,7 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.newAction(
         name='actionPrecomputeANNOTATIONFeatures',
         text='Precompute Chips/Features',
-        shortcut='Ctrl+Return',
+        #shortcut='Ctrl+Return',
         slot_fn=back.compute_feats)
     mainwin.menuBatch.newAction(
         name='actionPrecomputeThumbnails',

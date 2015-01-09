@@ -667,6 +667,10 @@ class MainWindowBackend(QtCore.QObject):
 
     def get_selected_daids(back, eid=None, query_mode=None):
         species = back.get_selected_species()
+        if query_mode is None:
+            # Run vs-exemplars by default
+            query_mode = const.VS_EXEMPLARS_KEY
+
         if query_mode == const.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(species=%r) ' % (species))
             daid_list = back.ibs.get_recognition_database_aids(is_exemplar=True, species=species)
@@ -674,7 +678,9 @@ class MainWindowBackend(QtCore.QObject):
             print('[back] query_encounter (eid=%r, species=%r)' % (eid, species))
             daid_list = back.ibs.get_recognition_database_aids(eid=eid, species=species)
         else:
-            print('Unknown query mode: %r' % (query_mode))
+            msg = ('Unknown query mode: %r' % (query_mode))
+            print(msg)
+            raise AssertionError(msg)
         return daid_list
 
     def confirm_query_dialog(back, daid_list=None, qaid_list=None):
@@ -697,19 +703,20 @@ class MainWindowBackend(QtCore.QObject):
         fmtdict = dict()
         # Append database information to query confirmation
         if daid_list is not None:
-            msg_fmtstr_list += ['#database annotations={num_qaids}.']
-            msg_fmtstr_list += ['database species={d_species_phrase}.']
+            msg_fmtstr_list += ['* # database annotations={num_daids}.']
+            msg_fmtstr_list += ['* database species={d_species_phrase}.']
             fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
             fmtdict['num_daids'] = len(daid_list)
             fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
         # Append query information to query confirmation
         if qaid_list is not None:
-            msg_fmtstr_list += ['#query annotations={num_qaids}.']
-            msg_fmtstr_list += ['query species={q_species_phrase}.']
+            msg_fmtstr_list += ['* # query annotations={num_qaids}.']
+            msg_fmtstr_list += ['* query species={q_species_phrase}.']
             fmtdict['q_annotation_s']  = pluralize('annotation', qaid_list)
             fmtdict['num_qaids'] = len(qaid_list)
             fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
         # Finish building confirmation message
+        msg_fmtstr_list += ['']
         msg_fmtstr_list += ['Press yes to confirm and continue....']
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
@@ -718,7 +725,10 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
-        """ Action -> Query"""
+        """ Action -> Query
+
+        queries a single annotation vs the exemplars or intra encounter
+        """
         if aid is None:
             aid = back.get_selected_aid()
         eid = back._eidfromkw(kwargs)
@@ -729,7 +739,7 @@ class MainWindowBackend(QtCore.QObject):
         # Get the query annotation ids to search
         qaid_list = [aid]
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
-        back.confirm_query_dialog(daid_list)
+        back.confirm_query_dialog(daid_list, qaid_list)
         # Get the database annotation ids to be searched
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
@@ -745,7 +755,10 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def compute_queries(back, refresh=True, query_mode=None, **kwargs):
-        """ Batch -> Precompute Queries"""
+        """ Batch -> Precompute Queries
+
+        queries all annotations vs the exemplars or intra encounter
+        """
         eid = back._eidfromkw(kwargs)
         print('------')
         print('\n\n[back] compute_queries: eid=%r, mode=%r' % (eid, back.query_mode))
@@ -757,13 +770,14 @@ class MainWindowBackend(QtCore.QObject):
         qaid_list = back.ibs.get_valid_aids(eid=eid)
         # Get the database annotation ids to be searched
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
-        back.confirm_query_dialog(daid_list)
+        back.confirm_query_dialog(daid_list, qaid_list)
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if back.query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
+        # Show review query dialog
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
@@ -809,8 +823,14 @@ class MainWindowBackend(QtCore.QObject):
         # no need to specify it here
         qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
         if len(qaid_list) == 0:
-            msg = 'No unknown species=%r annotations in encounter.  Is the species correctly set? Do you need to run detection? ' % (species,)
-            back.user_info(msg=msg)
+            msg = ut.codeblock('''
+               There are no annotations (of species=%r) left in this encounter.
+
+               * Has the encounter been completed?
+               * Is the species correctly set?
+               * Do you need to run detection?
+           ''') % (species,)
+            back.user_info(msg=msg, title='Warning')
             return
 
         back.confirm_query_dialog(qaid_list=qaid_list)
