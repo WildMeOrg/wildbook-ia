@@ -100,7 +100,7 @@ def setup_actions_menu(mainwin, back):
 #        slot_fn=back.add_annot)
     mainwin.menuActions.newAction(
         name='actionQuery',
-        text='Query',
+        text='Query Single Annotation',
         shortcut='Q',
         slot_fn=back.query)
     #mainwin.menuActions.addSeparator()
@@ -172,13 +172,17 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionCompute_Queries',
-        text='Compute Queries',
+        text='Compute Old Style Queries',
         tooltip='''This might take anywhere from a coffee break to an
                     overnight procedure depending on how many ANNOTATIONs you\'ve
                     made. It queries each chip and saves the result which
                     allows multiple queries to be rapidly inspected later.''',
         #shortcut='Ctrl+4',
         slot_fn=back.compute_queries)
+    mainwin.menuBatch.newAction(
+        name='actionComputeIncremental_Queries',
+        text='Compute Incremental Queries',
+        slot_fn=back.incremental_query)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionShipProcessedEncounters',
@@ -261,6 +265,17 @@ def setup_help_menu(mainwin, back):
         shortcut='',
         slot_fn=back.redownload_detection_models)
     mainwin.menuHelp.newAction(
+        name='actionFixCleanDatabase',
+        text='Fix/Clean Database',
+        shortcut='',
+        slot_fn=back.fix_and_clean_database)
+    mainwin.menuHelp.newAction(
+        name='actionConsistencyCheck',
+        text='Run Consistency Checks',
+        shortcut='',
+        slot_fn=back.run_consistency_checks)
+    mainwin.menuHelp.addSeparator()
+    mainwin.menuHelp.newAction(
         name='actionDelete_Precomputed_Results',
         text='Delete Cached Query Results',
         shortcut='',
@@ -280,17 +295,6 @@ def setup_help_menu(mainwin, back):
         text='Delete Thumbnails',
         shortcut='',
         slot_fn=back.delete_thumbnails)
-    mainwin.menuHelp.addSeparator()
-    mainwin.menuHelp.newAction(
-        name='actionFixCleanDatabase',
-        text='Fix/Clean Database',
-        shortcut='',
-        slot_fn=back.fix_and_clean_database)
-    mainwin.menuHelp.newAction(
-        name='actionConsistencyCheck',
-        text='Run Consistency Checks',
-        shortcut='',
-        slot_fn=back.run_consistency_checks)
 
 
 def setup_developer_menu(mainwin, back):

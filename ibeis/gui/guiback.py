@@ -34,6 +34,23 @@ import utool as ut
 VERBOSE = ut.VERBOSE
 
 
+def backreport(func):
+    """
+    reports errors on backend functions
+    should be around every function by default
+    """
+    def backreport_wrapper(back, *args, **kwargs):
+        try:
+            result = func(back, *args, **kwargs)
+        except Exception as ex:
+            error_msg = "Error caught while preforming function. \n %r" % ex
+            guitool.msgbox(title="Error Catch!", msg=error_msg)
+            raise
+        return result
+    backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
+    return backreport_wrapper
+
+
 def backblock(func):
     """ BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
@@ -41,13 +58,14 @@ def backblock(func):
     """
     @functools.wraps(func)
     #@guitool.checks_qt_error
+    @backreport
     def bacblock_wrapper(back, *args, **kwargs):
         _wasBlocked_ = back.front.blockSignals(True)
         try:
             result = func(back, *args, **kwargs)
-        except Exception as ex:
-            error_msg = "Error caught while preforming function. \n %r" % ex
-            guitool.msgbox(title="Error Catch!", msg=error_msg)
+        except Exception:
+            #error_msg = "Error caught while preforming function. \n %r" % ex
+            #guitool.msgbox(title="Error Catch!", msg=error_msg)
             raise
         finally:
             back.front.blockSignals(_wasBlocked_)
@@ -265,7 +283,10 @@ class MainWindowBackend(QtCore.QObject):
 
     @ut.indent_func
     def get_selected_qres(back):
-        """ selected query result """
+        """
+        UNUSED DEPRICATE
+
+        selected query result """
         if len(back.sel_qres) > 0:
             qres = back.sel_qres[0]
             return qres
@@ -787,8 +808,13 @@ class MainWindowBackend(QtCore.QObject):
 
     #@blocking_slot()
     @slot_()
+    @backreport
     def incremental_query(back, refresh=True, **kwargs):
         r"""
+
+        Runs each query against the current database and allows for user
+        interaction to add exemplars one at a time.
+
         Returns:
             ?: result
 
@@ -923,6 +949,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def edit_preferences(back):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
@@ -940,6 +967,7 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @slot_()
+    @backreport
     def view_docs(back):
         """ Help -> View Documentation"""
         print('[back] view_docs')
@@ -947,6 +975,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def view_database_dir(back):
         """ Help -> View Directory Slots"""
         print('[back] view_database_dir')
@@ -954,12 +983,14 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def view_app_files_dir(back):
         print('[back] view_model_dir')
         ut.view_directory(ut.get_app_resource_dir('ibeis'))
         pass
 
     @slot_()
+    @backreport
     def redownload_detection_models(back):
         from ibeis import ibsfuncs
         print('[back] redownload_detection_models')
@@ -968,6 +999,7 @@ class MainWindowBackend(QtCore.QObject):
         ibsfuncs.redownload_detection_models(back.ibs)
 
     @slot_()
+    @backreport
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
@@ -978,6 +1010,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def delete_thumbnails(back):
         """ Help -> Delete Thumbnails """
         print('[back] delete_thumbnails')
@@ -988,6 +1021,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def delete_global_prefs(back):
         print('[back] delete_global_prefs')
         if not back.are_you_sure():
@@ -996,6 +1030,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    @backreport
     def delete_queryresults_dir(back):
         print('[back] delete_queryresults_dir')
         if not back.are_you_sure():
@@ -1034,6 +1069,7 @@ class MainWindowBackend(QtCore.QObject):
         ut.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
 
+    @backreport
     def dev_export_annotations(back):
         ibs = back.ibs
         ibsfuncs.export_to_xml(ibs)
@@ -1174,6 +1210,7 @@ class MainWindowBackend(QtCore.QObject):
         return back.import_images_from_file(gpath_list=None, refresh=True, as_annots=True)
 
     @slot_()
+    @backreport
     def localize_images(back):
         """ File -> Localize Images """
         print('[back] localize_images')
