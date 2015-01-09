@@ -52,6 +52,13 @@ python _ibeis_setup.py -y --gg "git push"
 #python _ibeis_setup.py -y --gg "git checkout master"
 #python _ibeis_setup.py -y --gg "git checkout next"
 
+
+# MAKE A NEW BRANCH
+python super_setup.py --newbranch joncrall_dev_branch
+python super_setup.py --checkout joncrall_dev_branch
+python super_setup.py --checkout next
+
+
 GitReferences:
     http://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
 """
@@ -330,19 +337,20 @@ if branch_name is not None:
 # Creates new branches
 newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
 if newbranch_name is not None:
-    ut.gg_command('git stash"'.format(**locals()))
+    #ut.gg_command('git stash"'.format(**locals()))
     ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
-    ut.gg_command('git stash pop"'.format(**locals()))
+    ut.gg_command('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+    #ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
 mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
 if mergebranch_name is not None:
     ut.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
 
-newbranch_name2 = GET_ARGVAL('--newbranch2', type_=str, default=None)
-if newbranch_name2 is not None:
-    ut.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
-    ut.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
+#newbranch_name2 = GET_ARGVAL('--newbranch2', type_=str, default=None)
+#if newbranch_name2 is not None:
+#    ut.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
+#    ut.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
 
 # Change ownership
 if GET_ARGFLAG('--serverchmod'):
