@@ -256,6 +256,11 @@ def setup_help_menu(mainwin, back):
         text='View Application Files Directory',
         shortcut='',
         slot_fn=back.view_app_files_dir)
+    mainwin.menuHelp.newAction(
+        name='actionViewLogsDir',
+        text='View Log Directory',
+        shortcut='',
+        slot_fn=back.view_log_dir)
     # ---
     mainwin.menuHelp.addSeparator()
     # ---

@@ -991,6 +991,13 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     @backreport
+    def view_log_dir(back):
+        print('[back] view_model_dir')
+        ut.view_directory(back.ibs.get_logdir())
+        pass
+
+    @slot_()
+    @backreport
     def redownload_detection_models(back):
         from ibeis import ibsfuncs
         print('[back] redownload_detection_models')
