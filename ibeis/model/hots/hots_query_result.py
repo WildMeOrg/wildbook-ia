@@ -193,6 +193,8 @@ class QueryResult(__OBJECT_BASE__):
         qres.filtkey_list = None   # list of filter keys for each dimension in fsv
         qres.metadata = None  # messy (meta information of query)
         #qres.daid_list = None  # matchable daids
+        # HACK for keeping interactions alive
+        qres._live_interactions = []
 
     def get_fm_list(qres):
         """
@@ -301,8 +303,13 @@ class QueryResult(__OBJECT_BASE__):
         fpath = qres.get_fpath(qresdir)
         if verbose:
             print('[qr] cache save: %r' % (split(fpath)[1],))
+        ignore_keys = ['_live_interactions']
+        if ignore_keys is None:
+            save_dict = qres.__dict__
+        else:
+            save_dict = {key: val for (key, val) in six.iteritems(qres.__dict__) if key not in ignore_keys}
         with open(fpath, 'wb') as file_:
-            cPickle.dump(qres.__dict__, file_)
+            cPickle.dump(save_dict, file_, cPickle.HIGHEST_PROTOCOL)
 
     def __eq__(self, other):
         """ For testing. Do not use"""
@@ -717,6 +724,8 @@ class QueryResult(__OBJECT_BASE__):
     def ishow_matches(qres, ibs, aid, *args, **kwargs):
         from ibeis.viz.interact import interact_matches  # NOQA
         match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
+        # Keep the interaction alive at least while the qres is alive
+        qres._live_interactions.append(match_interaction)
         return match_interaction
         #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
         #return fig

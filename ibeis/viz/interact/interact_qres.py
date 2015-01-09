@@ -7,8 +7,8 @@ import plottool.draw_func2 as df2
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool import interact_helpers as ih
-from .interact_matches import ishow_matches
-from .interact_sver import ishow_sver
+#from .interact_matches import ishow_matches
+from ibeis.viz.interact.interact_sver import ishow_sver
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[interact_qres]', DEBUG=False)
@@ -36,7 +36,7 @@ def ishow_qres(ibs, qres, **kwargs):
     def _clicked_aid(aid2):
         printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_matches(ibs, qres, aid2, fnum=fnum_)
+        qres.ishow_matches(ibs, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)

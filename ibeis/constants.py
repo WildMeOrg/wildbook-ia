@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 # import utool
 import six
 import numpy as np
+from collections import namedtuple
 from os.path import join
 
 
@@ -178,36 +179,37 @@ class Species(object):
     CHEETAH       = 'cheetah'
     UNKNOWN       = UNKNOWN
 
-SPECIES_TUPS = [
-    (Species.ZEB_PLAIN,     'Zebra (Plains)'),
-    (Species.ZEB_GREVY,     'Zebra (Grevy\'s)'),
-    (Species.GIRAFFE,       'Giraffes'),
-    (Species.ELEPHANT_SAV,  'Elephant (savanna)'),
-]
 
-SPECIES_EXTRA = [
-    (Species.JAG,           'Jaguar'),
-    (Species.LEOPARD,       'Leopard'),
-    (Species.LION,          'Lion'),
-    (Species.WILDDOG,       'Wild Dog'),
-    (Species.LIONFISH,      'Lionfish'),
-    (Species.WHALESHARK,    'Whale Shark'),
-    (Species.POLAR_BEAR,    'Polar Bear'),
-    (Species.WILDEBEEST,    'Wildebeest'),
-    (Species.SEALS_SPOTTED, 'Seal (spotted)'),
-    (Species.SEALS_RINGED,  'Seal (Siamaa Ringed)'),
-    (Species.CHEETAH,       'Cheetah'),
-    (Species.UNKNOWN,       'Unknown'),
+SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_nice'))
+
+SPECIES_TUPS = [
+    SpeciesTuple(Species.ZEB_PLAIN,     'Zebra (Plains)'),
+    SpeciesTuple(Species.ZEB_GREVY,     'Zebra (Grevy\'s)'),
+    SpeciesTuple(Species.GIRAFFE,       'Giraffes'),
+    SpeciesTuple(Species.ELEPHANT_SAV,  'Elephant (savanna)'),
+    SpeciesTuple(Species.POLAR_BEAR,    'Polar Bear'),
+    SpeciesTuple(Species.JAG,           'Jaguar'),
+    SpeciesTuple(Species.LEOPARD,       'Leopard'),
+    SpeciesTuple(Species.LION,          'Lion'),
+    SpeciesTuple(Species.WILDDOG,       'Wild Dog'),
+    SpeciesTuple(Species.LIONFISH,      'Lionfish'),
+    SpeciesTuple(Species.WHALESHARK,    'Whale Shark'),
+    SpeciesTuple(Species.WILDEBEEST,    'Wildebeest'),
+    SpeciesTuple(Species.SEALS_SPOTTED, 'Seal (spotted)'),
+    SpeciesTuple(Species.SEALS_RINGED,  'Seal (Siamaa Ringed)'),
+    SpeciesTuple(Species.CHEETAH,       'Cheetah'),
+    SpeciesTuple(Species.UNKNOWN,       'Unknown'),
 ]
 
 SPECIES_WITH_DETECTORS = (
     Species.ZEB_GREVY,
     Species.ZEB_PLAIN,
     Species.GIRAFFE,
+    Species.ELEPHANT_SAV,
 )
 
-VALID_SPECIES = [tup[0] for tup in SPECIES_TUPS]
-SPECIES_NICE = [tup[1] for tup in SPECIES_TUPS]
+VALID_SPECIES = [tup.species_text for tup in SPECIES_TUPS]
+SPECIES_NICE  = [tup.species_nice for tup in SPECIES_TUPS]
 
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'

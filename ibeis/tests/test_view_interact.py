@@ -53,5 +53,5 @@ if __name__ == '__main__':
     main_locals = ibeis.main(defaultdb='testdb0')
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = utool.run_test(TEST_INTERACT, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
+    #execstr = utool.execstr_dict(test_locals, 'test_locals')
+    #exec(execstr)

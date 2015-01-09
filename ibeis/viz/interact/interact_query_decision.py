@@ -220,7 +220,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         # can cause freezes should be False
         INTERACT_EXAMINE = True
         if INTERACT_EXAMINE:
-            fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
+            #fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
+            fig = self.qres.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
             print('Finished interact')
             # this is only relevant to matplotlib.__version__ < 1.4.2
             #raise Exception(

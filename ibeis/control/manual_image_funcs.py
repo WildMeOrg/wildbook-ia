@@ -1099,7 +1099,7 @@ def delete_encounters(ibs, eid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_encounter_end_time_posixs(ibs, encounter_rowid_list):
+def get_encounter_end_time_posix(ibs, encounter_rowid_list):
     """ encounter_end_time_posix_list <- encounter.encounter_end_time_posix[encounter_rowid_list]
 
     gets data from the "native" column "encounter_end_time_posix" in the "encounter" table
@@ -1120,7 +1120,7 @@ def get_encounter_end_time_posixs(ibs, encounter_rowid_list):
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
-        >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posixs(encounter_rowid_list)
+        >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)
     """
     id_iter = encounter_rowid_list
@@ -1161,6 +1161,27 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
     encounter_gps_lat_list = ibs.db.get(
         const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
     return encounter_gps_lat_list
+
+
+@register_ibs_method
+def update_encounter_info(ibs, encounter_rowid_list):
+    """ sets start and end time for encounters
+
+    FIXME: should not need to bulk update, should be handled as it goes
+
+    Example:
+        >>> # DOCTEST_DISABLE
+        >>> encounter_rowid_list = ibs.get_valid_eids()
+    """
+    gids_list_ = ibs.get_encounter_gids(encounter_rowid_list)
+    hasgids_list = [len(gids) > 0 for gids in gids_list_]
+    gids_list = ut.filter_items(gids_list_, hasgids_list)
+    eid_list = ut.filter_items(encounter_rowid_list, hasgids_list)
+    unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, gids_list)
+    encounter_end_time_posix_list = [max(unixtimes) for unixtimes in unixtimes_list]
+    encounter_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
+    ibs.set_encounter_end_time_posix(eid_list, encounter_end_time_posix_list)
+    ibs.set_encounter_start_time_posix(eid_list, encounter_start_time_posix_list)
 
 
 @register_ibs_method
@@ -1297,7 +1318,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
+def get_encounter_start_time_posix(ibs, encounter_rowid_list):
     """ encounter_start_time_posix_list <- encounter.encounter_start_time_posix[encounter_rowid_list]
 
     gets data from the "native" column "encounter_start_time_posix" in the "encounter" table
@@ -1318,7 +1339,7 @@ def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
-        >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posixs(encounter_rowid_list)
+        >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)
     """
     id_iter = encounter_rowid_list
@@ -1330,7 +1351,7 @@ def get_encounter_start_time_posixs(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @setter
-def set_encounter_end_time_posixs(ibs, encounter_rowid_list, encounter_end_time_posix_list):
+def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_posix_list):
     """ encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
 
     Args:
@@ -1448,7 +1469,7 @@ def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_fla
 
 @register_ibs_method
 @setter
-def set_encounter_start_time_posixs(ibs, encounter_rowid_list, encounter_start_time_posix_list):
+def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_time_posix_list):
     """ encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
 
     Args:

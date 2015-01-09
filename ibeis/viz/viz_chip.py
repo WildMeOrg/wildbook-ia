@@ -59,9 +59,10 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         if 'color' not in kwargs:
             #from ibeis.model.preproc import preproc_featweight
             #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
-            featweights = ibs.get_annot_fgweights([aid], ensure=True)[0]
-            color = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
-            kwargs['color'] = color
+            if ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
+                featweights = ibs.get_annot_fgweights([aid], ensure=True)[0]
+                color = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
+                kwargs['color'] = color
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
         try:
             del kwargs['kpts']

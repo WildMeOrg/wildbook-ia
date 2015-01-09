@@ -563,7 +563,7 @@ class IBEISController(object):
             scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAME.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensurepath(scorenorm_cachedir)
@@ -573,7 +573,7 @@ class IBEISController(object):
     def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
         """
-        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAME.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensuredir(scorenorm_cachedir)
@@ -751,7 +751,7 @@ class IBEISController(object):
     @ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
         """
-        Clusters images into encounters
+        Clusters ungrouped images into encounters
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-compute_encounters
@@ -785,16 +785,20 @@ class IBEISController(object):
         from ibeis.model.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+        # only cluster ungrouped images
         gid_list = ibs.get_ungrouped_gids()
-        flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+        with ut.Timer('computing encounters'):
+            flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         valid_eids = ibs.get_valid_eids()
         eid_offset = 0 if len(valid_eids) == 0 else max(valid_eids)
         flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
         # remain untouched, and ensure that new encounters are created
         enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
-        print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
+        #print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
+        # HACK TO UPDATE TIMES
+        ibs.update_encounter_info(ibs.get_valid_eids())
         print('[ibs] Finished computing and adding encounters.')
 
     #
@@ -971,6 +975,15 @@ class IBEISController(object):
         daid_list = ibs.get_valid_aids()
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
+
+    @default_decorator
+    def has_species_detector(ibs, species_text):
+        return species_text in const.SPECIES_WITH_DETECTORS
+
+    @default_decorator
+    def get_species_with_detectors(ibs):
+        return const.SPECIES_WITH_DETECTORS
+        pass
 
 
 if __name__ == '__main__':

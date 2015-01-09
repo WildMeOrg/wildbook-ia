@@ -9,7 +9,7 @@ BUGS:
     * On opening new database the tables are refreshed for the closing database.
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, filter
+from six.moves import zip, map, filter  # NOQA
 from os.path import isdir
 from ibeis import constants as const
 import functools  # NOQA
@@ -327,10 +327,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                           bgcolor=(255, 150, 0),
                                           fgcolor=(0, 0, 0))
 
+        def get_working_species_set():
+            """ hack to make only species with detectors show up """
+            working_species_tups = [
+                species_tup[::-1] for species_tup in const.SPECIES_TUPS
+                if species_tup.species_text in const.SPECIES_WITH_DETECTORS
+            ]
+            return working_species_tups
+
+        # TODO: update these options depending on ibs.get_species_with_detectors
+        # when a controller is attached to the gui
         detection_combo_box_options = [
             # Text              # Value
             ('Select Species',  'none'),
-        ] + list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
+        ] + get_working_species_set()
+        #list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 

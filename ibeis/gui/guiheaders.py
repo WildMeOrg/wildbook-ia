@@ -7,11 +7,11 @@ delters as well)
 Different columns can be hidden / shown by modifying this file
 """
 from __future__ import absolute_import, division, print_function
-import utool
 from six.moves import zip, map, range
 from ibeis import constants
+import utool as ut
 #from ibeis.control import
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[headers]', DEBUG=False)
 
 ENCOUNTER_TABLE  = constants.ENCOUNTER_TABLE
 IMAGE_TABLE      = constants.IMAGE_TABLE
@@ -49,6 +49,7 @@ TABLE_NICE = {
     NAMES_TREE       : 'Tree of Names',
 }
 
+# COLUMN DEFINITIONS
 # the columns each ibeis table has,
 TABLE_COLNAMES = {
     IMAGE_TABLE     : [
@@ -108,6 +109,8 @@ TABLE_COLNAMES = {
         #'eid',
         'enctext',
         'nImgs',
+        'encounter_start_datetime',
+        #'encounter_end_datetime',
         #'encounter_processed_flag',
         #'encounter_shipped_flag',
     ],
@@ -220,6 +223,8 @@ COL_DEF = dict([
     ('gps',         (str,      'GPS')),
     ('encounter_processed_flag',       (bool,      'Processed')),
     ('encounter_shipped_flag',         (bool,      'Commited')),
+    ('encounter_start_datetime',     (str,      'Start Time')),
+    ('encounter_end_datetime',       (str,      'End Time')),
 ])
 
 #----
@@ -257,7 +262,7 @@ def get_redirects(ibs):
 
 
 def make_ibeis_headers_dict(ibs):
-    partial_imap_1to1 = utool.partial_imap_1to1
+    partial_imap_1to1 = ut.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
     iders = {}
@@ -269,22 +274,52 @@ def make_ibeis_headers_dict(ibs):
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
         'eid'        : ibs.get_image_eids,
-        'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
+        'enctext'    : partial_imap_1to1(ut.tupstr, ibs.get_image_enctext),
         'reviewed'   : ibs.get_image_reviewed,
         'img_gname'  : ibs.get_image_gnames,
         'nAids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
-        'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
+        'datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_image_unixtime),
         'gdconf'     : ibs.get_image_detect_confidence,
         'imgnotes'   : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
         'thumb'      : ibs.get_image_thumbtup,
-        'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
+        'gps'        : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
         'imgnotes'      : ibs.set_image_notes,
+    }
+    #
+    # Encounter Iders/Setters/Getters
+    iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
+    getters[ENCOUNTER_TABLE] = {
+        'eid'        : lambda eids: eids,
+        'nImgs'      : ibs.get_encounter_num_gids,
+        'enctext'    : ibs.get_encounter_enctext,
+        'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
+        'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
+        #
+        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_start_time_posix),
+        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_end_time_posix),
+        #
+        'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
+        'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,
+    }
+    setters[ENCOUNTER_TABLE] = {
+        'enctext'    : ibs.set_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
+        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
+    }
+
+    iders[IMAGE_GRID]   = [ibs.get_valid_gids]
+    getters[IMAGE_GRID] = {
+        'thumb'      : ibs.get_image_thumbtup,
+        'img_gname'  : ibs.get_image_gnames,
+        'aid'        : ibs.get_image_aids,
+    }
+    setters[IMAGE_GRID] = {
     }
     #
     # ANNOTATION Iders/Setters/Getters
@@ -296,10 +331,10 @@ def make_ibeis_headers_dict(ibs):
         'viewpoint'           : ibs.get_annot_viewpoints,
         'annot_gname'         : ibs.get_annot_image_names,
         'nGt'                 : ibs.get_annot_num_groundtruth,
-        'theta'               : partial_imap_1to1(utool.theta_str, ibs.get_annot_thetas),
-        'bbox'                : partial_imap_1to1(utool.bbox_str,  ibs.get_annot_bboxes),
+        'theta'               : partial_imap_1to1(ut.theta_str, ibs.get_annot_thetas),
+        'bbox'                : partial_imap_1to1(ut.bbox_str,  ibs.get_annot_bboxes),
         'num_verts'           : ibs.get_annot_num_verts,
-        'verts'               : partial_imap_1to1(utool.verts_str, ibs.get_annot_verts),
+        'verts'               : partial_imap_1to1(ut.verts_str, ibs.get_annot_verts),
         'nFeats'              : ibs.get_annot_num_feats,
         'rdconf'              : ibs.get_annot_detect_confidence,
         'annotnotes'          : ibs.get_annot_notes,
@@ -346,30 +381,6 @@ def make_ibeis_headers_dict(ibs):
         'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
     }
-    #
-    # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
-    getters[ENCOUNTER_TABLE] = {
-        'eid'        : lambda eids: eids,
-        'nImgs'      : ibs.get_encounter_num_gids,
-        'enctext'    : ibs.get_encounter_enctext,
-        'encounter_shipped_flag'    : ibs.get_encounter_shipped_flags,
-        'encounter_processed_flag'    : ibs.get_encounter_processed_flags,
-    }
-    setters[ENCOUNTER_TABLE] = {
-        'enctext'    : ibs.set_encounter_enctext,
-        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
-        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
-    }
-
-    iders[IMAGE_GRID]   = [ibs.get_valid_gids]
-    getters[IMAGE_GRID] = {
-        'thumb'      : ibs.get_image_thumbtup,
-        'img_gname'  : ibs.get_image_gnames,
-        'aid'        : ibs.get_image_aids,
-    }
-    setters[IMAGE_GRID] = {
-    }
 
     iders[THUMB_TABLE]   = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
@@ -391,14 +402,18 @@ def make_ibeis_headers_dict(ibs):
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
-        collevel_dict = TABLE_TREE_LEVELS.get(tblname, utool.ddict(lambda: 0))
+        collevel_dict = TABLE_TREE_LEVELS.get(tblname, ut.ddict(lambda: 0))
         collevels  = [collevel_dict[colname] for colname in colnames]
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in range(len(colnames))])
         numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 
         def get_column_data(colname):
-            coltype   = COL_DEF[colname][0]
-            colnice   = COL_DEF[colname][1]
+            try:
+                coltype   = COL_DEF[colname][0]
+                colnice   = COL_DEF[colname][1]
+            except KeyError as ex:
+                ut.printex(ex, 'Need to add type info for colname=%r to COL_DEF' % colname)
+                raise
             coledit   = colname in editset
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
@@ -406,7 +421,7 @@ def make_ibeis_headers_dict(ibs):
         try:
             (coltypes, colnices, coledits, colgetters, colsetters) = list(zip(*list(map(get_column_data, colnames))))
         except KeyError as ex:
-            utool.printex(ex,  key_list=['tblname', 'colnames'])
+            ut.printex(ex,  key_list=['tblname', 'colnames'])
             raise
         header = {
             'name': tblname,

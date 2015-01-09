@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import ibeis
 import multiprocessing
-from ibeis.model.detect import randomforest
+#from ibeis.model.detect import randomforest
 # IBEIS
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DETECT]')
 
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = utool.run_test(TEST_DETECT, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
+    #execstr = utool.execstr_dict(test_locals, 'test_locals')
+    #exec(execstr)
     if SPECIAL:
         from plottool import df2
         df2.present()
