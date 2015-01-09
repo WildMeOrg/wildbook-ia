@@ -375,12 +375,12 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 #    #app_style = QtGui.QApplication.style()
 
 
-def newLabel(parent, text, align='center', bold=False):
+def newLabel(parent=None, text='', align='center', bold=False):
     label = QtGui.QLabel(text, parent=parent)
     align_dict = {
         'center': Qt.AlignCenter,
         'right': Qt.AlignRight | Qt.AlignVCenter,
-        'justify': Qt.AlignJustify,
+        'left': Qt.AlignLeft | Qt.AlignVCenter,
         'justify': Qt.AlignJustify,
     }
     label.setAlignment(align_dict[align])
