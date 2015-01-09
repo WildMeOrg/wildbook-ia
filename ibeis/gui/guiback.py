@@ -25,6 +25,7 @@ from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
 from multiprocessing import cpu_count
+from ibeis.gui import clock_offset_gui
 # Utool
 #import utool
 import utool as ut
@@ -1187,11 +1188,7 @@ class MainWindowBackend(QtCore.QObject):
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
-        if refresh:
-            back.ibs.update_special_encounters()
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
-            #back.populate_image_table()
-        return gid_list
+        return back._add_images(refresh, gid_list)
 
     @blocking_slot()
     def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True):
@@ -1206,11 +1203,18 @@ class MainWindowBackend(QtCore.QObject):
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
+        return back._add_images(refresh, gid_list)
+        #print('')
+
+    def _add_images(back, refresh, gid_list):
         if refresh:
             back.ibs.update_special_encounters()
             back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
+        co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
+        co_wgt.show()
         return gid_list
-        #print('')
+
+
 
     @blocking_slot()
     def import_images_as_annots_from_file(back, gpath_list=None, refresh=True):
