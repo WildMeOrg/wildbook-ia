@@ -85,17 +85,40 @@ class ClockOffsetWidget(QtGui.QWidget):
         # Redraw image
         if co_wgt.imfig is not None:
             close_figure(co_wgt.imfig)
-        co_wgt.imfig, co_wgt.imax = imshow(co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex]), fnum=co_wgt.fnum, title="Time Synchronization Picture")
+        image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
+        figtitle = "Time Synchronization Picture"
+        co_wgt.imfig, co_wgt.imax = imshow(image, fnum=co_wgt.fnum, title=figtitle)
         co_wgt.imfig.show()
+
+    def show_helpmsg(co_wgt):
+        msg = ut.textblock(
+            """
+            This step is for synchronizing the time of the images being imported
+            with the actual time of the encounter.
+
+            Use the Previous and Next buttons until the 'Time Synchronization Picture' is of the clock
+            taken at the beginning of the encounter.
+
+            Once found, change the date and time in the boxes below to match the time of the clock in
+            the image, and correct the date if necessary.
+
+            Once done, click 'Set' and the difference will be applied to all images currently
+            being imported.  If you are sure the camera was synchronized, you
+            can skip this step by pressing 'Skip'.
+            """)
+        guitool.user_info(co_wgt, msg=msg, title='Time Sync Help')
 
     def add_label(co_wgt):
         # Very simply adds the text
         _LABEL = partial(guitool.newLabel, parent=co_wgt)
-        text = """This step is for synchronizing the time of the images being imported with the actual time of the encounter.
-Use the Previous and Next buttons until the 'Time Synchronization Picture' is of the clock taken at the beginning of the encounter.
-Once found, change the date and time in the boxes below to match the time of the clock in the image, and correct the date if necessary.
-Once done, click 'Set' and the difference will be applied to all images currently being imported.
-If you are sure the camera was synchronized, you can skip this step by pressing 'Skip'."""
+        text = ut.codeblock(
+            '''
+            * Find the image of the clock
+            * Set the sliders to correspond with the clock
+            * Click Set
+            * Skip if time synchonization is not relevant to you
+            '''
+        )
         main_label = _LABEL(text=text, align='left')
         co_wgt.text_layout.addWidget(main_label)
 
@@ -110,6 +133,8 @@ If you are sure the camera was synchronized, you can skip this step by pressing 
                     clicked=co_wgt.cancel),
             _BUTTON(text='Set',
                     clicked=co_wgt.accept),
+            _BUTTON(text='Help',
+                    clicked=co_wgt.show_helpmsg),
         ]
         # Copying from inspect_gui
 
@@ -203,7 +228,7 @@ def test_clock_offset():
         python -m ibeis.gui.clock_offset_gui --test-test_clock_offset
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.clock_offset_gui import *  # NOQA
         >>> # build test data
         >>> # execute function
