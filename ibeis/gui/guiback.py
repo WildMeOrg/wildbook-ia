@@ -692,33 +692,26 @@ class MainWindowBackend(QtCore.QObject):
             species_phrase = ut.cond_phrase(species_nice_list, 'and')
             return species_phrase
 
-        num_daids = 0
-        num_qaids = 0
-
+        # Build confirmation message
+        msg_fmtstr_list = ['About to run identification queries.']
+        fmtdict = dict()
+        # Append database information to query confirmation
         if daid_list is not None:
-            species_phrase = get_unique_species_phrase(daid_list)
-            num_daids = len(daid_list)
-            msg_fmtstr = ut.codeblock(
-                '''
-                You are about to enter identification searching {num_daids}
-                {annotation_s} of species {species_phrase}. Continue?
-                ''')
-            annotation_s = pluralize('annotation', daid_list)
+            msg_fmtstr_list += ['#database annotations={num_qaids}.']
+            msg_fmtstr_list += ['database species={d_species_phrase}.']
+            fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
+            fmtdict['num_daids'] = len(daid_list)
+            fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
+        # Append query information to query confirmation
         if qaid_list is not None:
-            species_phrase = get_unique_species_phrase(qaid_list)
-            num_qaids = len(qaid_list)
-            msg_fmtstr = ut.codeblock(
-                '''
-                You are about to query {num_qaids} unidentified {annotation_s} of
-                species {species_phrase} for identification. Continue?
-                ''')
-            annotation_s = pluralize('annotation', qaid_list)
-        fmtdict = dict(
-            num_qaids=num_qaids,
-            num_daids=num_daids,
-            annotation_s=annotation_s,
-            species_phrase=species_phrase
-        )
+            msg_fmtstr_list += ['#query annotations={num_qaids}.']
+            msg_fmtstr_list += ['query species={q_species_phrase}.']
+            fmtdict['q_annotation_s']  = pluralize('annotation', qaid_list)
+            fmtdict['num_qaids'] = len(qaid_list)
+            fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
+        # Finish building confirmation message
+        msg_fmtstr_list += ['Press yes to confirm and continue....']
+        msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
         if not back.are_you_sure(use_msg=msg_str):
             raise StopIteration
@@ -1194,10 +1187,11 @@ class MainWindowBackend(QtCore.QObject):
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
 
-    def are_you_sure(back, use_msg=None):
+    def are_you_sure(back, use_msg=None, title='Confirmation'):
         """ Prompt user for conformation before changing something """
-        ans = back.user_option(msg='Are you sure?' if use_msg is None else use_msg, title='Confirmation',
-                               options=['No', 'Yes'], use_cache=False)
+        msg = 'Are you sure?' if use_msg is None else use_msg
+        ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
+                               use_cache=False)
         return ans == 'Yes'
 
     def get_work_directory(back):

@@ -183,6 +183,9 @@ SPECIES_TUPS = [
     (Species.ZEB_GREVY,     'Zebra (Grevy\'s)'),
     (Species.GIRAFFE,       'Giraffes'),
     (Species.ELEPHANT_SAV,  'Elephant (savanna)'),
+]
+
+SPECIES_EXTRA = [
     (Species.JAG,           'Jaguar'),
     (Species.LEOPARD,       'Leopard'),
     (Species.LION,          'Lion'),
