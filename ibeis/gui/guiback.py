@@ -693,7 +693,7 @@ class MainWindowBackend(QtCore.QObject):
             return species_phrase
 
         # Build confirmation message
-        msg_fmtstr_list = ['About to run identification queries.']
+        msg_fmtstr_list = ['About to run identification.']
         fmtdict = dict()
         # Append database information to query confirmation
         if daid_list is not None:
