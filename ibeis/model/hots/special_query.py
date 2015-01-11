@@ -23,6 +23,7 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vs
 
 # Automatic GZ Test Small
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac --interupt-case
+sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 47 --naac --interupt-case
 
 
 """
@@ -32,6 +33,7 @@ import utool as ut
 import numpy as np
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import match_chips4 as mc4
+from ibeis.model.hots import distinctiveness_normalizer
 from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
@@ -220,6 +222,9 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> correct_aids2 = ut.list_take(daids, correct_indicies)
                 >>> qaid = qres.qaid
                 >>> aid = correct_aids2[0]
+                >>> # Report visual uuid for inclusion or exclusion in script
+                >>> print(ibs.get_annot_visual_uuids([qaid, aid]))
+
                 >>> # Feature match things
                 >>> print('qres.filtkey_list = %r' % (qres.filtkey_list,))
                 >>> fm  = qres.aid2_fm[aid]
@@ -233,7 +238,12 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> data_featweights = ibs.get_annot_fgweights([aid])[0]
                 >>> data_featweights[dfx]
                 >>> fnum = pt.next_fnum()
-                >>> match_interaction = interact_matches.MatchInteraction(ibs, qres, aid)
+                >>> bad_aid = qres.get_top_aids()[0]
+                >>> #match_interaction_good = interact_matches.MatchInteraction(ibs, qres, aid, annot_mode=1)
+                >>> #match_interaction_bad = interact_matches.MatchInteraction(ibs, qres, bad_aid)
+                >>> match_interaction_good = qres.ishow_matches(ibs, aid, annot_mode=1, fnum=1)
+                >>> match_interaction_bad = qres.ishow_matches(ibs, bad_aid, annot_mode=1, fnum=2)
+                >>> match_interaction = match_interaction_good
                 >>> self = match_interaction
                 >>> self.select_ith_match(mx)
                 >>> #impossible_to_match = len(correct_indicies) > 0
@@ -260,10 +270,23 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> pt.imshow(patch * 255)
                 >>> pt.update()
                 >>> vt.gaussian_average_patch(patch)
+
+
+                >>> qres.ishow_top(ibs, annot_mode=1)
                 """
                 y
                 # Gonna be pasting
+                def delayed_ipython_paste(delay):
+                    import time
+                    import utool as ut
+                    #import os
+                    print('waiting')
+                    time.sleep(delay)
+                    ut.send_keyboard_input(text='%paste')
+                    ut.send_keyboard_input(key_list=['KP_Enter'])
+                    #os.system(' '.join(['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'KP_Enter']))
                 ut.set_clipboard(IPYTHON_COMMANDS)
+                #ut.spawn_background_thread(delayed_ipython_paste, .1)
                 ut.embed(remove_pyqt_hook=False)
                 IPYTHON_COMMANDS
 
@@ -478,6 +501,9 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     Returns:
         tuple: qaid2_qres_vsone, qreq_vsone_
 
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-query_vsone_pairs
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
@@ -496,13 +522,14 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
         >>> top_namescore_aids = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
         >>> result = str(top_namescore_aids)
         >>> print(result)
-        [3, 5, 4]
+        [3, 5]
 
     """
     #vsone_cfgdict = dict(codename='vsone_unnorm')
     vsone_cfgdict = dict(
         index_method='single',
-        codename='vsone_unnorm_dist_ratio',
+        #codename='vsone_unnorm_dist_ratio',
+        codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
     )
     #------------------------
     # METHOD 1:
@@ -609,27 +636,17 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
         norm_sqared_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        distinctiveness_scores = compute_distinctiveness(norm_sqared_dist)
-        new_scores[:] = distinctiveness_scores  #
+        dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_sqared_dist)
+        new_scores[:] = dstncvs  #
         newfsv_list.append(new_fsv_vsone)
         newscore_aids.append(daid)
     return newfsv_list, newscore_aids
 
 
-def compute_distinctiveness(norm_sqared_dist):
-    """
-    Compute distinctiveness from distance to K+1 nearest neighbor
-    """
-    # TODO: paramaterize
-    # expondent to augment distinctiveness scores.
-    p = 1.0
-    # clip the distinctiveness at this fraction
-    clip_fraction = .2
-    wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
-    wd_cliped[np.greater(wd_cliped, 1.0)] = 1.0
-    wd = np.power(wd_cliped, p)
-    distinctiveness_scores = wd
-    return distinctiveness_scores
+@profile
+def get_extern_distinctiveness(qres_vsone, top_aids):
+    filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+    pass
 
 
 def index_partition(item_list, part1_items):
@@ -646,7 +663,7 @@ def index_partition(item_list, part1_items):
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
         >>> assert part1_indexes.tolist() == [1, 2]
-        >>> assert part2_indexes.tolist() == [0]
+        >>> assert part2_indexes.tolist() == [3]
     """
     part1_indexes_ = [
         item_list.index(item)

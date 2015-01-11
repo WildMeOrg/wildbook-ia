@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.model.hots import neighbor_index, multi_index, score_normalization
+from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import multi_index
+from ibeis.model.hots import score_normalization
+from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model import Config
 import vtool as vt
 import copy
@@ -153,6 +156,7 @@ class QueryRequest(object):
         qreq_.indexer = None
         # The scoring normalization mechanism
         qreq_.normalizer = None
+        qreq_.dstcnvs_normer = None
         # Hacky metadata
         qreq_.metadata = {}
         # DEPRICATE?
@@ -214,7 +218,6 @@ class QueryRequest(object):
             qreq2_.set_external_daids(daid_list)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
-        qreq2_.normalizer = None
         qreq2_.metadata = {}
         qreq2_.hasloaded = False
         return qreq2_
@@ -492,6 +495,8 @@ class QueryRequest(object):
         """
         feature weights and normalizers should be loaded before vsone queries
         are issued. They do not depened only on qparams
+
+        Load non-query specific normalizers / weights
         """
         if verbose:
             print('[qreq] lazy preloading')
@@ -499,6 +504,8 @@ class QueryRequest(object):
             qreq_.ensure_featweights(verbose=verbose)
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)
+        if qreq_.qparams.use_external_distinctiveness:
+            qreq_.load_distinctiveness_normalizer(verbose=verbose)
 
     @profile
     def lazy_load(qreq_, verbose=True):
@@ -538,8 +545,12 @@ class QueryRequest(object):
             index_method = qreq_.qparams.index_method
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
+                if verbose:
+                    print('loading single indexer normalizer')
                 indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
             else:
+                if verbose:
+                    print('loading multi indexer normalizer')
                 indexer = multi_index.request_ibeis_mindexer(qreq_, verbose=verbose)
             qreq_.indexer = indexer
             return True
@@ -548,9 +559,28 @@ class QueryRequest(object):
     def load_score_normalizer(qreq_, verbose=True):
         if qreq_.normalizer is not None:
             return False
+        if verbose:
+            print('loading score normalizer')
         # TODO: SYSTEM updatable normalizer
         normalizer = score_normalization.request_ibeis_normalizer(qreq_, verbose=verbose)
         qreq_.normalizer = normalizer
+
+    @profile
+    def load_distinctiveness_normalizer(qreq_, verbose=True):
+        """
+        Example:
+            >>> from ibeis.model.hots import distinctiveness_normalizer
+            >>> verbose = True
+        """
+        if qreq_.dstcnvs_normer is not None:
+            return False
+        if verbose:
+            print('loading external distinctiveness normalizer')
+        # TODO: SYSTEM updatable dstcnvs_normer
+        dstcnvs_normer = distinctiveness_normalizer.request_ibeis_distinctiveness_normalizer(qreq_, verbose=verbose)
+        qreq_.dstcnvs_normer = dstcnvs_normer
+        if verbose:
+            print('qreq_.dstcnvs_normer = %r' % (qreq_.dstcnvs_normer,))
 
     # load data lists
     # see _broken/broken_qreq.py

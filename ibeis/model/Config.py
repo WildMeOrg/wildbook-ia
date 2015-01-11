@@ -565,15 +565,16 @@ class VocabAssignConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
-    """ query configuration parameters
+    """
+    query configuration parameters
 
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> cfg = ibs.cfg.query_cfg
-            >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
-            >>> print(cfgstr)
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
+        >>> print(cfgstr)
 
     """
     def __init__(query_cfg, **kwargs):
@@ -593,6 +594,7 @@ class QueryConfig(ConfigBase):
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
         query_cfg.return_expanded_nns = False
+        query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         #if utool.is_developer():
@@ -662,7 +664,7 @@ class QueryConfig(ConfigBase):
             nn_cfg.Knorm = 1
             filt_cfg.lnbnn_weight = 0.0
             #filt_cfg.ratio_thresh = 1.6
-            if '_dist' in codename:
+            if codename.endswith('_dist') or '_dist_' in codename:
                 # no ratio use distance
                 filt_cfg.ratio_thresh = None
                 filt_cfg.ratio_weight = 0.0
@@ -674,6 +676,8 @@ class QueryConfig(ConfigBase):
             if '_ratio' in codename:
                 filt_cfg.ratio_thresh = .625
                 filt_cfg.ratio_weight = 1.0
+            if '_extern_distinctiveness' in codename:
+                query_cfg.use_external_distinctiveness = True
             filt_cfg.dupvote_weight = 0.0
             if codename.startswith('vsone_unnorm'):
                 agg_cfg.score_normalization = False

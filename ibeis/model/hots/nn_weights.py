@@ -11,7 +11,24 @@ print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 
 
 NN_WEIGHT_FUNC_DICT = {}
+MISC_WEIGHT_FUNC_DICT = {}
 EPS = 1E-8
+
+
+def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdict={}):
+    """
+    >>> dbname = 'testdb1'
+    >>> cfgdict = {'fg_weight': 1.0}
+    """
+    from ibeis.model.hots import pipeline
+    ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname,
+                                                qaid_list=qaid_list,
+                                                daid_list=daid_list,
+                                                cfgdict=cfgdict)
+    pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
+    qaid2_nns     = pipeline_locals_['qaid2_nns']
+    qaid2_nnvalid0 = pipeline_locals_['qaid2_nnvalid0']
+    return ibs, qreq_, qaid2_nns, qaid2_nnvalid0
 
 
 def _register_nn_normalized_weight_func(func):
@@ -21,19 +38,27 @@ def _register_nn_normalized_weight_func(func):
     Registers a nearest neighbor normalized weighting
     """
     global NN_WEIGHT_FUNC_DICT
-    nnweight = utool.get_funcname(func).replace('_fn', '').lower()
+    filtkey = utool.get_funcname(func).replace('_fn', '').lower()
     if utool.VERBOSE:
-        print('[nn_weights] registering norm func: %r' % (nnweight,))
+        print('[nn_weights] registering norm func: %r' % (filtkey,))
     filtfunc = functools.partial(nn_normalized_weight, func)
-    NN_WEIGHT_FUNC_DICT[nnweight] = filtfunc
+    NN_WEIGHT_FUNC_DICT[filtkey] = filtfunc
     return func
 
 
 def _register_nn_simple_weight_func(func):
-    nnweight = utool.get_funcname(func).replace('_match_weighter', '').lower()
+    filtkey = utool.get_funcname(func).replace('_match_weighter', '').lower()
     if utool.VERBOSE:
-        print('[nn_weights] registering simple func: %r' % (nnweight,))
-    NN_WEIGHT_FUNC_DICT[nnweight] = func
+        print('[nn_weights] registering simple func: %r' % (filtkey,))
+    NN_WEIGHT_FUNC_DICT[filtkey] = func
+    return func
+
+
+def _register_misc_weight_func(func):
+    filtkey = utool.get_funcname(func).replace('_match_weighter', '').lower()
+    if utool.VERBOSE:
+        print('[nn_weights] registering simple func: %r' % (filtkey,))
+    MISC_WEIGHT_FUNC_DICT[filtkey] = func
     return func
 
 
@@ -215,9 +240,37 @@ def fg_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     return qaid2_fgvote_weight
 
 
+@_register_misc_weight_func
+def distinctiveness_match_weighter(qreq_):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> cfgdict = dict(featweight_on=True, fg_weight=1.0, codename='vsone_dist_extern_distinctiveness')
+        >>> tup = nn_weights.testdata_nn_weights('PZ_MTEST', cfgdict=cfgdict)
+        >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
+
+    TODO: finish intergration
+    """
+    dstcnvs_normer = qreq_.dstcnvs_normer
+    assert dstcnvs_normer is not None
+    qaid_list = qreq_.get_external_qaids()
+    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list)
+    dstcvs_list = []
+    for vecs in vecs_list:
+        qfx2_vec = vecs
+        dstcvs = dstcnvs_normer.get_distinctiveness(qfx2_vec)
+        dstcvs_list.append(dstcvs)
+    qaid2_dstcvs = dict(zip(qaid_list, dstcvs_list))
+    return qaid2_dstcvs
+
+
 def nn_normalized_weight(normweight_fn, qaid2_nns, qaid2_nnvalid0, qreq_):
     """
-    Weights nearest neighbors using the chosen function
+    Generic function to weight nearest neighbors
+
+    ratio, lnbnn, and other nearest neighbor based functions use this
 
     Args:
         normweight_fn (func): chosen weight function e.g. lnbnn
@@ -581,22 +634,6 @@ def test_all_normalized_weights():
         if normweight_key not in nn_weights.__dict__:
             continue
         test_weight_fn(nn_weight, qaid2_nns, qreq_, qaid)
-
-
-def testdata_nn_weights(dbname='testdb1', qaid_list=None, daid_list=None, cfgdict={}):
-    """
-    >>> dbname = 'testdb1'
-    >>> cfgdict = {'fg_weight': 1.0}
-    """
-    from ibeis.model.hots import pipeline
-    ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname,
-                                                qaid_list=qaid_list,
-                                                daid_list=daid_list,
-                                                cfgdict=cfgdict)
-    pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, 'weight_neighbors')
-    qaid2_nns     = pipeline_locals_['qaid2_nns']
-    qaid2_nnvalid0 = pipeline_locals_['qaid2_nnvalid0']
-    return ibs, qreq_, qaid2_nns, qaid2_nnvalid0
 
 
 if __name__ == '__main__':

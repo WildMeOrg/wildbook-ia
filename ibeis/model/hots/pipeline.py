@@ -79,34 +79,6 @@ BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
 
-#def pipeline_dense_step(qreq_, verbose=VERB_PIPELINE):
-#    qaid2_nns_ = nearest_neighbors(qreq_, verbose=verbose)
-#    # Remove Impossible Votes
-#    qaid2_nnvalid0_ = baseline_neighbor_filter(qreq_, qaid2_nns_,
-#                                               verbose=verbose)
-#    # Nearest neighbors weighting / scoring (qaid2_filtweights)
-#    qaid2_filtweights_ = weight_neighbors(qreq_, qaid2_nns_, qaid2_nnvalid0_,
-#                                          verbose=verbose)
-#    # Thresholding and combine weights into a score
-#    qaid2_nnfilts_, qaid2_nnfiltagg_ = filter_neighbors(qreq_, qaid2_nns_,
-#                                                        qaid2_nnvalid0_,
-#                                                        qaid2_filtweights_,
-#                                                        verbose=verbose)
-
-
-#def pipeline_dense_step_chunks(qreq_, verbose=VERB_PIPELINE):
-#    internal_qaids = qreq_.get_external_qaids()
-#    #internal_daids = qreq_.get_internal_daids()
-#    chunksize = 1 if qreq_.qparams.vsone else len(internal_qaids)
-#    qreq_orig = qreq_
-#    qreq_ = qreq_orig.shallowcopy()
-
-#    for qaids_chunk in ut.ichunks(internal_qaids, chunksize):
-#        qreq_.set_internal_unmasked_qaids(qaids_chunk)
-#        qreq_.get_internal_qaids()
-#        qreq_.set
-
-
 # Query Level 0
 #@ut.indent_func('[Q0]')
 @profile
@@ -289,6 +261,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=VERB_PIPELINE):
         >>> stripsource = ut.strip_line_comments(stripsource)
         >>> print(stripsource)
     """
+    qreq_.lazy_load(verbose=verbose)
     #---
     if stop_node == 'nearest_neighbors':
         return locals()
