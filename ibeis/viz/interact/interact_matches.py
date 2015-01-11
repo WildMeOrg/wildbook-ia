@@ -1,5 +1,11 @@
 """
 Interaction for looking at matches between two queries
+
+Main development file
+
+CommandLine:
+    python -m ibeis.viz.interact.interact_matches --test-begin --show
+    python -m ibeis.viz.interact.interact_matches --test-begin
 """
 from __future__ import absolute_import, division, print_function
 import utool
