@@ -528,8 +528,8 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     #vsone_cfgdict = dict(codename='vsone_unnorm')
     vsone_cfgdict = dict(
         index_method='single',
-        #codename='vsone_unnorm_dist_ratio',
-        codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
+        codename='vsone_unnorm_dist_ratio',
+        #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
     )
     #------------------------
     # METHOD 1:
