@@ -181,7 +181,7 @@ def dev_train_distinctiveness(species=None):
         python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --pz
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> import ibeis
         >>> if ut.get_argflag('--gz'):
