@@ -161,6 +161,11 @@ def execstr_global():
     return execstr
 
 
+def show_if_requested():
+    if ut.get_argflag('--show'):
+        plt.show()
+
+
 def label_to_colors(labels_):
     """
     returns a unique and distinct color corresponding to each label
@@ -683,14 +688,57 @@ def plot_bars(y_data, nColorSplits=1):
         ax.bar(x_dat, y_dat, width, color=color, edgecolor=np.array(color) * .8)
 
 
-def phantom_legend_label(label, color, loc='upper right'):
-    'adds a legend label without displaying an actor'
-    pass
-    #phantom_actor = plt.Circle((0, 0), 1, fc=color, prop=FONTS.legend, loc=loc)
-    #plt.legend(phant_actor, label, framealpha=.2)
-    #plt.legend(*zip(*legend_tups), framealpha=.2)
+def append_phantom_legend_label(label, color, type_='circle', alpha=1.0):
+    """
+    adds a legend label without displaying an actor
+
+    Args:
+        label (?):
+        color (?):
+        loc (str):
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-append_phantom_legend_label
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> label = 'some label'
+        >>> color = 'b'
+        >>> loc = 'upper right'
+        >>> # execute function
+        >>> result = append_phantom_legend_label(label, color, loc)
+        >>> # verify results
+        >>> print(result)
+    """
+    #pass
+    #, loc=loc
+    ax = gca()
+    _phantom_legend_list = getattr(ax, '_phantom_legend_list', None)
+    if _phantom_legend_list is None:
+        _phantom_legend_list = []
+        setattr(ax, '_phantom_legend_list', _phantom_legend_list)
+    if type_ == 'line':
+        phantom_actor = plt.Line2D((0, 0), (1, 1), color=color, label=label,
+                                   alpha=alpha)
+    else:
+        phantom_actor = plt.Circle((0, 0), 1, fc=color, label=label, alpha=alpha)
+    #, prop=custom_constants.FONTS.legend)
     #legend_tups = []
-    #legend_tups.append((phantom_actor, label))
+    _phantom_legend_list.append(phantom_actor)
+    #ax.legend(handles=[phantom_actor], framealpha=.2)
+    #plt.legend(*zip(*legend_tups), framealpha=.2)
+
+
+def show_phantom_legend_labels(loc='upper right'):
+    ax = gca()
+    _phantom_legend_list = getattr(ax, '_phantom_legend_list', None)
+    if _phantom_legend_list is None:
+        _phantom_legend_list = []
+        setattr(ax, '_phantom_legend_list', _phantom_legend_list)
+    #print(_phantom_legend_list)
+    ax.legend(handles=_phantom_legend_list, framealpha=.2)
 
 
 LEGEND_LOCATION = {

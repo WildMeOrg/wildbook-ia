@@ -41,12 +41,18 @@ def draw_hist_subbin_maxima(hist, centers=None):
 
 def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):
     """
+
+    CommandLine:
+        python -m plottool.plots --test-plot_stems
+        python -m plottool.plots --test-plot_stems --show
+
     Example:
         >>> from plottool import *  # NOQA
         >>> import plottool as pt
         >>> x_data = [1, 1, 2, 3, 3, 3, 4, 4, 5]
         >>> y_data = [1, 2, 1, 2, 1, 4, 4, 5, 1]
         >>> pt.plots.plot_stems(x_data, y_data)
+        >>> pt.show_if_requested()
     """
     if fnum is None:
         fnum = df2.next_fnum()
@@ -296,3 +302,94 @@ def estimate_pdf(data, bw_factor):
         print('[df2] ex=%r' % (ex,))
         raise
     return data_pdf
+
+
+def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
+                        y_label='', title=''):
+    r"""
+
+    interval plot for displaying mean, range, and std
+
+    Args:
+        fnum (int):  figure number
+        pnum (tuple):  plot number
+
+    CommandLine:
+        python -m plottool.plots --test-interval_stats_plot
+        python -m plottool.plots --test-interval_stats_plot --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> # build test data
+        >>> param2_stat_dict = {
+        ...     0.5: dict([('max', 0.0584), ('min', 0.0543), ('mean', 0.0560), ('std', 0.00143),]),
+        ...     0.6: dict([('max', 0.0593), ('min', 0.0538), ('mean', 0.0558), ('std', 0.00178),]),
+        ...     0.7: dict([('max', 0.0597), ('min', 0.0532), ('mean', 0.0556), ('std', 0.00216),]),
+        ...     0.8: dict([('max', 0.0601), ('min', 0.0525), ('mean', 0.0552), ('std', 0.00257),]),
+        ...     0.9: dict([('max', 0.0604), ('min', 0.0517), ('mean', 0.0547), ('std', 0.00300),]),
+        ...     1.0: dict([('max', 0.0607), ('min', 0.0507), ('mean', 0.0541), ('std', 0.00345),])
+        ... }
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> title = 'p vs score'
+        >>> x_label = 'p'
+        >>> y_label = 'score diff'
+        >>> # execute function
+        >>> result = interval_stats_plot(param2_stat_dict, fnum, pnum, x_label, y_label, title)
+        >>> df2.show_if_requested()
+        >>> # verify results
+        >>> print(result)
+    """
+    if fnum is None:
+        fnum = df2.next_fnum()
+    import six
+    x_data = np.array(list(six.iterkeys(param2_stat_dict)))
+    sortx = x_data.argsort()
+    x_data_sort = x_data[sortx]
+    from matplotlib import pyplot as plt
+    # Prepare y data for boxplot
+    y_data_keys = ['std', 'mean', 'max', 'min']
+    y_data_dict = list(six.itervalues(param2_stat_dict))
+    def get_dictlist_key(dict_list, key):
+        return [dict_[key] for dict_ in dict_list]
+    y_data_components = [get_dictlist_key(y_data_dict, key) for key in y_data_keys]
+    y_data_sort = np.vstack(y_data_components)[:, sortx]
+    y_data_std_sort  = y_data_sort[0]
+    y_data_mean_sort = y_data_sort[1]
+    y_data_min_sort  = y_data_sort[2]
+    y_data_max_sort  = y_data_sort[3]
+    y_data_low_std_sort  = y_data_mean_sort - y_data_std_sort
+    y_data_high_std_sort = y_data_mean_sort + y_data_std_sort
+    # Make firgure
+    fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    ax = plt.gca()
+    # Plot max and mins
+    ax.fill_between(x_data_sort, y_data_min_sort, y_data_max_sort, alpha=.2, color='g', label='range')
+    df2.append_phantom_legend_label('range', 'g', alpha=.2)
+    # Plot standard deviations
+    ax.fill_between(x_data_sort, y_data_low_std_sort, y_data_high_std_sort, alpha=.4, color='b', label='std')
+    df2.append_phantom_legend_label('std', 'b', alpha=.4)
+    # Plot means
+    ax.plot(x_data_sort, y_data_mean_sort, 'o-', color='b', label='mean')
+    df2.append_phantom_legend_label('mean', 'b', 'line')
+    df2.show_phantom_legend_labels()
+    df2.set_xlabel(x_label)
+    df2.set_ylabel(y_label)
+    df2.set_title(title)
+    return fig
+    #df2.dark_background()
+    #plt.show()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.plots
+        python -m plottool.plots --allexamples
+        python -m plottool.plots --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
