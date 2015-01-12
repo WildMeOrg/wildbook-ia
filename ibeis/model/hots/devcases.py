@@ -9,10 +9,152 @@ from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import hstypes
 from uuid import UUID
 import utool as ut
-#import six
 import copy
+import six  # NOQA
 import numpy as np  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
+
+
+def myquery():
+    r"""
+
+    see how seperability changes as we very things
+    pas
+
+    CommandLine:
+        python -m ibeis.model.hots.devcases --test-myquery
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 0
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 1
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
+        >>> pt.show_if_requested()
+    """
+    from ibeis.model.hots import special_query  # NOQA
+    from ibeis import viz  # NOQA
+    import plottool as pt
+    index = ut.get_argval('--index', int, 0)
+    ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
+    qaids = [aid1]
+    daids = [aid2] + [tn_aid]
+    qvuuid = ibs.get_annot_visual_uuids(aid1)
+
+    cfgdict_vsone = dict(
+        sv_on=True,
+        #sv_on=False,
+        codename='vsone_unnorm_dist_ratio_extern_distinctiveness'
+    )
+
+    use_cache   = False
+    save_qcache = False
+
+    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
+                                       return_request=True, use_cache=use_cache,
+                                       save_qcache=save_qcache, verbose=True)
+
+    qreq_.load_distinctiveness_normalizer()
+    qres = qres_list[0]
+    top_aids = qres.get_top_aids()  # NOQA
+    qres_orig = qres  # NOQA
+
+    def test_config(qreq_, qres_orig, cfgdict):
+        """ function to grid search over """
+        qres_copy = copy.deepcopy(qres_orig)
+        qreq_vsone_ = qreq_
+        qres_vsone = qres_copy
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
+        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
+        tp_score  = qres_copy.aid2_score[aid2]
+        tn_score  = qres_copy.aid2_score[tn_aid]
+        return qres_copy, tp_score, tn_score
+
+    #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
+    grid_basis = [
+        ut.DimensionBasis('p', np.logspace(.01, 1.0, 4)),
+        ut.DimensionBasis('K', [2, 4, 8, 16]),
+        ut.DimensionBasis('clip_fraction', np.linspace(.01, .3, 10))
+    ]
+    gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
+    print('Begin Grid Search')
+    for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
+        qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, cfgdict)
+        gridsearch.append_result(tp_score, tn_score)
+    print('Finish Grid Search')
+
+    # Get best result
+    best_cfgdict = gridsearch.get_rank_cfgdict()
+    qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, best_cfgdict)
+
+    # PRINT INFO
+    import functools
+    ut.rrrr()
+    get_stats_str = functools.partial(ut.get_stats_str, axis=0, newlines=True, precision=3)
+    tp_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[aid2]), ':')
+    tn_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[tn_aid]), ':')
+    info_str_list = []
+    info_str_list.append('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
+    info_str_list.append('CORRECT STATS')
+    info_str_list.append(tp_stats_str)
+    info_str_list.append('INCORRECT STATS')
+    info_str_list.append(tn_stats_str)
+    info_str = '\n'.join(info_str_list)
+    print(info_str)
+
+    #ut.embed()
+
+    # SHOW BEST RESULT
+    qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
+    qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
+
+    # Text Informatio
+    param_lbl = 'p'
+    param_stats_str = gridsearch.get_dimension_stats_str(param_lbl)
+    print(param_stats_str)
+
+    csvtext = gridsearch.get_csv_results(10)
+    print(csvtext)
+
+    # Paramter visuzliation
+    fnum = pt.next_fnum()
+    pnum_ = pt.get_pnum_func(2, 3)
+    # plot paramter influence
+    gridsearch.plot_dimension('p', fnum=fnum, pnum=pnum_(0))
+    gridsearch.plot_dimension('K', fnum=fnum, pnum=pnum_(1))
+    gridsearch.plot_dimension('clip_fraction', fnum=fnum, pnum=pnum_(2))
+    # plot match figure
+    pnum2_ = pt.get_pnum_func(2, 2)
+    qres_orig.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
+    qres_orig.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
+    # Add figure labels
+    figtitle = 'Effect of parameters on vsone separation for a single case'
+    subtitle = 'qvuuid = %r' % (qvuuid)
+    figtitle += '\n' + subtitle
+    pt.set_figtitle(figtitle)
+    # Save Figure
+    fig_fpath = pt.save_figure(usetitle=True)
+    print(fig_fpath)
+
+    # Write CSV Results
+    csv_fpath = fig_fpath + '.csv.txt'
+    ut.write_to(csv_fpath, csvtext)
+
+    #qres_copy.ishow_top(ibs)
+    #from matplotlib import pyplot as plt
+    #plt.show()
+    #print(ut.list_str()))
+    # TODO: plot max variation dims
+    #import plottool as pt
+    #pt.plot(p_list, diff_list)
+    """
+    viz.show_chip(ibs, aid1)
+    import plottool as pt
+    pt.update()
+    """
 
 
 def testdata_my_exmaples(index):
@@ -56,125 +198,6 @@ def testdata_my_exmaples(index):
     tn_aids = ibs.get_annot_aids_from_visual_uuid(tn_vuuid)
     tn_aid = tn_aids[0]
     return ibs, aid1, aid2, tn_aid
-
-
-def myquery():
-    r"""
-
-    see how seperability changes as we very things
-    pas
-
-    CommandLine:
-        python -m ibeis.model.hots.devcases --test-myquery
-        python -m ibeis.model.hots.devcases --test-myquery --show --index 0
-        python -m ibeis.model.hots.devcases --test-myquery --show --index 1
-        python -m ibeis.model.hots.devcases --test-myquery --show --index 2
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
-        >>> pt.show_if_requested()
-    """
-    from ibeis.model.hots import special_query  # NOQA
-    from ibeis import viz  # NOQA
-    import plottool as pt
-    import six
-    index = ut.get_argval('--index', int, 0)
-    ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
-    qaids = [aid1]
-    daids = [aid2] + [tn_aid]
-
-    cfgdict_vsone = dict(
-        sv_on=True,
-        #sv_on=False,
-        codename='vsone_unnorm_extern_distinctiveness'
-    )
-
-    use_cache   = True
-    save_qcache = True
-
-    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
-                                       return_request=True, use_cache=use_cache,
-                                       save_qcache=save_qcache, verbose=True)
-
-    qreq_.load_distinctiveness_normalizer()
-    qres = qres_list[0]
-    top_aids = qres.get_top_aids()  # NOQA
-    qres_orig = qres  # NOQA
-    #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
-    grid_basis = [
-        ut.util_dict.DimensionBasis('p', np.logspace(.01, 1.0, 10)),
-        ut.util_dict.DimensionBasis('K', [2, 3, 4, 5, 10, 20]),
-        ut.util_dict.DimensionBasis('clip_fraction', np.linspace(.01, .3, 20))
-    ]
-    grid_searcher = ut.GridSearch(grid_basis)
-    for cfgdict in grid_searcher:
-        qres_copy = copy.deepcopy(qres_orig)
-        qreq_vsone_ = qreq_
-        qres_vsone = qres_copy
-        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
-        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
-        tp_score  = qres_copy.aid2_score[aid2]
-        tn_score  = qres_copy.aid2_score[tn_aid]
-        grid_searcher.append_result(tp_score, tn_score)
-
-    csvtext = grid_searcher.get_csv_results(10)
-    print(csvtext)
-    param2_score_stats = grid_searcher.get_dimension_stats('p')
-    fnum = pt.next_fnum()
-    pnum_ = pt.get_pnum_func(2, 3)
-    grid_searcher.plot_dimension('p', fnum=fnum, pnum=pnum_(0))
-    grid_searcher.plot_dimension('K', fnum=fnum, pnum=pnum_(1))
-    grid_searcher.plot_dimension('clip_fraction', fnum=fnum, pnum=pnum_(2))
-    figtitle = 'Effect of parameters on vsone separation for a single case'
-    qvuuid = ibs.get_annot_visual_uuids(aid1)
-    subtitle = 'qvuuid = %r' % (qvuuid)
-    figtitle += '\n' + subtitle
-    pt.set_figtitle(figtitle)
-    exclude_keys = ['nMin', 'nMax']
-    #ut.embed()
-    pnum2_ = pt.get_pnum_func(2, 2)
-    qres_orig.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
-    qres_orig.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
-
-    fig_fpath = pt.save_figure(usetitle=True)
-    print(fig_fpath)
-    csv_fpath = fig_fpath + '.csv.txt'
-    ut.write_to(csv_fpath, csvtext)
-
-    param2_score_stats_str = {
-        param: ut.get_stats_str(stat_dict=stat_dict, exclude_keys=exclude_keys)
-        for param, stat_dict in six.iteritems(param2_score_stats)}
-    print(ut.dict_str(param2_score_stats_str))
-
-    #print(ut.list_str()))
-
-    # TODO: plot max variation dims
-    #import plottool as pt
-    #pt.plot(p_list, diff_list)
-
-    # PRINT INFO
-    info_str_list = []
-    info_str_list.append('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
-    info_str_list.append('CORRECT STATS')
-    info_str_list.append(ut.get_stats_str(qres_copy.aid2_fsv[aid2], axis=0, newlines=True))
-    info_str_list.append('INCORRECT STATS')
-    info_str_list.append(ut.get_stats_str(qres_copy.aid2_fsv[tn_aid], axis=0, newlines=True))
-    info_str = '\n'.join(info_str_list)
-    print(info_str)
-
-    #qres_copy.ishow_top(ibs)
-    #from matplotlib import pyplot as plt
-    #plt.show()
-
-    """
-    viz.show_chip(ibs, aid1)
-    import plottool as pt
-    pt.update()
-    """
 
 
 def find_close_incorrect_match(ibs, qaids):

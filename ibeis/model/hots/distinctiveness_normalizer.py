@@ -151,13 +151,14 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> dstcnvs_normer = testdata_distinctiveness()[0]
             >>> assert dstcnvs_normer.exists()
         """
+        from os.path import exists
         cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         cpkl_fpath = dstcnvs_normer.get_fpath(cachedir)
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         fpath_list = [cpkl_fpath]
         if need_flann:
             fpath_list.append(flann_fpath)
-        flag = all([ut.checkpath(fpath, verbose=verbose) for fpath in fpath_list])
+        flag = all([exists(fpath) for fpath in fpath_list])
         return flag
 
     def load(dstcnvs_normer, cachedir=None, verbose=True, *args, **kwargs):
