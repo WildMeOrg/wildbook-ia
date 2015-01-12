@@ -240,9 +240,11 @@ class MultiNeighborIndex(object):
             >>> K = 3
             >>> qfx2_vec = ibs.get_annot_vecs(1)
             >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
-            >>> result = str(list(map(np.shape, qfx2_idx_list)))
-            >>> print(result)
-            [(1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3)]
+            >>> shape_list = list(map(np.shape, qfx2_idx_list))
+            >>> d1_list = ut.get_list_column(shape_list, 0)
+            >>> d2_list = ut.get_list_column(shape_list, 1)
+            >>> ut.assert_eq(d2_list, [3] * 6)
+            >>> ut.assert_eq(d1_list, [len(qfx2_vec)] * 6)
         """
         qfx2_idx_list  = []
         qfx2_dist_list = []
@@ -314,9 +316,11 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
-            >>> result = mxer.get_offsets()
-            >>> print(result)
-            [21384 36627 49435 54244 57786 60482]
+            >>> offset_list = mxer.get_offsets()
+            >>> #target = np.array([15257, 12769,  4819,  3542,  2694])
+            >>> target = np.array([21384, 36627, 49435, 54244, 57786, 60482])
+            >>> error = ut.assert_almost_eq(offset_list, target, 100)
+            >>> print('error.max() = %r' % (error.max(),))
         """
         nIndexed_list = mxer.get_nIndexed_list()
         offset_list = np.cumsum(nIndexed_list)
@@ -338,9 +342,11 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
-            >>> result = mxer.get_nIndexed_list()
-            >>> print(result)
-            [21384, 15243, 12808, 4809, 3542, 2696]
+            >>> nIndexed_list = mxer.get_nIndexed_list()
+            >>> target = np.array([21384, 15243, 12808, 4809, 3542, 2696])
+            >>> error = ut.assert_almost_eq(nIndexed_list, target, 100)
+            >>> print('error.max() = %r' % (error.max(),))
+            >>> #np.all(ut.inbounds(nIndexed_list, low, high))
         """
         nIndexed_list = [nnindexer.num_indexed_vecs()
                          for nnindexer in mxer.nn_indexer_list]
@@ -427,12 +433,8 @@ class MultiNeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
-            >>> result = mxer.num_indexed_vecs()
-            >>> print(result)
-            60482
-
-        54244
-        54200 on win32
+            >>> num_indexed = mxer.num_indexed_vecs()
+            >>> ut.assert_inbounds(num_indexed, 60300, 60500)
         """
         return np.sum([nnindexer.num_indexed_vecs()
                        for nnindexer in mxer.nn_indexer_list])

@@ -1350,7 +1350,7 @@ def update_ungrouped_special_encounter(ibs):
         python -m ibeis.ibsfuncs --test-update_ungrouped_special_encounter
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
@@ -2321,10 +2321,11 @@ def export_testset_for_chuck(ibs, min_num_annots):
         python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 500
 
         python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 100
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 500
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir
+        /raid/work2/Turk/GZ_Master --min-num-annots 500_DOCTEST
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data

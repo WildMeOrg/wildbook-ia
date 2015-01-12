@@ -285,7 +285,7 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
         >>> # execute function
         >>> dstcnvs_normer = request_ibeis_distinctiveness_normalizer(qreq_)
         >>> # verify results
-        >>> print(result)
+        >>> assert dstcnvs_normer is not None
     """
     global DISTINCTIVENESS_NORMALIZER_CACHE
     unique_species = qreq_.get_unique_species()
@@ -318,7 +318,7 @@ def dev_train_distinctiveness(species=None):
         python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness --pz --publish
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> import ibeis
         >>> if ut.get_argflag('--gz'):

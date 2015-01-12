@@ -288,8 +288,8 @@ class IBEISController(object):
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> #ibs = ibeis.opendb('PZ_MTEST')
-            >>> #ibs = ibeis.opendb('testdb1')
-            >>> ibs = ibeis.opendb('PZ_Master0')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
+            >>> ibs = ibeis.opendb('testdb1')
 
         Ignore:
             aid_list = ibs.get_valid_aids()

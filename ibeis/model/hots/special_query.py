@@ -781,8 +781,8 @@ def index_partition(item_list, part1_items):
         >>> item_list = ['dist', 'fg', 'distinctiveness']
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
-        >>> assert part1_indexes.tolist() == [1, 2]
-        >>> assert part2_indexes.tolist() == [3]
+        >>> ut.assert_eq(part1_indexes.tolist(), [1, 2])
+        >>> ut.assert_eq(part2_indexes.tolist(), [0])
     """
     part1_indexes_ = [
         item_list.index(item)
