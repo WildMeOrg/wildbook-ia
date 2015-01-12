@@ -5,6 +5,7 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
+import sys
 import pyflann
 import utool
 import utool as ut  # NOQA
@@ -165,6 +166,21 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     return flann_fpath
 
 
+def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None):
+    """ build flann with some verbosity """
+    num_dpts = len(dpts)
+    if flann is None:
+        flann = pyflann.FLANN()
+    if not quiet:
+        print('...flann cache miss.')
+    if verbose or (not quiet and num_dpts > 1E6):
+        print('...building kdtree over %d points (this may take a sec).' % num_dpts)
+    sys.stdout.flush()
+    ut.util_logging.__UTOOL_FLUSH__()
+    flann.build_index(dpts, **flann_params)
+    return flann
+
+
 #@utool.indent_func
 def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True,
@@ -197,12 +213,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         except Exception as ex:
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
-    num_dpts = len(dpts)
-    if not quiet:
-        print('...flann cache miss.')
-    if verbose or (not quiet and num_dpts > 1E6):
-        print('...building kdtree over %d points (this may take a sec).' % num_dpts)
-    flann.build_index(dpts, **flann_params)
+    flann = build_flann_index(dpts, flann_params, verbose=verbose, quiet=quiet, flann=flann)
     if verbose:
         print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     if save:
