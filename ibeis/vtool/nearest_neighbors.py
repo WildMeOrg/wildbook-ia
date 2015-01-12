@@ -167,7 +167,37 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
 
 
 def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None):
-    """ build flann with some verbosity """
+    """
+    build flann with some verbosity
+
+    Args:
+        dpts (ndarray): database vectors
+        flann_params (dict):
+        quiet (bool):
+        verbose (bool):  verbosity flag
+        flann (None): outvar
+
+    Returns:
+        pyflann.FLANN: flann
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-build_flann_index
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> # build test data
+        >>> dpts = '?'
+        >>> flann_params = '?'
+        >>> quiet = False
+        >>> verbose = True
+        >>> flann = None
+        >>> # execute function
+        >>> flann = build_flann_index(dpts, flann_params, quiet, verbose, flann)
+        >>> # verify results
+        >>> result = str(flann)
+        >>> print(result)
+    """
     num_dpts = len(dpts)
     if flann is None:
         flann = pyflann.FLANN()
