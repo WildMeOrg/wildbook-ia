@@ -369,3 +369,48 @@ def ensure_nauts():
     nauts_zipped_url = const.ZIPPED_URLS.NAUTS
     nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
     print('have nauts_dir=%r' % (nauts_dir,))
+
+
+def get_global_distinctiveness_modeldir(ensure=True):
+    resource_dir = get_ibeis_resource_dir()
+    global_distinctdir = join(resource_dir, const.PATH_NAMES.distinctdir)
+    if ensure:
+        ut.ensuredir(global_distinctdir)
+    return global_distinctdir
+
+
+def resolve_species(species_code):
+    r"""
+    Args:
+        species_code (str): can either be species_code or species_text
+
+    CommandLine:
+        python -m ibeis.dev.sysres --test-resolve_species
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dev.sysres import *  # NOQA
+        >>> # build test data
+        >>> species = 'GZ'
+        >>> # execute function
+        >>> result = resolve_species(species)
+        >>> # verify results
+        >>> print(result)
+        zebra_grevys
+    """
+    species_text = const.SPECIES_CODE_TO_TEXT.get(species_code.upper(), species_code).lower()
+    assert species_text in const.VALID_SPECIES, 'cannot resolve species_text=%r' % (species_text,)
+    return species_text
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.sysres
+        python -m ibeis.dev.sysres --allexamples
+        python -m ibeis.dev.sysres --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

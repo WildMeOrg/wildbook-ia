@@ -180,25 +180,25 @@ class Species(object):
     UNKNOWN       = UNKNOWN
 
 
-SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_nice'))
+SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_code', 'species_nice'))
 
 SPECIES_TUPS = [
-    SpeciesTuple(Species.ZEB_PLAIN,     'Zebra (Plains)'),
-    SpeciesTuple(Species.ZEB_GREVY,     'Zebra (Grevy\'s)'),
-    SpeciesTuple(Species.GIRAFFE,       'Giraffes'),
-    SpeciesTuple(Species.ELEPHANT_SAV,  'Elephant (savanna)'),
-    SpeciesTuple(Species.POLAR_BEAR,    'Polar Bear'),
-    SpeciesTuple(Species.JAG,           'Jaguar'),
-    SpeciesTuple(Species.LEOPARD,       'Leopard'),
-    SpeciesTuple(Species.LION,          'Lion'),
-    SpeciesTuple(Species.WILDDOG,       'Wild Dog'),
-    SpeciesTuple(Species.LIONFISH,      'Lionfish'),
-    SpeciesTuple(Species.WHALESHARK,    'Whale Shark'),
-    SpeciesTuple(Species.WILDEBEEST,    'Wildebeest'),
-    SpeciesTuple(Species.SEALS_SPOTTED, 'Seal (spotted)'),
-    SpeciesTuple(Species.SEALS_RINGED,  'Seal (Siamaa Ringed)'),
-    SpeciesTuple(Species.CHEETAH,       'Cheetah'),
-    SpeciesTuple(Species.UNKNOWN,       'Unknown'),
+    SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
+    SpeciesTuple(Species.ZEB_GREVY,          'GZ', 'Zebra (Grevy\'s)'),
+    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes'),
+    SpeciesTuple(Species.ELEPHANT_SAV,     'ELEP', 'Elephant (savanna)'),
+    SpeciesTuple(Species.POLAR_BEAR,         'PB', 'Polar Bear'),
+    SpeciesTuple(Species.WILDDOG,            'WD', 'Wild Dog'),
+    SpeciesTuple(Species.LIONFISH,           'LF', 'Lionfish'),
+    SpeciesTuple(Species.WHALESHARK,         'WS', 'Whale Shark'),
+    SpeciesTuple(Species.WILDEBEEST,         'WB', 'Wildebeest'),
+    SpeciesTuple(Species.JAG,               'JAG', 'Jaguar'),
+    SpeciesTuple(Species.LEOPARD,          'LOEP', 'Leopard'),
+    SpeciesTuple(Species.LION,             'LION', 'Lion'),
+    SpeciesTuple(Species.CHEETAH,          'CHTH', 'Cheetah'),
+    SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),
+    SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
+    SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]
 
 SPECIES_WITH_DETECTORS = (
@@ -207,6 +207,10 @@ SPECIES_WITH_DETECTORS = (
     Species.GIRAFFE,
     Species.ELEPHANT_SAV,
 )
+
+SPECIES_CODE_TO_TEXT = {
+    tup.species_code: tup.species_text for tup in SPECIES_TUPS
+}
 
 VALID_SPECIES = [tup.species_text for tup in SPECIES_TUPS]
 SPECIES_NICE  = [tup.species_nice for tup in SPECIES_TUPS]

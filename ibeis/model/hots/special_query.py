@@ -460,7 +460,9 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         >>> # verify results
         >>> result = str(vsone_query_pairs)
         >>> print(result)
-        [(1, [2, 3, 6, 5, 4])]
+        [(1, [3, 2, 6, 5, 4])]
+
+    [(1, [2, 3, 6, 5, 4])]
 
     """
     vsone_query_pairs = []

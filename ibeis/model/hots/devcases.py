@@ -9,10 +9,53 @@ from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import hstypes
 from uuid import UUID
 import utool as ut
-import six
+#import six
 import copy
 import numpy as np  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
+
+
+def testdata_my_exmaples(index):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> index = 1
+    """
+    import ibeis
+    from uuid import UUID
+    ibs = ibeis.opendb('GZ_ALL')
+    vsone_pair_examples = [
+        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
+        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
+    ]
+    gf_mapping = {
+        UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'): [UUID('38211759-8fa7-875b-1f3e-39a630653f66')],
+        UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'): [UUID('58920d6e-31ba-307c-2ac8-e56aff2b2b9e')],  # other bad_aid is actually a good partial match
+        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
+    }
+
+    #ibs.get_annot_visual_uuids([36, 3])
+
+    vuuid_pair = vsone_pair_examples[index]
+    vuuid1, vuuid2 = vuuid_pair
+    aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
+    assert aid1 is not None
+    assert aid2 is not None
+    #daids = ibs.get_valid_aids()
+
+    tn_vuuid = gf_mapping.get(vuuid1)
+    if tn_vuuid is None:
+        qaids = [aid1]
+        find_close_incorrect_match(ibs, qaids)
+        print('baste the result in gf_mapping')
+        return
+
+    tn_aids = ibs.get_annot_aids_from_visual_uuid(tn_vuuid)
+    tn_aid = tn_aids[0]
+    return ibs, aid1, aid2, tn_aid
 
 
 def myquery():
@@ -23,53 +66,25 @@ def myquery():
 
     CommandLine:
         python -m ibeis.model.hots.devcases --test-myquery
-        python -m ibeis.model.hots.devcases --test-myquery
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 0
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 1
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 2
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> if ut.inIPython():
-        >>>     ut.dev_ipython_copypaster(myquery)
-        >>> elif not ut.inIPython():
-        >>>     myquery()
+        >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
+        >>> pt.show_if_requested()
     """
-    import ibeis
-    import utool as ut
     from ibeis.model.hots import special_query  # NOQA
     from ibeis import viz  # NOQA
-    from uuid import UUID
-    ibs = ibeis.opendb('GZ_ALL')
-    vsone_pair_examples = [
-        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
-        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
-    ]
-    gf_mapping = {
-        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
-    }
-
-    #ibs.get_annot_visual_uuids([36, 3])
-
-    vuuid_pair = vsone_pair_examples[2]
-    vuuid1, vuuid2 = vuuid_pair
-    aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
-    #daids = ibs.get_valid_aids()
-
-    use_cache = False
-    save_qcache = False
-
-    bad_vuuid = gf_mapping.get(vuuid1)
-    bad_aids = ibs.get_annot_aids_from_visual_uuid(bad_vuuid)
-    bad_aid = bad_aids[0]
-    qaids = [aid1]
-    daids = [aid2] + bad_aids
-
-    """
-    viz.show_chip(ibs, aid1)
     import plottool as pt
-    pt.update()
-    """
+    import six
+    index = ut.get_argval('--index', int, 0)
+    ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
+    qaids = [aid1]
+    daids = [aid2] + [tn_aid]
 
     cfgdict_vsone = dict(
         sv_on=True,
@@ -77,67 +92,64 @@ def myquery():
         codename='vsone_unnorm_extern_distinctiveness'
     )
 
+    use_cache   = True
+    save_qcache = True
+
     qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
                                        return_request=True, use_cache=use_cache,
                                        save_qcache=save_qcache, verbose=True)
+
+    qreq_.load_distinctiveness_normalizer()
     qres = qres_list[0]
     top_aids = qres.get_top_aids()  # NOQA
     qres_orig = qres  # NOQA
-    #[.5, 1.0, 1.5]
-    diff_list = []
-    good_score_list = []
-    bad_score_list = []
-    #p=np.linspace(.1, 2.0, 5)
+    #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
     grid_basis = [
-        ut.util_dict.DimensionBasis('p', [.5, 1.0]),
-        ut.util_dict.DimensionBasis('K', [2, 3, 4, 5]),
+        ut.util_dict.DimensionBasis('p', np.logspace(.01, 1.0, 10)),
+        ut.util_dict.DimensionBasis('K', [2, 3, 4, 5, 10, 20]),
+        ut.util_dict.DimensionBasis('clip_fraction', np.linspace(.01, .3, 20))
     ]
-    cfgdict_iter = ut.grid_search_generator(grid_basis)
-    cfgdict_list = list(cfgdict_iter)
-    for cfgdict in cfgdict_list:
+    grid_searcher = ut.GridSearch(grid_basis)
+    for cfgdict in grid_searcher:
         qres_copy = copy.deepcopy(qres_orig)
         qreq_vsone_ = qreq_
         qres_vsone = qres_copy
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
         special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
-        good_score = qres_copy.aid2_score[aid2]
-        bad_score = qres_copy.aid2_score[bad_aid]
-        diff = good_score - bad_score
-        diff_list.append(diff)
-        #qres_copy.ishow_top(ibs, annot_mode=1)
-        good_score_list.append(good_score)
-        bad_score_list.append(bad_score)
-    # Input Parameters
-    param_name_list = ut.get_list_column(grid_basis, 0)
-    params_vals = [list(six.itervalues(dict_)) for dict_ in cfgdict_list]
-    param_vals_list = list(zip(*params_vals))
-    # Result Scores
-    score_list  = [diff_list, good_score_list, bad_score_list]
-    score_lbls  = ['score_diff', 'good_score', 'bad_score']
+        tp_score  = qres_copy.aid2_score[aid2]
+        tn_score  = qres_copy.aid2_score[tn_aid]
+        grid_searcher.append_result(tp_score, tn_score)
 
-    score_lbl  = 'score_diff'
-    sort_vals = score_list[score_lbls.index(score_lbl)]
-    sortby_func = ut.make_sortby_func(sort_vals, reverse=True)
-
-    score_name_sorted = score_lbls
-    param_name_sorted = param_name_list
-    score_list_sorted = list(map(sortby_func, score_list))
-    param_vals_sorted = list(map(sortby_func, param_vals_list))
-
-    # Build CSV
-    column_lbls = score_name_sorted + param_name_sorted
-    column_list = score_list_sorted + param_vals_sorted
-    header_raw = ut.codeblock('''
-    import utool as ut
-    DimensionBasis = ut.util_dict.DimensionBasis
-    title = 'Grid Search Results CSV'
-    grid_basis = ''') + ut.list_str(grid_basis)
-    header = ut.indent(header_raw, '# >>> ')
-    ut.rrrr()
-    precision = 3
-    csvtext = ut.make_csv_table(column_list, column_lbls, header, precision=precision)
+    csvtext = grid_searcher.get_csv_results(10)
     print(csvtext)
+    param2_score_stats = grid_searcher.get_dimension_stats('p')
+    fnum = pt.next_fnum()
+    pnum_ = pt.get_pnum_func(2, 3)
+    grid_searcher.plot_dimension('p', fnum=fnum, pnum=pnum_(0))
+    grid_searcher.plot_dimension('K', fnum=fnum, pnum=pnum_(1))
+    grid_searcher.plot_dimension('clip_fraction', fnum=fnum, pnum=pnum_(2))
+    figtitle = 'Effect of parameters on vsone separation for a single case'
+    qvuuid = ibs.get_annot_visual_uuids(aid1)
+    subtitle = 'qvuuid = %r' % (qvuuid)
+    figtitle += '\n' + subtitle
+    pt.set_figtitle(figtitle)
+    exclude_keys = ['nMin', 'nMax']
+    #ut.embed()
+    pnum2_ = pt.get_pnum_func(2, 2)
+    qres_orig.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
+    qres_orig.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
+
+    fig_fpath = pt.save_figure(usetitle=True)
+    print(fig_fpath)
+    csv_fpath = fig_fpath + '.csv.txt'
+    ut.write_to(csv_fpath, csvtext)
+
+    param2_score_stats_str = {
+        param: ut.get_stats_str(stat_dict=stat_dict, exclude_keys=exclude_keys)
+        for param, stat_dict in six.iteritems(param2_score_stats)}
+    print(ut.dict_str(param2_score_stats_str))
+
     #print(ut.list_str()))
 
     # TODO: plot max variation dims
@@ -145,11 +157,24 @@ def myquery():
     #pt.plot(p_list, diff_list)
 
     # PRINT INFO
-    #print('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
-    #print('CORRECT STATS')
-    #print(ut.get_stats_str(qres_copy.aid2_fsv[aid2], axis=0, newlines=True))
-    #print('INCORRECT STATS')
-    #print(ut.get_stats_str(qres_copy.aid2_fsv[bad_aid], axis=0, newlines=True))
+    info_str_list = []
+    info_str_list.append('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
+    info_str_list.append('CORRECT STATS')
+    info_str_list.append(ut.get_stats_str(qres_copy.aid2_fsv[aid2], axis=0, newlines=True))
+    info_str_list.append('INCORRECT STATS')
+    info_str_list.append(ut.get_stats_str(qres_copy.aid2_fsv[tn_aid], axis=0, newlines=True))
+    info_str = '\n'.join(info_str_list)
+    print(info_str)
+
+    #qres_copy.ishow_top(ibs)
+    #from matplotlib import pyplot as plt
+    #plt.show()
+
+    """
+    viz.show_chip(ibs, aid1)
+    import plottool as pt
+    pt.update()
+    """
 
 
 def find_close_incorrect_match(ibs, qaids):

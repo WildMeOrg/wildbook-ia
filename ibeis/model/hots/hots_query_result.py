@@ -721,6 +721,10 @@ class QueryResult(__OBJECT_BASE__):
             fig.show()
         return fig
 
+    def show_matches(qres, ibs, aid, *args, **kwargs):
+        from ibeis.viz import viz_matches
+        return viz_matches.show_matches(ibs, qres, aid, *args, **kwargs)
+
     def ishow_matches(qres, ibs, aid, *args, **kwargs):
         from ibeis.viz.interact import interact_matches  # NOQA
         match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
