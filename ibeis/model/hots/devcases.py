@@ -77,7 +77,8 @@ def myquery():
     grid_basis = [
         ut.DimensionBasis('p', np.logspace(.01, 1.0, 4)),
         ut.DimensionBasis('K', [2, 4, 8, 16]),
-        ut.DimensionBasis('clip_fraction', np.linspace(.01, .3, 10))
+        ut.DimensionBasis('clip_fraction', np.linspace(.01, .3, 5)),
+        ut.DimensionBasis('fg_power', np.linspace(.01, 10.0, 4)),
     ]
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
     print('Begin Grid Search')
@@ -89,6 +90,51 @@ def myquery():
     # Get best result
     best_cfgdict = gridsearch.get_rank_cfgdict()
     qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, best_cfgdict)
+
+    # Examine closely what you can do with scores
+    if False:
+        qres_copy = copy.deepcopy(qres_orig)
+        qreq_vsone_ = qreq_
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
+        ut.embed()
+        def make_new_chipmatch(qres_copy):
+            assert ut.listfind(qres_copy.filtkey_list, filtkey) is None
+            weight_filters = [hstypes.FiltKeys.FG, hstypes.FiltKeys.DISTINCTIVENESS]
+            weight_filtxs, nonweight_filtxs = special_query.index_partition(qres_copy.filtkey_list, weight_filters)
+
+            aid2_fsv = {}
+            aid2_fs = {}
+            aid2_score = {}
+
+            for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
+                pass
+                break
+                #scorex_vsone  = ut.listfind(qres_copy.filtkey_list, filtkey)
+                #if scorex_vsone is None:
+                # TODO: add spatial verification as a filter score
+                # augment the vsone scores
+                # TODO: paramaterize
+                weighted_ave_score = True
+                if weighted_ave_score:
+                    # weighted average scoring
+                    new_fs_vsone = special_query.weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
+                else:
+                    # product scoring
+                    new_fs_vsone = special_query.product_scoring(new_fsv_vsone)
+                new_score_vsone = new_fs_vsone.sum()
+                aid2_fsv[daid]   = new_fsv_vsone
+                aid2_fs[daid]    = new_fs_vsone
+                aid2_score[daid] = new_score_vsone
+            return aid2_fsv, aid2_fs, aid2_score
+
+        # Look at plot of query products
+        for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
+            new_fs_vsone = special_query.product_scoring(new_fsv_vsone)
+            scores_list = np.array(new_fs_vsone)[:, None].T
+            pt.plot_sorted_scores(scores_list, logscale=False, figtitle=str(daid))
+        pt.iup()
+        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_copy, newfsv_list, newscore_aids, filtkey)
 
     # PRINT INFO
     import functools
@@ -108,8 +154,8 @@ def myquery():
     #ut.embed()
 
     # SHOW BEST RESULT
-    qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
-    qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
+    #qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
+    #qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
 
     # Text Informatio
     param_lbl = 'p'
@@ -121,15 +167,16 @@ def myquery():
 
     # Paramter visuzliation
     fnum = pt.next_fnum()
-    pnum_ = pt.get_pnum_func(2, 3)
+    #ut.embed()
     # plot paramter influence
-    gridsearch.plot_dimension('p', fnum=fnum, pnum=pnum_(0))
-    gridsearch.plot_dimension('K', fnum=fnum, pnum=pnum_(1))
-    gridsearch.plot_dimension('clip_fraction', fnum=fnum, pnum=pnum_(2))
+    param_label_list = gridsearch.get_param_list_and_lbls()[0]
+    pnum_ = pt.get_pnum_func(2, len(param_label_list))
+    for px, param_label in enumerate(param_label_list):
+        gridsearch.plot_dimension(param_label, fnum=fnum, pnum=pnum_(px))
     # plot match figure
     pnum2_ = pt.get_pnum_func(2, 2)
-    qres_orig.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
-    qres_orig.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
+    qres_copy.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
+    qres_copy.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
     # Add figure labels
     figtitle = 'Effect of parameters on vsone separation for a single case'
     subtitle = 'qvuuid = %r' % (qvuuid)

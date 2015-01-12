@@ -766,6 +766,13 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     # Stack the new and augmenting scores
     old_fsv_list = [qres.aid2_fsv[daid] for daid  in daid_list]
     new_fsv_list = list(map(np.hstack, zip(old_fsv_list, aug_fsv_list)))
+
+    # FURTHER HACKS TO SCORING
+    if 'fg_power' in kwargs:
+        fg_power = kwargs['fg_power']
+        fg_index = ut.listfind(qres.filtkey_list, hstypes.FiltKeys.FG)
+        for fsv in new_fsv_list:
+            fsv.T[fg_index] **= fg_power
     #new_aid2_fsv = dict(zip(daid_list, new_fsv_list))
     return new_fsv_list, daid_list
 
