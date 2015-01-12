@@ -183,12 +183,11 @@ def myquery():
     figtitle += '\n' + subtitle
     pt.set_figtitle(figtitle)
     # Save Figure
-    fig_fpath = pt.save_figure(usetitle=True)
-    print(fig_fpath)
-
+    #fig_fpath = pt.save_figure(usetitle=True)
+    #print(fig_fpath)
     # Write CSV Results
-    csv_fpath = fig_fpath + '.csv.txt'
-    ut.write_to(csv_fpath, csvtext)
+    #csv_fpath = fig_fpath + '.csv.txt'
+    #ut.write_to(csv_fpath, csvtext)
 
     #qres_copy.ishow_top(ibs)
     #from matplotlib import pyplot as plt
