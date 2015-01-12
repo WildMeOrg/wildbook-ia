@@ -8,6 +8,8 @@ Args:
 
 CommandLine:
     python _scripts\win32bootstrap.py --dl winapi --run
+    python _scripts\win32bootstrap.py --dl pyperclip --run
+
 """
 from __future__ import division, print_function
 import parse
@@ -47,7 +49,8 @@ class CPlatPkg(object):
                  alias_list=[],
                  platform_specific=False,
                  import_name=None,
-                 alt_link='http://downloads.sourceforge.net/project/pywin32/pywin32/Build216/README.txt?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpywin32%2F&ts=1421001993&use_mirror=iweb'):
+                 alt_link=None,
+                 ):
         self.default_name = default_name
         self.pkgmanager_map = {
             'default': None,
@@ -55,6 +58,7 @@ class CPlatPkg(object):
             'apt-get': None,
             'ports': None,
             'win32unoff': None,
+            'pip': None,
         }
         self.alias_list = alias_list
         self.import_name = import_name
@@ -96,6 +100,13 @@ cplat_alias_pkglist = [
         'pywin32',
         import_name='win32api',
         platform_specific=True,
+    ),
+
+    CPlatPkg(
+        'pyperclip',
+        pkgmanager_map={
+            'pip': 'pyperclip'
+        }
     ),
 
     CPlatPkg(

@@ -826,7 +826,7 @@ class IBEISController(object):
         qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
         return qaid_list
 
-    def query_chips(ibs, qaid_list,
+    def query_chips(ibs, qaid_list=None,
                     daid_list=None,
                     cfgdict=None,
                     use_cache=None,
@@ -861,8 +861,13 @@ class IBEISController(object):
             >>> qres = ibs.query_chips(qaids)[0]
             >>> assert qres.qaid == qaids[0]
         """
+        if qaid_list is None:
+            qaid_list = qreq_.get_external_qaids()
         if daid_list is None:
-            daid_list = ibs.get_valid_aids()
+            if qreq_ is not None:
+                daid_list = qreq_.get_external_daids()
+            else:
+                daid_list = ibs.get_valid_aids()
 
         _res = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,

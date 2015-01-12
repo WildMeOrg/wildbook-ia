@@ -10,7 +10,7 @@ from os.path import exists, join, realpath
 import utool
 import utool as ut
 from utool import util_cache, util_list
-from ibeis import constants
+from ibeis import constants as const
 from ibeis import params
 
 # Inject utool functions
@@ -293,7 +293,7 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cach
 
 def is_ibeisdb(path):
     """ Checks to see if path contains the IBEIS internal dir """
-    return exists(join(path, constants.PATH_NAMES._ibsdb))
+    return exists(join(path, const.PATH_NAMES._ibsdb))
 
 
 def is_hsdb(dbdir):
@@ -343,7 +343,7 @@ def ensure_pz_mtest():
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
-    mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
+    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
     mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
@@ -366,6 +366,6 @@ def ensure_nauts():
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
-    nauts_zipped_url = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
+    nauts_zipped_url = const.ZIPPED_URLS.NAUTS
     nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
     print('have nauts_dir=%r' % (nauts_dir,))
