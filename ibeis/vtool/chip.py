@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import numpy.linalg as npl
 # VTool
-from . import linalg as ltool
-from . import image as gtool
-from . import image_filters as gfilt_tool
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[chip]', DEBUG=False)
+from vtool import linalg as ltool
+from vtool import image as gtool
+from vtool import image_filters as gfilt_tool
+from utool import util_inject
+(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[chip]', DEBUG=False)
 
 
 @profile
