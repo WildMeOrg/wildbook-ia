@@ -12,6 +12,7 @@ from PIL import Image
 import utool
 from vtool import linalg
 from vtool import geometry
+#from vtool.dummy import dummy_img  # NOQA
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[img]', DEBUG=False)
 
@@ -32,12 +33,6 @@ CV2_WARP_KWARGS = {
 
 EXIF_TAG_GPS      = 'GPSInfo'
 EXIF_TAG_DATETIME = 'DateTimeOriginal'
-
-
-def dummy_img(w, h):
-    """ Creates a dummy test image """
-    img = np.zeros((h, w), dtype=np.uint8) + 200
-    return img
 
 
 IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR

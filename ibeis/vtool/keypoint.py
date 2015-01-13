@@ -14,9 +14,20 @@ Variables:
 
 Representation:
     kpts (ndarray) : [x, y, iv11, iv21, iv22, ori]
+       a flat on disk representation of the keypoint
+
+
     invV (ndarray): [(iv11, iv12, x),
                      (iv21, iv22, y),
                      (   0,    0, 1),]
+        a more conceptually useful representation mapp;ing a
+        unit circle onto an ellipse (without any rotation)
+
+    invVR (ndarray): [(iv11, iv12, x),
+                      (iv21, iv22, y),
+                      (   0,    0, 1),].dot(R)
+         same as invV but it is rotated before warping a unit circle
+         into an ellipse.
 
 Efficiency Notes:
     single index indexing is very fast
@@ -29,12 +40,12 @@ Efficiency Notes:
 """
 from __future__ import absolute_import, division, print_function
 # Python
-from six.moves import zip, range
+from six.moves import zip, range, reduce
 # Science
 import numpy as np
 import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
-from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
+#from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
 # VTool
 from vtool import linalg as ltool
 from vtool import chip as ctool
@@ -144,7 +155,7 @@ def get_sqrd_scales(kpts):
 
 def get_scales(kpts):
     """  Gets average scale (does not take into account elliptical shape """
-    _scales = sqrt(get_sqrd_scales(kpts))
+    _scales = np.sqrt(get_sqrd_scales(kpts))
     return _scales
 
 
@@ -157,39 +168,241 @@ def get_ori_mats(kpts):
     return R_mats
 
 
-def get_invV_mats2x2(kpts, with_ori=False):
-    """ Returns keypoint shape matrixes
-        (default orientation is down)
+def get_invV_mats2x2(kpts):
+    """
+    Returns the keypoint shape (from unit circle to ellipse)
+    Ignores translation and rotation component
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    Returns:
+        ndarray[float32_t, ndim=3]: invV_mats
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_invV_mats2x2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> kpts = np.array([
+        ...    [0, 0, 1, 2, 3, 0],
+        ...    [0, 0, 1, 2, 3, TAU / 4.0],
+        ... ])
+        >>> # execute function
+        >>> invV_mats2x2 = get_invV_mats2x2(kpts)
+        >>> # verify results
+        >>> result = kpts_repr(invV_mats2x2)
+        >>> print(result)
+        array([[[ 1.,  0.],
+                [ 2.,  3.]],
+               [[ 1.,  0.],
+                [ 2.,  3.]]])
     """
     nKpts = len(kpts)
-    try:
-        _iv11s, _iv21s, _iv22s = get_invVs(kpts)
-        _zeros = zeros(nKpts)
-        invV_arrs = array([[_iv11s, _zeros],
-                           [_iv21s, _iv22s]])  # R x C x N
-        invV_mats = rollaxis(invV_arrs, 2)     # N x R x C
-    except ValueError as ex:
-        ut.printex(ex, keys=['kpts', '_zeros', '_iv11s', '_iv21s', '_iv22s'])
-        #ut.embed()
-        #print(kpts)
-        raise
-    if with_ori:
-        # You must apply rotations before you apply shape
-        # This is because we are dealing with \emph{inv}(V).
-        # numpy operates with data on the right (operate right-to-left)
-        R_mats  = get_ori_mats(kpts)
-        invV_mats = matrix_multiply(invV_mats, R_mats)
-    return invV_mats
+    #try:
+    _iv11s, _iv21s, _iv22s = get_invVs(kpts)
+    _zeros = np.zeros(nKpts)
+    invV_arrs2x2 = np.array([[_iv11s, _zeros],
+                             [_iv21s, _iv22s]])  # R x C x N
+    invV_mats2x2 = np.rollaxis(invV_arrs2x2, 2)  # N x R x C
+    #except ValueError as ex:
+    #    ut.printex(ex, keys=['kpts', '_zeros', '_iv11s', '_iv21s', '_iv22s'])
+    #    #ut.embed()
+    #    #print(kpts)
+    #    raise
+    return invV_mats2x2
+
+
+def get_invVR_mats2x2(kpts):
+    r"""
+    Returns the keypoint shape+rotation matrix (from unit circle to ellipse)
+    Ignores translation component
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+
+    Returns:
+        ndarray: invVR_mats
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_invVR_mats2x2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> kpts = np.array([
+        ...    [0, 0, 1, 2, 3, 0],
+        ...    [0, 0, 1, 2, 3, TAU / 4.0],
+        ... ])
+        >>> # execute function
+        >>> invVR_mats2x2 = get_invVR_mats2x2(kpts)
+        >>> # verify results
+        >>> result = kpts_repr(invVR_mats2x2)
+        >>> print(result)
+        array([[[ 1.,  0.],
+                [ 2.,  3.]],
+               [[ 0., -1.],
+                [ 3., -2.]]])
+    """
+    invV_mats2x2 = get_invV_mats2x2(kpts)
+    # You must apply rotations before you apply shape
+    # This is because we are dealing with \emph{inv}(V).
+    # numpy operates with data on the right (operate right-to-left)
+    R_mats2x2  = get_ori_mats(kpts)
+    invVR_mats2x2 = matrix_multiply(invV_mats2x2, R_mats2x2)
+    return invVR_mats2x2
+
+
+def augment_2x2_with_translation(kpts, _mat2x2):
+    """ helper function to augment shape matrix with a translation component """
+    nKpts = len(kpts)
+    # Unpack shape components
+    _11s = _mat2x2.T[0, 0]
+    _12s = _mat2x2.T[1, 0]
+    _21s = _mat2x2.T[0, 1]
+    _22s = _mat2x2.T[1, 1]
+    # Get translation components
+    _13s, _23s = get_xys(kpts)
+    # Use homogenous coordinates
+    _zeros = np.zeros(nKpts)
+    _ones = np.ones(nKpts)
+    _arrs3x3 =  np.array([[_11s, _12s, _13s],
+                          [_21s, _22s, _23s],
+                          [_zeros, _zeros,  _ones]])  # R x C x N
+    _mats3x3 = np.rollaxis(_arrs3x3, 2)  # N x R x C
+    return _mats3x3
+
+
+def get_invV_mats3x3(kpts):
+    r"""
+    NEWER FUNCTION
+
+    Returns full keypoint transformation matricies from a unit circle to an
+    ellipse that has been scaled, skewed, and translated. Into
+    the image keypoint position.
+
+    DOES NOT INCLUDE ROTATION
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    Returns:
+        ndarray[float32_t, ndim=3]: invVR_mats -  keypoint shape and rotations (possibly translation)
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_invV_mats3x3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> kpts = np.array([
+        ...    [0, 0, 1, 2, 3, 0],
+        ...    [0, 0, 1, 2, 3, TAU / 4.0],
+        ... ])
+        >>> # execute function
+        >>> invV_arrs3x3 = get_invV_mats3x3(kpts)
+        >>> # verify results
+        >>> result = kpts_repr(invV_arrs3x3)
+        >>> print(result)
+        array([[[ 1.,  0.,  0.],
+                [ 2.,  3.,  0.],
+                [ 0.,  0.,  1.]],
+               [[ 1.,  0.,  0.],
+                [ 2.,  3.,  0.],
+                [ 0.,  0.,  1.]]])
+    """
+    #nKpts = len(kpts)
+    invV_mats2x2 = get_invV_mats2x2(kpts)
+    invV_mats3x3 = augment_2x2_with_translation(kpts, invV_mats2x2)
+    ## Unpack shape components
+    #_iv11s = invV_mats2x2.T[0, 0]
+    #_iv12s = invV_mats2x2.T[1, 0]
+    #_iv21s = invV_mats2x2.T[0, 1]
+    #_iv22s = invV_mats2x2.T[1, 1]
+    ## Get translation components
+    #_iv13s, _iv23s = get_xys(kpts)
+    ## Use homogenous coordinates
+    #_zeros = np.zeros(nKpts)
+    #_ones = np.ones(nKpts)
+    #invV_arrs3x3 =  np.array([[_iv11s, _iv12s, _iv13s],
+    #                          [_iv21s, _iv22s, _iv23s],
+    #                          [_zeros, _zeros,  _ones]])  # R x C x N
+    #invV_mats3x3 = np.rollaxis(invV_arrs3x3, 2)  # N x R x C
+    return invV_mats3x3
+
+
+def get_invVR_mats3x3(kpts):
+    r"""
+    NEWER FUNCTION
+
+    Returns full keypoint transformation matricies from a unit circle to an
+    ellipse that has been rotated, scaled, skewed, and translated. Into
+    the image keypoint position.
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    Returns:
+        ndarray[float32_t, ndim=3]: invVR_mats
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_invVR_mats3x3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> kpts = np.array([
+        ...    [10, 20, 1, 2, 3, 0],
+        ...    [30, 40, 1, 2, 3, TAU / 4.0],
+        ... ])
+        >>> # execute function
+        >>> invVR_mats3x3 = get_invVR_mats3x3(kpts)
+        >>> # verify results
+        >>> result = kpts_repr(invVR_mats3x3)
+        >>> print(result)
+        array([[[  1.,   0.,  10.],
+                [  2.,   3.,  20.],
+                [  0.,   0.,   1.]],
+               [[  0.,  -1.,  30.],
+                [  3.,  -2.,  40.],
+                [  0.,   0.,   1.]]])
+    """
+    #nKpts = len(kpts)
+    invVR_mats2x2 = get_invVR_mats2x2(kpts)
+    invVR_mats3x3 = augment_2x2_with_translation(kpts, invVR_mats2x2)
+    # Unpack shape components
+    #_iv11s = invVR_mats2x2.T[0, 0]
+    #_iv12s = invVR_mats2x2.T[1, 0]
+    #_iv21s = invVR_mats2x2.T[0, 1]
+    #_iv22s = invVR_mats2x2.T[1, 1]
+    ## Get translation components
+    #_iv13s, _iv23s = get_xys(kpts)
+    ## Use homogenous coordinates
+    #_zeros = np.zeros(nKpts)
+    #_ones = np.ones(nKpts)
+    #invVR_arrs =  np.array([[_iv11s, _iv12s, _iv13s],
+    #                        [_iv21s, _iv22s, _iv23s],
+    #                        [_zeros, _zeros,  _ones]])  # R x C x N
+    #invVR_mats = np.rollaxis(invVR_arrs, 2)  # N x R x C
+    return invVR_mats3x3
 
 
 #@profile
 def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, ascontiguous=False):
     """
+    TODO: DEPRICATE. too many conditionals
+
     packs keypoint shapes into affine invV matrixes
     (default is just the 2x2 shape. But translation, orientation,
     homogonous, and contiguous flags can be set.)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> kpts = np.array([[10, 20, 1, 2, 3, 0]])
         >>> with_trans=True
@@ -197,12 +410,18 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
         >>> ashomog=True
         >>> ascontiguous=False
         >>> innVR_mats = get_invV_mats(kpts, with_trans, with_ori, ashomog, ascontiguous)
+        >>> result = kpts_repr(innVR_mats)
+        >>> print(result)
         array([[[  1.,   0.,  10.],
                 [  2.,   3.,  20.],
                 [  0.,   0.,   1.]]])
     """
     nKpts = len(kpts)
-    invV_mats = get_invV_mats2x2(kpts, with_ori=with_ori)
+    if with_ori:
+        # these are actually invVR mats
+        invV_mats = get_invVR_mats2x2(kpts)
+    else:
+        invV_mats = get_invV_mats2x2(kpts)
     if with_trans or ashomog:
         #_iv11s = invV_mats[:, 0, 0]
         #_iv12s = invV_mats[:, 0, 1]
@@ -213,21 +432,96 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
         _iv21s = invV_mats.T[0, 1]
         _iv22s = invV_mats.T[1, 1]
         # Use homogenous coordinates
-        _zeros = zeros(nKpts)
-        _ones = ones(nKpts)
+        _zeros = np.zeros(nKpts)
+        _ones = np.ones(nKpts)
         if with_trans:
             _iv13s, _iv23s = get_xys(kpts)
         else:
             _iv13s = _iv23s = _zeros
-        invV_arrs =  array([[_iv11s, _iv12s, _iv13s],
-                            [_iv21s, _iv22s, _iv23s],
-                            [_zeros, _zeros,  _ones]])  # R x C x N
-        invV_mats = rollaxis(invV_arrs, 2)  # N x R x C
+        invV_arrs =  np.array([[_iv11s, _iv12s, _iv13s],
+                               [_iv21s, _iv22s, _iv23s],
+                               [_zeros, _zeros,  _ones]])  # R x C x N
+        invV_mats = np.rollaxis(invV_arrs, 2)  # N x R x C
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
     return invV_mats
 
 # --- scaled and offset keypoint components ---
+
+
+def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
+    """
+    Given some patch (like a gaussian patch) transforms a patch to be overlayed
+    on top of each keypoint in the image (adjusted for a scale factor)
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        patch_shape (?):
+        scale_factor (float):
+
+    Returns:
+        ?: det_arr
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_transforms_from_patch_image_kpts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> patch_shape = (7, 7)
+        >>> scale_factor = 1.0
+        >>> # execute function
+        >>> M_list = get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
+        >>> # verify results
+        >>> result = kpts_repr(M_list)
+        >>> print(result)
+        array([[[  0.75,   0.  ,  17.39],
+                [ -0.73,   3.45,  15.48],
+                [  0.  ,   0.  ,   1.  ]],
+               [[  0.34,   0.  ,  27.82],
+                [ -0.73,   3.45,  15.48],
+                [  0.  ,   0.  ,   1.  ]],
+               [[  1.75,   0.  ,  23.89],
+                [  1.72,   1.5 ,  18.73],
+                [  0.  ,   0.  ,   1.  ]],
+               [[  1.91,   0.  ,  24.32],
+                [  2.52,   2.01,  13.13],
+                [  0.  ,   0.  ,   1.  ]],
+               [[  2.29,   0.  ,  23.97],
+                [  0.49,   1.68,  23.43],
+                [  0.  ,   0.  ,   1.  ]]])
+
+    Timeit:
+        sa_list1 = np.array([S2.dot(A) for A in invVR_aff2Ds])
+        sa_list2 = matrix_multiply(S2, invVR_aff2Ds)
+        assert np.all(sa_list1 == sa_list2)
+        %timeit np.array([S2.dot(A) for A in invVR_aff2Ds])
+        %timeit matrix_multiply(S2, invVR_aff2Ds)
+
+        from six.moves import reduce
+        perspective_list2 = np.array([S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds])
+        perspective_list = reduce(matrix_multiply, (S2, invVR_aff2Ds, S1, T1))
+        assert np.all(perspective_list == perspective_list2)
+        %timeit np.array([S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds])
+        %timeit reduce(matrix_multiply, (S2, invVR_aff2Ds, S1, T1))
+    """
+    (patch_h, patch_w) = patch_shape
+    half_width  = patch_w / 2.0
+    half_height = patch_h / 2.0
+    # Center src image
+    T1 = ltool.translation_mat3x3(-half_width, -half_height)
+    # Scale src to the unit circle
+    S1 = ltool.scale_mat3x3(1.0 / patch_w, 1.0 / patch_h)
+    # Transform the source image to the keypoint ellipse
+    invVR_aff2Ds = get_invVR_mats3x3(kpts)
+    # Adjust for the requested scale factor
+    S2 = ltool.scale_mat3x3(scale_factor, scale_factor)
+    #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
+    M_list = reduce(matrix_multiply, (S2, invVR_aff2Ds, S1, T1))
+    return M_list
 
 
 #@profile
@@ -244,7 +538,7 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     invC = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
     # Apply transform to keypoints
     invCinvV_mats = matrix_multiply(invC, invV_mats)
-    # Flatten back into keypoint format
+    # Flatten back into keypoint (x, y, a, c, d, o) format
     imgkpts = flatten_invV_mats_to_kpts(invCinvV_mats)
     return imgkpts
 
@@ -260,16 +554,45 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 
 #@profile
 def transform_kpts(kpts, M):
-    invV_mats = get_invV_mats(kpts, with_trans=True, with_ori=True)
-    MinvV_mats = matrix_multiply(M, invV_mats)
+    r"""
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        M (ndarray): transform matrix
+
+    Returns:
+        tuple: (_iv11s, _iv12s, _iv21s, _iv22s)
+
+    CommandLine:
+        python -m vtool.keypoint --test-transform_kpts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]])
+        >>> # execute function
+        >>> kpts = transform_kpts(kpts, M)
+        >>> # verify results
+        >>> result = kpts_repr(kpts)
+        >>> print(result)
+        array([[ 200.  ,  450.  ,   52.17,    1.06,  241.5 ,   -0.  ],
+               [ 290.  ,  540.  ,   23.55,  -27.56,  241.5 ,   -0.  ],
+               [ 300.  ,  600.  ,  122.17,  242.36,  105.29,   -0.  ],
+               [ 310.  ,  600.  ,  133.56,  309.9 ,  141.04,   -0.  ],
+               [ 320.  ,  630.  ,  160.53,  194.6 ,  117.35,   -0.  ]])
+    """
+    invVR_mats3x3 = get_invVR_mats3x3(kpts)
+    MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
     try:
-        assert np.all(MinvV_mats[:, 2, 0:2] == 0)
-        assert np.all(MinvV_mats[:, 2, 2] == 1)
+        assert np.all(MinvVR_mats3x3[:, 2, 0:2] == 0)
+        assert np.all(MinvVR_mats3x3[:, 2, 2] == 1)
     except AssertionError as ex:  # NOQA
         #print(ex)
-        MinvV_mats = ltool.rowwise_division(MinvV_mats, MinvV_mats[:, 2, 2])
+        MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2])
         #utool.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
-    kpts_ = flatten_invV_mats_to_kpts(MinvV_mats)
+    kpts_ = flatten_invV_mats_to_kpts(MinvVR_mats3x3)
     return kpts_
 
 #---------------------
@@ -281,11 +604,19 @@ def transform_kpts(kpts, M):
 def get_invVR_mats_sqrd_scale(invVR_mats):
     """ Returns the squared scale of the invVR keyponts
 
-    >>> from vtool.keypoint import *  # NOQA
-    >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
-    >>> output = get_invVR_mats_sqrd_scale(invVR_mats)
-    >>> print(utool.hashstr(output))
+    CommandLine:
+        python -m vtool.keypoint --test-get_invVR_mats_sqrd_scale
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> np.random.seed(0)
+        >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+        >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
+        >>> result = (utool.hashstr(det_arr))
+        >>> print(result)
+        ry07!8e8v8!9h!50
+
     1i468l@838vatv@4
 
     #CYTH_INLINE
@@ -305,7 +636,8 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     return out
     #else
     """
-    return npl.det(invVR_mats[:, 0:2, 0:2])
+    det_arr = npl.det(invVR_mats[:, 0:2, 0:2])
+    return det_arr
     "#endif"
 
 
@@ -313,45 +645,50 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
 def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components
 
-    >>> from vtool.keypoint import *  # NOQA
-    >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
-    >>> output = get_invVR_mats_shape(invVR_mats)
-    >>> print(utool.hashstr(output))
-    oq9o@yqhtgloy58!
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> np.random.seed(0)
+        >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+        >>> output = get_invVR_mats_shape(invVR_mats)
+        >>> print(utool.hashstr(output))
+        oq9o@yqhtgloy58!
 
-    #CYTH_INLINE
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=3] invVR_mats
-    cdef:
-        np.ndarray[np.float64_t, ndim=1] _iv11s
-        np.ndarray[np.float64_t, ndim=1] _iv12s
-        np.ndarray[np.float64_t, ndim=1] _iv21s
-        np.ndarray[np.float64_t, ndim=1] _iv22s
-        #double [:] _iv11s
-        #double [:] _iv12s
-        #double [:] _iv21s
-        #double [:] _iv22s
-    #endif
+    References:
+        TODO
+        (a.ravel()[(cols + (rows * a.shape[1]).reshape((-1,1))).ravel()]).reshape(rows.size, cols.size)
+        http://stackoverflow.com/questions/14386822/fast-numpy-fancy-indexing
+        # So, this doesn't work
+        # Try this instead
+        http://docs.cython.org/src/userguide/memoryviews.html#memoryviews
+
+    Cyth::
+        #CYTH_INLINE
+        #if CYTH
+        #CYTH_PARAM_TYPES:
+            np.ndarray[np.float64_t, ndim=3] invVR_mats
+        cdef:
+            np.ndarray[np.float64_t, ndim=1] _iv11s
+            np.ndarray[np.float64_t, ndim=1] _iv12s
+            np.ndarray[np.float64_t, ndim=1] _iv21s
+            np.ndarray[np.float64_t, ndim=1] _iv22s
+            #double [:] _iv11s
+            #double [:] _iv12s
+            #double [:] _iv21s
+            #double [:] _iv22s
+        #endif
     """
-
-    # TODO
-    # http://stackoverflow.com/questions/14386822/fast-numpy-fancy-indexing
-    #(a.ravel()[(cols + (rows * a.shape[1]).reshape((-1,1))).ravel()]).reshape(rows.size, cols.size)
-
-    # So, this doesn't work
-    # Try this instead
-    #http://docs.cython.org/src/userguide/memoryviews.html#memoryviews
+    pass
+    ###
     '''
-    '#if cyth'
-    '#m_acro numpy_fancy_index_macro'
-    '#e_ndmacro'
+    #if cyth
+    #m_acro numpy_fancy_index_macro
+    #e_ndmacro
     _iv11s = invVR_mats.take(:, axis=1)
     _iv12s = invVR_mats[:, 0, 1]
     _iv21s = invVR_mats[:, 1, 0]
     _iv22s = invVR_mats[:, 1, 1]
-    '#else'
+    #else
     #cols, rows, dims = invVR_mats.shape
     #invVR_mats.ravel()[(cols + (rows * a.shape[1]).reshape((-1, 1))).ravel()])
     '''
@@ -360,7 +697,6 @@ def get_invVR_mats_shape(invVR_mats):
     _iv21s = invVR_mats[:, 1, 0]
     _iv22s = invVR_mats[:, 1, 1]
     '#endif'
-
     #'#pragma cyth numpy_fancy_index_assign'
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
@@ -421,12 +757,16 @@ def get_invVR_mats_xys(invVR_mats):
 def get_invVR_mats_oris(invVR_mats):
     r""" extracts orientation from matrix encoding
 
-    >>> from vtool.keypoint import *  # NOQA
-    >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
-    >>> output = get_invVR_mats_oris(invVR_mats)
-    >>> print(utool.hashstr(output))
-    mcoxq8!3ml5bj9rx
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> np.random.seed(0)
+        >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
+        >>> output = get_invVR_mats_oris(invVR_mats)
+        >>> result = (utool.hashstr(output))
+        >>> print(result)
+        mcoxq8!3ml5bj9rx
 
     Cyth:
         #CYTH_INLINE
@@ -562,7 +902,7 @@ def get_Z_mats(V_mats):
     Returns:
         Z_mats (ndarray): Z is a conic representation of an ellipse
     """
-    Vt_mats = array(list(map(np.transpose, V_mats)))
+    Vt_mats = np.array(list(map(np.transpose, V_mats)))
     Z_mats = matrix_multiply(Vt_mats, V_mats)
     return Z_mats
 
@@ -598,8 +938,8 @@ def get_invV_xy_axis_extents(invV_mats):
     Us_list = [ltool.svd(invV)[0:2] for invV in invV_mats]
     def Us_axis_extent(U, s):
         """ Columns of U.dot(S) are in principle scaled directions """
-        return sqrt(U.dot(diag(s)) ** 2).T.sum(0)
-    xyexnts = array([Us_axis_extent(U, s) for U, s in Us_list])
+        return np.sqrt(U.dot(np.diag(s)) ** 2).T.sum(0)
+    xyexnts = np.array([Us_axis_extent(U, s) for U, s in Us_list])
     return xyexnts
 
 
@@ -607,24 +947,103 @@ def get_invV_xy_axis_extents(invV_mats):
 def get_xy_axis_extents(kpts):
     """ gets the scales of the major and minor elliptical axis
         from kpts (slower due to conversion to invV_mats)
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+
+    Returns:
+        xyexnts:
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_xy_axis_extents
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> # execute function
+        >>> xyexnts = get_xy_axis_extents(kpts)
+        >>> # verify results
+        >>> result = str(xyexnts)
+        >>> print(result)
+        [[  6.2212909   24.91645859]
+         [  2.79504602  24.7306281 ]
+         [ 16.43837149  19.39813418]
+         [ 18.23215582  25.76692184]
+         [ 19.78704902  16.82756301]]
     """
-    invV_mats = get_invV_mats(kpts, ashomog=False)
-    return get_invV_xy_axis_extents(invV_mats)
+    #invV_mats = get_invV_mats(kpts, ashomog=False)
+    invV_mats2x2 = get_invVR_mats2x2(kpts)
+    xyexnts = get_invV_xy_axis_extents(invV_mats2x2)
+    return xyexnts
 
 
 #@profile
 def get_kpts_bounds(kpts):
-    """ returns the width and height of keypoint bounding box """
+    """
+    returns the width and height of keypoint bounding box
+    This combines xy and shape information
+    Does not take into account if keypoint extent goes under (0, 0)
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+
+    Returns:
+        tuple: wh_bound
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_kpts_bounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> # execute function
+        >>> wh_bound = get_kpts_bounds(kpts)
+        >>> # verify results
+        >>> result = kpts_repr(np.array(wh_bound))
+        >>> print(result)
+        array([ 51.79,  54.77])
+    """
     xs, ys = get_xys(kpts)
     xyexnts = get_xy_axis_extents(kpts)
     width = (xs + xyexnts.T[0]).max()
     height = (ys + xyexnts.T[1]).max()
-    return (width, height)
+    wh_bound = (width, height)
+    return wh_bound
 
 
 #@profile
 def get_diag_extent_sqrd(kpts):
-    """ Returns the diagonal extent of keypoint locations """
+    """
+    Returns the diagonal extent of keypoint x,y locations
+    SHAPES ARE NOT ACCOUNTED FOR
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+
+    Returns:
+        ?: extent_sqrd
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_diag_extent_sqrd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> # execute function
+        >>> extent_sqrd = get_diag_extent_sqrd(kpts)
+        >>> # verify results
+        >>> result = str(extent_sqrd)
+        >>> print(result)
+    """
     xs, ys = get_xys(kpts)
     x_extent_sqrd = (xs.max() - xs.min()) ** 2
     y_extent_sqrd = (ys.max() - ys.min()) ** 2
@@ -636,13 +1055,13 @@ def get_diag_extent_sqrd(kpts):
 def cast_split(kpts, dtype=KPTS_DTYPE):
     """ breakup keypoints into location, shape, and orientation """
     kptsT = kpts.T
-    _xs   = array(kptsT[0], dtype=dtype)
-    _ys   = array(kptsT[1], dtype=dtype)
-    _invVs = array(kptsT[2:5], dtype=dtype)
+    _xs   = np.array(kptsT[0], dtype=dtype)
+    _ys   = np.array(kptsT[1], dtype=dtype)
+    _invVs = np.array(kptsT[2:5], dtype=dtype)
     if kpts.shape[1] == 6:
-        _oris = array(kptsT[5:6], dtype=dtype)
+        _oris = np.array(kptsT[5:6], dtype=dtype)
     else:
-        _oris = zeros(len(kpts))
+        _oris = np.zeros(len(kpts))
     return _xs, _ys, _invVs, _oris
 
 
@@ -682,6 +1101,14 @@ def get_kpts_strs(kpts):
     kpts_strs = ['\n---\n'.join(tup) for tup in zip(xy_strs, shape_strs, ori_strs)]
     return kpts_strs
 
+
+def kpts_repr(arr, precision=2, suppress_small=True, linebreak=False):
+    repr_kw = dict(precision=precision, suppress_small=suppress_small)
+    reprstr = np.array_repr(arr, **repr_kw)
+    if not linebreak:
+        reprstr = reprstr.replace('\n\n', '\n')
+    return reprstr
+
 #try:
 #    import cyth
 #    if cyth.DYNAMIC:
@@ -693,3 +1120,15 @@ def get_kpts_strs(kpts):
 #        # </AUTOGEN_CYTH>
 #except ImportError as ex:
 #    pass
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.keypoint
+        python -m vtool.keypoint --allexamples
+        python -m vtool.keypoint --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

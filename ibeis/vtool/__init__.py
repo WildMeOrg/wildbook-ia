@@ -30,7 +30,6 @@ IMPORT_TUPLES = [
 ]
 
 #import sys
-
 from vtool import histogram
 from vtool import linalg
 from vtool import image
@@ -47,6 +46,7 @@ from vtool import clustering
 from vtool import nearest_neighbors
 from vtool import clustering2
 
+# TODO: incorporate into utoolification
 from vtool import histogram as htool
 from vtool import linalg as ltool
 from vtool import image as gtool
@@ -59,6 +59,8 @@ from vtool import spatial_verification as svtool
 from vtool import clustering2 as clustertool
 from vtool import trig
 from vtool import math as mtool
+from vtool.tests.dummy import get_dummy_kpts
+from vtool.tests import dummy
 
 import sys
 __DYNAMIC__ = not '--nodyn' in sys.argv

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, range, map
+from six.moves import zip, range, map  # NOQA
 import cv2
 import numpy as np
 import utool as ut
@@ -85,37 +85,163 @@ def get_match_coverage_images(ibs, aid1, aid2, fm, mx2_score, **kwargs):
 
 
 def build_kpts_transforms(kpts, chip_shape, src_shape, scale_factor):
-    (h, w) = chip_shape
-    (h_, w_) = src_shape
-    T1 = np.array(((1, 0, -w_ / 2),
-                   (0, 1, -h_ / 2),
-                   (0, 0,       1),))
-    S1 = np.array(((1 / w_,      0,  0),
-                   (0,      1 / h_,  0),
-                   (0,           0,  1),))
-    invVR_aff2Ds = [np.array(((a, 0, x),
-                              (c, d, y),
-                              (0, 0, 1),)) for (x, y, a, c, d, ori) in kpts]
-    S2 = np.array(((scale_factor,      0,  0),
-                   (0,      scale_factor,  0),
-                   (0,           0,  1),))
-    perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
-    transform_list = [M[0:2] for M in perspective_list]
+    """
+    builds a transform for each keypoint which will map an image with shape
+    src_shape into the keypoint location on a chip of shape chip_shape
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        chip_shape (tuple):
+        src_shape (tuple):
+        scale_factor (float):
+
+    Returns:
+        ndarray: transform_list
+
+    CommandLine:
+        python -m vtool.coverage_image --test-build_kpts_transforms
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts(1)
+        >>> chip = vt.dummy.get_kpts_dummy_img(kpts, intensity=10)
+        >>> srcimg = ptool.gaussian_patch()
+        >>> # build test data
+        >>> chip_shape = chip.shape
+        >>> src_shape = srcimg.shape
+        >>> scale_factor = 1.0
+        >>> # execute function
+        >>> transform_list = build_kpts_transforms(kpts, chip_shape, src_shape, scale_factor)
+        >>> # verify results
+        >>> result = vt.kpts_repr(transform_list)
+        >>> print(result)
+        array([[[  0.75,   0.  ,  17.39],
+                [ -0.73,   3.45,  15.48]],
+               [[  0.34,   0.  ,  27.82],
+                [ -0.73,   3.45,  15.48]],
+               [[  1.75,   0.  ,  23.89],
+                [  1.72,   1.5 ,  18.73]],
+               [[  1.91,   0.  ,  24.32],
+                [  2.52,   2.01,  13.13]],
+               [[  2.29,   0.  ,  23.97],
+                [  0.49,   1.68,  23.43]]])
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> invVR_aff2Ds = [np.array(((a, 0, x),
+        >>>                           (c, d, y),
+        >>>                           (0, 0, 1),))
+        >>>                 for (x, y, a, c, d, ori) in kpts]
+        >>> invVR_3x3 = vt.get_invVR_mats3x3(kpts)
+        >>> invV_3x3 = vt.get_invV_mats3x3(kpts)
+        >>> assert np.all(np.array(invVR_aff2Ds) == invVR_3x3)
+        >>> assert np.all(np.array(invVR_aff2Ds) == invV_3x3)
+
+    Timeit:
+        %timeit [np.array(((a, 0, x), (c, d, y), (0, 0, 1),)) for (x, y, a, c, d, ori) in kpts]
+        %timeit vt.get_invVR_mats3x3(kpts)
+        %timeit vt.get_invV_mats3x3(kpts) <- THIS IS ACTUALLY MUCH FASTER
+
+    Ignore::
+        %pylab qt4
+        import plottool as pt
+        pt.imshow(chip)
+        pt.draw_kpts2(kpts)
+        pt.update()
+
+
+    """
+    from vtool import keypoint as ktool
+    patch_shape = src_shape
+    perspective_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
+    transform_list = perspective_list[:, 0:2, :]
+    #from vtool import linalg as ltool
+    ##(h, w)   = chip_shape
+    #(h_, w_) = src_shape
+    #half_width  = w_ / 2.0
+    #half_height = h_ / 2.0
+    ## Center src image
+    #T1 = ltool.translation_mat3x3(-half_width, -half_height)
+    ## Scale src to the unit circle
+    #S1 = ltool.scale_mat3x3(1 / w_, 1 / h_)
+    ## Transform the source image to the keypoint ellipse
+    #invVR_aff2Ds = ktool.get_invVR_mats3x3(kpts)
+    ## Adjust for the requested scale factor
+    #S2 = ltool.scale_mat3x3(scale_factor, scale_factor)
+    ## Center the image
+    ##T1 = np.array(((1, 0, -w_ / 2),
+    ##               (0, 1, -h_ / 2),
+    ##               (0, 0,       1),))
+    ## Scale
+    ##S1 = np.array(((1 / w_,      0,  0),
+    ##               (0,      1 / h_,  0),
+    ##               (0,           0,  1),))
+    ##invVR_aff2Ds = [np.array(((a, 0, x),
+    ##                          (c, d, y),
+    ##                          (0, 0, 1),))
+    ##                for (x, y, a, c, d, ori) in kpts]
+    ##S2 = np.array(((scale_factor,           0,  0),
+    ##               (0,           scale_factor,  0),
+    ##               (0,                      0,  1),))
+    #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
+    #transform_list = [M[0:2] for M in perspective_list]
     return transform_list
 
 
-def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None, **kwargs):
+def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
+                        scale_factor=1.0, **kwargs):
+    r"""
+    Overlays the source image onto a destination image in each keypoint location
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        srcimg (?):
+        chip_shape (?):
+        fx2_score (ndarray):
+        scale_factor (float):
+
+    Returns:
+        ?: None
+
+    CommandLine:
+        python -m vtool.coverage_image --test-warp_srcimg_to_kpts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import vtool as vt
+        >>> import pyhesaff
+        >>> img_fpath    = ut.grab_test_imgpath('carl.jpg')
+        >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
+        >>> chip = vt.imread(img_fpath)
+        >>> kwargs = {}
+        >>> chip_shape = chip.shape
+        >>> fx2_score = np.ones(len(kpts))
+        >>> scale_factor = 1.0
+        >>> srcimg = ptool.gaussian_patch()
+        >>> # execute function
+        >>> dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score, scale_factor)
+        >>> # verify results
+        >>> result = str(None)
+        >>> print(result)
+    """
     if len(kpts) == 0:
         return None
     if fx2_score is None:
         fx2_score = np.ones(len(kpts))
-    scale_factor = kwargs.get('scale_Factor', SCALE_FACTOR_DEFAULT)
-    # Build destination image
-    (h, w) = list(map(int, (chip_shape[0] * scale_factor, chip_shape[1] * scale_factor)))
+    # Allocate destination image
+    (_h, _w) = chip_shape[0:2]
+    (h, w) = int(_h * scale_factor), int(_w * scale_factor)
     dstimg = np.zeros((h, w), dtype=np.float32)
     dst_copy = dstimg.copy()
     src_shape = srcimg.shape
-    # Build keypoint transforms
+    # Scale keypoints into destination image
     fx2_M = build_kpts_transforms(kpts, (h, w), src_shape, scale_factor)
     # cv2 warp flags
     dsize = (w, h)
@@ -148,6 +274,7 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         ndarray: dstimg
 
     CommandLine:
+        python -m vtool.coverage_image --test-get_coverage_map --show
         python -m vtool.coverage_image --test-get_coverage_map
 
     Example:
@@ -156,7 +283,8 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         >>> import vtool as vt
         >>> import plottool as pt
         >>> import pyhesaff
-        >>> img_fpath   = ut.grab_test_imgpath('carl.jpg')
+        >>> #img_fpath   = ut.grab_test_imgpath('carl.jpg')
+        >>> img_fpath   = ut.grab_test_imgpath('lena.png')
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
         >>> chip = vt.imread(img_fpath)
         >>> kwargs = {}
