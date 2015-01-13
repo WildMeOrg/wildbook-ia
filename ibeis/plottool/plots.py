@@ -321,6 +321,7 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
+        >>> import plottool as pt
         >>> # build test data
         >>> param2_stat_dict = {
         ...     0.5: dict([('max', 0.0584), ('min', 0.0543), ('mean', 0.0560), ('std', 0.00143),]),
@@ -354,13 +355,24 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     def get_dictlist_key(dict_list, key):
         return [dict_[key] for dict_ in dict_list]
     y_data_components = [get_dictlist_key(y_data_dict, key) for key in y_data_keys]
+    # The stacking is pretty much not needed anymore, but whatever
     y_data_sort = np.vstack(y_data_components)[:, sortx]
     y_data_std_sort  = y_data_sort[0]
     y_data_mean_sort = y_data_sort[1]
-    y_data_min_sort  = y_data_sort[2]
-    y_data_max_sort  = y_data_sort[3]
-    y_data_low_std_sort  = y_data_mean_sort - y_data_std_sort
-    y_data_high_std_sort = y_data_mean_sort + y_data_std_sort
+    y_data_max_sort  = y_data_sort[2]
+    y_data_min_sort  = y_data_sort[3]
+    y_data_stdlow_sort  = y_data_mean_sort - y_data_std_sort
+    y_data_stdhigh_sort = y_data_mean_sort + y_data_std_sort
+    FIX_STD_SYMETRY = True
+    if FIX_STD_SYMETRY:
+        # Standard deviation is symetric where min and max are not.
+        # To avoid weird looking plots clip the stddev fillbetweens
+        # at the min and max
+        #ut.embed()
+        outlier_min_std = y_data_stdlow_sort  < y_data_min_sort
+        outlier_max_std = y_data_stdhigh_sort > y_data_max_sort
+        y_data_stdlow_sort[outlier_min_std]  =  y_data_min_sort[outlier_min_std]
+        y_data_stdhigh_sort[outlier_max_std] =  y_data_max_sort[outlier_max_std]
     # Make firgure
     fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
     ax = plt.gca()
@@ -368,7 +380,7 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     ax.fill_between(x_data_sort, y_data_min_sort, y_data_max_sort, alpha=.2, color='g', label='range')
     df2.append_phantom_legend_label('range', 'g', alpha=.2)
     # Plot standard deviations
-    ax.fill_between(x_data_sort, y_data_low_std_sort, y_data_high_std_sort, alpha=.4, color='b', label='std')
+    ax.fill_between(x_data_sort, y_data_stdlow_sort, y_data_stdhigh_sort, alpha=.4, color='b', label='std')
     df2.append_phantom_legend_label('std', 'b', alpha=.4)
     # Plot means
     ax.plot(x_data_sort, y_data_mean_sort, 'o-', color='b', label='mean')

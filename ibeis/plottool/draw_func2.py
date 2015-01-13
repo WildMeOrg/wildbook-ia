@@ -133,8 +133,15 @@ def get_pnum_func(nRows=1, nCols=1, base=0):
 
 def pnum_generator(nRows=1, nCols=1, base=0):
     pnum_func = get_pnum_func(nRows, nCols, base)
-    for px in (nRows * nCols):
+    for px in range(nRows * nCols):
         yield pnum_func(px)
+
+
+def make_pnum_nextgen(nRows=1, nCols=1, base=0):
+    import functools
+    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base)
+    pnum_next = functools.partial(six.next, pnum_gen)
+    return pnum_next
 
 
 def kwargs_fnum(kwargs):
@@ -283,7 +290,15 @@ def plot(*args, **kwargs):
 
 def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
           unitbox=False, flipx=False, flipy=False, title=None, dark=True,
-          equal_aspect=True, pad=0, label='', *args, **kwargs):
+          equal_aspect=True, pad=0, label='', fnum=None, pnum=None, *args,
+          **kwargs):
+    """
+
+    Kwargs:
+        linewidth (float):
+    """
+    if fnum is not None or pnum is not None:
+        figure(fnum=fnum, pnum=pnum)
     do_plot = True
     # ensure length
     if len(x_data) != len(y_data):

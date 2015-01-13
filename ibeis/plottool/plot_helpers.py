@@ -47,20 +47,55 @@ def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2)
     return fpath_clean
 
 
-def get_square_row_cols(nSubplots, max_cols=None):
+def get_square_row_cols(nSubplots, max_cols=None, fix=False):
+    r"""
+    Args:
+        nSubplots (?):
+        max_cols (None):
+
+    Returns:
+        tuple: (None, None)
+
+    CommandLine:
+        python -m plottool.plot_helpers --test-get_square_row_cols
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plot_helpers import *  # NOQA
+        >>> # build test data
+        >>> nSubplots = 9
+        >>> nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        >>> max_cols = None
+        >>> # execute function
+        >>> rc_list = [get_square_row_cols(nSubplots, fix=True) for nSubplots in nSubplots_list]
+        >>> # verify results
+        >>> result = repr(np.array(rc_list).T)
+        >>> print(result)
+        array([[1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3],
+               [1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4]])
+    """
     if nSubplots == 0:
         return 0, 0
-    if max_cols is None:
-        max_cols = 5
-        if nSubplots in [4]:
-            max_cols = 2
-        if nSubplots in [5, 6, 7]:
-            max_cols = 3
-        if nSubplots in [8]:
-            max_cols = 4
-    nCols = int(min(nSubplots, max_cols))
-    #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
-    nRows = int(np.ceil(nSubplots / nCols))
+    if fix:
+        # This function is very broken, but it might have dependencies
+        # this is the correct version
+        nCols = int(np.ceil(np.sqrt(nSubplots)))
+        nRows = int(np.ceil(nSubplots / nCols))
+        return nRows, nCols
+    else:
+        # This is the clamped num cols version
+        # probably used in ibeis.viz
+        if max_cols is None:
+            max_cols = 5
+            if nSubplots in [4]:
+                max_cols = 2
+            if nSubplots in [5, 6, 7]:
+                max_cols = 3
+            if nSubplots in [8]:
+                max_cols = 4
+        nCols = int(min(nSubplots, max_cols))
+        #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
+        nRows = int(np.ceil(nSubplots / nCols))
     return nRows, nCols
 
 
