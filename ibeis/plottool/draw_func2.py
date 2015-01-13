@@ -177,7 +177,7 @@ def label_to_colors(labels_):
     return color_list
 
 
-def distinct_colors(N, brightness=.878):
+def distinct_colors(N, brightness=.878, shuffle=True):
     """
     Args:
         N (int): number of distinct colors
@@ -194,7 +194,8 @@ def distinct_colors(N, brightness=.878):
     val = brightness
     HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
     RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
-    utool.deterministic_shuffle(RGB_tuples)
+    if shuffle:
+        utool.deterministic_shuffle(RGB_tuples)
     return RGB_tuples
 
 
