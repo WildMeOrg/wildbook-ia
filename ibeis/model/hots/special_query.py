@@ -768,11 +768,14 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     new_fsv_list = list(map(np.hstack, zip(old_fsv_list, aug_fsv_list)))
 
     # FURTHER HACKS TO SCORING
-    if 'fg_power' in kwargs:
-        fg_power = kwargs['fg_power']
-        fg_index = ut.listfind(qres.filtkey_list, hstypes.FiltKeys.FG)
-        for fsv in new_fsv_list:
-            fsv.T[fg_index] **= fg_power
+    #if 'fg_power' in kwargs:
+    for filtkey in hstypes.WEIGHT_FILTERS:
+        key = filtkey  + '_power'
+        if key in kwargs:
+            _power = kwargs[key]
+            _index = ut.listfind(qres.filtkey_list, filtkey)
+            for fsv in new_fsv_list:
+                fsv.T[_index] **= _power
     #new_aid2_fsv = dict(zip(daid_list, new_fsv_list))
     return new_fsv_list, daid_list
 
@@ -907,7 +910,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
     # so we can apply a weighted average
     #numer_filters  = [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.RATIO]
 
-    weight_filters = [hstypes.FiltKeys.FG, hstypes.FiltKeys.DISTINCTIVENESS]
+    weight_filters = hstypes.WEIGHT_FILTERS
     weight_filtxs, nonweight_filtxs = index_partition(qres_vsone.filtkey_list, weight_filters)
 
     for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):

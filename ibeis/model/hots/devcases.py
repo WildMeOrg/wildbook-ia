@@ -19,7 +19,6 @@ def myquery():
     r"""
 
     see how seperability changes as we very things
-    pas
 
     CommandLine:
         python -m ibeis.model.hots.devcases --test-myquery
@@ -46,7 +45,9 @@ def myquery():
     cfgdict_vsone = dict(
         sv_on=True,
         #sv_on=False,
-        codename='vsone_unnorm_dist_ratio_extern_distinctiveness'
+        #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
+        codename='vsone_unnorm_ratio_extern_distinctiveness',
+        sver_weighting=True,
     )
 
     use_cache   = False
@@ -74,11 +75,44 @@ def myquery():
         return qres_copy, tp_score, tn_score
 
     #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
+    FiltKeys = hstypes.FiltKeys
     grid_basis = [
-        ut.DimensionBasis('p', np.logspace(.01, 1.0, 4)),
-        ut.DimensionBasis('K', [2, 4, 8, 16]),
-        ut.DimensionBasis('clip_fraction', np.linspace(.01, .3, 5)),
-        ut.DimensionBasis('fg_power', np.linspace(.01, 10.0, 4)),
+        #ut.DimensionBasis('p', np.linspace(1, 100.0, 50)),
+        ut.DimensionBasis(
+            # HIGHER SEEMS BETTER BUT EFFECT FLATTENS OUT
+            # current_best = 73
+            # This seems to imply that anything with a distinctivness less than
+            # .9 is not relevant
+            'p',
+            [73]
+            #[1, 20, 73]
+        ),
+        ut.DimensionBasis(
+            'K',
+            #[2]
+            [2, 4, 8, 16, 32],
+        ),
+        #ut.DimensionBasis('clip_fraction', ),
+        #ut.DimensionBasis('clip_fraction', np.linspace(.01, .11, 100)),
+        ut.DimensionBasis(
+            'clip_fraction',
+            #[.09],
+            np.linspace(.01, .5, 10),
+        ),
+        #ut.DimensionBasis(FiltKeys.FG + '_power', ),
+        ut.DimensionBasis(
+            # The FORGROUND POWER SEEMS TO BE VERY INFLUENTIAL IN SCORING
+            # IT SEEMS HIGHER IS BETTER BUT EFFECT FLATTENS OUT
+            FiltKeys.FG + '_power',
+            #[.1]
+            np.linspace(.01, 30.0, 10)
+        ),
+        ut.DimensionBasis(
+            FiltKeys.HOMOGERR + '_power',
+            # current_best = 2.5
+            #[.1]
+            np.linspace(.1, 10, 30)
+        ),
     ]
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
     print('Begin Grid Search')
@@ -100,7 +134,7 @@ def myquery():
         ut.embed()
         def make_new_chipmatch(qres_copy):
             assert ut.listfind(qres_copy.filtkey_list, filtkey) is None
-            weight_filters = [hstypes.FiltKeys.FG, hstypes.FiltKeys.DISTINCTIVENESS]
+            weight_filters = hstypes.WEIGHT_FILTERS
             weight_filtxs, nonweight_filtxs = special_query.index_partition(qres_copy.filtkey_list, weight_filters)
 
             aid2_fsv = {}
@@ -138,7 +172,7 @@ def myquery():
 
     # PRINT INFO
     import functools
-    ut.rrrr()
+    #ut.rrrr()
     get_stats_str = functools.partial(ut.get_stats_str, axis=0, newlines=True, precision=3)
     tp_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[aid2]), ':')
     tn_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[tn_aid]), ':')
@@ -150,8 +184,6 @@ def myquery():
     info_str_list.append(tn_stats_str)
     info_str = '\n'.join(info_str_list)
     print(info_str)
-
-    #ut.embed()
 
     # SHOW BEST RESULT
     #qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
@@ -167,9 +199,8 @@ def myquery():
 
     # Paramter visuzliation
     fnum = pt.next_fnum()
-    #ut.embed()
     # plot paramter influence
-    param_label_list = gridsearch.get_param_list_and_lbls()[0]
+    param_label_list = gridsearch.get_param_lbls()
     pnum_ = pt.get_pnum_func(2, len(param_label_list))
     for px, param_label in enumerate(param_label_list):
         gridsearch.plot_dimension(param_label, fnum=fnum, pnum=pnum_(px))
@@ -269,6 +300,41 @@ def find_close_incorrect_match(ibs, qaids):
     gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
     print('gf_mapping = ' + ut.dict_str(gf_mapping))
     pass
+
+
+def show_power_law_plots():
+    """
+
+    CommandLine:
+        python -m ibeis.model.hots.devcases --test-show_power_law_plots --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> #%pylab qt4
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> show_power_law_plots()
+        >>> pt.show_if_requested()
+    """
+    import numpy as np
+    import plottool as pt
+    xdata = np.linspace(0, 1, 1000)
+    ydata = xdata
+    fnum = 1
+    powers = [.01, .1, .5, 1, 2, 30, 70, 100, 1000]
+    nRows, nCols = pt.get_square_row_cols(len(powers), fix=True)
+    pnum_next = pt.make_pnum_nextgen(nRows, nCols)
+    for p in powers:
+        plotkw = dict(
+            fnum=fnum,
+            marker='g-',
+            linewidth=2,
+            pnum=pnum_next(),
+            title='p=%r' % (p,)
+        )
+        ydata_ = ydata ** p
+        pt.plot2(xdata, ydata_, **plotkw)
+    pt.set_figtitle('power laws y = x ** p')
 
 
 def get_gzall_small_test():
