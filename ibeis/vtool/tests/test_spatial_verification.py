@@ -96,7 +96,7 @@ def get_stashed_test_vars():
 if __name__ == '__main__':
     """
     CommandLine:
-        python vtool/tests/test_spatial_verification.py
+        python -m vtool.tests.test_spatial_verification
     """
     np.set_printoptions(precision=4, suppress=True)
     utool.util_inject.inject_colored_exceptions()

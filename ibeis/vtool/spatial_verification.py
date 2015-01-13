@@ -41,6 +41,7 @@ SV_DTYPE = np.float64
 TAU = 2 * np.pi  # tauday.org
 
 
+@profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
@@ -108,6 +109,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     return Mx9
 
 
+@profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
@@ -171,6 +173,7 @@ def compute_homog(xy1_mn, xy2_mn):
     return H
 
 
+@profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
@@ -275,6 +278,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     return hypo_inliers, hypo_errors
 
 
+@profile
 def get_affine_inliers(kpts1, kpts2, fm,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
@@ -390,6 +394,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
     return aff_inliers_list, aff_errors_list, Aff_mats
 
 
+@profile
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
@@ -426,6 +431,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     return aff_inliers, aff_errors, Aff
 
 
+@profile
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
@@ -495,6 +501,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     return homog_inliers, homog_errors, H
 
 
+@profile
 def spatially_verify_kpts(kpts1, kpts2, fm,
                           xy_thresh,
                           scale_thresh,
@@ -648,6 +655,7 @@ if __name__ == '__main__':
 
     SeeAlso:
         python -m vtool.tests.test_spatial_verification
+        utprof.py -m vtool.tests.test_spatial_verification
     """
     import utool as ut  # NOQA
     ut.doctest_funcs()
