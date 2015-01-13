@@ -555,7 +555,6 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> returnAff = False
         >>> ori_thresh = 1.57
         >>> scale_thresh = 2.0
-
     """
     # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)

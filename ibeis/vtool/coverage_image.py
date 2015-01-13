@@ -1,16 +1,10 @@
 from __future__ import absolute_import, division, print_function
-# Standard
 from six.moves import zip, range, map
-# Science
 import cv2
 import numpy as np
-# Tools
 import utool as ut
-import vtool.patch as ptool
-from utool import util_inject
-# Recognition
-print, print_,  printDBG, rrr, profile = util_inject.inject(
-    __name__, '[cov]', DEBUG=False)
+from vtool import patch as ptool
+print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[cov]', DEBUG=False)
 
 SCALE_FACTOR_DEFAULT = .05
 METHOD_DEFAULT = 0
@@ -90,44 +84,6 @@ def get_match_coverage_images(ibs, aid1, aid2, fm, mx2_score, **kwargs):
     return dstimg1, dstimg2
 
 
-def warp_srcimg_to_kpts(fx2_kp, srcimg, chip_shape, fx2_score=None, **kwargs):
-    if len(fx2_kp) == 0:
-        return None
-    if fx2_score is None:
-        fx2_score = np.ones(len(fx2_kp))
-    scale_factor = kwargs.get('scale_Factor', SCALE_FACTOR_DEFAULT)
-    # Build destination image
-    (h, w) = list(map(int, (chip_shape[0] * scale_factor, chip_shape[1] * scale_factor)))
-    dstimg = np.zeros((h, w), dtype=np.float32)
-    dst_copy = dstimg.copy()
-    src_shape = srcimg.shape
-    # Build keypoint transforms
-    fx2_M = build_kpts_transforms(fx2_kp, (h, w), src_shape, scale_factor)
-    # cv2 warp flags
-    dsize = (w, h)
-    flags = cv2.INTER_LINEAR  # cv2.INTER_LANCZOS4
-    boderMode = cv2.BORDER_CONSTANT
-    # mark prooress
-    mark_progress, end_progress = ut.progress_func(len(fx2_M),
-                                                      flush_after=20,
-                                                      mark_after=1000,
-                                                      lbl='coverage warp ')
-    # For each keypoint warp a gaussian scaled by the feature score
-    # into the image
-    count = 0
-    for count, (M, score) in enumerate(zip(fx2_M, fx2_score)):
-        mark_progress(count)
-        warped = cv2.warpAffine(srcimg * score, M, dsize,
-                                dst=dst_copy,
-                                flags=flags, borderMode=boderMode,
-                                borderValue=0).T
-        catmat = np.dstack((warped.T, dstimg))
-        dstimg = catmat.max(axis=2)
-    mark_progress(count)
-    end_progress()
-    return dstimg
-
-
 def build_kpts_transforms(kpts, chip_shape, src_shape, scale_factor):
     (h, w) = chip_shape
     (h_, w_) = src_shape
@@ -148,9 +104,85 @@ def build_kpts_transforms(kpts, chip_shape, src_shape, scale_factor):
     return transform_list
 
 
+def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None, **kwargs):
+    if len(kpts) == 0:
+        return None
+    if fx2_score is None:
+        fx2_score = np.ones(len(kpts))
+    scale_factor = kwargs.get('scale_Factor', SCALE_FACTOR_DEFAULT)
+    # Build destination image
+    (h, w) = list(map(int, (chip_shape[0] * scale_factor, chip_shape[1] * scale_factor)))
+    dstimg = np.zeros((h, w), dtype=np.float32)
+    dst_copy = dstimg.copy()
+    src_shape = srcimg.shape
+    # Build keypoint transforms
+    fx2_M = build_kpts_transforms(kpts, (h, w), src_shape, scale_factor)
+    # cv2 warp flags
+    dsize = (w, h)
+    flags = cv2.INTER_LINEAR  # cv2.INTER_LANCZOS4
+    boderMode = cv2.BORDER_CONSTANT
+    # mark prooress
+    # For each keypoint warp a gaussian scaled by the feature score
+    # into the image
+    for (M, score) in zip(fx2_M, fx2_score):
+        warped = cv2.warpAffine(srcimg * score, M, dsize,
+                                dst=dst_copy,
+                                flags=flags, borderMode=boderMode,
+                                borderValue=0).T
+        catmat = np.dstack((warped.T, dstimg))
+        dstimg = catmat.max(axis=2)
+    return dstimg
+
+
 def get_coverage_map(kpts, chip_shape, **kwargs):
     # Create gaussian image to warp
+    r"""
+    Returns a intensity image denoting which pixels are covered by the input
+    keypoints
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        chip_shape (?):
+
+    Returns:
+        ndarray: dstimg
+
+    CommandLine:
+        python -m vtool.coverage_image --test-get_coverage_map
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import vtool as vt
+        >>> import plottool as pt
+        >>> import pyhesaff
+        >>> img_fpath   = ut.grab_test_imgpath('carl.jpg')
+        >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
+        >>> chip = vt.imread(img_fpath)
+        >>> kwargs = {}
+        >>> chip_shape = chip.shape
+        >>> dstimg = get_coverage_map(kpts, chip_shape)
+        >>> fnum = 1
+        >>> pnum_ = pt.get_pnum_func(nRows=1, nCols=2)
+        >>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(0))
+        >>> pt.imshow(chip, fnum=fnum, pnum=pnum_(1))
+        >>> pt.draw_kpts2(kpts)
+        >>> pt.show_if_requested()
+    """
     np.tau = 2 * np.pi
     srcimg = ptool.gaussian_patch()
     dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, **kwargs)
     return dstimg
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.coverage_image
+        python -m vtool.coverage_image --allexamples
+        python -m vtool.coverage_image --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

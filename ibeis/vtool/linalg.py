@@ -31,10 +31,35 @@ from numpy.core.umath_tests import matrix_multiply  # NOQA
 
 @profile
 def svd(M):
+    r"""
+    Args:
+        M (ndarray): must be either float32 or float64
+
+    Returns:
+        tuple: (U, s, Vt)
+
+    CommandLine:
+        python -m vtool.linalg --test-svd
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> M = np.array([1, 2, 3], dtype=np.float32)
+        >>> M = np.array([[20.5812, 0], [3.615, 17.1295]], dtype=np.float64)
+        >>> # execute function
+        >>> (U, s, Vt) = svd(M)
+
+    Timeit::
+        flags = cv2.SVD_FULL_UV
+        %timeit cv2.SVDecomp(M, flags=flags)
+        %timeit npl.svd(M)
+    """
     # V is actually Vt
     flags = cv2.SVD_FULL_UV
     S, U, Vt = cv2.SVDecomp(M, flags=flags)
     s = S.flatten()
+    #U, s, Vt = npl.svd(M)
     return U, s, Vt
 
 
