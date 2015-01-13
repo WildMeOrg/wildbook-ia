@@ -39,21 +39,15 @@ Efficiency Notes:
     to use with multidimensional arrays
 """
 from __future__ import absolute_import, division, print_function
-# Python
 from six.moves import zip, range, reduce
-# Science
 import numpy as np
 import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
-#from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
-# VTool
 from vtool import linalg as ltool
 from vtool import chip as ctool
 from vtool import trig
-# UTool
-import utool
 import utool as ut
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[kpts]')
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[kpts]')
 
 
 """
@@ -460,7 +454,7 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         scale_factor (float):
 
     Returns:
-        ?: det_arr
+        M_list: a list of 3x3 tranformation matricies for each keypoint
 
     CommandLine:
         python -m vtool.keypoint --test-get_transforms_from_patch_image_kpts
@@ -494,6 +488,31 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
                 [  0.49,   1.68,  23.43],
                 [  0.  ,   0.  ,   1.  ]]])
 
+    Ignore:
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> invVR_aff2Ds = [np.array(((a, 0, x),
+        >>>                           (c, d, y),
+        >>>                           (0, 0, 1),))
+        >>>                 for (x, y, a, c, d, ori) in kpts]
+        >>> invVR_3x3 = vt.get_invVR_mats3x3(kpts)
+        >>> invV_3x3 = vt.get_invV_mats3x3(kpts)
+        >>> assert np.all(np.array(invVR_aff2Ds) == invVR_3x3)
+        >>> assert np.all(np.array(invVR_aff2Ds) == invV_3x3)
+
+    Timeit:
+        %timeit [np.array(((a, 0, x), (c, d, y), (0, 0, 1),)) for (x, y, a, c, d, ori) in kpts]
+        %timeit vt.get_invVR_mats3x3(kpts)
+        %timeit vt.get_invV_mats3x3(kpts) <- THIS IS ACTUALLY MUCH FASTER
+
+    Ignore::
+        %pylab qt4
+        import plottool as pt
+        pt.imshow(chip)
+        pt.draw_kpts2(kpts)
+        pt.update()
+
     Timeit:
         sa_list1 = np.array([S2.dot(A) for A in invVR_aff2Ds])
         sa_list2 = matrix_multiply(S2, invVR_aff2Ds)
@@ -509,12 +528,13 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         %timeit reduce(matrix_multiply, (S2, invVR_aff2Ds, S1, T1))
     """
     (patch_h, patch_w) = patch_shape
-    half_width  = patch_w / 2.0
-    half_height = patch_h / 2.0
+    half_width  = (patch_w / 2.0)  # - .5
+    half_height = (patch_h / 2.0)  # - .5
     # Center src image
-    T1 = ltool.translation_mat3x3(-half_width, -half_height)
+    T1 = ltool.translation_mat3x3(-half_width + .5, -half_height + .5)
     # Scale src to the unit circle
-    S1 = ltool.scale_mat3x3(1.0 / patch_w, 1.0 / patch_h)
+    #S1 = ltool.scale_mat3x3(1.0 / patch_w, 1.0 / patch_h)
+    S1 = ltool.scale_mat3x3(1.0 / half_width, 1.0 / half_height)
     # Transform the source image to the keypoint ellipse
     invVR_aff2Ds = get_invVR_mats3x3(kpts)
     # Adjust for the requested scale factor
@@ -591,7 +611,7 @@ def transform_kpts(kpts, M):
     except AssertionError as ex:  # NOQA
         #print(ex)
         MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2])
-        #utool.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
+        #ut.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
     kpts_ = flatten_invV_mats_to_kpts(MinvVR_mats3x3)
     return kpts_
 
@@ -613,7 +633,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
         >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
-        >>> result = (utool.hashstr(det_arr))
+        >>> result = (ut.hashstr(det_arr))
         >>> print(result)
         ry07!8e8v8!9h!50
 
@@ -645,13 +665,17 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
 def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components
 
+    CommandLine:
+        python -m vtool.keypoint --test-get_invVR_mats_shape
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
         >>> output = get_invVR_mats_shape(invVR_mats)
-        >>> print(utool.hashstr(output))
+        >>> result = ut.hashstr(output)
+        >>> print(result)
         oq9o@yqhtgloy58!
 
     References:
@@ -722,14 +746,14 @@ def get_invVR_mats_xys(invVR_mats):
         #endif
 
     Timeit:
-        >>> import utool
-        >>> setup = utool.codeblock(
+        >>> import utool as ut
+        >>> setup = ut.codeblock(
         ...     '''
                 import numpy as np
                 np.random.seed(0)
                 invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
                 ''')
-        >>> stmt_list = utool.codeblock(
+        >>> stmt_list = ut.codeblock(
         ...     '''
                 invVR_mats[:, 0:2, 2].T
                 invVR_mats.T[2, 0:2]
@@ -737,8 +761,8 @@ def get_invVR_mats_xys(invVR_mats):
                 invVR_mats.T.take(2, axis=0)[0:2]
                 '''
         ... ).split('\n')
-        >>> utool.util_dev.timeit_compare(stmt_list, setup, int(1E5))
-        #>>> utool.util_dev.rrr()
+        >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E5))
+        #>>> ut.util_dev.rrr()
 
     Example:
         >>> from vtool.keypoint import *  # NOQA
@@ -764,7 +788,7 @@ def get_invVR_mats_oris(invVR_mats):
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
-        >>> result = (utool.hashstr(output))
+        >>> result = (ut.hashstr(output))
         >>> print(result)
         mcoxq8!3ml5bj9rx
 
@@ -788,21 +812,21 @@ def get_invVR_mats_oris(invVR_mats):
         #else
 
     Timeit:
-        >>> import utool
-        >>> setup = utool.codeblock(
+        >>> import utool as ut
+        >>> setup = ut.codeblock(
         ...     '''
                 import numpy as np
                 np.random.seed(0)
                 invVR_mats = np.random.rand(10000, 2, 2).astype(np.float64)
                 ''')
-        >>> stmt_list = utool.codeblock(
+        >>> stmt_list = ut.codeblock(
         ...     '''
                 invVR_mats[:, 0, 1]
                 invVR_mats.T[1, 0]
                 '''
         ... ).split('\n')
-        >>> utool.util_dev.rrr()
-        >>> utool.util_dev.timeit_compare(stmt_list, setup, int(1E3))
+        >>> ut.util_dev.rrr()
+        >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E3))
     """
     # Extract only the needed shape components
     #_iv11s = invVR_mats[:, 0, 0]
@@ -825,7 +849,7 @@ def rectify_invV_mats_are_up(invVR_mats):
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
     >>> output = rectify_invV_mats_are_up(invVR_mats)
-    >>> print(utool.hashstr(output))
+    >>> print(ut.hashstr(output))
     2wir&6ybcga0bpvz
 
     #if CYTH
@@ -919,9 +943,9 @@ def invert_invV_mats(invV_mats):
             try:
                 V_mats_list[ix] = npl.inv(invV)
             except npl.LinAlgError:
-                print(utool.hz_str('ERROR: invV_mats[%d] = ' % ix, invV))
+                print(ut.hz_str('ERROR: invV_mats[%d] = ' % ix, invV))
                 V_mats_list[ix] = np.nan(invV.shape)
-        if utool.SUPER_STRICT:
+        if ut.SUPER_STRICT:
             raise
         V_mats = np.array(V_mats_list)
     return V_mats
@@ -1089,7 +1113,7 @@ def get_shape_strs(kpts):
 #@profile
 def get_ori_strs(kpts):
     _oris = get_oris(kpts)
-    ori_strs = ['ori=' + utool.theta_str(ori) for ori in _oris]
+    ori_strs = ['ori=' + ut.theta_str(ori) for ori in _oris]
     return ori_strs
 
 

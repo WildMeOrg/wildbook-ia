@@ -14,11 +14,11 @@ import cv2
 import numpy as np
 from numpy import array, sqrt
 # VTool
-from . import histogram as htool
-from . import keypoint as ktool
-from . import linalg as ltool
-from . import image as gtool
-from . import trig
+from vtool import histogram as htool
+from vtool import keypoint as ktool
+from vtool import linalg as ltool
+from vtool import image as gtool
+from vtool import trig
 from utool.util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[patch]', DEBUG=False)
 
@@ -123,8 +123,8 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
     It is essential that this function is cached!
     """
     # Build a list of x and y coordinates
-    half_width  = width  / 2.0
-    half_height = height / 2.0
+    half_width  = (width  / 2.0)
+    half_height = (height / 2.0)
     gauss_xs = np.linspace(-half_width,  half_width,  shape[0])
     gauss_ys = np.linspace(-half_height, half_height, shape[1])
     # Iterate over the cartesian coordinate product and get pdf values

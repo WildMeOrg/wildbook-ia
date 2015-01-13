@@ -92,6 +92,9 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     """
     if sigma is None:
         sigma = np.eye(2)
+    else:
+        if not isinstance(sigma, np.ndarray):
+            sigma = np.eye(2) * sigma
     if mu is None:
         mu = np.array([0, 0])
     x = array([x_, y_])
