@@ -30,6 +30,15 @@ def testdata_matcher():
     return (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2)
 
 
+class SimpleMatchState(object):
+    def __init__(matchstate):
+        matchstate.fm = None
+        matchstate.fs = None
+        matchstate.H = None
+        matchstate.fs_V = None
+        matchstate.fm_V = None
+
+
 def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2):
     r"""
     Args:
@@ -104,12 +113,17 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
 
 def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2, fm_SV, H, xy_thresh):
     r"""
+
     Args:
-        vecs1 (?):
-        vecs2 (?):
+        rchip1 (ndarray[uint8_t, ndim=2]):  rotated annotation image data
+        rchip2 (ndarray[uint8_t, ndim=2]):  rotated annotation image data
+        vecs1 (ndarray[uint8_t, ndim=2]):  descriptor vectors
+        vecs2 (ndarray[uint8_t, ndim=2]):  descriptor vectors
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        H (?):
+        dlen_sqrd2 (?):
+        fm_SV (?):
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
         xy_thresh (?):
 
     CommandLine:

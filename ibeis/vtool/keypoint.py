@@ -274,7 +274,7 @@ def get_invV_mats3x3(kpts):
     r"""
     NEWER FUNCTION
 
-    Returns full keypoint transformation matricies from a unit circle to an
+    Returns full keypoint transform matricies from a unit circle to an
     ellipse that has been scaled, skewed, and translated. Into
     the image keypoint position.
 
@@ -333,7 +333,7 @@ def get_invVR_mats3x3(kpts):
     r"""
     NEWER FUNCTION
 
-    Returns full keypoint transformation matricies from a unit circle to an
+    Returns full keypoint transform matricies from a unit circle to an
     ellipse that has been rotated, scaled, skewed, and translated. Into
     the image keypoint position.
 
@@ -472,20 +472,20 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         >>> # verify results
         >>> result = kpts_repr(M_list)
         >>> print(result)
-        array([[[  0.75,   0.  ,  17.39],
-                [ -0.73,   3.45,  15.48],
+        array([[[  1.49,   0.  ,  15.53],
+                [ -1.46,   6.9 ,   8.68],
                 [  0.  ,   0.  ,   1.  ]],
-               [[  0.34,   0.  ,  27.82],
-                [ -0.73,   3.45,  15.48],
+               [[  0.67,   0.  ,  26.98],
+                [ -1.46,   6.9 ,   8.68],
                 [  0.  ,   0.  ,   1.  ]],
-               [[  1.75,   0.  ,  23.89],
-                [  1.72,   1.5 ,  18.73],
+               [[  3.49,   0.  ,  19.53],
+                [  3.43,   3.01,  10.67],
                 [  0.  ,   0.  ,   1.  ]],
-               [[  1.91,   0.  ,  24.32],
-                [  2.52,   2.01,  13.13],
+               [[  3.82,   0.  ,  19.55],
+                [  5.04,   4.03,   1.8 ],
                 [  0.  ,   0.  ,   1.  ]],
-               [[  2.29,   0.  ,  23.97],
-                [  0.49,   1.68,  23.43],
+               [[  4.59,   0.  ,  18.24],
+                [  0.97,   3.35,  18.02],
                 [  0.  ,   0.  ,   1.  ]]])
 
     Ignore:
@@ -602,6 +602,40 @@ def transform_kpts(kpts, M):
                [ 300.  ,  600.  ,  122.17,  242.36,  105.29,   -0.  ],
                [ 310.  ,  600.  ,  133.56,  309.9 ,  141.04,   -0.  ],
                [ 320.  ,  630.  ,  160.53,  194.6 ,  117.35,   -0.  ]])
+
+    IGNORE:
+        >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> M = np.array([[  3.,   3.,   5.],
+        ...               [  2.,   3.,   6.],
+        ...               [  1.,   1.,   2.]])
+        >>> invVR_mats3x3 = get_invVR_mats3x3(kpts)
+        >>> MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
+        >>> MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
+        >>> MinvVR = MinvVR_mats3x3[0]
+        >>> result = kpts_repr(MinvVR)
+        >>> print(result)
+
+        # Inspect matrix decompositions
+        import numpy.linalg as npl
+        print(ut.hz_str('MinvVR = ', kpts_repr(MinvVR)))
+        U, s, Vt = npl.svd(MinvVR)
+        S = np.diagflat(s)
+        print(ut.hz_str('SVD: U * S * Vt = ', U, ' * ', S, ' * ', Vt, precision=3))
+        Q, R = npl.qr(MinvVR)
+        print(ut.hz_str('QR: Q * R = ', Q, ' * ', R, precision=3))
+        #print('cholesky = %r' % (npl.cholesky(MinvVR),))
+        #npl.cholesky(MinvVR)
+
+
+        print(ut.hz_str('MinvVR = ', kpts_repr(MinvVR)))
+        MinvVR_ = MinvVR / MinvVR[None, 2, :]
+        print(ut.hz_str('MinvVR_ = ', kpts_repr(MinvVR_)))
+
     """
     invVR_mats3x3 = get_invVR_mats3x3(kpts)
     MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
@@ -610,10 +644,52 @@ def transform_kpts(kpts, M):
         assert np.all(MinvVR_mats3x3[:, 2, 2] == 1)
     except AssertionError as ex:  # NOQA
         #print(ex)
-        MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2])
+        #MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2]) # 16.4 us
+        MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
+        #MinvVR_mats3x3 / MinvVR_mats3x3[:, None, None, 2, :]
         #ut.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
     kpts_ = flatten_invV_mats_to_kpts(MinvVR_mats3x3)
     return kpts_
+
+
+def transform_kpts_xys(kpts, H):
+    r"""
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+
+    Returns:
+        ndarray: xy_t
+
+    CommandLine:
+        python -m vtool.keypoint --test-transform_kpts_xys
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> H = np.array([[  3.,   3.,   5.],
+        ...               [  2.,   3.,   6.],
+        ...               [  1.,   1.,   2.]])
+        >>> # execute function
+        >>> xy_t = transform_kpts_xys(kpts, H)
+        >>> # verify results
+        >>> result = str(xy_t)
+        >>> print(result)
+
+    Ignore::
+        %pylab qt4
+        import plottool as pt
+        pt.imshow(chip)
+        pt.draw_kpts2(kpts)
+        pt.update()
+    """
+    xyz   = get_homog_xyzs(kpts)
+    xyz_t = matrix_multiply(H, xyz)
+    xy_t  = ltool.homogonize(xyz_t)
+    return xy_t
 
 #---------------------
 # invV_mats functions

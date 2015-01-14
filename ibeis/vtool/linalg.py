@@ -640,13 +640,17 @@ def hist_isect(hist1, hist2):
 def whiten_xy_points(xy_m):
     """
     whitens points to mean=0, stddev=1 and returns transformation
-    >>> from vtool.linalg import *  # NOQA
-    >>> from vtool.tests import dummy
-    >>> xy_m = dummy.get_dummy_xy()
-    >>> tup = whiten_xy_points(xy_m)
-    >>> xy_norm, T = tup
-    >>> print(utool.hashstr(tup))
-    wg%mpai0hxvil4p2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool.tests import dummy
+        >>> xy_m = dummy.get_dummy_xy()
+        >>> tup = whiten_xy_points(xy_m)
+        >>> xy_norm, T = tup
+        >>> result = (utool.hashstr(tup))
+        >>> print(result)
+        wg%mpai0hxvil4p2
 
     #CYTH_INLINE
     #if CYTH
@@ -672,9 +676,36 @@ def whiten_xy_points(xy_m):
 
 
 def homogonize(_xyzs):
-    """ normalizes 3d homogonous coordinates into 2d coordinates """
-    _xs, _ys, _zs = _xyzs
-    _xys = np.vstack((_xs / _zs, _ys / _zs))
+    """
+    normalizes 3d homogonous coordinates into 2d coordinates
+
+    Args:
+        _xyzs (ndarray): of shape (3, N)
+
+    Returns:
+        ndarray: _xys of shape (2, N)
+
+    CommandLine:
+        python -m vtool.linalg --test-homogonize
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
+        ...                   [ 121.,  139.,  156.,  155.,  163.],
+        ...                   [  47.,   56.,   62.,   62.,   65.]])
+        >>> # execute function
+        >>> _xys = homogonize(_xyzs)
+        >>> # verify results
+        >>> result = np.array_repr(_xys, precision=3)
+        >>> print(result)
+        array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
+               [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
+    """
+    _xys = np.divide(_xyzs[0:2], _xyzs[np.newaxis, 2])
+    #_xs, _ys, _zs = _xyzs
+    #_xys = np.vstack((_xs / _zs, _ys / _zs))
     return _xys
 
 
@@ -745,6 +776,9 @@ def axiswise_operation2(arr1, arr2, op, axis=0):
 @profile
 def rowwise_operation(arr1, arr2, op):
     """
+    DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
+    USING np.newaxis
+
     DEPRICATE, numpy has better ways of doing this.
     Is the rowwise name correct? Should it be colwise?
 
@@ -776,6 +810,7 @@ def rowwise_oridist(arr1, arr2):
 
 @profile
 def rowwise_division(arr1, arr2):
+    """ DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING """
     return rowwise_operation(arr1, arr2, np.divide)
 
 
