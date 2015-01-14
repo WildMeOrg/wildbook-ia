@@ -16,7 +16,7 @@ Concepts:
 
 CommandLine:
     python ibeis/control/template_generator.py
-    python -m ibeis.control.template_generator -key featweight --write
+    python -m ibeis.control.template_generator --key featweight --write
 
 TODO:
    * autogen testdata function
@@ -150,6 +150,7 @@ variable_aliases = {
     'vecs'                        : 'vec_arr',
     'residualvecs'                : 'rvec_arr',
     'verts'                       : 'vert_arr',
+    'posixs'                      : 'posix',
 }
 
 
@@ -245,6 +246,9 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     if func_type == '2_Native.deleter':
         if flagskw.get('with_api_cache', WITH_API_CACHE):
             func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
+    if func_type == '2_Native.setter':
+        if flagskw.get('with_api_cache', WITH_API_CACHE):
+            func_code = '@accessor_decors.cache_invalidator({TABLE}, {COLNAME}, native_rowids=True)\n'.format(**fmtdict) + func_code
     # Need to register all function with ibs
     if flagskw.get('with_decor', WITH_DECOR):
         func_code = '@register_ibs_method\n' + func_code
@@ -278,7 +282,9 @@ def get_tableinfo(tablename, ibs=None):
 
         if sqldb is not None:
             all_colnames = sqldb.get_column_names(tablename)
-            superkey_colnames = sqldb.get_table_superkey_colnames(tablename)
+            # TODO: handle more than one superkey_colnames
+            superkey_colnames_list = sqldb.get_table_superkey_colnames(tablename)
+            superkey_colnames = superkey_colnames_list[0]
             primarykey_colnames = sqldb.get_table_primarykey_colnames(tablename)
             other_colnames = sqldb.get_table_otherkey_colnames(tablename)
     if dbself is None:
@@ -296,6 +302,7 @@ def get_tableinfo(tablename, ibs=None):
     ignorecolnames = tblname2_ignorecolnames.get(tablename, [])
     other_colnames = [colname for colname in other_colnames
                       if colname not in set(ignorecolnames)]
+    #ut.embed()
     tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
     return tableinfo
 
@@ -540,6 +547,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     #leaf_other_propname_lists = ', '.join([colname + '_list' for colname in other_colnames])
     # for the preproc_tbe.compute... method
     leaf_props = '_'.join(other_colnames)
+    # TODO: handle more than one superkey_colnames
     superkey_args = ', '.join([colname + '_list' for colname in superkey_colnames])
 
     # WE WILL DEFINE SEVERAL CLOSURES THAT USE THIS DICTIONARY

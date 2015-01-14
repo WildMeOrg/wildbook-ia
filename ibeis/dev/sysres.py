@@ -381,3 +381,35 @@ def ensure_nauts():
     nauts_zipped_url = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
     nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
     print('have nauts_dir=%r' % (nauts_dir,))
+
+
+def grab_example_smart_xml_fpath():
+    """ Gets smart example xml
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis
+        >>> import utool as ut
+        >>> import os
+        >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
+        >>> os.system('gvim ' + smart_xml_fpath)
+        >>> #ut.editfile(smart_xml_fpath)
+
+    """
+    import utool
+    smart_xml_url = 'https://www.dropbox.com/s/g1mpjzp57wfnhk6/LWC_000261.xml'
+    smart_sml_fpath = utool.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
+    return smart_sml_fpath
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.sysres
+        python -m ibeis.dev.sysres --allexamples
+        python -m ibeis.dev.sysres --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

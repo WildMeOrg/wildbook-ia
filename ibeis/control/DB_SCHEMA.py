@@ -718,6 +718,17 @@ def update_1_3_1(db, ibs=None):
     #pass
 
 
+def update_1_3_2(db, ibs=None):
+    """
+    update the visual_uuid to be a superkey by adding a constraint
+    """
+    # make annot_visual_uuid not null and add it as a superkey
+    db.modify_table(const.ENCOUNTER_TABLE, (
+        (None, 'encounter_smart_xml_fpath',   'TEXT',           None),
+        (None, 'encounter_smart_waypoint_id', 'INTEGER',        None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -738,6 +749,7 @@ VALID_VERSIONS = utool.odict([
     ('1.2.1',    (None,                 update_1_2_1,       post_1_2_1          )),
     ('1.3.0',    (None,                 update_1_3_0,       None                )),
     ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
+    ('1.3.2',    (None,                 update_1_3_2,       None                )),
 ])
 
 

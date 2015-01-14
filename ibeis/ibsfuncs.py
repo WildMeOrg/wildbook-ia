@@ -1488,7 +1488,7 @@ def get_infostr(ibs):
 
 
 @__injectable
-def print_annotation_table(ibs, verbosity=1):
+def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
     """
     Dumps annotation table to stdout
 
@@ -1504,7 +1504,7 @@ def print_annotation_table(ibs, verbosity=1):
         >>> verbosity = 1
         >>> print_annotation_table(ibs, verbosity)
     """
-    exclude_columns = []
+    exclude_columns = exclude_columns[:]
     if verbosity < 5:
         exclude_columns += ['annot_uuid', 'annot_verts']
     if verbosity < 4:
@@ -1532,60 +1532,64 @@ def print_feat_table(ibs):
 
 
 @__injectable
-def print_image_table(ibs):
+def print_image_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.IMAGE_TABLE))
+    print(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
     #, exclude_columns=['image_rowid']))
 
 
 @__injectable
-def print_lblannot_table(ibs):
-    """ Dumps chip table to stdout """
+def print_lblannot_table(ibs, **kwargs):
+    """ Dumps lblannot table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
+    print(ibs.db.get_table_csv(const.LBLANNOT_TABLE, **kwargs))
 
 
 @__injectable
-def print_name_table(ibs):
-    """ Dumps chip table to stdout """
+def print_name_table(ibs, **kwargs):
+    """ Dumps name table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.NAME_TABLE))
+    print(ibs.db.get_table_csv(const.NAME_TABLE, **kwargs))
 
 
 @__injectable
-def print_species_table(ibs):
-    """ Dumps chip table to stdout """
+def print_species_table(ibs, **kwargs):
+    """ Dumps species table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.SPECIES_TABLE))
+    print(ibs.db.get_table_csv(const.SPECIES_TABLE, **kwargs))
 
 
 @__injectable
-def print_alr_table(ibs):
-    """ Dumps chip table to stdout """
+def print_alr_table(ibs, **kwargs):
+    """ Dumps alr table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
+    print(ibs.db.get_table_csv(const.AL_RELATION_TABLE, **kwargs))
 
 
 @__injectable
-def print_config_table(ibs):
-    """ Dumps chip table to stdout """
+def print_config_table(ibs, **kwargs):
+    """ Dumps config table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.CONFIG_TABLE))
+    print(ibs.db.get_table_csv(const.CONFIG_TABLE, **kwargs))
 
 
 @__injectable
-def print_encounter_table(ibs):
-    """ Dumps chip table to stdout """
+def print_encounter_table(ibs, **kwargs):
+    """ Dumps encounter table to stdout
+
+    Kwargs:
+        exclude_columns (list):
+    """
     print('\n')
-    print(ibs.db.get_table_csv(const.ENCOUNTER_TABLE))
+    print(ibs.db.get_table_csv(const.ENCOUNTER_TABLE, **kwargs))
 
 
 @__injectable
-def print_egpairs_table(ibs):
-    """ Dumps chip table to stdout """
+def print_egpairs_table(ibs, **kwargs):
+    """ Dumps egpairs table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.EG_RELATION_TABLE))
+    print(ibs.db.get_table_csv(const.EG_RELATION_TABLE, **kwargs))
 
 
 @__injectable
