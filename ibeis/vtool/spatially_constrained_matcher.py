@@ -54,6 +54,28 @@ def assign_nearest_neighbors(vecs1, vecs2, K=2):
     return fx2_to_fx1, fx2_to_dist
 
 
+def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
+    fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
+    fx2_to_isvalid = fx2_to_ratio < ratio_thresh
+    fx2_m = np.where(fx2_to_isvalid)[0]
+    fx1_m = fx2_to_fx1.T[0].take(fx2_m)
+    fs = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
+    fm = np.vstack((fx1_m, fx2_m)).T
+    return fm, fs
+
+
+def spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh):
+    import vtool as vt
+    scale_thresh = 2
+    ori_thresh = TAU / 4.0
+    svtup = vt.spatially_verify_kpts(
+        kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2)
+    (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = svtup
+    fm_SV = fm.take(homog_inliers, axis=0)
+    fs_SV = fs.take(homog_inliers, axis=0)
+    return fm_SV, fs_SV, H
+
+
 def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2):
     r"""
     Args:
@@ -84,7 +106,7 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     """
-    import vtool as vt
+    #import vtool as vt
     xy_thresh = .01
     ratio_thresh = .625
     # GET NEAREST NEIGHBORS
@@ -92,30 +114,12 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
     fx2_m = np.arange(len(fx2_to_fx1))
     fx1_m = fx2_to_fx1.T[0]
     fm_ORIG = np.vstack((fx1_m, fx2_m)).T
-    fs_ORIG = fx2_to_dist.T[0]
+    #fs_ORIG = fx2_to_dist.T[0]
+    fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
     #np.ones(len(fm_ORIG))
-
     # APPLY RATIO TEST
-    def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
-        fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
-        fx2_to_isvalid = fx2_to_ratio < ratio_thresh
-        fx2_m = np.where(fx2_to_isvalid)[0]
-        fx1_m = fx2_to_fx1.T[0].take(fx2_m)
-        fs = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
-        fm = np.vstack((fx1_m, fx2_m)).T
-        return fm, fs
     fm_RAT, fs_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-
     # SPATIAL VERIFICATION FILTER
-    def spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh):
-        scale_thresh = 2
-        ori_thresh = TAU / 4.0
-        svtup = vt.spatially_verify_kpts(
-            kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2)
-        (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = svtup
-        fm_SV = fm.take(homog_inliers, axis=0)
-        fs_SV = fs.take(homog_inliers, axis=0)
-        return fm_SV, fs_SV, H
     fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm_RAT, fs_RAT, dlen_sqrd2, xy_thresh)
     return fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H
 
@@ -124,9 +128,11 @@ def spatially_constrained_matcher(testtup):
     r"""
     CommandLine:
         python -m vtool.spatially_constrained_matcher --test-spatially_constrained_matcher
+        python -m vtool.spatially_constrained_matcher --test-spatially_constrained_matcher --show
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> import plottool as pt
         >>> from vtool.spatially_constrained_matcher import *  # NOQA
         >>> import vtool as vt
         >>> testtup = testdata_matcher()
@@ -135,6 +141,7 @@ def spatially_constrained_matcher(testtup):
         >>> result = spatially_constrained_matcher(testtup)
         >>> # verify results
         >>> print(result)
+        >>> pt.show_if_requested()
     """
     import vtool as vt
     (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
@@ -236,6 +243,9 @@ def spatially_constrained_matcher(testtup):
     fm_SCR = np.vstack((fx1_m, fx2_m)).T  # NOQA
 
     # show results
+
+    # Another round of verification
+    spatial_verification(kpts1, kpts2, fm_SCR, fs_SCR, dlen_sqrd2, xy_thresh)
 
     locals_ = locals()
 
