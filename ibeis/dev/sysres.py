@@ -409,6 +409,25 @@ def resolve_species(species_code):
     return species_text
 
 
+def grab_example_smart_xml_fpath():
+    """ Gets smart example xml
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis
+        >>> import utool as ut
+        >>> import os
+        >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
+        >>> os.system('gvim ' + smart_xml_fpath)
+        >>> #ut.editfile(smart_xml_fpath)
+
+    """
+    import utool
+    smart_xml_url = 'https://www.dropbox.com/s/g1mpjzp57wfnhk6/LWC_000261.xml'
+    smart_sml_fpath = utool.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
+    return smart_sml_fpath
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -291,6 +291,7 @@ class IBEISController(object):
             >>> #ibs = ibeis.opendb('PZ_MTEST')
             >>> #ibs = ibeis.opendb('PZ_Master0')
             >>> ibs = ibeis.opendb('testdb1')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
 
         Ignore:
             aid_list = ibs.get_valid_aids()
@@ -302,6 +303,8 @@ class IBEISController(object):
             %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
             # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
 
+            ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
+
         """
         from ibeis.control import _sql_helpers
         from ibeis.control import SQLDatabaseControl as sqldbc
@@ -310,11 +313,12 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.1'
+        ibs.db_version_expected = '1.3.2'
         # TODO: add this functionality to SQLController
         TESTING_NEW_SQL_VERSION = False
         if TESTING_NEW_SQL_VERSION:
-            testing_newschmea = ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1', 'testdb0']
+            devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
+            testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
             #testing_newschmea = False
             #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
             if testing_newschmea:
@@ -326,7 +330,7 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.1'
+                ibs.db_version_expected = '1.3.2'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -451,6 +455,7 @@ class IBEISController(object):
         ut.ensuredir(ibs.bigcachedir, verbose=_verbose)
         ut.ensuredir(ibs.thumb_dpath, verbose=_verbose)
         ut.ensuredir(ibs.distinctdir, verbose=_verbose)
+        ibs.get_smart_patrol_dir()
 
     #
     #
@@ -583,7 +588,7 @@ class IBEISController(object):
     def get_global_distinctiveness_modeldir(ibs, ensure=True):
         """
         Returns:
-            (str): global distinctivness directory
+            global_distinctdir (str): ibs internal directory
         """
         global_distinctdir = sysres.get_global_distinctiveness_modeldir(ensure=ensure)
         return global_distinctdir
@@ -591,7 +596,7 @@ class IBEISController(object):
     def get_local_distinctiveness_modeldir(ibs):
         """
         Returns:
-            list_ (list): ibs internal directory """
+            distinctdir (str): ibs internal directory """
         return ibs.distinctdir
 
     def get_detect_modeldir(ibs):
@@ -600,26 +605,54 @@ class IBEISController(object):
     def get_detectimg_cachedir(ibs):
         """
         Returns:
-            list_ (list): database directory of image resized for detections """
+            detectimgdir (str): database directory of image resized for detections """
         return join(ibs.cachedir, const.PATH_NAMES.detectimg)
 
     def get_flann_cachedir(ibs):
         """
         Returns:
-            list_ (list): database directory where the FLANN KD-Tree is stored """
+            flanndir (str): database directory where the FLANN KD-Tree is stored """
         return ibs.flanndir
 
     def get_qres_cachedir(ibs):
         """
         Returns:
-            list_ (list): database directory where query results are stored """
+            qresdir (str): database directory where query results are stored """
         return ibs.qresdir
 
     def get_big_cachedir(ibs):
         """
         Returns:
-            list_ (list): database directory where aggregate results are stored """
+            bigcachedir (str): database directory where aggregate results are stored """
         return ibs.bigcachedir
+
+    def get_smart_patrol_dir(ibs, ensure=True):
+        """
+        Args:
+            ensure (bool):
+
+        Returns:
+            str smart_patrol_dpath
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-get_smart_patrol_dir
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ensure = True
+            >>> # execute function
+            >>> smart_patrol_dpath = ibs.get_smart_patrol_dir(ensure)
+            >>> # verify results
+            >>> ut.assertpath(smart_patrol_dpath, verbose=True)
+        """
+        smart_patrol_dpath = join(ibs.dbdir, const.PATH_NAMES.smartpatrol)
+        if ensure:
+            ut.ensuredir(smart_patrol_dpath)
+        return smart_patrol_dpath
 
     #
     #

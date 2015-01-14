@@ -29,6 +29,7 @@ class PATH_NAMES(object):
     trashdir   = 'trashed_images'
     distinctdir = 'distinctiveness_model'
     scorenormdir = 'scorenorm'
+    smartpatrol = 'smart_patrol'
 
 
 class REL_PATHS(object):
