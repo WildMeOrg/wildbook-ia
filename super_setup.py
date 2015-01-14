@@ -46,6 +46,10 @@ python _ibeis_setup.py -y --gg "git branch"
 python _ibeis_setup.py -y --gg "git checkout next"
 python _ibeis_setup.py -y --gg "git merge next"
 
+# -- SAFER MERGE topic -> next
+python super_setup.py --newlocalbranch merge_next_joncrall_dev_branch
+python super_setup.py --merge joncrall_dev_branch
+
 # Push
 python _ibeis_setup.py -y --gg "git push"
 
@@ -343,11 +347,11 @@ if newbranch_name is not None:
     #ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
-newbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
-if newbranch_name is not None:
+newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
+if newlocalbranch_name is not None:
     #ut.gg_command('git stash"'.format(**locals()))
-    ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
-    #ut.gg_command('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+    ut.gg_command('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
+    #ut.gg_command('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
     #ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
