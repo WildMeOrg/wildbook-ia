@@ -457,11 +457,12 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids)
         >>> # execute function
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-        >>> # verify results
-        >>> result = str(vsone_query_pairs)
-        >>> print(result)
-        [(1, [3, 2, 6, 5, 4])]
+        >>> qaid, top_aid_list = vsone_query_pairs[0]
+        >>> top_nid_list = ibs.get_annot_name_rowids(top_aid_list)
+        >>> assert top_nid_list.index(1) == 0, 'name 1 should be rank 1'
+        >>> assert len(top_nid_list) == 5, 'should have 3 names and up to 2 image per name'
 
+    [(1, [3, 2, 6, 5, 4])]
     [(1, [2, 3, 6, 5, 4])]
 
     """

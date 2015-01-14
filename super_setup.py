@@ -51,6 +51,7 @@ python _ibeis_setup.py -y --gg "git merge next"
 # -- SAFER MERGE topic -> next
 python super_setup.py --newlocalbranch merge_next_joncrall_dev_branch
 python super_setup.py --merge joncrall_dev_branch
+./run_tests.py
 
 # Push
 python _ibeis_setup.py -y --gg "git push"
