@@ -412,6 +412,9 @@ def resolve_species(species_code):
 def grab_example_smart_xml_fpath():
     """ Gets smart example xml
 
+    CommandLine:
+        python -m ibeis.dev.sysres --test-grab_example_smart_xml_fpath
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> import ibeis

@@ -313,7 +313,7 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.2'
+        ibs.db_version_expected = '1.3.3'
         # TODO: add this functionality to SQLController
         TESTING_NEW_SQL_VERSION = False
         if TESTING_NEW_SQL_VERSION:
@@ -330,7 +330,7 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.2'
+                ibs.db_version_expected = '1.3.3'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -779,7 +779,114 @@ class IBEISController(object):
     # --- ENCOUNTER CLUSTERING ---
     #-----------------------------
 
-    @ut.indent_func('[ibs.compute_encounters]')
+    #@ut.indent_func('[ibs.compute_encounters]')
+    def compute_encounters_smart(ibs, smart_xml_fname=None):
+        """
+        CommandLine:
+            # open the temp smart file in gvim
+            python -m ibeis.dev.sysres --test-grab_example_smart_xml_fpath
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> smart_xml_fname='dummy_smart.xml'
+            >>> # DO FUNC
+            >>> ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
+
+
+        """
+        smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
+        ut.checkpath(smart_xml_fpath, verbose=True)
+        print('Parsing: %r' % (smart_xml_fpath,))
+
+        # DUMMY DATA
+        # --- STEP 1: DEFINE WAYPOINT ENCOUNTERS ---
+        # TODO: parse XML File
+        # Parse in header data
+        def get_dummy_smart_header_data():
+            smart_start_datestr = '2015-01-14'
+            smart_end_datestr = '2015-01-14'
+            smart_end_time = '16:06:46'
+            headertup = (smart_start_datestr, smart_end_datestr, smart_end_time)
+            return headertup
+
+        def get_dummy_waypoint_data():
+            # Parse in data for each waypoint
+            waypoint_id_list = [2, 3]
+            waypoint_start_time_list = ['14:43:48', '15:14:53']
+            # longitude
+            waypoint_x_list   = [37.4640177654802, 37.4527345773874]
+            # latitude
+            waypoint_y_list   = [0.196578812956162, 0.204252529437608]
+
+            waypointtup = (waypoint_id_list, waypoint_start_time_list, waypoint_x_list, waypoint_y_list)
+            return waypointtup
+
+        def parse_smart_header():
+            raise NotImplementedError()
+
+        def parse_smart_waypoints():
+            raise NotImplementedError()
+
+        # parse
+        headertup = get_dummy_smart_header_data()
+        waypointtup = get_dummy_waypoint_data()
+        #headertup = parse_smart_header()
+        #waypointtup = parse_smart_waypoints()
+        # unpack
+        (smart_start_datestr, smart_end_datestr, smart_end_time) = headertup
+        (waypoint_id_list, waypoint_start_time_list, waypoint_x_list, waypoint_y_list) = waypointtup
+        # infer
+        # FIXME: what if the date changes mid waypoint?
+        assert smart_start_datestr == smart_end_datestr, 'need fancier logic to handle late night game drives'
+        # Unfortunately we need to infer end date
+        waypoint_end_time_list = waypoint_start_time_list[1:] + [smart_end_time]
+
+        def smart_time_to_posix(datestr, smart_timestrs):
+            """ helper """
+            timestamp_format = '%Y-%m-%d %H:%M:%S'
+            datetime_str_list = [datestr + ' ' + timestr for timestr in smart_timestrs]
+            posixtime_list = [ut.exiftime_to_unixtime(datetime_str, timestamp_format)
+                              for datetime_str in datetime_str_list ]
+            return posixtime_list
+
+        # Convert dates to unix/posix time
+        start_time_posix_list = smart_time_to_posix(smart_start_datestr, waypoint_start_time_list)
+        end_time_posix_list = smart_time_to_posix(smart_start_datestr, waypoint_end_time_list)
+
+        # Create UNIQUE encounter text for new encounters
+        start_datetime_list = list(map(ut.unixtime_to_datetime, start_time_posix_list))
+        new_enctext_list = ['Waypoint %d - %s' % (wayointid, timestr)
+                            for (wayointid, timestr) in
+                            zip(waypoint_id_list, start_datetime_list)]
+
+        # create a new encounter for every waypoint
+        new_eid_list = ibs.add_encounters(new_enctext_list)
+        # set encounte properties
+        ibs.set_encounter_gps_lats(new_eid_list, waypoint_y_list)
+        ibs.set_encounter_gps_lons(new_eid_list, waypoint_x_list)
+        ibs.set_encounter_start_time_posix(new_eid_list, start_time_posix_list)
+        ibs.set_encounter_end_time_posix(new_eid_list, end_time_posix_list)
+        ibs.set_encounter_smart_waypoint_ids(new_eid_list, waypoint_id_list)
+        ibs.set_encounter_smart_xml_fnames(new_eid_list, [smart_xml_fname] * len(new_eid_list))
+
+        # --- STEP 2: ASSOCIATE IMAGES WITH ENCOUNTERS ---
+        # do magic to associate images with encounters
+        #gid_list = ibs.get_ungrouped_gids()
+        gid_list = ibs.get_valid_gids()
+        eid_list = []
+        # For each gid assign it to an eid
+        import random
+        for gid in gid_list:
+            # technically there is a chance this will work...
+            eid = random.choice(new_eid_list)
+            eid_list.append(eid)
+        ibs.set_image_eids(gid_list, eid_list)
+
+    #@ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
         """
         Clusters ungrouped images into encounters
@@ -828,7 +935,8 @@ class IBEISController(object):
         #print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
-        # HACK TO UPDATE TIMES
+        # HACK TO UPDATE ENCOUNTER POSIX TIMES
+        # CAREFUL THIS BLOWS AWAY SMART DATA
         ibs.update_encounter_info(ibs.get_valid_eids())
         print('[ibs] Finished computing and adding encounters.')
 

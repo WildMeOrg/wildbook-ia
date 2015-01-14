@@ -39,7 +39,7 @@ ENCOUNTER_SHIPPED_FLAG     = 'encounter_shipped_flag'
 ENCOUNTER_START_TIME_POSIX = 'encounter_start_time_posix'
 
 ENCOUNTER_SMART_WAYPOINT_ID = 'encounter_smart_waypoint_id'
-ENCOUNTER_SMART_XML_FPATH   = 'encounter_smart_xml_fpath'
+ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 
 
 @register_ibs_method
@@ -1556,21 +1556,21 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FPATH)
-def get_encounter_smart_xml_fpaths(ibs, encounter_rowid_list):
-    """ encounter_smart_xml_fpath_list <- encounter.encounter_smart_xml_fpath[encounter_rowid_list]
+#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME)
+def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
+    """ encounter_smart_xml_fname_list <- encounter.encounter_smart_xml_fname[encounter_rowid_list]
 
-    gets data from the "native" column "encounter_smart_xml_fpath" in the "encounter" table
+    gets data from the "native" column "encounter_smart_xml_fname" in the "encounter" table
 
     Args:
         encounter_rowid_list (list):
 
     Returns:
-        list: encounter_smart_xml_fpath_list
+        list: encounter_smart_xml_fname_list
 
     TemplateInfo:
         Tgetter_table_column
-        col = encounter_smart_xml_fpath
+        col = encounter_smart_xml_fname
         tbl = encounter
 
     Example:
@@ -1578,14 +1578,14 @@ def get_encounter_smart_xml_fpaths(ibs, encounter_rowid_list):
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = get_autogen_testdata()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
-        >>> encounter_smart_xml_fpath_list = ibs.get_encounter_smart_xml_fpaths(encounter_rowid_list)
-        >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fpath_list)
+        >>> encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)
     """
     id_iter = encounter_rowid_list
-    colnames = (ENCOUNTER_SMART_XML_FPATH,)
-    encounter_smart_xml_fpath_list = ibs.db.get(
+    colnames = (ENCOUNTER_SMART_XML_FNAME,)
+    encounter_smart_xml_fname_list = ibs.db.get(
         const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
-    return encounter_smart_xml_fpath_list
+    return encounter_smart_xml_fname_list
 
 
 @register_ibs_method
@@ -1609,23 +1609,23 @@ def set_encounter_smart_waypoint_ids(ibs, encounter_rowid_list, encounter_smart_
 
 
 @register_ibs_method
-#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FPATH, native_rowids=True)
-def set_encounter_smart_xml_fpaths(ibs, encounter_rowid_list, encounter_smart_xml_fpath_list):
-    """ encounter_smart_xml_fpath_list -> encounter.encounter_smart_xml_fpath[encounter_rowid_list]
+#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME, native_rowids=True)
+def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xml_fname_list):
+    """ encounter_smart_xml_fname_list -> encounter.encounter_smart_xml_fname[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
-        encounter_smart_xml_fpath_list
+        encounter_smart_xml_fname_list
 
     TemplateInfo:
         Tsetter_native_column
         tbl = encounter
-        col = encounter_smart_xml_fpath
+        col = encounter_smart_xml_fname
     """
     id_iter = encounter_rowid_list
-    colnames = (ENCOUNTER_SMART_XML_FPATH,)
+    colnames = (ENCOUNTER_SMART_XML_FNAME,)
     ibs.db.set(const.ENCOUNTER_TABLE, colnames,
-               encounter_smart_xml_fpath_list, id_iter)
+               encounter_smart_xml_fname_list, id_iter)
 
 
 def get_autogen_testdata():
