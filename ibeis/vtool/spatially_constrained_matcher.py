@@ -39,6 +39,21 @@ class SimpleMatchState(object):
         matchstate.fm_V = None
 
 
+def assign_nearest_neighbors(vecs1, vecs2, K=2):
+    import vtool as vt
+    checks = 800
+    flann_params = {
+        'algorithm': 'kdtree',
+        'trees': 8
+    }
+    #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
+    pseudo_max_dist_sqrd = 2 * (512 ** 2)
+    flann = vt.flann_cache(vecs1, flann_params=flann_params)
+    fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
+    return fx2_to_fx1, fx2_to_dist
+
+
 def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2):
     r"""
     Args:
@@ -73,19 +88,12 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
     xy_thresh = .01
     ratio_thresh = .625
     # GET NEAREST NEIGHBORS
-    def assign_nearest_neighbors(vecs1, vecs2):
-        checks = 800
-        flann_params = {
-            'algorithm': 'kdtree',
-            'trees': 8
-        }
-        #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
-        pseudo_max_dist_sqrd = 2 * (512 ** 2)
-        flann = vt.flann_cache(vecs1, flann_params=flann_params)
-        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=2, checks=checks)
-        fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
-        return fx2_to_fx1, fx2_to_dist
-    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2)
+    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
+    fx2_m = np.arange(len(fx2_to_fx1))
+    fx1_m = fx2_to_fx1.T[0]
+    fm_ORIG = np.vstack((fx1_m, fx2_m)).T
+    fs_ORIG = fx2_to_dist.T[0]
+    #np.ones(len(fm_ORIG))
 
     # APPLY RATIO TEST
     def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
@@ -96,7 +104,7 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
         fs = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
         fm = np.vstack((fx1_m, fx2_m)).T
         return fm, fs
-    fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+    fm_RAT, fs_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
 
     # SPATIAL VERIFICATION FILTER
     def spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh):
@@ -108,24 +116,12 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
         fm_SV = fm.take(homog_inliers, axis=0)
         fs_SV = fs.take(homog_inliers, axis=0)
         return fm_SV, fs_SV, H
-    fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh)
+    fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm_RAT, fs_RAT, dlen_sqrd2, xy_thresh)
+    return fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H
 
 
-def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2, fm_SV, H, xy_thresh):
+def spatially_constrained_matcher(testtup):
     r"""
-
-    Args:
-        rchip1 (ndarray[uint8_t, ndim=2]):  rotated annotation image data
-        rchip2 (ndarray[uint8_t, ndim=2]):  rotated annotation image data
-        vecs1 (ndarray[uint8_t, ndim=2]):  descriptor vectors
-        vecs2 (ndarray[uint8_t, ndim=2]):  descriptor vectors
-        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
-        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        dlen_sqrd2 (?):
-        fm_SV (?):
-        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
-        xy_thresh (?):
-
     CommandLine:
         python -m vtool.spatially_constrained_matcher --test-spatially_constrained_matcher
 
@@ -133,49 +129,34 @@ def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dl
         >>> # DISABLE_DOCTEST
         >>> from vtool.spatially_constrained_matcher import *  # NOQA
         >>> import vtool as vt
-        >>> (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testdata_matcher()
-        >>> # build test data
+        >>> testtup = testdata_matcher()
+        >>> (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
         >>> # execute function
-        >>> result = spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2, fm_SV, H, xy_thresh)
+        >>> result = spatially_constrained_matcher(testtup)
         >>> # verify results
         >>> print(result)
     """
+    import vtool as vt
+    (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
+    fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H = simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2)
 
     xy_thresh = .2
 
-    def assign_nearest_neighbors(vecs1, vecs2):
-        K = 10
-        checks = 800
-        flann_params = {
-            'algorithm': 'kdtree',
-            'trees': 8
-        }
-        #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
-        pseudo_max_dist_sqrd = 2 * (512 ** 2)
-        flann = vt.flann_cache(vecs1, flann_params=flann_params)
-        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
-        fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
-        return fx2_to_fx1, fx2_to_dist
-
-    import vtool as vt
     # ASSIGN CANDIDATES
     # Get candidate nearest neighbors
-    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2)
+    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=10)
 
     # COMPUTE CONSTRAINTS
-    # Transform img1 keypoints into img2 space
-    def get_img2space_xys(kpts1, H):
-        xyz1   = vt.get_homog_xyzs(kpts1)
-        xyz1_t = vt.matrix_multiply(H, xyz1)
-        xy1_t  = vt.homogonize(xyz1_t)
-        return xy1_t
-    xy2    = vt.get_xys(kpts2)
-    xy1_t = get_img2space_xys(kpts1, H)
-    fx2_to_fx1
-    # get spatial keypoint distance to all neighbor candidates
-    bcast_xy2   = xy2[:, None, :].T
-    bcast_xy1_t = xy1_t.T[fx2_to_fx1]
-    fx2_to_xyerr_sqrd = vt.L2_sqrd(bcast_xy2, bcast_xy1_t)
+    def get_candidate_spatial_error():
+        # Transform img1 keypoints into img2 space
+        xy2    = vt.get_xys(kpts2)
+        xy1_t = vt.transform_kpts_xys(kpts1, H)
+        # get spatial keypoint distance to all neighbor candidates
+        bcast_xy2   = xy2[:, None, :].T
+        bcast_xy1_t = xy1_t.T[fx2_to_fx1]
+        fx2_to_xyerr_sqrd = vt.L2_sqrd(bcast_xy2, bcast_xy1_t)
+        return fx2_to_xyerr_sqrd
+    fx2_to_xyerr_sqrd = get_candidate_spatial_error()
     fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
     fx2_to_xyerr_norm = fx2_to_xyerr / np.sqrt(dlen_sqrd2)
     fx2_to_validcand = fx2_to_xyerr_norm < xy_thresh
@@ -251,8 +232,39 @@ def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dl
     validratio_list = ratio_list < ratio_thresh
     fx2_m = fx2_list[validratio_list]
     fx1_m = fx1_list[validratio_list]
-    fs_SCR = np.subtract(1.0, ratio_list[validratio_list])
-    fm_SCR = np.vstack((fx1_m, fx2_m)).T
+    fs_SCR = np.subtract(1.0, ratio_list[validratio_list])  # NOQA
+    fm_SCR = np.vstack((fx1_m, fx2_m)).T  # NOQA
+
+    # show results
+
+    locals_ = locals()
+
+    import plottool as pt
+    fnum = 1
+    pt.figure(fnum=fnum, doclf=True, docla=True)
+    next_pnum = pt.make_pnum_nextgen(nRows=2, nCols=2)
+
+    show_matches(fm_ORIG, fs_ORIG, title='assigned matches', pnum=next_pnum(), **locals_)
+
+    show_matches(fm_RAT, fs_RAT, title='ratio filtered matches', pnum=next_pnum(), **locals_)
+
+    show_matches(fm_SV, fs_SV, title='verified matches', pnum=next_pnum(), **locals_)
+
+    show_matches(fm_SCR, fs_SCR, title='constrained matches', pnum=next_pnum(), **locals_)
+
+
+def show_matches(fm, fs, fnum=1, pnum=None, title='', **locals_):
+    #locals_ = locals()
+    import plottool as pt
+    # hack keys out of namespace
+    keys = 'rchip1, rchip2, kpts1, kpts2'.split(', ')
+    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(locals_, keys)
+    pt.figure(fnum=fnum, pnum=pnum)
+    #doclf=True, docla=True)
+    pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=fnum)
+    pt.set_title(title)
+    #pt.set_figtitle(title)
+    pt.update()
 
 
 #def interactive_code():
