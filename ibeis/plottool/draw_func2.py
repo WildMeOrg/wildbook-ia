@@ -1750,3 +1750,47 @@ def make_bbox_positioners(y=.02, w=.08, h=.02, xpad=.05, startx=0, stopx=1):
 
 def width_from(num, pad=.05, start=0, stop=1):
     return ((stop - start) - ((num + 1) * pad)) / num
+
+
+#+-----
+# From vtool.patch
+def param_plot_iterator(param_list, fnum=None, projection=None):
+    from plottool import plot_helpers
+    nRows, nCols = plot_helpers.get_square_row_cols(len(param_list), fix=True)
+    #next_pnum = make_pnum_nextgen(nRows=nRows, nCols=nCols)
+    pnum_gen = pnum_generator(nRows, nCols)
+    pnum = (nRows, nCols, 1)
+    fig = figure(fnum=fnum, pnum=pnum)
+    for param, pnum in zip(param_list, pnum_gen):
+        # get next figure ready
+        #print('fnum=%r, pnum=%r' % (fnum, pnum))
+        if projection is not None:
+            subplot_kw = {'projection': projection}
+        else:
+            subplot_kw = {}
+        fig.add_subplot(*pnum, **subplot_kw)
+        #figure(fnum=fnum, pnum=pnum)
+        yield param
+
+
+def plot_surface3d(xgrid, ygrid, zdata, *args, **kwargs):
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    ax = plt.gca(projection='3d')
+    title = kwargs.pop('title', None)
+    ax.plot_surface(xgrid, ygrid, zdata, *args, **kwargs)
+    #ax.plot_trisurf(xgrid, ygrid, zdata, *args, **kwargs)
+    if title is not None:
+        ax.set_title(title)
+#L_____
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.draw_func2
+        python -m plottool.draw_func2 --allexamples
+        python -m plottool.draw_func2 --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
