@@ -1,82 +1,319 @@
 """
 development module storing my "development state"
+
+TODO:
+    * figure out what packages I use have lisencing issues.
+        - Reimplement them or work around them.
 """
 from __future__ import absolute_import, division, print_function
+from ibeis.model.hots import hstypes
 from uuid import UUID
 import utool as ut
+import copy
+import six  # NOQA
+import numpy as np  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
 
 
-def myquery(ibs, vsone_pair_examples):
-    """
+def myquery():
+    r"""
+
+    BUG::
+        THERE IS A BUG SOMEWHERE: HOW IS THIS POSSIBLE?
+        if everything is weightd ) how di the true positive even get a score
+        while the true negative did not
+        qres_copy.filtkey_list = ['ratio', 'fg', 'homogerr', 'distinctiveness']
+        CORRECT STATS
+        {
+            'max'  : [0.832, 0.968, 0.604, 0.000],
+            'min'  : [0.376, 0.524, 0.000, 0.000],
+            'mean' : [0.561, 0.924, 0.217, 0.000],
+            'std'  : [0.114, 0.072, 0.205, 0.000],
+            'nMin' : [1, 1, 1, 51],
+            'nMax' : [1, 1, 1, 1],
+            'shape': (52, 4),
+        }
+        INCORRECT STATS
+        {
+            'max'  : [0.759, 0.963, 0.264, 0.000],
+            'min'  : [0.379, 0.823, 0.000, 0.000],
+            'mean' : [0.506, 0.915, 0.056, 0.000],
+            'std'  : [0.125, 0.039, 0.078, 0.000],
+            'nMin' : [1, 1, 1, 24],
+            'nMax' : [1, 1, 1, 1],
+            'shape': (26, 4),
+        #   score_diff,  tp_score,  tn_score,       p,   K,  clip_fraction,  fg_power,  homogerr_power
+             0.494,     0.494,     0.000,  73.000,   2,          0.500,     0.100,          10.000
 
     see how seperability changes as we very things
 
+    CommandLine:
+        python -m ibeis.model.hots.devcases --test-myquery
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 0
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 1
+        python -m ibeis.model.hots.devcases --test-myquery --show --index 2
+
+    References:
+        http://en.wikipedia.org/wiki/Pareto_distribution <- look into
+
     Example:
         >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.devcases import *  # NOQA
-
+        >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
+        >>> pt.show_if_requested()
     """
-    from ibeis.all_imports import *  # NOQA
-    import ibeis
-    import utool as ut
     from ibeis.model.hots import special_query  # NOQA
     from ibeis import viz  # NOQA
-    from uuid import UUID
-    ibs = ibeis.opendb('GZ_ALL')
-    vsone_pair_examples = [
-        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
-        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
-        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
+    import plottool as pt
+    index = ut.get_argval('--index', int, 0)
+    ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
+    qaids = [aid1]
+    daids = [aid2] + [tn_aid]
+    qvuuid = ibs.get_annot_visual_uuids(aid1)
 
-    ]
-    gf_mapping = {
-        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
-    }
+    cfgdict_vsone = dict(
+        sv_on=True,
+        #sv_on=False,
+        #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
+        codename='vsone_unnorm_ratio_extern_distinctiveness',
+        sver_weighting=True,
+    )
 
-    #ibs.get_annot_visual_uuids([36, 3])
-
-    vuuid_pair = vsone_pair_examples[2]
-    vuuid1, vuuid2 = vuuid_pair
-    aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
-    #daids = ibs.get_valid_aids()
-
-    use_cache = False
+    use_cache   = False
     save_qcache = False
 
-    bad_vuuid = gf_mapping.get(vuuid1)
-    bad_aids = ibs.get_annot_aids_from_visual_uuid(bad_vuuid)
-    bad_aid = bad_aids[0]
-    qaids = [aid1]
-    daids = [aid2] + bad_aids
+    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
+                                       return_request=True, use_cache=use_cache,
+                                       save_qcache=save_qcache, verbose=True)
 
+    qreq_.load_distinctiveness_normalizer()
+    qres = qres_list[0]
+    top_aids = qres.get_top_aids()  # NOQA
+    qres_orig = qres  # NOQA
+
+    def test_config(qreq_, qres_orig, cfgdict):
+        """ function to grid search over """
+        qres_copy = copy.deepcopy(qres_orig)
+        qreq_vsone_ = qreq_
+        qres_vsone = qres_copy
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
+        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
+        tp_score  = qres_copy.aid2_score[aid2]
+        tn_score  = qres_copy.aid2_score[tn_aid]
+        return qres_copy, tp_score, tn_score
+
+    #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
+    FiltKeys = hstypes.FiltKeys
+    grid_basis = [
+        #ut.DimensionBasis('p', np.linspace(1, 100.0, 50)),
+        ut.DimensionBasis(
+            'p',
+            # higher seems better but effect flattens out
+            # current_best = 73
+            # This seems to imply that anything with a distinctivness less than
+            # .9 is not relevant
+            #[73.0]
+            [.5, 1.0, 2]
+            #[1, 20, 73]
+        ),
+        ut.DimensionBasis(
+            # the score seems to significantly drop off when k>2
+            # but then has a spike at k=8
+            # best is k=2
+            'K',
+            [2]
+            #[2, 3, 4, 5, 7, 8, 9, 16],
+        ),
+        #ut.DimensionBasis('clip_fraction', ),
+        #ut.DimensionBasis('clip_fraction', np.linspace(.01, .11, 100)),
+        ut.DimensionBasis(
+            'clip_fraction',
+            # THERE IS A VERY CLEAR SPIKE AT .09
+            [.09],
+            #[.09, 1.0],
+            #np.linspace(.05, .15, 10),
+        ),
+        #ut.DimensionBasis(FiltKeys.FG + '_power', ),
+        ut.DimensionBasis(
+            FiltKeys.FG + '_power',
+            # the forground power seems to be very influential in scoring
+            # it seems higher is better but effect flattens out
+            # the reason it seems to be better is because it zeros out weights
+            [.1, 1.0, 2.0]
+            #np.linspace(.01, 30.0, 10)
+        ),
+        ut.DimensionBasis(
+            FiltKeys.HOMOGERR + '_power',
+            # current_best = 2.5
+            #[2.5]
+            [.1, 1.0, 2.0]
+            #np.linspace(.1, 10, 5)
+            #np.linspace(.1, 10, 30)
+        ),
+    ]
+    gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
+    print('Begin Grid Search')
+    for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
+        qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, cfgdict)
+        gridsearch.append_result(tp_score, tn_score)
+    print('Finish Grid Search')
+
+    # Get best result
+    best_cfgdict = gridsearch.get_rank_cfgdict()
+    qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, best_cfgdict)
+
+    # Examine closely what you can do with scores
+    if False:
+        qres_copy = copy.deepcopy(qres_orig)
+        qreq_vsone_ = qreq_
+        filtkey = hstypes.FiltKeys.DISTINCTIVENESS
+        newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
+        ut.embed()
+        def make_new_chipmatch(qres_copy):
+            assert ut.listfind(qres_copy.filtkey_list, filtkey) is None
+            weight_filters = hstypes.WEIGHT_FILTERS
+            weight_filtxs, nonweight_filtxs = special_query.index_partition(qres_copy.filtkey_list, weight_filters)
+
+            aid2_fsv = {}
+            aid2_fs = {}
+            aid2_score = {}
+
+            for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
+                pass
+                break
+                #scorex_vsone  = ut.listfind(qres_copy.filtkey_list, filtkey)
+                #if scorex_vsone is None:
+                # TODO: add spatial verification as a filter score
+                # augment the vsone scores
+                # TODO: paramaterize
+                weighted_ave_score = True
+                if weighted_ave_score:
+                    # weighted average scoring
+                    new_fs_vsone = special_query.weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
+                else:
+                    # product scoring
+                    new_fs_vsone = special_query.product_scoring(new_fsv_vsone)
+                new_score_vsone = new_fs_vsone.sum()
+                aid2_fsv[daid]   = new_fsv_vsone
+                aid2_fs[daid]    = new_fs_vsone
+                aid2_score[daid] = new_score_vsone
+            return aid2_fsv, aid2_fs, aid2_score
+
+        # Look at plot of query products
+        for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
+            new_fs_vsone = special_query.product_scoring(new_fsv_vsone)
+            scores_list = np.array(new_fs_vsone)[:, None].T
+            pt.plot_sorted_scores(scores_list, logscale=False, figtitle=str(daid))
+        pt.iup()
+        special_query.apply_new_qres_filter_scores(qreq_vsone_, qres_copy, newfsv_list, newscore_aids, filtkey)
+
+    # PRINT INFO
+    import functools
+    #ut.rrrr()
+    get_stats_str = functools.partial(ut.get_stats_str, axis=0, newlines=True, precision=3)
+    tp_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[aid2]), ':')
+    tn_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[tn_aid]), ':')
+    info_str_list = []
+    info_str_list.append('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
+    info_str_list.append('CORRECT STATS')
+    info_str_list.append(tp_stats_str)
+    info_str_list.append('INCORRECT STATS')
+    info_str_list.append(tn_stats_str)
+    info_str = '\n'.join(info_str_list)
+    print(info_str)
+
+    # SHOW BEST RESULT
+    #qres_copy.ishow_top(ibs, fnum=pt.next_fnum())
+    #qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
+
+    # Text Informatio
+    param_lbl = 'p'
+    param_stats_str = gridsearch.get_dimension_stats_str(param_lbl)
+    print(param_stats_str)
+
+    csvtext = gridsearch.get_csv_results(10)
+    print(csvtext)
+
+    # Paramter visuzliation
+    fnum = pt.next_fnum()
+    # plot paramter influence
+    param_label_list = gridsearch.get_param_lbls()
+    pnum_ = pt.get_pnum_func(2, len(param_label_list))
+    for px, param_label in enumerate(param_label_list):
+        gridsearch.plot_dimension(param_label, fnum=fnum, pnum=pnum_(px))
+    # plot match figure
+    pnum2_ = pt.get_pnum_func(2, 2)
+    qres_copy.show_matches(ibs, aid2, fnum=fnum, pnum=pnum2_(2))
+    qres_copy.show_matches(ibs, tn_aid, fnum=fnum, pnum=pnum2_(3))
+    # Add figure labels
+    figtitle = 'Effect of parameters on vsone separation for a single case'
+    subtitle = 'qvuuid = %r' % (qvuuid)
+    figtitle += '\n' + subtitle
+    pt.set_figtitle(figtitle)
+    # Save Figure
+    #fig_fpath = pt.save_figure(usetitle=True)
+    #print(fig_fpath)
+    # Write CSV Results
+    #csv_fpath = fig_fpath + '.csv.txt'
+    #ut.write_to(csv_fpath, csvtext)
+
+    #qres_copy.ishow_top(ibs)
+    #from matplotlib import pyplot as plt
+    #plt.show()
+    #print(ut.list_str()))
+    # TODO: plot max variation dims
+    #import plottool as pt
+    #pt.plot(p_list, diff_list)
     """
     viz.show_chip(ibs, aid1)
     import plottool as pt
     pt.update()
     """
 
-    cfgdict_vsone = dict(
-        sv_on=True,
-        #sv_on=False,
-        codename='vsone_unnorm_extern_distinctiveness'
-    )
 
-    qres_list, qreq_ = ibs.query_chips(qaids, daids, cfgdict=cfgdict_vsone,
-                                       return_request=True, use_cache=use_cache,
-                                       save_qcache=save_qcache, verbose=True)
-    qres = qres_list[0]
-    qres
-    qres.ishow_top(ibs, annot_mode=1)
+def testdata_my_exmaples(index):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> index = 1
+    """
+    import ibeis
+    from uuid import UUID
+    ibs = ibeis.opendb('GZ_ALL')
+    vsone_pair_examples = [
+        [UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'), UUID('308fc664-7990-91ad-0576-d2e8ea3103d0')],
+        [UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'), UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')],
+        [UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'), UUID('879977a7-b841-d223-dd91-761dfa58d486')],
+    ]
+    gf_mapping = {
+        UUID('8415b50f-2c98-0d52-77d6-04002ff4d6f8'): [UUID('38211759-8fa7-875b-1f3e-39a630653f66')],
+        UUID('490f76bf-7616-54d5-576a-8fbc907e46ae'): [UUID('58920d6e-31ba-307c-2ac8-e56aff2b2b9e')],  # other bad_aid is actually a good partial match
+        UUID('5cdf68ab-be49-ee3f-94d8-5483772c8618'): [UUID('5a8c8ad7-873a-e6ed-98df-56a452e0a93e')],
+    }
 
-    top_aids = qres.get_top_aids()
+    #ibs.get_annot_visual_uuids([36, 3])
 
-    # PRINT INFO
-    print('qres.filtkey_list = %r' % (qres.filtkey_list,))
-    print('CORRECT STATS')
-    print(ut.get_stats_str(qres.aid2_fsv[aid2], axis=0, newlines=True))
-    print('INCORRECT STATS')
-    print(ut.get_stats_str(qres.aid2_fsv[bad_aid], axis=0, newlines=True))
+    vuuid_pair = vsone_pair_examples[index]
+    vuuid1, vuuid2 = vuuid_pair
+    aid1, aid2 = ibs.get_annot_aids_from_visual_uuid(vuuid_pair)
+    assert aid1 is not None
+    assert aid2 is not None
+    #daids = ibs.get_valid_aids()
+
+    tn_vuuid = gf_mapping.get(vuuid1)
+    if tn_vuuid is None:
+        qaids = [aid1]
+        find_close_incorrect_match(ibs, qaids)
+        print('baste the result in gf_mapping')
+        return
+
+    tn_aids = ibs.get_annot_aids_from_visual_uuid(tn_vuuid)
+    tn_aid = tn_aids[0]
+    return ibs, aid1, aid2, tn_aid
 
 
 def find_close_incorrect_match(ibs, qaids):
@@ -102,6 +339,41 @@ def find_close_incorrect_match(ibs, qaids):
     gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
     print('gf_mapping = ' + ut.dict_str(gf_mapping))
     pass
+
+
+def show_power_law_plots():
+    """
+
+    CommandLine:
+        python -m ibeis.model.hots.devcases --test-show_power_law_plots --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> #%pylab qt4
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> show_power_law_plots()
+        >>> pt.show_if_requested()
+    """
+    import numpy as np
+    import plottool as pt
+    xdata = np.linspace(0, 1, 1000)
+    ydata = xdata
+    fnum = 1
+    powers = [.01, .1, .5, 1, 2, 30, 70, 100, 1000]
+    nRows, nCols = pt.get_square_row_cols(len(powers), fix=True)
+    pnum_next = pt.make_pnum_nextgen(nRows, nCols)
+    for p in powers:
+        plotkw = dict(
+            fnum=fnum,
+            marker='g-',
+            linewidth=2,
+            pnum=pnum_next(),
+            title='p=%r' % (p,)
+        )
+        ydata_ = ydata ** p
+        pt.plot2(xdata, ydata_, **plotkw)
+    pt.set_figtitle('power laws y = x ** p')
 
 
 def get_gzall_small_test():

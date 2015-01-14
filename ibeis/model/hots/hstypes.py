@@ -98,3 +98,8 @@ class FiltKeys(object):
     DIST = 'dist'
     LNBNN = 'lnbnn'
     DUPVOTE = 'dupvote'
+    HOMOGERR = 'homogerr'
+
+# Denote which scores should be  used as weights
+# the others are used as scores
+WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]

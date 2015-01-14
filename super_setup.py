@@ -13,7 +13,9 @@ cd ibeis
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 
-# If on current branch
+./super_setup.py --status
+
+# If on current branch copy so super setup isn't overwriten as we go
 python -c "import utool as ut; ut.copy('super_setup.py', '_ibeis_setup.py')"
 
 # Status

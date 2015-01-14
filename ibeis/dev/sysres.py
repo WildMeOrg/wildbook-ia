@@ -10,7 +10,7 @@ from os.path import exists, join, realpath
 import utool
 import utool as ut
 from utool import util_cache, util_list
-from ibeis import constants
+from ibeis import constants as const
 from ibeis import params
 
 # Inject utool functions
@@ -293,7 +293,7 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cach
 
 def is_ibeisdb(path):
     """ Checks to see if path contains the IBEIS internal dir """
-    return exists(join(path, constants.PATH_NAMES._ibsdb))
+    return exists(join(path, const.PATH_NAMES._ibsdb))
 
 
 def is_hsdb(dbdir):
@@ -349,14 +349,8 @@ def ensure_pz_mtest():
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
-    mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
-    zipped_url = mtest_zipped_url
-    ensure = True
-    download_dir = workdir
-    #appname = 'utool'
-    #force_commonprefix=True
-    #cleanup = False
-    mtest_dir = utool.grab_zipped_url(zipped_url, ensure=ensure, download_dir=download_dir)
+    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
+    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import ibeis
@@ -378,6 +372,70 @@ def ensure_nauts():
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
-    nauts_zipped_url = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
+    nauts_zipped_url = const.ZIPPED_URLS.NAUTS
     nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
     print('have nauts_dir=%r' % (nauts_dir,))
+
+
+def get_global_distinctiveness_modeldir(ensure=True):
+    resource_dir = get_ibeis_resource_dir()
+    global_distinctdir = join(resource_dir, const.PATH_NAMES.distinctdir)
+    if ensure:
+        ut.ensuredir(global_distinctdir)
+    return global_distinctdir
+
+
+def resolve_species(species_code):
+    r"""
+    Args:
+        species_code (str): can either be species_code or species_text
+
+    CommandLine:
+        python -m ibeis.dev.sysres --test-resolve_species
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dev.sysres import *  # NOQA
+        >>> # build test data
+        >>> species = 'GZ'
+        >>> # execute function
+        >>> result = resolve_species(species)
+        >>> # verify results
+        >>> print(result)
+        zebra_grevys
+    """
+    species_text = const.SPECIES_CODE_TO_TEXT.get(species_code.upper(), species_code).lower()
+    assert species_text in const.VALID_SPECIES, 'cannot resolve species_text=%r' % (species_text,)
+    return species_text
+
+
+def grab_example_smart_xml_fpath():
+    """ Gets smart example xml
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis
+        >>> import utool as ut
+        >>> import os
+        >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
+        >>> os.system('gvim ' + smart_xml_fpath)
+        >>> #ut.editfile(smart_xml_fpath)
+
+    """
+    import utool
+    smart_xml_url = 'https://www.dropbox.com/s/g1mpjzp57wfnhk6/LWC_000261.xml'
+    smart_sml_fpath = utool.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
+    return smart_sml_fpath
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.sysres
+        python -m ibeis.dev.sysres --allexamples
+        python -m ibeis.dev.sysres --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

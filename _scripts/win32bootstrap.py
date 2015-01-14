@@ -1,9 +1,19 @@
-"""
+r"""
 Hacky file to download win packages
 Please only download files as needed.
+
+Args:
+    --dl {pkgname:str} : package name to download
+    --run : if true runs installer on win32
+
+CommandLine:
+    python _scripts\win32bootstrap.py --dl winapi --run
+    python _scripts\win32bootstrap.py --dl pyperclip --run
+
 """
 from __future__ import division, print_function
 import parse
+import sys
 #import os
 import utool as ut
 from six.moves import filterfalse
@@ -19,13 +29,28 @@ PY_VERSION = 'py2.7'
 # force redownload of hrefs
 FORCE = ut.get_argflag('--force')
 
+AMD64 = False
+
+os_to_pkgmanager = {
+    'win32': 'win32unoff',
+    'darwin': 'ports',
+    'debian_family': 'apt-get',
+    'fedora_family': 'yum',
+}
+
+default_pkgmanager = os_to_pkgmanager[sys.platform]
+
 
 # TODO: implement this
 class CPlatPkg(object):
     def __init__(self,
                  default_name,
                  pkgmanager_map={},
-                 alias_list=[]):
+                 alias_list=[],
+                 platform_specific=False,
+                 import_name=None,
+                 alt_link=None,
+                 ):
         self.default_name = default_name
         self.pkgmanager_map = {
             'default': None,
@@ -33,12 +58,56 @@ class CPlatPkg(object):
             'apt-get': None,
             'ports': None,
             'win32unoff': None,
+            'pip': None,
         }
         self.alias_list = alias_list
+        self.import_name = import_name
+        if import_name is not None:
+            self.alias_list.append(import_name)
         self.pkgmanager_map.update(pkgmanager_map)
+        # True if only available on certain platforms
+        self.platform_specific = platform_specific
+
+    def is_alias(self, pkgname):
+        return pkgname in self.alias_list or pkgname == self.default_name
+
+    def get_platform_pkgmanager_name(self, pkgname, pkgmanager=default_pkgmanager):
+        """ returns name for current platforms package manager """
+        pkgmanager_name = self.pkgmanager_map[pkgmanager]
+        if pkgmanager_name is None:
+            pkgmanager_name = self.default_name
+        return pkgmanager_name
+
+    def get_import_name(self):
+        if self.import_name is not None:
+            return self.import_name
+        else:
+            return self.default_name
+
+    def is_installed(self):
+        import_name = self.get_import_name()
+        try:
+            globals_ = globals()
+            locals_ = locals()
+            exec('import ' + import_name, globals_, locals_)
+        except ImportError:
+            return False
+        return True
 
 
-alias_list = [
+cplat_alias_pkglist = [
+    CPlatPkg(
+        'pywin32',
+        import_name='win32api',
+        platform_specific=True,
+    ),
+
+    CPlatPkg(
+        'pyperclip',
+        pkgmanager_map={
+            'pip': 'pyperclip'
+        }
+    ),
 
     CPlatPkg(
         'line-profiler',
@@ -51,8 +120,15 @@ alias_list = [
     # alias_tup = (std_dict, alias_list)
     # std_dict = keys=packagemanager, vals=truename
     # alias_list = list of names
-    ({'default': 'line_profiler', }, ['line-profiler'],),
+    #({'default': 'line_profiler', }, ['line-profiler'],),
 ]
+
+
+def resolve_alias(pkgname):
+    for cplat_pkg in cplat_alias_pkglist:
+        if cplat_pkg.is_alias(pkgname):
+            return cplat_pkg.get_platform_pkgmanager_name(pkgname)
+    return pkgname
 
 
 KNOWN_PKG_LIST = [
@@ -122,6 +198,188 @@ def build_uninstall_script():
 
     script_text = ('\n'.join(cmd_list))
     print(script_text)
+
+
+def main():
+    # Packages that you are requesting
+    pkg_list = []
+    if ut.get_argflag('--all'):
+        pkg_list = KNOWN_PKG_LIST
+    else:
+        print('specify --all to download all packages')
+        print('or specify --dl pkgname to download that package')
+    pkg_list.extend(ut.get_argval('--dl', list, []))
+    pkg_exe_list = bootstrap_sysreq(pkg_list)
+    if ut.get_argflag('--run'):
+        for pkg_exe in pkg_exe_list:
+            ut.cmd(pkg_exe)
+
+
+def bootstrap_sysreq(pkg_list='all'):
+    """
+    pkg_list = ['line_profiler']
+    """
+    # Still very hacky
+    if pkg_list == 'all':
+        pkg_list = get_uninstalled_project_names()
+
+    pkg_list_ = [resolve_alias(pkg) for pkg in  pkg_list]
+
+    py_version = PY_VERSION
+    #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
+    #python34_win32_x86_exe = ut.grab_file_url(python34_win32_x64_url)
+    href_list = get_win_packages_href(py_version, pkg_list_)
+    print('Available hrefs are:\n' +  '\n'.join(href_list))
+    pkg_exe_list = download_win_packages(href_list)
+    text = '\n'.join(href_list) + '\n'
+    text += ('Please Run:') + '\n'
+    text += ('\n'.join(pkg_exe_list))
+    print('TODO: Figure out how to run these installers without the GUI')
+    print(text)
+    print(pkg_list_)
+    return pkg_exe_list
+
+
+def download_win_packages(href_list):
+    pkg_exe_list = []
+    #href = href_list[0]
+    #pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+    #pkg_exe_list += [pkg_exe]
+    ## Execute download
+    for href in href_list:
+        # Download the file if you havent already done so
+        pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+        # Check to make sure it worked
+        nBytes = ut.get_file_nBytes(pkg_exe)
+        if nBytes < 1000:
+            print('There may be a problem with %r' % (pkg_exe,))
+            RETRY_PROBLEMS = False
+            if RETRY_PROBLEMS:
+                # retry if file was probably corrupted
+                ut.delete(pkg_exe)
+                pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+        pkg_exe_list += [pkg_exe]
+    return pkg_exe_list
+
+
+def get_win_packages_href(py_version, pkg_list):
+    """ Returns the urls to download the requested installers """
+    all_href_list, page_str = get_unofficial_package_hrefs()
+    href_list1, missing  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
+    href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
+    href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
+    href_list = href_list1 + href_list2 + href_list3
+    return href_list
+
+
+def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
+    """
+    Ignore:
+        win_pkg_list = ['pywin32']
+        OS_VERSION = 'win32'
+        PY_VERSION = 'py2.7'
+        os_version = OS_VERSION
+        py_version = PY_VERSION
+    """
+    candidate_list = []
+    for pkgname in win_pkg_list:
+        candidates_ = filter(lambda x: x.find(pkgname) > -1, all_href_list)
+        if AMD64:
+            candidates = filter(lambda x: x.find('amd64') > -1, candidates_)
+        else:
+            candidates = filter(lambda x: x.find('amd64') == -1, candidates_)
+        candidate_list.extend(candidates)
+    filtered_list1 = candidate_list
+    filtered_list2 = filter(lambda x: py_version in x, filtered_list1)
+    filtered_list3 = filter(lambda x: os_version in x, filtered_list2)
+    # hack
+    bad_list = [
+        'vigranumpy',
+    ]
+    filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3))
+
+    missing = []
+    for pkgname in win_pkg_list:
+        if not any([pkgname in href for href in filtered_list4]):
+            print('missing: %r' % pkgname)
+            missing += [pkgname]
+    return filtered_list4, missing
+
+
+def get_unofficial_package_hrefs(force=None):
+    """
+    Downloads the entire webpage of available hrefs
+
+
+    """
+    if force is None:
+        force = FORCE
+
+    cachedir = ut.get_app_resource_dir('utool')
+    try:
+        if force:
+            raise Exception('cachemiss')
+        all_href_list = ut.load_cache(cachedir, 'win32_hrefs', 'all_href_list')
+        page_str      = ut.load_cache(cachedir, 'win32_hrefs', 'page_str')
+        print('all_href_list cache hit')
+        return all_href_list, page_str
+    except Exception:
+        print('all_href_list cache miss')
+        pass
+    # Read page html
+    headers = { 'User-Agent' : 'Mozilla/5.0' }
+    req = urllib2.Request(UNOFFICIAL_WEBURL, None, headers)
+    page = urllib2.urlopen(req)
+    page_str = page.read()
+    encrypted_lines = filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
+    # List of all download links, now choose wisely, because we don't want
+    # to hack for evil
+    #line = encrypted_lines[0]
+    def parse_encrypted(line):
+        """
+        <script type="text/javascript">
+        // <![CDATA[
+        if (top.location!=location) top.location.href=location.href;
+        function dc(ml,mi){
+            var ot="";
+            for(var j=0;j<mi.length;j++)
+                ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
+            document.write(ot);
+            }
+        function dl1(ml,mi){
+            var ot="";
+            for(var j=0;j<mi.length;j++)
+                ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
+            location.href=ot;
+            }
+        function dl(ml,mi){
+        mi=mi.replace('&lt;','<');
+        mi=mi.replace('&gt;','>');
+        mi=mi.replace('&amp;','&');
+        setTimeout(function(){ dl1(ml,mi) }, 1500);}
+        // ]]>
+        </script>
+        #start = line.find('javascript:dl') + len('javascript:dl') + 2
+        #end   = line.find('title') - 4
+        #code = line[start: end]
+        #mid = code.find(']')
+        #left = code[0:mid]
+        #right = code[mid + 4:]
+        #ml = left
+        #mi = right
+        """
+        _, ml, mi, _ = parse.parse('{}javascript:dl([{}], "{}"){}', line)
+        mi_ = mi.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+
+        #ml_ = eval('[' + ml + ']')
+        ml_ = eval(ml)
+        href_ = ''.join([chr(ml_[ord(michar) - 48]) for michar in mi_])
+        href  = ''.join([UNOFFICIAL_WEBURL, href_])
+        return href
+    all_href_list = list(map(parse_encrypted, encrypted_lines))
+    ut.save_cache(cachedir, 'win32_hrefs', 'all_href_list', all_href_list)
+    ut.save_cache(cachedir, 'win32_hrefs', 'page_str', page_str)
+    return all_href_list, page_str
 
 
 def uninstall_everything_win32():
@@ -281,172 +539,6 @@ def uninstall_everything_win32():
         C:\Users\joncrall\AppData\Roaming\utool\scikit-learn-0.15.2.win32-py2.7.exe
         C:\Users\joncrall\AppData\Roaming\utool\matplotlib-1.4.2.win32-py2.7.exe
         """)
-
-
-def main():
-    # Packages that you are requesting
-    pkg_list = []
-    if ut.get_argflag('--all'):
-        pkg_list = KNOWN_PKG_LIST
-    else:
-        print('specify --all to download all packages')
-        print('or specify --dl pkgname to download that package')
-    pkg_list.extend(ut.get_argval('--dl', list, []))
-    pkg_exe_list = bootstrap_sysreq(pkg_list)
-    if ut.get_argflag('--run'):
-        for pkg_exe in pkg_exe_list:
-            ut.cmd(pkg_exe)
-
-
-def bootstrap_sysreq(pkg_list='all'):
-    """
-    pkg_list = ['line_profiler']
-    """
-    # Still very hacky
-    if pkg_list == 'all':
-        pkg_list = get_uninstalled_project_names()
-
-    py_version = PY_VERSION
-    #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
-    #python34_win32_x86_exe = ut.grab_file_url(python34_win32_x64_url)
-    href_list = get_win_packages_href(py_version, pkg_list)
-    print('Available hrefs are:\n' +  '\n'.join(href_list))
-    pkg_exe_list = download_win_packages(href_list)
-    text = '\n'.join(href_list) + '\n'
-    text += ('Please Run:') + '\n'
-    text += ('\n'.join(pkg_exe_list))
-    print('TODO: Figure out how to run these installers without the GUI')
-    print(text)
-    print(pkg_list)
-    return pkg_exe_list
-
-
-def download_win_packages(href_list):
-    pkg_exe_list = []
-    #href = href_list[0]
-    #pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
-    #pkg_exe_list += [pkg_exe]
-    ## Execute download
-    for href in href_list:
-        # Download the file if you havent already done so
-        pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
-        # Check to make sure it worked
-        nBytes = ut.get_file_nBytes(pkg_exe)
-        if nBytes < 1000:
-            print('There may be a problem with %r' % (pkg_exe,))
-            RETRY_PROBLEMS = False
-            if RETRY_PROBLEMS:
-                # retry if file was probably corrupted
-                ut.delete(pkg_exe)
-                pkg_exe = ut.util_grabdata.grab_file_url(href, delay=3, spoof=True)
-        pkg_exe_list += [pkg_exe]
-    return pkg_exe_list
-
-
-def get_win_packages_href(py_version, pkg_list):
-    """ Returns the urls to download the requested installers """
-    all_href_list, page_str = get_unofficial_package_hrefs()
-    href_list1, missing  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
-    href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
-    href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
-    href_list = href_list1 + href_list2 + href_list3
-    return href_list
-
-
-def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
-    candidate_list = []
-    for pkgname in win_pkg_list:
-        candidates = filter(lambda x: x.find(pkgname) > -1, all_href_list)
-        candidate_list.extend(candidates)
-    filtered_list1 = candidate_list
-    filtered_list2 = filter(lambda x: py_version in x, filtered_list1)
-    filtered_list3 = filter(lambda x: os_version in x, filtered_list2)
-    bad_list = [
-        'vigranumpy',
-    ]
-    filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3))
-
-    missing = []
-    for pkgname in win_pkg_list:
-        if not any([pkgname in href for href in filtered_list4]):
-            print('missing: %r' % pkgname)
-            missing += [pkgname]
-    return filtered_list4, missing
-
-
-def get_unofficial_package_hrefs(force=None):
-    """
-    Downloads the entire webpage of available hrefs
-
-    """
-    if force is None:
-        force = FORCE
-
-    cachedir = ut.get_app_resource_dir('utool')
-    try:
-        if force:
-            raise Exception('cachemiss')
-        all_href_list = ut.load_cache(cachedir, 'win32_hrefs', 'all_href_list')
-        page_str      = ut.load_cache(cachedir, 'win32_hrefs', 'page_str')
-        print('all_href_list cache hit')
-        return all_href_list, page_str
-    except Exception:
-        print('all_href_list cache miss')
-        pass
-    # Read page html
-    headers = { 'User-Agent' : 'Mozilla/5.0' }
-    req = urllib2.Request(UNOFFICIAL_WEBURL, None, headers)
-    page = urllib2.urlopen(req)
-    page_str = page.read()
-    encrypted_lines = filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
-    # List of all download links, now choose wisely, because we don't want
-    # to hack for evil
-    #line = encrypted_lines[0]
-    def parse_encrypted(line):
-        """
-        <script type="text/javascript">
-        // <![CDATA[
-        if (top.location!=location) top.location.href=location.href;
-        function dc(ml,mi){
-            var ot="";
-            for(var j=0;j<mi.length;j++)
-                ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
-            document.write(ot);
-            }
-        function dl1(ml,mi){
-            var ot="";
-            for(var j=0;j<mi.length;j++)
-                ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
-            location.href=ot;
-            }
-        function dl(ml,mi){
-        mi=mi.replace('&lt;','<');
-        mi=mi.replace('&gt;','>');
-        mi=mi.replace('&amp;','&');
-        setTimeout(function(){ dl1(ml,mi) }, 1500);}
-        // ]]>
-        </script>
-        #start = line.find('javascript:dl') + len('javascript:dl') + 2
-        #end   = line.find('title') - 4
-        #code = line[start: end]
-        #mid = code.find(']')
-        #left = code[0:mid]
-        #right = code[mid + 4:]
-        #ml = left
-        #mi = right
-        """
-        _, ml, mi, _ = parse.parse('{}javascript:dl([{}], "{}"){}', line)
-        mi_ = mi.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
-
-        #ml_ = eval('[' + ml + ']')
-        ml_ = eval(ml)
-        href_ = ''.join([chr(ml_[ord(michar) - 48]) for michar in mi_])
-        href  = ''.join([UNOFFICIAL_WEBURL, href_])
-        return href
-    all_href_list = list(map(parse_encrypted, encrypted_lines))
-    ut.save_cache(cachedir, 'win32_hrefs', 'all_href_list', all_href_list)
-    ut.save_cache(cachedir, 'win32_hrefs', 'page_str', page_str)
-    return all_href_list, page_str
 
 
 if __name__ == '__main__':
