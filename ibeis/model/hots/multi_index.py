@@ -366,8 +366,25 @@ class MultiNeighborIndex(object):
         return num_indexed_list
 
     def assert_can_add_aids(mxer, new_aid_list):
-        indexed_aids = np.hstack(mxer.get_multi_indexed_aids())
-        assert np.all(vt.get_uncovered_mask(indexed_aids, new_aid_list)), 'new aids must be disjoint from current aids'
+        """
+        Aids that are already indexed should never be added.
+
+        Ignore:
+            qreq_vsmany_ = ut.search_stack_for_localvar('qreq_vsmany_')
+            qreq_vsmany_.get_external_daids()
+            qreq_vsmany_.get_external_qaids()
+            qreq_vsmany_.ibs.get_annot_exemplar_flags(new_aid_list)
+        """
+        indexed_aids_list = mxer.get_multi_indexed_aids()
+        indexed_aids = np.hstack(indexed_aids_list)
+        uncovered_mask = vt.get_uncovered_mask(indexed_aids, new_aid_list)
+        if not np.all(uncovered_mask):
+            msg_list = [
+                'new aids must be disjoint from current aids',
+                'new_aid_list = %r' % (new_aid_list,)
+            ]
+            msg = '\n'.join(msg_list)
+            raise AssertionError(msg)
 
     def add_support(mxer, new_aid_list, new_vecs_list, new_fgws_list, verbose=True):
         """

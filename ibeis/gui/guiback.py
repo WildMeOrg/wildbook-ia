@@ -849,14 +849,17 @@ class MainWindowBackend(QtCore.QObject):
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
         qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
+        if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
+            raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True')
         if len(qaid_list) == 0:
-            msg = ut.codeblock('''
-               There are no annotations (of species=%r) left in this encounter.
+            msg = ut.codeblock(
+                '''
+                There are no annotations (of species=%r) left in this encounter.
 
-               * Has the encounter been completed?
-               * Is the species correctly set?
-               * Do you need to run detection?
-           ''') % (species,)
+                * Has the encounter been completed?
+                * Is the species correctly set?
+                * Do you need to run detection?
+                ''') % (species,)
             back.user_info(msg=msg, title='Warning')
             return
 

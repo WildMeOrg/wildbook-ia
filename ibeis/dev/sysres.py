@@ -339,7 +339,13 @@ def get_ibsdb_list(workdir=None):
 
 
 def ensure_pz_mtest():
-    """ Ensures that you have the PZ_MTEST dataset """
+    """
+    Ensures that you have the PZ_MTEST dataset
+
+    Example:
+        >>> # DISABLE DOCTEST
+        >>> pass
+    """
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
