@@ -1,6 +1,4 @@
 """
-ython -c "import vtool, doctest; print(doctest.testmod(vtool.spatial_verification))"
-
 Spatial verification of keypoint matches
 
 Notation::
@@ -16,18 +14,16 @@ Look Into::
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import range
-import utool
-# Science
+import utool as ut
 import numpy as np
 import numpy.linalg as npl
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
-# VTool
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
-profile = utool.profile
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
+profile = ut.profile
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
 
 """
 #if CYTH
@@ -53,7 +49,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
-        >>> result = utool.hashstr(Mx9)
+        >>> result = ut.hashstr(Mx9)
         >>> print(result)
         f@2l62+2!ppow8yw
 
@@ -132,7 +128,7 @@ def compute_homog(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1)
         >>> xy2_mn = ktool.get_xys(kpts2)
         >>> H = compute_homog(xy1_mn, xy2_mn)
-        >>> #result = utool.hashstr(H)
+        >>> #result = ut.hashstr(H)
         >>> result =str(H)
         >>> result = np.array_str(H, precision=2)
         >>> print(result)
@@ -207,7 +203,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> result = utool.hashstr(output)
+        >>> result = ut.hashstr(output)
         >>> print(result)
         +%q&%je52nlyli5&
 
@@ -306,7 +302,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
         >>> output = get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> result = utool.hashstr(output)
+        >>> result = ut.hashstr(output)
         >>> print(result)
         89kz8nh6p+66t!+u
 
@@ -575,22 +571,24 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         homog_inliers, homog_errors, H = get_homography_inliers(
             kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
     except npl.LinAlgError as ex:
-        utool.printex(ex, 'numeric error in homog estimation.', iswarning=True)
+        ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
     except Exception as ex:
         # There is a weird error that starts with MemoryError and ends up
         # makeing len(h) = 6.
-        utool.printex(ex, 'Unknown error in homog estimation.',
+        ut.printex(ex, 'Unknown error in homog estimation.',
                       keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
                             'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
-        if utool.SUPER_STRICT:
+        if ut.SUPER_STRICT:
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
     if returnAff:
-        return homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff
+        svtup = (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff)
+        return svtup
     else:
-        return homog_inliers, homog_errors, H, None, None, None
+        svtup = (homog_inliers, homog_errors, H, None, None, None)
+        return svtup
 
 
 def ibeis_test(qreq_):
@@ -647,8 +645,6 @@ def ibeis_test(qreq_):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification, allexamples=True)"
-        python -c "import utool, vtool.spatial_verification; utool.doctest_funcs(vtool.spatial_verification)"
         python -m vtool.spatial_verification
         python -m vtool.spatial_verification --allexamples
 
