@@ -18,6 +18,33 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
 def myquery():
     r"""
 
+    BUG::
+        THERE IS A BUG SOMEWHERE: HOW IS THIS POSSIBLE?
+        if everything is weightd ) how di the true positive even get a score
+        while the true negative did not
+        qres_copy.filtkey_list = ['ratio', 'fg', 'homogerr', 'distinctiveness']
+        CORRECT STATS
+        {
+            'max'  : [0.832, 0.968, 0.604, 0.000],
+            'min'  : [0.376, 0.524, 0.000, 0.000],
+            'mean' : [0.561, 0.924, 0.217, 0.000],
+            'std'  : [0.114, 0.072, 0.205, 0.000],
+            'nMin' : [1, 1, 1, 51],
+            'nMax' : [1, 1, 1, 1],
+            'shape': (52, 4),
+        }
+        INCORRECT STATS
+        {
+            'max'  : [0.759, 0.963, 0.264, 0.000],
+            'min'  : [0.379, 0.823, 0.000, 0.000],
+            'mean' : [0.506, 0.915, 0.056, 0.000],
+            'std'  : [0.125, 0.039, 0.078, 0.000],
+            'nMin' : [1, 1, 1, 24],
+            'nMax' : [1, 1, 1, 1],
+            'shape': (26, 4),
+        #   score_diff,  tp_score,  tn_score,       p,   K,  clip_fraction,  fg_power,  homogerr_power
+             0.494,     0.494,     0.000,  73.000,   2,          0.500,     0.100,          10.000
+
     see how seperability changes as we very things
 
     CommandLine:
@@ -25,6 +52,9 @@ def myquery():
         python -m ibeis.model.hots.devcases --test-myquery --show --index 0
         python -m ibeis.model.hots.devcases --test-myquery --show --index 1
         python -m ibeis.model.hots.devcases --test-myquery --show --index 2
+
+    References:
+        http://en.wikipedia.org/wiki/Pareto_distribution <- look into
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -79,39 +109,48 @@ def myquery():
     grid_basis = [
         #ut.DimensionBasis('p', np.linspace(1, 100.0, 50)),
         ut.DimensionBasis(
-            # HIGHER SEEMS BETTER BUT EFFECT FLATTENS OUT
+            'p',
+            # higher seems better but effect flattens out
             # current_best = 73
             # This seems to imply that anything with a distinctivness less than
             # .9 is not relevant
-            'p',
-            [73]
+            #[73.0]
+            [.5, 1.0, 2]
             #[1, 20, 73]
         ),
         ut.DimensionBasis(
+            # the score seems to significantly drop off when k>2
+            # but then has a spike at k=8
+            # best is k=2
             'K',
-            #[2]
-            [2, 4, 8, 16, 32],
+            [2]
+            #[2, 3, 4, 5, 7, 8, 9, 16],
         ),
         #ut.DimensionBasis('clip_fraction', ),
         #ut.DimensionBasis('clip_fraction', np.linspace(.01, .11, 100)),
         ut.DimensionBasis(
             'clip_fraction',
-            #[.09],
-            np.linspace(.01, .5, 10),
+            # THERE IS A VERY CLEAR SPIKE AT .09
+            [.09],
+            #[.09, 1.0],
+            #np.linspace(.05, .15, 10),
         ),
         #ut.DimensionBasis(FiltKeys.FG + '_power', ),
         ut.DimensionBasis(
-            # The FORGROUND POWER SEEMS TO BE VERY INFLUENTIAL IN SCORING
-            # IT SEEMS HIGHER IS BETTER BUT EFFECT FLATTENS OUT
             FiltKeys.FG + '_power',
-            #[.1]
-            np.linspace(.01, 30.0, 10)
+            # the forground power seems to be very influential in scoring
+            # it seems higher is better but effect flattens out
+            # the reason it seems to be better is because it zeros out weights
+            [.1, 1.0, 2.0]
+            #np.linspace(.01, 30.0, 10)
         ),
         ut.DimensionBasis(
             FiltKeys.HOMOGERR + '_power',
             # current_best = 2.5
-            #[.1]
-            np.linspace(.1, 10, 30)
+            #[2.5]
+            [.1, 1.0, 2.0]
+            #np.linspace(.1, 10, 5)
+            #np.linspace(.1, 10, 30)
         ),
     ]
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
