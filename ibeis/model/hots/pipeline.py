@@ -1230,7 +1230,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         >>> print('after_sum=%r' % (after_sum))
         >>> diff = after_sum - before_sum
         >>> ut.assert_inbounds(after_sum, 1950, 2015)
-        >>> ut.assert_inbounds(total_reweighted, 10, 20)
+        >>> ut.assert_inbounds(total_reweighted, 5, 25)
         >>> ut.assert_inbounds(diff - total_reweighted, -1E-5, 1E-5)
         >>> total_reweighted2 = hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV)
         >>> print('total_reweighted2=%r' % (total_reweighted))
