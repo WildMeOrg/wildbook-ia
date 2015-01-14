@@ -176,7 +176,12 @@ def select_images(caption='Select images:', directory=None):
 
 
 def select_files(caption='Select Files:', directory=None, name_filter=None):
-    'Selects one or more files from disk using a qt dialog'
+    """
+    Selects one or more files from disk using a qt dialog
+
+    References:
+        http://qt-project.org/doc/qt-4.8/qfiledialog.html
+    """
     print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
