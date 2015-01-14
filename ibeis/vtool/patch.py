@@ -1,18 +1,16 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-import six
+import six  # NOQA
 from six.moves import zip
-import itertools
-import functools
-if six.PY2:
-    from functools32 import lru_cache  # Python2.7 support
-elif six.PY3:
-    from functools import lru_cache  # Python3 only
+#import itertools
+#if six.PY2:
+#    from functools32 import lru_cache  # Python2.7 support
+#elif six.PY3:
+#    from functools import lru_cache  # Python3 only
 # Science
 import cv2
 import numpy as np
-from numpy import array, sqrt
 # VTool
 from vtool import histogram as htool
 from vtool import keypoint as ktool
@@ -32,7 +30,7 @@ np.tau = 2 * np.pi  # References: tauday.com
 
 @profile
 def patch_gradient(patch, ksize=1, gaussian_weighted=True):
-    patch_ = array(patch, dtype=np.float64)
+    patch_ = np.array(patch, dtype=np.float64)
     gradx = cv2.Sobel(patch_, cv2.CV_64F, 1, 0, ksize=ksize)
     grady = cv2.Sobel(patch_, cv2.CV_64F, 0, 1, ksize=ksize)
     if gaussian_weighted:
@@ -91,7 +89,6 @@ def gaussian_average_patch(patch, sigma=None):
         import plottool as pt
         import vtool as vt
         import cv2
-        gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)
         gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
         gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
         weighted_patch = patch.copy()
@@ -117,27 +114,112 @@ def gaussian_average_patch(patch, sigma=None):
     return average
 
 
-@lru_cache(maxsize=1000)
-def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
+def test_show_gaussian_patches():
+    r"""
+    CommandLine:
+        python -m vtool.patch --test-test_show_gaussian_patches --show
+
+    References:
+        http://matplotlib.org/examples/mplot3d/surface3d_demo.html
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
+        >>> import plottool as pt
+        >>> test_show_gaussian_patches()
+        >>> pt.show_if_requested()
     """
-    It is essential that this function is cached!
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    import plottool as pt
+    import numpy as np
+    import matplotlib as mpl
+    import vtool as vt
+    #shape = (27, 27)
+    shape = (7, 7)
+    #shape = (41, 41)
+    #shape = (5, 5)
+    #shape = (3, 3)
+    sigma = 1.0
+    sigma_list = [.1, .5, .825, .925, 1.0, 1.1, 1.2, 1.6, 2.0, 2.2, 3.0, 10.]
+    #np.linspace(.1, 3, 9)
+    ybasis = np.arange(shape[0])
+    xbasis = np.arange(shape[1])
+    xgrid, ygrid = np.meshgrid(xbasis, ybasis)
+    fnum = pt.next_fnum()
+    for sigma in pt.param_plot_iterator(sigma_list, fnum=fnum, projection='3d'):
+        gausspatch = vt.gaussian_patch(shape, sigma=sigma)
+        #print(gausspatch)
+        #pt.imshow(gausspatch * 255)
+        pt.plot_surface3d(xgrid, ygrid, gausspatch, rstride=1, cstride=1,
+                          cmap=mpl.cm.coolwarm, title='sigma=%.3f' % (sigma,))
+    pt.update()
+    pt.set_figtitle('2d gaussian kernels')
+
+
+def gaussian_patch(shape=(7, 7), sigma=1.0):
     """
-    # Build a list of x and y coordinates
-    half_width  = (width  / 2.0)
-    half_height = (height / 2.0)
-    gauss_xs = np.linspace(-half_width,  half_width,  shape[0])
-    gauss_ys = np.linspace(-half_height, half_height, shape[1])
-    # Iterate over the cartesian coordinate product and get pdf values
-    gauss_xys  = itertools.product(gauss_xs, gauss_ys)
-    gauss_func = functools.partial(ltool.gauss2d_pdf, sigma=sigma, mu=None)
-    gaussvals  = [gauss_func(x, y) for (x, y) in gauss_xys]
-    # Reshape pdf values into a 2D image
-    gausspatch = np.array(gaussvals, dtype=np.float32).reshape(shape).T
-    if norm_01:
-        # normalize if requested
-        gausspatch -= gausspatch.min()
-        gausspatch /= gausspatch.max()
+    another version of the guassian_patch function. hopefully better
+
+    References:
+        http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
+
+    Args:
+        width (int):
+        hight (int):
+        shape (tuple):
+        sigma (float):
+        norm_01 (bool):
+
+    CommandLine:
+        python -m vtool.patch --test-gaussian_patch2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> # build test data
+        >>> width = 3
+        >>> hieght = 3
+        >>> shape = (7, 7)
+        >>> sigma = 1.0
+        >>> norm_01 = False
+        >>> # execute function
+        >>> gausspatch = gaussian_patch2(width, hight, shape, sigma, norm_01)
+        >>> assert gausspatch.sum() == 1.0
+
+    Ignore:
+        import plottool as pt
+        pt.imshow(gausspatch * 255)
+        pt.update()
+    """
+    gauss_kernel_d0 = (cv2.getGaussianKernel(shape[0], sigma))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(shape[1], sigma))
+    gausspatch = gauss_kernel_d0.dot(gauss_kernel_d1.T)
     return gausspatch
+
+
+#@lru_cache(maxsize=1000)
+#def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
+#    """
+#    slow function that makes 2d gaussian image patch
+#    It is essential that this function is cached!
+#    """
+#    # Build a list of x and y coordinates
+#    half_width  = (width  / 2.0)
+#    half_height = (height / 2.0)
+#    gauss_xs = np.linspace(-half_width,  half_width,  shape[0])
+#    gauss_ys = np.linspace(-half_height, half_height, shape[1])
+#    # Iterate over the cartesian coordinate product and get pdf values
+#    gauss_xys  = itertools.product(gauss_xs, gauss_ys)
+#    gaussvals  = [ltool.gauss2d_pdf(x, y, sigma=sigma, mu=None)
+#                  for (x, y) in gauss_xys]
+#    # Reshape pdf values into a 2D image
+#    gausspatch = np.array(gaussvals, dtype=np.float32).reshape(shape).T
+#    if norm_01:
+#        # normalize if requested
+#        gausspatch -= gausspatch.min()
+#        gausspatch /= gausspatch.max()
+#    return gausspatch
 
 
 @profile
@@ -193,7 +275,7 @@ def get_warped_patches(img, kpts):
     kpts_iter = zip(xs, ys, V_mats, oris)
     s = 41  # sf
     for x, y, V, ori in kpts_iter:
-        ss = sqrt(s) * 3
+        ss = np.sqrt(s) * 3
         (h, w) = img.shape[0:2]
         # Translate to origin(0,0) = (x,y)
         T = ltool.translation_mat3x3(-x, -y)
@@ -279,3 +361,15 @@ def find_kpts_direction(imgBGR, kpts):
     # discard old orientation if they exist
     kpts2 = np.vstack((kpts[:, 0:5].T, _oris)).T
     return kpts2
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.patch
+        python -m vtool.patch --allexamples
+        python -m vtool.patch --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

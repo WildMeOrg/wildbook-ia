@@ -61,7 +61,6 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     """
     import vtool as vt
-    import plottool as pt
     xy_thresh = .01
     ratio_thresh = .625
     # GET NEAREST NEIGHBORS
@@ -102,28 +101,6 @@ def simple_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_
         return fm_SV, fs_SV, H
     fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh)
 
-    INTERACT_RATIO = False
-    if INTERACT_RATIO:
-        ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
-        for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
-            print('ratio_thresh = %r' % (ratio_thresh,))
-            fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-            pt.figure(fnum=1, doclf=True, docla=True)
-            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=1)
-            pt.set_figtitle('inspect ratio')
-            pt.update()
-
-    INTERACT_SVER = False
-    if INTERACT_SVER:
-        xy_thresh_list = [xy_thresh] + np.linspace(.01, .1, 10).tolist()
-        for xy_thresh in ut.InteractiveIter(xy_thresh_list):
-            print('xy_thresh = %r' % (xy_thresh,))
-            fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh)
-            pt.figure(fnum=1, doclf=True, docla=True)
-            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SV, fs=fs_SV, fnum=1)
-            pt.set_figtitle('inspect sver')
-            pt.update()
-
 
 def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2, fm_SV, H, xy_thresh):
     r"""
@@ -144,10 +121,8 @@ def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dl
         >>> import vtool as vt
         >>> (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testdata_matcher()
         >>> # build test data
-        >>> H = '?'
-        >>> xy_thresh = '?'
         >>> # execute function
-        >>> result = spatially_constrained_matcher(vecs1, vecs2, kpts1, kpts2, H, xy_thresh)
+        >>> result = spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2, fm_SV, H, xy_thresh)
         >>> # verify results
         >>> print(result)
     """
@@ -265,22 +240,47 @@ def spatially_constrained_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dl
     fs_SCR = np.subtract(1.0, ratio_list[validratio_list])
     fm_SCR = np.vstack((fx1_m, fx2_m)).T
 
-    INTERACT_RATIO = False
-    if INTERACT_RATIO:
-        #ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
-        #for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
-        print('ratio_thresh = %r' % (ratio_thresh,))
-        #fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-        import plottool as pt
-        pt.figure(fnum=1, doclf=True, docla=True)
-        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SCR, fs=fs_SCR, fnum=1)
-        pt.set_figtitle('inspect spatially constrained ratio')
-        pt.update()
+
+#def interactive_code():
+#    import plottool as pt
+#    INTERACT_RATIO = False
+#    if INTERACT_RATIO:
+#        #ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
+#        #for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
+#        print('ratio_thresh = %r' % (ratio_thresh,))
+#        #fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+#        import plottool as pt
+#        pt.figure(fnum=1, doclf=True, docla=True)
+#        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SCR, fs=fs_SCR, fnum=1)
+#        pt.set_figtitle('inspect spatially constrained ratio')
+#        pt.update()
+
+#    INTERACT_RATIO = False
+#    if INTERACT_RATIO:
+#        ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
+#        for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
+#            print('ratio_thresh = %r' % (ratio_thresh,))
+#            fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+#            pt.figure(fnum=1, doclf=True, docla=True)
+#            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=1)
+#            pt.set_figtitle('inspect ratio')
+#            pt.update()
+
+#    INTERACT_SVER = False
+#    if INTERACT_SVER:
+#        xy_thresh_list = [xy_thresh] + np.linspace(.01, .1, 10).tolist()
+#        for xy_thresh in ut.InteractiveIter(xy_thresh_list):
+#            print('xy_thresh = %r' % (xy_thresh,))
+#            fm_SV, fs_SV, H = spatial_verification(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh)
+#            pt.figure(fnum=1, doclf=True, docla=True)
+#            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SV, fs=fs_SV, fnum=1)
+#            pt.set_figtitle('inspect sver')
+#            pt.update()
 
 
-def spatially_constrained_flann_matcher(flann1, vecs2, kpts1, kpts2, H,
-                                        xy_thresh):
-    pass
+#def spatially_constrained_flann_matcher(flann1, vecs2, kpts1, kpts2, H,
+#                                        xy_thresh):
+#    pass
 
 
 if __name__ == '__main__':

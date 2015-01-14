@@ -103,6 +103,9 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
     CommandLine:
         python -m vtool.coverage_image --test-warp_srcimg_to_kpts
         python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show
+        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --hole
+        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --square
+        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --square --hole
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -117,34 +120,32 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
         >>> chip_shape = chip.shape
         >>> fx2_score = np.ones(len(kpts))
         >>> scale_factor = 1.0
-        >>> sigma = 1.0
-        >>> #srcshape = (3, 3)
-        >>> srcshape = (11, 11)
+        >>> sigma = 1.6
+        >>> srcshape = (3, 3)
+        >>> #srcshape = (7, 7)
+        >>> #srcshape = (11, 11)
         >>> #srcshape = (170, 170)
-        >>> SQUARE = 0
+        >>> SQUARE = ut.get_argflag('--square')
+        >>> HOLE = ut.get_argflag('--hole')
         >>> if SQUARE:
         >>>     srcimg = np.ones(srcshape)
         >>> else:
-        >>>     srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma, norm_01=False)
-        >>> #srcimg[int(srcimg.shape[0] / 2), int(srcimg.shape[1] / 2)] = 0
+        >>>     srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma) #, norm_01=False)
+        >>> if HOLE:
+        >>>     srcimg[int(srcimg.shape[0] / 2), int(srcimg.shape[1] / 2)] = 0
         >>> # execute function
         >>> dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score, scale_factor)
         >>> # verify results
-        >>> print(ut.get_stats_str(dstimg, axis=None))
+        >>> print('dstimg stats %r' % (ut.get_stats_str(dstimg, axis=None)),)
+        >>> print('srcimg stats %r' % (ut.get_stats_str(srcimg, axis=None)),)
+        >>> #print(srcimg.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
         >>> if ut.get_argflag('--show'):
-        >>>     masked_chip = (chip * dstimg[:, :, None]).astype(np.uint8)
         >>>     import plottool as pt
-        >>>     fnum = 1
-        >>>     pnum_ = pt.get_pnum_func(nRows=2, nCols=2)
-        >>>     pt.imshow(srcimg * 255, fnum=fnum, pnum=pnum_(0))
-        >>>     pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(1))
-        >>>     pt.draw_kpts2(kpts)
-        >>>     pt.imshow(chip, fnum=fnum, pnum=pnum_(2))
-        >>>     pt.draw_kpts2(kpts)
-        >>>     pt.imshow(masked_chip, fnum=fnum, pnum=pnum_(3))
-        >>>     #pt.draw_kpts2(kpts)
+        >>>     mask = dstimg
+        >>>     patch = srcimg
+        >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
 
     Ignore::
@@ -198,6 +199,21 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
     return dstimg
 
 
+def show_coverage_map(chip, mask, patch, kpts):
+    import plottool as pt
+    masked_chip = (chip * mask[:, :, None]).astype(np.uint8)
+    fnum = 1
+    pnum_ = pt.get_pnum_func(nRows=2, nCols=2)
+    pt.imshow((patch * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(0), title='patch')
+    #ut.embed()
+    pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
+    pt.draw_kpts2(kpts)
+    pt.imshow(chip, fnum=fnum, pnum=pnum_(2), title='chip')
+    pt.draw_kpts2(kpts)
+    pt.imshow(masked_chip, fnum=fnum, pnum=pnum_(3), title='masked chip')
+    #pt.draw_kpts2(kpts)
+
+
 def get_coverage_map(kpts, chip_shape, **kwargs):
     # Create gaussian image to warp
     r"""
@@ -221,8 +237,8 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         >>> import vtool as vt
         >>> import plottool as pt
         >>> import pyhesaff
-        >>> #img_fpath   = ut.grab_test_imgpath('carl.jpg')
-        >>> img_fpath   = ut.grab_test_imgpath('lena.png')
+        >>> #img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
@@ -231,19 +247,33 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         >>> # execute function
         >>> dstimg = get_coverage_map(kpts, chip_shape)
         >>> # show results
-        >>> fnum = 1
-        >>> pnum_ = pt.get_pnum_func(nRows=1, nCols=3)
-        >>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(0))
-        >>> pt.draw_kpts2(kpts)
-        >>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(1))
-        >>> pt.imshow(chip, fnum=fnum, pnum=pnum_(2))
-        >>> pt.draw_kpts2(kpts)
-        >>> pt.show_if_requested()
+        >>> if ut.get_argflag('--show'):
+        >>>     # FIXME:  params
+        >>>     srcshape = (5, 5)
+        >>>     sigma = 1.6
+        >>>     #srcshape = (75, 75)
+        >>>     srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
+        >>>     mask = dstimg
+        >>>     patch = srcimg
+        >>>     show_coverage_map(chip, mask, patch, kpts)
+        >>>     pt.show_if_requested()
+
+    #>>> fnum = 1
+    #>>> pnum_ = pt.get_pnum_func(nRows=1, nCols=3)
+    #>>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(0))
+    #>>> pt.draw_kpts2(kpts)
+    #>>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(1))
+    #>>> pt.imshow(chip, fnum=fnum, pnum=pnum_(2))
+    #>>> pt.draw_kpts2(kpts)
+    #>>> pt.show_if_requested()
     """
-    srcshape = (7, 7)
+    #srcshape = (7, 7)
     #srcshape = (3, 3)
+    srcshape = (5, 5)
+    sigma = 1.6
     #srcshape = (75, 75)
-    srcimg = ptool.gaussian_patch(shape=srcshape, sigma=1.0, norm_01=False)
+    srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
+    #, norm_01=False)
     dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, **kwargs)
     return dstimg
 
