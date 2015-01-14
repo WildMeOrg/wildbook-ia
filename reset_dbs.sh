@@ -22,6 +22,9 @@ fi
 # </CORRECT_PYTHON>
 
 $PYEXE ibeis/tests/reset_testdbs.py $@
+#$PYEXE dev.py -t mtest
+#$PYEXE dev.py -t nauts
+
 echo "PYEXE = $PYEXE"
 #python ibeis/tests/test_gui_import_images.py --set-dbdir
 #python ibeis/tests/test_gui_add_roi.py

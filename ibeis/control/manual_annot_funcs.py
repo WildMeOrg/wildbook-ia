@@ -1410,9 +1410,9 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     Args:
         ibs (IBEISController):  ibeis controller object
         eid (None):
-        include_only_gid_list (list):
+        include_only_gid_list (list): if specified filters annots not in these gids
         viewpoint (str):
-        is_exemplar (None):
+        is_exemplar (bool): if specified filters annots to either be or not be exemplars
         species (None):
         is_known (None):
 
@@ -1422,6 +1422,9 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
 
+    Ignore:
+        ibs.print_annotation_table()
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
@@ -1430,6 +1433,8 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> eid = 1
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
         >>> include_only_gid_list = None
         >>> viewpoint = 'no-filter'
         >>> is_exemplar = None
@@ -1437,12 +1442,13 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> is_known = False
         >>> # execute function
         >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)
-        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN])
-        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN])
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
+        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, 'bad species')
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
         >>> # verify results
         >>> result = str(aid_list)
         >>> print(result)
-        [4]
+        [1, 4]
     """
     # getting encounter aid
     if eid is None:
@@ -1534,12 +1540,41 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     Sets names/nids of a list of annotations.
 
     Args:
-        aid_list
-        name_rowid_list
+        aid_list (list):
+        name_rowid_list (list):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> # check clean state
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
+        >>> # run function
+        >>> name_list = ['easy', '____']
+        >>> name_rowid_list = ibs.get_name_rowids_from_text(name_list)
+        >>> ibs.set_annot_name_rowids(aid_list, name_rowid_list)
+        >>> # check results
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['easy', '____'])
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 0])
+        >>> # restore database state
+        >>> ibs.set_annot_names(aid_list, ['____', 'easy'])
+        >>> ibs.set_annot_exemplar_flags(aid_list, [0, 1])
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
     """
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     id_iter = aid_list
     colnames = (NAME_ROWID,)
+    # WE NEED TO PERFORM A SPECIAL CHECK. ANY ANIMAL WHICH IS GIVEN AN UNKONWN
+    # NAME MUST HAVE ITS EXEMPLAR FLAG SET TO FALSE
+    will_be_unknown_flag_list = [nid == const.UNKNOWN_NAME_ROWID for nid in name_rowid_list]
+    if any(will_be_unknown_flag_list):
+        # remove exemplar status from any annotations that will become unknown
+        will_be_unknown_aids = ut.filter_items(aid_list, will_be_unknown_flag_list)
+        ibs.set_annot_exemplar_flags(will_be_unknown_aids, [False] * len(will_be_unknown_aids))
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
@@ -1578,7 +1613,7 @@ def set_annot_names(ibs, aid_list, name_list):
     #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
     name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list)
-    ibs.update_annot_semantic_uuids(aid_list)
+    #ibs.update_annot_semantic_uuids(aid_list) # set annot_name_rowids does this
 
 
 @register_ibs_method

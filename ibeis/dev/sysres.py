@@ -339,12 +339,24 @@ def get_ibsdb_list(workdir=None):
 
 
 def ensure_pz_mtest():
-    """ Ensures that you have the PZ_MTEST dataset """
+    """
+    Ensures that you have the PZ_MTEST dataset
+
+    Example:
+        >>> # DISABLE DOCTEST
+        >>> pass
+    """
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()
     mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
-    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    zipped_url = mtest_zipped_url
+    ensure = True
+    download_dir = workdir
+    #appname = 'utool'
+    #force_commonprefix=True
+    #cleanup = False
+    mtest_dir = utool.grab_zipped_url(zipped_url, ensure=ensure, download_dir=download_dir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import ibeis
