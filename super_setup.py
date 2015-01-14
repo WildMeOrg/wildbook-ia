@@ -343,6 +343,14 @@ if newbranch_name is not None:
     #ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
+newbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
+if newbranch_name is not None:
+    #ut.gg_command('git stash"'.format(**locals()))
+    ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
+    #ut.gg_command('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+    #ut.gg_command('git stash pop"'.format(**locals()))
+
+# Creates new branches
 mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
 if mergebranch_name is not None:
     ut.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
