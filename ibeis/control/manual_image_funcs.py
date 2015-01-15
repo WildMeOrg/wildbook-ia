@@ -1,3 +1,16 @@
+"""
+Functions for images and encoutners that will be injected into an
+IBEISController instance.
+
+
+CommandLine:
+    # Autogenerate Encounter Functions
+    # key should be the table name
+    # the write flag makes a file, but dont use that
+    python -m ibeis.control.template_generator --key featweight
+    python -m ibeis.control.template_generator --key encounter
+
+"""
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import functools
@@ -24,6 +37,9 @@ ENCOUNTER_PROCESSED_FLAG   = 'encounter_processed_flag'
 ENCOUNTER_ROWID            = 'encounter_rowid'
 ENCOUNTER_SHIPPED_FLAG     = 'encounter_shipped_flag'
 ENCOUNTER_START_TIME_POSIX = 'encounter_start_time_posix'
+
+ENCOUNTER_SMART_WAYPOINT_ID = 'encounter_smart_waypoint_id'
+ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 
 
 @register_ibs_method
@@ -1501,6 +1517,115 @@ def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
     where_clause = 'image_rowid=? AND encounter_rowid=?'
     egrid_list = ibs.db.get_where(const.EG_RELATION_TABLE, colnames, params_iter, where_clause)
     return egrid_list
+
+
+# NEW ENCOUNTER SMART SETTER GETTERS
+
+
+@register_ibs_method
+#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID)
+def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
+    """ encounter_smart_waypoint_id_list <- encounter.encounter_smart_waypoint_id[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_smart_waypoint_id" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_smart_waypoint_id_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_smart_waypoint_id
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SMART_WAYPOINT_ID,)
+    encounter_smart_waypoint_id_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_smart_waypoint_id_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME)
+def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
+    """ encounter_smart_xml_fname_list <- encounter.encounter_smart_xml_fname[encounter_rowid_list]
+
+    gets data from the "native" column "encounter_smart_xml_fname" in the "encounter" table
+
+    Args:
+        encounter_rowid_list (list):
+
+    Returns:
+        list: encounter_smart_xml_fname_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = encounter_smart_xml_fname
+        tbl = encounter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
+        >>> encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)
+        >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SMART_XML_FNAME,)
+    encounter_smart_xml_fname_list = ibs.db.get(
+        const.ENCOUNTER_TABLE, colnames, id_iter, id_colname='rowid')
+    return encounter_smart_xml_fname_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID, native_rowids=True)
+def set_encounter_smart_waypoint_ids(ibs, encounter_rowid_list, encounter_smart_waypoint_id_list):
+    """ encounter_smart_waypoint_id_list -> encounter.encounter_smart_waypoint_id[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_smart_waypoint_id_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_smart_waypoint_id
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SMART_WAYPOINT_ID,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_smart_waypoint_id_list, id_iter)
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME, native_rowids=True)
+def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xml_fname_list):
+    """ encounter_smart_xml_fname_list -> encounter.encounter_smart_xml_fname[encounter_rowid_list]
+
+    Args:
+        encounter_rowid_list
+        encounter_smart_xml_fname_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = encounter
+        col = encounter_smart_xml_fname
+    """
+    id_iter = encounter_rowid_list
+    colnames = (ENCOUNTER_SMART_XML_FNAME,)
+    ibs.db.set(const.ENCOUNTER_TABLE, colnames,
+               encounter_smart_xml_fname_list, id_iter)
 
 
 def get_autogen_testdata():

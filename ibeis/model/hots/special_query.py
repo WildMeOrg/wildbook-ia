@@ -275,18 +275,8 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> qres.ishow_top(ibs, annot_mode=1)
                 """
                 y
-                # Gonna be pasting
-                def delayed_ipython_paste(delay):
-                    import time
-                    import utool as ut
-                    #import os
-                    print('waiting')
-                    time.sleep(delay)
-                    ut.send_keyboard_input(text='%paste')
-                    ut.send_keyboard_input(key_list=['KP_Enter'])
-                    #os.system(' '.join(['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'KP_Enter']))
                 ut.set_clipboard(IPYTHON_COMMANDS)
-                #ut.spawn_background_thread(delayed_ipython_paste, .1)
+                #ut.spawn_delayed_ipython_paste()
                 ut.embed(remove_pyqt_hook=False)
                 IPYTHON_COMMANDS
 
@@ -467,10 +457,13 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(ibs, qaids, daids)
         >>> # execute function
         >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
-        >>> # verify results
-        >>> result = str(vsone_query_pairs)
-        >>> print(result)
-        [(1, [2, 3, 6, 5, 4])]
+        >>> qaid, top_aid_list = vsone_query_pairs[0]
+        >>> top_nid_list = ibs.get_annot_name_rowids(top_aid_list)
+        >>> assert top_nid_list.index(1) == 0, 'name 1 should be rank 1'
+        >>> assert len(top_nid_list) == 5, 'should have 3 names and up to 2 image per name'
+
+    [(1, [3, 2, 6, 5, 4])]
+    [(1, [2, 3, 6, 5, 4])]
 
     """
     vsone_query_pairs = []
@@ -521,15 +514,15 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
         >>> qres_vsone = qaid2_qres_vsone[qaid]
         >>> top_namescore_aids = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
         >>> result = str(top_namescore_aids)
-        >>> print(result)
-        [3, 5]
-
+        >>> top_namescore_names = ibs.get_annot_names(top_namescore_aids)
+        >>> assert top_namescore_names[0] == 'easy'
     """
     #vsone_cfgdict = dict(codename='vsone_unnorm')
+    #codename = 'vsone_unnorm_dist_ratio_extern_distinctiveness',
+    codename = 'vsone_unnorm_dist_ratio'
     vsone_cfgdict = dict(
         index_method='single',
-        codename='vsone_unnorm_dist_ratio',
-        #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
+        codename=codename,
     )
     #------------------------
     # METHOD 1:
@@ -550,7 +543,8 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     # Create pseudo query request because there is no good way to
     # represent the vsone reranking as a single query request and
     # we need one for the score normalizer
-    pseudo_vsone_cfgdict = dict(codename='vsone_norm')
+    pseudo_codename_ = codename.replace('unnorm', 'norm') + '_extern_distinctiveness'
+    pseudo_vsone_cfgdict = dict(codename=pseudo_codename_)
     pseudo_qaids = ut.get_list_column(vsone_query_pairs, 0)
     pseudo_daids = ut.unique_ordered(ut.flatten(ut.get_list_column(vsone_query_pairs, 1)))
     # FIXME: making the pseudo qreq_ takes a nontrivial amount of time for what
@@ -558,6 +552,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     pseudo_qreq_vsone_ = ibs.new_query_request(pseudo_qaids, pseudo_daids,
                                                cfgdict=pseudo_vsone_cfgdict,
                                                verbose=ut.VERBOSE)
+    pseudo_qreq_vsone_.load_distinctiveness_normalizer()
     qreq_vsone_ = pseudo_qreq_vsone_
     # Hack in a special config name
     qreq_vsone_.qparams.query_cfgstr = '_special' + qreq_vsone_.qparams.query_cfgstr
@@ -569,6 +564,38 @@ def augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vs
     """
     AUGMENT VSONE QUERIES (BIG HACKS AFTER THIS POINT)
     Apply vsmany distinctiveness scores to vsone
+
+    Args:
+        vsone_query_pairs (?):
+        qaid2_qres_vsone (dict):  dict of query result objects
+        qaid2_qres_vsmany (dict):  dict of query result objects
+        qreq_vsone_ (?):
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-augment_vsone_with_vsmany
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> # build test data
+        >>> ibs, valid_aids = testdata_special_query()
+        >>> qaids = valid_aids[0:1]
+        >>> daids = valid_aids[1:]
+        >>> qaid = qaids[0]
+        >>> qaid2_qres_vsmany, qreq_vsmany_ = query_vsmany_initial(
+        ...    ibs, qaids, daids, use_cache=False, save_qcache=False,
+        ...    qreq_vsmany_=None)
+        >>> vsone_query_pairs = build_vsone_shortlist(ibs, qaid2_qres_vsmany)
+        >>> qaid2_qres_vsone, qreq_vsone_ = query_vsone_pairs(ibs, vsone_query_pairs, False)
+        >>> if qreq_vsone_.qparams.score_normalization:
+        >>>    qreq_vsone_.load_score_normalizer()
+        >>> # execute function
+        >>> result = augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vsmany, qreq_vsone_)
+        >>> # verify results
+        >>> qres = qaid2_qres_vsone[qaid]
+        >>> assert np.all(ut.inbounds(qres.aid2_fsv[daids[0]], 0.0, 1.0, eq=True))
+        >>> assert np.all(ut.inbounds(qres.aid2_score[daids[0]], 0.0, 1.0, eq=True))
+        >>> print(result)
     """
     for qaid, top_aids in vsone_query_pairs:
         qres_vsone = qaid2_qres_vsone[qaid]
@@ -581,11 +608,25 @@ def augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vs
         qres_vsone.assert_self()
         qres_vsmany.assert_self()
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-        newfsv_list, newscore_aids = get_new_qres_distinctiveness(
-            qres_vsone, qres_vsmany, top_aids, filtkey)
-        with ut.EmbedOnException():
-            apply_new_qres_filter_scores(
-                qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
+        VSMANY_DISTINCTIVENESS = qreq_vsone_.qparams.use_external_distinctiveness
+        # VSMANY DISTINCTIVENESS
+        if VSMANY_DISTINCTIVENESS:
+            newfsv_list, newscore_aids = get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey)
+        else:
+            # VSONE DISTINCTIVENESS
+            newfsv_list, newscore_aids = get_extern_distinctiveness(qreq_vsone_, qres_vsone)
+        #with ut.EmbedOnException():
+        apply_new_qres_filter_scores(
+            qreq_vsone_, qres_vsone, newfsv_list, newscore_aids, filtkey)
+
+
+def new_feature_score_dimension(qres, daid):
+    """ returns new fsv vectors but does not apply them """
+    shape = (qres.aid2_fsv[daid].shape[0], 1)
+    new_scores_vsone = np.full(shape, np.nan)
+    new_fsv = np.hstack((qres.aid2_fsv[daid], new_scores_vsone))
+    #new_scores = new_fsv.T[-1].T
+    return new_fsv
 
 
 @profile
@@ -616,37 +657,127 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
     newfsv_list = []
     newscore_aids = []
 
+    # make sure filter does not already exist
+    scorex_vsone  = ut.listfind(qres_vsone.filtkey_list, filtkey)
+    # Make new filtkey_list
+    new_filtkey_list = qres_vsone.filtkey_list[:]
+    new_filtkey_list.append(filtkey)
+    newscore_aids = top_aids[:]
     for daid in top_aids:
         # Distinctiveness is mostly independent of the vsmany database results
         if daid not in qres_vsone.aid2_fm:  # or daid not in qres_vsmany.aid2_fm):
             # no matches to work with
             continue
-        scorex_vsone  = ut.listfind(qres_vsone.filtkey_list, filtkey)
         if scorex_vsone is None:
-            shape = (qres_vsone.aid2_fsv[daid].shape[0], 1)
-            new_filtkey_list = qres_vsone.filtkey_list[:]
-            new_scores_vsone = np.full(shape, np.nan)
-            #new_scores_vsone = np.ones(shape)
-            new_fsv_vsone = np.hstack((qres_vsone.aid2_fsv[daid], new_scores_vsone))
-            new_filtkey_list.append(filtkey)
+            new_fsv_vsone = new_feature_score_dimension(qres_vsone, daid)
             assert len(new_filtkey_list) == len(new_fsv_vsone.T), 'filter length is not consistent'
-            new_scores = new_fsv_vsone.T[-1].T
         fm_vsone  = qres_vsone.aid2_fm[daid]
         qfx_vsone = fm_vsone.T[0]
+        # Use vsmany as the distinctivness
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
         norm_sqared_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
         dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_sqared_dist)
-        new_scores[:] = dstncvs  #
+        # Copy new scores to the new fsv vector
+        new_fsv_vsone.T[-1].T[:] = dstncvs  #
         newfsv_list.append(new_fsv_vsone)
-        newscore_aids.append(daid)
     return newfsv_list, newscore_aids
 
 
 @profile
-def get_extern_distinctiveness(qres_vsone, top_aids):
+def get_extern_distinctiveness(qreq_, qres, **kwargs):
+    r"""
+    Uses distinctivness normalizer class (which uses predownloaded models)
+    to normalize the distinctivness of a keypoint for query points.
+
+
+    IDEA:
+        because we have database points as well we can use the distance between
+        normalizer of the query point and the normalizer of the database point.
+        They should have a similar normalizer if they are a correct match AND
+        nondistinctive.
+
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        qres (QueryResult):  object of feature correspondences and scores
+
+    Returns:
+        tuple: (new_fsv_list, daid_list)
+
+    CommandLine:
+        python -m ibeis.model.hots.special_query --test-get_extern_distinctiveness
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.special_query import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = daids[0:1]
+        >>> cfgdict = dict(codename='vsone_unnorm_dist_ratio_extern_distinctiveness')
+        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+        >>> #qreq_.lazy_load()
+        >>> qres = ibs.query_chips(qreq_=qreq_, use_cache=False, save_qcache=False)[0]
+        >>> # execute function
+        >>> (new_fsv_list, daid_list) = get_extern_distinctiveness(qreq_, qres)
+        >>> # verify results
+        >>> assert all([fsv.shape[1] == 1 + len(qres.filtkey_list) for fsv in new_fsv_list])
+        >>> assert all([np.all(fsv.T[-1] >= 0) for fsv in new_fsv_list])
+        >>> assert all([np.all(fsv.T[-1] <= 1) for fsv in new_fsv_list])
+    """
+    dstcnvs_normer = qreq_.dstcnvs_normer
+    assert dstcnvs_normer is not None, 'must have loaded normalizer'
     filtkey = hstypes.FiltKeys.DISTINCTIVENESS
-    pass
+    # make sure filter does not already exist
+    scorex_vsone  = ut.listfind(qres.filtkey_list, filtkey)
+    assert scorex_vsone is None, 'already applied distinctivness'
+    daid_list = list(six.iterkeys(qres.aid2_fsv))
+    # Find subset of features to get distinctivness of
+    qfxs_list = [qres.aid2_fm[daid].T[0] for daid in daid_list]
+    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid)
+    # there might be duplicate feature indexes in the list of feature index
+    # lists. We can use to perform neighbor lookup more efficiently by only
+    # performing a single query per feature index. Utool does the mapping for us
+    def rowid_distinctivness(unique_flat_qfx_list, dstcnvs_normer=None, query_vecs=None, **kwargs):
+        # Take only the unique vectors
+        unique_flat_subvecs = query_vecs.take(unique_flat_qfx_list, axis=0)
+        unique_flat_dstcvns = dstcnvs_normer.get_distinctiveness(unique_flat_subvecs, **kwargs)
+        return unique_flat_dstcvns[:, None]
+
+    aug_fsv_list = ut.unflat_unique_rowid_map(
+        rowid_distinctivness, qfxs_list,
+        dstcnvs_normer=dstcnvs_normer, query_vecs=query_vecs, **kwargs)
+
+    if False:
+        with ut.Timer('time1'):
+            aug_fsv_list = ut.unflat_unique_rowid_map(
+                rowid_distinctivness, qfxs_list, dstcnvs_normer=dstcnvs_normer,
+                query_vecs=query_vecs)
+        with ut.Timer('time2'):
+            # Less efficient way to do this
+            _vecs_list = [query_vecs.take(qfxs, axis=0) for qfxs in qfxs_list]
+            _aug_fsv_list = [dstcnvs_normer.get_distinctiveness(_vecs)[:, None] for _vecs in _vecs_list]
+        isequal_list = [np.all(np.equal(*tup)) for tup in zip(aug_fsv_list, _aug_fsv_list)]
+        assert all(isequal_list), 'utool is broken'
+
+    # Compute the distinctiveness as the augmenting score
+    # ensure the shape is (X, 1)
+    # Stack the new and augmenting scores
+    old_fsv_list = [qres.aid2_fsv[daid] for daid  in daid_list]
+    new_fsv_list = list(map(np.hstack, zip(old_fsv_list, aug_fsv_list)))
+
+    # FURTHER HACKS TO SCORING
+    #if 'fg_power' in kwargs:
+    for filtkey in hstypes.WEIGHT_FILTERS:
+        key = filtkey  + '_power'
+        if key in kwargs:
+            _power = kwargs[key]
+            _index = ut.listfind(qres.filtkey_list, filtkey)
+            for fsv in new_fsv_list:
+                fsv.T[_index] **= _power
+    #new_aid2_fsv = dict(zip(daid_list, new_fsv_list))
+    return new_fsv_list, daid_list
 
 
 def index_partition(item_list, part1_items):
@@ -662,8 +793,8 @@ def index_partition(item_list, part1_items):
         >>> item_list = ['dist', 'fg', 'distinctiveness']
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
-        >>> assert part1_indexes.tolist() == [1, 2]
-        >>> assert part2_indexes.tolist() == [3]
+        >>> ut.assert_eq(part1_indexes.tolist(), [1, 2])
+        >>> ut.assert_eq(part2_indexes.tolist(), [0])
     """
     part1_indexes_ = [
         item_list.index(item)
@@ -779,7 +910,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
     # so we can apply a weighted average
     #numer_filters  = [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.RATIO]
 
-    weight_filters = [hstypes.FiltKeys.FG, hstypes.FiltKeys.DISTINCTIVENESS]
+    weight_filters = hstypes.WEIGHT_FILTERS
     weight_filtxs, nonweight_filtxs = index_partition(qres_vsone.filtkey_list, weight_filters)
 
     for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):

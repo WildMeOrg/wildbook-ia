@@ -13,7 +13,9 @@ cd ibeis
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 
-# If on current branch
+./super_setup.py --status
+
+# If on current branch copy so super setup isn't overwriten as we go
 python -c "import utool as ut; ut.copy('super_setup.py', '_ibeis_setup.py')"
 
 # Status
@@ -45,6 +47,13 @@ python _ibeis_setup.py -y --gg "git branch"
 # -- MERGE next -> master
 python _ibeis_setup.py -y --gg "git checkout next"
 python _ibeis_setup.py -y --gg "git merge next"
+
+# -- SAFER MERGE topic -> next
+python super_setup.py --newlocalbranch merge_next_joncrall_dev_branch
+python super_setup.py --merge joncrall_dev_branch
+./run_tests.py
+python super_setup.py --checkout next
+python super_setup.py --merge merge_next_joncrall_dev_branch
 
 # Push
 python _ibeis_setup.py -y --gg "git push"
@@ -340,6 +349,14 @@ if newbranch_name is not None:
     #ut.gg_command('git stash"'.format(**locals()))
     ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
     ut.gg_command('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+    #ut.gg_command('git stash pop"'.format(**locals()))
+
+# Creates new branches
+newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
+if newlocalbranch_name is not None:
+    #ut.gg_command('git stash"'.format(**locals()))
+    ut.gg_command('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
+    #ut.gg_command('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
     #ut.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches

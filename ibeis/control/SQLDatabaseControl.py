@@ -1364,7 +1364,31 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_csv(db, tablename, exclude_columns=[]):
-        """ Conveinience: Converts a tablename to csv format """
+        """ Conveinience: Converts a tablename to csv format
+
+        Args:
+            tablename (str):
+            exclude_columns (list):
+
+        Returns:
+            str: csv_table
+
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_csv
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> # build test data
+            >>> db = '?'
+            >>> tablename = '?'
+            >>> exclude_columns = []
+            >>> # execute function
+            >>> csv_table = db.get_table_csv(tablename, exclude_columns)
+            >>> # verify results
+            >>> result = str(csv_table)
+            >>> print(result)
+        """
         column_names = db.get_column_names(tablename)
         column_list = []
         column_lbls = []

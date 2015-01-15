@@ -718,6 +718,23 @@ def update_1_3_1(db, ibs=None):
     #pass
 
 
+def update_1_3_2(db, ibs=None):
+    """
+    for SMART DATA
+    """
+    db.modify_table(const.ENCOUNTER_TABLE, (
+        (None, 'encounter_smart_xml_fpath',   'TEXT',           None),
+        (None, 'encounter_smart_waypoint_id', 'INTEGER',        None),
+    ))
+
+
+def update_1_3_3(db, ibs=None):
+    # we should only be storing names here not paths
+    db.modify_table(const.ENCOUNTER_TABLE, (
+        ('encounter_smart_xml_fpath', 'encounter_smart_xml_fname',  'TEXT',           None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -738,6 +755,8 @@ VALID_VERSIONS = utool.odict([
     ('1.2.1',    (None,                 update_1_2_1,       post_1_2_1          )),
     ('1.3.0',    (None,                 update_1_3_0,       None                )),
     ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
+    ('1.3.2',    (None,                 update_1_3_2,       None                )),
+    ('1.3.3',    (None,                 update_1_3_3,       None                )),
 ])
 
 

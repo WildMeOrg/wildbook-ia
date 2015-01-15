@@ -10,6 +10,7 @@ import vtool.image as vtimage  # NOQA
 import numpy as np
 from ibeis.model.preproc import preproc_probchip
 from os.path import exists
+from ibeis import constants as const
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
 
@@ -84,8 +85,8 @@ def gen_featweight_worker(tup):
         >>> weights_03_test = weights[0:3]
         >>> print('weights[0:3] = %r' % (weights_03_test,))
         >>> #weights_03_target = [ 0.098, 0.155,  0.422]
-        >>> weights_03_target = [ 0.504, 0.875,  2.205]
-        >>> weights_thresh = [ 0.005, 0.002,  0.002]
+        >>> weights_03_target = [ 0.324, 0.407,  0.688]
+        >>> weights_thresh    = [ 0.01, 0.01,  0.01]
         >>> ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
         >>> assert aid == 3
 
@@ -211,9 +212,8 @@ def add_featweight_params_gen(ibs, fid_list, qreq_=None):
         >>> print(result)
     """
     # HACK: TODO AUTOGENERATE THIS
-    from ibeis import constants
-    cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
-    aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
+    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
+    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
     featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
     return featweight_list
 
@@ -241,16 +241,15 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
         >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list)
         >>> featweighttup_list = list(featweighttup_gen)
         >>> featweight_list = featweighttup_list[0][0]
-        >>> result = np.array_str(featweight_list[0:3], precision=3)
-        >>> print(result)
-        [ 0.125  0.061  0.053]
+        >>> featweight_test = featweight_list[0:3]
+        >>> featweight_target = [ 0.349, 0.218, 0.242]
+        >>> ut.assert_almost_eq(featweight_test, featweight_target, .1)
     """
     # HACK: TODO AUTOGENERATE THIS
-    from ibeis import constants
     #cid_list = ibs.get_feat_cids(fid_list)
     #aid_list = ibs.get_chip_aids(cid_list)
-    cid_list = ibs.dbcache.get(constants.FEATURE_TABLE, ('chip_rowid',), fid_list)
-    aid_list = ibs.dbcache.get(constants.CHIP_TABLE, ('annot_rowid',), cid_list)
+    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
+    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
     featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
     return zip(featweight_list)
 

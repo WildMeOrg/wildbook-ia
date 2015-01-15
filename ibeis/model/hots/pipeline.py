@@ -1230,7 +1230,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         >>> print('after_sum=%r' % (after_sum))
         >>> diff = after_sum - before_sum
         >>> ut.assert_inbounds(after_sum, 1950, 2015)
-        >>> ut.assert_inbounds(total_reweighted, 10, 20)
+        >>> ut.assert_inbounds(total_reweighted, 5, 25)
         >>> ut.assert_inbounds(diff - total_reweighted, -1E-5, 1E-5)
         >>> total_reweighted2 = hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV)
         >>> print('total_reweighted2=%r' % (total_reweighted))
@@ -1364,7 +1364,6 @@ def _inner_spatial_verification(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_
             fsv_SV = fsv[homog_inliers]
             fk_SV = fk[homog_inliers]
             if sver_weighting:
-                #filtkey_list_SV = filtkey_list[:] + ['homog_error_weight']
                 # Rescore based on homography errors
                 #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
                 xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
@@ -1581,7 +1580,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
     # Create the result structures for each query.
     filtkey_list = qreq_.qparams.active_filter_list
     if qreq_.qparams.sver_weighting:
-        filtkey_list = filtkey_list[:] + ['homog_error_weight']
+        filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
 
     qres_list = qreq_.make_empty_query_results()
 
