@@ -121,7 +121,7 @@ TABLE_COLNAMES = {
         'thumb',
         'nid',
         #'nExAids',
-        #'exemplar',
+        'exemplar',
         #'aid',
         #'annot_gname',
         #'namenotes',

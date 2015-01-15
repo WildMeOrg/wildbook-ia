@@ -182,45 +182,68 @@ def get_system_exemplar_suggestion(ibs, qaid):
     num_other_exemplars = len(other_exemplars)
     #
     is_already_exemplar = not ibs.get_annot_exemplar_flags(qaid)
-    can_add_more = num_other_exemplars < max_exemplars
+    have_max_exemplars = num_other_exemplars >= max_exemplars
     print('[suggest_exemplar] num_other_exemplars = %r' % num_other_exemplars)
     print('[suggest_exemplar] is_already_exemplar = %r' % is_already_exemplar)
 
     exemplar_confidence = 0
 
+    exemplar_decision = False
+
     if num_other_exemplars == 0:
+        # Always add the first exemplar
         autoexmplr_msg = 'First exemplar of this name.'
         exemplar_decision = True
         exemplar_confidence = 1.0
         return autoexmplr_msg, exemplar_decision, exemplar_confidence
-    elif not is_already_exemplar and can_add_more:
-        print('[suggest_exemplar] Testing exemplar disinctiveness')
-        with ut.Indenter('[suggest_exemplar]'):
-            exemplar_distinctiveness_thresh = ibs.cfg.other_cfg.exemplar_distinctiveness_thresh
-            # Logic to choose query based on exemplar score distance
-            qaid_list = [qaid]
-            daid_list = other_exemplars
-            cfgdict = dict(codename='vsone_norm_csum')
-            qres = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
-            if qres is None:
-                is_distinctive = True
-            else:
-                #ut.embed()
-                aid_arr, score_arr = qres.get_aids_and_scores()
-                is_distinctive = np.all(aid_arr < exemplar_distinctiveness_thresh)
+    elif not is_already_exemplar and not have_max_exemplars:
+        METHOD = 2
+        if METHOD == 1:
+            exemplar_decision = exemplar_method1_distinctiveness(ibs, qaid, other_exemplars)
+        elif METHOD == 2:
+            exemplar_decision = exemplar_method2_randomness(ibs, qaid, other_exemplars)
+        elif METHOD == 3:
+            exemplar_decision = True
+
     else:
-        is_distinctive = True
+        exemplar_decision = True
         print('[suggest_exemplar] Not testing exemplar disinctiveness')
 
-    do_exemplar_add = (can_add_more and is_distinctive and not is_already_exemplar)
-    if do_exemplar_add:
+    if exemplar_decision:
         autoexmplr_msg = ('marking as qaid=%r exemplar' % (qaid,))
-        exemplar_decision = True
     else:
-        exemplar_decision = False
         autoexmplr_msg = 'annotation is not marked as exemplar'
 
     return autoexmplr_msg, exemplar_decision, exemplar_confidence
+
+
+def exemplar_method2_randomness(ibs, qaid, other_exemplars):
+    # FIXME: need to unset exemplars as well
+    import random
+    rand_thresh = .01
+    rand_float = random.random()
+    exemplar_decision = rand_thresh < rand_float
+    return exemplar_decision
+
+
+def exemplar_method1_distinctiveness(ibs, qaid, other_exemplars):
+    """
+    choose as exemplar if it is distinctive with respect to other exemplars
+    """
+    print('[suggest_exemplar] Testing exemplar disinctiveness')
+    exemplar_distinctiveness_thresh = ibs.cfg.other_cfg.exemplar_distinctiveness_thresh
+    # Logic to choose query based on exemplar score distance
+    qaid_list = [qaid]
+    daid_list = other_exemplars
+    cfgdict = dict(codename='vsone_norm_csum')
+    qres = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
+    if qres is None:
+        exemplar_decision = True
+    else:
+        #ut.embed()
+        aid_arr, score_arr = qres.get_aids_and_scores()
+        exemplar_decision = np.all(aid_arr < exemplar_distinctiveness_thresh)
+    return exemplar_decision
 
 
 if __name__ == '__main__':
