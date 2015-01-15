@@ -174,9 +174,10 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
         # state based exemplars
         qreq_vsmany_.set_internal_qaids(qaid_chunk)
         daid_list = qreq_vsmany_.get_external_daids()
-        if neighbor_index.check_background_process():
-            # background indexer is done, reload
-            qreq_vsmany_.load_indexer(force=True)
+        # Force indexer reloading if background process is completed we might
+        # get a shiny new indexer.
+        force = neighbor_index.check_background_process()
+        qreq_vsmany_.load_indexer(force=force)
     else:
         # FIXME: allow for multiple species or make a nicer way of ensuring that
         # there is only one species here
@@ -348,14 +349,21 @@ def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
     vsmany query request is updated if needbe and the execution continues.
     (currently to the end of this iteration)
     """
-    qaid = qres.get_qaid()
-    if exemplar_decision:
-        ibs.set_annot_exemplar_flags((qaid,), [1])
-        if 'qreq_vsmany_' in incinfo:
-            qreq_vsmany_ = incinfo.get('qreq_vsmany_')
-            # STATE_MAINTENANCE
-            # Add new query as a database annotation
-            qreq_vsmany_.add_internal_daids([qaid])
+    #qaid = qres.get_qaid()
+    new_aids, remove_aids = exemplar_decision
+    #if exemplar_decision:
+    if len(new_aids) > 0:
+        ibs.set_annot_exemplar_flags(new_aids, [True] * len(new_aids))
+    if len(remove_aids) > 0:
+        ibs.set_annot_exemplar_flags(remove_aids, [False] * len(remove_aids))
+    if 'qreq_vsmany_' in incinfo:
+        qreq_vsmany_ = incinfo.get('qreq_vsmany_')
+        # STATE_MAINTENANCE
+        # Add new query as a database annotation
+        if len(new_aids) > 0:
+            qreq_vsmany_.add_internal_daids(new_aids)
+        if len(remove_aids) > 0:
+            qreq_vsmany_.remove_internal_daids(remove_aids)
     run_until_finish(incinfo=incinfo)
 
 

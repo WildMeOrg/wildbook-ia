@@ -17,9 +17,14 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
 
 # Interactive GZ Test
 sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs --ia 10  --test-title "GZ_Inc_Errors"
+
 # Automatic GZ Test
 sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs  --test-title "GZ_Inc_Errors"
+
+# AUTOMATIC PZ_MTEST
 sh Tinc.sh --test-test_inc_query:1 --num-init 0 --devcache --no-normcache --vsone-errs  --test-title "PZ_Inc_Errors"
+# No testing
+sh Tinc.sh --test-test_inc_query:1 --num-init 0 --no-normcache --test-title "PZ_Inc_Errors"
 
 
 
