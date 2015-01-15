@@ -19,6 +19,8 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --vsone-errs
 sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs --ia 10  --test-title "GZ_Inc_Errors"
 # Automatic GZ Test
 sh Tinc.sh --test-test_inc_query:2 --num-init 100 --devcache --no-normcache --vsone-errs  --test-title "GZ_Inc_Errors"
+sh Tinc.sh --test-test_inc_query:1 --num-init 0 --devcache --no-normcache --vsone-errs  --test-title "PZ_Inc_Errors"
+
 
 
 # Automatic GZ Test Small
@@ -543,7 +545,8 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     # Create pseudo query request because there is no good way to
     # represent the vsone reranking as a single query request and
     # we need one for the score normalizer
-    pseudo_codename_ = codename.replace('unnorm', 'norm') + '_extern_distinctiveness'
+    #pseudo_codename_ = codename.replace('unnorm', 'norm') + '_extern_distinctiveness'
+    pseudo_codename_ = codename.replace('unnorm', 'norm')  # + '_extern_distinctiveness'
     pseudo_vsone_cfgdict = dict(codename=pseudo_codename_)
     pseudo_qaids = ut.get_list_column(vsone_query_pairs, 0)
     pseudo_daids = ut.unique_ordered(ut.flatten(ut.get_list_column(vsone_query_pairs, 1)))
@@ -552,7 +555,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
     pseudo_qreq_vsone_ = ibs.new_query_request(pseudo_qaids, pseudo_daids,
                                                cfgdict=pseudo_vsone_cfgdict,
                                                verbose=ut.VERBOSE)
-    pseudo_qreq_vsone_.load_distinctiveness_normalizer()
+    #pseudo_qreq_vsone_.load_distinctiveness_normalizer()
     qreq_vsone_ = pseudo_qreq_vsone_
     # Hack in a special config name
     qreq_vsone_.qparams.query_cfgstr = '_special' + qreq_vsone_.qparams.query_cfgstr
@@ -610,7 +613,7 @@ def augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vs
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         VSMANY_DISTINCTIVENESS = qreq_vsone_.qparams.use_external_distinctiveness
         # VSMANY DISTINCTIVENESS
-        if VSMANY_DISTINCTIVENESS:
+        if True or VSMANY_DISTINCTIVENESS:
             newfsv_list, newscore_aids = get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey)
         else:
             # VSONE DISTINCTIVENESS

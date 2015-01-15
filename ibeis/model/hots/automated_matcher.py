@@ -327,9 +327,8 @@ def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
     (autoexemplar_msg, exemplar_decision, exemplar_condience) = exmplr_suggestion
     print('autoexemplar_msg=')
     print(autoexemplar_msg)
-    need_user_input = (
-        False and incinfo.get('interactive', False) and
-        exemplar_condience < exemplar_confidence_thresh)
+    # HACK: Disable asking users a about exemplars
+    need_user_input = False and (incinfo.get('interactive', False) and exemplar_condience < exemplar_confidence_thresh)
     if need_user_input:
         user_dialogs.wait_for_user_exemplar_decision(
             autoexemplar_msg, exemplar_decision, exemplar_condience)
