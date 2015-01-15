@@ -831,8 +831,8 @@ class IBEISController(object):
             # normally)
             element = './/%sobservations' % (namespace, )
             observation_list = waypoint.findall(element)
-            if len(observation_list) == 0:
-                raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
+            # if len(observation_list) == 0:
+                # raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
             for observation in observation_list:
                 # Filter the observations based on type, we only care
                 # about certain types
@@ -851,14 +851,14 @@ class IBEISController(object):
                         raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
                     # Python cast the value
                     photo_number = int(float(sValue.text)) - offset
-                    if last_photo_number >= nTotal:
+                    if photo_number >= nTotal:
                         raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
                     # Keep track of the last waypoint that was processed
                     # becuase we only have photono, which indicates start
                     # indices and doesn't specify the end index.  The
                     # ending index is extracted as the next waypoint's
                     # photonum minus 1.
-                    if last_photo_number is not None:
+                    if last_photo_number is not None and last_encounter_info is not None:
                         encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
                         encounter_info_list.append(encounter_info)
                     last_photo_number = photo_number
@@ -866,8 +866,9 @@ class IBEISController(object):
                 else:
                     print('[ibs]     Skipped Observation with "categoryKey": %r' % (categoryKey, ))
         # Append the last photo_number
-        encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
-        encounter_info_list.append(encounter_info)
+        if last_photo_number is not None and last_encounter_info is not None:
+            encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
+            encounter_info_list.append(encounter_info)
         return encounter_info_list
 
     #@ut.indent_func('[ibs.compute_encounters]')
