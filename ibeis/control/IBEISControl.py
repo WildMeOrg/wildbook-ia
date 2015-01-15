@@ -695,20 +695,25 @@ class IBEISController(object):
             print('[_send] URL=%r' % (submit_url_, ))
             smart_xml_fname = ibs.get_encounter_smart_xml_fnames([eid])[0]
             smart_waypoint_id = ibs.get_encounter_smart_waypoint_ids([eid])[0]
-            print(smart_xml_fname, smart_waypoint_id)
-            smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
-            smart_xml_content_list = open(smart_xml_fpath).readlines()
-            print('Sending with SMART patrol: %r (%d lines)' % (smart_xml_fpath, len(smart_xml_content_list)))
-            smart_xml_content = ''.join(smart_xml_content_list)
-            payload = {
-                'smart_xml_content': smart_xml_content,
-                'smart_waypoint_id': smart_waypoint_id,
-            }
+            if smart_xml_fname is not None and smart_waypoint_id is not None:
+                print(smart_xml_fname, smart_waypoint_id)
+                smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
+                smart_xml_content_list = open(smart_xml_fpath).readlines()
+                print('[_send] Sending with SMART payload - patrol: %r (%d lines) waypoint_id: %r' %
+                      (smart_xml_fpath, len(smart_xml_content_list), smart_waypoint_id))
+                smart_xml_content = ''.join(smart_xml_content_list)
+                payload = {
+                    'smart_xml_content': smart_xml_content,
+                    'smart_waypoint_id': smart_waypoint_id,
+                }
+            else:
+                payload = None
             response = ibs._init_wb(submit_url_, payload)
             if response.status_code == 200:
                 return True
             else:
-                print("WILDBOOK SERVER RESPONSE = %r" % (response.text, ))
+                print("[_send] ERROR: WILDBOOK SERVER STATUS = %r" % (response.status_code, ))
+                print("[_send] ERROR: WILDBOOK SERVER RESPONSE = %r" % (response.text, ))
                 webbrowser.open_new_tab(submit_url_)
                 raise AssertionError('Wildbook response NOT ok (200)')
                 return False
