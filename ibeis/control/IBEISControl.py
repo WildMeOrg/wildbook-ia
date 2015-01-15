@@ -854,19 +854,7 @@ class IBEISController(object):
     #@ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters_smart(ibs, gid_list, smart_xml_fpath):
         """
-        CommandLine:
-            # open the temp smart file in gvim
-            python -m ibeis.dev.sysres --test-grab_example_smart_xml_fpath
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.control import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> # build test data
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> smart_xml_fname='dummy_smart.xml'
-            >>> # DO FUNC
-            >>> ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
+        Function to load and process a SMART patrol XML file
         """
         # Get file and copy to ibeis database folder
         xml_dir, xml_name = split(smart_xml_fpath)
@@ -896,7 +884,6 @@ class IBEISController(object):
             ibs.set_encounter_smart_waypoint_ids([eid], [smart_waypoint_id])
             # Set the encounter's time based on the images
             unixtime_list = sorted(ibs.get_image_unixtime(gid_list_))
-            print(unixtime_list)
             start_time = unixtime_list[0]
             end_time = unixtime_list[-1]
             ibs.set_encounter_start_time_posix([eid], [start_time])
