@@ -25,7 +25,7 @@ def _guitool_cache_read(key, **kwargs):
 
 
 def user_option(parent=None, msg='msg', title='user_option',
-                options=['No', 'Yes'], use_cache=False):
+                options=['No', 'Yes'], use_cache=False, default=None):
     """
     Prompts user with several options with ability to save decision
 
@@ -35,6 +35,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         title (str):
         options (list):
         use_cache (bool):
+        default (str): default option
 
     Returns:
         str: reply
@@ -45,14 +46,17 @@ def user_option(parent=None, msg='msg', title='user_option',
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
         >>> # build test data
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_option'
         >>> options = ['No', 'Yes']
         >>> use_cache = False
+        >>> default = 'Yes'
         >>> # execute function
-        >>> reply = user_option(parent, msg, title, options, use_cache)
+        >>> reply = user_option(parent, msg, title, options, use_cache, default)
         >>> # verify results
         >>> result = str(reply)
         >>> print(result)
@@ -68,6 +72,11 @@ def user_option(parent=None, msg='msg', title='user_option',
     # Create message box
     msgbox = _newMsgBox(msg, title, parent)
     _addOptions(msgbox, options)
+    # Set default button
+    if default is not None:
+        for qbutton in msgbox.buttons():
+            if default == qbutton.text():
+                msgbox.setDefaultButton(qbutton)
     if use_cache:
         # Add a remember me option if caching is on
         dontPrompt = _cacheReply(msgbox)
