@@ -86,7 +86,7 @@ def gen_featweight_worker(tup):
         >>> print('weights[0:3] = %r' % (weights_03_test,))
         >>> #weights_03_target = [ 0.098, 0.155,  0.422]
         >>> weights_03_target = [ 0.324, 0.407,  0.688]
-        >>> weights_thresh    = [ 0.005, 0.002,  0.002]
+        >>> weights_thresh    = [ 0.01, 0.01,  0.01]
         >>> ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
         >>> assert aid == 3
 
@@ -243,7 +243,7 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
         >>> featweight_list = featweighttup_list[0][0]
         >>> featweight_test = featweight_list[0:3]
         >>> featweight_target = [ 0.349, 0.218, 0.242]
-        >>> ut.assert_almost_eq(featweight_test, featweight_target, .01)
+        >>> ut.assert_almost_eq(featweight_test, featweight_target, .1)
     """
     # HACK: TODO AUTOGENERATE THIS
     #cid_list = ibs.get_feat_cids(fid_list)

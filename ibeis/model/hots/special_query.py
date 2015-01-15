@@ -514,9 +514,8 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
         >>> qres_vsone = qaid2_qres_vsone[qaid]
         >>> top_namescore_aids = qres_vsone.get_top_aids(ibs=ibs, name_scoring=True).tolist()
         >>> result = str(top_namescore_aids)
-        >>> print(result)
-        [3, 5]
-
+        >>> top_namescore_names = ibs.get_annot_names(top_namescore_aids)
+        >>> assert top_namescore_names[0] == 'easy'
     """
     #vsone_cfgdict = dict(codename='vsone_unnorm')
     #codename = 'vsone_unnorm_dist_ratio_extern_distinctiveness',
