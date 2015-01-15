@@ -219,7 +219,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         fnum = df2.next_fnum()
         fig = df2.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
         # can cause freezes should be False
-        INTERACT_EXAMINE = True
+        INTERACT_EXAMINE = False
         if INTERACT_EXAMINE:
             #fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
             fig = self.qres.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
