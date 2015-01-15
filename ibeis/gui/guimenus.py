@@ -138,20 +138,20 @@ def setup_actions_menu(mainwin, back):
     #    slot_fn=back.select_prev)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
-        name='actionDelete_ANNOTATION',
-        text='Delete ANNOTATION',
-        shortcut='Ctrl+Del',
-        slot_fn=back.delete_annot)
-    mainwin.menuActions.newAction(
-        name='actionDelete_Image',
-        text='Trash Image',
-        shortcut='',
-        slot_fn=back.delete_image)
-    mainwin.menuActions.newAction(
         name='actionDeleteAllEncounters',
         text='Delete All Encounters',
         shortcut='',
         slot_fn=back.delete_all_encounters)
+    mainwin.menuActions.newAction(
+        name='actionDelete_Image',
+        text='Delete Image',
+        shortcut='',
+        slot_fn=back.delete_image)
+    mainwin.menuActions.newAction(
+        name='actionDelete_ANNOTATION',
+        text='Delete Annotation',
+        shortcut='Ctrl+Del',
+        slot_fn=back.delete_annot)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
         name='actionTrainWithEncounters',

@@ -111,8 +111,8 @@ TABLE_COLNAMES = {
         'nImgs',
         'encounter_start_datetime',
         #'encounter_end_datetime',
-        #'encounter_processed_flag',
-        #'encounter_shipped_flag',
+        'encounter_processed_flag',
+        'encounter_shipped_flag',
     ],
 
     NAMES_TREE      : [

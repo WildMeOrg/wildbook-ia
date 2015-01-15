@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import sys
 from six.moves import zip
-from os.path import exists, join, split
+from os.path import exists, join
 import functools
 # GUITool
 import guitool
@@ -25,7 +25,6 @@ from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
-import xml.etree.ElementTree as ET
 # Utool
 #import utool
 import utool as ut
@@ -439,9 +438,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def delete_annot(back, aid_list=None):
         """ Action -> Delete Chip"""
-        print('[back] delete_annot')
+        print('[back] delete_annot, aid_list = %r' % (aid_list, ))
         if aid_list is None:
-            aid_list = back.get_selected_aid()
+            aid_list = [back.get_selected_aid()]
         if not back.are_you_sure():
             return
         # get the image-id of the annotation we are deleting
@@ -482,14 +481,14 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot(int)
-    def delete_image(back, gid=None):
+    def delete_image(back, gid_list=None):
         """ Action -> Delete Images"""
-        print('[back] delete_image')
+        print('[back] delete_image, gid_list = %r' % (gid_list, ))
+        if gid_list is None or gid_list is False:
+            gid_list = [back.get_selected_gid()]
         if not back.are_you_sure():
             return
-        print("DELETING GID: %r" % (gid, ))
-        gid = cast_from_qt(gid)
-        back.ibs.delete_images(gid)
+        back.ibs.delete_images(gid_list)
         back.front.update_tables()
 
     @blocking_slot()
@@ -1251,77 +1250,6 @@ class MainWindowBackend(QtCore.QObject):
                                                refresh=refresh, clock_offset=False)
         back._add_images_with_smart_patrol(gid_list, refresh=refresh)
 
-    def _parse_smart_xml(back, xml_path, nTotal, offset=1):
-        # Storage for the patrol encounters
-        xml_dir, xml_name = split(xml_path)
-        encounter_info_list = []
-        last_photo_number = None
-        last_encounter_info = None
-        # Parse the XML file for the information
-        patrol_tree = ET.parse(xml_path)
-        namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
-        # Load all waypoint elements
-        element = './/%swaypoints' % (namespace, )
-        waypoint_list = patrol_tree.findall(element)
-        if len(waypoint_list) == 0:
-            raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
-        for waypoint in waypoint_list:
-            # Get the relevant information about the waypoint
-            waypoint_id   = int(waypoint.get('id'))
-            waypoint_lat  = float(waypoint.get('y'))
-            waypoint_lon  = float(waypoint.get('x'))
-            waypoint_time = waypoint.get('time')
-            waypoint_info = [
-                xml_name,
-                waypoint_id,
-                (waypoint_lat, waypoint_lon),
-                waypoint_time,
-            ]
-            if None in waypoint_info:
-                raise IOError('The observation (waypoint) is missing information: %r' % (waypoint_info, ))
-            # Get all of the waypoint's observations (we expect only one
-            # normally)
-            element = './/%sobservations' % (namespace, )
-            observation_list = waypoint.findall(element)
-            if len(observation_list) == 0:
-                raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
-            for observation in observation_list:
-                # Filter the observations based on type, we only care
-                # about certain types
-                categoryKey = observation.attrib['categoryKey']
-                if categoryKey.startswith('animals.'):
-                    # Get the photonumber attribute for the waypoint's
-                    # observation
-                    element = './/%sattributes[@attributeKey="photonumber"]' % (namespace, )
-                    photonumber = observation.find(element)
-                    if photonumber is None:
-                        raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
-                    element = './/%ssValue' % (namespace, )
-                    # Get the value for photonumber
-                    sValue  = photonumber.find(element)
-                    if sValue is None:
-                        raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
-                    # Python cast the value
-                    photo_number = int(float(sValue.text)) - offset
-                    if last_photo_number >= nTotal:
-                        raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
-                    # Keep track of the last waypoint that was processed
-                    # becuase we only have photono, which indicates start
-                    # indices and doesn't specify the end index.  The
-                    # ending index is extracted as the next waypoint's
-                    # photonum minus 1.
-                    if last_photo_number is not None:
-                        encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
-                        encounter_info_list.append(encounter_info)
-                    last_photo_number = photo_number
-                    last_encounter_info = waypoint_info
-                else:
-                    print('[back]     Skipped Observation with "categoryKey": %r' % (categoryKey, ))
-        # Append the last photo_number
-        encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
-        encounter_info_list.append(encounter_info)
-        return encounter_info_list
-
     def _add_images_with_smart_patrol(back, gid_list, refresh=True):
         if gid_list is not None and len(gid_list) > 0:
             name_filter = 'XML Files (*.xml)'
@@ -1330,42 +1258,8 @@ class MainWindowBackend(QtCore.QObject):
             # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
             assert len(xml_path_list) < 2, "Cannot specity more than one Patrol XML file"
             if len(xml_path_list) == 1:
-                # Get file and copy to ibeis database folder
-                src_xml_path = xml_path_list[0]
-                xml_dir, xml_name = split(src_xml_path)
-                dst_xml_path = join(back.ibs.get_smart_patrol_dir(), xml_name)
-                ut.copy(src_xml_path, dst_xml_path, overwrite=True)
-                # Process the XML File
-                print("[back] Processing Patrol XML file: %r" % (dst_xml_path, ))
-                encounter_info_list = back._parse_smart_xml(dst_xml_path, len(gid_list))
-                # Display the patrol encounters
-                for index, encounter_info in enumerate(encounter_info_list):
-                    smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
-                    start, end = range_
-                    gid_list_ = gid_list[start:end]
-                    print('[back]     Found Patrol Encounter: %r' % (encounter_info, ))
-                    print('[back]         GIDs: %r' % (gid_list_, ))
-                    # Add the GPS data to the iamges
-                    gps_list  = [ gps ] * len(gid_list_)
-                    back.ibs.set_image_gps(gid_list_, gps_list)
-                    # Create a new encounter
-                    enctext = 'Observation %s' % (index + 1, )
-                    eid = back.ibs.add_encounters(enctext)
-                    # Add images to the encounters
-                    eid_list = [eid] * len(gid_list_)
-                    back.ibs.set_image_eids(gid_list_, eid_list)
-                    # Set the encounter's smart fields
-                    back.ibs.set_encounter_smart_xml_fnames([eid], [smart_xml_fname])
-                    back.ibs.set_encounter_smart_waypoint_ids([eid], [smart_waypoint_id])
-                    # Set the encounter's time based on the images
-                    unixtime_list = sorted(back.ibs.get_image_unixtime(gid_list_))
-                    print(unixtime_list)
-                    start_time = unixtime_list[0]
-                    end_time = unixtime_list[-1]
-                    back.ibs.set_encounter_start_time_posix([eid], [start_time])
-                    back.ibs.set_encounter_end_time_posix([eid], [end_time])
-                # Complete
-                print("[back] ...Done processing Patrol XML file")
+                smart_xml_fpath = xml_path_list[0]
+                back.ibs.compute_encounters_smart(gid_list, smart_xml_fpath)
         if refresh:
             ibsfuncs.update_ungrouped_special_encounter(back.ibs)
             back.front.update_tables([gh.ENCOUNTER_TABLE])
