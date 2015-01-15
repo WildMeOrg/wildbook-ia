@@ -946,7 +946,7 @@ class MainWindowBackend(QtCore.QObject):
             back.ibs.wildbook_signal_eid_list([eid])
             back.front.enc_tabwgt._close_tab_with_eid(eid)
             if refresh:
-                back.front.update_tables([gh.IMAGE_TABLE])
+                back.front.update_tables([gh.ENCOUNTER_TABLE])
 
     def send_unshipped_processed_encounters(back, refresh=True):
         processed_set = set(back.ibs.get_valid_eids(processed=True))
