@@ -57,6 +57,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> default = 'Yes'
         >>> # execute function
         >>> reply = user_option(parent, msg, title, options, use_cache, default)
+        >>> #guitool.guitool_main.qtapp_loop()
         >>> # verify results
         >>> result = str(reply)
         >>> print(result)
@@ -302,3 +303,16 @@ def _getQtImageNameFilter():
     imgNamePat = ' '.join(['*' + ext for ext in util_path.IMG_EXTENSIONS])
     imgNameFilter = 'Images (%s)' % (imgNamePat)
     return imgNameFilter
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m guitool.guitool_dialogs
+        python -m guitool.guitool_dialogs --allexamples
+        python -m guitool.guitool_dialogs --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
