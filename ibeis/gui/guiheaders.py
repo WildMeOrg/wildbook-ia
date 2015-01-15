@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 from ibeis import constants
 import utool as ut
+from functools import partial
 #from ibeis.control import
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[headers]', DEBUG=False)
 
@@ -111,8 +112,8 @@ TABLE_COLNAMES = {
         'nImgs',
         'encounter_start_datetime',
         #'encounter_end_datetime',
-        #'encounter_processed_flag',
-        #'encounter_shipped_flag',
+        # 'encounter_processed_flag',
+        # 'encounter_shipped_flag',
     ],
 
     NAMES_TREE      : [
@@ -293,7 +294,7 @@ def make_ibeis_headers_dict(ibs):
     }
     #
     # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
+    iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
     getters[ENCOUNTER_TABLE] = {
         'eid'        : lambda eids: eids,
         'nImgs'      : ibs.get_encounter_num_gids,

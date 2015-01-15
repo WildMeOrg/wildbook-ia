@@ -28,6 +28,7 @@ from ibeis import constants as const
 from ibeis import params
 from ibeis.control import accessor_decors
 from ibeis.control.accessor_decors import (default_decorator, )
+import xml.etree.ElementTree as ET
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
@@ -779,8 +780,79 @@ class IBEISController(object):
     # --- ENCOUNTER CLUSTERING ---
     #-----------------------------
 
+    def _parse_smart_xml(back, xml_path, nTotal, offset=1):
+        # Storage for the patrol encounters
+        xml_dir, xml_name = split(xml_path)
+        encounter_info_list = []
+        last_photo_number = None
+        last_encounter_info = None
+        # Parse the XML file for the information
+        patrol_tree = ET.parse(xml_path)
+        namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
+        # Load all waypoint elements
+        element = './/%swaypoints' % (namespace, )
+        waypoint_list = patrol_tree.findall(element)
+        if len(waypoint_list) == 0:
+            raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
+        for waypoint in waypoint_list:
+            # Get the relevant information about the waypoint
+            waypoint_id   = int(waypoint.get('id'))
+            waypoint_lat  = float(waypoint.get('y'))
+            waypoint_lon  = float(waypoint.get('x'))
+            waypoint_time = waypoint.get('time')
+            waypoint_info = [
+                xml_name,
+                waypoint_id,
+                (waypoint_lat, waypoint_lon),
+                waypoint_time,
+            ]
+            if None in waypoint_info:
+                raise IOError('The observation (waypoint) is missing information: %r' % (waypoint_info, ))
+            # Get all of the waypoint's observations (we expect only one
+            # normally)
+            element = './/%sobservations' % (namespace, )
+            observation_list = waypoint.findall(element)
+            if len(observation_list) == 0:
+                raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
+            for observation in observation_list:
+                # Filter the observations based on type, we only care
+                # about certain types
+                categoryKey = observation.attrib['categoryKey']
+                if categoryKey.startswith('animals.'):
+                    # Get the photonumber attribute for the waypoint's
+                    # observation
+                    element = './/%sattributes[@attributeKey="photonumber"]' % (namespace, )
+                    photonumber = observation.find(element)
+                    if photonumber is None:
+                        raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
+                    element = './/%ssValue' % (namespace, )
+                    # Get the value for photonumber
+                    sValue  = photonumber.find(element)
+                    if sValue is None:
+                        raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
+                    # Python cast the value
+                    photo_number = int(float(sValue.text)) - offset
+                    if last_photo_number >= nTotal:
+                        raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
+                    # Keep track of the last waypoint that was processed
+                    # becuase we only have photono, which indicates start
+                    # indices and doesn't specify the end index.  The
+                    # ending index is extracted as the next waypoint's
+                    # photonum minus 1.
+                    if last_photo_number is not None:
+                        encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
+                        encounter_info_list.append(encounter_info)
+                    last_photo_number = photo_number
+                    last_encounter_info = waypoint_info
+                else:
+                    print('[ibs]     Skipped Observation with "categoryKey": %r' % (categoryKey, ))
+        # Append the last photo_number
+        encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
+        encounter_info_list.append(encounter_info)
+        return encounter_info_list
+
     #@ut.indent_func('[ibs.compute_encounters]')
-    def compute_encounters_smart(ibs, smart_xml_fname=None):
+    def compute_encounters_smart(ibs, gid_list, smart_xml_fpath):
         """
         CommandLine:
             # open the temp smart file in gvim
@@ -795,96 +867,42 @@ class IBEISController(object):
             >>> smart_xml_fname='dummy_smart.xml'
             >>> # DO FUNC
             >>> ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
-
-
         """
-        smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
-        ut.checkpath(smart_xml_fpath, verbose=True)
-        print('Parsing: %r' % (smart_xml_fpath,))
-
-        # DUMMY DATA
-        # --- STEP 1: DEFINE WAYPOINT ENCOUNTERS ---
-        # TODO: parse XML File
-        # Parse in header data
-        def get_dummy_smart_header_data():
-            smart_start_datestr = '2015-01-14'
-            smart_end_datestr = '2015-01-14'
-            smart_end_time = '16:06:46'
-            headertup = (smart_start_datestr, smart_end_datestr, smart_end_time)
-            return headertup
-
-        def get_dummy_waypoint_data():
-            # Parse in data for each waypoint
-            waypoint_id_list = [2, 3]
-            waypoint_start_time_list = ['14:43:48', '15:14:53']
-            # longitude
-            waypoint_x_list   = [37.4640177654802, 37.4527345773874]
-            # latitude
-            waypoint_y_list   = [0.196578812956162, 0.204252529437608]
-
-            waypointtup = (waypoint_id_list, waypoint_start_time_list, waypoint_x_list, waypoint_y_list)
-            return waypointtup
-
-        def parse_smart_header():
-            raise NotImplementedError()
-
-        def parse_smart_waypoints():
-            raise NotImplementedError()
-
-        # parse
-        headertup = get_dummy_smart_header_data()
-        waypointtup = get_dummy_waypoint_data()
-        #headertup = parse_smart_header()
-        #waypointtup = parse_smart_waypoints()
-        # unpack
-        (smart_start_datestr, smart_end_datestr, smart_end_time) = headertup
-        (waypoint_id_list, waypoint_start_time_list, waypoint_x_list, waypoint_y_list) = waypointtup
-        # infer
-        # FIXME: what if the date changes mid waypoint?
-        assert smart_start_datestr == smart_end_datestr, 'need fancier logic to handle late night game drives'
-        # Unfortunately we need to infer end date
-        waypoint_end_time_list = waypoint_start_time_list[1:] + [smart_end_time]
-
-        def smart_time_to_posix(datestr, smart_timestrs):
-            """ helper """
-            timestamp_format = '%Y-%m-%d %H:%M:%S'
-            datetime_str_list = [datestr + ' ' + timestr for timestr in smart_timestrs]
-            posixtime_list = [ut.exiftime_to_unixtime(datetime_str, timestamp_format)
-                              for datetime_str in datetime_str_list ]
-            return posixtime_list
-
-        # Convert dates to unix/posix time
-        start_time_posix_list = smart_time_to_posix(smart_start_datestr, waypoint_start_time_list)
-        end_time_posix_list = smart_time_to_posix(smart_start_datestr, waypoint_end_time_list)
-
-        # Create UNIQUE encounter text for new encounters
-        start_datetime_list = list(map(ut.unixtime_to_datetime, start_time_posix_list))
-        new_enctext_list = ['Waypoint %d - %s' % (wayointid, timestr)
-                            for (wayointid, timestr) in
-                            zip(waypoint_id_list, start_datetime_list)]
-
-        # create a new encounter for every waypoint
-        new_eid_list = ibs.add_encounters(new_enctext_list)
-        # set encounte properties
-        ibs.set_encounter_gps_lats(new_eid_list, waypoint_y_list)
-        ibs.set_encounter_gps_lons(new_eid_list, waypoint_x_list)
-        ibs.set_encounter_start_time_posix(new_eid_list, start_time_posix_list)
-        ibs.set_encounter_end_time_posix(new_eid_list, end_time_posix_list)
-        ibs.set_encounter_smart_waypoint_ids(new_eid_list, waypoint_id_list)
-        ibs.set_encounter_smart_xml_fnames(new_eid_list, [smart_xml_fname] * len(new_eid_list))
-
-        # --- STEP 2: ASSOCIATE IMAGES WITH ENCOUNTERS ---
-        # do magic to associate images with encounters
-        #gid_list = ibs.get_ungrouped_gids()
-        gid_list = ibs.get_valid_gids()
-        eid_list = []
-        # For each gid assign it to an eid
-        import random
-        for gid in gid_list:
-            # technically there is a chance this will work...
-            eid = random.choice(new_eid_list)
-            eid_list.append(eid)
-        ibs.set_image_eids(gid_list, eid_list)
+        # Get file and copy to ibeis database folder
+        xml_dir, xml_name = split(smart_xml_fpath)
+        dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
+        ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
+        # Process the XML File
+        print("[ibs] Processing Patrol XML file: %r" % (dst_xml_path, ))
+        encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
+        # Display the patrol encounters
+        for index, encounter_info in enumerate(encounter_info_list):
+            smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
+            start, end = range_
+            gid_list_ = gid_list[start:end]
+            print('[ibs]     Found Patrol Encounter: %r' % (encounter_info, ))
+            print('[ibs]         GIDs: %r' % (gid_list_, ))
+            # Add the GPS data to the iamges
+            gps_list  = [ gps ] * len(gid_list_)
+            ibs.set_image_gps(gid_list_, gps_list)
+            # Create a new encounter
+            enctext = 'Observation %s' % (index + 1, )
+            eid = ibs.add_encounters(enctext)
+            # Add images to the encounters
+            eid_list = [eid] * len(gid_list_)
+            ibs.set_image_eids(gid_list_, eid_list)
+            # Set the encounter's smart fields
+            ibs.set_encounter_smart_xml_fnames([eid], [smart_xml_fname])
+            ibs.set_encounter_smart_waypoint_ids([eid], [smart_waypoint_id])
+            # Set the encounter's time based on the images
+            unixtime_list = sorted(ibs.get_image_unixtime(gid_list_))
+            print(unixtime_list)
+            start_time = unixtime_list[0]
+            end_time = unixtime_list[-1]
+            ibs.set_encounter_start_time_posix([eid], [start_time])
+            ibs.set_encounter_end_time_posix([eid], [end_time])
+        # Complete
+        print("[ibs] ...Done processing Patrol XML file")
 
     #@ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
