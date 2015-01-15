@@ -777,6 +777,8 @@ class MainWindowBackend(QtCore.QObject):
         back.confirm_query_dialog(daid_list, qaid_list)
         # Get the database annotation ids to be searched
         # Execute Query
+        if len(daid_list) == 0:
+            raise AssertionError('No exemplars set for this species')
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if back.query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
@@ -1315,6 +1317,9 @@ class MainWindowBackend(QtCore.QObject):
     def are_you_sure(back, use_msg=None, title='Confirmation'):
         """ Prompt user for conformation before changing something """
         msg = 'Are you sure?' if use_msg is None else use_msg
+        print('[back] Asking User if sure')
+        print('[back] title = %s' % (title,))
+        print('[back] msg =\n%s' % (msg,))
         ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
                                use_cache=False)
         return ans == 'Yes'

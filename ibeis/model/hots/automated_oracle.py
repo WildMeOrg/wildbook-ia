@@ -38,7 +38,8 @@ def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
     Find what the correct decision should be ibs is the database we are working
     with ibs_gt has pristine groundtruth
     """
-    print('Oracle is making decision using oracle_method=%r' % oracle_method)
+    if ut.VERBOSE:
+        print('Oracle is making decision using oracle_method=%r' % oracle_method)
     if metatup is None:
         print('WARNING METATUP IS NONE')
         return None
@@ -57,7 +58,8 @@ def get_oracle_name_decision(metatup, ibs, qaid, choicetup, oracle_method=1):
         chosen_names = oracle_method2(ibs_gt, qnid1)
     else:
         raise AssertionError('unknown oracle method %r' % (oracle_method,))
-    print('Oracle decision is chosen_names=%r' % (chosen_names,))
+    if ut.VERBOSE:
+        print('Oracle decision is chosen_names=%r' % (chosen_names,))
     return chosen_names
 
 

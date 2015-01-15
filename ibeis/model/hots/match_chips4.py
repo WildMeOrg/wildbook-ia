@@ -202,7 +202,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         # mask queries that have already been executed
         qreq_.set_external_qaid_mask(cachehit_qaids)
     else:
-        print('[mc4] cache-query is off')
+        if ut.VERBOSE:
+            print('[mc4] cache-query is off')
         qaid2_qres_hit = {}
     # Execute and save cachemiss queries
     if qreq_.qparams.vsone:
@@ -227,7 +228,8 @@ def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):
     if save_qcache:
         pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
     else:
-        print('[mc4] not saving vsmany chunk')
+        if ut.VERBOSE:
+            print('[mc4] not saving vsmany chunk')
     return qaid2_qres
 
 
@@ -246,10 +248,12 @@ def execute_vsone_query(ibs, qreq_, verbose, save_qcache):
         qaid2_qres_ = {qaid: qres for qaid, qres in qres_chunk}
         # Save chunk of vsone queries
         if save_qcache:
-            print('[mc4] saving vsone chunk')
+            if ut.VERBOSE:
+                print('[mc4] saving vsone chunk')
             pipeline.save_resdict(qreq_, qaid2_qres_, verbose=verbose)
         else:
-            print('[mc4] not saving vsone chunk')
+            if ut.VERBOSE:
+                print('[mc4] not saving vsone chunk')
         # Add current chunk to results
         qaid2_qres.update(qaid2_qres_)
     return qaid2_qres
@@ -270,7 +274,8 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
     qreq_chunk_iter = ut.ichunks(qreq_shallow_iter, chunksize)
     for qreq_chunk in qreq_chunk_iter:
         for __qreq, qaid in qreq_chunk:
-            print('Generating vsone for qaid=%d' % (qaid,))
+            if ut.VERBOSE:
+                print('Generating vsone for qaid=%d' % (qaid,))
             qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
             yield (qaid, qres)
 

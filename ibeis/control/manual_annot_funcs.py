@@ -1449,10 +1449,25 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> result = str(aid_list)
         >>> print(result)
         [1, 4]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
+        >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
+        >>> intersect_aids = set(aid_list1).intersection(aid_list2)
+        >>> ut.assert_eq(len(aid_list1), 9)
+        >>> ut.assert_eq(len(aid_list2), 4)
+        >>> ut.assert_eq(len(intersect_aids), 0)
     """
     # getting encounter aid
     if eid is None:
-        if is_exemplar is True:
+        if is_exemplar is not None:
             # Optimization Hack
             aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
         else:
@@ -1468,6 +1483,9 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
             # corresponding unoptimized hack for is_exemplar
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
             aid_list  = ut.filter_items(aid_list, flag_list)
+        elif is_exemplar is False:
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.filterfalse_items(aid_list, flag_list)
     # -- valid aid filtering --
     if include_only_gid_list is not None:
         gid_list     = ibs.get_annot_gids(aid_list)

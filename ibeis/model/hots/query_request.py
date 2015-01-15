@@ -172,6 +172,44 @@ class QueryRequest(object):
         qreq_.set_external_qaids(qaid_list)
 
     @profile
+    def remove_internal_daids(qreq_, remove_daids):
+        r"""
+        State Modification: remove daids from the query request.  Do not call
+        this function often. It invalidates the indexer, which is very slow to
+        rebuild.  Should only be done between query pipeline runs.
+
+        CommandLine:
+            python -m ibeis.model.hots.query_request --test-remove_internal_daids
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> daids = ibs.get_valid_aids(species=species, is_exemplar=True)
+            >>> qaids = ibs.get_valid_aids(species=species, is_exemplar=False)
+            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> remove_daids = daids[0:1]
+            >>> # execute function
+            >>> assert len(qreq_.internal_daids) == 4, 'bad setup data'
+            >>> qreq_.remove_internal_daids(remove_daids)
+            >>> # verify results
+            >>> assert len(qreq_.internal_daids) == 3, 'did not remove'
+        """
+        # Invalidate the current indexer, mask and metadata
+        qreq_.indexer = None
+        qreq_.internal_daids_mask = None
+        qreq_.metadata = {}
+        # Find indicies to remove
+        delete_flags = vt.get_covered_mask(qreq_.internal_daids, remove_daids)
+        delete_indices = np.where(delete_flags)[0]
+        assert len(delete_indices) == len(remove_daids), 'requested removal of nonexistant daids'
+        # Remove indicies
+        qreq_.internal_daids = np.delete(qreq_.internal_daids, delete_indices)
+
+    @profile
     def add_internal_daids(qreq_, new_daids):
         """
         State Modification: add new daid to query request. Should only be
