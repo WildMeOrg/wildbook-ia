@@ -1221,7 +1221,7 @@ class MainWindowBackend(QtCore.QObject):
             return
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
-            raise NotImplementedError('SCan someone implement the size filter?')
+            raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
         return back._add_images(refresh, gid_list, clock_offset=clock_offset)
         #print('')
