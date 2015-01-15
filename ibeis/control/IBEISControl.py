@@ -694,7 +694,7 @@ class IBEISController(object):
             submit_url_ = submit_url % (hostname, encounter_uuid)
             print('[_send] URL=%r' % (submit_url_, ))
             smart_xml_fname = ibs.get_encounter_smart_xml_fnames([eid])[0]
-            smart_waypoint_id = ibs.set_encounter_smart_waypoint_ids([eid])[0]
+            smart_waypoint_id = ibs.get_encounter_smart_waypoint_ids([eid])[0]
             print(smart_xml_fname, smart_waypoint_id)
             smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
             smart_xml_content_list = open(smart_xml_fpath).readlines()
