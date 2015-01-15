@@ -91,7 +91,7 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
 
 @register_ibs_method
 @ider
-def get_valid_eids(ibs, min_num_gids=0, processed=False, shipped=False):
+def get_valid_eids(ibs, min_num_gids=0, processed=None, shipped=None):
     """
     Returns:
         list_ (list):  list of all encounter ids """
@@ -100,13 +100,13 @@ def get_valid_eids(ibs, min_num_gids=0, processed=False, shipped=False):
         num_gids_list = ibs.get_encounter_num_gids(eid_list)
         flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
         eid_list  = ut.filter_items(eid_list, flag_list)
-    if processed:
+    if processed is not None:
         flag_list = ibs.get_encounter_processed_flags(eid_list)
-        isvalid_list = [ flag == 1 for flag in flag_list]
+        isvalid_list = [ flag == 1 if processed else flag == 0 for flag in flag_list]
         eid_list  = ut.filter_items(eid_list, isvalid_list)
-    if shipped:
+    if shipped is not None:
         flag_list = ibs.get_encounter_shipped_flags(eid_list)
-        isvalid_list = [ flag == 1 for flag in flag_list]
+        isvalid_list = [ flag == 1 if shipped else flag == 0 for flag in flag_list]
         eid_list  = ut.filter_items(eid_list, isvalid_list)
 
     return eid_list
