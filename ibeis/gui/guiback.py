@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import sys
 from six.moves import zip
-from os.path import exists, join
+from os.path import exists, join, split
 import functools
 # GUITool
 import guitool
@@ -25,6 +25,7 @@ from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
+import xml.etree.ElementTree as ET
 # Utool
 #import utool
 import utool as ut
@@ -486,6 +487,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_image')
         if not back.are_you_sure():
             return
+        print("DELETING GID: %r" % (gid, ))
         gid = cast_from_qt(gid)
         back.ibs.delete_images(gid)
         back.front.update_tables()
@@ -1177,7 +1179,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.backup_database()
 
     @blocking_slot()
-    def import_images(back, gpath_list=None, dir_=None, refresh=True):
+    def import_images(back, gpath_list=None, dir_=None, refresh=True, clock_offset=True):
         """ File -> Import Images (ctrl + i)"""
         print('[back] import_images')
         reply = None
@@ -1189,13 +1191,15 @@ class MainWindowBackend(QtCore.QObject):
                 use_cache=False)
         if reply == 'Files' or gpath_list is not None:
             gid_list = back.import_images_from_file(gpath_list=gpath_list,
-                                                    refresh=refresh)
+                                                    refresh=refresh, clock_offset=True)
         if reply == 'Directory' or dir_ is not None:
-            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh)
+            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh,
+                                                   clock_offset=True)
         return gid_list
 
     @blocking_slot()
-    def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False):
+    def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,
+                                clock_offset=True):
         print('[back] import_images_from_file')
         """ File -> Import Images From File"""
         if back.ibs is None:
@@ -1203,10 +1207,11 @@ class MainWindowBackend(QtCore.QObject):
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
-        return back._add_images(refresh, gid_list)
+        return back._add_images(refresh, gid_list, clock_offset=clock_offset)
 
     @blocking_slot()
-    def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True):
+    def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True,
+                               clock_offset=True):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
@@ -1216,17 +1221,162 @@ class MainWindowBackend(QtCore.QObject):
             return
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
-            raise NotImplementedError('Can someone implement the size filter?')
+            raise NotImplementedError('SCan someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
-        return back._add_images(refresh, gid_list)
+        return back._add_images(refresh, gid_list, clock_offset=clock_offset)
         #print('')
 
-    def _add_images(back, refresh, gid_list):
+    @blocking_slot()
+    def import_images_with_smart(back, gpath_list=None, dir_=None, refresh=True):
+        """ File -> Import Images with smart"""
+        print('[back] import_images_with_smart')
+        gid_list = back.import_images(gpath_list=gpath_list, dir_=dir_, refresh=refresh,
+                                      clock_offset=False)
+        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
+
+    @blocking_slot()
+    def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
+        """ File -> Import Images From File with smart"""
+        print('[back] import_images_from_file_with_smart')
+        # gpath_list = ['/Datasets/PZ_Master/_ibsdb/images/0ad1b79c-23fc-574d-0d29-42a3a7f07ee1.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad6ceab-2c8c-a146-5c79-44988f370228.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad629d9-761c-adbc-4bc3-d58f6685b563.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad7618d-fb02-4dc1-e3f7-96b65bbf8b2c.jpg']
+        gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
+                                                as_annots=as_annots, clock_offset=False)
+        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
+
+    @blocking_slot()
+    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True):
+        """ File -> Import Images From Directory with smart"""
+        print('[back] import_images_from_dir_with_smart')
+        gid_list = back.import_images_from_dir(dir_=dir_, size_filter=size_filter,
+                                               refresh=refresh, clock_offset=False)
+        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
+
+    def _parse_smart_xml(back, xml_path, nTotal, offset=1):
+        # Storage for the patrol encounters
+        xml_dir, xml_name = split(xml_path)
+        encounter_info_list = []
+        last_photo_number = None
+        last_encounter_info = None
+        # Parse the XML file for the information
+        patrol_tree = ET.parse(xml_path)
+        namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
+        # Load all waypoint elements
+        element = './/%swaypoints' % (namespace, )
+        waypoint_list = patrol_tree.findall(element)
+        if len(waypoint_list) == 0:
+            raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
+        for waypoint in waypoint_list:
+            # Get the relevant information about the waypoint
+            waypoint_id   = int(waypoint.get('id'))
+            waypoint_lat  = float(waypoint.get('y'))
+            waypoint_lon  = float(waypoint.get('x'))
+            waypoint_time = waypoint.get('time')
+            waypoint_info = [
+                xml_name,
+                waypoint_id,
+                (waypoint_lat, waypoint_lon),
+                waypoint_time,
+            ]
+            if None in waypoint_info:
+                raise IOError('The observation (waypoint) is missing information: %r' % (waypoint_info, ))
+            # Get all of the waypoint's observations (we expect only one
+            # normally)
+            element = './/%sobservations' % (namespace, )
+            observation_list = waypoint.findall(element)
+            if len(observation_list) == 0:
+                raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
+            for observation in observation_list:
+                # Filter the observations based on type, we only care
+                # about certain types
+                categoryKey = observation.attrib['categoryKey']
+                if categoryKey.startswith('animals.'):
+                    # Get the photonumber attribute for the waypoint's
+                    # observation
+                    element = './/%sattributes[@attributeKey="photonumber"]' % (namespace, )
+                    photonumber = observation.find(element)
+                    if photonumber is None:
+                        raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
+                    element = './/%ssValue' % (namespace, )
+                    # Get the value for photonumber
+                    sValue  = photonumber.find(element)
+                    if sValue is None:
+                        raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
+                    # Python cast the value
+                    photo_number = int(float(sValue.text)) - offset
+                    if last_photo_number >= nTotal:
+                        raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
+                    # Keep track of the last waypoint that was processed
+                    # becuase we only have photono, which indicates start
+                    # indices and doesn't specify the end index.  The
+                    # ending index is extracted as the next waypoint's
+                    # photonum minus 1.
+                    if last_photo_number is not None:
+                        encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
+                        encounter_info_list.append(encounter_info)
+                    last_photo_number = photo_number
+                    last_encounter_info = waypoint_info
+                else:
+                    print('[back]     Skipped Observation with "categoryKey": %r' % (categoryKey, ))
+        # Append the last photo_number
+        encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
+        encounter_info_list.append(encounter_info)
+        return encounter_info_list
+
+    def _add_images_with_smart_patrol(back, gid_list, refresh=True):
+        if gid_list is not None and len(gid_list) > 0:
+            name_filter = 'XML Files (*.xml)'
+            xml_path_list = guitool.select_files(caption='Select Patrol XML File:',
+                                                 directory=None, name_filter=name_filter)
+            # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
+            assert len(xml_path_list) < 2, "Cannot specity more than one Patrol XML file"
+            if len(xml_path_list) == 1:
+                # Get file and copy to ibeis database folder
+                src_xml_path = xml_path_list[0]
+                xml_dir, xml_name = split(src_xml_path)
+                dst_xml_path = join(back.ibs.get_smart_patrol_dir(), xml_name)
+                ut.copy(src_xml_path, dst_xml_path, overwrite=True)
+                # Process the XML File
+                print("[back] Processing Patrol XML file: %r" % (dst_xml_path, ))
+                encounter_info_list = back._parse_smart_xml(dst_xml_path, len(gid_list))
+                # Display the patrol encounters
+                for index, encounter_info in enumerate(encounter_info_list):
+                    smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
+                    start, end = range_
+                    gid_list_ = gid_list[start:end]
+                    print('[back]     Found Patrol Encounter: %r' % (encounter_info, ))
+                    print('[back]         GIDs: %r' % (gid_list_, ))
+                    # Add the GPS data to the iamges
+                    gps_list  = [ gps ] * len(gid_list_)
+                    back.ibs.set_image_gps(gid_list_, gps_list)
+                    # Create a new encounter
+                    enctext = 'Observation %s' % (index + 1, )
+                    eid = back.ibs.add_encounters(enctext)
+                    # Add images to the encounters
+                    eid_list = [eid] * len(gid_list_)
+                    back.ibs.set_image_eids(gid_list_, eid_list)
+                    # Set the encounter's smart fields
+                    back.ibs.set_encounter_smart_xml_fnames([eid], [smart_xml_fname])
+                    back.ibs.set_encounter_smart_waypoint_ids([eid], [smart_waypoint_id])
+                    # Set the encounter's time based on the images
+                    unixtime_list = sorted(back.ibs.get_image_unixtime(gid_list_))
+                    print(unixtime_list)
+                    start_time = unixtime_list[0]
+                    end_time = unixtime_list[-1]
+                    back.ibs.set_encounter_start_time_posix([eid], [start_time])
+                    back.ibs.set_encounter_end_time_posix([eid], [end_time])
+                # Complete
+                print("[back] ...Done processing Patrol XML file")
+        if refresh:
+            ibsfuncs.update_ungrouped_special_encounter(back.ibs)
+            back.front.update_tables([gh.ENCOUNTER_TABLE])
+
+    def _add_images(back, refresh, gid_list, clock_offset=True):
         if refresh:
             back.ibs.update_special_encounters()
             back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
-        co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
-        co_wgt.show()
+        if clock_offset:
+            co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
+            co_wgt.show()
         return gid_list
 
     @blocking_slot()

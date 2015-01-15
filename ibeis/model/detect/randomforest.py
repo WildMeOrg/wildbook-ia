@@ -44,7 +44,24 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
         aids_list = ibs.get_image_aids(gid_list)
     else:
         aids_list = ibs.get_image_aids_of_species(gid_list, species)
-    # aids_list = [ [] if aid_list is None else aid_list for aid_list in aids_list ]
+
+    ##### TEMP #####
+    gid_list_ = []
+    aids_list_ = []
+    for gid, aid_list in zip(gid_list, aids_list):
+        if len(aid_list) > 1:
+            gid_list_.append(gid)
+            aids_list_.append(aid_list)
+        elif len(aid_list) == 1:
+            (xtl, ytl, width, height) = ibs.get_annot_bboxes(aid_list)[0]
+            if xtl > 5 and ytl > 5:
+                gid_list_.append(gid)
+                aids_list_.append(aid_list)
+    gid_list = gid_list_
+    aids_list = aids_list_
+    kwargs['trees_max_patches'] = 100000
+    ##### TEMP #####
+
     aid_list = ut.flatten(aids_list)
     train_pos_cpath_list = ibs.get_annot_chip_fpaths(aid_list)
 
