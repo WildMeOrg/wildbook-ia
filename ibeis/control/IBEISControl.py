@@ -382,12 +382,15 @@ class IBEISController(object):
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
 
     @default_decorator
-    def _init_wb(ibs, wbaddr):
+    def _init_wb(ibs, wbaddr, payload=None):
         if wbaddr is None:
             return
         #TODO: Clean this up to use like ut and such
         try:
-            response = requests.get(wbaddr)
+            if payload is None:
+                response = requests.get(wbaddr)
+            else:
+                response = requests.post(wbaddr, data=payload)
         # except requests.MissingSchema:
         #     print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
         #     return None
@@ -690,7 +693,18 @@ class IBEISController(object):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             submit_url_ = submit_url % (hostname, encounter_uuid)
             print('[_send] URL=%r' % (submit_url_, ))
-            response = ibs._init_wb(submit_url_)
+            smart_xml_fname = ibs.get_encounter_smart_xml_fnames(eid)
+            smart_waypoint_id = ibs.set_encounter_smart_waypoint_ids(eid)
+            print(smart_xml_fname, smart_waypoint_id)
+            smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
+            smart_xml_content_list = open(smart_xml_fpath).readlines()
+            print('Sending with SMART patrol: %r (%d lines)' % (smart_xml_fpath, len(smart_xml_content_list)))
+            smart_xml_content = ''.join(smart_xml_content_list)
+            payload = {
+                'smart_xml_content': smart_xml_content,
+                'smart_waypoint_id': smart_waypoint_id,
+            }
+            response = ibs._init_wb(submit_url_, payload)
             if response.status_code == 200:
                 return True
             else:
