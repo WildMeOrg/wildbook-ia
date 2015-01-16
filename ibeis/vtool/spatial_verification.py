@@ -552,6 +552,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> ori_thresh = 1.57
         >>> scale_thresh = 2.0
     """
+    if ut.VERYVERBOSE:
+        print('[sver] Starting spatial verification')
     # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
@@ -565,6 +567,9 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
+        if ut.VERYVERBOSE:
+            print('[sver] Failed spatial verification len(aff_inliers) = %r' %
+                  (len(aff_inliers),))
         return None
     # Refine inliers using a projective transformation (homography)
     try:
@@ -583,6 +588,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
+    if ut.VERYVERBOSE:
+        print('[sver] Finished spatial verification.')
     if returnAff:
         svtup = (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff)
         return svtup
