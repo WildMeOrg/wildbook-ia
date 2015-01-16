@@ -1627,16 +1627,29 @@ def make_enctext_list(eid_list, enc_cfgstr):
 
 
 @__injectable
-def make_next_name(ibs, num=None):
+def make_next_name(ibs, num=None, str_format=2):
     """ Creates a number of names which are not in the database, but does not
     add them """
+    def _abbreviate(string):
+        return ''.join([ letter for letter in string.title() if letter.isupper() ])
     base_index = len(ibs._get_all_known_name_rowids()) + 1  # ibs.get_num_names()
-    userid = ut.get_user_name()
-    timestamp = ut.get_timestamp('tag')
-    #timestamp_suffix = '_TMP_'
-    timestamp_suffix = '_'
-    timestamp_prefix = ''
-    name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
+    if str_format == 1:
+        userid = ut.get_user_name()
+        timestamp = ut.get_timestamp('tag')
+        #timestamp_suffix = '_TMP_'
+        timestamp_suffix = '_'
+        timestamp_prefix = ''
+        name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
+    elif str_format == 2:
+        locateion_text = ibs.cfg.other_cfg.location_for_names
+        species_text = ibs.cfg.detect_cfg.species
+        if species_text == 'none':
+            species_short = 'UNKNOWN'
+        else:
+            species_short = _abbreviate(species_text)
+        name_prefix = locateion_text + '_' + species_short + '_'
+    else:
+        raise ValueError('Invalid str_format supplied')
     if num is None:
         next_name = name_prefix + '%04d' % base_index
         return next_name

@@ -909,7 +909,7 @@ class IBEISController(object):
             gps_list  = [ gps ] * len(gid_list_)
             ibs.set_image_gps(gid_list_, gps_list)
             # Create a new encounter
-            enctext = 'Observation %s' % (index + 1, )
+            enctext = 'Observation %03d' % (index + 1, )
             eid = ibs.add_encounters(enctext)
             # Add images to the encounters
             eid_list = [eid] * len(gid_list_)
