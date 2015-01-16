@@ -499,9 +499,9 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
 
 @profile
 def spatially_verify_kpts(kpts1, kpts2, fm,
-                          xy_thresh,
-                          scale_thresh,
-                          ori_thresh,
+                          xy_thresh=.01,
+                          scale_thresh=2.0,
+                          ori_thresh=TAU / 4.0,
                           dlen_sqrd2=None,
                           min_nInliers=4,
                           returnAff=False):

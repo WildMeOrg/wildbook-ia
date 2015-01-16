@@ -2,6 +2,9 @@ from __future__ import absolute_import, division, print_function
 #from six.moves import range
 import utool as ut
 import numpy as np
+from vtool import keypoint as ktool
+from vtool import linalg as ltool
+from vtool import spatial_verification as sver
 #import numpy.linalg as npl
 #import scipy.sparse as sps
 #import scipy.sparse.linalg as spsl
@@ -11,23 +14,76 @@ import numpy as np
 profile = ut.profile
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[constr]', DEBUG=False)
 
+"""
+Write paramater interactions
+
+show true match and false match
+
+"""
 
 TAU = np.pi * 2
 
 
-def testdata_matcher():
+def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
+    """"
+    CommandLine:
+        python -m vtool.spatially_constrained_matcher --test-testdata_matcher
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.spatially_constrained_matcher import *  # NOQA
+        >>> # build test data
+        >>> fname1 = 'easy1.png'
+        >>> fname2 = 'hard3.png'
+        >>> # execute function
+        >>> testtup = testdata_matcher(fname1, fname2)
+        >>> # verify results
+        >>> result = str(testtup)
+        >>> print(result)
+    """
     import utool as ut
-    import vtool as vt
-    fpath1 = ut.grab_test_imgpath('easy1.png')
-    fpath2 = ut.grab_test_imgpath('easy2.png')
-    kpts1, vecs1 = vt.extract_features(fpath1)
-    kpts2, vecs2 = vt.extract_features(fpath2)
-    rchip1 = vt.imread(fpath1)
-    rchip2 = vt.imread(fpath2)
+    from vtool import image as gtool
+    from vtool import features as feattool
+    fpath1 = ut.grab_test_imgpath(fname1)
+    fpath2 = ut.grab_test_imgpath(fname2)
+    kpts1, vecs1 = feattool.extract_features(fpath1)
+    kpts2, vecs2 = feattool.extract_features(fpath2)
+    rchip1 = gtool.imread(fpath1)
+    rchip2 = gtool.imread(fpath2)
     #chip1_shape = vt.gtool.open_image_size(fpath1)
-    chip2_shape = vt.gtool.open_image_size(fpath2)
+    chip2_shape = gtool.open_image_size(fpath2)
     dlen_sqrd2 = chip2_shape[0] ** 2 + chip2_shape[1]
-    return (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2)
+    testtup = (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2)
+    return testtup
+
+
+def show_example():
+    r"""
+    CommandLine:
+        python -m vtool.spatially_constrained_matcher --test-show_example --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.spatially_constrained_matcher import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> # execute function
+        >>> result = show_example()
+        >>> # verify results
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    #ut.util_grabdata.get_valid_test_imgkeys()
+    testtup1 = testdata_matcher('easy1.png', 'easy2.png')
+    testtup2 = testdata_matcher('easy1.png', 'hard3.png')
+    self1 = SimpleMatcher()
+    self1.run_matching(testtup1)
+
+    self2 = SimpleMatcher()
+    self2.run_matching(testtup2)
+
+    self1.visualize()
+    self2.visualize()
 
 
 class SimpleMatcher(object):
@@ -39,29 +95,6 @@ class SimpleMatcher(object):
         self.fm_V = None
         self.basetup = None
         self.testtup = None
-
-    def setstate_testdata(self):
-        r"""
-        CommandLine:
-            python -m vtool.spatially_constrained_matcher --test-setstate_svscr
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.spatially_constrained_matcher import *  # NOQA
-            >>> # build test data
-            >>> self = SimpleMatcher()
-            >>> # execute function
-            >>> result = self.setstate_testdata()
-            >>> # verify results
-            >>> print(result)
-        """
-        testtup = testdata_matcher()
-        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = testtup
-        basetup = baseline_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2)
-        nexttup = match_scr(testtup, basetup)
-        self.nexttup = nexttup
-        self.basetup = basetup
-        self.testtup = testtup
 
     def visualize(self):
         """
@@ -77,10 +110,9 @@ class SimpleMatcher(object):
             >>> self.setstate_testdata()
             >>> # execute function
             >>> result = self.visualize()
+            >>> pt.show_if_requested()
         """
         import plottool as pt
-        if getattr(self, 'baseline', None) is None:
-            result = self.setstate_testdata()
 
         rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = self.testtup
         fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H      = self.basetup
@@ -88,28 +120,82 @@ class SimpleMatcher(object):
 
         locals_ = locals()
 
-        try:
-            del locals_['title']
-        except KeyError:
-            pass
+        ut.delete_dict_keys(locals_, ['title'])
 
-        fnum = 1
+        fnum = pt.next_fnum()
         pt.figure(fnum=fnum, doclf=True, docla=True)
         next_pnum = pt.make_pnum_nextgen(nRows=2, nCols=3)
 
-        show_matches(fm_ORIG, fs_ORIG, title='matches: initial neighbors', pnum=next_pnum(), **locals_)
+        def show_matches_(*args, **kwargs):
+            showkw = locals_.copy()
+            showkw['pnum'] = next_pnum()
+            showkw['fnum'] = fnum
+            showkw.update(kwargs)
+            show_matches(*args, **showkw)
 
-        show_matches(fm_RAT, fs_RAT, title='matches: ratio filtered', pnum=next_pnum(), **locals_)
+        show_matches_(fm_ORIG, fs_ORIG, title='initial neighbors')
 
-        show_matches(fm_SV, fs_SV, title='matches: ratio filtered + SV', pnum=next_pnum(), **locals_)
+        show_matches_(fm_RAT, fs_RAT, title='ratio filtered')
+
+        show_matches_(fm_SV, fs_SV, title='ratio filtered + SV')
 
         next_pnum()
 
-        show_matches(fm_SCR, fs_SCR, title='matches: spatially constrained', pnum=next_pnum(), **locals_)
+        show_matches_(fm_SCR, fs_SCR, title='spatially constrained')
 
-        show_matches(fm_SCRSV, fs_SCRSV, title='matches: spatially constrained + SV', pnum=next_pnum(), **locals_)
+        show_matches_(fm_SCRSV, fs_SCRSV, title='spatially constrained + SV')
 
-        pt.show_if_requested()
+    def run_matching(self, testtup):
+        basetup = baseline_vsone_ratio_matcher(testtup)
+        nexttup = match_scr(testtup, basetup)
+        self.nexttup = nexttup
+        self.basetup = basetup
+        self.testtup = testtup
+
+    def setstate_testdata(self):
+        testtup = testdata_matcher()
+        self.run_matching(testtup)
+
+
+def baseline_vsone_ratio_matcher(testtup):
+    r"""
+    Args:
+        vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
+        vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
+        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
+        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
+
+    CommandLine:
+        python -m vtool.spatially_constrained_matcher --test-baseline_vsone_ratio_matcher
+
+    Ignore:
+        %pylab qt4
+        import plottool as pt
+        pt.imshow(rchip1)
+        pt.draw_kpts2(kpts1)
+
+        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+    """
+    rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = testtup
+    #import vtool as vt
+    xy_thresh = .01
+    ratio_thresh = .625
+    # GET NEAREST NEIGHBORS
+    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
+    fx2_m = np.arange(len(fx2_to_fx1))
+    fx1_m = fx2_to_fx1.T[0]
+    fm_ORIG = np.vstack((fx1_m, fx2_m)).T
+    #fs_ORIG = fx2_to_dist.T[0]
+    fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
+    #np.ones(len(fm_ORIG))
+    # APPLY RATIO TEST
+    fm_RAT, fs_RAT, fm_RAT_normalizer = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+    # SPATIAL VERIFICATION FILTER
+    fm_SV, fs_SV, H = sver_inliers(kpts1, kpts2, fm_RAT, fs_RAT, dlen_sqrd2, xy_thresh)
+    base_tup = (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H)
+    base_meta = (fm_RAT_normalizer,)
+    return base_tup, base_meta
 
 
 def match_scr(testtup, basetup):
@@ -168,59 +254,10 @@ def match_scr(testtup, basetup):
     fm_SCR, fs_SCR = ratio_test2(match_dist_list, norm_dist_list, fx1_list, fx2_list)
 
     # Another round of verification
-    fm_SVSCR, fs_SVSCR, H_SCR = spatial_verification_(kpts1, kpts2, fm_SCR, fs_SCR, dlen_sqrd2, sver_xy_thresh)
+    fm_SVSCR, fs_SVSCR, H_SCR = sver_inliers(kpts1, kpts2, fm_SCR, fs_SCR, dlen_sqrd2, sver_xy_thresh)
 
     nexttup = (fm_SCR, fs_SCR, fm_SVSCR, fs_SVSCR, H_SCR)
     return nexttup
-
-
-def baseline_vsone_ratio_matcher(rchip1, rchip2, vecs1, vecs2, kpts1, kpts2, dlen_sqrd2):
-    r"""
-    Args:
-        vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
-        vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
-        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
-        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-
-    CommandLine:
-        python -m vtool.spatially_constrained_matcher --test-baseline_vsone_ratio_matcher
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.spatially_constrained_matcher import *  # NOQA
-        >>> # build test data
-        >>> (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testdata_matcher()
-        >>> # execute function
-        >>> result = baseline_vsone_ratio_matcher(vecs1, vecs2, kpts1, kpts2)
-        >>> # verify results
-        >>> print(result)
-
-    Ignore:
-        %pylab qt4
-        import plottool as pt
-        pt.imshow(rchip1)
-        pt.draw_kpts2(kpts1)
-
-        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-    """
-    #import vtool as vt
-    xy_thresh = .01
-    ratio_thresh = .625
-    # GET NEAREST NEIGHBORS
-    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
-    fx2_m = np.arange(len(fx2_to_fx1))
-    fx1_m = fx2_to_fx1.T[0]
-    fm_ORIG = np.vstack((fx1_m, fx2_m)).T
-    #fs_ORIG = fx2_to_dist.T[0]
-    fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
-    #np.ones(len(fm_ORIG))
-    # APPLY RATIO TEST
-    fm_RAT, fs_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-    # SPATIAL VERIFICATION FILTER
-    fm_SV, fs_SV, H = spatial_verification_(kpts1, kpts2, fm_RAT, fs_RAT, dlen_sqrd2, xy_thresh)
-    base_tup = (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H)
-    return base_tup
 
 
 def assign_nearest_neighbors(vecs1, vecs2, K=2):
@@ -233,59 +270,50 @@ def assign_nearest_neighbors(vecs1, vecs2, K=2):
     #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
     pseudo_max_dist_sqrd = 2 * (512 ** 2)
     flann = vt.flann_cache(vecs1, flann_params=flann_params)
-    fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    import pyflann
+    try:
+        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    except pyflann.FLANNException:
+        print('vecs1.shape = %r' % (vecs1.shape,))
+        print('vecs2.shape = %r' % (vecs2.shape,))
+        print('vecs1.dtype = %r' % (vecs1.dtype,))
+        print('vecs2.dtype = %r' % (vecs2.dtype,))
+        raise
     fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
     return fx2_to_fx1, fx2_to_dist
 
 
 def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
+
     fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
     fx2_to_isvalid = fx2_to_ratio < ratio_thresh
     fx2_m = np.where(fx2_to_isvalid)[0]
     fx1_m = fx2_to_fx1.T[0].take(fx2_m)
     fs = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
     fm = np.vstack((fx1_m, fx2_m)).T
-    return fm, fs
+    # return normalizer info as well
+    fx1_m_normalizer = fx2_to_fx1.T[1].take(fx2_m)
+    fm_normalizer = np.vstack((fx1_m_normalizer, fx2_m)).T
+    return fm, fs, fm_normalizer
 
 
-def spatial_verification_(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh):
-    import vtool as vt
-    scale_thresh = 2
-    ori_thresh = TAU / 4.0
-    svtup = vt.spatially_verify_kpts(
-        kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2)
+def sver_inliers(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh):
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh, dlen_sqrd2)
     (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = svtup
     fm_SV = fm.take(homog_inliers, axis=0)
     fs_SV = fs.take(homog_inliers, axis=0)
     return fm_SV, fs_SV, H
 
 
-def show_matches(fm, fs, fnum=1, pnum=None, title='', **locals_):
-    #locals_ = locals()
-    import plottool as pt
-    # hack keys out of namespace
-    keys = 'rchip1, rchip2, kpts1, kpts2'.split(', ')
-    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(locals_, keys)
-    pt.figure(fnum=fnum, pnum=pnum)
-    #doclf=True, docla=True)
-    pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=fnum)
-    title += ' %d, %.2f' % (len(fm), sum(fs))
-    pt.set_title(title)
-    #pt.set_figtitle(title)
-    # if update:
-    #pt.iup()
-
-
 def constrain_matches(dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist, xy_thresh, mode='far'):
-    import vtool as vt
     def get_candidate_spatial_error():
         # Transform img1 keypoints into img2 space
-        xy2    = vt.get_xys(kpts2)
-        xy1_t = vt.transform_kpts_xys(kpts1, H)
+        xy2    = ktool.get_xys(kpts2)
+        xy1_t = ktool.transform_kpts_xys(kpts1, H)
         # get spatial keypoint distance to all neighbor candidates
         bcast_xy2   = xy2[:, None, :].T
         bcast_xy1_t = xy1_t.T[fx2_to_fx1]
-        fx2_to_xyerr_sqrd = vt.L2_sqrd(bcast_xy2, bcast_xy1_t)
+        fx2_to_xyerr_sqrd = ltool.L2_sqrd(bcast_xy2, bcast_xy1_t)
         return fx2_to_xyerr_sqrd
 
     # Get the error of each match.
@@ -382,45 +410,21 @@ def constrain_matches(dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist, xy_t
     #ut.embed()
     return fx1_list, fx2_list, match_dist_list, norm_dist_list
 
-#def interactive_code():
-#    import plottool as pt
-#    INTERACT_RATIO = False
-#    if INTERACT_RATIO:
-#        #ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
-#        #for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
-#        print('ratio_thresh = %r' % (ratio_thresh,))
-#        #fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-#        import plottool as pt
-#        pt.figure(fnum=1, doclf=True, docla=True)
-#        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SCR, fs=fs_SCR, fnum=1)
-#        pt.set_figtitle('inspect spatially constrained ratio')
-#        pt.update()
 
-#    INTERACT_RATIO = False
-#    if INTERACT_RATIO:
-#        ratio_thresh_list = [.625] + np.linspace(.5, .7, 10).tolist()
-#        for ratio_thresh in ut.InteractiveIter(ratio_thresh_list):
-#            print('ratio_thresh = %r' % (ratio_thresh,))
-#            fm, fs = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
-#            pt.figure(fnum=1, doclf=True, docla=True)
-#            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=1)
-#            pt.set_figtitle('inspect ratio')
-#            pt.update()
-
-#    INTERACT_SVER = False
-#    if INTERACT_SVER:
-#        xy_thresh_list = [xy_thresh] + np.linspace(.01, .1, 10).tolist()
-#        for xy_thresh in ut.InteractiveIter(xy_thresh_list):
-#            print('xy_thresh = %r' % (xy_thresh,))
-#            fm_SV, fs_SV, H = spatial_verification_(kpts1, kpts2, fm, fs, dlen_sqrd2, xy_thresh)
-#            pt.figure(fnum=1, doclf=True, docla=True)
-#            pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm_SV, fs=fs_SV, fnum=1)
-#            pt.set_figtitle('inspect sver')
-#            pt.update()
-
-#def spatially_constrained_flann_matcher(flann1, vecs2, kpts1, kpts2, H,
-#                                        xy_thresh):
-#    pass
+def show_matches(fm, fs, fnum=1, pnum=None, title='', **locals_):
+    #locals_ = locals()
+    import plottool as pt
+    # hack keys out of namespace
+    keys = 'rchip1, rchip2, kpts1, kpts2'.split(', ')
+    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(locals_, keys)
+    pt.figure(fnum=fnum, pnum=pnum)
+    #doclf=True, docla=True)
+    pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=fnum)
+    title = title + '\n num=%d, sum=%.2f' % (len(fm), sum(fs))
+    pt.set_title(title)
+    #pt.set_figtitle(title)
+    # if update:
+    #pt.iup()
 
 
 if __name__ == '__main__':
