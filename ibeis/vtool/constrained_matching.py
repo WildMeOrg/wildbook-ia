@@ -39,9 +39,14 @@ def param_interaction():
         python -m vtool.constrained_matching --test-param_interaction
 
     Notes:
-        s {'ratio_thresh': 0.625, 'normalizer_mode': 'nearby', 'sver_xy_thresh': 0.01, 'ratio_thresh2': 0.8, 'search_K': 7, 'match_xy_thresh': 0.1, 'sver_xy_thresh2': 0.01}
+        python -m vtool.constrained_matching --test-param_interaction
+        setparam normalizer_mode=nearby
+        setparam normalizer_mode=far
+        setparam ratio_thresh=.625
+        setparam ratio_thresh=.5
 
-        s {'ratio_thresh': 0.625, 'normalizer_mode': 'far', 'sver_xy_thresh': 0.01, 'ratio_thresh2': 0.8, 'search_K': 7, 'match_xy_thresh': 0.1, 'sver_xy_thresh2': 0.01}
+        setparam ratio_thresh2=.625
+        normalizer_mode=plus
 
 
     Example:
@@ -55,27 +60,71 @@ def param_interaction():
         >>> print(result)
     """
     import plottool as pt
-    testtup1 = testdata_matcher('easy1.png', 'easy2.png')
-    testtup2 = testdata_matcher('easy1.png', 'hard3.png')
+    USE_IBEIS = ut.is_developer()
+    if USE_IBEIS:
+        from ibeis.model.hots import devcases
+        index = 2
+        fpath1, fpath2, fpath3 = devcases.get_dev_test_fpaths(index)
+        testtup1 = testdata_matcher(fpath1, fpath2)
+        testtup2 = testdata_matcher(fpath1, fpath3)
+    else:
+        testtup1 = testdata_matcher('easy1.png', 'easy2.png')
+        testtup2 = testdata_matcher('easy1.png', 'hard3.png')
     testtup_list = [testtup1, testtup2]
-    self_list = [SimpleMatcher(testtup) for testtup in testtup_list]
-    cfgdict = dict([
-        ('sver_xy_thresh', .01),
+    simp_list = [SimpleMatcher(testtup) for testtup in testtup_list]
+    varied_dict = dict([
+        ('sver_xy_thresh', .1),
         ('ratio_thresh', .625),
-        ('normalizer_mode', 'nearby'),
         ('search_K', 7),
-        ('ratio_thresh2', .8),
+        ('ratio_thresh2', .625),
         ('sver_xy_thresh2', .01),
-        ('normalizer_mode', ['nearby', 'far'][1]),
+        ('normalizer_mode', ['nearby', 'far', 'plus'][1]),
         ('match_xy_thresh', .1),
     ])
-    search_params = [cfgdict]
+    cfgdict_list = ut.all_dict_combinations(varied_dict)
     tried_configs = []
-    for cfgdict in ut.InteractiveIter(search_params, default_action='reload'):
-        for self in self_list:
-            self.run_matching(cfgdict=cfgdict)
-        for self in self_list:
-            self.visualize_normalizers()
+
+    vizkey_ = ['normalizers']
+    vizkey_ = ['matches']
+
+    def toggle_vizmode(iiter, actionkey, value, vizkey_=vizkey_):
+        if vizkey_[0] == 'normalizers':
+            vizkey_[0] = 'matches'
+        if vizkey_[0] == 'matches':
+            vizkey_[0] = 'normalizers'
+        print('toggling')
+
+    def set_param(iiter, actionkey, value, vizkey_=vizkey_):
+        """
+        value = 'search_K=3'
+        """
+        paramkey, paramval = value.split('=')
+        print('parsing value=%r' % (value,))
+        def strip_quotes(str_):
+            dq = ut.DOUBLE_QUOTE
+            sq = ut.SINGLE_QUOTE
+            return str_.strip(dq).strip(sq).strip(dq)
+        # Sanatize
+        paramkey = strip_quotes(paramkey)
+        paramval = ut.smart_cast2(strip_quotes(paramval))
+        print('setting cfgdict[%r]=%r' % (paramkey, paramval))
+        iiter.iterable[iiter.index][paramkey] = paramval
+
+    custom_actions = [
+        ('toggle', ['t'], 'toggle', toggle_vizmode),
+        ('set_param', ['setparam'], 'sets a config param using key=val format', set_param)
+    ]
+
+    for cfgdict in ut.InteractiveIter(cfgdict_list,
+                                      #default_action='reload',
+                                      custom_actions=custom_actions,
+                                      wraparound=True):
+        for simp in simp_list:
+            simp.run_matching(cfgdict=cfgdict)
+        vizkey = vizkey_[0]
+        print('vizkey = %r' % (vizkey,))
+        for fnum, simp in enumerate(simp_list):
+            simp.visualize(vizkey, fnum=fnum)
         tried_configs.append(cfgdict.copy())
         print('Current Config = ')
         print(ut.dict_str(cfgdict))
@@ -105,16 +154,16 @@ def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
 
 
 class SimpleMatcher(object):
-    def __init__(self, testtup):
-        self.fm = None
-        self.fs = None
-        self.H = None
-        self.fs_V = None
-        self.fm_V = None
-        self.basetup = None
-        self.testtup = testtup
+    def __init__(simp, testtup):
+        simp.testtup = testtup
+        simp.basetup = None
+        simp.nexttup = None
 
-    def visualize_matches(self):
+    def visualize(simp, key, **kwargs):
+        visualize_method = getattr(simp, 'visualize_' + key)
+        return visualize_method(**kwargs)
+
+    def visualize_matches(simp, **kwargs):
         r"""
         CommandLine:
             python -m vtool.constrained_matching --test-visualize_matches --show
@@ -123,14 +172,14 @@ class SimpleMatcher(object):
             >>> # DISABLE_DOCTEST
             >>> from vtool.constrained_matching import *  # NOQA
             >>> import plottool as pt
-            >>> self = SimpleMatcher(testdata_matcher())
-            >>> self.run_matching()
-            >>> result = self.visualize_matches()
+            >>> simp = SimpleMatcher(testdata_matcher())
+            >>> simp.run_matching()
+            >>> result = simp.visualize_matches()
             >>> pt.show_if_requested()
         """
         nRows = 2
         nCols = 3
-        show_matches_ = self.start_new_viz(nRows, nCols)
+        show_matches_ = simp.start_new_viz(nRows, nCols, **kwargs)
 
         show_matches_('ORIG')
         show_matches_('RAT')
@@ -139,7 +188,7 @@ class SimpleMatcher(object):
         show_matches_('SCR')
         show_matches_('SCRSV')
 
-    def visualize_normalizers(self):
+    def visualize_normalizers(simp, **kwargs):
         """
         CommandLine:
             python -m vtool.constrained_matching --test-visualize_normalizers --show
@@ -148,14 +197,14 @@ class SimpleMatcher(object):
             >>> # DISABLE_DOCTEST
             >>> from vtool.constrained_matching import *  # NOQA
             >>> import plottool as pt
-            >>> self = SimpleMatcher(testdata_matcher())
-            >>> self.run_matching()
-            >>> result = self.visualize_normalizers()
+            >>> simp = SimpleMatcher(testdata_matcher())
+            >>> simp.run_matching()
+            >>> result = simp.visualize_normalizers()
             >>> pt.show_if_requested()
         """
         nRows = 2
         nCols = 2
-        show_matches_ = self.start_new_viz(nRows, nCols)
+        show_matches_ = simp.start_new_viz(nRows, nCols, **kwargs)
 
         show_matches_('RAT')
         show_matches_('SCR')
@@ -169,14 +218,14 @@ class SimpleMatcher(object):
         #show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers', cmap='cool')
         #show_matches_(fm_norm_SCR, fs_SCR, title='constrained normalizers', cmap='cool')
 
-    def start_new_viz(self, nRows, nCols):
+    def start_new_viz(simp, nRows, nCols, fnum=None):
         import plottool as pt
 
-        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2  = self.testtup
-        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H       = self.basetup
-        fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR = self.nexttup
-        fm_norm_RAT, fm_norm_SV                                 = self.base_meta
-        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                  = self.next_meta
+        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2  = simp.testtup
+        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT   = simp.basetup
+        fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR = simp.nexttup
+        fm_norm_RAT, fm_norm_SV                                 = simp.base_meta
+        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                  = simp.next_meta
 
         locals_ = ut.delete_dict_keys(locals(), ['title'])
 
@@ -200,7 +249,8 @@ class SimpleMatcher(object):
         }
 
         next_pnum = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols)
-        fnum = pt.next_fnum()
+        if fnum is None:
+            fnum = pt.next_fnum()
         pt.figure(fnum=fnum, doclf=True, docla=True)
 
         def show_matches_(key, **kwargs):
@@ -221,20 +271,24 @@ class SimpleMatcher(object):
         show_matches_.next_pnum = next_pnum
         return show_matches_
 
-    def run_matching(self, testtup=None, cfgdict={}):
+    def run_matching(simp, testtup=None, cfgdict={}):
         if testtup is None:
-            testtup = self.testtup
+            testtup = simp.testtup
         basetup, base_meta = baseline_vsone_ratio_matcher(testtup, cfgdict)
         nexttup, next_meta = spatially_constrianed_matcher(testtup, basetup, cfgdict)
-        self.nexttup = nexttup
-        self.basetup = basetup
-        self.testtup = testtup
-        self.base_meta = base_meta
-        self.next_meta = next_meta
+        simp.nexttup = nexttup
+        simp.basetup = basetup
+        simp.testtup = testtup
+        simp.base_meta = base_meta
+        simp.next_meta = next_meta
 
-    def setstate_testdata(self):
+    def setstate_testdata(simp):
         testtup = testdata_matcher()
-        self.run_matching(testtup)
+        simp.run_matching(testtup)
+
+
+def score_matches():
+    pass
 
 
 def baseline_vsone_ratio_matcher(testtup, cfgdict={}):
@@ -270,12 +324,16 @@ def baseline_vsone_ratio_matcher(testtup, cfgdict={}):
     fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
     # SPATIAL VERIFICATION FILTER
     svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2)
-    (homog_inliers, homog_errors, H) = svtup[0:3]
+    if svtup is not None:
+        (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
+    else:
+        H_RAT = np.eye(3)
+        homog_inliers = []
     fm_SV = fm_RAT[homog_inliers]
     fs_SV = fs_RAT[homog_inliers]
     fm_norm_SV = fm_norm_RAT[homog_inliers]
 
-    base_tup = (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H)
+    base_tup = (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT)
     base_meta = (fm_norm_RAT, fm_norm_SV)
     return base_tup, base_meta
 
@@ -294,7 +352,7 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
         >>> import vtool as vt
         >>> testtup = testdata_matcher()
         >>> basetup, base_meta = baseline_vsone_ratio_matcher(testtup)
-        >>> self = SimpleMatcher()
+        >>> simp = SimpleMatcher()
         >>> # execute function
         >>> nexttup, next_meta = spatially_constrianed_matcher(testtup, basetup)
         >>> # verify results
@@ -302,7 +360,7 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
     """
     #import vtool as vt
     (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
-    (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H) = basetup
+    (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT) = basetup
 
     #match_xy_thresh = .1
     #sver_xy_thresh = .01
@@ -322,7 +380,7 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
 
     # COMPUTE CONSTRAINTS
     #normalizer_mode = 'far'
-    constrain_tup = constrain_matches(dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1,
+    constrain_tup = constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1,
                                       fx2_to_dist, match_xy_thresh,
                                       normalizer_mode=normalizer_mode)
     (fm_SC, fm_norm_SC, match_dist_list, norm_dist_list) = constrain_tup
@@ -333,9 +391,14 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
 
     # Another round of verification
     svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_SCR, sver_xy_thresh2, dlen_sqrd2)
-    (homog_inliers, homog_errors, H_SCR) = svtup[0:3]
+    if svtup is not None:
+        (homog_inliers, homog_errors, H_SCR) = svtup[0:3]
+    else:
+        H_SCR = np.eye(3)
+        homog_inliers = []
     fm_SCRSV = fm_SCR[homog_inliers]
     fs_SCRSV = fs_SCR[homog_inliers]
+
     fm_norm_SVSCR = fm_norm_SCR[homog_inliers]
 
     nexttup = (fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR)
@@ -343,47 +406,52 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
     return nexttup, next_meta
 
 
-def constrain_matches(dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist, match_xy_thresh, normalizer_mode='far'):
+def constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist, match_xy_thresh, normalizer_mode='far'):
     r"""
     Args:
         dlen_sqrd2 (?):
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+        H_RAT (ndarray[float64_t, ndim=2]):  homography/perspective matrix
         fx2_to_fx1 (ndarray):
         fx2_to_dist (ndarray):
         match_xy_thresh (?): threshold is specified as a fraction of the diagonal chip length
         normalizer_mode (str):
     """
     # Find the normalized spatial error of all candidate matches
-    fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
+    fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H_RAT, fx2_to_fx1)
     fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
     fx2_to_xyerr_norm = np.divide(fx2_to_xyerr, np.sqrt(dlen_sqrd2))
 
     # Find matches and normalizers which are within the spatial constraints
 
     fx2_to_valid_match = ut.inbounds(fx2_to_xyerr_norm, 0, match_xy_thresh)
-    fx2_to_fx1_match = ut.find_first_true_indicies(fx2_to_valid_match)
+    fx2_to_fx1_kmatch = ut.find_first_true_indicies(fx2_to_valid_match)
 
+    #if normalizer_mode == 'plus':
+    #    normalizer_xy_bounds = (0, np.inf)
+    #    #maxk = fx2_to_dist.shape[1]
+    #    #fx2_to_fx1_knorm = [None if fx1 is None else min(fx1 + 1, maxk)
+    #    #                    for fx1 in fx2_to_fx1_kmatch]
+    #else:
     if normalizer_mode == 'plus':
-        fx2_to_fx1_norm = [None if fx1 is None else fx1 + 1 for fx1 in fx2_to_fx1_match]
+        normalizer_xy_bounds = (0, np.inf)
+    # Set normalizer constraints
+    elif normalizer_mode == 'far':
+        normalizer_xy_bounds = (match_xy_thresh, np.inf)
+    elif normalizer_mode == 'nearby':
+        normalizer_xy_bounds = (0, match_xy_thresh)
     else:
-        # Set normalizer constraints
-        if normalizer_mode == 'far':
-            normalizer_xy_bounds = (match_xy_thresh, np.inf)
-        elif normalizer_mode == 'nearby':
-            normalizer_xy_bounds = (0, match_xy_thresh)
-        else:
-            raise AssertionError('normalizer_mode=%r' % (normalizer_mode,))
-        fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *normalizer_xy_bounds)
-        fx2_to_fx1_norm = ut.find_next_true_indicies(fx2_to_valid_normalizer, fx2_to_fx1_match)
+        raise AssertionError('normalizer_mode=%r' % (normalizer_mode,))
+    fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *normalizer_xy_bounds)
+    fx2_to_fx1_knorm = ut.find_next_true_indicies(fx2_to_valid_normalizer, fx2_to_fx1_kmatch)
 
     # Filter out matches that could not be constrained
-    assert fx2_to_fx1_match != fx2_to_fx1_norm
-    fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm]
+    assert fx2_to_fx1_kmatch != fx2_to_fx1_knorm
+    fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_knorm]
     fx2_list = np.where(fx2_to_hasmatch)[0]
-    k_match_list = np.array(ut.list_take(fx2_to_fx1_match, fx2_list))
-    k_norm_list = np.array(ut.list_take(fx2_to_fx1_norm, fx2_list))
+    k_match_list = np.array(ut.list_take(fx2_to_fx1_kmatch, fx2_list))
+    k_norm_list = np.array(ut.list_take(fx2_to_fx1_knorm, fx2_list))
 
     # We now have 2d coordinates into fx2_to_fx1
     # Covnert into 1d coordinates for flat indexing into fx2_to_fx1
@@ -404,8 +472,22 @@ def constrain_matches(dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist, matc
     # return noramlizers as well
     fm_norm_constrained = np.vstack((fx1_norm_list, fx2_list)).T
 
-    assert not np.any(match_index_1d == norm_index_1d), 'index is same'
-    assert not np.any(match_dist_list == norm_dist_list), 'dist is same'
+    try:
+        assert not np.any(match_index_1d == norm_index_1d), 'index is same'
+        #assert not np.any(match_dist_list == norm_dist_list), 'dist is same'
+    except Exception as ex:
+        ut.printex(ex)
+        issame_pos = np.where(match_dist_list == norm_dist_list)[0]
+        match_index_1d[issame_pos]
+        norm_index_1d[issame_pos]
+        fx1 = fx1_list[issame_pos]
+        fx1_norm = fx1_norm_list[issame_pos]
+        print(kpts1[fx1])
+        print(kpts1[fx1_norm])
+        print(str())
+        print(str(match_dist_list[match_dist_list == norm_dist_list]))
+        #ut.embed()
+        raise
 
     #ut.embed()
     constraintup = fm_constrained, fm_norm_constrained, match_dist_list, norm_dist_list
@@ -498,15 +580,15 @@ def show_example():
     #ut.util_grabdata.get_valid_test_imgkeys()
     testtup1 = testdata_matcher('easy1.png', 'easy2.png')
     testtup2 = testdata_matcher('easy1.png', 'hard3.png')
-    self1 = SimpleMatcher(testtup1)
-    self2 = SimpleMatcher(testtup2)
-    self1.run_matching()
-    self2.run_matching()
-    #self1.visualize_matches()
-    #self2.visualize_matches()
-    self1.visualize_normalizers()
-    self2.visualize_normalizers()
-    #self1.param_interaction()
+    simp1 = SimpleMatcher(testtup1)
+    simp2 = SimpleMatcher(testtup2)
+    simp1.run_matching()
+    simp2.run_matching()
+    #simp1.visualize_matches()
+    #simp2.visualize_matches()
+    simp1.visualize_normalizers()
+    simp2.visualize_normalizers()
+    #simp1.param_interaction()
 
 
 if __name__ == '__main__':
