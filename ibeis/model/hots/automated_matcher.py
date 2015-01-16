@@ -258,7 +258,10 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         if interactive:
             print('... asking user for input')
             if qreq_.normalizer is not None:
-                qreq_.normalizer.visualize(fnum=511, verbose=False)
+                pass
+                VIZ_SCORE_NORM = False
+                if VIZ_SCORE_NORM:
+                    qreq_.normalizer.visualize(fnum=511, verbose=False)
             #sh Tinc.sh --test-test_inc_query:0 --ia 0
             #ut.embed()
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,

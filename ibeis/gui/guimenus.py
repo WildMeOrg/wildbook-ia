@@ -328,7 +328,7 @@ def setup_developer_menu(mainwin, back):
         slot_fn=back.dev_mode)
     mainwin.menuDev.newAction(
         name='actionDeveloper_CLS',
-        text='CLS',
+        text='Refresh Tables',
         shortcut='Ctrl+Shift+C',
         slot_fn=back.dev_cls)
     mainwin.menuDev.newAction(

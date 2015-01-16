@@ -43,7 +43,7 @@ def backreport(func):
         try:
             result = func(back, *args, **kwargs)
         except Exception as ex:
-            error_msg = "Error caught while preforming function. \n %r" % ex
+            error_msg = "Error caught while performing function. \n %r" % ex
             guitool.msgbox(title="Error Catch!", msg=error_msg)
             raise
         return result
@@ -64,7 +64,7 @@ def backblock(func):
         try:
             result = func(back, *args, **kwargs)
         except Exception:
-            #error_msg = "Error caught while preforming function. \n %r" % ex
+            #error_msg = "Error caught while performing function. \n %r" % ex
             #guitool.msgbox(title="Error Catch!", msg=error_msg)
             raise
         finally:
@@ -878,10 +878,13 @@ class MainWindowBackend(QtCore.QObject):
             back.user_info(msg=msg, title='Warning')
             return
 
-        back.confirm_query_dialog(qaid_list=qaid_list)
-        #TODO fix names tree thingie
-        back.front.set_table_tab(NAMES_TREE)
-        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
+        try:
+            back.confirm_query_dialog(qaid_list=qaid_list)
+            #TODO fix names tree thingie
+            back.front.set_table_tab(NAMES_TREE)
+            iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
+        except StopIteration:
+            pass
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):

@@ -79,12 +79,12 @@ TABLE_COLNAMES = {
         'name',
         'exemplar',
         'species',  # <put back in
-        'viewpoint',
+        #'viewpoint',
         #'rdconf',
-        'nGt',  # ## <put back in
-        'annotnotes',  # ## <put back in
-        'annot_visual_uuid',
-        'annot_semantic_uuid',
+        #'nGt',  # ## <put back in
+        #'annotnotes',  # ## <put back in
+        #'annot_visual_uuid',
+        #'annot_semantic_uuid',
         #'nFeats',
         #'bbox',
         #'theta',
