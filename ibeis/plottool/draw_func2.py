@@ -973,6 +973,13 @@ def reverse_colormap(cmap):
         return cmap_reversed
 
 
+def print_valid_cmaps():
+    import pylab
+    import utool as ut
+    maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
+    print(ut.list_str(sorted(maps)))
+
+
 def show_all_colormaps():
     """
     Displays at a 90 degree angle. Weird
@@ -1378,6 +1385,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
 
     if data_colorbar is True:
         scores = np.unique(img.flatten())
+        if cmap is None:
+            cmap = 'hot'
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
     return fig, ax
@@ -1469,7 +1478,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 # plot feature match
 def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
-                draw_border=False, **kwargs):
+                draw_border=False, cmap=None, **kwargs):
     """
     Overlays the matching features over chips that were previously plotted.
 
@@ -1526,7 +1535,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         # draw lines and ellipses and points
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)
         if fs is not None:
-            colors = scores_to_color(fs, 'hot')
+            colors = scores_to_color(fs, cmap)
 
         acols = add_alpha(colors)
 
