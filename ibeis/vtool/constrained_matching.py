@@ -115,60 +115,110 @@ class SimpleMatcher(object):
         self.testtup = testtup
 
     def visualize_matches(self):
-        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = self.testtup
-        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H      = self.basetup
-        fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR              = self.nexttup
-        fm_norm_RAT, fm_norm_SV                                = self.base_meta
-        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                 = self.next_meta
+        r"""
+        CommandLine:
+            python -m vtool.constrained_matching --test-visualize_matches --show
 
-        locals_ = ut.delete_dict_keys(locals(), ['title'])
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.constrained_matching import *  # NOQA
+            >>> import plottool as pt
+            >>> self = SimpleMatcher(testdata_matcher())
+            >>> self.run_matching()
+            >>> result = self.visualize_matches()
+            >>> pt.show_if_requested()
+        """
+        nRows = 2
+        nCols = 3
+        show_matches_ = self.start_new_viz(nRows, nCols)
 
-        nRows = 3
-        nCols = 2
-        show_matches_ = self.start_new_viz(locals_, nRows, nCols)
-
-        show_matches_(fm_ORIG, fs_ORIG, title='initial neighbors')
-
-        show_matches_(fm_RAT, fs_RAT, title='ratio filtered')
-        show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers')
-
-        #next_pnum()
-        show_matches_(fm_SCR, fs_SCR, title='spatially constrained')
-        show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers')
-
-        show_matches_(fm_SCRSV, fs_SCRSV, title='spatially constrained + SV')
+        show_matches_('ORIG')
+        show_matches_('RAT')
+        show_matches_('SV')
+        show_matches_('SC')
+        show_matches_('SCR')
+        show_matches_('SCRSV')
 
     def visualize_normalizers(self):
-        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = self.testtup
-        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H      = self.basetup
-        fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR              = self.nexttup
-        fm_norm_RAT, fm_norm_SV                                = self.base_meta
-        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                 = self.next_meta
+        """
+        CommandLine:
+            python -m vtool.constrained_matching --test-visualize_normalizers --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.constrained_matching import *  # NOQA
+            >>> import plottool as pt
+            >>> self = SimpleMatcher(testdata_matcher())
+            >>> self.run_matching()
+            >>> result = self.visualize_normalizers()
+            >>> pt.show_if_requested()
+        """
+        nRows = 2
+        nCols = 2
+        show_matches_ = self.start_new_viz(nRows, nCols)
+
+        show_matches_('RAT')
+        show_matches_('SCR')
+
+        show_matches_('RAT', norm=True)
+        show_matches_('SCR', norm=True)
+
+        #show_matches_(fm_RAT, fs_RAT, title='ratio filtered')
+        #show_matches_(fm_SCR, fs_SCR, title='constrained matches')
+
+        #show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers', cmap='cool')
+        #show_matches_(fm_norm_SCR, fs_SCR, title='constrained normalizers', cmap='cool')
+
+    def start_new_viz(self, nRows, nCols):
+        import plottool as pt
+
+        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2  = self.testtup
+        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H       = self.basetup
+        fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR = self.nexttup
+        fm_norm_RAT, fm_norm_SV                                 = self.base_meta
+        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                  = self.next_meta
 
         locals_ = ut.delete_dict_keys(locals(), ['title'])
 
-        nRows = 2
-        nCols = 2
-        show_matches_ = self.start_new_viz(locals_, nRows, nCols)
+        keytitle_tups = [
+            ('ORIG', 'initial neighbors'),
+            ('RAT', 'ratio filtered'),
+            ('SV', 'ratio filtered + SV'),
+            ('SC', 'spatially constrained'),
+            ('SCR', 'spatially constrained + ratio'),
+            ('SCRSV', 'spatially constrained + SV'),
+        ]
+        keytitle_dict = dict(keytitle_tups)
+        key_list = ut.get_list_column(keytitle_tups, 0)
+        matchtup_dict = {
+            key: (locals_['fm_' + key], locals_['fs_' + key])
+            for key in key_list
+        }
+        normtup_dict = {
+            key: locals_.get('fm_norm_' + key, None)
+            for key in key_list
+        }
 
-        show_matches_(fm_RAT, fs_RAT, title='ratio filtered')
-        show_matches_(fm_SCR, fs_SCR, title='constrained matches')
-
-        show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers', cmap='cool')
-        show_matches_(fm_norm_SCR, fs_SCR, title='constrained normalizers', cmap='cool')
-
-    def start_new_viz(self, locals_, nRows, nCols):
-        import plottool as pt
         next_pnum = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols)
         fnum = pt.next_fnum()
         pt.figure(fnum=fnum, doclf=True, docla=True)
 
-        def show_matches_(*args, **kwargs):
+        def show_matches_(key, **kwargs):
+            assert key in key_list, 'unknown key=%r' % (key,)
             showkw = locals_.copy()
             showkw['pnum'] = next_pnum()
             showkw['fnum'] = fnum
             showkw.update(kwargs)
-            show_matches(*args, **showkw)
+            _fm, _fs = matchtup_dict[key]
+            title = keytitle_dict[key]
+            if kwargs.get('norm', False):
+                _fm = normtup_dict[key]
+                assert _fm is not None, key
+                showkw['cmap'] = 'cool'
+                title += ' normalizers'
+            show_matches(_fm, _fs, title=title, **showkw)
+        # state hack
+        show_matches_.next_pnum = next_pnum
         return show_matches_
 
     def run_matching(self, testtup=None, cfgdict={}):
@@ -284,11 +334,11 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
     # Another round of verification
     svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_SCR, sver_xy_thresh2, dlen_sqrd2)
     (homog_inliers, homog_errors, H_SCR) = svtup[0:3]
-    fm_SVSCR = fm_SCR[homog_inliers]
-    fs_SVSCR = fs_SCR[homog_inliers]
+    fm_SCRSV = fm_SCR[homog_inliers]
+    fs_SCRSV = fs_SCR[homog_inliers]
     fm_norm_SVSCR = fm_norm_SCR[homog_inliers]
 
-    nexttup = (fm_SCR, fs_SCR, fm_SVSCR, fs_SVSCR, H_SCR)
+    nexttup = (fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR)
     next_meta = (fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR)
     return nexttup, next_meta
 
