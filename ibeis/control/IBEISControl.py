@@ -722,19 +722,25 @@ class IBEISController(object):
             complete_url_ = complete_url % (hostname, encounter_uuid)
             print('[_complete] URL=%r' % (complete_url_, ))
             webbrowser.open_new_tab(complete_url_)
+        # Configuration
+        hostname = '127.0.0.1'
+        # Laptop
+        # submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+        # # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
+        # complete_url = "http://%s:8080/wildbook/occurrence.jsp?number=%s"
+        # wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
+        # Server
+        submit_url   = "http://%s:8080/prod/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
+        # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
+        complete_url = "http://%s:8080/prod/occurrence.jsp?number=%s"
+        wildbook_tomcat_path = '/var/lib/tomcat/webapps/prod/'
         # Setup
-        wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
         if exists(wildbook_tomcat_path):
             wildbook_properties_path  = 'WEB-INF/classes/bundles/'
             wildbook_properties_path_ = join(wildbook_tomcat_path, wildbook_properties_path)
             src_config = 'commonConfiguration.properties.default'
             dst_config = 'commonConfiguration.properties'
             print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
-            # Configuration
-            hostname = '127.0.0.1'
-            submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-            # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
-            complete_url = "http://%s:8080/wildbook/occurrence.jsp?number=%s"
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
@@ -812,7 +818,8 @@ class IBEISController(object):
         element = './/%swaypoints' % (namespace, )
         waypoint_list = patrol_tree.findall(element)
         if len(waypoint_list) == 0:
-            raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
+            # raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
+            print('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
         for waypoint in waypoint_list:
             # Get the relevant information about the waypoint
             waypoint_id   = int(waypoint.get('id'))
@@ -837,34 +844,42 @@ class IBEISController(object):
                 # Filter the observations based on type, we only care
                 # about certain types
                 categoryKey = observation.attrib['categoryKey']
-                if categoryKey.startswith('animals.'):
+                if categoryKey.startswith('animals.liveanimals') or categoryKey.startswith('animals.problemanimal'):
                     # Get the photonumber attribute for the waypoint's
                     # observation
                     element = './/%sattributes[@attributeKey="photonumber"]' % (namespace, )
                     photonumber = observation.find(element)
-                    if photonumber is None:
-                        raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
-                    element = './/%ssValue' % (namespace, )
-                    # Get the value for photonumber
-                    sValue  = photonumber.find(element)
-                    if sValue is None:
-                        raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
-                    # Python cast the value
-                    photo_number = int(float(sValue.text)) - offset
-                    if photo_number >= nTotal:
-                        raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
-                    # Keep track of the last waypoint that was processed
-                    # becuase we only have photono, which indicates start
-                    # indices and doesn't specify the end index.  The
-                    # ending index is extracted as the next waypoint's
-                    # photonum minus 1.
-                    if last_photo_number is not None and last_encounter_info is not None:
-                        encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
-                        encounter_info_list.append(encounter_info)
-                    last_photo_number = photo_number
-                    last_encounter_info = waypoint_info
+                    if photonumber is not None:
+                        element = './/%ssValue' % (namespace, )
+                        # Get the value for photonumber
+                        sValue  = photonumber.find(element)
+                        if sValue is None:
+                            raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
+                        # Python cast the value
+                        try:
+                            photo_number = int(float(sValue.text)) - offset
+                        except ValueError:
+                            # raise IOError('The photonumber sValue is invalid, waypoint_id: %r' % (waypoint_id, ))
+                            print('[ibs]     Skipped Invalid Observation with photonumber: %r, waypoint_id: %r' % (sValue.text, waypoint_id, ))
+                            continue
+                        # Check that the photo_number is within the acceptable bounds
+                        if photo_number >= nTotal:
+                            raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
+                        # Keep track of the last waypoint that was processed
+                        # becuase we only have photono, which indicates start
+                        # indices and doesn't specify the end index.  The
+                        # ending index is extracted as the next waypoint's
+                        # photonum minus 1.
+                        if last_photo_number is not None and last_encounter_info is not None:
+                            encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
+                            encounter_info_list.append(encounter_info)
+                        last_photo_number = photo_number
+                        last_encounter_info = waypoint_info
+                    else:
+                        # raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
+                        print('[ibs]     Skipped Empty Observation with "categoryKey": %r, waypoint_id: %r' % (categoryKey, waypoint_id, ))
                 else:
-                    print('[ibs]     Skipped Observation with "categoryKey": %r' % (categoryKey, ))
+                    print('[ibs]     Skipped Incompatible Observation with "categoryKey": %r, waypoint_id: %r' % (categoryKey, waypoint_id, ))
         # Append the last photo_number
         if last_photo_number is not None and last_encounter_info is not None:
             encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
