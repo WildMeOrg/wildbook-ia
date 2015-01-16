@@ -3,22 +3,21 @@ Algorithm and behavior configurations are stored here.  These classes are based
 off of the utool.Preference.Pref class which really needs a good overhaul
 """
 from __future__ import absolute_import, division, print_function
-import utool
 import utool as ut
 import six
 import copy
 from os.path import join
 from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[cfg]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[cfg]')
 
-#ConfigBase = utool.DynStruct
+#ConfigBase = ut.DynStruct
 #ConfigBase = object
-ConfigBase = utool.Pref
+ConfigBase = ut.Pref
 
 
 def make_config_metaclass():
-    methods_list = utool.get_comparison_methods()
+    methods_list = ut.get_comparison_methods()
 
     def _register(func):
         methods_list.append(func)
@@ -55,7 +54,7 @@ def make_config_metaclass():
                 if get_funcname(func) not in dct:
                     funcname = get_funcname(func)
                     dct[funcname] = func
-                #utool.inject_func_as_method(metaself, func)
+                #ut.inject_func_as_method(metaself, func)
 
             #return type(name, bases, dct)
             return type.__new__(cls, name, bases, dct)
@@ -308,7 +307,7 @@ class SpatialVerifyConfig(ConfigBase):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = utool.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
+        thresh_str = ut.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr = [
             '_SV(',
             thresh_str,
@@ -597,11 +596,11 @@ class QueryConfig(ConfigBase):
         query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
-        #if utool.is_developer():
+        #if ut.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         query_cfg.update_query_cfg(**kwargs)
-        if utool.VERYVERBOSE:
+        if ut.VERYVERBOSE:
             print('[config] NEW QueryConfig')
 
     def update_query_cfg(query_cfg, **cfgdict):
@@ -733,8 +732,8 @@ class QueryConfig(ConfigBase):
         try:
             assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
         except AssertionError as ex:
-            utool.printex(ex)
-            if utool.SUPER_STRICT:
+            ut.printex(ex)
+            if ut.SUPER_STRICT:
                 raise
             else:
                 query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
@@ -981,9 +980,9 @@ class FeatureConfig(ConfigBase):
                         valstr = '%.2f' % val
                     else:
                         valstr = str(val)
-                    #namestr = utool.hashstr(alias.get(name, name), hashlen=6,
-                    #                        alphabet=utool.util_hash.ALPHABET_27)
-                    namestr = utool.clipstr(alias.get(name, name), 5)
+                    #namestr = ut.hashstr(alias.get(name, name), hashlen=6,
+                    #                        alphabet=ut.util_hash.ALPHABET_27)
+                    namestr = ut.clipstr(alias.get(name, name), 5)
                     str_ = namestr + '=' + valstr
                     yield str_
             feat_cfgstrs.append('_' + ',' .join(list(_gen())))
@@ -1138,7 +1137,7 @@ def __dict_default_func(dict_):
 def default_vsone_cfg(ibs, **kwargs):
     # DEPRICATE
     kwargs['pipeline_root'] = 'vsone'
-    utool.dict_update_newkeys(kwargs, {
+    ut.dict_update_newkeys(kwargs, {
         'lnbnn_weight': 0.0,
         'checks': 256,
         'K': 1,
@@ -1194,7 +1193,7 @@ def _default_config(cfg, cfgname=None, new=True):
         print('[Config] building default config')
     if cfgname is None:
         cfgname = cfg.z_cfgname
-    if utool.VERYVERBOSE:
+    if ut.VERYVERBOSE:
         print('[config] default_query_cfg()')
     if new:
         fpath = cfg.get_fpath()
