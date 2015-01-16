@@ -42,8 +42,7 @@ import math as math
 import numpy as np
 import utool
 import re
-from ibeis.constants import VALID_SPECIES
-
+# FIXME: REMOVE IBEIS DEPENDENCY
 from plottool import draw_func2 as df2
 from six.moves import zip
 utool.noinject(__name__, '[interact_annotations]')
@@ -259,9 +258,11 @@ class ANNOTATIONInteraction(object):
                  max_ds=10,
                  line_width=4, line_color=(1, 1, 1), face_color=(0, 0, 0),
                  fnum=None, default_species=DEFAULT_SPECIES_TAG,
-                 next_callback=None, prev_callback=None, do_mask=False,):
+                 next_callback=None, prev_callback=None, do_mask=False,
+                 valid_species=[]):
         if fnum is None:
             fnum = df2.next_fnum()
+        self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .18
         self.but_height = .08
@@ -724,14 +725,17 @@ class ANNOTATIONInteraction(object):
                 self._currently_selected_poly.tctext += keychar
                 # TODO: Something better like greying out the tab suggestion
                 # instead of just deleting it
-                self._currently_selected_poly.species_tag.set_text(
-                        self._currently_selected_poly.tctext)
+                self._currently_selected_poly.species_tag.set_text(self._currently_selected_poly.tctext)
                 regen_tc()
 
         def regen_tc():
             # Setup tab completion
             # Yes this will redo the tab completion list every time a user types. This should be improved if we move to having more species
-            self._currently_selected_poly.tab_list = [spec for spec in VALID_SPECIES if spec.startswith(self._currently_selected_poly.tctext)]
+            self._currently_selected_poly.tab_list = [
+                spec
+                for spec in self.valid_species
+                if spec.startswith(self._currently_selected_poly.tctext)
+            ]
             self._currently_selected_poly.tcindex = 0
 
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
@@ -763,8 +767,8 @@ class ANNOTATIONInteraction(object):
                 self._currently_selected_poly.tcindex = tci
                 # All tab is going to do is go through the possibilities
                 self._currently_selected_poly.species_tag.set_text(
-                        self._currently_selected_poly.tab_list[
-                            self._currently_selected_poly.tcindex])
+                    self._currently_selected_poly.tab_list[
+                        self._currently_selected_poly.tcindex])
         #TODO: Similar functionality for shift+tab to go backwards
 
         match = re.match('^.$', event.key)
@@ -1109,7 +1113,7 @@ class ANNOTATIONInteraction(object):
         poly.species_tag.remove()  # eliminate "leftover" copies
         # put in previous text and tabcomplete list for autocompletion
         poly.tctext = ''
-        poly.tab_list = VALID_SPECIES
+        poly.tab_list = self.valid_species
         poly.tcindex = 0
         return poly
 
