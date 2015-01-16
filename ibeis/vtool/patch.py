@@ -114,10 +114,16 @@ def gaussian_average_patch(patch, sigma=None):
     return average
 
 
-def test_show_gaussian_patches():
+def test_show_gaussian_patches2(shape=(19, 19)):
     r"""
     CommandLine:
-        python -m vtool.patch --test-test_show_gaussian_patches --show
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=7,7
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=19,19
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,41
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,7
+
+
 
     References:
         http://matplotlib.org/examples/mplot3d/surface3d_demo.html
@@ -127,7 +133,8 @@ def test_show_gaussian_patches():
         >>> from vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
         >>> import plottool as pt
-        >>> test_show_gaussian_patches()
+        >>> shape = ut.get_argval(('--shape',), type_=list, default=[19, 19])
+        >>> test_show_gaussian_patches2(shape=shape)
         >>> pt.show_if_requested()
     """
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -135,8 +142,66 @@ def test_show_gaussian_patches():
     import numpy as np
     import matplotlib as mpl
     import vtool as vt
+    shape = tuple(map(int, shape))
+    print('shape = %r' % (shape,))
     #shape = (27, 27)
-    shape = (7, 7)
+    #shape = (7, 7)
+    #shape = (41, 41)
+    #shape = (5, 5)
+    #shape = (3, 3)
+    sigma_percent_list = [.1, .3, .5, .6, .7, .8, .9, .95, 1.0]
+    #np.linspace(.1, 3, 9)
+    ybasis = np.arange(shape[0])
+    xbasis = np.arange(shape[1])
+    xgrid, ygrid = np.meshgrid(xbasis, ybasis)
+    fnum = pt.next_fnum()
+    for sigma_percent in pt.param_plot_iterator(sigma_percent_list, fnum=fnum, projection='3d'):
+        radius1 = shape[0]
+        radius2 = shape[1]
+        sigma1 = radius1 * sigma_percent
+        sigma2 = radius2 * sigma_percent
+        sigma = [sigma1, sigma2]
+        gausspatch = vt.gaussian_patch(shape, sigma=sigma)
+        #print(gausspatch)
+        #pt.imshow(gausspatch * 255)
+        pt.plot_surface3d(xgrid, ygrid, gausspatch, rstride=1, cstride=1,
+                          cmap=mpl.cm.coolwarm, title='sigma_percent=%.3f' % (sigma_percent,))
+    pt.update()
+    pt.set_figtitle('2d gaussian kernels')
+
+
+def test_show_gaussian_patches(shape=(19, 19)):
+    r"""
+    CommandLine:
+        python -m vtool.patch --test-test_show_gaussian_patches --show
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=7,7
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=17,17
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,41
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,7
+
+
+
+    References:
+        http://matplotlib.org/examples/mplot3d/surface3d_demo.html
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
+        >>> import plottool as pt
+        >>> shape = ut.get_argval(('--shape',), type_=list, default=[19, 19])
+        >>> test_show_gaussian_patches(shape=shape)
+        >>> pt.show_if_requested()
+    """
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    import plottool as pt
+    import numpy as np
+    import matplotlib as mpl
+    import vtool as vt
+    shape = tuple(map(int, shape))
+    print('shape = %r' % (shape,))
+    #shape = (27, 27)
+    #shape = (7, 7)
     #shape = (41, 41)
     #shape = (5, 5)
     #shape = (3, 3)
@@ -192,8 +257,16 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         pt.imshow(gausspatch * 255)
         pt.update()
     """
-    gauss_kernel_d0 = (cv2.getGaussianKernel(shape[0], sigma))
-    gauss_kernel_d1 = (cv2.getGaussianKernel(shape[1], sigma))
+    if isinstance(sigma, (float)):
+        sigma1 = sigma2 = sigma
+    else:
+        sigma1, sigma2 = sigma
+    # see hesaff/src/helpers.cpp : computeCircularGaussMask
+    # HACK MAYBE: I think sigma is actually a sigma squared term?
+    #sigma1 = np.sqrt(sigma1)
+    #sigma2 = np.sqrt(sigma2)
+    gauss_kernel_d0 = (cv2.getGaussianKernel(shape[0], sigma1))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(shape[1], sigma2))
     gausspatch = gauss_kernel_d0.dot(gauss_kernel_d1.T)
     return gausspatch
 

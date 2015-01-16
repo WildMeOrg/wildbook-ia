@@ -67,14 +67,14 @@ def get_annot_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs):
     chip = ibs.get_annot_chips(aid)
     kpts = ibs.get_annot_kpts(aid)
     mx2_kp = kpts[sel_fx]
-    srcimg = ptool.gaussian_patch()
+    patch = ptool.gaussian_patch()
     # 2 and 3 are scale modes
     if kwargs.get('method', 0) in [2, 3]:
         # Bigger keypoints should get smaller weights
         mx2_scale = np.sqrt([a * d for (x, y, a, c, d) in mx2_kp])
         mx2_score = mx2_score / mx2_scale
-    dstimg = warp_srcimg_to_kpts(mx2_kp, srcimg, chip.shape[0:2],
-                                 fx2_score=mx2_score, **kwargs)
+    dstimg = warp_patch_into_kpts(mx2_kp, patch, chip.shape[0:2],
+                                  fx2_score=mx2_score, **kwargs)
     return dstimg
 
 
@@ -85,14 +85,14 @@ def get_match_coverage_images(ibs, aid1, aid2, fm, mx2_score, **kwargs):
     return dstimg1, dstimg2
 
 
-def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
-                        scale_factor=1.0, mode='sum', **kwargs):
+def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
+                         scale_factor=1.0, mode='sum', **kwargs):
     r"""
     Overlays the source image onto a destination image in each keypoint location
 
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
-        srcimg (ndarray): patch to warp (like gaussian)
+        patch (ndarray): patch to warp (like gaussian)
         chip_shape (tuple):
         fx2_score (ndarray): score for every keypoint
         scale_factor (float):
@@ -101,11 +101,11 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
         ?: None
 
     CommandLine:
-        python -m vtool.coverage_image --test-warp_srcimg_to_kpts
-        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show
-        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --hole
-        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --square
-        python -m vtool.coverage_image --test-warp_srcimg_to_kpts --show --square --hole
+        python -m vtool.coverage_image --test-warp_patch_into_kpts
+        python -m vtool.coverage_image --test-warp_patch_into_kpts --show
+        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --hole
+        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --square
+        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --square --hole
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -120,31 +120,33 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
         >>> chip_shape = chip.shape
         >>> fx2_score = np.ones(len(kpts))
         >>> scale_factor = 1.0
-        >>> sigma = 1.6
-        >>> srcshape = (3, 3)
+        >>> srcshape = (19, 19)
+        >>> radius = srcshape[0] / 2.0
+        >>> sigma = 0.95 * radius
+        >>> #sigma = 1.6
+        >>> #srcshape = (7, 7)
         >>> #srcshape = (7, 7)
         >>> #srcshape = (11, 11)
         >>> #srcshape = (170, 170)
         >>> SQUARE = ut.get_argflag('--square')
         >>> HOLE = ut.get_argflag('--hole')
         >>> if SQUARE:
-        >>>     srcimg = np.ones(srcshape)
+        >>>     patch = np.ones(srcshape)
         >>> else:
-        >>>     srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma) #, norm_01=False)
+        >>>     patch = ptool.gaussian_patch(shape=srcshape, sigma=sigma) #, norm_01=False)
         >>> if HOLE:
-        >>>     srcimg[int(srcimg.shape[0] / 2), int(srcimg.shape[1] / 2)] = 0
+        >>>     patch[int(patch.shape[0] / 2), int(patch.shape[1] / 2)] = 0
         >>> # execute function
-        >>> dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score, scale_factor)
+        >>> dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score, scale_factor)
         >>> # verify results
         >>> print('dstimg stats %r' % (ut.get_stats_str(dstimg, axis=None)),)
-        >>> print('srcimg stats %r' % (ut.get_stats_str(srcimg, axis=None)),)
-        >>> #print(srcimg.sum())
+        >>> print('patch stats %r' % (ut.get_stats_str(patch, axis=None)),)
+        >>> #print(patch.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
         >>> if ut.get_argflag('--show'):
         >>>     import plottool as pt
         >>>     mask = dstimg
-        >>>     patch = srcimg
         >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
 
@@ -168,7 +170,7 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
     shape = dsize[::-1]
     # Allocate destination image
     dstimg = np.zeros(shape, dtype=np.float32)
-    patch_shape = srcimg.shape
+    patch_shape = patch.shape
     # Scale keypoints into destination image
     M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
     affmat_list = M_list[:, 0:2, :]
@@ -181,7 +183,18 @@ def warp_srcimg_to_kpts(kpts, srcimg, chip_shape, fx2_score=None,
                   borderValue=0)
     def warped_patch_generator():
         for (M, score) in zip(affmat_list, fx2_score):
-            warped = cv2.warpAffine(srcimg * score, M, dsize, **warpkw).T
+            warped = cv2.warpAffine(patch * score, M, dsize, **warpkw).T
+            #
+            BIG_KEYPOINT_LOW_WEIGHT_HACK = False
+            if BIG_KEYPOINT_LOW_WEIGHT_HACK:
+                warp_sum = np.sqrt(warped.sum() / 10000)
+                #print(warp_sum)
+                #print(warped.max())
+                if warp_sum != 0:
+                    # Whatever the size of the keypoint is it should
+                    # contribute a total of 1 score
+                    np.divide(warped, warp_sum, out=warped)
+                #print(warped.max())
             yield warped
     # For each keypoint
     # warp a gaussian scaled by the feature score into the image
@@ -207,9 +220,9 @@ def show_coverage_map(chip, mask, patch, kpts):
     pt.imshow((patch * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(0), title='patch')
     #ut.embed()
     pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
-    pt.draw_kpts2(kpts)
+    pt.draw_kpts2(kpts, rect=True)
     pt.imshow(chip, fnum=fnum, pnum=pnum_(2), title='chip')
-    pt.draw_kpts2(kpts)
+    pt.draw_kpts2(kpts, rect=True)
     pt.imshow(masked_chip, fnum=fnum, pnum=pnum_(3), title='masked chip')
     #pt.draw_kpts2(kpts)
 
@@ -228,6 +241,7 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         ndarray: dstimg
 
     CommandLine:
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show
         python -m vtool.coverage_image --test-get_coverage_map --show
         python -m vtool.coverage_image --test-get_coverage_map
 
@@ -245,16 +259,14 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         >>> kwargs = {}
         >>> chip_shape = chip.shape
         >>> # execute function
-        >>> dstimg = get_coverage_map(kpts, chip_shape)
+        >>> dstimg, patch = get_coverage_map(kpts, chip_shape)
         >>> # show results
         >>> if ut.get_argflag('--show'):
         >>>     # FIXME:  params
         >>>     srcshape = (5, 5)
         >>>     sigma = 1.6
         >>>     #srcshape = (75, 75)
-        >>>     srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
         >>>     mask = dstimg
-        >>>     patch = srcimg
         >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
 
@@ -264,18 +276,29 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
     #>>> pt.draw_kpts2(kpts)
     #>>> pt.imshow(dstimg * 255, fnum=fnum, pnum=pnum_(1))
     #>>> pt.imshow(chip, fnum=fnum, pnum=pnum_(2))
-    #>>> pt.draw_kpts2(kpts)
+    #>>> pt.draw_kpts2(kpts, rect=True)
     #>>> pt.show_if_requested()
     """
     #srcshape = (7, 7)
     #srcshape = (3, 3)
-    srcshape = (5, 5)
-    sigma = 1.6
+    #srcshape = (5, 5)
+    srcshape = (19, 19)
+    #sigma = 1.6
+    # Perdoch uses roughly .95 of the radius
+    radius = srcshape[0] / 2.0
+    sigma = 0.95 * radius
     #srcshape = (75, 75)
-    srcimg = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
+    # Similar to SIFT's computeCircularGaussMask in helpers.cpp
+    # uses smmWindowSize=19 in hesaff for patch size. and 1.6 for sigma
+    patch = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
+    norm_01 = True
+    mode = 'sum'
+    #mode = 'max'
+    if norm_01:
+        patch /= patch.max()
     #, norm_01=False)
-    dstimg = warp_srcimg_to_kpts(kpts, srcimg, chip_shape, **kwargs)
-    return dstimg
+    dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode, **kwargs)
+    return dstimg, patch
 
 
 if __name__ == '__main__':
