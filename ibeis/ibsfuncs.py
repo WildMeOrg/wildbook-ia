@@ -1647,6 +1647,8 @@ def make_next_name(ibs, num=None, str_format=2):
             species_short = 'UNKNOWN'
         else:
             species_short = _abbreviate(species_text)
+            # Temporary fix
+            species_short = species_short[::-1]
         name_prefix = locateion_text + '_' + species_short + '_'
     else:
         raise ValueError('Invalid str_format supplied')
