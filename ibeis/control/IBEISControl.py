@@ -914,7 +914,7 @@ class IBEISController(object):
         try:
             encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
         except Exception as e:
-            ibs.delete_image(gid_list)
+            ibs.delete_images(gid_list)
             print("[ibs] ERROR: Parsing Patrol XML file failed, rolling back by deleting %d images..." % (len(gid_list, )))
             raise e
         # Display the patrol encounters
