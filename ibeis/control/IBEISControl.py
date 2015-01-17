@@ -766,9 +766,19 @@ class IBEISController(object):
                 print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
                 if eid_list is None:
                     eid_list = ibs.get_valid_eids()
-                status_list = [ _send(eid, sudo=sudo) for eid in eid_list ]
-                if set_shipped_flag:
-                    for eid, status in zip(eid_list, status_list):
+                # Check and push "done" encounters
+                status_list = []
+                for eid in eid_list:
+                    # First, check if encounter can be pushed
+                    gid_list = ibs.get_encounter_gids(eid_list)
+                    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+                    nid_list = ibs.get_annot_nids(aid_list)
+                    print(nid_list)
+                    assert all( [ nid > 0 for nid in nid_list ]), "Encounter cannot be shipped becuase at least one annotation is not named"
+                    #Check for nones
+                    status = _send(eid, sudo=sudo)
+                    status_list.append(status)
+                    if set_shipped_flag:
                         if status:
                             ibs.set_encounter_shipped_flags([eid], [1])
                             _complete(eid)
@@ -901,7 +911,12 @@ class IBEISController(object):
         ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
         # Process the XML File
         print("[ibs] Processing Patrol XML file: %r" % (dst_xml_path, ))
-        encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
+        try:
+            encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
+        except Exception as e:
+            ibs.delete_image(gid_list)
+            print("[ibs] ERROR: Parsing Patrol XML file failed, rolling back by deleting %d images..." % (len(gid_list, )))
+            raise e
         # Display the patrol encounters
         for index, encounter_info in enumerate(encounter_info_list):
             smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
@@ -913,7 +928,7 @@ class IBEISController(object):
             gps_list  = [ gps ] * len(gid_list_)
             ibs.set_image_gps(gid_list_, gps_list)
             # Create a new encounter
-            enctext = 'Observation %03d' % (index + 1, )
+            enctext = '%s Waypoint %03d' % (xml_name, index + 1, )
             eid = ibs.add_encounters(enctext)
             # Add images to the encounters
             eid_list = [eid] * len(gid_list_)
