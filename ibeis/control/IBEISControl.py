@@ -770,11 +770,12 @@ class IBEISController(object):
                 status_list = []
                 for eid in eid_list:
                     # First, check if encounter can be pushed
-                    gid_list = ibs.get_encounter_gids(eid_list)
+                    gid_list = ibs.get_encounter_gids(eid)
                     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
                     nid_list = ibs.get_annot_nids(aid_list)
                     print(nid_list)
-                    assert all( [ nid > 0 for nid in nid_list ]), "Encounter cannot be shipped becuase at least one annotation is not named"
+                    unnamed_aid_list = [ aid for aid, nid in zip(aid_list, nid_list) if nid <= 0 ]
+                    assert len(unnamed_aid_list) == 0, "Encounter cannot be shipped becuase annotation(s) %r are not named" % (unnamed_aid_list, )
                     #Check for nones
                     status = _send(eid, sudo=sudo)
                     status_list.append(status)
@@ -928,7 +929,7 @@ class IBEISController(object):
             gps_list  = [ gps ] * len(gid_list_)
             ibs.set_image_gps(gid_list_, gps_list)
             # Create a new encounter
-            enctext = '%s Waypoint %03d' % (xml_name, index + 1, )
+            enctext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )
             eid = ibs.add_encounters(enctext)
             # Add images to the encounters
             eid_list = [eid] * len(gid_list_)
