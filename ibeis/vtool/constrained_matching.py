@@ -61,7 +61,7 @@ def param_interaction():
         >>> print(result)
     """
     import plottool as pt
-    USE_IBEIS = ut.is_developer()
+    USE_IBEIS = False and ut.is_developer()
     if USE_IBEIS:
         from ibeis.model.hots import devcases
         index = 2
@@ -90,7 +90,7 @@ def param_interaction():
     valid_vizmodes = ut.filter_startswith(dir(SimpleMatcher), 'visualize_')
     viz_index_ = [valid_vizmodes.index('visualize_matches')]
     def toggle_vizmode(iiter, actionkey, value, viz_index_=viz_index_):
-        viz_index_[0] += viz_index_[0] % len(valid_vizmodes)
+        viz_index_[0] = (viz_index_[0] + 1) % len(valid_vizmodes)
         print('toggling')
 
     def set_param(iiter, actionkey, value, viz_index_=viz_index_):
@@ -109,9 +109,14 @@ def param_interaction():
         print('setting cfgdict[%r]=%r' % (paramkey, paramval))
         iiter.iterable[iiter.index][paramkey] = paramval
 
+    offset_fnum_ = [0]
+    def offset_fnum(iiter, actionkey, value, offset_fnum_=offset_fnum_):
+        offset_fnum_[0] += len(simp_list)
+
     custom_actions = [
         ('toggle', ['t'], 'toggles between ' + ut.cond_phrase(valid_vizmodes, 'and'), toggle_vizmode),
-        ('set_param', ['setparam', 's'], 'sets a config param using key=val format.  eg: setparam ratio_thresh=.1', set_param)
+        ('offset_fnum', ['offset_fnum', 'o'], 'offset the figure number (keeps old figures)', offset_fnum),
+        ('set_param', ['setparam', 's'], 'sets a config param using key=val format.  eg: setparam ratio_thresh=.1', set_param),
     ]
     # /DEFINE CUSTOM INTRACTIONS
 
@@ -123,7 +128,8 @@ def param_interaction():
             simp.run_matching(cfgdict=cfgdict)
         vizkey = valid_vizmodes[viz_index_[0]].replace('visualize_', '')
         print('vizkey = %r' % (vizkey,))
-        for fnum, simp in enumerate(simp_list):
+        for fnum_, simp in enumerate(simp_list):
+            fnum = fnum_ + offset_fnum_[0]
             simp.visualize(vizkey, fnum=fnum)
         tried_configs.append(cfgdict.copy())
         print('Current Config = ')
