@@ -28,7 +28,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         nCols (?):
         px (?):
         prevsift (None):
-        aid (None):
+        aid (None): Not necessary this is not IBEIS, but is used as a label
         info (str):
         type_ (None):
 
