@@ -689,7 +689,7 @@ class IBEISController(object):
     @default_decorator
     def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
         """ Exports specified encounters to wildbook """
-        def _send(eid):
+        def _send(eid, sudo=False):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             submit_url_ = submit_url % (hostname, encounter_uuid)
             print('[_send] URL=%r' % (submit_url_, ))
@@ -702,10 +702,18 @@ class IBEISController(object):
                 print('[_send] Sending with SMART payload - patrol: %r (%d lines) waypoint_id: %r' %
                       (smart_xml_fpath, len(smart_xml_content_list), smart_waypoint_id))
                 smart_xml_content = ''.join(smart_xml_content_list)
-                payload = {
-                    'smart_xml_content': smart_xml_content,
-                    'smart_waypoint_id': smart_waypoint_id,
-                }
+                if sudo:
+                    payload = {
+                        'smart_xml_content': smart_xml_content,
+                        'smart_waypoint_id': smart_waypoint_id,
+                    }
+                else:
+                    payload = {
+                        'smart_xml_content': smart_xml_content,
+                        'smart_waypoint_id': smart_waypoint_id,
+                        'IBEIS_DB_path'    : ibs.get_db_core_path(),
+                        'IBEIS_image_path' : ibs.get_imgdir(),
+                    }
             else:
                 payload = None
             response = ibs._init_wb(submit_url_, payload)
@@ -723,15 +731,9 @@ class IBEISController(object):
             print('[_complete] URL=%r' % (complete_url_, ))
             webbrowser.open_new_tab(complete_url_)
         # Configuration
+        sudo = False
         hostname = '127.0.0.1'
-        # Laptop
-        # submit_url   = "http://%s:8080/wildbook/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-        # # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
-        # complete_url = "http://%s:8080/wildbook/occurrence.jsp?number=%s"
-        # wildbook_tomcat_path = '/var/lib/tomcat7/webapps/wildbook/'
-        # Server
         submit_url   = "http://%s:8080/prod/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-        # complete_url = "http://%s:8080/wildbook/occurrenceIBEIS.jsp?number=%s"
         complete_url = "http://%s:8080/prod/occurrence.jsp?number=%s"
         wildbook_tomcat_path = '/var/lib/tomcat/webapps/prod/'
         # Setup
@@ -742,27 +744,28 @@ class IBEISController(object):
             dst_config = 'commonConfiguration.properties'
             print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
             # With a lock file, modify the configuration with the new settings
-            with lockfile.LockFile(join(ibs.get_cachedir(), 'wildbook.lock')):
+            with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
-                with open(join(wildbook_properties_path_, src_config), 'r') as f:
-                    content = f.read()
-                    content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
-                    content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
-                    content = '"%s"' % (content, )
-                # Write to the configuration
-                print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-                command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', join(wildbook_properties_path_, dst_config), '\'']
-                # ut.cmd(command, sudo=True)
-                command = ' '.join(command)
-                system(command)
-                # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
-                #     f.write(content)
+                if sudo:
+                    with open(join(wildbook_properties_path_, src_config), 'r') as f:
+                        content = f.read()
+                        content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
+                        content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
+                        content = '"%s"' % (content, )
+                    # Write to the configuration
+                    print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
+                    command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', join(wildbook_properties_path_, dst_config), '\'']
+                    # ut.cmd(command, sudo=True)
+                    command = ' '.join(command)
+                    system(command)
+                    # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
+                    #     f.write(content)
 
                 # Call Wildbook url to signal update
                 print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
                 if eid_list is None:
                     eid_list = ibs.get_valid_eids()
-                status_list = [ _send(eid) for eid in eid_list ]
+                status_list = [ _send(eid, sudo=sudo) for eid in eid_list ]
                 if set_shipped_flag:
                     for eid, status in zip(eid_list, status_list):
                         if status:
