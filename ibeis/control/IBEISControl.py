@@ -773,7 +773,6 @@ class IBEISController(object):
                     gid_list = ibs.get_encounter_gids(eid)
                     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
                     nid_list = ibs.get_annot_nids(aid_list)
-                    print(nid_list)
                     unnamed_aid_list = [ aid for aid, nid in zip(aid_list, nid_list) if nid <= 0 ]
                     assert len(unnamed_aid_list) == 0, "Encounter cannot be shipped becuase annotation(s) %r are not named" % (unnamed_aid_list, )
                     #Check for nones
