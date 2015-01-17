@@ -5,7 +5,8 @@ import utool
 import plottool.draw_func2 as df2
 # IBEIS
 from ibeis import viz
-from ibeis.viz import viz_helpers as vh
+#from ibeis.viz import viz_helpers as vh
+from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 #from .interact_matches import ishow_matches
 from ibeis.viz.interact.interact_sver import ishow_sver
@@ -55,12 +56,12 @@ def ishow_qres(ibs, qres, **kwargs):
             _top_matches_view(toggle=1)
         else:
             ax = event.inaxes
-            viztype = vh.get_ibsdat(ax, 'viztype', '')
+            viztype = ph.get_plotdat(ax, 'viztype', '')
             #printDBG(str(event.__dict__))
             printDBG('viztype=%r' % viztype)
             # Clicked a specific matches
             if viztype.startswith('matches'):
-                aid2 = vh.get_ibsdat(ax, 'aid2', None)
+                aid2 = ph.get_plotdat(ax, 'aid2', None)
                 # Ctrl-Click
                 key = '' if event.key is None else event.key
                 print('key = %r' % key)
@@ -71,10 +72,10 @@ def ishow_qres(ibs, qres, **kwargs):
                 else:
                     print('[viz] result clicked')
                     _clicked_aid(aid2)
-        vh.draw()
+        ph.draw()
 
     fig = _top_matches_view()
-    vh.draw()
+    ph.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
     printDBG('[ishow_qres] Finished')
     return fig
