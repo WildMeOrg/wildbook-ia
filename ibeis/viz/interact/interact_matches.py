@@ -19,8 +19,9 @@ from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
 from plottool import draw_func2 as df2
-from plottool.viz_featrow import draw_feat_row
+from plottool import viz_featrow
 from plottool import interact_helpers as ih
+from plottool import plot_helpers as ph
 from ibeis.viz.interact.interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
@@ -111,7 +112,7 @@ class MatchInteraction(object):
 
         self.set_callbacks()
         # FIXME: this should probably not be called here
-        viz.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
+        ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
 
     def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
@@ -247,8 +248,8 @@ class MatchInteraction(object):
         else:
             fnum2 = fnum
         for (rchip, kp, sift, fx, aid, info) in extracted_list:
-            px = draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-                               prevsift=prevsift, aid=aid, info=info)
+            px = viz_featrow.draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
+                                           prevsift=prevsift, aid=aid, info=info)
             prevsift = sift
         if not same_fig:
             ih.connect_callback(fig2, 'button_press_event', self._click_matches_click)

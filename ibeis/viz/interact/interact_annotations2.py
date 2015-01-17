@@ -3,6 +3,7 @@ from plottool import interact_annotations
 from plottool import draw_func2 as df2
 #from six.moves import zip
 import utool
+from ibeis.constants import VALID_SPECIES
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[interact_annot2]')
 
 
@@ -21,6 +22,7 @@ class ANNOTATION_Interaction2(object):
         bbox_list     = ibs.get_annot_bboxes(self.aid_list)
         theta_list    = ibs.get_annot_thetas(self.aid_list)
         species_list  = ibs.get_annot_species_texts(self.aid_list)
+        valid_species = VALID_SPECIES
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
@@ -31,6 +33,7 @@ class ANNOTATION_Interaction2(object):
             next_callback=next_callback,
             prev_callback=prev_callback,
             fnum=12,
+            valid_species=valid_species,
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
         df2.update()

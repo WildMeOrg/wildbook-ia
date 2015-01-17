@@ -842,7 +842,7 @@ class IBEISController(object):
             element = './/%sobservations' % (namespace, )
             observation_list = waypoint.findall(element)
             # if len(observation_list) == 0:
-                # raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
+            #     raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
             for observation in observation_list:
                 # Filter the observations based on type, we only care
                 # about certain types

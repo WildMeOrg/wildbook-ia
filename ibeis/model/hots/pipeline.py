@@ -249,11 +249,12 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=VERB_PIPELINE):
 
     Ignore:
         >>> from ibeis.model.hots import pipeline
+        >>> import tuool as ut
         >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0)
         >>> stripsource = source[:]
         >>> stripsource = ut.strip_line_comments(stripsource)
-        >>> triplequote1 = '"' * 3
-        >>> triplequote2 = "'" * 3
+        >>> triplequote1 = ut.TRIPLE_DOUBLE_QUOTE
+        >>> triplequote2 = ut.TRIPLE_SINGLE_QUOTE
         >>> docstr_regex1 = 'r?' + triplequote1 + '.* + ' + triplequote1 + '\n    '
         >>> docstr_regex2 = 'r?' + triplequote2 + '.* + ' + triplequote2 + '\n    '
         >>> stripsource = ut.regex_replace(docstr_regex1, '', stripsource)
