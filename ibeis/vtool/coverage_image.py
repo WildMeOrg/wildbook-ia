@@ -227,7 +227,7 @@ def show_coverage_map(chip, mask, patch, kpts):
     #pt.draw_kpts2(kpts)
 
 
-def get_coverage_map(kpts, chip_shape, **kwargs):
+def make_coverage_mask(kpts, chip_shape, fx2_score=None, **kwargs):
     # Create gaussian image to warp
     r"""
     Returns a intensity image denoting which pixels are covered by the input
@@ -242,8 +242,8 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
 
     CommandLine:
         python -m vtool.patch --test-test_show_gaussian_patches2 --show
-        python -m vtool.coverage_image --test-get_coverage_map --show
-        python -m vtool.coverage_image --test-get_coverage_map
+        python -m vtool.coverage_image --test-make_coverage_mask --show
+        python -m vtool.coverage_image --test-make_coverage_mask
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -259,7 +259,7 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
         >>> kwargs = {}
         >>> chip_shape = chip.shape
         >>> # execute function
-        >>> dstimg, patch = get_coverage_map(kpts, chip_shape)
+        >>> dstimg, patch = make_coverage_mask(kpts, chip_shape)
         >>> # show results
         >>> if ut.get_argflag('--show'):
         >>>     # FIXME:  params
@@ -285,8 +285,10 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
     srcshape = (19, 19)
     #sigma = 1.6
     # Perdoch uses roughly .95 of the radius
-    radius = srcshape[0] / 2.0
-    sigma = 0.95 * radius
+    USE_PERDOCH_VALS = True
+    if USE_PERDOCH_VALS:
+        radius = srcshape[0] / 2.0
+        sigma = 0.95 * radius
     #srcshape = (75, 75)
     # Similar to SIFT's computeCircularGaussMask in helpers.cpp
     # uses smmWindowSize=19 in hesaff for patch size. and 1.6 for sigma
@@ -297,7 +299,8 @@ def get_coverage_map(kpts, chip_shape, **kwargs):
     if norm_01:
         patch /= patch.max()
     #, norm_01=False)
-    dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode, **kwargs)
+    dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode,
+                                  fx2_score=fx2_score, **kwargs)
     return dstimg, patch
 
 
