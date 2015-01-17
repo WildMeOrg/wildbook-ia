@@ -731,22 +731,23 @@ class IBEISController(object):
             print('[_complete] URL=%r' % (complete_url_, ))
             webbrowser.open_new_tab(complete_url_)
         # Configuration
-        sudo = False
+        sudo = True
         hostname = '127.0.0.1'
         submit_url   = "http://%s:8080/prod/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
         complete_url = "http://%s:8080/prod/occurrence.jsp?number=%s"
         wildbook_tomcat_path = '/var/lib/tomcat/webapps/prod/'
         # Setup
         if exists(wildbook_tomcat_path):
-            wildbook_properties_path  = 'WEB-INF/classes/bundles/'
-            wildbook_properties_path_ = join(wildbook_tomcat_path, wildbook_properties_path)
-            src_config = 'commonConfiguration.properties.default'
-            dst_config = 'commonConfiguration.properties'
-            print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
                 # Update the Wildbook configuration to see *THIS* ibeis database
                 if sudo:
+                    wildbook_properties_path  = 'WEB-INF/classes/bundles/'
+                    wildbook_properties_path_ = join(wildbook_tomcat_path, wildbook_properties_path)
+                    src_config = 'commonConfiguration.properties.default'
+                    dst_config = 'commonConfiguration.properties'
+                    print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
+                    # Open the default configuration
                     with open(join(wildbook_properties_path_, src_config), 'r') as f:
                         content = f.read()
                         content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
