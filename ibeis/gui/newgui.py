@@ -693,18 +693,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Conditional context menu
             if len(id_list) == 1:
                 context_options += [
-                    ('merge %d encounter into %s' %  (len(id_list), (enctext)),
+                    ('Run detection on encounter (can cause duplicates)', lambda: ibswgt.back.run_detection_on_encounter(id_list)),
+                    ('Merge %d encounter into %s' %  (len(id_list), (enctext)),
                         lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('delete encounter', lambda: ibswgt.back.delete_encounter(id_list)),
-                    ('export encounter', lambda: ibswgt.back.export_encounters(id_list)),
+                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(id_list)),
+                    ('Delete encounter (and images)', lambda: ibswgt.back.delete_encounter_and_images(id_list)),
+                    ('Export encounter', lambda: ibswgt.back.export_encounters(id_list)),
                 ]
             else:
                 context_options += [
-                    ('merge %d encounters into %s' %  (len(id_list), (enctext)),
+                    ('Run detection on encounters (can cause duplicates)', lambda: ibswgt.back.run_detection_on_encounter(id_list)),
+                    ('Merge %d encounters into %s' %  (len(id_list), (enctext)),
                         lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
+                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
+                    ('Delete encounters (and images)', lambda: ibswgt.back.delete_encounter_and_images(id_list)),
                     # ('export encounters', lambda: ibswgt.back.export_encounters(id_list)),
                 ]
         # ---- IMAGE CONTEXT ----

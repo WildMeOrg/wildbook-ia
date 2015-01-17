@@ -209,6 +209,10 @@ class MainWindowBackend(QtCore.QObject):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
 
+    def run_detection_on_encounter(back, eid_list, refresh=True, **kwargs):
+        gid_list = ut.flatten(back.ibs.get_encounter_gids(eid_list))
+        back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
+
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
         species = back.ibs.cfg.detect_cfg.species
         back.ibs.detect_random_forest(gid_list, species)
@@ -501,8 +505,22 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot(int)
+    def delete_encounter_and_images(back, eid_list):
+        print('\n\n[back] delete_encounter_and_images')
+        if back.contains_special_encounters(eid_list):
+            back.display_special_encounters_error()
+            return
+        if not back.are_you_sure():
+            return
+        gid_list = ut.flatten(back.ibs.get_encounter_gids(eid_list))
+        back.ibs.delete_images(gid_list)
+        back.ibs.delete_encounters(eid_list)
+        back.ibs.update_special_encounters()
+        back.front.update_tables()
+
+    @blocking_slot(int)
     def delete_encounter(back, eid_list):
-        print('\n\n[back] delete encounter')
+        print('\n\n[back] delete_encounter')
         if back.contains_special_encounters(eid_list):
             back.display_special_encounters_error()
             return

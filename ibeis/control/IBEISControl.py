@@ -165,6 +165,11 @@ class IBEISController(object):
         ibs._init_wb(wbaddr)
         ibs._init_sql()
         ibs._init_config()
+        wb_target = params.args.wildbook_target
+        if wb_target is None:
+            print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
+        else:
+            print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
@@ -732,10 +737,11 @@ class IBEISController(object):
             webbrowser.open_new_tab(complete_url_)
         # Configuration
         sudo = True
+        wb_target = params.args.wildbook_target
         hostname = '127.0.0.1'
-        submit_url   = "http://%s:8080/prod/OccurrenceCreateIBEIS?ibeis_encounter_id=%s"
-        complete_url = "http://%s:8080/prod/occurrence.jsp?number=%s"
-        wildbook_tomcat_path = '/var/lib/tomcat/webapps/prod/'
+        submit_url   = 'http://%s:8080/' + str(wb_target) + '/OccurrenceCreateIBEIS?ibeis_encounter_id=%s'
+        complete_url = 'http://%s:8080/' + str(wb_target) + '/occurrence.jsp?number=%s'
+        wildbook_tomcat_path = '/var/lib/tomcat/webapps/%s/' % (wb_target, )
         # Setup
         if exists(wildbook_tomcat_path):
             # With a lock file, modify the configuration with the new settings

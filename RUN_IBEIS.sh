@@ -13,4 +13,4 @@ else
 fi
 
 cd ~jonathan/code/ibeis
-$PY main.py
+$PY main.py $FLAGS

@@ -20,6 +20,7 @@ from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from vtool import linalg, geometry, image
 import utool as ut
 import ibeis
+from ibeis import params
 from ibeis import constants as const
 try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
@@ -1448,6 +1449,9 @@ def get_title(ibs):
         dbdir = ibs.get_dbdir()
         dbname = ibs.get_dbname()
         title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
+        wb_target = params.args.wildbook_target
+        if wb_target is not None:
+            title = '%s - Wildbook Target = %s' % (title, wb_target)
     return title
 
 

@@ -221,6 +221,7 @@ VS_EXEMPLARS_KEY = 'vs_exemplars'
 INTRA_ENC_KEY = 'intra_encounter'
 
 HARD_NOTE_TAG = '<HARDCASE>'
+WILDBOOK_TARGET = 'prod'
 
 
 class ZIPPED_URLS(object):
