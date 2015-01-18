@@ -191,8 +191,12 @@ DISABLE THESE ERRORS
 * 'E272', # multiple spaces before keyword
 * 'E301', # expected 1 blank line, found 0
 * 'E501', # > 79
+* 'N802', # 
+* 'N803', # 
+* 'N805', # 
+* 'N806', # 
 
-flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501 ~/code/ibeis
+flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802,N803,N805,N806 ~/code/ibeis
 
 ( Dev comment: my laptop seemst to report these flake8 errors while my desktops
   don't. I'm going to list errors that might need to be explicitly enabled here:

@@ -260,7 +260,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect signals and slots
         ibswgt._connect_signals_and_slots()
         # Connect the IBEIS control
-        print("WIDGET: %r" % (ibswgt.ibs))
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
     #@checks_qt_error
@@ -563,8 +562,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         eid = eid_list[argx]
                     else:  # Grab "first" encounter
                         eid = eid_list[0]
-                ibswgt.select_encounter_tab(eid)
-                #ibswgt._change_enc(eid)
+                    ibswgt.select_encounter_tab(eid)
+                    #ibswgt._change_enc(eid)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
