@@ -413,15 +413,14 @@ class ANNOTATIONInteraction(object):
     def add_action_buttons(self):
         but_width = self.but_width
         but_height = self.but_height
+
         self.add_ax  = self.fig.add_axes([0.18, 0.01, but_width, but_height])
         self.add_but = Button(self.add_ax, 'Add Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
-        but_width = self.but_width
-        but_height = self.but_height
-        self.add_ax  = self.fig.add_axes([0.34, 0.01, but_width, but_height])
-        self.add_but = Button(self.add_ax, 'Add Full Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_FULL_HOTKEY))
-        self.add_but.on_clicked(partial(self.draw_new_poly, full=True))
+        self.add_ax2  = self.fig.add_axes([0.34, 0.01, but_width, but_height])
+        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_FULL_HOTKEY))
+        self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
 
         self.del_ax  = self.fig.add_axes([0.50, 0.01, but_width, but_height])
         self.del_but = Button(self.del_ax, 'Delete Annotation\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
