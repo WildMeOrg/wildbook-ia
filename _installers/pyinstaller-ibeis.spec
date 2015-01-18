@@ -188,8 +188,11 @@ for name in missing_cv_name_list:
         #src = join('/usr/lib', fname)
         src = utool.search_in_dirs(fname, linux_lib_dpaths)
     elif WIN32:
-        #src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
-        src = join(root_dir, '../opencv/build/bin', fname)
+        import utool as ut
+        if ut.get_computer_name() == 'Ooo':
+            src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
+        else:
+            src = join(root_dir, '../opencv/build/bin', fname)
     dst = join(ibsbuild, fname)
     # utool.assertpath(src)
     DATATUP_LIST.append((dst, src))
@@ -233,7 +236,7 @@ exe_name = {'win32':  'build/IBEISApp.exe',
 
 print('[installer] Checking Data')
 for (dst, src) in DATATUP_LIST:
-    assert utool.checkpath(src, verbose=True), 'checkpath for src failed'
+    assert utool.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
 # print('[installer] Checking Data')
 # for (dst, src) in DATATUP_LIST:
 #     assert utool.checkpath(src, verbose=True), 'checkpath failed'

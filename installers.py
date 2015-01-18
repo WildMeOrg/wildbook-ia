@@ -1,4 +1,31 @@
 #!/usr/bin/env python
+r"""
+
+This script is often flaky. here are workarounds
+
+CommonIssues:
+    Is the correct opencv being found?
+    Is 3.0 being built? I think we are on 2.4.8
+
+InstallPyinstaller:
+    pip install pyinstaller
+    pip install pyinstaller --upgrade
+
+Win32CommandLine:
+    # Uninstallation
+    python installers.py --clean
+
+    # Build Installer
+    pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y
+    "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" _installers\win_installer_script.iss
+
+    # Install
+    dist\ibeis-win32-setup.exe
+
+    # Test
+    "C:\Program Files (x86)\IBEIS\IBEISApp.exe"
+
+"""
 from os.path import dirname, realpath, join, exists, normpath
 import utool
 import utool as ut

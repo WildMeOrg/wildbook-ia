@@ -35,6 +35,17 @@ from ibeis import ibsfuncs
 from ibeis.model.hots import pipeline
 #from ibeis.control import controller_inject
 
+from ibeis.control import _autogen_featweight_funcs  # NOQA
+from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
+from ibeis.control import manual_meta_funcs  # NOQA
+from ibeis.control import manual_lbltype_funcs  # NOQA
+from ibeis.control import manual_lblannot_funcs  # NOQA
+from ibeis.control import manual_lblimage_funcs  # NOQA
+from ibeis.control import manual_image_funcs  # NOQA
+from ibeis.control import manual_annot_funcs  # NOQA
+from ibeis.control import manual_name_species_funcs  # NOQA
+from ibeis.control import manual_dependant_funcs  # NOQA
+
 
 # Shiny new way to inject external functions
 autogenmodname_list = [
@@ -51,12 +62,18 @@ autogenmodname_list = [
     'manual_dependant_funcs',
 ]
 
+
+def make_explicit_imports_for_pyinstaller():
+    #making actual imports pyinstaller
+    print('\n'.join(['from ibeis.control import %s  # NOQA' % modname for modname  in autogenmodname_list]))
+
 INJECTED_MODULES = []
 
 for modname in autogenmodname_list:
     exec('from ibeis.control import ' + modname, globals(), locals())
     module = eval(modname)
     INJECTED_MODULES.append(module)
+
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
 
