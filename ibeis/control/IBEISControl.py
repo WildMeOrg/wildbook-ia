@@ -755,11 +755,14 @@ class IBEISController(object):
         # Configuration
         sudo = True
         wb_target = params.args.wildbook_target
+	if wb_target is None:
+		wb_target = const.WILDBOOK_TARGET
         hostname = '127.0.0.1'
         submit_url   = 'http://%s:8080/' + str(wb_target) + '/OccurrenceCreateIBEIS?ibeis_encounter_id=%s'
         complete_url = 'http://%s:8080/' + str(wb_target) + '/occurrence.jsp?number=%s'
         wildbook_tomcat_path = '/var/lib/tomcat/webapps/%s/' % (wb_target, )
         # Setup
+	print("Looking for WildBook installation: %r" % ( wildbook_tomcat_path, ))
         if exists(wildbook_tomcat_path):
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
