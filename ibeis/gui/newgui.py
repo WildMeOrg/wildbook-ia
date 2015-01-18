@@ -562,7 +562,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         argx = ut.list_argsort(numImg_list)[-1]
                         eid = eid_list[argx]
                     else:  # Grab "first" encounter
-                        eid = 0
+                        eid = eid_list[0]
                 ibswgt.select_encounter_tab(eid)
                 #ibswgt._change_enc(eid)
 
