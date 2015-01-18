@@ -36,6 +36,7 @@ from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import math as math
+from functools import partial
 #from matplotlib import nxutils  # Depricated
 #from matplotlib.mlab import dist_point_to_segment
 # Scientific
@@ -51,6 +52,7 @@ utool.noinject(__name__, '[interact_annotations]')
 DEFAULT_SPECIES_TAG = '____'
 ACCEPT_SAVE_HOTKEY   = 'a'
 ADD_RECTANGLE_HOTKEY = 'd'
+ADD_RECTANGLE_FULL_HOTKEY = 'f'
 DEL_RECTANGLE_HOTKEY = 'r'
 TOGGLE_LABEL_HOTKEY = 't'
 
@@ -264,7 +266,7 @@ class ANNOTATIONInteraction(object):
             fnum = df2.next_fnum()
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
-        self.but_width = .18
+        self.but_width = .14
         self.but_height = .08
         self.callback_funcs = dict([
             ('draw_event', self.draw_callback),
@@ -411,15 +413,21 @@ class ANNOTATIONInteraction(object):
     def add_action_buttons(self):
         but_width = self.but_width
         but_height = self.but_height
-        self.add_ax  = self.fig.add_axes([0.21, 0.01, but_width, but_height])
+        self.add_ax  = self.fig.add_axes([0.18, 0.01, but_width, but_height])
         self.add_but = Button(self.add_ax, 'Add Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.del_ax  = self.fig.add_axes([0.41, 0.01, but_width, but_height])
+        but_width = self.but_width
+        but_height = self.but_height
+        self.add_ax  = self.fig.add_axes([0.34, 0.01, but_width, but_height])
+        self.add_but = Button(self.add_ax, 'Add Full Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_FULL_HOTKEY))
+        self.add_but.on_clicked(partial(self.draw_new_poly, full=True))
+
+        self.del_ax  = self.fig.add_axes([0.50, 0.01, but_width, but_height])
         self.del_but = Button(self.del_ax, 'Delete Annotation\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
-        self.accept_ax  = self.fig.add_axes([0.61, 0.01, but_width, but_height])
+        self.accept_ax  = self.fig.add_axes([0.66, 0.01, but_width, but_height])
         self.accept_but = Button(self.accept_ax, 'Save and Exit\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
@@ -429,12 +437,12 @@ class ANNOTATIONInteraction(object):
         self.prev_callback = prev_callback
         self.next_callback = next_callback
         if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.01, 0.01, but_width, but_height])
+            self.prev_ax = self.fig.add_axes([0.02, 0.01, but_width, but_height])
             self.prev_but = Button(self.prev_ax, 'Save and Previous Image\n(left arrow)')
             self.prev_but.on_clicked(self.prev_annotation)
 
         if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.81, 0.01, but_width, but_height])
+            self.next_ax = self.fig.add_axes([0.82, 0.01, but_width, but_height])
             self.next_but = Button(self.next_ax, 'Save and Next Image\n(right arrow)')
             self.next_but.on_clicked(self.next_annotation)
 
@@ -632,12 +640,20 @@ class ANNOTATIONInteraction(object):
         self._polyHeld = False
         self.fig.canvas.draw()
 
-    def draw_new_poly(self, event=None):
-        if self._currently_selected_poly is not None:
-            defaultshape_polys = {self._currently_selected_poly.num: self._currently_selected_poly}
+    def draw_new_poly(self, event=None, full=False):
+        if full:
+            (h, w) = self.img.shape[0:2]
+            x1 = 1
+            y1 = 1
+            x2 = w - 1
+            y2 = h - 1
+            coords = ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
         else:
-            defaultshape_polys = self.polys
-        coords = default_vertices(self.img, defaultshape_polys, self.mouseX, self.mouseY)
+            if self._currently_selected_poly is not None:
+                defaultshape_polys = {self._currently_selected_poly.num: self._currently_selected_poly}
+            else:
+                defaultshape_polys = self.polys
+            coords = default_vertices(self.img, defaultshape_polys, self.mouseX, self.mouseY)
 
         poly = self.new_polygon(coords, 0, self.species_tag)
 
@@ -706,6 +722,9 @@ class ANNOTATIONInteraction(object):
 
             elif keychar == ADD_RECTANGLE_HOTKEY:
                 self.draw_new_poly()
+
+            elif keychar == ADD_RECTANGLE_FULL_HOTKEY:
+                self.draw_new_poly(full=True)
 
             elif keychar == DEL_RECTANGLE_HOTKEY:
                 self.delete_current_poly()
