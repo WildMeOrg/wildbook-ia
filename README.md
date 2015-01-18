@@ -191,10 +191,10 @@ DISABLE THESE ERRORS
 * 'E272', # multiple spaces before keyword
 * 'E301', # expected 1 blank line, found 0
 * 'E501', # > 79
-* 'N802', # 
-* 'N803', # 
-* 'N805', # 
-* 'N806', # 
+* 'N802', # function name should be lowercase
+* 'N803', # argument name should be lowercase
+* 'N805', # first argument of a method should be named 'self'
+* 'N806', # variable in function should be lowercase
 
 flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802,N803,N805,N806 ~/code/ibeis
 
