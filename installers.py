@@ -27,13 +27,161 @@ Win32CommandLine:
 
 """
 from os.path import dirname, realpath, join, exists, normpath
-import utool
+import six
 import utool as ut
 import sys
 import importlib
-#import utool as ut
-#import utool as ut
 from os.path import join  # NOQA
+
+
+def fix_command_tuple(command_tuple, sudo=False, shell=False, win32=ut.WIN32):
+    r"""
+    Args:
+        command_tuple (?):
+        sudo (bool):
+        shell (bool):
+
+    Returns:
+        tuple: (None, None, None)
+
+    CommandLine:
+        python -m utool.util_cplat --test-fix_command_tuple:0
+        python -m utool.util_cplat --test-fix_command_tuple:1
+
+    Example0:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-ibeis.spec') #, '-y'
+        >>> result = fix_command_tuple(command_tuple)
+        >>> print(result)
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> command_tuple = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
+        >>> result = fix_command_tuple(command_tuple)
+        >>> print(result)
+    """
+    args = command_tuple
+    print(type(args))
+    print(args)
+    if shell:
+        # Popen only accepts strings is shell is True, which
+        # it really shouldn't be.
+        if  isinstance(args, (list, tuple)) and len(args) > 1:
+            # Input is ['cmd', 'arg1', 'arg2']
+            args = ' '.join(args)
+        elif isinstance(args, (list, tuple)) and len(args) == 1:
+            if isinstance(args[0], (tuple, list)):
+                # input got nexted
+                args = ' '.join(args)
+            elif isinstance(args[0], six.string_types):
+                # input is just nested string
+                args = args[0]
+        elif isinstance(args, six.string_types):
+            pass
+    if sudo is True:
+        # On Windows it doesnt seem to matter if shlex splits the string or not
+        # However on linux it seems like you need to split the string if you are
+        # not using sudo, but if you use sudo you cannot split the string
+        if not win32:
+            if isinstance(args, six.string_types):
+                import shlex
+                args = shlex.split(args)
+            args = ['sudo'] + args
+            args = ' '.join(args)
+        else:
+            # TODO: strip out sudos
+            pass
+    return args
+
+
+def system_command(command_tuple, detatch=False, sudo=False, shell=False, verbose=True):
+    """
+    Version 2 of util_cplat.cmd, hopefully it will work
+
+    Args:
+        command_tuple (?):
+        detatch (bool):
+        sudo (bool):
+        shell (bool):
+        verbose (bool):  verbosity flag, shows process output if True
+
+    Returns:
+        tuple: (None, None, None)
+
+    CommandLine:
+        python -m utool.util_cplat --test-system_command
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> command_tuple = ('pyinstaller', '_installers/pyinstaller-ibeis.spec') #, '-y'
+        >>> detatch = False
+        >>> sudo = False
+        >>> shell = False
+        >>> verbose = True
+        >>> # execute function
+        >>> system_command(command_tuple, detatch, sudo, shell, verbose)
+        >>> # verify results
+        >>> result = str((None, None, None))
+        >>> print(result)
+    """
+    sys.stdout.flush()
+    try:
+        # Parse the keyword arguments
+        # Do fancy things with args
+        # Print what you are about to do
+        args = fix_command_tuple(command_tuple, sudo, shell)
+        print('[ut.cmd] RUNNING: %r' % (args,))
+        # Open a subprocess with a pipe
+        import subprocess
+        proc = subprocess.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                shell=shell)
+        if detatch:
+            print('[ut.cmd] PROCESS DETATCHING')
+            return None, None, 1
+        if verbose and not detatch:
+            print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
+            logged_out = []
+            def _run_process(proc):
+                while True:
+                    # returns None while subprocess is running
+                    retcode = proc.poll()
+                    line = proc.stdout.readline()
+                    yield line
+                    if retcode is not None:
+                        raise StopIteration('process finished')
+            for line in _run_process(proc):
+                line_ = line if six.PY2 else line.decode('utf-8')
+                sys.stdout.write(line_)
+                sys.stdout.flush()
+                logged_out.append(line)
+            out = '\n'.join(logged_out)
+            (out_, err) = proc.communicate()
+            #print('[ut.cmd] out: %s' % (out,))
+            print('[ut.cmd] stdout: %s' % (out_,))
+            print('[ut.cmd] stderr: %s' % (err,))
+        else:
+            # Surpress output
+            #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
+            (out, err) = proc.communicate()
+        # Make sure process if finished
+        ret = proc.wait()
+        print('[ut.cmd] PROCESS FINISHED')
+        return out, err, ret
+    except Exception as ex:
+        import utool as ut
+        if isinstance(args, tuple):
+            print(ut.truepath(args[0]))
+        elif isinstance(args, six.string_types):
+            print(ut.unixpath(args))
+        ut.printex(ex, 'Exception running ut.cmd',
+                   keys=['verbose', 'detatch', 'shell', 'sudo'],
+                   tb=True)
 
 
 def get_setup_dpath():
@@ -46,14 +194,14 @@ def get_setup_dpath():
 def clean_pyinstaller():
     print('[installer] +--- CLEAN_PYINSTALLER ---')
     cwd = get_setup_dpath()
-    utool.remove_files_in_dir(cwd, 'IBEISApp.pkg', recursive=False)
-    utool.remove_files_in_dir(cwd, 'qt_menu.nib', recursive=False)
-    utool.remove_files_in_dir(cwd, 'qt_menu.nib', recursive=False)
-    utool.delete(join(cwd, 'dist/ibeis'))
-    utool.delete(join(cwd, 'ibeis-win32-setup.exe'))
-    utool.delete(join(cwd, 'build'))
-    utool.delete(join(cwd, 'pyrf'))
-    utool.delete(join(cwd, 'pyhesaff'))
+    ut.remove_files_in_dir(cwd, 'IBEISApp.pkg', recursive=False)
+    ut.remove_files_in_dir(cwd, 'qt_menu.nib', recursive=False)
+    ut.remove_files_in_dir(cwd, 'qt_menu.nib', recursive=False)
+    ut.delete(join(cwd, 'dist/ibeis'))
+    ut.delete(join(cwd, 'ibeis-win32-setup.exe'))
+    ut.delete(join(cwd, 'build'))
+    ut.delete(join(cwd, 'pyrf'))
+    ut.delete(join(cwd, 'pyhesaff'))
     print('[installer] L___ FINSHED CLEAN_PYINSTALLER ___')
 
 
@@ -65,10 +213,11 @@ def build_pyinstaller():
     # 1) RUN: PYINSTALLER
     # Run the pyinstaller command (does all the work)
     if ut.WIN32:
-        utool.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec', '-y')
+        #ut.cmd('pyinstaller', '--runtime-hook', 'rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec', '-y')
+        ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
     else:
-        utool.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
-    #utool.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
+        ut.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
+    #ut.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
     # 2) POST: PROCESSING
     # Perform some post processing steps on the mac
 
@@ -82,10 +231,10 @@ def build_pyinstaller():
         for srcname, dstname in copy_list:
             src = join(srcdir, srcname)
             dst = join(dstdir, dstname)
-            utool.copy(src, dst)
+            ut.copy(src, dst)
         print("RUN: sudo ./_installers/mac_dmg_builder.sh")
     print('[installer] L___ FINISH BUILD_PYINSTALLER ___')
-    # utool.cmd('./_scripts/mac_dmg_builder.sh')
+    # ut.cmd('./_scripts/mac_dmg_builder.sh')
 
 
 def ensure_inno_isinstalled():
@@ -96,7 +245,7 @@ def ensure_inno_isinstalled():
     # Make sure INNO is installed
     if inno_fpath is None:
         print('WARNING: cannot find inno_fpath')
-        AUTO_FIXIT = utool.WIN32
+        AUTO_FIXIT = ut.WIN32
         print('Inno seems to not be installed. AUTO_FIXIT=%r' % AUTO_FIXIT)
         if AUTO_FIXIT:
             print('Automaticaly trying to downoad and install INNO')
@@ -112,7 +261,7 @@ def ensure_inno_isinstalled():
             raise AssertionError('Cannot find INNO and AUTOFIX it is false')
         # Ensure that it has now been installed
         inno_fpath = ut.search_in_dirs('Inno Setup 5\ISCC.exe', ut.get_install_dirs())
-        assert utool.checkpath(inno_fpath, verbose=True, info=True), 'inno installer is still not installed!'
+        assert ut.checkpath(inno_fpath, verbose=True, info=True), 'inno installer is still not installed!'
     return inno_fpath
 
 
@@ -168,7 +317,7 @@ def ensure_inno_script():
         '''
     )
     ut.write_to(iss_script_fpath, iss_script_code, onlyifdiff=True)
-    assert utool.checkpath(iss_script_fpath, verbose=True, info=True), 'cannot find iss_script_fpath'
+    assert ut.checkpath(iss_script_fpath, verbose=True, info=True), 'cannot find iss_script_fpath'
     return iss_script_fpath
 
 
@@ -197,7 +346,8 @@ def build_win32_inno_installer():
     iss_script_fpath = ensure_inno_script()
     print('Trying to run ' + ' '.join(['"' + inno_fpath + '"', '"' + iss_script_fpath + '"']))
     try:
-        utool.cmd(inno_fpath, iss_script_fpath)
+        command_args = ' '.join((inno_fpath, iss_script_fpath))
+        ut.cmd(command_args)
     except Exception as ex:
         ut.printex(ex, 'error running script')
         raise
