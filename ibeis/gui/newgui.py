@@ -260,7 +260,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect signals and slots
         ibswgt._connect_signals_and_slots()
         # Connect the IBEIS control
-        print("WIDGET: %r" % (ibswgt.ibs))
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
     #@checks_qt_error
@@ -552,14 +551,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
 
-            DEFAULT_LARGEST_ENCOUNTER = True
-            if DEFAULT_LARGEST_ENCOUNTER:
-                eid_list = ibs.get_valid_eids()
-                numImg_list = ibs.get_encounter_num_gids(eid_list)
-                argx = ut.list_argsort(numImg_list)[-1]
-                eid = eid_list[argx]
-                ibswgt.select_encounter_tab(eid)
-                #ibswgt._change_enc(eid)
+            LOAD_ENCOUNTER_ON_START = True
+            if LOAD_ENCOUNTER_ON_START:
+                eid_list = ibs.get_valid_eids(shipped=False)
+                if len(eid_list) > 0:
+                    DEFAULT_LARGEST_ENCOUNTER = False
+                    if DEFAULT_LARGEST_ENCOUNTER:
+                        numImg_list = ibs.get_encounter_num_gids(eid_list)
+                        argx = ut.list_argsort(numImg_list)[-1]
+                        eid = eid_list[argx]
+                    else:  # Grab "first" encounter
+                        eid = eid_list[0]
+                    ibswgt.select_encounter_tab(eid)
+                    #ibswgt._change_enc(eid)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
