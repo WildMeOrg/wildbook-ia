@@ -227,7 +227,7 @@ def show_coverage_map(chip, mask, patch, kpts):
     #pt.draw_kpts2(kpts)
 
 
-def make_coverage_mask(kpts, chip_shape, fx2_score=None, **kwargs):
+def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
     # Create gaussian image to warp
     r"""
     Returns a intensity image denoting which pixels are covered by the input
@@ -294,7 +294,8 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, **kwargs):
     # uses smmWindowSize=19 in hesaff for patch size. and 1.6 for sigma
     patch = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
     norm_01 = True
-    mode = 'sum'
+    if mode is None:
+        mode = 'sum'
     #mode = 'max'
     if norm_01:
         patch /= patch.max()

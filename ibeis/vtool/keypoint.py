@@ -1081,7 +1081,7 @@ def get_xy_axis_extents(kpts):
 
 
 #@profile
-def get_kpts_bounds(kpts):
+def get_kpts_image_extent(kpts):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
@@ -1094,7 +1094,7 @@ def get_kpts_bounds(kpts):
         tuple: wh_bound
 
     CommandLine:
-        python -m vtool.keypoint --test-get_kpts_bounds
+        python -m vtool.keypoint --test-get_kpts_image_extent
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1103,7 +1103,7 @@ def get_kpts_bounds(kpts):
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> # execute function
-        >>> wh_bound = get_kpts_bounds(kpts)
+        >>> wh_bound = get_kpts_image_extent(kpts)
         >>> # verify results
         >>> result = kpts_repr(np.array(wh_bound))
         >>> print(result)
@@ -1117,38 +1117,35 @@ def get_kpts_bounds(kpts):
     return wh_bound
 
 
-#@profile
-def get_diag_extent_sqrd(kpts):
-    """
-    Returns the diagonal extent of keypoint x,y locations
-    SHAPES ARE NOT ACCOUNTED FOR
+def get_kpts_dlen_sqrd(kpts):
+    r"""
+    returns diagonal length squared of keypoint extent
 
     Args:
-        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
 
     Returns:
-        ?: extent_sqrd
+        float: dlen_sqrd
 
     CommandLine:
-        python -m vtool.keypoint --test-get_diag_extent_sqrd
+        python -m vtool.keypoint --test-get_kpts_dlen_sqrd
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> # execute function
-        >>> extent_sqrd = get_diag_extent_sqrd(kpts)
+        >>> dlen_sqrd = get_kpts_dlen_sqrd(kpts)
         >>> # verify results
-        >>> result = str(extent_sqrd)
+        >>> result = '%.2f' % dlen_sqrd
         >>> print(result)
+        5681.31
     """
-    xs, ys = get_xys(kpts)
-    x_extent_sqrd = (xs.max() - xs.min()) ** 2
-    y_extent_sqrd = (ys.max() - ys.min()) ** 2
-    extent_sqrd = x_extent_sqrd + y_extent_sqrd
-    return extent_sqrd
+    w, h = get_kpts_image_extent(kpts)
+    dlen_sqrd = (w ** 2) + (h ** 2)
+    return dlen_sqrd
 
 
 #@profile

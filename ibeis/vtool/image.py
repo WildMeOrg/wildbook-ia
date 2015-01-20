@@ -38,7 +38,38 @@ EXIF_TAG_DATETIME = 'DateTimeOriginal'
 IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
 
 
+# References: http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_image_display/py_image_display.html
+#cv2.IMREAD_COLOR
+#cv2.IMREAD_GRAYSCALE
+#cv2.IMREAD_UNCHANGED
+
+
 def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
+    r"""
+    Args:
+        img_fpath (?):
+        delete_if_corrupted (bool):
+        grayscale (bool):
+
+    Returns:
+        ndarray: imgBGR
+
+    CommandLine:
+        python -m vtool.image --test-imread
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> # build test data
+        >>> img_fpath = '?'
+        >>> delete_if_corrupted = False
+        >>> grayscale = False
+        >>> # execute function
+        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
+        >>> # verify results
+        >>> result = str(imgBGR)
+        >>> print(result)
+    """
     try:
         if grayscale:
             imgBGR = cv2.imread(img_fpath, flags=cv2.IMREAD_GRAYSCALE)
@@ -74,6 +105,7 @@ def imwrite_fallback(img_fpath, imgBGR):
 
 
 def imwrite(img_fpath, imgBGR, fallback=False):
+    #References: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html
     try:
         cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
