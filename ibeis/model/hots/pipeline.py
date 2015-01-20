@@ -1177,6 +1177,8 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
 def get_prescore_shortlist(qreq_, qaid, chipmatch):
     """
     computes which of the annotations should continue in the next pipeline step
+    based on the current score.
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1269,10 +1271,11 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 
     """
     if use_chip_extent:
-        topx2_dlen_sqrd = [
-            ((w ** 2) + (h ** 2))
-            for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank])
-        ]
+        #topx2_dlen_sqrd = [
+        #    ((w ** 2) + (h ** 2))
+        #    for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank])
+        #]
+        topx2_dlen_sqrd = qreq_.ibs.get_annot_chip_dlen_sqrd(topx2_aid[:nRerank])
         return topx2_dlen_sqrd
     else:
         # Use extent of matching keypoints
@@ -1413,37 +1416,6 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
 #============================
 # 5.5ish) Vsone Reranking
 #============================
-
-
-def vsone_reranking(qreq_):
-    """
-
-    Example:
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
-        >>> ibs, qreq_ = get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
-        >>> locals_ = testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
-        >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
-        >>> qaid = qreq_.get_external_qaids()[0]
-        >>> chipmatch = qaid2_chipmatch[qaid]
-    """
-    pass
-
-
-def make_vsone_rerank_pairs(qreq_):
-    pass
-
-
-def augment_distinctiveness(qreq_):
-    pass
-
-
-def constrained_vsone_matching(qreq_):
-    pass
-
-
-def coverage_scoring(qreq_):
-    pass
 
 
 #============================
