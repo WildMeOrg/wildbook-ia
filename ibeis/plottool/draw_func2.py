@@ -1300,7 +1300,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 # ---- CHIP DISPLAY COMMANDS ----
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
-           data_colorbar=False, darken=DARKEN, **kwargs):
+           data_colorbar=False, darken=DARKEN, update=False, **kwargs):
     """
     Args:
         img (ndarray):  image data
@@ -1389,6 +1389,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             cmap = 'hot'
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
+    if update:
+        fig_presenter.update()
     return fig, ax
 
 
@@ -1535,6 +1537,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         # draw lines and ellipses and points
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)
         if fs is not None:
+            if cmap is None:
+                cmap = 'hot'
             colors = scores_to_color(fs, cmap)
 
         acols = add_alpha(colors)
