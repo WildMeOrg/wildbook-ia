@@ -86,7 +86,7 @@ def gen_featweight_worker(tup):
         >>> print('weights[0:3] = %r' % (weights_03_test,))
         >>> #weights_03_target = [ 0.098, 0.155,  0.422]
         >>> weights_03_target = [ 0.324, 0.407,  0.688]
-        >>> weights_thresh    = [ 0.01, 0.01,  0.01]
+        >>> weights_thresh    = [ 0.09, 0.09,  0.09]
         >>> ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
         >>> assert aid == 3
 

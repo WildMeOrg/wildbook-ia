@@ -28,6 +28,30 @@ def _expand_modeldir(modeldir='default'):
 
 
 def get_species_trees_paths(species, modeldir='default'):
+    r"""
+    Args:
+        species (?):
+        modeldir (str):
+
+    Returns:
+        ?: trees_path
+
+    CommandLine:
+        python -m ibeis.model.detect.grabmodels --test-get_species_trees_paths
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.detect.grabmodels import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> modeldir = 'default'
+        >>> # execute function
+        >>> trees_path = get_species_trees_paths(species, modeldir)
+        >>> # verify results
+        >>> result = str(trees_path)
+        >>> print(result)
+    """
     modeldir = _expand_modeldir(modeldir)
     algosubdir = MODEL_ALGO_SUBDIRS[DETECTOR_KEY_RF]
     rf_model_dir = join(modeldir, algosubdir)

@@ -20,6 +20,7 @@ from ibeis.model.hots import precision_recall
 from ibeis.model.hots import query_helpers
 from ibeis.model.hots import query_request
 from ibeis.model.hots import voting_rules2
+from ibeis.model.hots import _pipeline_helpers
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[ibeis.model.hots]')
@@ -62,6 +63,7 @@ IMPORT_TUPLES = [
     ('query_helpers', None, False),
     ('query_request', None, False),
     ('voting_rules2', None, False),
+    ('_pipeline_helpers', None, False),
 ]
 """
 Regen Command:
