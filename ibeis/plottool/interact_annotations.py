@@ -55,6 +55,7 @@ ADD_RECTANGLE_HOTKEY = 'd'
 ADD_RECTANGLE_FULL_HOTKEY = 'f'
 DEL_RECTANGLE_HOTKEY = 'r'
 TOGGLE_LABEL_HOTKEY = 't'
+TAU = np.pi * 2  # References: tauday.com
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -826,7 +827,7 @@ class ANNOTATIONInteraction(object):
         if self.currently_rotating_poly:
                 poly = self.currently_rotating_poly
                 cx, cy = polygon_center(poly)
-                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - np.tau / 4
+                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
                 dtheta = theta - poly.theta
                 self.rotate_rectangle(poly, dtheta)
                 self.update_UI()
@@ -937,7 +938,7 @@ class ANNOTATIONInteraction(object):
             return c1[0] == c2[0]  # x coordinates are the same
 
         def rad2deg(t):
-            return t * 360 / np.tau
+            return t * 360 / TAU
 
         # the minus one is because the last coordinate is duplicated (by matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
@@ -989,10 +990,10 @@ class ANNOTATIONInteraction(object):
         # this algorithm worked the best of the ones I tried, but needs
         # "experimentally determined constants" to work properly, since I failed
         # to properly derive them in the allotted time
-        FUDGE_FACTORS = {0: -(np.tau / 4),
+        FUDGE_FACTORS = {0: -(TAU / 4),
                          1: 0,
-                         2: (np.tau / 4),
-                         3: (np.tau / 2)}
+                         2: (TAU / 4),
+                         3: (TAU / 2)}
 
         polar_idx2prev = polarDelta(tmpcoords[idx], tmpcoords[previdx])
         polar_idx2next = polarDelta(tmpcoords[idx], tmpcoords[nextidx])
@@ -1000,7 +1001,7 @@ class ANNOTATIONInteraction(object):
         mag_delta = distance(dx, dy)
         theta_delta = math.atan2(dy, dx)
         poly_theta = poly.theta + FUDGE_FACTORS.get(idx, 0)
-        theta_rot = theta_delta - (poly_theta + np.tau / 4)
+        theta_rot = theta_delta - (poly_theta + TAU / 4)
         ##print('poly.theta %r' % rad2deg(poly.theta))
         ##print('poly_theta %r' % rad2deg(poly_theta))
         ##print('theta_delta %r' % rad2deg(theta_delta))

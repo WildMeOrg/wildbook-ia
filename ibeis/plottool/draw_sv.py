@@ -1,15 +1,15 @@
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 import numpy as np
 import plottool.draw_func2 as df2
 from plottool import custom_constants
 from vtool import image as gtool
 from vtool import keypoint as ktool
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sv]', DEBUG=False)
-utool.noinject(__name__, '[viz_sv]')
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
+ut.noinject(__name__, '[viz_sv]')
 
 
-@utool.indent_func
+#@ut.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
             mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1, **kwargs):
     """ Visualizes spatial verification """
@@ -101,3 +101,77 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     #
     # Adjust subplots
     df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.03, bottom=.01)
+
+
+def draw_svmatch(chip1, chip2, H, kpts1=None, kpts2=None, fm=None, fnum=None,
+                 pnum=None, update=False):
+    r"""
+    Args:
+        chip1 (ndarray[uint8_t, ndim=2]):  annotation image data
+        chip2 (ndarray[uint8_t, ndim=2]):  annotation image data
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
+        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
+
+    CommandLine:
+        python -m plottool.draw_sv --test-draw_svmatch --show
+
+    Example:
+        >>> # DISABLE_DOCTEST (TODO REMOVE IBEIS DOCTEST)
+        >>> from ibeis.viz.viz_sver import *  # NOQA
+        >>> import plottool as pt
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1 = 1
+        >>> aid2 = 3
+        >>> H = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
+        ...               [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
+        ...               [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
+        >>> kpts1, kpts2 = None, None  # ibs.get_annot_kpts((aid1, aid2))
+        >>> # execute function
+        >>> result = draw_svmatch(chip1, chip2, H, kpts1, kpts2)
+        >>> # verify results
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    import plottool as pt
+    wh2 = gtool.get_size(chip2)
+    chip1_t = gtool.warpHomog(chip1, H, wh2)
+    if kpts1 is not None:
+        kpts1_t = ktool.transform_kpts(kpts1, H)
+    else:
+        kpts1_t = None
+    fnum = 1
+    #next_pnum = pt.make_pnum_nextgen(1, 2)
+
+    pt.show_chipmatch2(chip1_t, chip2, kpts1_t, kpts2, fm=fm, fnum=fnum,
+                       pnum=pnum)
+
+    #if fnum is None:
+    #    fnum = pt.next_fnum()
+    #pt.figure(fnum=fnum)
+    #pt.imshow(chip1_t, fnum=fnum, pnum=next_pnum())
+    #if kpts1_t  is not None:
+    #    pt.draw_kpts2(kpts1_t)
+    #pt.imshow(chip2, fnum=fnum, pnum=next_pnum())
+    #if kpts2  is not None:
+    #    pt.draw_kpts2(kpts2)
+    ##pt.imshow(chip1, fnum=fnum, pnum=next_pnum())
+    ##if kpts1  is not None:
+    ##    pt.draw_kpts2(kpts1)
+    if update:
+        pt.update()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.draw_sv
+        python -m plottool.draw_sv --allexamples
+        python -m plottool.draw_sv --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    ut.doctest_funcs()

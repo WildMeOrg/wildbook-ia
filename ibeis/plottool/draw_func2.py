@@ -1415,7 +1415,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
         'pivot': 'tail',  # 'middle',
     }
     stride = 1
-    np.tau = 2 * np.pi
+    #TAU = 2 * np.pi
     x_grid = np.arange(0, len(gx), 1)
     y_grid = np.arange(0, len(gy), 1)
     # Vector locations and directions
@@ -1595,9 +1595,45 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gmag=None):
+def color_orimag(gori, gmag=None, gmag_is_01=None):
+    r"""
+    Args:
+        gori (?):
+        gmag (None):
+
+    Returns:
+        ?: bgr_ori
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-color_orimag --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> gori = np.array([[ 0.        ,  0.        ,  3.14159265,  3.14159265,  0.        ],
+        ...                  [ 1.57079633,  3.92250052,  1.81294053,  3.29001537,  1.57079633],
+        ...                  [ 4.71238898,  6.15139659,  0.76764078,  1.75632531,  1.57079633],
+        ...                  [ 4.71238898,  4.51993581,  6.12565345,  3.87978382,  1.57079633],
+        ...                  [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
+        >>> gmag = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
+        ...                  [ 0.02363726,  0.04195344,  0.29969492,  0.53007415,  0.0426679 ],
+        ...                  [ 0.00459386,  0.32086307,  0.02844123,  0.24623816,  0.27344167],
+        ...                  [ 0.04204251,  0.52165989,  0.25800464,  0.14568752,  0.023614  ],
+        ...                  [ 0.        ,  0.05143869,  0.2744546 ,  0.01582246,  0.        ]])
+        >>> # execute function
+        >>> bgr_ori = color_orimag(gori, gmag)
+        >>> # verify results
+        >>> pt.imshow(bgr_ori)
+        >>> color_orimag_colorbar(gori)
+        >>> pt.update()
+        >>> pt.show_if_requested()
+    """
     # Turn a 0 to 1 orienation map into hsv colors
-    gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    TAU = np.pi * 2
+    gori_01 = gori / TAU
     cmap_ = plt.get_cmap('hsv')
     flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
@@ -1605,11 +1641,35 @@ def color_orimag(gori, gmag=None):
     hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
     # Desaturate colors based on magnitude
     if gmag is not None:
-        hsv_ori[:, :, 1] = (gmag / 255.0)
-        hsv_ori[:, :, 2] = (gmag / 255.0)
+        # Hueristic hack
+        if (gmag_is_01 is not None and (gmag_is_01 is not False and gmag.max() > 255.0)):
+            gmag_ = gmag / 255.0
+        else:
+            gmag_ = gmag
+        gmag_ = np.sqrt(gmag_)
+        hsv_ori[:, :, 1] = gmag_
+        hsv_ori[:, :, 2] = gmag_
     # Convert back to bgr
     bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
     return bgr_ori
+
+
+def color_orimag_colorbar(gori):
+    #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    TAU = np.pi * 2
+    #gori_01 = gori / TAU
+    cmap_ = plt.get_cmap('hsv')
+    #flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
+    #rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
+    #rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
+
+    #ori_and_colors = sorted(list(zip(ut.flatten(gori.tolist()), ut.flatten(rgb_ori.tolist()))))
+    #TAU = np.pi * 2
+    #ori_list = np.array(ut.get_list_column(ori_and_colors, 0)) / TAU
+    #color_list = ut.get_list_column(ori_and_colors, 1)
+    ori_list = np.linspace(0, TAU, 8)
+    color_list = cmap_(ori_list / TAU)
+    colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
 
 
 def stack_image_list(img_list, **kwargs):
