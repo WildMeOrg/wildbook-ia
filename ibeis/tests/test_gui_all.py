@@ -9,7 +9,7 @@ from ibeis.dev import sysres
 from vtool.tests import grabdata
 import ibeis
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
-np.tau = 2 * np.pi
+TAU = 2 * np.pi
 
 
 def TEST_GUI_ALL(ibs, back, gpath_list):
@@ -58,7 +58,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     assert len(preadd_aids) == 0, 'there are already aids in the database!'
     print('preadd_aids = %r' % preadd_aids)
 
-    aid1 = add_annot(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
+    aid1 = add_annot(gid_list[0], (50, 50, 100, 100), (TAU / 8))
     aid2 = add_annot(gid_list[1], (50, 50, 100, 100))
     aid3 = add_annot(gid_list[2], (50, 50, 64, 64))
     aid4 = add_annot(gid_list[2], (50, 50, 200, 200))

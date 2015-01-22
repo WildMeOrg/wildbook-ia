@@ -51,7 +51,11 @@ def default_decorator(input_):
 #API_CACHE = ut.get_argflag('--api-cache')
 API_CACHE = not ut.get_argflag('--no-api-cache')
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+RELEASE_MODE = True
+if RELEASE_MODE:
+    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+else:
+    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
 if ut.VERBOSE:
     if ut.in_main_process():
         if API_CACHE:
@@ -183,6 +187,9 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
 
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+            """
+            Wrapper function that caches rowid values in a dictionary
+            """
             # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
             debug_ = kwargs.pop('debug', False)
             if cfgkeys is not None:

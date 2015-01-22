@@ -261,12 +261,30 @@ class DistinctivnessNormalizer(ut.Cachable):
 def compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs):
     """
     Compute distinctiveness from distance to K+1 nearest neighbor
+
+    Ignore:
+        norm_sqared_dist = np.random.rand(1000)
+
+        import numexpr
+
+        %timeit np.divide(norm_sqared_dist, clip_fraction)
+        %timeit numexpr.evaluate('norm_sqared_dist / clip_fraction', local_dict=dict(norm_sqared_dist=norm_sqared_dist, clip_fraction=clip_fraction))
+        wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
+
+        %timeit numexpr.evaluate('wd_cliped > 1.0', local_dict=locals())
+        %timeit np.greater(wd_cliped, 1.0)
+
+        %timeit np.power(wd_cliped, p)
+        %timeit numexpr.evaluate('wd_cliped ** p', local_dict=locals())
+
+        %timeit
     """
     # TODO: paramaterize
     # expondent to augment distinctiveness scores.
     p = kwargs.get('p', 1.0)
     # clip the distinctiveness at this fraction
-    clip_fraction = kwargs.get('clip_fraction', .2)
+    #clip_fraction = kwargs.get('clip_fraction', .2)
+    clip_fraction = kwargs.get('clip_fraction', .4)
     wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
     wd_cliped[np.greater(wd_cliped, 1.0)] = 1.0
     dstncvs = np.power(wd_cliped, p)
@@ -305,11 +323,18 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
     unique_species = qreq_.get_unique_species()
     assert len(unique_species) == 1
     species = unique_species[0]
+    global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
+    cachedir = global_distinctdir
+    dstcnvs_normer = request_species_distinctiveness_normalizer(species, cachedir, verbose=False)
+    return dstcnvs_normer
+
+
+def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=False):
     if species in DISTINCTIVENESS_NORMALIZER_CACHE:
         dstcnvs_normer = DISTINCTIVENESS_NORMALIZER_CACHE[species]
     else:
-        global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
-        cachedir = global_distinctdir
+        if cachedir is None:
+            cachedir = sysres.get_global_distinctiveness_modeldir(ensure=True)
         dstcnvs_normer = DistinctivnessNormalizer(species, cachedir=cachedir)
         if not dstcnvs_normer.exists(cachedir):
             # download normalizer if it doesn't exist
