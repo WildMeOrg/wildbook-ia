@@ -595,6 +595,39 @@ def apply_grouping(items, groupxs):
     #return [items[idxs] for idxs in groupxs]
 
 
+def invert_apply_grouping(grouped_items, groupxs):
+    r"""
+    Args:
+        grouped_items (?):
+        groupxs (?):
+
+    Returns:
+        list: items
+
+    CommandLine:
+        python -m vtool.clustering2 --test-invert_apply_grouping
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> # build test data
+        >>> grouped_items = [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
+        >>> groupxs = [np.array([1, 3, 5]), np.array([0, 2, 4, 6]), np.array([ 7,  8,  9, 10])]
+        >>> # execute function
+        >>> items = invert_apply_grouping(grouped_items, groupxs)
+        >>> result = items
+        >>> # verify results
+        >>> print(result)
+        [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
+    """
+    maxval = max(map(max, groupxs))
+    items = ut.alloc_nones(maxval + 1)  # np.full((maxval + 1,), None)
+    for itemgroup, xs in zip(grouped_items, groupxs):
+        for item, x in zip(itemgroup, xs):
+            items[x] = item
+    return items
+
+
 def apply_grouping_iter(items, groupxs):
     return (items.take(xs, axis=0) for xs in groupxs)
 

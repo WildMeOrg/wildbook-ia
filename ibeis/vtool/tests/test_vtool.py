@@ -7,11 +7,14 @@ import utool
 from vtool.tests import dummy
 
 
+TAU = np.pi * 2  # References: tauday.com
+
+
 def test_get_invR_mats_orientation():
-    theta1 = np.tau / 8
-    theta2 = -np.tau / 8
+    theta1 = TAU / 8
+    theta2 = -TAU / 8
     theta3 = 0
-    theta4 = 7 * np.tau / 8
+    theta4 = 7 * TAU / 8
 
     invV_mats = dummy.get_dummy_invV_mats()
 
@@ -22,9 +25,9 @@ def test_get_invR_mats_orientation():
         invVR_mats = ltool.matrix_multiply(invV_mats, R_mats(theta))
         _oris = ktool.get_invVR_mats_oris(invVR_mats)
         print('________')
-        print('theta = %r' % (theta % np.tau,))
+        print('theta = %r' % (theta % TAU,))
         print('b / a = %r' % (_oris,))
-        passed, error = utool.almost_eq(_oris, theta % np.tau, ret_error=True)
+        passed, error = utool.almost_eq(_oris, theta % TAU, ret_error=True)
         try:
             assert np.all(passed)
         except AssertionError as ex:
@@ -38,4 +41,8 @@ def test_get_invR_mats_orientation():
 
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.tests.test_vtool
+    """
     test_get_invR_mats_orientation()

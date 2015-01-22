@@ -7,6 +7,7 @@ import utool
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
+TAU = np.pi * 2  # References: tauday.com
 
 
 def dummy_seed(seed=None):
@@ -198,7 +199,7 @@ def force_kpts_feasibility(kpts, xys_nonneg=False):
     kpts[:, ktool.SCAX_DIM] = np.abs(kpts[:, ktool.SCAX_DIM])
     kpts[:, ktool.SCAY_DIM] = np.abs(kpts[:, ktool.SCAY_DIM])
     # Fix oris between 0 and tau
-    kpts[:, ktool.ORI_DIM] = kpts[:, ktool.ORI_DIM] % np.tau
+    kpts[:, ktool.ORI_DIM] = kpts[:, ktool.ORI_DIM] % TAU
     return kpts
 
 

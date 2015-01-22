@@ -212,17 +212,20 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     return dstimg
 
 
-def show_coverage_map(chip, mask, patch, kpts):
+def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
+                      show_mask_kpts=True):
     import plottool as pt
     masked_chip = (chip * mask[:, :, None]).astype(np.uint8)
-    fnum = 1
+    if fnum is None:
+        fnum = pt.next_fnum()
     pnum_ = pt.get_pnum_func(nRows=2, nCols=2)
     pt.imshow((patch * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(0), title='patch')
     #ut.embed()
     pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
-    pt.draw_kpts2(kpts, rect=True)
+    if show_mask_kpts:
+        pt.draw_kpts2(kpts, rect=True, ell_alpha=ell_alpha)
     pt.imshow(chip, fnum=fnum, pnum=pnum_(2), title='chip')
-    pt.draw_kpts2(kpts, rect=True)
+    pt.draw_kpts2(kpts, rect=True, ell_alpha=ell_alpha)
     pt.imshow(masked_chip, fnum=fnum, pnum=pnum_(3), title='masked chip')
     #pt.draw_kpts2(kpts)
 
