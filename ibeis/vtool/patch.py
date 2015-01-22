@@ -52,7 +52,32 @@ def patch_ori(gradx, grady):
 
 
 def get_test_patch(key='star', jitter=False):
+    r"""
+    Args:
+        key (str):
+        jitter (bool):
+
+    Returns:
+        ?: patch
+
+    CommandLine:
+        python -m vtool.patch --test-get_test_patch --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> key = 'star2'
+        >>> jitter = False
+        >>> # execute function
+        >>> patch = get_test_patch(key, jitter)
+        >>> pt.imshow(255 * patch)
+        >>> pt.show_if_requested()
+    """
     func = {
+        'star2': get_star2_patch,
+        'cross': get_cross_patch,
         'star': get_star_patch,
         'stripe': get_stripe_patch,
     }[key]
@@ -75,7 +100,7 @@ def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0):
 def get_star_patch(jitter=False):
     """ test data patch """
     _, O = .1, .8
-    star_patch = np.array([
+    patch = np.array([
         [_, _, _, O, _, _, _],
         [_, _, _, O, _, _, _],
         [_, _, O, O, O, _, _],
@@ -87,14 +112,59 @@ def get_star_patch(jitter=False):
         [O, _, _, _, _, _, O]])
 
     if jitter:
-        star_patch += np.random.rand(*star_patch.shape) * .1
-    return star_patch
+        patch += np.random.rand(*patch.shape) * .1
+    return patch
+
+
+def get_star2_patch(jitter=False):
+    """ test data patch """
+    _, i, O = .1, .8, .5
+    patch = np.array([
+        [_, _, _, _, _, _, _, O, O, _, _, _, _, _, _, _],
+        [_, _, _, _, _, _, O, i, i, O, _, _, _, _, _, _],
+        [_, _, _, _, _, _, O, i, i, O, _, _, _, _, _, _],
+        [_, _, _, _, _, O, i, i, i, i, O, _, _, _, _, _],
+        [O, O, O, O, O, O, i, i, i, i, O, O, O, O, O, O],
+        [O, i, i, i, i, i, i, i, i, i, i, i, i, i, i, O],
+        [_, O, i, i, i, i, O, i, i, O, i, i, i, i, O, _],
+        [_, _, O, i, i, i, O, i, i, O, i, i, i, O, _, _],
+        [_, _, _, O, i, i, O, i, i, O, i, i, O, _, _, _],
+        [_, _, _, O, i, i, i, i, i, i, i, i, O, _, _, _],
+        [_, _, O, i, i, i, i, i, i, i, i, i, i, O, _, _],
+        [_, _, O, i, i, i, i, i, i, i, i, i, i, O, _, _],
+        [_, O, i, i, i, i, i, O, O, i, i, i, i, i, O, _],
+        [_, O, i, i, i, O, O, _, _, O, O, i, i, i, O, _],
+        [O, i, i, O, O, _, _, _, _, _, _, O, O, i, i, O],
+        [O, O, O, _, _, _, _, _, _, _, _, _, _, O, O, O]])
+
+    if jitter:
+        patch += np.random.rand(*patch.shape) * .1
+    return patch
+
+
+def get_cross_patch(jitter=False):
+    """ test data patch """
+    _, O = .1, .8
+    patch = np.array([
+        [_, _, O, O, O, _, _],
+        [_, _, O, O, O, _, _],
+        [_, _, O, O, O, _, _],
+        [O, O, O, O, O, O, O],
+        [O, O, O, O, O, O, O],
+        [_, _, O, O, O, _, _],
+        [_, _, O, O, O, _, _],
+        [_, _, O, O, O, _, _],
+        [_, _, O, O, O, _, _]])
+
+    if jitter:
+        patch += np.random.rand(*patch.shape) * .1
+    return patch
 
 
 def get_stripe_patch(jitter=False):
     """ test data patch """
     _, O = .1, .8
-    star_patch = np.array([
+    patch = np.array([
         [O, O, O, _, _, _, _],
         [O, O, O, _, _, _, _],
         [O, O, O, _, _, _, _],
@@ -106,8 +176,8 @@ def get_stripe_patch(jitter=False):
         [O, O, O, _, _, _, _]])
 
     if jitter:
-        star_patch += np.random.rand(*star_patch.shape) * .1
-    return star_patch
+        patch += np.random.rand(*patch.shape) * .1
+    return patch
 
 
 def gaussian_average_patch(patch, sigma=None):
@@ -480,12 +550,14 @@ def find_kpts_direction(imgBGR, kpts):
     """
 
     ori_list = []
-    gravity_ori = ktool.GRAVITY_THETA
+    #gravity_ori = ktool.GRAVITY_THETA
     for kp in kpts:
-        ori = find_dominant_kp_orientations(imgBGR, kp)
+        new_oris = find_dominant_kp_orientations(imgBGR, kp)
+        # FIXME USE MULTIPLE ORIENTATIONS
+        ori = new_oris[0]
         ori_list.append(ori)
     _oris = np.array(ori_list, dtype=kpts.dtype)
-    _oris -= gravity_ori  % TAU  # normalize w.r.t. gravity
+    #_oris -= gravity_ori  % TAU  # normalize w.r.t. gravity
     # discard old orientation if they exist
     kpts2 = np.vstack((kpts[:, 0:5].T, _oris)).T
     return kpts2
@@ -510,51 +582,67 @@ def test_find_kp_direction():
     #import vtool as vt
     # build test data
     import utool as ut
-    import vtool as vt
+    #import vtool as vt
     np.random.seed(0)
     imgBGR = get_test_patch('stripe', jitter=True)
-    #imgBGR = get_test_patch('star', jitter=True)
+    imgBGR = get_test_patch('star', jitter=True)
+    imgBGR = get_test_patch('star2', jitter=True)
+    #imgBGR = get_test_patch('cross', jitter=False)
     #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
     imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
     theta = 0  # 3.4  # TAU / 16
-    kpts = make_test_image_keypoints(imgBGR, scale=.7, theta=theta)
+    kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
     kp = kpts[0]
-    bins = 32
+    bins = 36
+    maxima_thresh = .8
     globals_ = globals()
     locals_ = locals()
-    converge_list = []
+    converge_lists = []
 
     while True:
         # Execute test function
         sourcecode = ut.get_func_sourcecode(find_dominant_kp_orientations, stripdef=True, stripret=True)
         six.exec_(sourcecode, globals_, locals_)
-        keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights, ori_offsets'.split(', ')
-        patch, gradx, grady, gmag, gori, hist, centers, gori_weights, ori_offsets = ut.dict_take(locals_, keys)
-        ori = ori_offsets[0]
-        print('ori=%r' % (ori,))
+        keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
+        patch, gradx, grady, gmag, gori, hist, centers, gori_weights = ut.dict_take(locals_, keys)
         INTERACTIVE_ITERATION = ut.get_argflag('--interact')
         if INTERACTIVE_ITERATION:
             from six.moves import input
             # Change rotation
             old_ori = locals_['kp'][-1]
-            new_ori = (old_ori + (ori - vt.GRAVITY_THETA)) % TAU
+            #new_ori = (old_ori + (ori - vt.GRAVITY_THETA)) % TAU
+            new_oris = locals_['new_oris']
             #locals_['bins'] *= 2
             #locals_['bins'] = min(locals_['bins'], 128)
-            print('new_ori = %r' % (new_ori,))
+            print('new_oris = %r' % (new_oris,))
             print('bins = %r' % (locals_['bins'],))
 
-            locals_['kp'][-1] = new_ori
-            converge_list.append(new_ori)
+            #locals_['kp'][-1] = new_ori
+            for count, ori in enumerate(new_oris):
+                if count >= len(converge_lists):
+                    converge_lists.append([])
+                converge_lists[count].append(ori)
             import plottool as pt
-            if True or len(converge_list) >= 4:
-                show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
-                pt.figure(fnum=2, doclf=True)
-                pt.plot(converge_list, 'o-g')
-                pt.gca().set_ylim(0, TAU)
-                pt.dark_background()
-                pt.present()
-                #pt.update()
-                input('next')
+
+            # Show any new keypoints that were created
+            kpts = [kp.copy() for ori in new_oris]
+            for count, ori in enumerate(new_oris):
+                kpts[count][-1] = ori
+            kpts = np.array(kpts)
+
+            locals_['kp'][-1] = new_oris[0]
+
+            show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
+            pt.figure(fnum=2, doclf=True)
+            colors = pt.distinct_colors(len(converge_lists))
+            print(len(converge_lists))
+            for color, converge_list in zip(colors, converge_lists):
+                pt.plot(converge_list, 'o-', color=color)
+            pt.gca().set_ylim(0, TAU)
+            pt.dark_background()
+            pt.present()
+            #pt.update()
+            input('next')
         else:
             show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
             break
@@ -566,28 +654,33 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
     gorimag = pt.color_orimag(gori, gmag, False)
-    nRows, nCols = pt.get_square_row_cols(9)
+    gorimag = pt.color_orimag(gori, None, False)
+    nRows, nCols = pt.get_square_row_cols(8)
     nRows += 1
     next_pnum = pt.make_pnum_nextgen(nRows, nCols)
-    pt.imshow(255 * imgBGR, update=True, fnum=fnum, pnum=next_pnum(), title='orig image')
-    pt.draw_kpts2(kpts, rect=True, ori=True)
+    pt.imshow(255 * imgBGR, update=True, fnum=fnum, pnum=next_pnum(), title='input image')
+    colors = pt.distinct_colors(len(kpts))
+    print(colors)
+    pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
     pt.imshow(patch * 255, fnum=fnum, pnum=next_pnum(), title='sample')
     pt.imshow((np.abs(gradx)) * 255, fnum=fnum, pnum=next_pnum(), title='gradx')
     pt.imshow((np.abs(grady)) * 255, fnum=fnum, pnum=next_pnum(), title='grady')
     pt.imshow(gmag * 255, fnum=fnum, pnum=next_pnum(), title='mag')
     pt.imshow(gori_weights * 255, fnum=fnum, pnum=next_pnum(), title='weights')
-    pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
+    #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
     pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
     pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
     pt.color_orimag_colorbar(gori)
     pt.figure(fnum=fnum, pnum=(nRows, 1, nRows))
-    pt.draw_hist_subbin_maxima(hist, centers)
+    #ut.embed()
+    bin_colors = pt.get_orientation_color(centers)
+    pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors)
     pt.set_xlabel('radians')
     pt.set_ylabel('weight')
     #pt.update()
 
 
-def find_dominant_kp_orientations(imgBGR, kp, bins=32):
+def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
     """
 
     References:
@@ -616,14 +709,16 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=32):
         >>> import vtool as vt
         >>> # build test data
         >>> np.random.seed(0)
-        >>> imgBGR = get_test_patch('stripe', jitter=False)
+        >>> imgBGR = get_test_patch('cross', jitter=False)
         >>> kpts = make_test_image_keypoints(imgBGR)
         >>> kp = kpts[0]
+        >>> bins = 32
+        >>> maxima_thresh = .8
         >>> # execute function
-        >>> ori_offsets = find_dominant_kp_orientations(imgBGR, kp)
+        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh)
         >>> # verify results
-        >>> result = str(ori_offsets)
-        >>> print(result)
+        >>> result = str(new_oris)
+        >>> print(new_oris)
     """
     patch, wkp = get_warped_patch(imgBGR, kp, gray=True)
     gradx, grady = patch_gradient(patch, gaussian_weighted=False)
@@ -637,15 +732,19 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=32):
     #bins = 8
     hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins)
     # Find submaxima
-    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers)
+    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers, maxima_thresh=maxima_thresh)
     #ut.embed()
-    submax_ori = submaxima_x[submaxima_y.argmax()]
-    ori_offsets = [submax_ori]  # normalize w.r.t. gravity
-    return ori_offsets
+    submax_ori_offsets = submaxima_x
+    # Compute new orientation(s) for this keypoint
+    old_ori = kp[-1]
+    new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
+    #submax_ori = submaxima_x[submaxima_y.argmax()]
+    #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
+    return new_oris
 
 
 @profile
-def get_orientation_histogram(gori, gori_weights, bins=32):
+def get_orientation_histogram(gori, gori_weights, bins=36):
     # Get wrapped histogram (because we are finding a direction)
     flat_oris = gori.flatten()
     flat_weights = gori_weights.flatten()

@@ -46,8 +46,8 @@ def wrap_histogram(hist_, edges_):
     by replicating those bins at the last and first positions respectively.
 
     Args:
-        hist_ (?):
-        edges_ (?):
+        hist_ (ndarray):
+        edges_ (ndarray):
 
     Returns:
         tuple: (hist_wrap, edge_wrap)
@@ -80,11 +80,12 @@ def wrap_histogram(hist_, edges_):
 
 
 @profile
-def hist_interpolated_submaxima(hist, centers=None):
+def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8):
     r"""
     Args:
-        hist (?):
-        centers (None):
+        hist (ndarray):
+        centers (list):
+        maxima_thresh (float):
 
     Returns:
         tuple: (submaxima_x, submaxima_y)
@@ -93,50 +94,60 @@ def hist_interpolated_submaxima(hist, centers=None):
         python -m vtool.histogram --test-hist_interpolated_submaxima
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
-        >>> hist = np.array([    6.73, 8.69, 0.00  0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
+        >>> maxima_thresh = .8
+        >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> # execute function
-        >>> (submaxima_x, submaxima_y) = hist_interpolated_submaxima(hist, centers)
+        >>> (submaxima_x, submaxima_y) = hist_interpolated_submaxima(hist, centers, maxima_thresh)
         >>> # verify results
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
-        (array([ 0.14597723,  3.0318792 ]), array([  9.20251557,  37.19208239]))
+        (array([ 3.0318792]), array([ 37.19208239]))
 
     Ignore:
         import plottool as pt
         pt.draw_hist_subbin_maxima(hist, centers)
     """
-    maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
+    maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers, maxima_thresh=maxima_thresh)
     submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
     return submaxima_x, submaxima_y
 
 
 @profile
-def hist_argmaxima(hist, centers=None):
+def hist_argmaxima(hist, centers=None, maxima_thresh=.8):
     """
+
+    CommandLine:
+        python -m vtool.histogram --test-hist_argmaxima
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
-        >>> hist = np.array([    6.73, 8.69, 0.00  0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
+        >>> maxima_thresh = .8
+        >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> # execute function
         >>> maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
         >>> # verify results
         >>> result = str((maxima_x, maxima_y, argmaxima))
         >>> print(result)
-        (array([ 0.39,  2.75]), array([  8.69,  34.62]), array([1, 4]))
+        (array([ 2.75]), array([ 34.62]), array([4]))
 
     """
     # FIXME: Not handling general cases
-    argmaxima = spsignal.argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
-    if len(argmaxima) == 0:
-        argmaxima = hist.argmax()  # Hack for no maxima
-    maxima_x = argmaxima if centers is None else centers[argmaxima]
+    argmaxima_ = spsignal.argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
+    if len(argmaxima_) == 0:
+        argmaxima_ = hist.argmax()  # Hack for no maxima
+    # threshold maxima to be within a factor of the maximum
+    maxima_y = hist[argmaxima_]
+    isvalid = maxima_y > maxima_y.max() * maxima_thresh
+    argmaxima = argmaxima_[isvalid]
     maxima_y = hist[argmaxima]
+    maxima_x = argmaxima if centers is None else centers[argmaxima]
     return maxima_x, maxima_y, argmaxima
 
 
@@ -155,11 +166,11 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
         python -m vtool.histogram --test-interpolate_submaxima
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
         >>> argmaxima = np.array([1, 4])
-        >>> hist = np.array([    6.73, 8.69, 0.00  0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
+        >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> # execute function
         >>> submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
@@ -225,22 +236,26 @@ def subbin_bounds(z, radius, low, high):
                 ,.___.___.___.___.___.   < radius (5.333)
           .---.-,                        < z_offset1 (1.6666)
                 ,_.___.___.___.___.___.  < z_offset2 (5.666)
+          .---.-,                        < z_offset1 (1.6666)
 
     Args:
-        z (float):
-        radius (float):
-        low (int):
-        high (int):
+        z (float): center of a circle a 1d pixel array
+        radius (float): radius of the circle
+        low (int): minimum index of 1d pixel array
+        high (int): maximum index of 1d pixel array
 
     Returns:
         tuple: (iz1, iz2, z_offst) - quantized_bounds and subbin_offset
+            iz1 - low radius endpoint
+            iz2 - high radius endpoint
+            z_offst - subpixel offset
             #Returns: quantized_bounds=(iz1, iz2), subbin_offset
 
     CommandLine:
         python -m vtool.histogram --test-subbin_bounds
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
         >>> z = 1.5
@@ -252,6 +267,7 @@ def subbin_bounds(z, radius, low, high):
         >>> # verify results
         >>> result = str((iz1, iz2, z_offst))
         >>> print(result)
+        (0, 7, 1.5)
     """
     #print('quan pxl: z=%r, radius=%r, low=%r, high=%r' % (z, radius, low, high))
     # Get subpixel bounds ignoring boundaries
