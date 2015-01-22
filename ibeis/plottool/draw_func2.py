@@ -171,6 +171,9 @@ def execstr_global():
 def show_if_requested():
     if ut.get_argflag('--show'):
         plt.show()
+    else:
+        import plottool as pt
+        pt.iup()
 
 
 def label_to_colors(labels_):
@@ -1632,10 +1635,8 @@ def color_orimag(gori, gmag=None, gmag_is_01=None):
     """
     # Turn a 0 to 1 orienation map into hsv colors
     #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
-    TAU = np.pi * 2
-    gori_01 = gori / TAU
-    cmap_ = plt.get_cmap('hsv')
-    flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
+    flat_rgb = get_orientation_color(gori.flatten())
+    #flat_rgb = np.array(cmap_(), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
     hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
@@ -1654,21 +1655,36 @@ def color_orimag(gori, gmag=None, gmag_is_01=None):
     return bgr_ori
 
 
-def color_orimag_colorbar(gori):
-    #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
-    TAU = np.pi * 2
-    #gori_01 = gori / TAU
-    cmap_ = plt.get_cmap('hsv')
-    #flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
-    #rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
-    #rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
+def get_orientation_color(radians_list):
+    r"""
+    Args:
+        radians_list (list):
 
-    #ori_and_colors = sorted(list(zip(ut.flatten(gori.tolist()), ut.flatten(rgb_ori.tolist()))))
-    #TAU = np.pi * 2
-    #ori_list = np.array(ut.get_list_column(ori_and_colors, 0)) / TAU
-    #color_list = ut.get_list_column(ori_and_colors, 1)
+    CommandLine:
+        python -m plottool.draw_func2 --test-get_orientation_color
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> radians_list = np.arange(-1, 10, 10)
+        >>> # execute function
+        >>> result = get_orientation_color(radians_list)
+        >>> # verify results
+        >>> print(result)
+    """
+    TAU = np.pi * 2
+    # Map radians to 0 to 1
+    ori01_list = (radians_list % TAU) / TAU
+    cmap_ = plt.get_cmap('hsv')
+    ori_colors_rgb = np.array(cmap_(ori01_list), dtype=np.float32)
+    return ori_colors_rgb
+
+
+def color_orimag_colorbar(gori):
+    TAU = np.pi * 2
     ori_list = np.linspace(0, TAU, 8)
-    color_list = cmap_(ori_list / TAU)
+    color_list = get_orientation_color(ori_list)
     colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
 
 
