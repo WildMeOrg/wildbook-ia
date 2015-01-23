@@ -585,9 +585,9 @@ def test_find_kp_direction():
     #import vtool as vt
     np.random.seed(0)
     imgBGR = get_test_patch('stripe', jitter=True)
-    imgBGR = get_test_patch('star', jitter=True)
-    imgBGR = get_test_patch('star2', jitter=True)
-    #imgBGR = get_test_patch('cross', jitter=False)
+    #imgBGR = get_test_patch('star', jitter=True)
+    #imgBGR = get_test_patch('star2', jitter=True)
+    imgBGR = get_test_patch('cross', jitter=False)
     #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
     imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
     theta = 0  # 3.4  # TAU / 16
@@ -745,12 +745,52 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
 
 @profile
 def get_orientation_histogram(gori, gori_weights, bins=36):
+    r"""
+    Args:
+        gori (?):
+        gori_weights (?):
+        bins (int):
+
+    Returns:
+        tuple: (hist, centers)
+
+    CommandLine:
+        python -m vtool.patch --test-get_orientation_histogram
+
+    Ignore:
+        print(vt.kpts_docrepr(gori, 'gori = '))
+        print(vt.kpts_docrepr(gori_weights, 'gori_weights = '))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> # build test data
+        >>> gori = np.array([[ 0.  ,  0.  ,  3.14,  3.14,  0.  ],
+        ...                  [ 4.71,  6.15,  3.13,  3.24,  4.71],
+        ...                  [ 4.71,  4.61,  0.5 ,  4.85,  4.71],
+        ...                  [ 1.57,  6.28,  3.14,  3.14,  1.57],
+        ...                  [ 0.  ,  0.  ,  3.14,  3.14,  0.  ]])
+        >>> gori_weights = np.array([[ 0.  ,  0.11,  0.02,  0.13,  0.  ],
+        ...                          [ 0.02,  0.19,  0.02,  0.21,  0.02],
+        ...                          [ 0.11,  0.16,  0.  ,  0.13,  0.11],
+        ...                          [ 0.  ,  0.17,  0.02,  0.19,  0.  ],
+        ...                          [ 0.  ,  0.11,  0.02,  0.13,  0.  ]])
+        >>> bins = 36
+        >>> # execute function
+        >>> (hist, centers) = get_orientation_histogram(gori, gori_weights, bins)
+        >>> # verify results
+        >>> result = str((hist, centers))
+        >>> print(result)
+    """
     # Get wrapped histogram (because we are finding a direction)
     flat_oris = gori.flatten()
     flat_weights = gori_weights.flatten()
     TAU = np.pi * 2
     range_ = (0, TAU)
-    hist_, edges_ = np.histogram(flat_oris, range=range_, bins=bins, weights=flat_weights)
+    # FIXME: this does not do linear interpolation
+    #hist_, edges_ = np.histogram(flat_oris, range=range_, bins=bins, weights=flat_weights)
+    # Compute histogram where orientations split weight between bins
+    hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights, range_, bins, interpolation_wrap=True)
     hist, edges = htool.wrap_histogram(hist_, edges_)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers

@@ -246,8 +246,8 @@ def print_image_checks(img_fpath):
     return hasimg
 
 
-def resize(img, dsize):
-    return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
+def resize(img, dsize, interpolation=cv2.INTER_LANCZOS4):
+    return cv2.resize(img, dsize, interpolation=interpolation)
 
 
 def resized_dims_and_ratio(img_size, max_dsize):

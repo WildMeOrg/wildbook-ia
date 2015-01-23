@@ -1009,6 +1009,29 @@ def get_Z_mats(V_mats):
 
 #@profile
 def invert_invV_mats(invV_mats):
+    r"""
+    Args:
+        invV_mats (ndarray[float32_t, ndim=3]):  keypoint shapes (possibly translation)
+
+    Returns:
+        ndarray[float32_t, ndim=3]: V_mats
+
+    CommandLine:
+        python -m vtool.keypoint --test-invert_invV_mats
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> invV_mats = vt.get_invVR_mats3x3(kpts)
+        >>> # execute function
+        >>> V_mats = invert_invV_mats(invV_mats)
+        >>> test = vt.matrix_multiply(invV_mats, V_mats)
+        >>> # This should give us identity
+        >>> assert np.allclose(test, np.eye(3))
+    """
     try:
         V_mats = npl.inv(invV_mats)
     except npl.LinAlgError:
@@ -1205,6 +1228,31 @@ def kpts_repr(arr, precision=2, suppress_small=True, linebreak=False):
     if not linebreak:
         reprstr = reprstr.replace('\n\n', '\n')
     return reprstr
+
+
+def kpts_docrepr(arr, name='arr = ', *args, **kwargs):
+    r"""
+    CommandLine:
+        python -m vtool.keypoint --test-kpts_docrepr
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> np.random.seed(0)
+        >>> arr = np.random.rand(3, 3)
+        >>> args = tuple()
+        >>> kwargs = dict()
+        >>> # execute function
+        >>> result = kpts_docrepr(arr)
+        >>> # verify results
+        >>> print(result)
+    """
+    reprstr_ = kpts_repr(arr, *args, **kwargs)
+    prefix = name + 'np.'
+    docrepr_ = ut.indent(prefix + reprstr_, ' ' * len(prefix))[len(prefix):]
+    docrepr = ut.indent('>>> ' + ut.indent(docrepr_, '... ')[4:], ' ' * 8)
+    return docrepr
 
 
 def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):

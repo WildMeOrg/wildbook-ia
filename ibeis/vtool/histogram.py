@@ -9,6 +9,151 @@ import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[hist]', DEBUG=False)
 
 
+def get_histinfo_str(hist, edges):
+    # verify results
+    centers = hist_edges_to_centers(edges)
+    hist_str   = 'hist    = ' + str(hist.tolist())
+    center_str = 'centers = ' + str(centers.tolist())
+    edge_str   = 'edges   = [' +  ', '.join(['%.2f' % _ for _ in edges]) + ']'
+    histinfo_str = hist_str + ut.NEWLINE + center_str + ut.NEWLINE + edge_str
+    return histinfo_str
+
+
+def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True):
+    r"""
+    Follows np.histogram, but does interpolation
+
+    Args:
+        range_ (tuple): range from 0 to 1
+        bins (?):
+
+    CommandLine:
+        python -m vtool.patch --test-interpolated_histogram
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> # build test data
+        >>> data    = [ 0,  1,  2,  3.5,  3,  3,  4,  4]
+        >>> weights = [1., 1., 1., 1., 1., 1., 1., 1.]
+        >>> range_ = (0, 4)
+        >>> bins = 5
+        >>> interpolation_wrap = True
+        >>> # execute function
+        >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
+        >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
+        >>> assert hist.size == bins
+        >>> assert edges.size == bins + 1
+        >>> result = get_histinfo_str(hist, edges)
+        >>> print(result)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> # build test data
+        >>> data    = np.array([ 0,  1,  2,  3.5,  3,  3,  4,  4])
+        >>> weights = np.array([4.5, 1., 1., 1., 1., 1., 1., 1.])
+        >>> range_ = (-.5, 4.5)
+        >>> bins = 5
+        >>> interpolation_wrap = True
+        >>> # execute function
+        >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
+        >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
+        >>> assert hist.size == bins
+        >>> assert edges.size == bins + 1
+        >>> result = get_histinfo_str(hist, edges)
+        >>> print(result)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> # build test data
+        >>> data    = np.random.rand(10)
+        >>> weights = np.random.rand(10)
+        >>> range_ = (0, 1)
+        >>> bins = np.random.randint(2) + 1 + np.random.randint(2) * 100
+        >>> interpolation_wrap = True
+        >>> # execute function
+        >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
+        >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
+        >>> assert hist.size == bins
+        >>> assert edges.size == bins + 1
+        >>> result = get_histinfo_str(hist, edges)
+        >>> print(result)
+    """
+    assert bins > 0, 'must have nonzero bins'
+    data = np.asarray(data)
+    if weights is not None:
+        weights = np.asarray(weights)
+        assert np.all(weights.shape == data.shape), 'shapes disagree'
+        weights = weights.ravel()
+    data = data.ravel()
+    # Compute bin edges like in np.histogram
+    start, stop = float(range_[0]), float(range_[1])
+    if start == stop:
+        start -= 0.5
+        stop += 0.5
+    # Find bin edges
+    hist_dtype = np.float64
+    # Compute bin step size
+    step = (stop - start) / float((bins))
+    #edges = [start + i * step for i in range(bins + 1)]
+    #centers = hist_edges_to_centers(edges)
+
+    half_step = step / 2.0
+    # Find fractional bin center index for each datapoint
+    data_offset = start + half_step
+    frac_index  = (data - data_offset) / step
+    # Find bin center to the left of each datapoint
+    left_index = np.floor(frac_index).astype(np.int32)
+    # Find bin center to the right of each datapoint
+    right_index = left_index + 1
+    # Find the fraction of the distiance the right center is away from the datapoint
+    right_alpha = (frac_index - left_index)
+    left_alpha = 1.0 - right_alpha
+
+    # Handle edge cases
+    if interpolation_wrap:
+        # when the stop == start (like in orientations)
+        left_index  %= bins
+        right_index %= bins
+    else:
+        left_index[left_index < 0] = 0
+        right_index[right_index >= bins] = bins - 1
+
+    # Each keypoint votes into its left and right bins
+    left_vote  = left_alpha * weights
+    right_vote = right_alpha * weights
+    hist = np.zeros((bins,), hist_dtype)
+    # TODO: can problably do this faster with cumsum
+    for index, vote in zip(left_index, left_vote):
+        hist[index] += vote
+    for index, vote in zip(right_index, right_vote):
+        hist[index] += vote
+
+    edges = np.linspace(start, stop, bins + 1, endpoint=True)
+    return hist, edges
+    #block = 2 ** 16
+    #cumhist = np.zeros(edges.shape, hist_dtype)
+    #zero = np.array(0, dtype=np.float64)
+    ## Blocking code that is used in numpy
+    #for block_index in np.arange(0, len(data), block):
+    #    _data = data[block_index:block_index + block]
+    #    _weights = weights[block_index:block_index + block]
+    #    _sortx = np.argsort(_data)
+    #    sorted_data = _data.take(_sortx)
+    #    sorted_weights = _weights.take(_sortx)
+    #    cumsum_weights = np.concatenate(([zero, ], sorted_weights.cumsum()))
+    #    # Find which bin each datapoint belongs in
+    #    bin_index = np.r_[
+    #        # The first edge will correspond with the first center
+    #        sorted_data.searchsorted(edges[:-1], 'left'),
+    #        sorted_data.searchsorted(edges[-1], 'right')
+    #    ]
+    #    cumhist += cumsum_weights[bin_index]
+    #hist = np.diff(cumhist)
+
+
 @profile
 def hist_edges_to_centers(edges):
     r"""

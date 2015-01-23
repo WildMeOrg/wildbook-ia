@@ -185,15 +185,16 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         for (M, score) in zip(affmat_list, fx2_score):
             warped = cv2.warpAffine(patch * score, M, dsize, **warpkw).T
             #
-            BIG_KEYPOINT_LOW_WEIGHT_HACK = False
+            BIG_KEYPOINT_LOW_WEIGHT_HACK = True
             if BIG_KEYPOINT_LOW_WEIGHT_HACK:
-                warp_sum = np.sqrt(warped.sum() / 10000)
+                total_weight = np.sqrt(warped.sum()) * .1
+                #divisor =  / 1000)
                 #print(warp_sum)
                 #print(warped.max())
-                if warp_sum != 0:
+                if total_weight > 1:
                     # Whatever the size of the keypoint is it should
                     # contribute a total of 1 score
-                    np.divide(warped, warp_sum, out=warped)
+                    warped = np.divide(warped, total_weight)
                 #print(warped.max())
             yield warped
     # For each keypoint
@@ -213,7 +214,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
 
 
 def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
-                      show_mask_kpts=True):
+                      show_mask_kpts=False):
     import plottool as pt
     masked_chip = (chip * mask[:, :, None]).astype(np.uint8)
     if fnum is None:
@@ -291,6 +292,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
     USE_PERDOCH_VALS = True
     if USE_PERDOCH_VALS:
         radius = srcshape[0] / 2.0
+        sigma = 0.4 * radius
         sigma = 0.95 * radius
     #srcshape = (75, 75)
     # Similar to SIFT's computeCircularGaussMask in helpers.cpp
@@ -305,6 +307,10 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
     #, norm_01=False)
     dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode,
                                   fx2_score=fx2_score, **kwargs)
+    #cv2.GaussianBlur(dstimg, ksize=(9, 9,), sigmaX=5.0, sigmaY=5.0,
+    #                 dst=dstimg, borderType=cv2.BORDER_CONSTANT)
+    cv2.GaussianBlur(dstimg, ksize=(17, 17,), sigmaX=5.0, sigmaY=5.0,
+                     dst=dstimg, borderType=cv2.BORDER_CONSTANT)
     return dstimg, patch
 
 
