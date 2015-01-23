@@ -1327,6 +1327,12 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[***df2.imshow] img.stats = %r ' % (utool.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
+    if isinstance(img, six.string_types):
+        # Allow for path to image to be specified
+        img_fpath = img
+        ut.assertpath(img_fpath)
+        import vtool as vt
+        img = vt.imread(img_fpath)
     if darken is not None:
         if darken is True:
             darken = .5
