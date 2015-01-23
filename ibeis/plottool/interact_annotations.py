@@ -437,12 +437,12 @@ class ANNOTATIONInteraction(object):
         self.next_callback = next_callback
         if self.prev_callback is not None:
             self.prev_ax = self.fig.add_axes([0.02, 0.01, but_width, but_height])
-            self.prev_but = Button(self.prev_ax, 'Save and Previous Image\n(left arrow)')
+            self.prev_but = Button(self.prev_ax, 'Previous Image\n(left arrow)')
             self.prev_but.on_clicked(self.prev_annotation)
 
         if self.next_callback is not None:
             self.next_ax = self.fig.add_axes([0.82, 0.01, but_width, but_height])
-            self.next_but = Button(self.next_ax, 'Save and Next Image\n(right arrow)')
+            self.next_but = Button(self.next_ax, 'Next Image\n(right arrow)')
             self.next_but.on_clicked(self.next_annotation)
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
