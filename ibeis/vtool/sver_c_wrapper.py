@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ctypes as C
 import numpy as np
+import vtool
 import vtool.keypoint as ktool
 import vtool.tests.dummy as dummy
 import vtool.spatial_verification as sver
@@ -43,6 +44,7 @@ def test_calling():
         fm, 2*len(fm),
         xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
         out_inliers, out_errors, out_mats)
+    assert np.allclose(out_errors, output[1])
     assert np.allclose(out_mats, output[2])
     ut.embed()
 

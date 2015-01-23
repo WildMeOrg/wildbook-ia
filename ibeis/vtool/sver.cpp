@@ -109,16 +109,17 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
     kpt2[3], kpt2[4], kpt2[5]); \
 Matx<double, 3, 3> V1_m = invVR1_m.inv();
         vector<Matx<double, 3, 3> > Aff_mats;
-        vector<vector<double> > xy_errs, scale_errs, ori_errs;
+        //vector<vector<double> > xy_errs, scale_errs, ori_errs;
         for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
             SETUP_RELEVANT_VARIABLES
             Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
             Aff_mats.push_back(Aff_mat);
         }
+        const size_t inner_errvec_len = fm_len/2;
         for(size_t i = 0; i < Aff_mats.size(); i++) {
-            xy_errs.push_back(vector<double>());
-            scale_errs.push_back(vector<double>());
-            ori_errs.push_back(vector<double>());
+            //xy_errs.push_back(vector<double>());
+            //scale_errs.push_back(vector<double>());
+            //ori_errs.push_back(vector<double>());
             for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
                 SETUP_RELEVANT_VARIABLES
                 Matx<double, 3, 3> Aff_mat = Aff_mats[i];
@@ -127,12 +128,22 @@ Matx<double, 3, 3> V1_m = invVR1_m.inv();
                 double xy_err = xy_distance(invVR1_mt, invVR2_m);
                 double scale_err = det_distance(invVR1_mt, invVR2_m);
                 double ori_err = ori_distance(invVR1_mt, invVR2_m);
-                xy_errs[i].push_back(xy_err);
-                scale_errs[i].push_back(scale_err);
-                ori_errs[i].push_back(ori_err);
+                //xy_errs[i].push_back(xy_err);
+                //scale_errs[i].push_back(scale_err);
+                //ori_errs[i].push_back(ori_err);
+// poke the error values directly into the output array with pointer voodoo to 
+//  avoid intermediate allocations (the explicit structure is shown by the 
+//   commented xy_errs, scale_errs, and ori_errs variables).
+#define PACKED_INSERT(OFFSET, VAR) \
+*(out_errors_list+(inner_errvec_len*3*i)+(inner_errvec_len*(OFFSET))+(fm_ind/2)) = (VAR)
+                PACKED_INSERT(0, xy_err);
+                PACKED_INSERT(1, ori_err);
+                PACKED_INSERT(2, scale_err);
+#undef PACKED_INSERT
                 //printf("errs[%u][%u]: %f, %f, %f\n", fm_ind, i, xy_err, scale_err, ori_err);
             }
         }
+#undef SETUP_RELEVANT_VARIABLES
 /*
 #define SHOW_ERRVEC(vec) \
 for(size_t i = 0; i < vec.size(); i++) { \
@@ -142,9 +153,13 @@ for(size_t i = 0; i < vec.size(); i++) { \
     } \
     puts("]"); \
 }
+        puts("-----");
         SHOW_ERRVEC(xy_errs)
+        puts("-----");
         SHOW_ERRVEC(scale_errs)
+        puts("-----");
         SHOW_ERRVEC(ori_errs)
+        puts("-----");
 #undef SHOW_ERRVEC
 */
         printf("%d\n", Aff_mats.size());
@@ -162,7 +177,6 @@ for(size_t i = 0; i < vec.size(); i++) { \
             //printf("\nafter: "); for(size_t j=0; j < mat_size; j+=8) {printf("0x%08x ", *(destc+j)); }
             //puts("\n");
         }
-#undef SETUP_RELEVANT_VARIABLES
     }
 
     void hello_world() {
