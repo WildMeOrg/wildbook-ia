@@ -141,6 +141,28 @@ def ensure_monotone_decreasing(arr_):
     return arr
 
 
+def test_language_modulus():
+    """
+    References:
+        http://en.wikipedia.org/wiki/Modulo_operation
+    """
+    import math
+    import utool as ut
+    TAU = math.pi * 2
+    num_list = [-8, -1, 0, 1, 2, 6, 7, 29]
+    modop_result_list = []
+    fmod_result_list = []
+    for num in num_list:
+        num = float(num)
+        modop_result_list.append(num % TAU)
+        fmod_result_list.append(math.fmod(num, TAU))
+    table = ut.make_csv_table([num_list, modop_result_list, fmod_result_list],
+                              ['num',  'modop', 'fmod'], 'mods', [float, float, float] )
+    print(table)
+
+
+
+
 if __name__ == '__main__':
     """
     CommandLine:

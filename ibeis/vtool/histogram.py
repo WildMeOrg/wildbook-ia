@@ -19,7 +19,8 @@ def get_histinfo_str(hist, edges):
     return histinfo_str
 
 
-def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True):
+def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
+                           DBGPRINT=False):
     r"""
     Follows np.histogram, but does interpolation
 
@@ -111,6 +112,14 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True)
     # Find the fraction of the distiance the right center is away from the datapoint
     right_alpha = (frac_index - left_index)
     left_alpha = 1.0 - right_alpha
+
+    if DBGPRINT:
+        print('bins = %r' % bins)
+        print('step = %r' % step)
+        print('half_step = %r' % half_step)
+        print('data_offset = %r' % data_offset)
+        TAU = 2 * np.pi
+        print("-.5 MOD tau = %r" % (-.5 % TAU,))
 
     # Handle edge cases
     if interpolation_wrap:

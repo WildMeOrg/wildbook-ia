@@ -584,17 +584,27 @@ def test_find_kp_direction():
     import utool as ut
     #import vtool as vt
     np.random.seed(0)
-    imgBGR = get_test_patch('stripe', jitter=True)
-    #imgBGR = get_test_patch('star', jitter=True)
-    #imgBGR = get_test_patch('star2', jitter=True)
-    imgBGR = get_test_patch('cross', jitter=False)
-    #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
-    imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
-    theta = 0  # 3.4  # TAU / 16
-    kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
-    kp = kpts[0]
+    USE_EXTERN_STAR = True
+    if USE_EXTERN_STAR:
+        import vtool as vt
+        img_fpath = ut.grab_test_imgpath('star.png')
+        imgBGR = vt.imread(img_fpath)
+        kpts, vecs = vt.extract_features(img_fpath)
+        kp = np.array([  3.14742985e+01,   2.95660381e+01,   1.96057682e+01, -5.11199608e-03,   2.05653343e+01,   0.00000000e+00],
+                      dtype=np.float32)
+    else:
+        imgBGR = get_test_patch('stripe', jitter=True)
+        #imgBGR = get_test_patch('star', jitter=True)
+        #imgBGR = get_test_patch('star2', jitter=True)
+        imgBGR = get_test_patch('cross', jitter=False)
+        #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
+        imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
+        theta = 0  # 3.4  # TAU / 16
+        kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
+        kp = kpts[0]
     bins = 36
     maxima_thresh = .8
+    DBGPRINT = False
     globals_ = globals()
     locals_ = locals()
     converge_lists = []
@@ -680,7 +690,8 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     #pt.update()
 
 
-def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
+def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
+                                  DBGPRINT=False):
     """
 
     References:
@@ -709,16 +720,20 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
         >>> import vtool as vt
         >>> # build test data
         >>> np.random.seed(0)
-        >>> imgBGR = get_test_patch('cross', jitter=False)
-        >>> kpts = make_test_image_keypoints(imgBGR)
+        >>> #imgBGR = get_test_patch('cross', jitter=False)
+        >>> img_fpath = ut.grab_test_imgpath('star.png')
+        >>> imgBGR = vt.imread(img_fpath)
+        >>> kpts, vecs = vt.extract_features(img_fpath)
+        >>> assert len(kpts) == 1
         >>> kp = kpts[0]
-        >>> bins = 32
+        >>> print('kp = %r' % (kp,))
+        >>> bins = 36
         >>> maxima_thresh = .8
         >>> # execute function
-        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh)
+        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh, DBGPRINT=True)
         >>> # verify results
-        >>> result = str(new_oris)
-        >>> print(new_oris)
+        >>> result = 'new_oris = %r' % (new_oris,)
+        >>> print(result)
     """
     patch, wkp = get_warped_patch(imgBGR, kp, gray=True)
     gradx, grady = patch_gradient(patch, gaussian_weighted=False)
@@ -730,7 +745,7 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
     # FIXME: Not taking account to gmag
     #bins = 3
     #bins = 8
-    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins)
+    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DBGPRINT=DBGPRINT)
     # Find submaxima
     submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers, maxima_thresh=maxima_thresh)
     #ut.embed()
@@ -744,7 +759,7 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8):
 
 
 @profile
-def get_orientation_histogram(gori, gori_weights, bins=36):
+def get_orientation_histogram(gori, gori_weights, bins=36, DBGPRINT=False):
     r"""
     Args:
         gori (?):
@@ -790,7 +805,10 @@ def get_orientation_histogram(gori, gori_weights, bins=36):
     # FIXME: this does not do linear interpolation
     #hist_, edges_ = np.histogram(flat_oris, range=range_, bins=bins, weights=flat_weights)
     # Compute histogram where orientations split weight between bins
-    hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights, range_, bins, interpolation_wrap=True)
+    hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights,
+                                                 range_, bins,
+                                                 interpolation_wrap=True,
+                                                 DBGPRINT=DBGPRINT)
     hist, edges = htool.wrap_histogram(hist_, edges_)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers
