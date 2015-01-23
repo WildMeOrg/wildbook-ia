@@ -161,8 +161,6 @@ def test_language_modulus():
     print(table)
 
 
-
-
 if __name__ == '__main__':
     """
     CommandLine:

@@ -1230,7 +1230,30 @@ def kpts_repr(arr, precision=2, suppress_small=True, linebreak=False):
     return reprstr
 
 
-def kpts_docrepr(arr, name='arr = ', *args, **kwargs):
+def kp_cpp_infostr(kp):
+    """ mirrors c++ debug code """
+    x, y = kp[0:2]
+    a11, a21, a22 = kp[2:5]
+    a12 = 0.0
+    ori = kp[5]
+    s = np.sqrt(a11 * a22)
+    a11 /= s
+    a12 /= s
+    a21 /= s
+    a22 /= s
+    infostr_list = [
+        ('+---'),
+        ('|     xy = (%s, %s)' % (x, y)),
+        ('| hat{invV} = [(%s, %s),' % (a11, a12,)),
+        ('|              (%s, %s)]' % (a21, a22,)),
+        ('|    sc  = %s' % (s,)),
+        ('|    ori = %s' % (ori,)),
+        ('L___'),
+    ]
+    return '\n'.join(infostr_list)
+
+
+def kpts_docrepr(arr, name='arr', indent=True, *args, **kwargs):
     r"""
     CommandLine:
         python -m vtool.keypoint --test-kpts_docrepr
@@ -1249,9 +1272,15 @@ def kpts_docrepr(arr, name='arr = ', *args, **kwargs):
         >>> print(result)
     """
     reprstr_ = kpts_repr(arr, *args, **kwargs)
-    prefix = name + 'np.'
+    eq = ' = '
+    if len(name) == 0:
+        eq = ''
+    prefix = name + eq + 'np.'
     docrepr_ = ut.indent(prefix + reprstr_, ' ' * len(prefix))[len(prefix):]
-    docrepr = ut.indent('>>> ' + ut.indent(docrepr_, '... ')[4:], ' ' * 8)
+    if indent:
+        docrepr = ut.indent('>>> ' + ut.indent(docrepr_, '... ')[4:], ' ' * 8)
+    else:
+        docrepr = docrepr_
     return docrepr
 
 

@@ -292,6 +292,23 @@ def test_show_gaussian_patches2(shape=(19, 19)):
     pt.set_figtitle('2d gaussian kernels')
 
 
+def show_gaussian_patch(shape, sigma1, sigma2):
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    import matplotlib as mpl
+    import plottool as pt
+    import vtool as vt
+    ybasis = np.arange(shape[0])
+    xbasis = np.arange(shape[1])
+    xgrid, ygrid = np.meshgrid(xbasis, ybasis)
+    sigma = [sigma1, sigma2]
+    gausspatch = vt.gaussian_patch(shape, sigma=sigma)
+    #print(gausspatch)
+    #pt.imshow(gausspatch * 255)
+    title = 'ksize=%r, sigma=%r' % (shape, (sigma1, sigma2),)
+    pt.plot_surface3d(xgrid, ygrid, gausspatch, rstride=1, cstride=1,
+                      cmap=mpl.cm.coolwarm, title=title)
+
+
 def test_show_gaussian_patches(shape=(19, 19)):
     r"""
     CommandLine:
@@ -450,7 +467,9 @@ def get_unwarped_patches(img, kpts):
 
 
 @profile
-def get_warped_patches(img, kpts):
+def get_warped_patches(img, kpts,
+                       flags=cv2.INTER_LANCZOS4,
+                       borderMode=cv2.BORDER_REPLICATE):
     """ Returns warped (into a unit circle) patch around a keypoint
 
     Args:
@@ -468,37 +487,90 @@ def get_warped_patches(img, kpts):
     invV_mats = ktool.get_invV_mats(kpts, with_trans=False, ashomog=True)
     V_mats = ktool.invert_invV_mats(invV_mats)
     kpts_iter = zip(xs, ys, V_mats, oris)
-    s = 41  # sf
-    cv2_warp_kwargs = {
-        #'flags': cv2.INTER_LINEAR,
-        #'flags': cv2.INTER_NEAREST,
-        'flags': cv2.INTER_CUBIC,
-        #'flags': cv2.INTER_LANCZOS4,
-        'borderMode': cv2.BORDER_REPLICATE,
-    }
+    patchSize = 41  # sf
+    #cv2_warp_kwargs = {
+    #    #'flags': cv2.INTER_LINEAR,
+    #    #'flags': cv2.INTER_NEAREST,
+    #    #'flags': cv2.INTER_LANCZOS4,
+    #    'borderMode': cv2.BORDER_REPLICATE,
+    #}
+    #flags = cv2.INTER_CUBIC,
+    #borderMode = cv2.BORDER_REPLICATE,
     for x, y, V, ori in kpts_iter:
-        ss = np.sqrt(s) * 3
-        (h, w) = img.shape[0:2]
-        # Translate to origin(0,0) = (x,y)
-        T = ltool.translation_mat3x3(-x, -y)
-        R = ltool.rotation_mat3x3(-ori)
-        S = ltool.scale_mat3x3(ss)
-        X = ltool.translation_mat3x3(s / 2, s / 2)
-        M = X.dot(S).dot(R).dot(V).dot(T)
-        # Prepare to warp
-        dsize = np.array(np.ceil(np.array([s, s])), dtype=int)
-        # Warp
-        #warped_patch = gtool.warpAffine(img, M, dsize)
-        warped_patch = cv2.warpAffine(img, M[0:2], tuple(dsize), **cv2_warp_kwargs)
-        # Build warped keypoints
-        wkp = np.array((s / 2, s / 2, ss, 0., ss, 0))
+        warped_patch, wkp = intern_warp_single_patch(img, x, y, ori, V,
+                                                     patchSize,
+                                                     flags=flags,
+                                                     borderMode=borderMode)
+        ## Build warped keypoints
+        #wkp = np.array((patchSize / 2, patchSize / 2, ss, 0., ss, 0))
         warped_patches.append(warped_patch)
         warped_subkpts.append(wkp)
     return warped_patches, warped_subkpts
 
 
+def intern_warp_single_patch(img, x, y, ori, V,
+                             patchSize,
+                             flags=cv2.INTER_CUBIC,
+                             borderMode=cv2.BORDER_REPLICATE):
+    cv2_warp_kwargs = {
+        #'flags': cv2.INTER_LINEAR,
+        #'flags': cv2.INTER_NEAREST,
+        #'flags': cv2.INTER_CUBIC,
+        #'flags': cv2.INTER_LANCZOS4,
+        'flags': flags,
+        #'borderMode': cv2.BORDER_REPLICATE,
+        'borderMode': borderMode
+    }
+    #ut.embed()
+    # FIXME: this works only because of add-hoc reasons.
+    # need to more closely follow code in affine.cpp
+
+    half_patchSize = patchSize / 2.0
+
+    OLDWAY = False
+    #OLDWAY = True
+    if OLDWAY:
+        ss = np.sqrt(patchSize) * 3.0
+    else:
+        mrSize = 3.0 * np.sqrt(3.0)
+        sc = np.sqrt(1 / ktool.get_invVR_mats_sqrd_scale(V[None, :])[0])
+        s = sc / mrSize
+        mrScale = np.ceil(s * mrSize)
+        patchImageSize = 2 * mrScale + 1
+        imageToPatchScale = patchImageSize / patchSize
+        ss = sc
+
+    (h, w) = img.shape[0:2]
+    # Translate to origin(0,0) = (x,y)
+    T = ltool.translation_mat3x3(-x, -y)  # Center the patch
+    # V - reshape and scale the centered patch to the unit circle
+    R = ltool.rotation_mat3x3(-ori)  # Rotate the patch
+    S = ltool.scale_mat3x3(ss)  # scale to the patch size
+    X = ltool.translation_mat3x3(half_patchSize, half_patchSize)  # Translate back to patch-image coordinates
+    M = X.dot(S).dot(R).dot(V).dot(T)
+    # Prepare to warp
+    dsize = np.array(np.ceil(np.array([patchSize, patchSize])), dtype=int)
+    # Warp
+    #warped_patch = gtool.warpAffine(img, M, dsize)
+    warped_patch = cv2.warpAffine(img, M[0:2], tuple(dsize), **cv2_warp_kwargs)
+    # Build warped keypoints
+    wkp = np.array((half_patchSize, half_patchSize, ss, 0., ss, 0))
+
+    if not OLDWAY:
+        # FIXME: this is still not what is done in affine.cpp
+        if imageToPatchScale > 0.4:
+            #ksize = (patchImageSize / 2, patchImageSize / 2)
+            #sigmaX, sigmaY = (patchImageSize / 2, patchImageSize / 2)
+            #ut.embed()
+            sigma = imageToPatchScale * 1.5
+            gaussianBlurInplace(warped_patch, sigma)
+    return warped_patch, wkp
+
+
 @profile
-def get_warped_patch(imgBGR, kp, gray=False):
+def get_warped_patch(imgBGR, kp, gray=False,
+                       flags=cv2.INTER_LANCZOS4,
+                       borderMode=cv2.BORDER_REPLICATE):
     """Returns warped (into a unit circle) patch around a keypoint
 
     Args:
@@ -508,12 +580,50 @@ def get_warped_patch(imgBGR, kp, gray=False):
         tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
     """
     kpts = np.array([kp])
-    wpatches, wkpts = get_warped_patches(imgBGR, kpts)
+    wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags, borderMode=borderMode)
     wpatch = wpatches[0]
     wkp = wkpts[0]
     if gray and len(wpatch.shape) > 2:
         wpatch = gtool.cvt_BGR2L(wpatch)
     return wpatch, wkp
+
+
+def gaussianBlurInplace(img, sigma):
+    """
+    simulates code from helpers.cpp in hesaff
+
+    Args:
+        img (ndarray):
+        sigma (flaot):
+
+    CommandLine:
+        python -m vtool.patch --test-gaussianBlurInplace --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
+        >>> import plottool as pt
+        >>> img = get_test_patch('star2')
+        >>> img_orig = img.copy()
+        >>> sigma = .8
+        >>> gaussianBlurInplace(img, sigma)
+        >>> fig = pt.figure(fnum=1, pnum=(1, 3, 1))
+        >>> size = int((2.0 * 3.0 * sigma + 1.0))
+        >>> if not size & 1:  # check if even
+        >>>     size += 1
+        >>> ksize = (size, size)
+        >>> fig.add_subplot(1, 3, 1, projection='3d')
+        >>> show_gaussian_patch(ksize, sigma, sigma)
+        >>> pt.imshow(img_orig * 255, fnum=1, pnum=(1, 3, 2))
+        >>> pt.imshow(img * 255, fnum=1, pnum=(1, 3, 3))
+        >>> pt.show_if_requested()
+    """
+    size = int((2.0 * 3.0 * sigma + 1.0))
+    if not size & 1:  # check if even
+        size += 1
+    ksize = (size, size)
+    cv2.GaussianBlur(img, ksize, sigmaX=sigma, sigmaY=sigma, dst=img, borderType=cv2.BORDER_REPLICATE)
 
 
 @profile
@@ -604,7 +714,7 @@ def test_find_kp_direction():
         kp = kpts[0]
     bins = 36
     maxima_thresh = .8
-    DBGPRINT = False
+    DEBUG_ROTINVAR = False
     globals_ = globals()
     locals_ = locals()
     converge_lists = []
@@ -691,8 +801,8 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
 
 
 def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
-                                  DBGPRINT=False):
-    """
+                                  DEBUG_ROTINVAR=False):
+    r"""
 
     References:
         http://szeliski.org/Book/drafts/SzeliskiBook_20100903_draft.pdf
@@ -726,40 +836,63 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
         >>> kpts, vecs = vt.extract_features(img_fpath)
         >>> assert len(kpts) == 1
         >>> kp = kpts[0]
-        >>> print('kp = %r' % (kp,))
+        >>> print('kp = \n' + (vt.kp_cpp_infostr(kp)))
         >>> bins = 36
         >>> maxima_thresh = .8
         >>> # execute function
-        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh, DBGPRINT=True)
+        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh, DEBUG_ROTINVAR=True)
         >>> # verify results
         >>> result = 'new_oris = %r' % (new_oris,)
-        >>> print(result)
     """
-    patch, wkp = get_warped_patch(imgBGR, kp, gray=True)
+    patch, wkp = get_warped_patch(imgBGR, kp, gray=True,
+                                  #flags=cv2.INTER_LANCZOS4,
+                                  flags=cv2.INTER_LINEAR,
+                                  borderMode=cv2.BORDER_CONSTANT)
+    if DEBUG_ROTINVAR:
+        pass
+        #import plottool as pt
+        #pt.imshow(imgBGR, fnum=2)
+        #pt.draw_kpts2(np.array([kp]), pts=True, rect=True)
+        #pt.imshow(patch, fnum=1)
+        #pt.draw_kpts2(np.array([wkp]), pts=True, rect=True)
+        #pt.df2.plt.show()
     gradx, grady = patch_gradient(patch, gaussian_weighted=False)
     gori = patch_ori(gradx, grady)
     gmag = patch_mag(gradx, grady)
     gaussian_weighted = True
     # do gaussian weighting correctly
     gori_weights = gaussian_weight_patch(gmag) if gaussian_weighted else gmag
+    if DEBUG_ROTINVAR:
+        print(ktool.kpts_docrepr(patch[::10, ::10], 'PATCH[::10]', False))
+        print(ktool.kpts_docrepr(gradx[::10, ::10], 'gradx[::10]', False))
+        print(ktool.kpts_docrepr(grady[::10, ::10], 'grady[::10]', False))
+        #print(ktool.kpts_docrepr(patch, 'PATCH', False))
+        print(ktool.kpts_docrepr(gori[::10, ::10], 'ORI[::10]', False))
+        print(ktool.kpts_docrepr(gmag[::10, ::10], 'MAG[::10]', False))
+        print(ktool.kpts_docrepr(gori_weights[::10, ::10], 'WEIGHTS[::10]', False))
     # FIXME: Not taking account to gmag
     #bins = 3
     #bins = 8
-    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DBGPRINT=DBGPRINT)
+    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     # Find submaxima
-    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers, maxima_thresh=maxima_thresh)
+    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers,
+                                                                 maxima_thresh=maxima_thresh,
+                                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     #ut.embed()
     submax_ori_offsets = submaxima_x
     # Compute new orientation(s) for this keypoint
     old_ori = kp[-1]
     new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
+    if DEBUG_ROTINVAR:
+        print('submaxima_x, submaxima_y = %r, %r' % (submaxima_x, submaxima_y,))
+        print('new_oris = %r' % (new_oris,))
     #submax_ori = submaxima_x[submaxima_y.argmax()]
     #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
     return new_oris
 
 
 @profile
-def get_orientation_histogram(gori, gori_weights, bins=36, DBGPRINT=False):
+def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False):
     r"""
     Args:
         gori (?):
@@ -808,8 +941,9 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DBGPRINT=False):
     hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights,
                                                  range_, bins,
                                                  interpolation_wrap=True,
-                                                 DBGPRINT=DBGPRINT)
-    hist, edges = htool.wrap_histogram(hist_, edges_)
+                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    # Duplicate the first and last edges so neighbor information is contiguous
+    hist, edges = htool.wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers
 

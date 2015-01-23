@@ -20,7 +20,7 @@ def get_histinfo_str(hist, edges):
 
 
 def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
-                           DBGPRINT=False):
+                           DEBUG_ROTINVAR=False):
     r"""
     Follows np.histogram, but does interpolation
 
@@ -29,17 +29,17 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
         bins (?):
 
     CommandLine:
-        python -m vtool.patch --test-interpolated_histogram
+        python -m vtool.histogram --test-interpolated_histogram
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
-        >>> data    = [ 0,  1,  2,  3.5,  3,  3,  4,  4]
-        >>> weights = [1., 1., 1., 1., 1., 1., 1., 1.]
+        >>> data    = np.array([ 0,  1,  2,  3.5,  3,  3,  4,  4])
+        >>> weights = np.array([1., 1., 1., 1., 1., 1., 1., 1.])
         >>> range_ = (0, 4)
         >>> bins = 5
-        >>> interpolation_wrap = True
+        >>> interpolation_wrap = False
         >>> # execute function
         >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
         >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
@@ -48,7 +48,7 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
         >>> result = get_histinfo_str(hist, edges)
         >>> print(result)
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
@@ -65,22 +65,22 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
         >>> result = get_histinfo_str(hist, edges)
         >>> print(result)
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
-        >>> # build test data
-        >>> data    = np.random.rand(10)
-        >>> weights = np.random.rand(10)
-        >>> range_ = (0, 1)
-        >>> bins = np.random.randint(2) + 1 + np.random.randint(2) * 100
-        >>> interpolation_wrap = True
-        >>> # execute function
-        >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
-        >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
-        >>> assert hist.size == bins
-        >>> assert edges.size == bins + 1
-        >>> result = get_histinfo_str(hist, edges)
-        >>> print(result)
+    #Example2:
+    #    >>> # ENABLE_DOCTEST
+    #    >>> from vtool.histogram import *  # NOQA
+    #    >>> # build test data
+    #    >>> data    = np.random.rand(10)
+    #    >>> weights = np.random.rand(10)
+    #    >>> range_ = (0, 1)
+    #    >>> bins = np.random.randint(2) + 1 + np.random.randint(2) * 100
+    #    >>> interpolation_wrap = True
+    #    >>> # execute function
+    #    >>> hist, edges = interpolated_histogram(data, weights, range_, bins, interpolation_wrap)
+    #    >>> assert np.abs(hist.sum() - weights.sum()) < 1E-9
+    #    >>> assert hist.size == bins
+    #    >>> assert edges.size == bins + 1
+    #    >>> result = get_histinfo_str(hist, edges)
+    #    >>> print(result)
     """
     assert bins > 0, 'must have nonzero bins'
     data = np.asarray(data)
@@ -96,8 +96,8 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
         stop += 0.5
     # Find bin edges
     hist_dtype = np.float64
-    # Compute bin step size
-    step = (stop - start) / float((bins))
+    # Compute bin step size, add one if last bin is the same as the first
+    step = (stop - start) / float((bins + interpolation_wrap))
     #edges = [start + i * step for i in range(bins + 1)]
     #centers = hist_edges_to_centers(edges)
 
@@ -113,7 +113,7 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
     right_alpha = (frac_index - left_index)
     left_alpha = 1.0 - right_alpha
 
-    if DBGPRINT:
+    if DEBUG_ROTINVAR:
         print('bins = %r' % bins)
         print('step = %r' % step)
         print('half_step = %r' % half_step)
@@ -140,7 +140,18 @@ def interpolated_histogram(data, weights, range_, bins, interpolation_wrap=True,
     for index, vote in zip(right_index, right_vote):
         hist[index] += vote
 
-    edges = np.linspace(start, stop, bins + 1, endpoint=True)
+    if interpolation_wrap:
+        edges = np.linspace(start, stop, bins + 1, endpoint=False)
+    else:
+        edges = np.linspace(start, stop, bins + 1, endpoint=True)
+    if DEBUG_ROTINVAR:
+        import vtool as vt
+        assert np.allclose(np.diff(edges), step)
+        print(hist.shape)
+        print(edges.shape)
+        print(vt.kpts_docrepr(hist, 'hist', False))
+        print(vt.kpts_docrepr(edges, 'edges', False))
+
     return hist, edges
     #block = 2 ** 16
     #cumhist = np.zeros(edges.shape, hist_dtype)
@@ -194,7 +205,7 @@ def hist_edges_to_centers(edges):
 
 
 @profile
-def wrap_histogram(hist_, edges_):
+def wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=False):
     r"""
     Simulates the first and last histogram bin being being adjacent to one another
     by replicating those bins at the last and first positions respectively.
@@ -227,14 +238,23 @@ def wrap_histogram(hist_, edges_):
         [6.73, 8.0, 0.0, 0.0, 34.32, 29.45, 0.0, 0.0, 6.73, 8.0]
         [-0.79, 0.00, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 6.28, 7.07]
     """
-    low, high = np.diff(edges_)[[0, -1]]
+    # FIXME; THIS NEEDS INFORMATION ABOUT THE DISTANCE FROM THE LAST BIN
+    # TO THE FIRST. IT IS OK AS LONG AS ALL STEPS ARE EQUAL, BUT IT IS NOT
+    # GENERAL
+    left_step, right_step = np.diff(edges_)[[0, -1]]
     hist_wrap = np.hstack((hist_[-1:], hist_, hist_[0:1]))
-    edge_wrap = np.hstack((edges_[0:1] - low, edges_, edges_[-1:] + high))
+    edge_wrap = np.hstack((edges_[0:1] - left_step, edges_, edges_[-1:] + right_step))
+    if DEBUG_ROTINVAR:
+        import vtool as vt
+        print(vt.kpts_docrepr(hist_wrap, 'hist_wrap', False))
+        print(vt.kpts_docrepr(edge_wrap, 'edge_wrap', False))
+
     return hist_wrap, edge_wrap
 
 
 @profile
-def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8):
+def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8,
+                                DEBUG_ROTINVAR=True):
     r"""
     Args:
         hist (ndarray):
@@ -261,12 +281,49 @@ def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8):
         >>> print(result)
         (array([ 3.0318792]), array([ 37.19208239]))
 
+
+    Example2:
+        >>> from vtool.histogram import *  # NOQA
+        >>> hist = [700.413, 1680.93, 823.31, 521.934, 721.44, 777.964, 483.108,
+        ...     178.108, 243.603, 1089.18, 2546.99, 306.315, 210.7,
+        ...     277.306, 653.927, 805.233, 537.68, 625.399, 738.363,
+        ...     1572.03, 406.922, 277.89, 172.177, 387.935, 376.248,
+        ...     218.595, 195.206, 222.028, 588.637, 376.1, 193.714,
+        ...     175.754, 299.887, 446.97, 275.423, 194.888, 700.413,
+        ...     1680.93, ]
+        >>> edges = [-0.169816, 0, 0.169816, 0.339631, 0.509447, 0.679263, 0.849078,
+        ...     1.01889, 1.18871, 1.35853, 1.52834, 1.69816, 1.86797,
+        ...     2.03779, 2.2076, 2.37742, 2.54724, 2.71705, 2.88687,
+        ...     3.05668, 3.2265, 3.39631, 3.56613, 3.73595, 3.90576,
+        ...     4.07558, 4.24539, 4.41521, 4.58502, 4.75484, 4.92465,
+        ...     5.09447, 5.26429, 5.4341, 5.60392, 5.77373, 5.94355,
+        ...     6.11336, 6.28318, ]
+        >>> hist = np.asarray(hist)
+        >>> edges = np.asarray(edges)
+        >>> centers = hist_edges_to_centers(edges)
+        >>> (submaxima_x, submaxima_y) = hist_interpolated_submaxima(hist, centers, .8)
+        >>> result = str((submaxima_x, submaxima_y))
+        >>> print(result)
+        >>> import plottool as pt
+        >>> pt.draw_hist_subbin_maxima(hist, centers)
+        >>> pt.show_if_requested()
+
+
     Ignore:
         import plottool as pt
         pt.draw_hist_subbin_maxima(hist, centers)
     """
     maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers, maxima_thresh=maxima_thresh)
+    if DEBUG_ROTINVAR:
+        print('Argmaxima: ')
+        print(' * maxima_x = %r' % (maxima_x))
+        print(' * maxima_y = %r' % (maxima_y))
+        print(' * argmaxima = %r' % (argmaxima))
     submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
+    if DEBUG_ROTINVAR:
+        print('Submaxima: ')
+        print(' * submaxima_x = %r' % (submaxima_x))
+        print(' * submaxima_y = %r' % (submaxima_y))
     return submaxima_x, submaxima_y
 
 
