@@ -9,12 +9,15 @@ from six.moves import zip, map
 import cv2
 import numpy as np
 from PIL import Image
-import utool
 from vtool import linalg
 from vtool import geometry
+import utool as ut
 #from vtool.dummy import dummy_img  # NOQA
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[img]', DEBUG=False)
+
+
+TAU = np.pi * 2
 
 
 CV2_INTERPOLATION_TYPES = {
@@ -77,7 +80,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
             # opencv always reads in BGR mode (fastest load time?)
             imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
     except Exception as ex:
-        utool.printex(ex, iswarning=True)
+        ut.printex(ex, iswarning=True)
         imgBGR = None
     if imgBGR is None:
         if not exists(img_fpath):
@@ -87,7 +90,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
             print('[gtool] ' + msg)
             if delete_if_corrupted:
                 print('[gtool] deleting corrupted image')
-                utool.delete(img_fpath)
+                ut.delete(img_fpath)
             raise IOError(msg)
     return imgBGR
 
@@ -100,7 +103,7 @@ def imwrite_fallback(img_fpath, imgBGR):
         return None
     except Exception as ex:
         msg = '[gtool] FALLBACK ERROR writing: %s' % (img_fpath,)
-        utool.printex(ex, msg, keys=['imgBGR.shape'])
+        ut.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
 
@@ -115,7 +118,7 @@ def imwrite(img_fpath, imgBGR, fallback=False):
             except Exception as ex:
                 pass
         msg = '[gtool] ERROR writing: %s' % (img_fpath,)
-        utool.printex(ex, msg, keys=['imgBGR.shape'])
+        ut.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
 
@@ -237,9 +240,9 @@ def blend_images(img1, img2):
 
 
 def print_image_checks(img_fpath):
-    hasimg = utool.checkpath(img_fpath, verbose=True)
+    hasimg = ut.checkpath(img_fpath, verbose=True)
     if hasimg:
-        _tup = (img_fpath, utool.filesize_str(img_fpath))
+        _tup = (img_fpath, ut.filesize_str(img_fpath))
         print('[io] Image %r (%s) exists. Is it corrupted?' % _tup)
     else:
         print('[io] Image %r does not exists ' (img_fpath,))
@@ -248,6 +251,77 @@ def print_image_checks(img_fpath):
 
 def resize(img, dsize, interpolation=cv2.INTER_LANCZOS4):
     return cv2.resize(img, dsize, interpolation=interpolation)
+
+
+def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
+    r"""
+    Args:
+        img_fpath (?):
+        theta (?):
+        out_fpath (None):
+
+    CommandLine:
+        python -m vtool.image --test-rotate_image_on_disk
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> # build test data
+        >>> img_fpath = ut.grab_test_imgpath('star.png')
+        >>> theta = TAU * 3 / 8
+        >>> # execute function
+        >>> out_fpath = None
+        >>> out_fpath_ = rotate_image_on_disk(img_fpath, theta, out_fpath)
+        >>> print(out_fpath_)
+        >>> if ut.get_argflag('--show') or ut.inIPython():
+        >>>     import plottool as pt
+        >>>     pt.imshow(out_fpath_,  pnum=(1, 1, 1))
+        >>>     pt.show_if_requested()
+
+    """
+    img = imread(img_fpath)
+    imgR = rotate_image(img, theta)
+    if out_fpath is None:
+        out_fpath_ = ut.augpath(img_fpath, augsuf='_theta=%r' % (theta))
+    else:
+        out_fpath_ = out_fpath
+    imwrite(out_fpath_, imgR)
+    return out_fpath_
+
+
+
+def rotate_image(img, theta, **kwargs):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        theta (?):
+
+    CommandLine:
+        python -m vtool.image --test-rotate_image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> img = vt.get_test_patch('star2')
+        >>> theta = TAU / 16.0
+        >>> # execute function
+        >>> imgR = rotate_image(img, theta)
+        >>> if ut.get_argflag('--show') or ut.inIPython():
+        >>>     import plottool as pt
+        >>>     pt.imshow(img  * 255,  pnum=(1, 2, 1))
+        >>>     pt.imshow(imgR * 255, pnum=(1, 2, 2))
+        >>>     pt.show_if_requested()
+    """
+    from vtool import linalg as ltool
+    dsize = [img.shape[1], img.shape[0]]
+    bbox = [0, 0, img.shape[1], img.shape[0]]
+    R = ltool.rotation_around_bbox_mat3x3(theta, bbox)
+    warp_kwargs = CV2_WARP_KWARGS.copy()
+    warp_kwargs.update(kwargs)
+    imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), **warp_kwargs)
+    return imgR
 
 
 def resized_dims_and_ratio(img_size, max_dsize):
@@ -315,8 +389,8 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
     x2 = (x1 + _w)
     y2 = (y1 + _h)
     if round_:
-        pt1 = (utool.iround(x1 * sx), utool.iround(y1 * sy))
-        pt2 = (utool.iround(x2 * sx), utool.iround(y2 * sy))
+        pt1 = (ut.iround(x1 * sx), ut.iround(y1 * sy))
+        pt2 = (ut.iround(x2 * sx), ut.iround(y2 * sy))
     else:
         pt1 = ((x1 * sx), (y1 * sy))
         pt2 = ((x2 * sx), (y2 * sy))
@@ -333,8 +407,8 @@ class ThumbnailCacheContext(object):
     def __init__(self, uuid_list, asrgb=True, thumb_size=64, thumb_dpath=None, appname='vtool'):
         if thumb_dpath is None:
             # Get default thumb path
-            thumb_dpath = utool.get_app_resource_dir(appname, 'thumbs')
-        utool.ensuredir(thumb_dpath)
+            thumb_dpath = ut.get_app_resource_dir(appname, 'thumbs')
+        ut.ensuredir(thumb_dpath)
         self.thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in uuid_list]
         self.asrgb = asrgb
         self.thumb_size = thumb_size
@@ -345,7 +419,7 @@ class ThumbnailCacheContext(object):
     def __enter__(self):
         # These items need to be computed
         self.dirty_list = [not exists(gpath) for gpath in self.thumb_gpaths]
-        self.dirty_gpaths = utool.filter_items(self.thumb_gpaths, self.dirty_list)
+        self.dirty_gpaths = ut.filter_items(self.thumb_gpaths, self.dirty_list)
         #print('[gtool.thumb] len(dirty_gpaths): %r' % len(self.dirty_gpaths))
         self.needs_compute = len(self.dirty_gpaths) > 0
         return self
@@ -354,8 +428,8 @@ class ThumbnailCacheContext(object):
         """ Pass in any images marked by the context as dirty here """
         # Remove any non images
         isvalid_list = [img is not None for img in img_list]
-        valid_images  = utool.filter_items(img_list, isvalid_list)
-        valid_fpath = utool.filter_items(self.thumb_gpaths, isvalid_list)
+        valid_images  = ut.filter_items(img_list, isvalid_list)
+        valid_fpath = ut.filter_items(self.thumb_gpaths, isvalid_list)
         # Resize to thumbnails
         max_dsize = (self.thumb_size, self.thumb_size)
         valid_thumbs = [resize_thumb(img, max_dsize) for img in valid_images]
@@ -365,7 +439,7 @@ class ThumbnailCacheContext(object):
 
     def filter_dirty_items(self, list_):
         """ Returns only items marked by the context as dirty """
-        return utool.filter_items(list_, self.dirty_list)
+        return ut.filter_items(list_, self.dirty_list)
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
@@ -399,7 +473,7 @@ def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwarg
     kwargs['ordered']      = kwargs.get('ordered', True)
     arg_iter = zip(gpath_list, new_gpath_list, newsize_list)
     arg_list = list(arg_iter)
-    return utool.util_parallel.generate(resize_worker, arg_list, **kwargs)
+    return ut.util_parallel.generate(resize_worker, arg_list, **kwargs)
 
 
 def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
@@ -418,19 +492,19 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
         if output_dir is None:
             # Create an output directory if not specified
             output_dir      = 'resized_sqrtarea%r' % sqrt_area
-        utool.ensuredir(output_dir)
+        ut.ensuredir(output_dir)
         size_suffix_list = ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
-        new_gname_list = utool.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
+        new_gname_list = ut.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
         new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
-        new_gpath_list = list(map(utool.unixpath, new_gpath_list))
+        new_gpath_list = list(map(ut.unixpath, new_gpath_list))
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator
     if checkexists:
         exists_list = list(map(exists, new_gpath_list))
-        gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
-        new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
-        newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
+        gpath_list_ = ut.filterfalse_items(gpath_list, exists_list)
+        new_gpath_list_ = ut.filterfalse_items(new_gpath_list, exists_list)
+        newsize_list_ = ut.filterfalse_items(newsize_list, exists_list)
     else:
         gpath_list_ = gpath_list
         new_gpath_list_ = new_gpath_list
