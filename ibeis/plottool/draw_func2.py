@@ -168,6 +168,10 @@ def execstr_global():
     return execstr
 
 
+def show_was_requested():
+    return ut.get_argflag('--show') or ut.inIPython()
+
+
 def show_if_requested():
     if ut.get_argflag('--show'):
         plt.show()
