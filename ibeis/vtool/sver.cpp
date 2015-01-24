@@ -95,7 +95,7 @@ extern "C" {
                     size_t* fm, size_t fm_len,
                     double xy_thresh_sqrd, double scale_thresh_sqrd, double ori_thresh,
                     // memory is expected to by allocated by the caller (i.e. via numpy.empty)
-                    size_t* out_inliers_list, double* out_errors_list, double* out_matrices_list)
+                    bool* out_inlier_flags, double* out_errors_list, double* out_matrices_list)
     {
 // remove some redundancy in a possibly-ugly way
 #define SETUP_RELEVANT_VARIABLES \
@@ -115,7 +115,7 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
             Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
             Aff_mats.push_back(Aff_mat);
         }
-        const size_t inner_errvec_len = fm_len/2;
+        const size_t inner_vec_len = fm_len/2;
         for(size_t i = 0; i < Aff_mats.size(); i++) {
             //xy_errs.push_back(vector<double>());
             //scale_errs.push_back(vector<double>());
@@ -135,11 +135,15 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
 //  avoid intermediate allocations (the explicit structure is shown by the 
 //   commented xy_errs, scale_errs, and ori_errs variables).
 #define PACKED_INSERT(OFFSET, VAR) \
-*(out_errors_list+(inner_errvec_len*3*i)+(inner_errvec_len*(OFFSET))+(fm_ind/2)) = (VAR)
+*(out_errors_list+(inner_vec_len*3*i)+(inner_vec_len*(OFFSET))+(fm_ind/2)) = (VAR)
                 PACKED_INSERT(0, xy_err);
                 PACKED_INSERT(1, ori_err);
                 PACKED_INSERT(2, scale_err);
 #undef PACKED_INSERT
+                bool is_inlier = (xy_err < xy_thresh_sqrd) &&
+                                 (scale_err < scale_thresh_sqrd) &&
+                                 (ori_err < ori_thresh);
+                *(out_inlier_flags+(inner_vec_len*i)+(fm_ind/2)) = is_inlier;
                 //printf("errs[%u][%u]: %f, %f, %f\n", fm_ind, i, xy_err, scale_err, ori_err);
             }
         }

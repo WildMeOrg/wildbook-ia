@@ -15,7 +15,7 @@ FLAGS_RW = 'aligned, c_contiguous, writeable'
 kpts_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags=FLAGS_RW)
 fms_t = np.ctypeslib.ndpointer(dtype=np.int64, ndim=2, flags=FLAGS_RW)
 
-inliers_t = np.ctypeslib.ndpointer(dtype=np.int64, ndim=2, flags=FLAGS_RW)
+inliers_t = np.ctypeslib.ndpointer(dtype=np.bool, ndim=2, flags=FLAGS_RW)
 errs_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 mats_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 
@@ -36,14 +36,16 @@ def test_calling():
                     fms_t, C.c_size_t,
                     C.c_double, C.c_double, C.c_double,
                     inliers_t, errs_t, mats_t]
-    out_inliers = np.empty((len(fm), 1), np.int64)
+    #out_inliers = np.empty((len(fm), 1), np.int64)
+    out_inlier_flags = np.empty((len(fm), len(fm)), np.bool)
     out_errors = np.empty((len(fm), 3, len(fm)), np.float64)
     out_mats = np.empty((len(fm), 3, 3), np.float64)
     gai(kpts1, 6*len(kpts1),
         kpts2, 6*len(kpts2),
         fm, 2*len(fm),
         xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
-        out_inliers, out_errors, out_mats)
+        out_inlier_flags, out_errors, out_mats)
+    out_inliers = np.where(out_inlier_flags)[0]
     assert np.allclose(out_errors, output[1])
     assert np.allclose(out_mats, output[2])
     ut.embed()
