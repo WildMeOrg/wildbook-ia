@@ -1,4 +1,4 @@
-// g++ sver.cpp -lopencv_core -shared -fPIC -o sver.so
+// g++ -Wall -Wextra sver.cpp -lopencv_core -shared -fPIC -o sver.so
 
 /*
 keypoints of form (x, y, a, c, d, theta)
@@ -44,7 +44,7 @@ template<typename T> Matx<T, 3, 3> get_invV_mat(T x, T y, T a, T c, T d, T theta
 
 void debug_print_kpts(double* kpts, size_t kpts_len) {
     for(size_t i=0; i<kpts_len*6; i+=6) {
-        printf("kpts[%u]: [%f, %f, %f, %f, %f, %f]\n", i/6,
+        printf("kpts[%lu]: [%f, %f, %f, %f, %f, %f]\n", i/6,
             kpts[i+0], kpts[i+1], kpts[i+2],
             kpts[i+3], kpts[i+4], kpts[i+5]);
     }
@@ -106,12 +106,12 @@ Matx<double, 3, 3> invVR1_m = get_invV_mat( \
     kpt1[3], kpt1[4], kpt1[5]); \
 Matx<double, 3, 3> invVR2_m = get_invV_mat( \
     kpt2[0], kpt2[1], kpt2[2], \
-    kpt2[3], kpt2[4], kpt2[5]); \
-Matx<double, 3, 3> V1_m = invVR1_m.inv();
+    kpt2[3], kpt2[4], kpt2[5]);
         vector<Matx<double, 3, 3> > Aff_mats;
         //vector<vector<double> > xy_errs, scale_errs, ori_errs;
         for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
             SETUP_RELEVANT_VARIABLES
+            Matx<double, 3, 3> V1_m = invVR1_m.inv();
             Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
             Aff_mats.push_back(Aff_mat);
         }
@@ -162,7 +162,7 @@ for(size_t i = 0; i < vec.size(); i++) { \
         puts("-----");
 #undef SHOW_ERRVEC
 */
-        printf("%d\n", Aff_mats.size());
+        printf("%lu\n", Aff_mats.size());
         for(size_t i = 0; i < Aff_mats.size(); i++) {
             const size_t mat_size = 3*3*sizeof(double);
             //char msg[] = {'M', 'a', 't', 0x30+i%10, 0};
