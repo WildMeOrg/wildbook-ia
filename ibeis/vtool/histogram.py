@@ -9,6 +9,56 @@ import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[hist]', DEBUG=False)
 
 
+def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
+    r"""
+    For C++ to show data
+
+    Args:
+        hist_ (?):
+        edges (None):
+        centers (None):
+
+    CommandLine:
+        python -m vtool.histogram --test-show_hist_submaxima --show
+        python -m pyhesaff._pyhesaff --test-test_rot_invar --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> # build test data
+        >>> hist_ = np.array(list(map(float, ut.get_argval('--hist', type_=list, default=[1, 4, 2, 5, 3, 3]))))
+        >>> edges = np.array(list(map(float, ut.get_argval('--edges', type_=list, default=[0, 1, 2, 3, 4, 5, 6]))))
+        >>> maxima_thresh = ut.get_argval('--maxima_thresh', type_=float, default=.8)
+        >>> centers = None
+        >>> # execute function
+        >>> show_hist_submaxima(hist_, edges, centers, maxima_thresh)
+    """
+    print(repr(hist_))
+    print(repr(hist_.shape))
+    print(repr(edges))
+    print(repr(edges.shape))
+    #ut.embed()
+    import plottool as pt
+    #ut.embed()
+    if centers is None:
+        centers = hist_edges_to_centers(edges)
+    bin_colors = pt.get_orientation_color(centers)
+    pt.draw_hist_subbin_maxima(hist_, centers, bin_colors=bin_colors, maxima_thresh=maxima_thresh)
+
+    if ut.get_argflag('--legend'):
+        pt.figure(fnum=pt.next_fnum())
+        centers_ = np.append(centers, centers[0])
+        r = np.ones(centers_.shape) * .2
+        ax = pt.df2.plt.subplot(111, polar=True)
+        pt.plots.colorline(centers_, r, cmap=pt.df2.plt.get_cmap('hsv'), linewidth=10)
+        #ax.plot(centers_, r, 'm', color=bin_colors, linewidth=100)
+        ax.set_rmax(.2)
+        #ax.grid(True)
+        #ax.set_title("Angle Colors", va='bottom')
+
+    pt.show_if_requested()
+
+
 def get_histinfo_str(hist, edges):
     # verify results
     centers = hist_edges_to_centers(edges)
@@ -254,7 +304,7 @@ def wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=False):
 
 @profile
 def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8,
-                                DEBUG_ROTINVAR=True):
+                                DEBUG_ROTINVAR=False):
     r"""
     Args:
         hist (ndarray):

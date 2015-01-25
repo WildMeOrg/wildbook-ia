@@ -58,7 +58,7 @@ def get_test_patch(key='star', jitter=False):
         jitter (bool):
 
     Returns:
-        ?: patch
+        ndarray: patch
 
     CommandLine:
         python -m vtool.patch --test-get_test_patch --show
@@ -527,11 +527,12 @@ def intern_warp_single_patch(img, x, y, ori, V,
 
     half_patchSize = patchSize / 2.0
 
-    OLDWAY = False
+    OLDWAY = True
     #OLDWAY = True
     if OLDWAY:
         ss = np.sqrt(patchSize) * 3.0
     else:
+        # This seems to not work correctly
         mrSize = 3.0 * np.sqrt(3.0)
         sc = np.sqrt(1 / ktool.get_invVR_mats_sqrd_scale(V[None, :])[0])
         s = sc / mrSize
@@ -544,8 +545,8 @@ def intern_warp_single_patch(img, x, y, ori, V,
     # Translate to origin(0,0) = (x,y)
     T = ltool.translation_mat3x3(-x, -y)  # Center the patch
     # V - reshape and scale the centered patch to the unit circle
-    R = ltool.rotation_mat3x3(-ori)  # Rotate the patch
-    S = ltool.scale_mat3x3(ss)  # scale to the patch size
+    R = ltool.rotation_mat3x3(-ori)  # Rotate the centered unit circle patch
+    S = ltool.scale_mat3x3(ss)  # scale from unit circle to the patch size
     X = ltool.translation_mat3x3(half_patchSize, half_patchSize)  # Translate back to patch-image coordinates
     M = X.dot(S).dot(R).dot(V).dot(T)
     # Prepare to warp
@@ -564,6 +565,9 @@ def intern_warp_single_patch(img, x, y, ori, V,
             #ut.embed()
             sigma = imageToPatchScale * 1.5
             gaussianBlurInplace(warped_patch, sigma)
+    else:
+        sigma = 1.5
+        gaussianBlurInplace(warped_patch, sigma)
     return warped_patch, wkp
 
 
@@ -646,7 +650,7 @@ def get_unwarped_patch(imgBGR, kp, gray=False):
 
 
 @profile
-def find_kpts_direction(imgBGR, kpts):
+def find_kpts_direction(imgBGR, kpts, DEBUG_ROTINVAR=False):
     r"""
     Args:
         imgBGR (ndarray[uint8_t, ndim=2]):  image data in opencv format (blue, green, red)
@@ -662,7 +666,7 @@ def find_kpts_direction(imgBGR, kpts):
     ori_list = []
     #gravity_ori = ktool.GRAVITY_THETA
     for kp in kpts:
-        new_oris = find_dominant_kp_orientations(imgBGR, kp)
+        new_oris = find_dominant_kp_orientations(imgBGR, kp, DEBUG_ROTINVAR=True)
         # FIXME USE MULTIPLE ORIENTATIONS
         ori = new_oris[0]
         ori_list.append(ori)
@@ -795,6 +799,7 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     #ut.embed()
     bin_colors = pt.get_orientation_color(centers)
     pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors)
+    #vt.show_hist_submaxima(hist, centers=centers)
     pt.set_xlabel('radians')
     pt.set_ylabel('weight')
     #pt.update()
@@ -850,12 +855,13 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
                                   borderMode=cv2.BORDER_CONSTANT)
     if DEBUG_ROTINVAR:
         pass
-        #import plottool as pt
-        #pt.imshow(imgBGR, fnum=2)
-        #pt.draw_kpts2(np.array([kp]), pts=True, rect=True)
-        #pt.imshow(patch, fnum=1)
-        #pt.draw_kpts2(np.array([wkp]), pts=True, rect=True)
-        #pt.df2.plt.show()
+        if True:
+            import plottool as pt
+            pt.imshow(imgBGR, fnum=9, pnum=(1, 2, 1))
+            pt.draw_kpts2(np.array([kp]), pts=True, rect=True)
+            pt.imshow(patch, fnum=9, pnum=(1, 2, 2))
+            pt.draw_kpts2(np.array([wkp]), pts=True, rect=True)
+            pt.df2.plt.show()
     gradx, grady = patch_gradient(patch, gaussian_weighted=False)
     gori = patch_ori(gradx, grady)
     gmag = patch_mag(gradx, grady)

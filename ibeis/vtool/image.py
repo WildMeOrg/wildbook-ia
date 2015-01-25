@@ -253,6 +253,18 @@ def resize(img, dsize, interpolation=cv2.INTER_LANCZOS4):
     return cv2.resize(img, dsize, interpolation=interpolation)
 
 
+def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0, borderType=cv2.BORDER_CONSTANT, **kwargs):
+    imgBGR = imread(img_fpath)
+    imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_, borderType=cv2.BORDER_CONSTANT, value=value)
+    imgBGR2[:pad_, :] = value
+    imgBGR2[-pad_:, :] = value
+    imgBGR2[:, :pad_] = value
+    imgBGR2[:, -pad_:] = value
+    out_fpath_ = ut.augpath(img_fpath, '_pad=%r' % (pad_)) if out_fpath is None else out_fpath
+    imwrite(out_fpath_, imgBGR2)
+    return out_fpath_
+
+
 def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
     r"""
     Args:
@@ -280,14 +292,10 @@ def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
 
     """
     img = imread(img_fpath)
-    imgR = rotate_image(img, theta)
-    if out_fpath is None:
-        out_fpath_ = ut.augpath(img_fpath, augsuf='_theta=%r' % (theta))
-    else:
-        out_fpath_ = out_fpath
+    imgR = rotate_image(img, theta, **kwargs)
+    out_fpath_ = ut.augpath(img_fpath, augsuf='_theta=%r' % (theta)) if out_fpath is None else out_fpath
     imwrite(out_fpath_, imgR)
     return out_fpath_
-
 
 
 def rotate_image(img, theta, **kwargs):
