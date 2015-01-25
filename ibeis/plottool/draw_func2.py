@@ -246,6 +246,48 @@ def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
     rect.set_edgecolor(color)
 
 
+TAU = np.pi * 2
+
+
+def rotate_plot(theta=TAU / 8, ax=None):
+    r"""
+    Args:
+        theta (?):
+        ax (None):
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-rotate_plot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> ax = gca()
+        >>> theta = TAU / 8
+        >>> plt.plot([1, 2, 3, 4, 5], [1, 2, 3, 2, 2])
+        >>> # execute function
+        >>> result = rotate_plot(theta, ax)
+        >>> # verify results
+        >>> print(result)
+        >>> show_if_requested()
+    """
+    if ax is None:
+        ax = gca()
+    import vtool as vt
+    xy, width, height = get_axis_xy_width_height(ax)
+    bbox = [xy[0], xy[1], width, height]
+    M = mpl.transforms.Affine2D(vt.rotation_around_bbox_mat3x3(theta, bbox))
+    propname = 'transAxes'
+    #propname = 'transData'
+    T = getattr(ax, propname)
+    T.transform_affine(M)
+    #T = ax.get_transform()
+    #Tnew = T + M
+    #ax.set_transform(Tnew)
+    #setattr(ax, propname, Tnew)
+    iup()
+
+
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
 def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
               lbl_txtcolor=(1, 1, 1), draw_arrow=True, theta=0, ax=None):

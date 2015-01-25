@@ -14,7 +14,7 @@ import numpy as np
 ut.noinject(__name__, '[plots]')
 
 
-def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None):
+def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8):
     r"""
     Args:
         hist (?):
@@ -39,7 +39,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None):
         >>> pt.show_if_requested()
     """
     # Find maxima
-    maxima_x, maxima_y, argmaxima = htool.hist_argmaxima(hist, centers)
+    maxima_x, maxima_y, argmaxima = htool.hist_argmaxima(hist, centers, maxima_thresh)
     # Expand parabola points around submaxima
     x123, y123 = htool.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
@@ -55,6 +55,8 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None):
         xpoints.append(x_pts)
         ypoints.append(y_pts)
 
+    maxima_thresh_val = maxima_y.max() * maxima_thresh
+    plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
     OLD = False
     if OLD:
         plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))            # Draw hist
@@ -71,7 +73,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None):
             # Create a colormap using exact specified colors
             #bin_cmap = mpl.colors.ListedColormap(bin_colors)
             # HACK USE bin_color somehow
-            bin_cmap = plt.get_cmap('hsv')
+            bin_cmap = plt.get_cmap('hsv')  # HACK
             #mpl.colors.ListedColormap(bin_colors)
             colorline(centers, hist, cmap=bin_cmap)
         # Draw Submax Parabola
