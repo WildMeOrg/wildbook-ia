@@ -38,8 +38,8 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
     Args:
-        ax (?):
-        kpts (?):
+        ax (mpl.Axes):
+        kpts (ndarray): keypoints
         scale_factor (float):
         offset (tuple):
         rotation (float):
@@ -50,24 +50,39 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         ori (bool):
         sifts (None):
 
+    CommandLine:
+        python -m plottool.mpl_keypoint --test-draw_keypoints --show
+
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from plottool.mpl_keypoint import *  # NOQA
-        >>> ax
-        >>> kpts
+        >>> from plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
+        >>> import plottool as pt
+        >>> import vtool as vt
+        >>> imgBGR = vt.get_star_patch(jitter=True)
+        >>> fig, ax = pt.imshow(imgBGR * 255)
+        >>> TAU = 2 * np.pi
+        >>> kpts = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
         >>> offset=(0.0, 0.0)
         >>> rotation=0.0
         >>> ell=True
-        >>> pts=False
-        >>> rect=False
-        >>> eig=False
-        >>> ori=False
+        >>> pts=True
+        >>> rect=True
+        >>> eig=True
+        >>> ori=True
         >>> sifts=None
-        >>>
+        >>> siftkw = {}
+        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0])
+        >>> draw_keypoints(ax, kpts, scale_factor, offset, rotation, ell, pts, rect, eig, ori, sifts, siftkw, **kwargs)
+        >>> pt.iup()
+        >>> pt.show_if_requested()
     """
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)
     ell_color      = kwargs.get('ell_color', None)
+    if ell_color is None:
+        ell_color = [1, 0, 0]
     ell_alpha      = kwargs.get('ell_alpha', 1)
     ell_linewidth  = kwargs.get('ell_linewidth', 2)
     # colors
@@ -86,26 +101,24 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     # Extract keypoint components
     _xs, _ys = ktool.get_xys(kpts)
     # Build list of keypoint shape transforms from unit circles to ellipes
-    invV_aff2Ds = get_invV_aff2Ds(kpts)
-    # transformations but with rotations specified
-    #RinvV_aff2Ds = get_RinvV_aff2Ds(invV_aff2Ds, _oris)
+    invVR_aff2Ds = get_invVR_aff2Ds(kpts)
     try:
         if sifts is not None:
             # SIFT descriptors
             pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
                        'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha')
-            mpl_sift.draw_sifts(ax, sifts, invV_aff2Ds, **siftkw)
+            mpl_sift.draw_sifts(ax, sifts, invVR_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles
-            rect_patches = rectangle_actors(invV_aff2Ds)
+            rect_patches = rectangle_actors(invVR_aff2Ds)
             _draw_patches(ax, rect_patches, rect_color, ell_alpha, rect_linewidth)
         if ell:
             # Keypoint shape
-            ell_patches = ellipse_actors(invV_aff2Ds)
+            ell_patches = ellipse_actors(invVR_aff2Ds)
             _draw_patches(ax, ell_patches, ell_color, ell_alpha, ell_linewidth)
         if eig:
             # Shape eigenvectors
-            eig_patches = eigenvector_actors(invV_aff2Ds)
+            eig_patches = eigenvector_actors(invVR_aff2Ds)
             _draw_patches(ax, eig_patches, eig_color, ell_alpha, eig_linewidth)
         if ori:
             # Keypoint orientation
@@ -129,43 +142,44 @@ def _draw_pts(ax, _xs, _ys, pts_size, pts_color):
     ax.autoscale(enable=False)
 
 
-def get_invV_aff2Ds(kpts):
+def get_invVR_aff2Ds(kpts):
     """ Returns matplotlib keypoint transformations (circle -> ellipse) """
-    invV_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
-    invV_aff2Ds = [mpl.transforms.Affine2D(invV) for invV in invV_mats]
-    return invV_aff2Ds
+    #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
+    invVR_mats = ktool.get_invVR_mats3x3(kpts)
+    invVR_aff2Ds = [mpl.transforms.Affine2D(invVR) for invVR in invVR_mats]
+    return invVR_aff2Ds
 
 
-def ellipse_actors(invV_aff2Ds):
+def ellipse_actors(invVR_aff2Ds):
     # warp unit circles to keypoint shapes
-    ell_actors = [mpl.patches.Circle((0, 0), 1, transform=invV)
-                  for invV in invV_aff2Ds]
+    ell_actors = [mpl.patches.Circle((0, 0), 1, transform=invVR)
+                  for invVR in invVR_aff2Ds]
     return ell_actors
 
 
-def rectangle_actors(RinvV_aff2Ds):
+def rectangle_actors(invVR_aff2Ds):
     Rect = mpl.patches.Rectangle
     Arrow = mpl.patches.FancyArrow
     rect_xywh  = (-1, -1), 2, 2
     arw_xydxdy = (-1, -1,  2, 0)
     arw_kw = dict(head_width=.1, length_includes_head=True)
     # warp unit rectangles to keypoint shapes
-    rect_actors = [Rect(*rect_xywh, transform=RinvV) for RinvV in RinvV_aff2Ds]
+    rect_actors = [Rect(*rect_xywh, transform=invVR) for invVR in invVR_aff2Ds]
     # an overhead arrow indicates the top of the rectangle
-    arw_actors = [Arrow(*arw_xydxdy, transform=RinvV, **arw_kw) for RinvV in RinvV_aff2Ds]
+    arw_actors = [Arrow(*arw_xydxdy, transform=invVR, **arw_kw) for invVR in invVR_aff2Ds]
     return rect_actors + arw_actors
 
 
-def eigenvector_actors(invV_aff2Ds):
+def eigenvector_actors(invVR_aff2Ds):
     # warps arrows into eigenvector directions
     kwargs = {
         'head_width': .01,
         'length_includes_head': False,
     }
     eig1 = [mpl.patches.FancyArrow(0, 0, 0, 1, transform=invV, **kwargs)
-            for invV in invV_aff2Ds]
+            for invV in invVR_aff2Ds]
     eig2 = [mpl.patches.FancyArrow(0, 0, 1, 0, transform=invV, **kwargs)
-            for invV in invV_aff2Ds]
+            for invV in invVR_aff2Ds]
     eig_actors = eig1 + eig2
     return eig_actors
 
@@ -208,3 +222,16 @@ def orientation_actors(kpts):
         raise
 
     return ori_actors
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.mpl_keypoint
+        python -m plottool.mpl_keypoint --allexamples
+        python -m plottool.mpl_keypoint --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

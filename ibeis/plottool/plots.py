@@ -14,9 +14,32 @@ import numpy as np
 ut.noinject(__name__, '[plots]')
 
 
-def draw_hist_subbin_maxima(hist, centers=None):
+def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8):
+    r"""
+    Args:
+        hist (?):
+        centers (None):
+
+    CommandLine:
+        python -m plottool.plots --test-draw_hist_subbin_maxima --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
+        >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
+        >>> TAU = np.pi * 2
+        >>> bin_colors = pt.df2.plt.get_cmap('hsv')(centers / TAU)
+        >>> # execute function
+        >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors)
+        >>> # verify results
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
     # Find maxima
-    maxima_x, maxima_y, argmaxima = htool.hist_argmaxima(hist, centers)
+    maxima_x, maxima_y, argmaxima = htool.hist_argmaxima(hist, centers, maxima_thresh)
     # Expand parabola points around submaxima
     x123, y123 = htool.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
@@ -32,11 +55,100 @@ def draw_hist_subbin_maxima(hist, centers=None):
         xpoints.append(x_pts)
         ypoints.append(y_pts)
 
-    plt.plot(centers, hist, 'bo-')            # Draw hist
-    plt.plot(maxima_x, maxima_y, 'ro')        # Draw maxbin
-    plt.plot(submaxima_x, submaxima_y, 'rx')  # Draw maxsubbin
-    for x_pts, y_pts in zip(xpoints, ypoints):
-        plt.plot(x_pts, y_pts, 'g--')         # Draw parabola
+    maxima_thresh_val = maxima_y.max() * maxima_thresh
+    plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
+    OLD = False
+    if OLD:
+        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))            # Draw hist
+        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))            # Draw hist
+        plt.plot(centers, hist, 'bo-')            # Draw hist
+    else:
+        #bin_colors = None
+        if bin_colors is None:
+            bin_colors = 'r'
+            plt.plot(centers, hist, 'w-')
+        else:
+            # Draw Lines
+            #import matplotlib as mpl
+            # Create a colormap using exact specified colors
+            #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+            # HACK USE bin_color somehow
+            bin_cmap = plt.get_cmap('hsv')  # HACK
+            #mpl.colors.ListedColormap(bin_colors)
+            colorline(centers, hist, cmap=bin_cmap)
+        # Draw Submax Parabola
+        for x_pts, y_pts in zip(xpoints, ypoints):
+            plt.plot(x_pts, y_pts, 'y--')
+        # Draw maxbin
+        plt.scatter(maxima_x,    maxima_y,    marker='o', color='w',  s=50)
+        # Draw submaxbin
+        plt.scatter(submaxima_x, submaxima_y, marker='*', color='r', s=100)
+        # Draw Bins
+        plt.scatter(centers, hist, c=bin_colors, marker='o', s=25)
+        df2.dark_background()
+
+
+# Interface to LineCollection:
+
+def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.0), linewidth=1, alpha=1.0):
+    """
+    Plot a colored line with coordinates x and y
+    Optionally specify colors in the array z
+    Optionally specify a colormap, a norm function and a line width
+
+    References:
+        http://nbviewer.ipython.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
+
+    CommandLine:
+        python -m plottool.plots --test-colorline
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> x = np.array([1, 2, 3, 4, 5]) / 5.0
+        >>> y = np.array([1, 2, 3, 4, 5]) / 5.0
+        >>> z = None
+        >>> cmap = df2.plt.get_cmap('hsv')
+        >>> norm = plt.Normalize(0.0, 1.0)
+        >>> linewidth = 1
+        >>> alpha = 1.0
+        >>> # execute function
+        >>> pt.figure()
+        >>> result = colorline(x, y, z, cmap)
+        >>> # verify results
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    from matplotlib.collections import LineCollection
+
+    def make_segments(x, y):
+        """
+        Create list of line segments from x and y coordinates, in the correct format for LineCollection:
+        an array of the form   numlines x (points per line) x 2 (x and y) array
+        """
+        points = np.array([x, y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        return segments
+
+    # Default colors equally spaced on [0,1]:
+    if z is None:
+        z = np.linspace(0.0, 1.0, len(x))
+
+    # Special case if a single number:
+    if not hasattr(z, "__iter__"):  # to check for numerical input -- this is a hack
+        z = np.array([z])
+
+    z = np.asarray(z)
+
+    segments = make_segments(x, y)
+    lc = LineCollection(segments, array=z, cmap=cmap, norm=norm, linewidth=linewidth, alpha=alpha)
+
+    ax = plt.gca()
+    ax.add_collection(lc)
+
+    return lc
 
 
 def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):

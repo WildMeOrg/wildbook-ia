@@ -168,9 +168,16 @@ def execstr_global():
     return execstr
 
 
+def show_was_requested():
+    return ut.get_argflag('--show') or ut.inIPython()
+
+
 def show_if_requested():
     if ut.get_argflag('--show'):
         plt.show()
+    else:
+        import plottool as pt
+        pt.iup()
 
 
 def label_to_colors(labels_):
@@ -237,6 +244,48 @@ def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
     rect.set_clip_on(False)
     rect.set_fill(False)
     rect.set_edgecolor(color)
+
+
+TAU = np.pi * 2
+
+
+def rotate_plot(theta=TAU / 8, ax=None):
+    r"""
+    Args:
+        theta (?):
+        ax (None):
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-rotate_plot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> ax = gca()
+        >>> theta = TAU / 8
+        >>> plt.plot([1, 2, 3, 4, 5], [1, 2, 3, 2, 2])
+        >>> # execute function
+        >>> result = rotate_plot(theta, ax)
+        >>> # verify results
+        >>> print(result)
+        >>> show_if_requested()
+    """
+    if ax is None:
+        ax = gca()
+    import vtool as vt
+    xy, width, height = get_axis_xy_width_height(ax)
+    bbox = [xy[0], xy[1], width, height]
+    M = mpl.transforms.Affine2D(vt.rotation_around_bbox_mat3x3(theta, bbox))
+    propname = 'transAxes'
+    #propname = 'transData'
+    T = getattr(ax, propname)
+    T.transform_affine(M)
+    #T = ax.get_transform()
+    #Tnew = T + M
+    #ax.set_transform(Tnew)
+    #setattr(ax, propname, Tnew)
+    iup()
 
 
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
@@ -989,6 +1038,16 @@ def show_all_colormaps():
     References:
         http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
         http://matplotlib.org/examples/color/colormaps_reference.html
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-show_all_colormaps --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> show_all_colormaps()
+        >>> pt.show_if_requested()
     """
     import pylab
     import numpy as np
@@ -1300,7 +1359,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 # ---- CHIP DISPLAY COMMANDS ----
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
-           data_colorbar=False, darken=DARKEN, **kwargs):
+           data_colorbar=False, darken=DARKEN, update=False, **kwargs):
     """
     Args:
         img (ndarray):  image data
@@ -1324,6 +1383,12 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[***df2.imshow] img.stats = %r ' % (utool.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
+    if isinstance(img, six.string_types):
+        # Allow for path to image to be specified
+        img_fpath = img
+        ut.assertpath(img_fpath)
+        import vtool as vt
+        img = vt.imread(img_fpath)
     if darken is not None:
         if darken is True:
             darken = .5
@@ -1389,6 +1454,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             cmap = 'hot'
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
+    if update:
+        fig_presenter.update()
     return fig, ax
 
 
@@ -1413,7 +1480,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
         'pivot': 'tail',  # 'middle',
     }
     stride = 1
-    np.tau = 2 * np.pi
+    #TAU = 2 * np.pi
     x_grid = np.arange(0, len(gx), 1)
     y_grid = np.arange(0, len(gy), 1)
     # Vector locations and directions
@@ -1535,6 +1602,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         # draw lines and ellipses and points
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)
         if fs is not None:
+            if cmap is None:
+                cmap = 'hot'
             colors = scores_to_color(fs, cmap)
 
         acols = add_alpha(colors)
@@ -1591,21 +1660,102 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gmag=None):
+def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb'):
+    r"""
+    Args:
+        gori (?):
+        gmag (None): TODO should be gweights
+
+    Returns:
+        ?: bgr_ori
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-color_orimag --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> gori = np.array([[ 0.        ,  0.        ,  3.14159265,  3.14159265,  0.        ],
+        ...                  [ 1.57079633,  3.92250052,  1.81294053,  3.29001537,  1.57079633],
+        ...                  [ 4.71238898,  6.15139659,  0.76764078,  1.75632531,  1.57079633],
+        ...                  [ 4.71238898,  4.51993581,  6.12565345,  3.87978382,  1.57079633],
+        ...                  [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
+        >>> gmag = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
+        ...                  [ 0.02363726,  0.04195344,  0.29969492,  0.53007415,  0.0426679 ],
+        ...                  [ 0.00459386,  0.32086307,  0.02844123,  0.24623816,  0.27344167],
+        ...                  [ 0.04204251,  0.52165989,  0.25800464,  0.14568752,  0.023614  ],
+        ...                  [ 0.        ,  0.05143869,  0.2744546 ,  0.01582246,  0.        ]])
+        >>> # execute function
+        >>> bgr_ori = color_orimag(gori, gmag)
+        >>> # verify results
+        >>> pt.imshow(bgr_ori)
+        >>> color_orimag_colorbar(gori)
+        >>> pt.update()
+        >>> pt.show_if_requested()
+    """
     # Turn a 0 to 1 orienation map into hsv colors
-    gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
-    cmap_ = plt.get_cmap('hsv')
-    flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
+    #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    flat_rgb = get_orientation_color(gori.flatten())
+    #flat_rgb = np.array(cmap_(), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
-    hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
+    hsv_ori = cv2.cvtColor(rgb_ori,       cv2.COLOR_RGB2HSV)
     # Desaturate colors based on magnitude
     if gmag is not None:
-        hsv_ori[:, :, 1] = (gmag / 255.0)
-        hsv_ori[:, :, 2] = (gmag / 255.0)
+        # Hueristic hack
+        if (gmag_is_01 is not None and (gmag_is_01 is not False and gmag.max() > 255.0)):
+            gmag_ = gmag / 255.0
+        else:
+            gmag_ = gmag
+        gmag_ = np.sqrt(gmag_)
+        hsv_ori[:, :, 1] = gmag_
+        hsv_ori[:, :, 2] = gmag_
     # Convert back to bgr
-    bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
-    return bgr_ori
+    #bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
+    if encoding == 'rgb':
+        rgb_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
+        return rgb_ori
+    elif encoding == 'bgr':
+        bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
+        return bgr_ori
+    else:
+        raise AssertionError('unkonwn encoding=%r' % (encoding,))
+
+
+def get_orientation_color(radians_list):
+    r"""
+    Args:
+        radians_list (list):
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-get_orientation_color
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> radians_list = np.linspace(-1, 10, 10)
+        >>> # execute function
+        >>> result = get_orientation_color(radians_list)
+        >>> # verify results
+        >>> print(result)
+    """
+    TAU = np.pi * 2
+    # Map radians to 0 to 1
+    ori01_list = (radians_list % TAU) / TAU
+    cmap_ = plt.get_cmap('hsv')
+    color_list = cmap_(ori01_list)
+    ori_colors_rgb = np.array(color_list, dtype=np.float32)
+    return ori_colors_rgb
+
+
+def color_orimag_colorbar(gori):
+    TAU = np.pi * 2
+    ori_list = np.linspace(0, TAU, 8)
+    color_list = get_orientation_color(ori_list)
+    colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
 
 
 def stack_image_list(img_list, **kwargs):
@@ -1657,30 +1807,43 @@ def stack_square_images(img_list):
     return bigpatch
 
 
-def stack_images(img1, img2, vert=None):
+def stack_images(img1, img2, vert=None, modifysize=False):
     # TODO: move this to the same place I'm doing the color gradient
     nChannels = gtool.get_num_channels(img1)
     nChannels2 = gtool.get_num_channels(img2)
     assert nChannels == nChannels2
-    (h1, w1) = img1.shape[0: 2]  # get chip dimensions
-    (h2, w2) = img2.shape[0: 2]
-    woff, hoff = 0, 0
-    vert_wh  = max(w1, w2), h1 + h2
-    horiz_wh = w1 + w2, max(h1, h2)
-    if vert is None:
-        # Display the orientation with the better (closer to 1) aspect ratio
-        vert_ar  = max(vert_wh) / min(vert_wh)
-        horiz_ar = max(horiz_wh) / min(horiz_wh)
-        vert = vert_ar < horiz_ar
-    if vert:
-        wB, hB = vert_wh
-        hoff = h1
-    else:
-        wB, hB = horiz_wh
-        woff = w1
+    def infer_vert(img1, img2, vert):
+        (h1, w1) = img1.shape[0: 2]  # get chip dimensions
+        (h2, w2) = img2.shape[0: 2]
+        woff, hoff = 0, 0
+        vert_wh  = max(w1, w2), h1 + h2
+        horiz_wh = w1 + w2, max(h1, h2)
+        if vert is None:
+            # Display the orientation with the better (closer to 1) aspect ratio
+            vert_ar  = max(vert_wh) / min(vert_wh)
+            horiz_ar = max(horiz_wh) / min(horiz_wh)
+            vert = vert_ar < horiz_ar
+        if vert:
+            wB, hB = vert_wh
+            hoff = h1
+        else:
+            wB, hB = horiz_wh
+            woff = w1
+        return vert, h1, h2, w1, w2, wB, hB, woff, hoff
+    vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    if modifysize:
+        import vtool as vt
+        index = 0 if vert else 1
+        if img1.shape[index] < img2.shape[index]:
+            scale = img2.shape[index] / img1.shape[index]
+            img1 = vt.resize_image_by_scale(img1, scale)
+            (img1, img2.shape[0:2])
+        elif img2.shape[index] < img1.shape[index]:
+            img2 = vt.resize_thumb(img2, img1.shape[0:2])
+        vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     # concatentate images
     dtype = img1.dtype
-    assert img1.dtype == img2.dtype
+    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
     if nChannels == 3:
         imgB = np.zeros((hB, wB, 3), dtype)
         imgB[0:h1, 0:w1, :] = img1

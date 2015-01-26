@@ -10,7 +10,7 @@ import utool as ut
 ut.noinject(__name__, '[pt.mpl_sift]')
 
 
-np.tau = 2 * np.pi  # References: tauday.com
+TAU = 2 * np.pi  # References: tauday.com
 BLACK  = np.array((0.0, 0.0, 0.0, 1.0))
 RED    = np.array((1.0, 0.0, 0.0, 1.0))
 
@@ -98,7 +98,7 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     XYOFFST  = -0.75  # Position offset
     NORI, NX, NY = 8, 4, 4  # SIFT BIN CONSTANTS
     NBINS = NX * NY
-    discrete_ori = (np.arange(0, NORI) * (np.tau / NORI))
+    discrete_ori = (np.arange(0, NORI) * (TAU / NORI))
     # Arm magnitude and orientations
     arm_mag = sift / 255.0
     arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
