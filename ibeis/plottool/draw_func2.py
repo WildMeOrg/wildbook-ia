@@ -1722,7 +1722,7 @@ def color_orimag(gori, gweights=None, gmag_is_01=None, encoding='rgb', p=.5):
     # Darken colors based on magnitude
     if gweights is not None:
         # Hueristic hack
-        if (gmag_is_01 is not None and (gmag_is_01 is not False and gweights.max() > 255.0)):
+        if (gmag_is_01 is not None and (gmag_is_01 is not False and gweights.max() > 1.0)):
             gweights_ = gweights / 255.0
         else:
             gweights_ = gweights
