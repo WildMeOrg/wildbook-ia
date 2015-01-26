@@ -9,7 +9,10 @@ import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[hist]', DEBUG=False)
 
 
-def show_ori_image_ondisk(ori_img_fpath, weights_img_fpath=None):
+TAU = np.pi * 2
+
+
+def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None):
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
@@ -23,25 +26,42 @@ def show_ori_image_ondisk(ori_img_fpath, weights_img_fpath=None):
         >>> # DISABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
-        >>> img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
-        >>> img = vt.imread(img_fpath)
-        >>> ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default=ut.augpath(img_fpath, '_ori'))
-        >>> weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default=ut.augpath(img_fpath, '_mag'))
-        >>> vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
-        >>> if weights_img_fpath != 'None':
-        >>>     vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
+        >>> ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default='None')
+        >>> weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default='None')
         >>> result = show_ori_image_ondisk(ori_img_fpath, weights_img_fpath)
     """
+    #if img_fpath is not None:
+    #    img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
+    #    img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
+    #    img = vt.imread(img_fpath)
+    #    ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default=ut.augpath(img_fpath, '_ori'))
+    #    weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default=ut.augpath(img_fpath, '_mag'))
+    #    vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
+    #    vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
     import vtool as vt
     import plottool as pt
     gori = vt.imread(ori_img_fpath, grayscale=True)
+    print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
+    gori = TAU * gori / 255.0
+    print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
     if weights_img_fpath is not None and weights_img_fpath != 'None':
         weights = vt.imread(weights_img_fpath, grayscale=True)
+        weights = weights / 255.0
     else:
         weights = None
-    bgr_ori = pt.color_orimag(gori, weights, False)
-    bgr_ori = bgr_ori.astype(np.uint8)
+    #import cv2
+    #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
+
+    #ut.embed()
+    print('show_ori_image_ondisk')
+    print(' * ori_img_fpath = %r' % (ori_img_fpath,))
+    print(' * weights_img_fpath = %r' % (weights_img_fpath,))
+    print('gori.max = %r' % gori.max())
+    bgr_ori = pt.color_orimag(gori, weights, False, encoding='bgr')
+    print('bgr_ori.max = %r' % bgr_ori.max())
+
+    bgr_ori = (255 * bgr_ori).astype(np.uint8)
+    print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
     legend = make_ori_legend()
     gorimag_, woff, hoff = pt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
@@ -51,6 +71,13 @@ def show_ori_image_ondisk(ori_img_fpath, weights_img_fpath=None):
 
 def make_ori_legend():
     r"""
+
+    creates a figure that shows which colors are associated with which keypoint
+    rotations.
+
+    a rotation of 0 should point downward (becuase it is relative the the (0, 1)
+    keypoint eigenvector. and its color should be red due to the hsv mapping
+
     CommandLine:
         python -m vtool.histogram --test-make_ori_legend --show
 
@@ -72,9 +99,10 @@ def make_ori_legend():
     NUM = 36 * 2
     domain = np.linspace(0, 1, NUM, endpoint=False)
     theta_list = domain * TAU
+    relative_theta_list = theta_list + (TAU / 4)
     color_rgb_list = pt.get_orientation_color(theta_list)
-    c_list = np.cos(theta_list)
-    r_list = np.sin(theta_list)
+    c_list = np.cos(relative_theta_list)
+    r_list = np.sin(relative_theta_list)
     rc_list = list(zip(r_list, c_list))
     size = 1024
     radius =  (size / 5) * ut.PHI
@@ -93,9 +121,9 @@ def make_ori_legend():
         col = y_kernel_offset + int(c * radius + half_size)
         #old_data = img[row, col, :]
         color = color_rgb[0:3] * 255
-        #color_bgr = color[::-1]
-        img_BGR[row, col, :] = color
-        #img_BGR[row, col, :] = color_bgr
+        color_bgr = color[::-1]
+        #img_BGR[row, col, :] = color
+        img_BGR[row, col, :] = color_bgr
         #new_data = img_BGR[row, col, :]
         #old_data_weight = np.array(list(map(np.any, old_data > 0)), dtype=np.int32)
         #total_weight = old_data_weight + 1
@@ -157,16 +185,16 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
     bin_colors = pt.get_orientation_color(centers)
     pt.draw_hist_subbin_maxima(hist_, centers, bin_colors=bin_colors, maxima_thresh=maxima_thresh)
 
-    if ut.get_argflag('--legend'):
-        pt.figure(fnum=pt.next_fnum())
-        centers_ = np.append(centers, centers[0])
-        r = np.ones(centers_.shape) * .2
-        ax = pt.df2.plt.subplot(111, polar=True)
-        pt.plots.colorline(centers_, r, cmap=pt.df2.plt.get_cmap('hsv'), linewidth=10)
-        #ax.plot(centers_, r, 'm', color=bin_colors, linewidth=100)
-        ax.set_rmax(.2)
-        #ax.grid(True)
-        #ax.set_title("Angle Colors", va='bottom')
+    #if ut.get_argflag('--legend'):
+    #    pt.figure(fnum=pt.next_fnum())
+    #    centers_ = np.append(centers, centers[0])
+    #    r = np.ones(centers_.shape) * .2
+    #    ax = pt.df2.plt.subplot(111, polar=True)
+    #    pt.plots.colorline(centers_, r, cmap=pt.df2.plt.get_cmap('hsv'), linewidth=10)
+    #    #ax.plot(centers_, r, 'm', color=bin_colors, linewidth=100)
+    #    ax.set_rmax(.2)
+    #    #ax.grid(True)
+    #    #ax.set_title("Angle Colors", va='bottom')
 
     pt.show_if_requested()
 
