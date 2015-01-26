@@ -63,90 +63,10 @@ def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None):
     bgr_ori = (255 * bgr_ori).astype(np.uint8)
     print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
-    legend = make_ori_legend()
+    legend = pt.make_ori_legend_img()
     gorimag_, woff, hoff = pt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
     pt.imshow(gorimag_)
     pt.show_if_requested()
-
-
-def make_ori_legend():
-    r"""
-
-    creates a figure that shows which colors are associated with which keypoint
-    rotations.
-
-    a rotation of 0 should point downward (becuase it is relative the the (0, 1)
-    keypoint eigenvector. and its color should be red due to the hsv mapping
-
-    CommandLine:
-        python -m vtool.histogram --test-make_ori_legend --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.histogram import *  # NOQA
-        >>> import plottool as pt
-        >>> # build test data
-        >>> # execute function
-        >>> img_BGR = make_ori_legend()
-        >>> # verify results
-        >>> pt.imshow(img_BGR)
-        >>> pt.iup()
-        >>> pt.show_if_requested()
-    """
-    import plottool as pt
-    TAU = 2 * np.pi
-    NUM = 36
-    NUM = 36 * 2
-    domain = np.linspace(0, 1, NUM, endpoint=False)
-    theta_list = domain * TAU
-    relative_theta_list = theta_list + (TAU / 4)
-    color_rgb_list = pt.get_orientation_color(theta_list)
-    c_list = np.cos(relative_theta_list)
-    r_list = np.sin(relative_theta_list)
-    rc_list = list(zip(r_list, c_list))
-    size = 1024
-    radius =  (size / 5) * ut.PHI
-    #size_root = size / 4
-    half_size = size / 2
-    img_BGR = np.zeros((size, size, 3), dtype=np.uint8)
-    basis = np.arange(-7, 7)
-    x_kernel_offset, y_kernel_offset = np.meshgrid(basis, basis)
-    x_kernel_offset = x_kernel_offset.ravel()
-    y_kernel_offset = y_kernel_offset.ravel()
-    #x_kernel_offset = np.array([0, 1,  0, -1, -1, -1,  0,  1, 1])
-    #y_kernel_offset = np.array([0, 1,  1,  1,  0, -1, -1, -1, 0])
-    #new_data_weight = np.ones(x_kernel_offset.shape, dtype=np.int32)
-    for color_rgb, (r, c) in zip(color_rgb_list, rc_list):
-        row = x_kernel_offset + int(r * radius + half_size)
-        col = y_kernel_offset + int(c * radius + half_size)
-        #old_data = img[row, col, :]
-        color = color_rgb[0:3] * 255
-        color_bgr = color[::-1]
-        #img_BGR[row, col, :] = color
-        img_BGR[row, col, :] = color_bgr
-        #new_data = img_BGR[row, col, :]
-        #old_data_weight = np.array(list(map(np.any, old_data > 0)), dtype=np.int32)
-        #total_weight = old_data_weight + 1
-    import cv2
-    for color_rgb, theta, (r, c) in list(zip(color_rgb_list, theta_list, rc_list))[::8]:
-        row = int(r * (radius * 1.2) + half_size)
-        col = int(c * (radius * 1.2) + half_size)
-        text = str('t=%.2f' % (theta))
-        fontFace = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = 1
-        thickness = 2
-        textcolor = [255, 255, 255]
-        text_pt, text_sz = cv2.getTextSize(text, fontFace, fontScale, thickness)
-        text_w, text_h = text_pt
-        org = (int(col - text_w / 2), int(row + text_h / 2))
-        #print(row)
-        #print(col)
-        #print(color_rgb)
-        #print(text)
-        cv2.putText(img_BGR, text, org, fontFace, fontScale, textcolor, thickness, bottomLeftOrigin=False)
-        #img_BGR[row, col, :] = ((old_data * old_data_weight[:, None] + new_data) / total_weight[:, None])
-    #print(img_BGR)
-    return img_BGR
 
 
 def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
