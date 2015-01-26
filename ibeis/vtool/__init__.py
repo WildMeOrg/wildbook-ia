@@ -26,6 +26,7 @@ IMPORT_TUPLES = [
     ('geometry', None),
     ('nearest_neighbors', None),
     ('clustering2', None),
+    ('other', None),
     #('coverage_image', None),
 ]
 
@@ -45,6 +46,7 @@ from vtool import geometry
 from vtool import clustering
 from vtool import nearest_neighbors
 from vtool import clustering2
+from vtool import other
 
 # TODO: incorporate into utoolification
 from vtool import histogram as htool
@@ -148,7 +150,7 @@ if DOELSE:
                                 get_invVR_mats_sqrd_scale, get_invVR_mats_xys,
                                 get_invV_mats, get_invV_mats2x2,
                                 get_invV_xy_axis_extents, get_invVs,
-                                get_kpts_bounds, get_kpts_strs, get_ori_mats,
+                                get_kpts_image_extent, get_kpts_strs, get_ori_mats,
                                 get_ori_strs, get_oris, get_scales,
                                 get_shape_strs, get_sqrd_scales,
                                 get_xy_axis_extents, get_xy_strs, get_xys,

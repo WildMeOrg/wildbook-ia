@@ -15,7 +15,8 @@ from  vtool.spatial_verification import *  # NOQA
 
 xy_thresh = ktool.KPTS_DTYPE(.009)
 scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
-ori_thresh = ktool.KPTS_DTYPE(np.tau / 4)
+TAU = np.pi * 2.0  # References: tauday.com
+ori_thresh = ktool.KPTS_DTYPE(TAU / 4.0)
 
 
 def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):

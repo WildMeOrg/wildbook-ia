@@ -14,7 +14,8 @@ import vtool.image as gtool
 import vtool.keypoint as ktool
 from vtool.tests import grabdata
 
-if __name__ == '__main__':
+
+def main():
     np.set_printoptions(threshold=5000, linewidth=5000, precision=3)
     # Read data
     print('[rotinvar] loading test data')
@@ -108,5 +109,12 @@ if __name__ == '__main__':
     show_kpts_(2, (2, 3, 6), kpts10, vecs10, 'kpts10: reorient')
     df2.iup()
 
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.tests.test_exhaustive_ori_extract
+    """
+    main()
     #pinteract.interact_keypoints(imgBGR, kpts2, vecs, arrow=True, rect=True)
     exec(df2.present(wh=800))

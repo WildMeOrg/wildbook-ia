@@ -1,9 +1,10 @@
 from __future__ import absolute_import, division, print_function
 #from six.moves import range
 import utool as ut
-import six
+import six  # NOQA
 import numpy as np
 from vtool import keypoint as ktool
+from vtool import coverage_image
 from vtool import spatial_verification as sver
 #import numpy.linalg as npl
 #import scipy.sparse as sps
@@ -14,327 +15,69 @@ from vtool import spatial_verification as sver
 profile = ut.profile
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[constr]', DEBUG=False)
 
-"""
-Write paramater interactions
 
-show true match and false match
-
-"""
-
-
-#class SimpleMatchConfig(ut.Pref):
-#    def __init__(simple_cfg, *args, **kwargs):
-#        super(SimpleMatchConfig, simple_cfg).__init__(*args, **kwargs)
-#        simple_cfg.normalizer_mode = 'nearby'
-
-
-TAU = np.pi * 2
-
-
-def param_interaction():
-    r"""
-    Returns:
-        ?: testtup
-
-    CommandLine:
-        python -m vtool.constrained_matching --test-param_interaction
-
-    Notes:
-        python -m vtool.constrained_matching --test-param_interaction
-        setparam normalizer_mode=nearby
-        setparam normalizer_mode=far
-        setparam ratio_thresh=.625
-        setparam ratio_thresh=.5
-
-        setparam ratio_thresh2=.625
-        normalizer_mode=plus
+def assign_nearest_neighbors(vecs1, vecs2, K=2):
+    import vtool as vt
+    import pyflann
+    checks = 800
+    flann_params = {
+        'algorithm': 'kdtree',
+        'trees': 8
+    }
+    #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
+    pseudo_max_dist_sqrd = 2 * (512 ** 2)
+    flann = vt.flann_cache(vecs1, flann_params=flann_params)
+    try:
+        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    except pyflann.FLANNException:
+        print('vecs1.shape = %r' % (vecs1.shape,))
+        print('vecs2.shape = %r' % (vecs2.shape,))
+        print('vecs1.dtype = %r' % (vecs1.dtype,))
+        print('vecs2.dtype = %r' % (vecs2.dtype,))
+        raise
+    fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
+    return fx2_to_fx1, fx2_to_dist
 
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.constrained_matching import *  # NOQA
-        >>> # build test data
-        >>> # execute function
-        >>> testtup = param_interaction()
-        >>> # verify results
-        >>> result = str(testtup)
-        >>> print(result)
-    """
-    import plottool as pt
-    USE_IBEIS = False and ut.is_developer()
-    if USE_IBEIS:
-        from ibeis.model.hots import devcases
-        index = 2
-        fpath1, fpath2, fpath3 = devcases.get_dev_test_fpaths(index)
-        testtup1 = testdata_matcher(fpath1, fpath2)
-        testtup2 = testdata_matcher(fpath1, fpath3)
-    else:
-        testtup1 = testdata_matcher('easy1.png', 'easy2.png')
-        testtup2 = testdata_matcher('easy1.png', 'hard3.png')
-    testtup_list = [testtup1, testtup2]
-    simp_list = [SimpleMatcher(testtup) for testtup in testtup_list]
-    varied_dict = dict([
-        ('sver_xy_thresh', .1),
-        ('ratio_thresh', .625),
-        ('search_K', 7),
-        ('ratio_thresh2', .625),
-        ('sver_xy_thresh2', .01),
-        ('normalizer_mode', ['nearby', 'far', 'plus'][1]),
-        ('match_xy_thresh', .1),
-    ])
-    cfgdict_list = ut.all_dict_combinations(varied_dict)
-    tried_configs = []
-
-    # DEFINE CUSTOM INTRACTIONS
-
-    valid_vizmodes = ut.filter_startswith(dir(SimpleMatcher), 'visualize_')
-    viz_index_ = [valid_vizmodes.index('visualize_matches')]
-    def toggle_vizmode(iiter, actionkey, value, viz_index_=viz_index_):
-        viz_index_[0] = (viz_index_[0] + 1) % len(valid_vizmodes)
-        print('toggling')
-
-    def set_param(iiter, actionkey, value, viz_index_=viz_index_):
-        """
-        value = 'search_K=3'
-        """
-        paramkey, paramval = value.split('=')
-        print('parsing value=%r' % (value,))
-        def strip_quotes(str_):
-            dq = ut.DOUBLE_QUOTE
-            sq = ut.SINGLE_QUOTE
-            return str_.strip(dq).strip(sq).strip(dq)
-        # Sanatize
-        paramkey = strip_quotes(paramkey.strip())
-        paramval = ut.smart_cast2(strip_quotes(paramval.strip()))
-        print('setting cfgdict[%r]=%r' % (paramkey, paramval))
-        iiter.iterable[iiter.index][paramkey] = paramval
-
-    offset_fnum_ = [0]
-    def offset_fnum(iiter, actionkey, value, offset_fnum_=offset_fnum_):
-        offset_fnum_[0] += len(simp_list)
-
-    custom_actions = [
-        ('toggle', ['t'], 'toggles between ' + ut.cond_phrase(valid_vizmodes, 'and'), toggle_vizmode),
-        ('offset_fnum', ['offset_fnum', 'o'], 'offset the figure number (keeps old figures)', offset_fnum),
-        ('set_param', ['setparam', 's'], 'sets a config param using key=val format.  eg: setparam ratio_thresh=.1', set_param),
-    ]
-    # /DEFINE CUSTOM INTRACTIONS
-
-    for cfgdict in ut.InteractiveIter(cfgdict_list,
-                                      #default_action='reload',
-                                      custom_actions=custom_actions,
-                                      wraparound=True):
-        for simp in simp_list:
-            simp.run_matching(cfgdict=cfgdict)
-        vizkey = valid_vizmodes[viz_index_[0]].replace('visualize_', '')
-        print('vizkey = %r' % (vizkey,))
-        for fnum_, simp in enumerate(simp_list):
-            fnum = fnum_ + offset_fnum_[0]
-            simp.visualize(vizkey, fnum=fnum)
-        tried_configs.append(cfgdict.copy())
-        print('Current Config = ')
-        print(ut.dict_str(cfgdict))
-        pt.present()
-        pt.update()
+def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
+    fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
+    fx2_to_isvalid = fx2_to_ratio < ratio_thresh
+    fx2_m = np.where(fx2_to_isvalid)[0]
+    fx1_m = fx2_to_fx1.T[0].take(fx2_m)
+    fs_RAT = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
+    fm_RAT = np.vstack((fx1_m, fx2_m)).T
+    # return normalizer info as well
+    fx1_m_normalizer = fx2_to_fx1.T[1].take(fx2_m)
+    fm_norm_RAT = np.vstack((fx1_m_normalizer, fx2_m)).T
+    return fm_RAT, fs_RAT, fm_norm_RAT
 
 
-def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
-    """"
-    fname1 = 'easy1.png'
-    fname2 = 'hard3.png'
-    """
-    import utool as ut
-    from vtool import image as gtool
-    from vtool import features as feattool
-    fpath1 = ut.grab_test_imgpath(fname1)
-    fpath2 = ut.grab_test_imgpath(fname2)
-    kpts1, vecs1 = feattool.extract_features(fpath1)
-    kpts2, vecs2 = feattool.extract_features(fpath2)
-    rchip1 = gtool.imread(fpath1)
-    rchip2 = gtool.imread(fpath2)
-    #chip1_shape = vt.gtool.open_image_size(fpath1)
-    chip2_shape = gtool.open_image_size(fpath2)
-    dlen_sqrd2 = chip2_shape[0] ** 2 + chip2_shape[1]
-    testtup = (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2)
-    return testtup
-
-
-class SimpleMatcher(object):
-    def __init__(simp, testtup):
-        simp.testtup = testtup
-        simp.basetup = None
-        simp.nexttup = None
-
-    def visualize(simp, key, **kwargs):
-        visualize_method = getattr(simp, 'visualize_' + key)
-        return visualize_method(**kwargs)
-
-    def visualize_matches(simp, **kwargs):
-        r"""
-        CommandLine:
-            python -m vtool.constrained_matching --test-visualize_matches --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.constrained_matching import *  # NOQA
-            >>> import plottool as pt
-            >>> simp = SimpleMatcher(testdata_matcher())
-            >>> simp.run_matching()
-            >>> result = simp.visualize_matches()
-            >>> pt.show_if_requested()
-        """
-        nRows = 2
-        nCols = 3
-        show_matches_ = simp.start_new_viz(nRows, nCols, **kwargs)
-
-        show_matches_('ORIG')
-        show_matches_('RAT')
-        show_matches_('SV')
-        show_matches_('SC')
-        show_matches_('SCR')
-        show_matches_('SCRSV')
-
-    def visualize_normalizers(simp, **kwargs):
-        """
-        CommandLine:
-            python -m vtool.constrained_matching --test-visualize_normalizers --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.constrained_matching import *  # NOQA
-            >>> import plottool as pt
-            >>> simp = SimpleMatcher(testdata_matcher())
-            >>> simp.run_matching()
-            >>> result = simp.visualize_normalizers()
-            >>> pt.show_if_requested()
-        """
-        nRows = 2
-        nCols = 2
-        show_matches_ = simp.start_new_viz(nRows, nCols, **kwargs)
-
-        show_matches_('RAT')
-        show_matches_('SCR')
-
-        show_matches_('RAT', norm=True)
-        show_matches_('SCR', norm=True)
-
-        #show_matches_(fm_RAT, fs_RAT, title='ratio filtered')
-        #show_matches_(fm_SCR, fs_SCR, title='constrained matches')
-
-        #show_matches_(fm_norm_RAT, fs_RAT, title='ratio normalizers', cmap='cool')
-        #show_matches_(fm_norm_SCR, fs_SCR, title='constrained normalizers', cmap='cool')
-
-    def visualize_coverage(simp, **kwargs):
-        """
-        CommandLine:
-            python -m vtool.constrained_matching --test-visualize_coverage --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.constrained_matching import *  # NOQA
-            >>> import plottool as pt
-            >>> simp = SimpleMatcher(testdata_matcher())
-            >>> simp.run_matching()
-            >>> result = simp.visualize_coverage()
-            >>> pt.show_if_requested()
-        """
-        nRows = 2
-        nCols = 2
-        show_matches_ = simp.start_new_viz(nRows, nCols, **kwargs)
-
-        show_matches_('SV', draw_lines=False)
-        show_matches_('SCRSV', draw_lines=False)
-        show_matches_('SV', coverage=True)
-        show_matches_('SCRSV', coverage=True)
-
-    def start_new_viz(simp, nRows, nCols, fnum=None):
-        import plottool as pt
-
-        rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2  = simp.testtup
-        fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT   = simp.basetup
-        fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR = simp.nexttup
-        fm_norm_RAT, fm_norm_SV                                 = simp.base_meta
-        fm_norm_SC, fm_norm_SCR, fm_norm_SVSCR                  = simp.next_meta
-
-        locals_ = ut.delete_dict_keys(locals(), ['title'])
-
-        keytitle_tups = [
-            ('ORIG', 'initial neighbors'),
-            ('RAT', 'ratio filtered'),
-            ('SV', 'ratio filtered + SV'),
-            ('SC', 'spatially constrained'),
-            ('SCR', 'spatially constrained + ratio'),
-            ('SCRSV', 'spatially constrained + SV'),
-        ]
-        keytitle_dict = dict(keytitle_tups)
-        key_list = ut.get_list_column(keytitle_tups, 0)
-        matchtup_dict = {
-            key: (locals_['fm_' + key], locals_['fs_' + key])
-            for key in key_list
-        }
-        normtup_dict = {
-            key: locals_.get('fm_norm_' + key, None)
-            for key in key_list
-        }
-
-        next_pnum = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols)
-        if fnum is None:
-            fnum = pt.next_fnum()
-        INTERACTIVE = True
-        if INTERACTIVE:
-            from plottool import interact_helpers as ih
-            fig = ih.begin_interaction('qres', fnum)
-            ih.connect_callback(fig, 'button_press_event', on_single_match_clicked)
-        else:
-            pt.figure(fnum=fnum, doclf=True, docla=True)
-
-        def show_matches_(key, **kwargs):
-            assert key in key_list, 'unknown key=%r' % (key,)
-            showkw = locals_.copy()
-            pnum = next_pnum()
-            showkw['pnum'] = pnum
-            showkw['fnum'] = fnum
-            showkw.update(kwargs)
-            _fm, _fs = matchtup_dict[key]
-            title = keytitle_dict[key]
-            if kwargs.get('coverage'):
-                from vtool import coverage_image
-                kpts2_m = locals_['kpts2'].take(_fm.T[1], axis=0)
-                chip_shape2 = locals_['rchip2'].shape
-                coverage_mask, patch = coverage_image.make_coverage_mask(kpts2_m, chip_shape2, fx2_score=_fs)
-                pt.imshow(coverage_mask * 255, pnum=pnum, fnum=fnum)
-            else:
-                if kwargs.get('norm', False):
-                    _fm = normtup_dict[key]
-                    assert _fm is not None, key
-                    showkw['cmap'] = 'cool'
-                    title += ' normalizers'
-                show_matches(_fm, _fs, title=title, key=key, **showkw)
-        # state hack
-        #show_matches_.next_pnum = next_pnum
-        return show_matches_
-
-    def run_matching(simp, testtup=None, cfgdict={}):
-        if testtup is None:
-            testtup = simp.testtup
-        basetup, base_meta = baseline_vsone_ratio_matcher(testtup, cfgdict)
-        nexttup, next_meta = spatially_constrianed_matcher(testtup, basetup, cfgdict)
-        simp.nexttup = nexttup
-        simp.basetup = basetup
-        simp.testtup = testtup
-        simp.base_meta = base_meta
-        simp.next_meta = next_meta
-
-    def setstate_testdata(simp):
-        testtup = testdata_matcher()
-        simp.run_matching(testtup)
-
-
-def score_matches():
-    pass
+def ratio_test2(match_dist_list, norm_dist_list, fm_SC, fm_norm_SC, ratio_thresh2=.8):
+    ratio_list = np.divide(match_dist_list, norm_dist_list)
+    #ratio_thresh = .625
+    #ratio_thresh = .725
+    isvalid_list = np.less(ratio_list, ratio_thresh2)
+    valid_ratios = ratio_list[isvalid_list]
+    fm_SCR = fm_SC[isvalid_list]
+    fs_SCR = np.subtract(1.0, valid_ratios)  # NOQA
+    fm_norm_SCR = fm_norm_SC[isvalid_list]
+    #fm_SCR = np.vstack((fx1_m, fx2_m)).T  # NOQA
+    return fm_SCR, fs_SCR, fm_norm_SCR
 
 
 def baseline_vsone_ratio_matcher(testtup, cfgdict={}):
+    rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = testtup
+    return baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={})
+
+
+def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
+    (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
+    (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT) = basetup
+    return spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2,
+                                          dlen_sqrd2, H_RAT, cfgdict={})
+
+
+def baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
     r"""
     Args:
         vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
@@ -351,7 +94,6 @@ def baseline_vsone_ratio_matcher(testtup, cfgdict={}):
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     """
-    rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2 = testtup
     #import vtool as vt
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
     ratio_thresh =  cfgdict.get('ratio_thresh', .625)
@@ -381,7 +123,8 @@ def baseline_vsone_ratio_matcher(testtup, cfgdict={}):
     return base_tup, base_meta
 
 
-def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
+def spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2,
+                                   H_RAT, cfgdict={}):
     r"""
     spatially constrained ratio matching
 
@@ -402,8 +145,6 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
         >>> print(nexttup)
     """
     #import vtool as vt
-    (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2) = testtup
-    (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT) = basetup
 
     #match_xy_thresh = .1
     #sver_xy_thresh = .01
@@ -414,7 +155,7 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
     search_K = cfgdict.get('search_K', 7)
     ratio_thresh2   = cfgdict.get('ratio_thresh2', .8)
     sver_xy_thresh2 = cfgdict.get('sver_xy_thresh2', .01)
-    normalizer_mode = cfgdict.get('normalizer_mode', 'nearby')
+    normalizer_mode = cfgdict.get('normalizer_mode', 'far')
     match_xy_thresh = cfgdict.get('match_xy_thresh', .1)
 
     # ASSIGN CANDIDATES
@@ -423,9 +164,10 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
 
     # COMPUTE CONSTRAINTS
     #normalizer_mode = 'far'
-    constrain_tup = constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1,
-                                      fx2_to_dist, match_xy_thresh,
-                                      normalizer_mode=normalizer_mode)
+    constrain_tup = spatially_constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT,
+                                                fx2_to_fx1, fx2_to_dist,
+                                                match_xy_thresh,
+                                                normalizer_mode=normalizer_mode)
     (fm_SC, fm_norm_SC, match_dist_list, norm_dist_list) = constrain_tup
     fs_SC = 1 - np.divide(match_dist_list, norm_dist_list)   # NOQA
 
@@ -449,8 +191,10 @@ def spatially_constrianed_matcher(testtup, basetup, cfgdict={}):
     return nexttup, next_meta
 
 
-def constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist, match_xy_thresh, normalizer_mode='far'):
+def spatially_constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist, match_xy_thresh, normalizer_mode='far'):
     r"""
+    helper for spatially_constrianed_matcher
+
     Args:
         dlen_sqrd2 (?):
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
@@ -477,9 +221,9 @@ def constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist, 
     #    #fx2_to_fx1_knorm = [None if fx1 is None else min(fx1 + 1, maxk)
     #    #                    for fx1 in fx2_to_fx1_kmatch]
     #else:
+    # Set normalizer constraints
     if normalizer_mode == 'plus':
         normalizer_xy_bounds = (0, np.inf)
-    # Set normalizer constraints
     elif normalizer_mode == 'far':
         normalizer_xy_bounds = (match_xy_thresh, np.inf)
     elif normalizer_mode == 'nearby':
@@ -533,454 +277,373 @@ def constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist, 
         raise
 
     #ut.embed()
-    constraintup = fm_constrained, fm_norm_constrained, match_dist_list, norm_dist_list
+    constraintup = (fm_constrained, fm_norm_constrained, match_dist_list, norm_dist_list)
     return constraintup
 
 
-def assign_nearest_neighbors(vecs1, vecs2, K=2):
+def compute_forgroundness(fpath1, kpts1, species='zebra_plains'):
+    """
+    hack in foregroundness
+    """
+    import pyrf
     import vtool as vt
-    checks = 800
-    flann_params = {
-        'algorithm': 'kdtree',
-        'trees': 8
+    from os.path import exists
+    # hack for getting a model (not entirely ibeis independent)
+    trees_path = ut.get_app_resource_dir('ibeis', 'detectmodels', 'rf', species)
+    tree_fpath_list = ut.glob(trees_path, '*.txt')
+    detector = pyrf.Random_Forest_Detector()
+    # TODO; might need to downsample
+    forest = detector.forest(tree_fpath_list, verbose=False)
+    gpath_list = [fpath1]
+    output_gpath_list = [gpath + '.' + species + '.probchip.png' for gpath in gpath_list]
+    detectkw = {
+        'scale_list': [1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.1],
+        'output_gpath_list': output_gpath_list,
+        'mode': 1,  # mode one outputs probimage
     }
-    #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
-    pseudo_max_dist_sqrd = 2 * (512 ** 2)
-    flann = vt.flann_cache(vecs1, flann_params=flann_params)
-    import pyflann
-    try:
-        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
-    except pyflann.FLANNException:
-        print('vecs1.shape = %r' % (vecs1.shape,))
-        print('vecs2.shape = %r' % (vecs2.shape,))
-        print('vecs1.dtype = %r' % (vecs1.dtype,))
-        print('vecs2.dtype = %r' % (vecs2.dtype,))
-        raise
-    fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
-    return fx2_to_fx1, fx2_to_dist
+    results_iter = detector.detect(forest, gpath_list, **detectkw)
+    results_list = list(results_iter)  # NOQA
+    probchip_list = [vt.imread(gpath, grayscale=True) if exists(gpath) else None for gpath in output_gpath_list]
+    #vtpatch.get_warped_patches()
+    fgweights_list = []
+    kpts_list = [kpts1]
+    for probchip, kpts in zip(probchip_list,  kpts_list):
+        patch_list  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts]
+        weight_list = [vt.gaussian_average_patch(patch) for patch in patch_list]
+        #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        weights = np.array(weight_list, dtype=np.float32)
+        fgweights_list.append(weights)
+    fgweights = fgweights_list[0]
+    return fgweights
 
 
-def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
-
-    fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
-    fx2_to_isvalid = fx2_to_ratio < ratio_thresh
-    fx2_m = np.where(fx2_to_isvalid)[0]
-    fx1_m = fx2_to_fx1.T[0].take(fx2_m)
-    fs_RAT = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
-    fm_RAT = np.vstack((fx1_m, fx2_m)).T
-    # return normalizer info as well
-    fx1_m_normalizer = fx2_to_fx1.T[1].take(fx2_m)
-    fm_norm_RAT = np.vstack((fx1_m_normalizer, fx2_m)).T
-    return fm_RAT, fs_RAT, fm_norm_RAT
+def compute_distinctivness(vecs_list, species='zebra_plains'):
+    """
+    hack in distinctivness
+    """
+    from ibeis.model.hots import distinctiveness_normalizer
+    cachedir = ut.get_app_resource_dir('ibeis', 'distinctiveness_model')
+    dstcnvs_normer = distinctiveness_normalizer.DistinctivnessNormalizer(species, cachedir=cachedir)
+    dstcnvs_normer.load(cachedir)
+    dstncvs_list = [dstcnvs_normer.get_distinctiveness(vecs) for vecs in vecs_list]
+    return dstncvs_list
 
 
-def ratio_test2(match_dist_list, norm_dist_list, fm_SC, fm_norm_SC, ratio_thresh2=.8):
-    ratio_list = np.divide(match_dist_list, norm_dist_list)
-    #ratio_thresh = .625
-    #ratio_thresh = .725
-    isvalid_list = np.less(ratio_list, ratio_thresh2)
-    valid_ratios = ratio_list[isvalid_list]
-    fm_SCR = fm_SC[isvalid_list]
-    fs_SCR = np.subtract(1.0, valid_ratios)  # NOQA
-    fm_norm_SCR = fm_norm_SC[isvalid_list]
-    #fm_SCR = np.vstack((fx1_m, fx2_m)).T  # NOQA
-    return fm_SCR, fs_SCR, fm_norm_SCR
-
-
-def show_matches(fm, fs, fnum=1, pnum=None, title='', key=None, simp=None,
-                 cmap='hot', draw_lines=True, **locals_):
-    #locals_ = locals()
-    import plottool as pt
-    from plottool import plot_helpers as ph
-    # hack keys out of namespace
-    keys = 'rchip1, rchip2, kpts1, kpts2'.split(', ')
-    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(locals_, keys)
-    pt.figure(fnum=fnum, pnum=pnum)
-    #doclf=True, docla=True)
-    ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm,
-                                          fs=fs, fnum=fnum, cmap=cmap,
-                                          draw_lines=draw_lines)
-    ph.set_plotdat(ax, 'viztype', 'matches')
-    ph.set_plotdat(ax, 'simp', simp)
-    ph.set_plotdat(ax, 'key', key)
-    title = title + '\n num=%d, sum=%.2f' % (len(fm), sum(fs))
-    pt.set_title(title)
-    return ax, xywh1, xywh2
-    #pt.set_figtitle(title)
-    # if update:
-    #pt.iup()
-
-
-#def ishow_matches(fm, fs, fnum=1, pnum=None, title='', cmap='hot', **locals_):
-#    # TODO make things clickable
-def on_single_match_clicked(event):
-    from plottool import interact_helpers as ih
-    from plottool import plot_helpers as ph
-    """ result interaction mpl event callback slot """
-    print('[viz] clicked result')
-    if ih.clicked_outside_axis(event):
-        pass
-    else:
-        ax = event.inaxes
-        viztype = ph.get_plotdat(ax, 'viztype', '')
-        #printDBG(str(event.__dict__))
-        # Clicked a specific matches
-        if viztype.startswith('matches'):
-            #aid2 = ph.get_plotdat(ax, 'aid2', None)
-            # Ctrl-Click
-            evkey = '' if event.key is None else event.key
-            simp = ph.get_plotdat(ax, 'simp', None)
-            key = ph.get_plotdat(ax, 'key', None)
-            print('evkey = %r' % evkey)
-            if evkey.find('control') == 0:
-                print('[viz] result control clicked')
-                pass
-            # Left-Click
-            else:
-                print(simp)
-                print(key)
-                print('[viz] result clicked')
-                pass
-    ph.draw()
-pass
-
-
-# TODO: move to plottool and decouple with IBEIS
 @six.add_metaclass(ut.ReloadingMetaclass)
-class MatchInteraction2(object):
+class Annot(object):
     """
-    TODO: replace functional version with this class
-
-    Plots a chip result and sets up callbacks for interaction.
+    fpath1 = ut.grab_test_imgpath(fname1)
+    fpath2 = ut.grab_test_imgpath(fname2)
+    annot1 = Annot(fpath1)
+    annot2 = Annot(fpath2)
+    annot = annot1
 
     """
-    def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, *args, **kwargs):
-        self.rchip1 = rchip1
-        self.rchip2 = rchip2
-        self.kpts1 = kpts1
-        self.kpts2 = kpts2
-        self.fm = fm
-        self.fs = fs
-        self.fsv = fsv
-        self.vecs1 = vecs1
-        self.vecs2 = vecs2
-        self.begin(*args, **kwargs)
+    def __init__(annot, fpath, species='zebra_plains'):
+        annot.fpath = fpath
+        annot.species = species
+        annot.kpts      = None
+        annot.vecs      = None
+        annot.rchip     = None
+        annot.dstncvs   = None
+        annot.fgweights = None
+        annot.dstncvs_mask = None
+        annot.fgweight_mask = None
+        annot.load()
 
-    def begin(self, fnum=None, figtitle='Inspect Matches', same_fig=True, **kwargs):
+    def show(annot):
         import plottool as pt
-        from plottool import interact_helpers as ih
+        pt.imshow(annot.rchip)
+        pt.draw_kpts2(annot.kpts)
+
+    def show_dstncvs_mask(annot, title='wd', update=True, **kwargs):
+        import plottool as pt
+        pt.imshow(annot.dstncvs_mask * 255.0, update=update, title=title, **kwargs)
+
+    def show_fgweight_mask(annot, title='fg', update=True, **kwargs):
+        import plottool as pt
+        pt.imshow(annot.fgweight_mask * 255.0, update=update, title=title, **kwargs)
+
+    def load(annot):
+        from vtool import image as gtool
+        from vtool import features as feattool
+        kpts, vecs = feattool.extract_features(annot.fpath)
+        annot.kpts      = kpts
+        annot.vecs      = vecs
+        annot.rchip     = gtool.imread(annot.fpath)
+        annot.dstncvs   = compute_distinctivness([annot.vecs], annot.species)[0]
+        annot.fgweights = compute_forgroundness(annot.fpath, annot.kpts, annot.species)
+        annot.chip_shape = annot.rchip.shape
+        annot.dlen_sqrd = annot.chip_shape[0] ** 2 + annot.chip_shape[1] ** 2
+
+    def lazy_compute(annot):
+        if annot.dstncvs_mask is None:
+            annot.compute_dstncvs_mask()
+        if annot.fgweight_mask is None:
+            annot.compute_fgweight_mask()
+
+    def compute_fgweight_mask(annot):
+        keys = ['kpts', 'chip_shape', 'fgweights']
+        kpts, chip_shape, fgweights = ut.dict_take(annot.__dict__, keys)
+        fgweight_mask, patch = coverage_image.make_coverage_mask(
+            kpts, chip_shape, fx2_score=fgweights, mode='max')
+        annot.fgweight_mask = fgweight_mask
+
+    def compute_dstncvs_mask(annot):
+        keys = ['kpts', 'chip_shape', 'dstncvs']
+        kpts, chip_shape, dstncvs = ut.dict_take(annot.__dict__, keys)
+        dstncvs_mask, patch = coverage_image.make_coverage_mask(
+            kpts, chip_shape, fx2_score=dstncvs, mode='max')
+        annot.dstncvs_mask = dstncvs_mask
+
+    def baseline_match(annot, annot2):
+        cfgdict = {}
+        annot1 = annot
+        keys = ['kpts', 'vecs']
+        kpts1, vecs1 = ut.dict_take(annot1.__dict__, keys)
+        kpts2, vecs2 = ut.dict_take(annot2.__dict__, keys)
+        dlen_sqrd2 = annot2.dlen_sqrd
+        basetup, base_meta = baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict)
+        (fm_ORIG, fs_ORIG, fm_RAT, fs_RAT, fm_SV, fs_SV, H_RAT) = basetup
+        (fm_norm_RAT, fm_norm_SV) = base_meta
+        match_ORIG = AnnotMatch(annot1, annot2, fm_ORIG, fs_ORIG, 'ORIG')  # NOQA
+        match_RAT  = AnnotMatch(annot1, annot2, fm_RAT,  fs_RAT,  'RAT', fm_norm_RAT)  # NOQA
+        match_SV   = AnnotMatch(annot1, annot2, fm_SV,   fs_SV,   'SV', fm_norm_SV)
+        match_SV.H = H_RAT
+        return match_ORIG, match_RAT, match_SV
+
+    def constrained_match(annot, match_SV):
+        cfgdict = {}
+        annot1 = match_SV.annot1
+        assert annot1 is annot
+        annot2 = match_SV.annot2
+        keys = ['kpts', 'vecs']
+        kpts1, vecs1 = ut.dict_take(annot1.__dict__, keys)
+        kpts2, vecs2 = ut.dict_take(annot2.__dict__, keys)
+        dlen_sqrd2 = annot2.dlen_sqrd
+        H_RAT = match_SV.H
+        nexttup, next_meta = spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, H_RAT, cfgdict)
+        (fm_SC, fs_SC, fm_SCR, fs_SCR, fm_SCRSV, fs_SCRSV, H_SCR) = nexttup
+        (fm_norm_SC, fm_norm_SCR, fm_norm_SCRSV) = next_meta
+        match_SC    = AnnotMatch(annot1, annot2, fm_SC, fs_SC, 'SC', fm_norm_SC)  # NOQA
+        match_SCR   = AnnotMatch(annot1, annot2, fm_SCR,  fs_SCR,  'SCR', fm_norm_SCR)  # NOQA
+        match_SCRSV = AnnotMatch(annot1, annot2, fm_SCRSV,   fs_SCRSV, 'SCRSV', fm_norm_SCRSV)
+        match_SCRSV.H = H_SCR
+        return match_SC, match_SCR, match_SCRSV
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class AnnotMatch(object):
+    r"""
+
+    Example1:
+        >>> from vtool.constrained_matching import *  # NOQA
+        >>> fname1, fname2 = 'easy1.png', 'easy2.png'
+        >>> fpath1 = ut.grab_test_imgpath(fname1)
+        >>> fpath2 = ut.grab_test_imgpath(fname2)
+        >>> annot1, annot2 = Annot(fpath1), Annot(fpath2)
+        >>> match_ORIG, match_RAT, match_SV = annot1.baseline_match(annot2)
+        >>> match = match_SV
+        >>> match_SC, match_SCR, match_SCRSV = annot1.constrained_match(match_SV)
+        >>> match = match_SCR
+        >>> # ___
+        >>> match_list = [match_ORIG, match_RAT, match_SV, match_SC, match_SCR, match_SCRSV]
+        >>> # false match
+        >>> fname3 = 'hard3.png'
+        >>> fpath3 = ut.grab_test_imgpath(fname3)
+        >>> annot3 = Annot(fpath3)
+        >>> match_tn_list = []
+        >>> match_tn_list.extend(annot1.baseline_match(annot3))
+        >>> match_SV_fn = match_tn_list[-1]
+        >>> match_tn_list.extend(annot1.constrained_match(match_SV_fn))
+        >>> # ___
+        >>> print('___________')
+        >>> for match in match_list:
+        >>>    match.print_scores()
+        >>> print('___________')
+        >>> for match_tn in match_tn_list:
+        >>>    match_tn.print_scores()
+        >>> print('___________')
+        >>> for match, match_tn in zip(match_list, match_tn_list):
+        >>>    match.print_score_diffs(match_tn)
+
+    Ignore::
+        match.show_matches(fnum=1, update=True)
+
+        match.show_normalizers(fnum=2, update=True)
+    """
+    def __init__(match, annot1, annot2, fm, fs, key=None, fm_norm=None):
+        match.key = key
+        match.annot1 = annot1
+        match.annot2 = annot2
+        match.fm = fm
+        match.fs = fs
+        match.fm_norm = fm_norm
+
+        # Matching coverage of annot2
+        match.coverage_mask2 = None
+
+        # Scalar scores of theis match
+        match.num_matches = None
+        match.sum_score = None
+        match.ave_score = None
+        match.weight_ave_score = None
+        match.coverage_score = None
+        match.weighted_coverage_score = None
+
+    def compute_scores(match):
+        match.num_matches = len(match.fm)
+        match.sum_score = match.fs.sum()
+        match.ave_score = match.fs.sum() / match.fs.shape[0]
+        match.weight_ave_score = match.compute_weighte_average_score()
+        match.coverage_score = match.coverage_mask2.sum() / np.prod(match.coverage_mask2.shape)
+        match.weighted_coverage_score = match.compute_weighted_coverage_score()
+
+    def compute_weighte_average_score(match):
+        """ old scoring measure """
+        import vtool as vt
+        # Get distinctivness and forground of matching points
+        fx1_list, fx2_list = match.fm.T
+        annot1 = match.annot1
+        annot2 = match.annot2
+        dstncvs1  = annot1.dstncvs.take(fx1_list)
+        dstncvs2  = annot2.dstncvs.take(fx2_list)
+        fgweight1 = annot1.fgweights.take(fx1_list)
+        fgweight2 = annot2.fgweights.take(fx2_list)
+        dstncvs = np.sqrt(dstncvs1 * dstncvs2)
+        fgweight = np.sqrt(fgweight1 * fgweight2)
+        fsv = np.vstack((match.fs, dstncvs, fgweight)).T
+        fs_new = vt.weighted_average_scoring(fsv, [0], [1, 2])
+        weight_ave_score = fs_new.sum()
+        return weight_ave_score
+
+    def lazy_compute(match):
+        match.annot2.lazy_compute()
+        if match.coverage_mask2 is None:
+            match.compute_coverage_mask()
+        match.compute_scores()
+
+    def compute_weighted_coverage_score(match):
+        weight_mask = np.sqrt(match.annot2.dstncvs_mask * match.annot2.fgweight_mask)
+        conerage_score = (match.coverage_mask2.sum() / weight_mask.sum())
+        return conerage_score
+
+    def compute_coverage_mask(match):
+        """ compute matching coverage of annot """
+        fm = match.fm
+        fs = match.fs
+        kpts2       = match.annot2.kpts
+        chip_shape2 = match.annot2.chip_shape
+        kpts2_m = kpts2.take(fm.T[1], axis=0)
+        coverage_mask2, patch = coverage_image.make_coverage_mask(
+            kpts2_m, chip_shape2, fx2_score=fs, mode='max')
+        match.coverage_mask2 = coverage_mask2
+
+    # --- INFO ---
+
+    def print_scores(match):
+        match.lazy_compute()
+        score_keys = ['num_matches', 'sum_score', 'ave_score',
+                      'weight_ave_score', 'coverage_score',
+                      'weighted_coverage_score']
+        msglist = []
+        for key in score_keys:
+            msglist.append(' * %s = %6.2f' % (key, match.__dict__[key]))
+        msglist_aligned = ut.align_lines(msglist, '=')
+        msg = '\n'.join(msglist_aligned)
+        print('key = %r' % (match.key,))
+        print(msg)
+
+    def print_score_diffs(match, match_tn):
+        score_keys = ['num_matches', 'sum_score', 'ave_score',
+                      'weight_ave_score', 'coverage_score',
+                      'weighted_coverage_score']
+        msglist = [' * <key> =   <tp>,   <tn>, <diff>, <factor>']
+        for key in score_keys:
+            score = match.__dict__[key]
+            score_tn = match_tn.__dict__[key]
+            score_diff = score - score_tn
+            score_factor = score / score_tn
+            msglist.append(' * %s = %6.2f, %6.2f, %6.2f, %6.2f' % (key, score, score_tn, score_diff, score_factor))
+        msglist_aligned = ut.align_lines(msglist, '=')
+        msg = '\n'.join(msglist_aligned)
+        print('key = %r' % (match.key,))
+        print(msg)
+
+    def show_matches(match, fnum=None, pnum=None, update=True):
+        import plottool as pt
         from plottool import plot_helpers as ph
+        # hack keys out of namespace
+        keys = ['rchip', 'kpts']
+        rchip1, kpts1 = ut.dict_take(match.annot1.__dict__, keys)
+        rchip2, kpts2 = ut.dict_take(match.annot2.__dict__, keys)
+        fs, fm = match.fs, match.fm
+        cmap = 'hot'
+        draw_lines = True
         if fnum is None:
             fnum = pt.next_fnum()
-        fig = ih.begin_interaction('matches', fnum)  # call doclf docla and make figure
+        pt.figure(fnum=fnum, pnum=pnum)
+        #doclf=True, docla=True)
+        ax, xywh1, xywh2 = pt.show_chipmatch2(
+            rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=fnum, cmap=cmap,
+            draw_lines=draw_lines)
+        ph.set_plotdat(ax, 'viztype', 'matches')
+        ph.set_plotdat(ax, 'key', match.key)
+        title = match.key + '\n num=%d, sum=%.2f' % (len(fm), sum(fs))
+        pt.set_title(title)
+        if update:
+            pt.update()
+        return ax, xywh1, xywh2
 
-        rchip1, rchip2 = None, None
-        fm = None
-        mx = kwargs.pop('mx', None)
-        xywh2_ptr = [None]
-        annote_ptr = [kwargs.pop('mode', 0)]
-        self.same_fig = same_fig
-        self.last_fx = 0
-
-        # New state vars
-        self.vert = kwargs.pop('vert', None)
-        self.mx = None
-
-        # SET CLOSURE VARS
-        self.fnum     = fnum
-        self.fnum2    = pt.next_fnum()
-        self.figtitle = figtitle
-        self.same_fig = same_fig
-        self.kwargs   = kwargs
-        self.fig = fig
-        self.fig        = fig
-        self.annote_ptr = annote_ptr
-        self.xywh2_ptr  = xywh2_ptr
-        self.fm         = fm
-        self.rchip1     = rchip1
-        self.rchip2     = rchip2
-
-        if mx is None:
-            self.chipmatch_view()
-        else:
-            self.select_ith_match(mx)
-
-        self.set_callbacks()
-        # FIXME: this should probably not be called here
-        ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
-
-    def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
-        """
-        just visualizes the matches using some type of lines
-        """
+    def show_normalizers(match, fnum=None, pnum=None, update=True):
         import plottool as pt
-        # <CLOSURE VARS>
-        fnum     = self.fnum
-        #figtitle = self.figtitle
-        #kwargs   = self.kwargs
-        annote_ptr = self.annote_ptr
-        #xywh2_ptr  = self.xywh2_ptr
-        # </CLOSURE VARS>
-
-        mode = annote_ptr[0]  # drawing mode draw: with/without lines/feats
-        draw_ell = mode >= 1
-        draw_lines = mode == 2
-        annote_ptr[0] = (annote_ptr[0] + 1) % 3
-        pt.figure(fnum=fnum, docla=True, doclf=True)
-        show_matches_kw = self.__dict__.copy()
-        show_matches_kw.update(self.kwargs)
-        show_matches_kw.update(
-            dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines, draw_ell=draw_ell,
-                 colorbar_=True, vert=self.vert))
-        show_matches_kw.update(kwargs_)
-
-        #tup = show_matches(fm, fs, **show_matches_kw)
-        #ax, xywh1, xywh2 = tup
-        #xywh2_ptr[0] = xywh2
-
-        #pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
-
-    # Draw clicked selection
-    def select_ith_match(self, mx):
-        """
-        Selects the ith match and visualizes and prints information concerning
-        features weights, keypoint details, and sift descriptions
-        """
-        import plottool as pt
-        from plottool import viz_featrow
-        from plottool import interact_helpers as ih
-        # <CLOSURE VARS>
-        fnum       = self.fnum
-        #figtitle   = self.figtitle
-        same_fig   = self.same_fig
-        annote_ptr = self.annote_ptr
-        rchip1     = self.rchip1
-        rchip2     = self.rchip2
-        # </CLOSURE VARS>
-        self.mx    = mx
-        print('+--- SELECT --- ')
-        print('... selecting mx-th=%r feature match' % mx)
-        fsv = self.fsv  # qres.aid2_fsv[aid]
-        fs  = self.fs  # qres.aid2_fs[aid]
-        print('score stats:')
-        print(ut.get_stats_str(fsv, axis=0, newlines=True))
-        print('fsv[mx] = %r' % (fsv[mx],))
-        print('fs[mx] = %r' % (fs[mx],))
-        #----------------------
-        # Get info for the select_ith_match plot
-        annote_ptr[0] = 1
-        # Get the mx-th feature match
-        fx1, fx2 = None, None  # qres.aid2_fm[aid2][mx]
-
-        # Older info
-        fscore2  = None, None  # qres.aid2_fs[aid2][mx]
-        fk2      = None  # qres.aid2_fk[aid2][mx]
-        kpts1, kpts2 = None, None  # ibs.get_annot_kpts([aid1, aid2])
-        desc1, desc2 = None, None  # ibs.get_annot_vecs([aid1, aid2])
-        kp1, kp2     = kpts1[fx1], kpts2[fx2]
-        sift1, sift2 = desc1[fx1], desc2[fx2]
-        info1 = '\nquery'
-        info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
-        #self.last_fx = fx1
-        self.last_fx = fx1
-
-        # Extracted keypoints to draw
-        extracted_list = [(rchip1, kp1, sift1, fx1, 'aid1', info1),
-                          (rchip2, kp2, sift2, fx2, 'aid2', info2)]
-        # Normalizng Keypoint
-        #if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
-        #    qfx2_norm = qres.filt2_meta['lnbnn']
-        #    # Normalizing chip and feature
-        #    (aid3, fx3, normk) = qfx2_norm[fx1]
-        #    rchip3 = ibs.get_annot_chips(aid3)
-        #    kp3 = ibs.get_annot_kpts(aid3)[fx3]
-        #    sift3 = ibs.get_annot_vecs(aid3)[fx3]
-        #    info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
-        #    extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
-        #else:
-        #    pass
-        #    #print('WARNING: meta doesnt exist')
-
-        #----------------------
-        # Draw the select_ith_match plot
-        nRows, nCols = len(extracted_list) + same_fig, 3
-        # Draw matching chips and features
-        sel_fm = np.array([(fx1, fx2)])
-        pnum1 = (nRows, 1, 1) if same_fig else (1, 1, 1)
-        vert = self.vert if self.vert is not None else False
-        self.chipmatch_view(pnum1, ell_alpha=.4, ell_linewidth=1.8,
-                            colors=pt.BLUE, sel_fm=sel_fm, vert=vert)
-        # Draw selected feature matches
-        px = nCols * same_fig  # plot offset
-        prevsift = None
-        if not same_fig:
-            #fnum2 = fnum + len(viz.FNUMS)
-            fnum2 = self.fnum2
-            fig2 = pt.figure(fnum=fnum2, docla=True, doclf=True)
-        else:
-            fnum2 = fnum
-        for (rchip, kp, sift, fx, aid, info) in extracted_list:
-            px = viz_featrow.draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-                                           prevsift=prevsift, aid=aid, info=info)
-            prevsift = sift
-        if not same_fig:
-            ih.connect_callback(fig2, 'button_press_event', self._click_matches_click)
-            #pt.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
-
-    # Draw ctrl clicked selection
-    #def sv_view(self):
-    #    """ spatial verification view """
-    #    #fnum = viz.FNUMS['special']
-    #    aid = self.aid
-    #    fnum = pt.next_fnum()
-    #    fig = pt.figure(fnum=fnum, docla=True, doclf=True)
-    #    ih.disconnect_callback(fig, 'button_press_event')
-    #    viz.show_sv(self.ibs, self.qres.qaid, aid2=aid, fnum=fnum)
-    #    ph.draw()
-
-    # Callback
-    def _click_matches_click(self, event):
         from plottool import plot_helpers as ph
-        kpts1     = self.kpts1
-        kpts2     = self.kpts2
-        fm        = self.fm
-        xywh2_ptr = self.xywh2_ptr
-        #print_('[inter] clicked matches')
-        if event is None:
-            return
-        button = event.button
-        is_right_click = button == 3
-        if is_right_click:
-            return
-        (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
-        # Out of axes click
-        if None in [x, y, ax]:
-            print('... out of axis')
-            self.chipmatch_view()
-            ph.draw()
-            return
-        else:
-            viztype = ph.get_plotdat(ax, 'viztype', '')
-            key = '' if event.key is None else event.key
-            ctrl_down = key.find('control') == 0
-            # Click in match axes
-            if viztype == 'matches' and ctrl_down:
-                # Ctrl-Click
-                print('.. control click')
-                return self.sv_view()
-            elif viztype == 'matches':
-                if len(fm) == 0:
-                    print('[inter] no feature matches to click')
-                else:
-                    # Normal Click
-                    # Select nearest feature match to the click
-                    kpts1_m = kpts1[fm[:, 0]]
-                    kpts2_m = kpts2[fm[:, 1]]
-                    x2, y2, w2, h2 = xywh2_ptr[0]
-                    _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
-                    _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
-                    mx = _mx1 if _dist1 < _dist2 else _mx2
-                    print('... clicked mx=%r' % mx)
-                    self.select_ith_match(mx)
-            elif viztype in ['warped', 'unwarped']:
-                pass
-                #hs_aid = ax.__dict__.get('_hs_aid', None)
-                #hs_fx = ax.__dict__.get('_hs_fx', None)
-                #if hs_aid is not None and viztype == 'unwarped':
-                #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
-                #elif hs_aid is not None and viztype == 'warped':
-                #    viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=pt.next_fnum())
-            else:
-                print('...Unknown viztype: %r' % viztype)
-            ph.draw()
-
-    #def show_each_chip(self):
-    #    viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
-    #    viz_chip.show_chip(self.ibs, self.aid, fnum=pt.next_fnum())
-    #    ph.draw()
-
-    #def show_each_probchip(self):
-    #    viz_hough.show_probability_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
-    #    viz_hough.show_probability_chip(self.ibs, self.aid, fnum=pt.next_fnum())
-    #    ph.draw()
-
-    def set_callbacks(self):
-        """
-        CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-begin --show
-            python -m ibeis.viz.interact.interact_matches --test-begin
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
-            >>> code = ut.parse_doctest_from_docstr(MatchInteraction.begin.__doc__)[1][0]
-            >>> ut.set_clipboard(code)
-            >>> ut.send_keyboard_input(text='%paste')
-            >>> ut.send_keyboard_input(key_list=['KP_Enter'])
-        """
-        from plottool import interact_helpers as ih
-        #import guitool
-        # TODO: view probchip
-        #toggle_samefig_key = 'Toggle same_fig'
-        #opt2_callback = [
-        #    (toggle_samefig_key, self.toggle_samefig),
-        #    ('Toggle vert', self.toggle_vert),
-        #    ('query last feature', self.query_last_feature),
-        #    ('show each chip', self.show_each_chip),
-        #    ('show each probchip', self.show_each_probchip),
-        #    #('show each probchip', self.query_last_feature),
-        #    ('cancel', lambda: print('cancel')), ]
-        #guitool.connect_context_menu(self.fig.canvas, opt2_callback)
-        ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
-
-    #def toggle_vert(self):
-    #    self.vert = not self.vert
-    #    if self.mx is not None:
-    #        self.select_ith_match(self.mx)
-
-    #def toggle_samefig(self):
-    #    self.same_fig = not self.same_fig
-    #    if self.mx is not None:
-    #        self.select_ith_match(self.mx)
-
-    #def query_last_feature(self):
-    #    ibs      = self.ibs
-    #    qaid     = self.qaid
-    #    viz.show_nearest_descriptors(ibs, qaid, self.last_fx, pt.next_fnum())
-    #    fig3 = pt.gcf()
-    #    ih.connect_callback(fig3, 'button_press_event', self._click_matches_click)
-    #    pt.update()
+        # hack keys out of namespace
+        keys = ['rchip', 'kpts']
+        rchip1, kpts1 = ut.dict_take(match.annot1.__dict__, keys)
+        rchip2, kpts2 = ut.dict_take(match.annot2.__dict__, keys)
+        fs, fm = match.fs, match.fm_norm
+        cmap = 'cool'
+        draw_lines = True
+        if fnum is None:
+            fnum = pt.next_fnum()
+        pt.figure(fnum=fnum, pnum=pnum)
+        #doclf=True, docla=True)
+        ax, xywh1, xywh2 = pt.show_chipmatch2(
+            rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs, fnum=fnum, cmap=cmap,
+            draw_lines=draw_lines)
+        ph.set_plotdat(ax, 'viztype', 'matches')
+        ph.set_plotdat(ax, 'key', match.key)
+        title = match.key + '\n num=%d, sum=%.2f' % (len(fm), sum(fs))
+        pt.set_title(title)
+        if update:
+            pt.update()
+        return ax, xywh1, xywh2
 
 
-def show_example():
-    r"""
-    CommandLine:
-        python -m vtool.constrained_matching --test-show_example --show
+def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
+    """"
+    fname1 = 'easy1.png'
+    fname2 = 'hard3.png'
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.constrained_matching import *  # NOQA
-        >>> import plottool as pt
-        >>> # build test data
-        >>> # execute function
-        >>> result = show_example()
-        >>> # verify results
-        >>> print(result)
-        >>> pt.present()
-        >>> pt.show_if_requested()
+    annot1 = Annot(fpath1)
+    annot2 = Annot(fpath2)
     """
-    #ut.util_grabdata.get_valid_test_imgkeys()
-    testtup1 = testdata_matcher('easy1.png', 'easy2.png')
-    testtup2 = testdata_matcher('easy1.png', 'hard3.png')
-    simp1 = SimpleMatcher(testtup1)
-    simp2 = SimpleMatcher(testtup2)
-    simp1.run_matching()
-    simp2.run_matching()
-    #simp1.visualize_matches()
-    #simp2.visualize_matches()
-    simp1.visualize_normalizers()
-    simp2.visualize_normalizers()
-    #simp1.param_interaction()
+    import utool as ut
+    from vtool import image as gtool
+    from vtool import features as feattool
+    fpath1 = ut.grab_test_imgpath(fname1)
+    fpath2 = ut.grab_test_imgpath(fname2)
+    kpts1, vecs1 = feattool.extract_features(fpath1)
+    kpts2, vecs2 = feattool.extract_features(fpath2)
+    rchip1 = gtool.imread(fpath1)
+    rchip2 = gtool.imread(fpath2)
+    #chip1_shape = vt.gtool.open_image_size(fpath1)
+    chip2_shape = gtool.open_image_size(fpath2)
+    dlen_sqrd2 = chip2_shape[0] ** 2 + chip2_shape[1] ** 2
+    testtup = (rchip1, rchip2, kpts1, vecs1, kpts2, vecs2, dlen_sqrd2)
+
+    return testtup
 
 
 if __name__ == '__main__':

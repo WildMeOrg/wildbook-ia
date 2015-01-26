@@ -559,8 +559,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
     # Get diagonal length if not provided
     if dlen_sqrd2 is None:
-        kpts2_m = kpts2[fm.T[1]]
-        dlen_sqrd2 = ktool.get_diag_extent_sqrd(kpts2_m)
+        kpts2_m = kpts2.take(fm.T[1], axis=0)
+        dlen_sqrd2 = ktool.get_kpts_dlen_sqrd(kpts2_m)
     # Determine the best hypothesis transformation and get its inliers
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     aff_inliers, aff_errors, Aff = get_best_affine_inliers(

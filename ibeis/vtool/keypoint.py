@@ -1009,6 +1009,29 @@ def get_Z_mats(V_mats):
 
 #@profile
 def invert_invV_mats(invV_mats):
+    r"""
+    Args:
+        invV_mats (ndarray[float32_t, ndim=3]):  keypoint shapes (possibly translation)
+
+    Returns:
+        ndarray[float32_t, ndim=3]: V_mats
+
+    CommandLine:
+        python -m vtool.keypoint --test-invert_invV_mats
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> invV_mats = vt.get_invVR_mats3x3(kpts)
+        >>> # execute function
+        >>> V_mats = invert_invV_mats(invV_mats)
+        >>> test = vt.matrix_multiply(invV_mats, V_mats)
+        >>> # This should give us identity
+        >>> assert np.allclose(test, np.eye(3))
+    """
     try:
         V_mats = npl.inv(invV_mats)
     except npl.LinAlgError:
@@ -1081,7 +1104,7 @@ def get_xy_axis_extents(kpts):
 
 
 #@profile
-def get_kpts_bounds(kpts):
+def get_kpts_image_extent(kpts):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
@@ -1094,7 +1117,7 @@ def get_kpts_bounds(kpts):
         tuple: wh_bound
 
     CommandLine:
-        python -m vtool.keypoint --test-get_kpts_bounds
+        python -m vtool.keypoint --test-get_kpts_image_extent
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1103,7 +1126,7 @@ def get_kpts_bounds(kpts):
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> # execute function
-        >>> wh_bound = get_kpts_bounds(kpts)
+        >>> wh_bound = get_kpts_image_extent(kpts)
         >>> # verify results
         >>> result = kpts_repr(np.array(wh_bound))
         >>> print(result)
@@ -1117,38 +1140,35 @@ def get_kpts_bounds(kpts):
     return wh_bound
 
 
-#@profile
-def get_diag_extent_sqrd(kpts):
-    """
-    Returns the diagonal extent of keypoint x,y locations
-    SHAPES ARE NOT ACCOUNTED FOR
+def get_kpts_dlen_sqrd(kpts):
+    r"""
+    returns diagonal length squared of keypoint extent
 
     Args:
-        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
 
     Returns:
-        ?: extent_sqrd
+        float: dlen_sqrd
 
     CommandLine:
-        python -m vtool.keypoint --test-get_diag_extent_sqrd
+        python -m vtool.keypoint --test-get_kpts_dlen_sqrd
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> # execute function
-        >>> extent_sqrd = get_diag_extent_sqrd(kpts)
+        >>> dlen_sqrd = get_kpts_dlen_sqrd(kpts)
         >>> # verify results
-        >>> result = str(extent_sqrd)
+        >>> result = '%.2f' % dlen_sqrd
         >>> print(result)
+        5681.31
     """
-    xs, ys = get_xys(kpts)
-    x_extent_sqrd = (xs.max() - xs.min()) ** 2
-    y_extent_sqrd = (ys.max() - ys.min()) ** 2
-    extent_sqrd = x_extent_sqrd + y_extent_sqrd
-    return extent_sqrd
+    w, h = get_kpts_image_extent(kpts)
+    dlen_sqrd = (w ** 2) + (h ** 2)
+    return dlen_sqrd
 
 
 #@profile
@@ -1208,6 +1228,60 @@ def kpts_repr(arr, precision=2, suppress_small=True, linebreak=False):
     if not linebreak:
         reprstr = reprstr.replace('\n\n', '\n')
     return reprstr
+
+
+def kp_cpp_infostr(kp):
+    """ mirrors c++ debug code """
+    x, y = kp[0:2]
+    a11, a21, a22 = kp[2:5]
+    a12 = 0.0
+    ori = kp[5]
+    s = np.sqrt(a11 * a22)
+    a11 /= s
+    a12 /= s
+    a21 /= s
+    a22 /= s
+    infostr_list = [
+        ('+---'),
+        ('|     xy = (%s, %s)' % (x, y)),
+        ('| hat{invV} = [(%s, %s),' % (a11, a12,)),
+        ('|              (%s, %s)]' % (a21, a22,)),
+        ('|    sc  = %s' % (s,)),
+        ('|    ori = %s' % (ori,)),
+        ('L___'),
+    ]
+    return '\n'.join(infostr_list)
+
+
+def kpts_docrepr(arr, name='arr', indent=True, *args, **kwargs):
+    r"""
+    CommandLine:
+        python -m vtool.keypoint --test-kpts_docrepr
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> np.random.seed(0)
+        >>> arr = np.random.rand(3, 3)
+        >>> args = tuple()
+        >>> kwargs = dict()
+        >>> # execute function
+        >>> result = kpts_docrepr(arr)
+        >>> # verify results
+        >>> print(result)
+    """
+    reprstr_ = kpts_repr(arr, *args, **kwargs)
+    eq = ' = '
+    if len(name) == 0:
+        eq = ''
+    prefix = name + eq + 'np.'
+    docrepr_ = ut.indent(prefix + reprstr_, ' ' * len(prefix))[len(prefix):]
+    if indent:
+        docrepr = ut.indent('>>> ' + ut.indent(docrepr_, '... ')[4:], ' ' * 8)
+    else:
+        docrepr = docrepr_
+    return docrepr
 
 
 def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
