@@ -1789,30 +1789,43 @@ def stack_square_images(img_list):
     return bigpatch
 
 
-def stack_images(img1, img2, vert=None):
+def stack_images(img1, img2, vert=None, modifysize=False):
     # TODO: move this to the same place I'm doing the color gradient
     nChannels = gtool.get_num_channels(img1)
     nChannels2 = gtool.get_num_channels(img2)
     assert nChannels == nChannels2
-    (h1, w1) = img1.shape[0: 2]  # get chip dimensions
-    (h2, w2) = img2.shape[0: 2]
-    woff, hoff = 0, 0
-    vert_wh  = max(w1, w2), h1 + h2
-    horiz_wh = w1 + w2, max(h1, h2)
-    if vert is None:
-        # Display the orientation with the better (closer to 1) aspect ratio
-        vert_ar  = max(vert_wh) / min(vert_wh)
-        horiz_ar = max(horiz_wh) / min(horiz_wh)
-        vert = vert_ar < horiz_ar
-    if vert:
-        wB, hB = vert_wh
-        hoff = h1
-    else:
-        wB, hB = horiz_wh
-        woff = w1
+    def infer_vert(img1, img2, vert):
+        (h1, w1) = img1.shape[0: 2]  # get chip dimensions
+        (h2, w2) = img2.shape[0: 2]
+        woff, hoff = 0, 0
+        vert_wh  = max(w1, w2), h1 + h2
+        horiz_wh = w1 + w2, max(h1, h2)
+        if vert is None:
+            # Display the orientation with the better (closer to 1) aspect ratio
+            vert_ar  = max(vert_wh) / min(vert_wh)
+            horiz_ar = max(horiz_wh) / min(horiz_wh)
+            vert = vert_ar < horiz_ar
+        if vert:
+            wB, hB = vert_wh
+            hoff = h1
+        else:
+            wB, hB = horiz_wh
+            woff = w1
+        return vert, h1, h2, w1, w2, wB, hB, woff, hoff
+    vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    if modifysize:
+        import vtool as vt
+        index = 0 if vert else 1
+        if img1.shape[index] < img2.shape[index]:
+            scale = img2.shape[index] / img1.shape[index]
+            img1 = vt.resize_image_by_scale(img1, scale)
+            (img1, img2.shape[0:2])
+        elif img2.shape[index] < img1.shape[index]:
+            img2 = vt.resize_thumb(img2, img1.shape[0:2])
+        vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     # concatentate images
     dtype = img1.dtype
-    assert img1.dtype == img2.dtype
+    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
     if nChannels == 3:
         imgB = np.zeros((hB, wB, 3), dtype)
         imgB[0:h1, 0:w1, :] = img1
