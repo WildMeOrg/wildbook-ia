@@ -1,4 +1,4 @@
-// g++ -Wall -Wextra sver.cpp -lopencv_core -shared -fPIC -o sver.so
+// g++ -Wall -Wextra sver.cpp -lopencv_core -shared -fPIC -o sver.so 
 
 /*
 keypoints of form (x, y, a, c, d, theta)
@@ -166,7 +166,7 @@ for(size_t i = 0; i < vec.size(); i++) { \
         puts("-----");
 #undef SHOW_ERRVEC
 */
-        printf("%lu\n", Aff_mats.size());
+        //printf("%lu\n", Aff_mats.size());
         for(size_t i = 0; i < Aff_mats.size(); i++) {
             const size_t mat_size = 3*3*sizeof(double);
             //char msg[] = {'M', 'a', 't', 0x30+i%10, 0};
