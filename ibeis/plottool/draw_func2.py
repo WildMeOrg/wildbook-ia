@@ -65,6 +65,7 @@ def printDBG(*args):
 
 # Bring over moved functions that still have dependants elsewhere
 
+TAU = np.pi * 2
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
@@ -1459,7 +1460,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     return fig, ax
 
 
-def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
+def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
     # https://stackoverflow.com/questions/1843194/plotting-vector-fields-in-python-matplotlib
     # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.quiver
     printDBG('[df2] draw_vector_vield()')
@@ -1485,6 +1486,8 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
     y_grid = np.arange(0, len(gy), 1)
     # Vector locations and directions
     X, Y = np.meshgrid(x_grid, y_grid)
+    #X += .5
+    #Y += .5
     U, V = gx, -gy
     # Apply stride
     X_ = X[::stride, ::stride]
@@ -1498,7 +1501,8 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
     ax = gca()
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.invert_yaxis()
+    if invert:
+        ax.invert_yaxis()
     ax.set_aspect('equal')
     if title is not None:
         set_title(title)
@@ -1660,14 +1664,15 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb'):
+def color_orimag(gori, gweights=None, gmag_is_01=None, encoding='rgb', p=.5):
     r"""
     Args:
         gori (?):
-        gmag (None): TODO should be gweights
+        gweights (None): TODO should be gweights
+        p (float): power to raise normalized weights to
 
     Returns:
-        ?: bgr_ori
+        ndarray: bgr_ori
 
     CommandLine:
         python -m plottool.draw_func2 --test-color_orimag --show
@@ -1682,16 +1687,28 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb'):
         ...                  [ 4.71238898,  6.15139659,  0.76764078,  1.75632531,  1.57079633],
         ...                  [ 4.71238898,  4.51993581,  6.12565345,  3.87978382,  1.57079633],
         ...                  [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
-        >>> gmag = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
-        ...                  [ 0.02363726,  0.04195344,  0.29969492,  0.53007415,  0.0426679 ],
-        ...                  [ 0.00459386,  0.32086307,  0.02844123,  0.24623816,  0.27344167],
-        ...                  [ 0.04204251,  0.52165989,  0.25800464,  0.14568752,  0.023614  ],
-        ...                  [ 0.        ,  0.05143869,  0.2744546 ,  0.01582246,  0.        ]])
+        >>> gweights = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
+        ...                      [ 0.02363726,  0.04195344,  0.29969492,  0.53007415,  0.0426679 ],
+        ...                      [ 0.00459386,  0.32086307,  0.02844123,  0.24623816,  0.27344167],
+        ...                      [ 0.04204251,  0.52165989,  0.25800464,  0.14568752,  0.023614  ],
+        ...                      [ 0.        ,  0.05143869,  0.2744546 ,  0.01582246,  0.        ]])
         >>> # execute function
-        >>> bgr_ori = color_orimag(gori, gmag)
+        >>> p = 1
+        >>> bgr_ori1 = color_orimag(gori, gweights, encoding='bgr', p=p)
+        >>> bgr_ori2 = color_orimag(gori, None, encoding='bgr')
+        >>> legendimg = pt.make_ori_legend_img().astype(np.float32) / 255.0
+        >>> gweights_color = np.dstack([gweights] * 3).astype(np.float32)
+        >>> img, _, _ = pt.stack_images(bgr_ori2, gweights_color, vert=False)
+        >>> img, _, _ = pt.stack_images(img, bgr_ori1, vert=False)
+        >>> img, _, _ = pt.stack_images(img, legendimg, vert=True, modifysize=True)
         >>> # verify results
-        >>> pt.imshow(bgr_ori)
+        >>> pt.imshow(img, pnum=(1, 2, 1))
+        >>> # Hack orientation offset so 0 is downward
+        >>> gradx, grady = np.cos(gori + TAU / 4.0), np.sin(gori + TAU / 4.0)
+        >>> pt.imshow(bgr_ori2, pnum=(1, 2, 2))
+        >>> pt.draw_vector_field(gradx, grady, pnum=(1, 2, 2), invert=False)
         >>> color_orimag_colorbar(gori)
+        >>> pt.set_figtitle('weighted and unweighted orientaiton colors')
         >>> pt.update()
         >>> pt.show_if_requested()
     """
@@ -1702,16 +1719,19 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb'):
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
     hsv_ori = cv2.cvtColor(rgb_ori,       cv2.COLOR_RGB2HSV)
-    # Desaturate colors based on magnitude
-    if gmag is not None:
+    # Darken colors based on magnitude
+    if gweights is not None:
         # Hueristic hack
-        if (gmag_is_01 is not None and (gmag_is_01 is not False and gmag.max() > 255.0)):
-            gmag_ = gmag / 255.0
+        if (gmag_is_01 is not None and (gmag_is_01 is not False and gweights.max() > 255.0)):
+            gweights_ = gweights / 255.0
         else:
-            gmag_ = gmag
-        gmag_ = np.sqrt(gmag_)
-        hsv_ori[:, :, 1] = gmag_
-        hsv_ori[:, :, 2] = gmag_
+            gweights_ = gweights
+        # Weights modify just value
+        gweights_ = gweights_ ** p
+        #SAT_CHANNEL = 1
+        VAL_CHANNEL = 2
+        #hsv_ori[:, :, SAT_CHANNEL] = gweights_
+        hsv_ori[:, :, VAL_CHANNEL] = gweights_
     # Convert back to bgr
     #bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
     if encoding == 'rgb':
@@ -1756,6 +1776,86 @@ def color_orimag_colorbar(gori):
     ori_list = np.linspace(0, TAU, 8)
     color_list = get_orientation_color(ori_list)
     colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
+
+
+def make_ori_legend_img():
+    r"""
+
+    creates a figure that shows which colors are associated with which keypoint
+    rotations.
+
+    a rotation of 0 should point downward (becuase it is relative the the (0, 1)
+    keypoint eigenvector. and its color should be red due to the hsv mapping
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-make_ori_legend_img --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> # execute function
+        >>> img_BGR = make_ori_legend_img()
+        >>> # verify results
+        >>> pt.imshow(img_BGR)
+        >>> pt.iup()
+        >>> pt.show_if_requested()
+    """
+    import plottool as pt
+    TAU = 2 * np.pi
+    NUM = 36
+    NUM = 36 * 2
+    domain = np.linspace(0, 1, NUM, endpoint=False)
+    theta_list = domain * TAU
+    relative_theta_list = theta_list + (TAU / 4)
+    color_rgb_list = pt.get_orientation_color(theta_list)
+    c_list = np.cos(relative_theta_list)
+    r_list = np.sin(relative_theta_list)
+    rc_list = list(zip(r_list, c_list))
+    size = 1024
+    radius =  (size / 5) * ut.PHI
+    #size_root = size / 4
+    half_size = size / 2
+    img_BGR = np.zeros((size, size, 3), dtype=np.uint8)
+    basis = np.arange(-7, 7)
+    x_kernel_offset, y_kernel_offset = np.meshgrid(basis, basis)
+    x_kernel_offset = x_kernel_offset.ravel()
+    y_kernel_offset = y_kernel_offset.ravel()
+    #x_kernel_offset = np.array([0, 1,  0, -1, -1, -1,  0,  1, 1])
+    #y_kernel_offset = np.array([0, 1,  1,  1,  0, -1, -1, -1, 0])
+    #new_data_weight = np.ones(x_kernel_offset.shape, dtype=np.int32)
+    for color_rgb, (r, c) in zip(color_rgb_list, rc_list):
+        row = x_kernel_offset + int(r * radius + half_size)
+        col = y_kernel_offset + int(c * radius + half_size)
+        #old_data = img[row, col, :]
+        color = color_rgb[0:3] * 255
+        color_bgr = color[::-1]
+        #img_BGR[row, col, :] = color
+        img_BGR[row, col, :] = color_bgr
+        #new_data = img_BGR[row, col, :]
+        #old_data_weight = np.array(list(map(np.any, old_data > 0)), dtype=np.int32)
+        #total_weight = old_data_weight + 1
+    import cv2
+    for color_rgb, theta, (r, c) in list(zip(color_rgb_list, theta_list, rc_list))[::8]:
+        row = int(r * (radius * 1.2) + half_size)
+        col = int(c * (radius * 1.2) + half_size)
+        text = str('t=%.2f' % (theta))
+        fontFace = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 1
+        thickness = 2
+        textcolor = [255, 255, 255]
+        text_pt, text_sz = cv2.getTextSize(text, fontFace, fontScale, thickness)
+        text_w, text_h = text_pt
+        org = (int(col - text_w / 2), int(row + text_h / 2))
+        #print(row)
+        #print(col)
+        #print(color_rgb)
+        #print(text)
+        cv2.putText(img_BGR, text, org, fontFace, fontScale, textcolor, thickness, bottomLeftOrigin=False)
+        #img_BGR[row, col, :] = ((old_data * old_data_weight[:, None] + new_data) / total_weight[:, None])
+    #print(img_BGR)
+    return img_BGR
 
 
 def stack_image_list(img_list, **kwargs):
@@ -1833,13 +1933,17 @@ def stack_images(img1, img2, vert=None, modifysize=False):
     vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     if modifysize:
         import vtool as vt
-        index = 0 if vert else 1
+        import cv2
+        index = 1 if vert else 0
         if img1.shape[index] < img2.shape[index]:
             scale = img2.shape[index] / img1.shape[index]
-            img1 = vt.resize_image_by_scale(img1, scale)
-            (img1, img2.shape[0:2])
+            print(scale)
+            img1 = vt.resize_image_by_scale(img1, scale,
+                                            interpolation=cv2.INTER_NEAREST)
         elif img2.shape[index] < img1.shape[index]:
-            img2 = vt.resize_thumb(img2, img1.shape[0:2])
+            scale = img1.shape[index] / img2.shape[index]
+            img2 = vt.resize_image_by_scale(img2, scale,
+                                            interpolation=cv2.INTER_NEAREST)
         vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     # concatentate images
     dtype = img1.dtype
