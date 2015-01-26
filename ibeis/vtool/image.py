@@ -332,6 +332,13 @@ def rotate_image(img, theta, **kwargs):
     return imgR
 
 
+def resize_image_by_scale(img, scale):
+    height, width = img.shape[0:2]
+    #img_size = (width, height)
+    dsize = (int(round(width * scale)), int(round(height * scale)))
+    return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
+
+
 def resized_dims_and_ratio(img_size, max_dsize):
     max_width, max_height = max_dsize
     width, height = img_size
