@@ -329,6 +329,19 @@ def get_invV_mats3x3(kpts):
     return invV_mats3x3
 
 
+#@profile
+def get_RV_mats_3x3(kpts):
+    """
+    prefered over get_invV_mats
+
+    Returns:
+        V_mats (ndarray) : sequence of matrices that transform an ellipse to unit circle
+    """
+    invVR_mats = get_invVR_mats3x3(kpts)
+    RV_mats = invert_invV_mats(invVR_mats)
+    return RV_mats
+
+
 def get_invVR_mats3x3(kpts):
     r"""
     NEWER FUNCTION

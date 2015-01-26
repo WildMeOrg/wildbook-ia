@@ -175,6 +175,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     """
     Critical section code. Inner loop of _test_hypothesis_inliers
 
+    CommandLine:
+        python -m vtool.spatial_verification --test-_test_hypothesis_inliers
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
@@ -192,11 +195,13 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> scale_thresh_sqrd = np.float64(2)
         >>> ori_thresh = np.float64(TAU / 4)
         >>> # Get keypoints to project in matrix form
-        >>> invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
-        >>> V1s_m = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
-        >>> invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
+        >>> #invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
+        >>> #print(invVR1s_m[0])
+        >>> invVR1s_m = ktool.get_invVR_mats3x3(kpts1_m)
+        >>> RV1s_m = ktool.get_RV_mats_3x3(kpts1_m)
+        >>> invVR2s_m = ktool.get_invVR_mats3x3(kpts2_m)
         >>> # The transform from kp1 to kp2 is given as:
-        >>> Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
+        >>> Aff_mats = matrix_multiply(invVR2s_m, RV1s_m)
         >>> Aff = Aff_mats[0]
         >>> # Get components to test projects against
         >>> xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
@@ -291,6 +296,9 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
 
+    CommandLine:
+        python -m vtool.spatial_verification --test-get_affine_inliers
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
@@ -359,17 +367,19 @@ def get_affine_inliers(kpts1, kpts2, fm,
     kpts2_m = kpts2.take(fm.T[1], axis=0)
 
     # Get keypoints to project in matrix form
-    invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
-    invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
-    V1s_m     = ktool.invert_invV_mats(invVR1s_m)  # 539 us
+    #invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
+    #invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
+    invVR2s_m = ktool.get_invVR_mats3x3(kpts2_m)
+    invVR1s_m = ktool.get_invVR_mats3x3(kpts1_m)
+    RV1s_m    = ktool.invert_invV_mats(invVR1s_m)  # 539 us
     # BUILD ALL HYPOTHESIS TRANSFORMS: The transform from kp1 to kp2 is:
-    Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
+    Aff_mats = matrix_multiply(invVR2s_m, RV1s_m)
     # Get components to test projects against
     xy2_m  = ktool.get_xys(kpts2_m)
     det2_m = ktool.get_sqrd_scales(kpts2_m)
     ori2_m = ktool.get_oris(kpts2_m)
     # SLOWER EQUIVALENT
-    # V1s_m    = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)  # 5.2 ms
+    # RV1s_m    = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)  # 5.2 ms
     # xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
     # ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
     # assert np.all(ktool.get_oris(kpts2_m) == ktool.get_invVR_mats_oris(invVR2s_m))
