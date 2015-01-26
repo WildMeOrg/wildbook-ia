@@ -1038,6 +1038,16 @@ def show_all_colormaps():
     References:
         http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
         http://matplotlib.org/examples/color/colormaps_reference.html
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-show_all_colormaps --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> show_all_colormaps()
+        >>> pt.show_if_requested()
     """
     import pylab
     import numpy as np
@@ -1650,11 +1660,11 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gmag=None, gmag_is_01=None):
+def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb'):
     r"""
     Args:
         gori (?):
-        gmag (None):
+        gmag (None): TODO should be gweights
 
     Returns:
         ?: bgr_ori
@@ -1691,7 +1701,7 @@ def color_orimag(gori, gmag=None, gmag_is_01=None):
     #flat_rgb = np.array(cmap_(), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
-    hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
+    hsv_ori = cv2.cvtColor(rgb_ori,       cv2.COLOR_RGB2HSV)
     # Desaturate colors based on magnitude
     if gmag is not None:
         # Hueristic hack
@@ -1703,8 +1713,15 @@ def color_orimag(gori, gmag=None, gmag_is_01=None):
         hsv_ori[:, :, 1] = gmag_
         hsv_ori[:, :, 2] = gmag_
     # Convert back to bgr
-    bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
-    return bgr_ori
+    #bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
+    if encoding == 'rgb':
+        rgb_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
+        return rgb_ori
+    elif encoding == 'bgr':
+        bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
+        return bgr_ori
+    else:
+        raise AssertionError('unkonwn encoding=%r' % (encoding,))
 
 
 def get_orientation_color(radians_list):
@@ -1719,7 +1736,7 @@ def get_orientation_color(radians_list):
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> # build test data
-        >>> radians_list = np.arange(-1, 10, 10)
+        >>> radians_list = np.linspace(-1, 10, 10)
         >>> # execute function
         >>> result = get_orientation_color(radians_list)
         >>> # verify results
@@ -1729,7 +1746,8 @@ def get_orientation_color(radians_list):
     # Map radians to 0 to 1
     ori01_list = (radians_list % TAU) / TAU
     cmap_ = plt.get_cmap('hsv')
-    ori_colors_rgb = np.array(cmap_(ori01_list), dtype=np.float32)
+    color_list = cmap_(ori01_list)
+    ori_colors_rgb = np.array(color_list, dtype=np.float32)
     return ori_colors_rgb
 
 
