@@ -12,7 +12,7 @@ import utool as ut
 TAU = np.pi * 2
 
 
-def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None):
+def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None, img_fpath=None):
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
@@ -25,10 +25,13 @@ def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
+        >>> import plottool as pt
         >>> import vtool as vt
         >>> ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default='None')
         >>> weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default='None')
-        >>> result = show_ori_image_ondisk(ori_img_fpath, weights_img_fpath)
+        >>> patch_img_fpath = ut.get_argval('--fpath-patch', type_=str, default='None')
+        >>> result = show_ori_image_ondisk(ori_img_fpath, weights_img_fpath, patch_img_fpath)
+        >>> pt.show_if_requested()
     """
     #if img_fpath is not None:
     #    img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
@@ -39,37 +42,68 @@ def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None):
     #    vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
     #    vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
     import vtool as vt
-    import plottool as pt
-    gori = vt.imread(ori_img_fpath, grayscale=True)
-    print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
-    gori = TAU * gori / 255.0
-    print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
+    if img_fpath is not None and img_fpath != 'None':
+        patch = vt.imread(img_fpath, grayscale=True)
+    else:
+        patch = None
+    if ori_img_fpath is not None and ori_img_fpath != 'None':
+        gori = vt.imread(ori_img_fpath, grayscale=True)
+        gori = TAU * gori / 255.0
+    else:
+        gori = None
+    #print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
     if weights_img_fpath is not None and weights_img_fpath != 'None':
         weights = vt.imread(weights_img_fpath, grayscale=True)
         weights = weights / 255.0
     else:
         weights = None
-    #import cv2
-    #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
-
-    #ut.embed()
     print('show_ori_image_ondisk')
     print(' * ori_img_fpath = %r' % (ori_img_fpath,))
     print(' * weights_img_fpath = %r' % (weights_img_fpath,))
+    #import cv2
+    #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
+    show_ori_image(gori, weights, patch)
+    title = ut.get_argval('--title', default='')
+    import plottool as pt
+    pt.set_figtitle(title)
+
+
+def show_ori_image(gori, weights, patch, gradx=None, grady=None, fnum=None):
+    """
+        python -m pyhesaff._pyhesaff --test-test_rot_invar --show --nocpp
+    """
+    import plottool as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
     print('gori.max = %r' % gori.max())
-    bgr_ori = pt.color_orimag(gori, weights, False, encoding='bgr')
+    assert gori.max() <= TAU
+    assert gori.min() >= 0
+    bgr_ori = pt.color_orimag(gori / TAU, weights, False, encoding='bgr')
     print('bgr_ori.max = %r' % bgr_ori.max())
+
+    #ut.embed()
 
     bgr_ori = (255 * bgr_ori).astype(np.uint8)
     print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
     legend = pt.make_ori_legend_img()
     gorimag_, woff, hoff = pt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
-    pt.imshow(gorimag_)
-    pt.show_if_requested()
+    if patch is None:
+        pt.imshow(gorimag_, fnum=fnum)
+    else:
+        pt.imshow(gorimag_, fnum=fnum, pnum=(2, 1, 1))
+        pt.imshow(patch, fnum=fnum, pnum=(2, 2, 3))
+        #pt.imshow(patch, fnum=fnum, pnum=(2, 2, 1))
+        #gradx, grady = np.cos(gori + TAU / 4.0), np.sin(gori + TAU / 4.0)
+        if gradx is not None and grady is not None:
+            if weights is not None:
+                gradx *= weights
+                grady *= weights
+            #pt.imshow(bgr_ori, pnum=(2, 2, 4))
+            pt.draw_vector_field(gradx, grady, pnum=(2, 2, 4), invert=True)
 
 
-def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
+def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=(1, 1, 1)):
     r"""
     For C++ to show data
 
@@ -84,6 +118,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> import plottool as pt
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
         >>> hist_ = np.array(list(map(float, ut.get_argval('--hist', type_=list, default=[1, 4, 2, 5, 3, 3]))))
@@ -92,19 +127,27 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
         >>> centers = None
         >>> # execute function
         >>> show_hist_submaxima(hist_, edges, centers, maxima_thresh)
+        >>> pt.show_if_requested()
     """
-    print(repr(hist_))
-    print(repr(hist_.shape))
-    print(repr(edges))
-    print(repr(edges.shape))
+    #print(repr(hist_))
+    #print(repr(hist_.shape))
+    #print(repr(edges))
+    #print(repr(edges.shape))
     #ut.embed()
     import plottool as pt
     #ut.embed()
     if centers is None:
         centers = hist_edges_to_centers(edges)
     bin_colors = pt.get_orientation_color(centers)
+    pt.figure(fnum=pt.next_fnum(), pnum=pnum)
+    POLAR = False
+    if POLAR:
+        pt.df2.plt.subplot(*pnum, polar=True, axisbg='#000000')
     pt.draw_hist_subbin_maxima(hist_, centers, bin_colors=bin_colors, maxima_thresh=maxima_thresh)
-
+    #pt.gca().set_rmax(hist_.max() * 1.1)
+    #pt.gca().invert_yaxis()
+    #pt.gca().invert_xaxis()
+    pt.dark_background()
     #if ut.get_argflag('--legend'):
     #    pt.figure(fnum=pt.next_fnum())
     #    centers_ = np.append(centers, centers[0])
@@ -115,8 +158,9 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8):
     #    ax.set_rmax(.2)
     #    #ax.grid(True)
     #    #ax.set_title("Angle Colors", va='bottom')
-
-    pt.show_if_requested()
+    title = ut.get_argval('--title', default='')
+    import plottool as pt
+    pt.set_figtitle(title)
 
 
 def get_histinfo_str(hist, edges):
