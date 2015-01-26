@@ -45,7 +45,8 @@ def test_calling():
         fm, 2*len(fm),
         xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
         out_inlier_flags, out_errors, out_mats)
-    out_inliers = np.where(out_inlier_flags)[0]
+    out_inliers = [np.where(row)[0] for row in out_inlier_flags]
+    assert np.allclose(out_inliers, output[0])
     assert np.allclose(out_errors, output[1])
     assert np.allclose(out_mats, output[2])
     ut.embed()
