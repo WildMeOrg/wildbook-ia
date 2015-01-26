@@ -125,6 +125,56 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
     return words
 
 
+from ibeis import constants as const
+from ibeis.control import accessor_decors
+
+
+#@ut.time_func
+@register_ibs_method
+def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None):
+    """
+    very hacky, but cute way to cache keypoint distinctivness
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+        dstncvs_normer (None):
+
+    Returns:
+        list: dstncvs_list
+
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs --test-get_annot_kpts_distinctiveness
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
+        >>> from ibeis.model.hots import distinctiveness_normalizer
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+        >>> dstncvs_normer = distinctiveness_normalizer.request_species_distinctiveness_normalizer(const.Species.ZEB_PLAIN)
+        >>> # execute function
+        >>> aid_list1 = aid_list[::2]
+        >>> aid_list2 = aid_list[1::3]
+        >>> dstncvs_list1 = get_annot_kpts_distinctiveness(ibs, aid_list1, dstncvs_normer=dstncvs_normer)
+        >>> dstncvs_list2 = get_annot_kpts_distinctiveness(ibs, aid_list2, dstncvs_normer=dstncvs_normer)
+        >>> dstncvs_list3 = get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=dstncvs_normer)
+    """
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, eager=True, nInput=None)
+    fid_list = ibs.get_chip_fids(cid_list, ensure=False, eager=True, nInput=None)
+    dstncvs_list = get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=dstncvs_normer)
+    return dstncvs_list
+
+
+@accessor_decors.cache_getter(const.FEATURE_TABLE, 'distinctiveness', cfgkeys=['dstncvs_normer'], debug=True)
+def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None):
+    print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
+    vecs_list = ibs.get_feat_vecs(fid_list)
+    dstncvs_list = [dstncvs_normer.get_distinctiveness(vecs) for vecs in vecs_list]
+    return dstncvs_list
+
 #@register_ibs_method
 #def get_vocab_assignments(ibs, qreq_=None):
 #    pass

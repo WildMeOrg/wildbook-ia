@@ -21,20 +21,20 @@ VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
 
 
 def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, teardown=False, **kwargs):
-    '''
-        Args:
-            gid_list (list of int): the list of IBEIS image_rowids that need detection
-            trees_path (str): the path that the trees will be saved into (along
-                with temporary training inventory folders that are deleted once
-                training is finished)
-            species (str): the species that should be used to assign to the newly
-                trained trees
+    """
+    Args:
+        gid_list (list of int): the list of IBEIS image_rowids that need detection
+        trees_path (str): the path that the trees will be saved into (along
+            with temporary training inventory folders that are deleted once
+            training is finished)
+        species (str): the species that should be used to assign to the newly
+            trained trees
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Returns:
-            None
-    '''
+    Returns:
+        None
+    """
     print("[randomforest.train()] training with %d gids and species=%r" % (len(gid_list), species, ))
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_treesdir(), species)
@@ -113,23 +113,23 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
 
 
 def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path=None, **kwargs):
-    '''
-        Args:
-            train_pos_cpath_list (list of str): the list of positive image paths
-                for training
-            train_neg_cpath_list (list of str): the list of negative image paths
-                for training
-            trees_path (str): the path that the trees will be saved into (along
-                with temporary training inventory folders that are deleted once
-                training is finished)
-            species (str, optional): the species that should be used to assign to
-                the newly trained trees
+    """
+    Args:
+        train_pos_cpath_list (list of str): the list of positive image paths
+            for training
+        train_neg_cpath_list (list of str): the list of negative image paths
+            for training
+        trees_path (str): the path that the trees will be saved into (along
+            with temporary training inventory folders that are deleted once
+            training is finished)
+        species (str, optional): the species that should be used to assign to
+            the newly trained trees
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Returns:
-            None
-    '''
+    Returns:
+        None
+    """
     if trees_path is None:
         trees_path = join(ibs.get_treesdir(), 'generic')
     # Train trees
@@ -138,63 +138,83 @@ def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path
 
 
 def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
-    '''
-        Args:
-            gpath_list (list of str): the list of image paths that need detection
-            species (str): the species that should be used to select the pre-trained
-                random forest model
-            downsample (bool, optional): a flag to indicate if the original image
-                sizes should be used; defaults to True
+    """
+    Args:
+        gpath_list (list of str): the list of image paths that need detection
+        species (str): the species that should be used to select the pre-trained
+            random forest model
+        downsample (bool, optional): a flag to indicate if the original image
+            sizes should be used; defaults to True
 
-                True:  ibs.get_image_detectpaths() is used
-                False: ibs.get_image_paths() is used
+            True:  ibs.get_image_detectpaths() is used
+            False: ibs.get_image_paths() is used
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Yields:
-            iter
-    '''
+    Yields:
+        iter
+    """
     tree_path_list = _get_models(ibs, species)
     return detect(ibs, gpath_list, tree_path_list, **kwargs)
 
 
 def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwargs):
-    '''
-        Args:
-            gid_list (list of int): the list of IBEIS image_rowids that need detection
-            species (str): the species that should be used to select the pre-trained
-                random forest model
-            downsample (bool, optional): a flag to indicate if the original image
-                sizes should be used; defaults to True
+    """
+    Args:
+        gid_list (list of int): the list of IBEIS image_rowids that need detection
+        species (str): the species that should be used to select the pre-trained
+            random forest model
+        downsample (bool, optional): a flag to indicate if the original image
+            sizes should be used; defaults to True
 
-                True:  ibs.get_image_detectpaths() is used
-                False: ibs.get_image_paths() is used
+            True:  ibs.get_image_detectpaths() is used
+            False: ibs.get_image_paths() is used
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Returns:
-            iter
-    '''
+    Returns:
+        iter
+
+    CommandLine:
+        python -m ibeis.model.detect.randomforest --test-detect_gid_list_with_species
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.detect.randomforest import *  # NOQA
+        >>> from ibeis.model.detect.randomforest import _get_models  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> gid_list = ibs.get_valid_gids()
+        >>> downsample = True
+        >>> kwargs = {}
+        >>> # execute function
+        >>> result = detect_gid_list_with_species(ibs, gid_list, species, downsample)
+        >>> # verify results
+        >>> print(result)
+    """
     tree_path_list = _get_models(ibs, species)
-    return detect_gid_list(ibs, gid_list, tree_path_list, downsample=downsample, **kwargs)
+    results_iter = detect_gid_list(ibs, gid_list, tree_path_list, downsample=downsample, **kwargs)
+    return results_iter
 
 
 def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
-    '''
-        Args:
-            gid_list (list of int): the list of IBEIS image_rowids that need detection
-            tree_path_list (list of str): the list of trees to load for detection
-            downsample (bool, optional): a flag to indicate if the original image
-                sizes should be used; defaults to True
+    """
+    Args:
+        gid_list (list of int): the list of IBEIS image_rowids that need detection
+        tree_path_list (list of str): the list of trees to load for detection
+        downsample (bool, optional): a flag to indicate if the original image
+            sizes should be used; defaults to True
 
-                True:  ibs.get_image_detectpaths() is used
-                False: ibs.get_image_paths() is used
+            True:  ibs.get_image_detectpaths() is used
+            False: ibs.get_image_paths() is used
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Yields:
-            results (list of dict)
-    '''
+    Yields:
+        results (list of dict)
+    """
     # Get new gpaths if downsampling
     if downsample:
         gpath_list = ibs.get_image_detectpaths(gid_list)
@@ -217,19 +237,19 @@ def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
 
 
 def detect(ibs, gpath_list, tree_path_list, **kwargs):
-    '''
-        Args:
-            gpath_list (list of str): the list of image paths that need detection
-            tree_path_list (list of str): the list of trees to load for detection
+    """
+    Args:
+        gpath_list (list of str): the list of image paths that need detection
+        tree_path_list (list of str): the list of trees to load for detection
 
-        Kwargs (optional): refer to the PyRF documentation for configuration settings
+    Kwargs (optional): refer to the PyRF documentation for configuration settings
 
-        Returns:
-            iter
-    '''
+    Returns:
+        iter
+    """
     # Get scales from detect config, if not specified
     if 'scale_list' not in kwargs.keys():
-        kwargs['scale_list'] = map(float, ibs.cfg.detect_cfg.scale_list.split(','))
+        kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
         assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
     print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
     # Run detection

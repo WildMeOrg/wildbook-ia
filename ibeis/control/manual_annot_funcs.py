@@ -1842,6 +1842,39 @@ def update_annot_visual_uuids(ibs, aid_list):
     ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
+@register_ibs_method
+def get_annot_chip_dlen_sqrd(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+
+    Returns:
+        ndarray: topx2_dlen_sqrd
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_dlen_sqrd
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd(aid_list)
+        >>> # verify results
+        >>> result = str(topx2_dlen_sqrd)
+        >>> print(result)
+    """
+    topx2_dlen_sqrd = [
+        ((w ** 2) + (h ** 2))
+        for (w, h) in ibs.get_annot_chipsizes(aid_list)
+    ]
+    return topx2_dlen_sqrd
+
+
 def testdata_annot():
     import ibeis
     ibs = ibeis.opendb('testdb1')

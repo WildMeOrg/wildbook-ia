@@ -51,7 +51,8 @@ VEC_PSEUDO_MAX = 512
 # maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX
 if VEC_MIN == 0:
     # Can be on only on one quadrent of unit sphere
-    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * np.sqrt(2)
+    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * np.sqrt(2.0)
+    VEC_PSEUDO_MAX_DISTANCE_SQRD = 2.0 * (512.0 ** 2.0)
 elif VEC_MIN < 0:
     # Can be on whole unit sphere
     VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * 2

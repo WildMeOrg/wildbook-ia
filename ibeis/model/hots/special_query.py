@@ -33,11 +33,18 @@ sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vson
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 47 --naac --interupt-case
 
 
+Todo tomorrow:
+
+add coverage as option to IBEIS
+add spatially constrained matching as option to IBEIS
+
+
 """
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 import numpy as np
+import vtool as vt
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import distinctiveness_normalizer
@@ -788,77 +795,6 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     return new_fsv_list, daid_list
 
 
-def index_partition(item_list, part1_items):
-    """
-    returns two lists. The first are the indecies of items in item_list that
-    are in part1_items. the second is the indicies in item_list that are not
-    in part1_items. items in part1_items that are not in item_list are
-    ignored
-
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> item_list = ['dist', 'fg', 'distinctiveness']
-        >>> part1_items = ['fg', 'distinctiveness']
-        >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
-        >>> ut.assert_eq(part1_indexes.tolist(), [1, 2])
-        >>> ut.assert_eq(part2_indexes.tolist(), [0])
-    """
-    part1_indexes_ = [
-        item_list.index(item)
-        for item in part1_items
-        if item in item_list
-    ]
-    part1_indexes = np.array(part1_indexes_)
-    part2_indexes = np.setdiff1d(np.arange(len(item_list)), part1_indexes)
-    part1_indexes = part1_indexes.astype(np.int32)
-    part2_indexes = part2_indexes.astype(np.int32)
-    return part1_indexes, part2_indexes
-
-
-def weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs):
-    r"""
-    does \frac{\sum_i w^f_i * w^d_i * r_i}{\sum_i w^f_i, w^d_i}
-    to get a weighed average of ratio scores
-
-    If we normalize the weight part to sum to 1 then we can get per-feature
-    scores.
-
-    References:
-        http://en.wikipedia.org/wiki/Weighted_arithmetic_mean
-
-    Ignore:
-        # Show that the formulat is the same
-        new_fsv_vsone_numer = np.multiply(weight_fs, nonweight_fs)
-        new_fsv_vsone_denom = weight_fs
-        assert new_fs_vsone.sum() == new_fsv_vsone_numer.sum() / new_fsv_vsone_denom.sum()
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> new_fsv_vsone = np.array([
-        ...     [ 0.82992172,  1.56136119,  0.66465378],
-        ...     [ 0.8000412 ,  2.14719748,  1.        ],
-        ...     [ 0.80848503,  2.6816361 ,  1.        ],
-        ...     [ 0.86761665,  2.70189977,  1.        ],
-        ...     [ 0.8004055 ,  1.58753884,  0.92178345],])
-        >>> weight_filtxs = np.array([1, 2], dtype=np.int32)
-        >>> nonweight_filtxs = np.array([0], dtype=np.int32)
-        >>> new_fs_vsone = weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
-        >>> result = new_fs_vsone
-        >>> print(result)
-        [ 0.08585277  0.17123899  0.21611761  0.23367671  0.11675666]
-
-    """
-    weight_fs    = new_fsv_vsone.T.take(weight_filtxs, axis=0).T.prod(axis=1)
-    nonweight_fs = new_fsv_vsone.T.take(nonweight_filtxs, axis=0).T.prod(axis=1)
-    weight_fs_norm01 = weight_fs / weight_fs.sum()
-    #weight_fs_norm01[np.isnan(weight_fs_norm01)] = 0.0
-    # If weights are nan, fill them with zeros
-    weight_fs_norm01 = np.nan_to_num(weight_fs_norm01)
-    new_fs_vsone = np.multiply(nonweight_fs, weight_fs_norm01)
-    return new_fs_vsone
-
-
 def product_scoring(new_fsv_vsone):
     """ product of all weights """
     new_fs_vsone = new_fsv_vsone.prod(axis=1)
@@ -919,7 +855,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
     #numer_filters  = [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.RATIO]
 
     weight_filters = hstypes.WEIGHT_FILTERS
-    weight_filtxs, nonweight_filtxs = index_partition(qres_vsone.filtkey_list, weight_filters)
+    weight_filtxs, nonweight_filtxs = vt.index_partition(qres_vsone.filtkey_list, weight_filters)
 
     for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
         #scorex_vsone  = ut.listfind(qres_vsone.filtkey_list, filtkey)
@@ -930,7 +866,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         weighted_ave_score = True
         if weighted_ave_score:
             # weighted average scoring
-            new_fs_vsone = weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
+            new_fs_vsone = vt.weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
         else:
             # product scoring
             new_fs_vsone = product_scoring(new_fsv_vsone)

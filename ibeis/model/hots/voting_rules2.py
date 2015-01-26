@@ -39,7 +39,7 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
         >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
         >>> print(aid_list, score_list)
     """
-    (_, aid2_fs, _) = chipmatch
+    (_, aid2_fs, _, _) = chipmatch
     aid_list = list(six.iterkeys(aid2_fs))
     fs_list  = list(six.itervalues(aid2_fs))
     score_list = [np.sum(fs) for fs in fs_list]
@@ -102,7 +102,7 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
 
 def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
     # Nonhacky version of name scoring
-    (_, aid2_fs, _) = chipmatch
+    (_, aid2_fs, _, _) = chipmatch
     aid_list = list(six.iterkeys(aid2_fs))
     annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
     annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
@@ -123,7 +123,7 @@ def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
     list
     """
     if chipmatch is not None:
-        (_, aid2_fs, _) = chipmatch
+        (_, aid2_fs, _, _) = chipmatch
         aid2_chipscore = np.array([np.sum(fs) for fs in aid2_fs])
     # FIXME
     nid_list  = ibs.get_name_aids()
@@ -226,7 +226,7 @@ def _chipmatch2_utilities(ibs, qcx, chipmatch, K):
     aid2_nx = ibs.tables.aid2_nx
     nQFeats = len(ibs.feats.aid2_kpts[qcx])
     # Stack the feature matches
-    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+    (aid2_fm, aid2_fs, aid2_fk, aid2_H) = chipmatch
     aids = np.hstack([[aid] * len(aid2_fm[aid]) for aid in range(len(aid2_fm))])
     aids = np.array(aids, np.int)
     fms = np.vstack(aid2_fm)
@@ -431,7 +431,7 @@ def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
     """
     Positional Scoring Rule
     """
-    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+    (aid2_fm, aid2_fs, aid2_fk, _) = chipmatch
     K = qreq.cfg.nn_cfg.K
     isWeighted = qreq.cfg.agg_cfg.isWeighted
     # Create voting vectors of top K utilities

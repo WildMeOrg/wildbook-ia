@@ -67,6 +67,9 @@ python super_setup.py --newbranch joncrall_dev_branch
 python super_setup.py --checkout joncrall_dev_branch
 python super_setup.py --checkout next
 
+python super_setup.py --newbranch jdb
+python super_setup.py --checkout jdb
+
 
 GitReferences:
     http://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
