@@ -45,7 +45,7 @@ python _ibeis_setup.py -y --gg "git branch"
 
 
 # -- MERGE next -> master
-python _ibeis_setup.py -y --gg "git checkout next"
+python _ibeis_setup.py -y --gg "git checkout master"
 python _ibeis_setup.py -y --gg "git merge next"
 
 # -- SAFER MERGE topic -> next
