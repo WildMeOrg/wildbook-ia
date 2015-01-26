@@ -47,7 +47,7 @@ def call_cpp_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_th
     return out_inliers, out_errors, out_mats
 
 
-def test_with_dummy_keypoints(f):
+def testdata_affine_hypothesis():
     kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
     #fm = np.ascontiguousarray(dummy.make_dummy_fm(len(kpts1)).astype(np.uint))
     fm = np.ascontiguousarray(dummy.make_dummy_fm(len(kpts1)).astype(np.int64))
@@ -55,16 +55,18 @@ def test_with_dummy_keypoints(f):
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
     ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
     #print(repr([kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh]))
-    return f(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+    return (kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
 
 
 def test_calling():
-    py_results = test_with_dummy_keypoints(call_python_version)
-    cpp_results = test_with_dummy_keypoints(call_cpp_version)
-    assert np.allclose(py_results[0], cpp_results[0])
-    assert np.allclose(py_results[1], cpp_results[1])
-    assert np.allclose(py_results[2], cpp_results[2])
-    ut.embed()
+    '''
+        >>> test_calling()
+        True
+    '''
+    data = testdata_affine_hypothesis()
+    py_results = call_python_version(*data)
+    cpp_results = call_cpp_version(*data)
+    return all((np.allclose(py_results[i], cpp_results[i]) for i in [0, 1, 2]))
 
 
 def call_hello():
@@ -74,5 +76,5 @@ def call_hello():
 
 
 if __name__ == '__main__':
-    test_calling()
+    print(test_calling())
     #call_hello()
