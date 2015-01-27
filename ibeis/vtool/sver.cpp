@@ -1,4 +1,4 @@
-// g++ -Wall -Wextra sver.cpp -lopencv_core -shared -fPIC -o sver.so 
+// g++ -Wall -Wextra sver.cpp -lopencv_core -shared -fPIC -O2 -ffast-math -o sver.so
 
 /*
 keypoints of form (x, y, a, c, d, theta)
@@ -107,22 +107,27 @@ Matx<double, 3, 3> invVR1_m = get_invV_mat( \
 Matx<double, 3, 3> invVR2_m = get_invV_mat( \
     kpt2[0], kpt2[1], kpt2[2], \
     kpt2[3], kpt2[4], kpt2[5]);
-        vector<Matx<double, 3, 3> > Aff_mats;
+        //vector<Matx<double, 3, 3> > Aff_mats;
+// MATRIX_REF(i) should be the same as Aff_mats[i], but 
+//  directly operating on the numpy-allocated memory
+//   (less allocation == faster code)
+#define MATRIX_REF(i) (*((i)+((Matx<double, 3, 3>*)out_matrices_list)))
         //vector<vector<double> > xy_errs, scale_errs, ori_errs;
         for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
             SETUP_RELEVANT_VARIABLES
             Matx<double, 3, 3> V1_m = invVR1_m.inv();
             Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
-            Aff_mats.push_back(Aff_mat);
+            //Aff_mats.push_back(Aff_mat);
+            MATRIX_REF(fm_ind/2) = Aff_mat;
         }
-        const size_t inner_vec_len = fm_len/2;
-        for(size_t i = 0; i < Aff_mats.size(); i++) {
+        const size_t num_matches = fm_len/2;
+        for(size_t i = 0; i < num_matches; i++) {
             //xy_errs.push_back(vector<double>());
             //scale_errs.push_back(vector<double>());
             //ori_errs.push_back(vector<double>());
             for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
                 SETUP_RELEVANT_VARIABLES
-                Matx<double, 3, 3> Aff_mat = Aff_mats[i];
+                Matx<double, 3, 3> Aff_mat = MATRIX_REF(i);
                 // _test_hypothesis_inliers
                 Matx<double, 3, 3> invVR1_mt = Aff_mat * invVR1_m;
                 double xy_err = xy_distance(invVR1_mt, invVR2_m);
@@ -135,7 +140,7 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
 //  avoid intermediate allocations (the explicit structure is shown by the 
 //   commented xy_errs, scale_errs, and ori_errs variables).
 #define PACKED_INSERT(OFFSET, VAR) \
-*(out_errors_list+(inner_vec_len*3*i)+(inner_vec_len*(OFFSET))+(fm_ind/2)) = (VAR)
+*(out_errors_list+(num_matches*3*i)+(num_matches*(OFFSET))+(fm_ind/2)) = (VAR)
                 PACKED_INSERT(0, xy_err);
                 PACKED_INSERT(1, ori_err);
                 PACKED_INSERT(2, scale_err);
@@ -143,10 +148,11 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
                 bool is_inlier = (xy_err < xy_thresh_sqrd) &&
                                  (scale_err < scale_thresh_sqrd) &&
                                  (ori_err < ori_thresh);
-                *(out_inlier_flags+(inner_vec_len*i)+(fm_ind/2)) = is_inlier;
+                *(out_inlier_flags+(num_matches*i)+(fm_ind/2)) = is_inlier;
                 //printf("errs[%u][%u]: %f, %f, %f\n", fm_ind, i, xy_err, scale_err, ori_err);
             }
         }
+#undef MATRIX_REF
 #undef SETUP_RELEVANT_VARIABLES
 /*
 #define SHOW_ERRVEC(vec) \
@@ -166,6 +172,9 @@ for(size_t i = 0; i < vec.size(); i++) { \
         puts("-----");
 #undef SHOW_ERRVEC
 */
+        // Code for copying Aff_mats into the output is redundant now 
+        //  that the output is operated on directly (via MATRIX_REF)
+        /*
         //printf("%lu\n", Aff_mats.size());
         for(size_t i = 0; i < Aff_mats.size(); i++) {
             const size_t mat_size = 3*3*sizeof(double);
@@ -181,6 +190,7 @@ for(size_t i = 0; i < vec.size(); i++) { \
             //printf("\nafter: "); for(size_t j=0; j < mat_size; j+=8) {printf("0x%08x ", *(destc+j)); }
             //puts("\n");
         }
+        */
     }
 
     void hello_world() {
