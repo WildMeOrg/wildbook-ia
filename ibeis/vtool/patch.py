@@ -564,10 +564,10 @@ def intern_warp_single_patch(img, x, y, ori, V,
             #sigmaX, sigmaY = (patchImageSize / 2, patchImageSize / 2)
             #ut.embed()
             sigma = imageToPatchScale * 1.5
-            gaussianBlurInplace(warped_patch, sigma)
+            GaussianBlurInplace(warped_patch, sigma)
     else:
         sigma = 1.5
-        gaussianBlurInplace(warped_patch, sigma)
+        GaussianBlurInplace(warped_patch, sigma)
     return warped_patch, wkp
 
 
@@ -592,7 +592,7 @@ def get_warped_patch(imgBGR, kp, gray=False,
     return wpatch, wkp
 
 
-def gaussianBlurInplace(img, sigma):
+def GaussianBlurInplace(img, sigma):
     """
     simulates code from helpers.cpp in hesaff
 
@@ -601,7 +601,7 @@ def gaussianBlurInplace(img, sigma):
         sigma (flaot):
 
     CommandLine:
-        python -m vtool.patch --test-gaussianBlurInplace --show
+        python -m vtool.patch --test-GaussianBlurInplace --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -611,7 +611,7 @@ def gaussianBlurInplace(img, sigma):
         >>> img = get_test_patch('star2')
         >>> img_orig = img.copy()
         >>> sigma = .8
-        >>> gaussianBlurInplace(img, sigma)
+        >>> GaussianBlurInplace(img, sigma)
         >>> fig = pt.figure(fnum=1, pnum=(1, 3, 1))
         >>> size = int((2.0 * 3.0 * sigma + 1.0))
         >>> if not size & 1:  # check if even

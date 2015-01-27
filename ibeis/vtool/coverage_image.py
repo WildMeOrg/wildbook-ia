@@ -143,6 +143,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> print('patch stats %r' % (ut.get_stats_str(patch, axis=None)),)
         >>> #print(patch.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
+
         >>> # show results
         >>> if ut.get_argflag('--show'):
         >>>     import plottool as pt
@@ -169,43 +170,51 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     dsize = (chip_scale_w, chip_scale_h)
     shape = dsize[::-1]
     # Allocate destination image
-    dstimg = np.zeros(shape, dtype=np.float32)
     patch_shape = patch.shape
     # Scale keypoints into destination image
     M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
     affmat_list = M_list[:, 0:2, :]
     # cv2 warpAffine flags
-    dst_copy = dstimg.copy()
-    warpkw = dict(dst=dst_copy,
-                  flags=cv2.INTER_LINEAR,
-                  #flags=cv2.INTER_LANCZOS4,
-                  borderMode=cv2.BORDER_CONSTANT,
-                  borderValue=0)
+    BIG_KEYPOINT_LOW_WEIGHT_HACK = True
     def warped_patch_generator():
+        warped_dst = np.zeros(shape, dtype=np.float32)
+        # each score is spread across its contributing pixels
         for (M, score) in zip(affmat_list, fx2_score):
-            warped = cv2.warpAffine(patch * score, M, dsize, **warpkw).T
-            #
-            BIG_KEYPOINT_LOW_WEIGHT_HACK = True
+            src = patch * score
+            # References:
+            #   http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
+            # It seems that this will not operate in place even if a destination
+            # array is passed in. Thus we need to find a way to work around this
+            # massive memory usage.
+            warped_dst = cv2.warpAffine(src, M, dsize,
+                                        flags=cv2.INTER_LINEAR,
+                                        borderMode=cv2.BORDER_CONSTANT,
+                                        borderValue=0)
             if BIG_KEYPOINT_LOW_WEIGHT_HACK:
-                total_weight = np.sqrt(warped.sum()) * .1
+                total_weight = np.sqrt(warped_dst.sum()) * .1
                 #divisor =  / 1000)
                 #print(warp_sum)
-                #print(warped.max())
+                #print(warped_dst.max())
                 if total_weight > 1:
                     # Whatever the size of the keypoint is it should
                     # contribute a total of 1 score
-                    warped = np.divide(warped, total_weight)
-                #print(warped.max())
-            yield warped
+                    np.divide(warped_dst, total_weight, out=warped_dst)
+                #print(warped_dst.max())
+            yield warped_dst
     # For each keypoint
     # warp a gaussian scaled by the feature score into the image
     # Either max or sum
+    dstimg = np.zeros(shape, dtype=np.float32)
     if mode == 'max':
+        print(ut.get_resource_usage_str())
         for warped in warped_patch_generator():
-            dstimg = np.dstack((warped.T, dstimg)).max(axis=2)
+            np.maximum(warped, dstimg, out=dstimg)
+            del warped
+            #dstimg = np.dstack((warped.T, dstimg)).max(axis=2)
     elif mode == 'sum':
         for warped in warped_patch_generator():
-            dstimg += warped.T
+            np.add(warped, dstimg, out=dstimg)
+            #dstimg += warped
         # HACK FOR SUM: DO NOT DO THIS FOR MAX
         dstimg[dstimg > 1.0] = 1.0
     else:
@@ -305,12 +314,18 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
     if norm_01:
         patch /= patch.max()
     #, norm_01=False)
+    scale_factor = .25
     dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode,
-                                  fx2_score=fx2_score, **kwargs)
+                                  fx2_score=fx2_score, scale_factor=scale_factor,
+                                  **kwargs)
     #cv2.GaussianBlur(dstimg, ksize=(9, 9,), sigmaX=5.0, sigmaY=5.0,
     #                 dst=dstimg, borderType=cv2.BORDER_CONSTANT)
+    #import vtool as vt
     cv2.GaussianBlur(dstimg, ksize=(17, 17,), sigmaX=5.0, sigmaY=5.0,
                      dst=dstimg, borderType=cv2.BORDER_CONSTANT)
+    dsize = tuple(chip_shape[0:2][::-1])
+    dstimg = cv2.resize(dstimg, dsize)
+    print(dstimg)
     return dstimg, patch
 
 

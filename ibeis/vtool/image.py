@@ -145,9 +145,11 @@ def get_num_channels(img):
 @profile
 def subpixel_values(img, pts):
     """
-    adapted from
-    stackoverflow.com/uestions/12729228/simple-efficient-binlinear-
-    interpolation-of-images-in-numpy-and-python
+    References:
+        stackoverflow.com/uestions/12729228/simple-efficient-binlinear-interpolation-of-images-in-numpy-and-python
+
+    SeeAlso:
+        cv2.getRectSubPix(image, patchSize, center[, patch[, patchType]])
     """
     # Image info
     nChannels = get_num_channels(img)
